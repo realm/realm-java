@@ -69,7 +69,7 @@ public class DynamicRealmTests {
     public void setUp() {
         defaultConfig = configFactory.createConfiguration();
 
-        // Initialize schema. DynamicRealm will not do that, so let a normal Realm create the file first.
+        // Initializes schema. DynamicRealm will not do that, so let a normal Realm create the file first.
         Realm.getInstance(defaultConfig).close();
         realm = DynamicRealm.getInstance(defaultConfig);
     }
@@ -106,7 +106,7 @@ public class DynamicRealmTests {
         }
     }
 
-    // Test that the SharedGroupManager is not reused across Realm/DynamicRealm on the same thread.
+    // Tests that the SharedGroupManager is not reused across Realm/DynamicRealm on the same thread.
     // This is done by starting a write transaction in one Realm and verifying that none of the data
     // written (but not committed) is available in the other Realm.
     @Test
@@ -129,7 +129,7 @@ public class DynamicRealmTests {
         }
     }
 
-    // Test that Realms can only be deleted after all Typed and Dynamic instances are closed
+    // Tests that Realms can only be deleted after all Typed and Dynamic instances are closed.
     @Test
     public void deleteRealm_ThrowsIfDynamicRealmIsOpen() {
         realm.close(); // Close Realm opened in setUp();
@@ -331,7 +331,7 @@ public class DynamicRealmTests {
                 }
             });
         } catch (RuntimeException ignored) {
-            // Ensure that we pass a valuable error message to the logger for developers.
+            // Ensures that we pass a valuable error message to the logger for developers.
             assertEquals(testLogger.message, "Could not cancel transaction, not currently in a transaction.");
         } finally {
             RealmLog.remove(testLogger);
@@ -417,7 +417,7 @@ public class DynamicRealmTests {
         looperThread.keepStrongReference.add(allTypes);
     }
 
-    // Initialize a Dynamic Realm used by the *Async tests and keep it ref in the looperThread.
+    // Initializes a Dynamic Realm used by the *Async tests and keeps it ref in the looperThread.
     private DynamicRealm initializeDynamicRealm() {
         RealmConfiguration defaultConfig = looperThread.realmConfiguration;
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
@@ -446,14 +446,14 @@ public class DynamicRealmTests {
         dynamicRealm.commitTransaction();
         dynamicRealm.setAutoRefresh(true);
 
-        // Sort first set by using: String[ASC], Long[DESC]
+        // Sorts first set by using: String[ASC], Long[DESC].
         final RealmResults<DynamicRealmObject> realmResults1 = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .findAllSortedAsync(
                         new String[]{AllTypes.FIELD_STRING, AllTypes.FIELD_LONG},
                         new Sort[]{Sort.ASCENDING, Sort.DESCENDING}
                 );
 
-        // Sort second set by using: String[DESC], Long[ASC]
+        // Sorts second set by using: String[DESC], Long[ASC].
         final RealmResults<DynamicRealmObject> realmResults2 = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 0, 5)
                 .findAllSortedAsync(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.internal;
 
-import java.util.IdentityHashMap;
+package io.realm.entities.migration;
 
-/**
- * Identity based Set, that guarantees store & retrieve in O(1)
- * without a huge overhead in space complexity.
- */
-public class IdentitySet<K> extends IdentityHashMap<K,Integer> {
-    private final static Integer PLACE_HOLDER = 0;
+import io.realm.RealmObject;
 
-    public void add(K key)  {
-        put(key, PLACE_HOLDER);
+
+public class MigrationFieldRenameAndAdd extends RealmObject {
+    private String string1; // to be renamed
+    private String string2;
+
+    public String getString1() {
+        return string1;
+    }
+
+    public void setString1(String string1) {
+        this.string1 = string1;
+    }
+
+    public String getString2() {
+        return string2;
+    }
+
+    public void setString2(String string2) {
+        this.string2 = string2;
     }
 }

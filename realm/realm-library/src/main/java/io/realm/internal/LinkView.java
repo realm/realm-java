@@ -141,7 +141,7 @@ public class LinkView implements NativeObject {
     }
 
     /**
-     * Remove all target rows pointed to by links in this link view, and clear this link view.
+     * Removes all target rows pointed to by links in this link view, and clear this link view.
      */
     public void removeAllTargetRows() {
         checkImmutable();

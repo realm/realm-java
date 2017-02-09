@@ -335,7 +335,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     /**
-     * Update the underlying schema based on the schema description.
+     * Updates the underlying schema based on the schema description.
      * Calling this method must be done from inside a write transaction.
      */
     public void updateSchema(RealmSchema schema, long version) {

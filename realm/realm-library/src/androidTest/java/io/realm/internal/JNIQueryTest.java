@@ -376,14 +376,14 @@ public class JNIQueryTest extends TestCase {
 
 
     public void testShouldFind() {
-        // Create a table
+        // Creates a table.
         Table table = new Table();
 
         table.addColumn(RealmFieldType.STRING, "username");
         table.addColumn(RealmFieldType.INTEGER, "score");
         table.addColumn(RealmFieldType.BOOLEAN, "completed");
 
-        // Insert some values
+        // Inserts some values.
         table.add("Arnold", 420, false);    // 0
         table.add("Jane", 770, false);      // 1 *
         table.add("Erik", 600, false);      // 2
@@ -393,26 +393,26 @@ public class JNIQueryTest extends TestCase {
 
         TableQuery query = table.where().greaterThan(new long[]{1}, 600);
 
-        // find first match
+        // Finds first match.
         assertEquals(1, query.find());
         assertEquals(1, query.find());
         assertEquals(1, query.find(0));
         assertEquals(1, query.find(1));
-        // find next
+        // Finds next.
         assertEquals(3, query.find(2));
         assertEquals(3, query.find(3));
-        // find next
+        // Finds next.
         assertEquals(5, query.find(4));
         assertEquals(5, query.find(5));
 
-        // test backwards
+        // Tests backwards.
         assertEquals(5, query.find(4));
         assertEquals(3, query.find(3));
         assertEquals(3, query.find(2));
         assertEquals(1, query.find(1));
         assertEquals(1, query.find(0));
 
-        // test out of range
+        // Tests out of range.
         assertEquals(-1, query.find(6));
         try {  query.find(7);  fail("Exception expected");  } catch (ArrayIndexOutOfBoundsException e) {  }
     }
@@ -437,10 +437,10 @@ public class JNIQueryTest extends TestCase {
 
         Table table = TestHelper.getTableWithAllColumnTypes();
 
-        // Query the table
+        // Queries the table.
         TableQuery query = table.where();
 
-        // Compare strings in non string columns
+        // Compares strings in non string columns.
         for (int i = 0; i <= 6; i++) {
             try { query.equalTo(new long[]{i}, "string");                 assert(false); } catch(IllegalArgumentException e) {}
             try { query.notEqualTo(new long[]{i}, "string");              assert(false); } catch(IllegalArgumentException e) {}
@@ -450,7 +450,7 @@ public class JNIQueryTest extends TestCase {
             try { query.contains(new long[]{i}, "string");                assert(false); } catch(IllegalArgumentException e) {}
         }
 
-        // Compare integer in non integer columns
+        // Compares integer in non integer columns.
         for (int i = 0; i <= 6; i++) {
             if (i != 5) {
                 try { query.equalTo(new long[]{i}, 123);                      assert(false); } catch(IllegalArgumentException e) {}
@@ -463,7 +463,7 @@ public class JNIQueryTest extends TestCase {
             }
         }
 
-        // Compare float in non float columns
+        // Compares float in non float columns.
         for (int i = 0; i <= 6; i++) {
             if (i != 4) {
                 try { query.equalTo(new long[]{i}, 123F);                     assert(false); } catch(IllegalArgumentException e) {}
@@ -476,7 +476,7 @@ public class JNIQueryTest extends TestCase {
             }
         }
 
-        // Compare double in non double columns
+        // Compares double in non double columns.
         for (int i = 0; i <= 6; i++) {
             if (i != 3) {
                 try { query.equalTo(new long[]{i}, 123D);                     assert(false); } catch(IllegalArgumentException e) {}
@@ -489,14 +489,14 @@ public class JNIQueryTest extends TestCase {
             }
         }
 
-        // Compare boolean in non boolean columns
+        // Compares boolean in non boolean columns.
         for (int i = 0; i <= 6; i++) {
             if (i != 1) {
               try { query.equalTo(new long[]{i}, true);                       assert(false); } catch(IllegalArgumentException e) {}
             }
         }
 
-        // Compare date
+        // Compares date.
         /* TODO:
         for (int i = 0; i <= 8; i++) {
             if (i != 2) {
@@ -515,7 +515,7 @@ public class JNIQueryTest extends TestCase {
     public void testColumnIndexOutOfBounds() {
         Table table = TestHelper.getTableWithAllColumnTypes();
 
-        // Query the table
+        // Queries the table.
         TableQuery query = table.where();
 
         try { query.minimumInt(0);                 assert(false); } catch(IllegalArgumentException e) {}

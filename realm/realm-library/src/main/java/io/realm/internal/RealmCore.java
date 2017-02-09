@@ -70,7 +70,7 @@ public class RealmCore {
             // Above can't be used on Android.
         }
 //*/
-        // Load debug library first - if available
+        // Loads debug library first - if available.
         String jnilib;
         jnilib = loadCorrectLibrary("realm_jni32d", "realm_jni64d");
         if (jnilib != null) {
@@ -110,10 +110,10 @@ public class RealmCore {
     // The ClassLoader has a static field (sys_paths) that contains the paths.
     // If that field is set to null, it is initialized automatically.
     // Therefore forcing that field to null will result into the reevaluation of the library path
-    // as soon as loadLibrary() is called
+    // as soon as loadLibrary() is called.
     private static void resetLibraryPath() {
         try {
-            // reset the library path (a hack)
+            // Resets the library path (a hack).
             Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
             fieldSysPath.setAccessible(true);
             fieldSysPath.set(null, null);

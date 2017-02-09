@@ -71,7 +71,9 @@ public class RealmAnalytics {
             + "      \"Realm Version\": \"%REALM_VERSION%\",\n"
             + "      \"Host OS Type\": \"%OS_TYPE%\",\n"
             + "      \"Host OS Version\": \"%OS_VERSION%\",\n"
-            + "      \"Target OS Type\": \"android\"\n"
+            + "      \"Target OS Type\": \"android\",\n"
+            + "      \"Target OS Version\": \"%TARGET_SDK%\",\n"
+            + "      \"Target OS Minimum Version\": \"%MIN_SDK%\"\n"
             + "   }\n"
             + "}";
 
@@ -80,11 +82,15 @@ public class RealmAnalytics {
 
     private boolean usesKotlin;
     private boolean usesSync;
+    private String targetSdk;
+    private String minSdk;
 
-    public RealmAnalytics(Set<String> packages, boolean usesKotlin, boolean usesSync) {
+    public RealmAnalytics(Set<String> packages, boolean usesKotlin, boolean usesSync, String targetSdk, String minSdk) {
         this.packages = packages;
         this.usesKotlin = usesKotlin;
         this.usesSync = usesSync;
+        this.targetSdk = targetSdk;
+        this.minSdk = minSdk;
     }
 
     private void send() {
@@ -133,7 +139,9 @@ public class RealmAnalytics {
                 .replaceAll("%SYNC_VERSION%", usesSync ? "\"" + Version.SYNC_VERSION + "\"": "null")
                 .replaceAll("%REALM_VERSION%", Version.VERSION)
                 .replaceAll("%OS_TYPE%", System.getProperty("os.name"))
-                .replaceAll("%OS_VERSION%", System.getProperty("os.version"));
+                .replaceAll("%OS_VERSION%", System.getProperty("os.version"))
+                .replaceAll("%TARGET_SDK%", targetSdk)
+                .replaceAll("%MIN_SDK%", minSdk);
     }
 
     /**

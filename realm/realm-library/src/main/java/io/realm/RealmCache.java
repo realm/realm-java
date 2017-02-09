@@ -107,14 +107,14 @@ final class RealmCache {
         boolean isCacheInMap = true;
         RealmCache cache = cachesMap.get(configuration.getPath());
         if (cache == null) {
-            // Create a new cache
+            // Creates a new cache.
             cache = new RealmCache(configuration);
             // The new cache should be added to the map later.
             isCacheInMap = false;
 
             copyAssetFileIfNeeded(configuration);
         } else {
-            // Throw the exception if validation failed.
+            // Throws the exception if validation failed.
             cache.validateConfiguration(configuration);
         }
 
@@ -134,7 +134,7 @@ final class RealmCache {
         }
 
         if (refAndCount.localRealm.get() == null) {
-            // Create a new local Realm instance
+            // Creates a new local Realm instance
             BaseRealm realm;
 
 
@@ -161,7 +161,7 @@ final class RealmCache {
         if (refCount == 0) {
             if (realmClass == Realm.class && refAndCount.globalCount == 0) {
                 final BaseRealm realm = refAndCount.localRealm.get();
-                // store a copy of local ColumnIndices as a global cache.
+                // Stores a copy of local ColumnIndices as a global cache.
                 RealmCache.storeColumnIndices(cache.typedColumnIndicesArray, realm.schema.columnIndices.clone());
             }
             // This is the first instance in current thread, increase the global count.
@@ -172,7 +172,7 @@ final class RealmCache {
         @SuppressWarnings("unchecked")
         E realm = (E) refAndCount.localRealm.get();
 
-        // Notify SyncPolicy that the Realm has been opened for the first time
+        // Notifies SyncPolicy that the Realm has been opened for the first time
         if (refAndCount.globalCount == 1) {
             ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).realmOpened(configuration);
         }
@@ -204,16 +204,16 @@ final class RealmCache {
             return;
         }
 
-        // Decrease the local counter.
+        // Decreases the local counter.
         refCount -= 1;
 
         if (refCount == 0) {
             // The last instance in this thread.
-            // Clear local ref & counter
+            // Clears local ref & counter.
             refAndCount.localCount.set(null);
             refAndCount.localRealm.set(null);
 
-            // Clear global counter
+            // Clears global counter.
             refAndCount.globalCount--;
             if (refAndCount.globalCount < 0) {
                 // Should never happen.
@@ -221,9 +221,9 @@ final class RealmCache {
                         " got corrupted.");
             }
 
-            // Clear the column indices cache if needed
+            // Clears the column indices cache if needed.
             if (realm instanceof Realm && refAndCount.globalCount == 0) {
-                // All typed Realm instances of this file are cleared from cache
+                // All typed Realm instances of this file are cleared from cache.
                 Arrays.fill(cache.typedColumnIndicesArray, null);
             }
 
@@ -255,16 +255,16 @@ final class RealmCache {
      */
     private void validateConfiguration(RealmConfiguration newConfiguration) {
         if (configuration.equals(newConfiguration)) {
-            // Same configuration objects
+            // Same configuration objects.
             return;
         }
 
-        // Check that encryption keys aren't different. key is not in RealmConfiguration's toString.
+        // Checks that encryption keys aren't different. key is not in RealmConfiguration's toString.
         if (!Arrays.equals(configuration.getEncryptionKey(), newConfiguration.getEncryptionKey())) {
             throw new IllegalArgumentException(DIFFERENT_KEY_MESSAGE);
         } else {
             // A common problem is that people are forgetting to override `equals` in their custom migration class.
-            // Try to detect this problem specifically so we can throw a better error message.
+            // Tries to detect this problem specifically so we can throw a better error message.
             RealmMigration newMigration = newConfiguration.getMigration();
             RealmMigration oldMigration = configuration.getMigration();
             if (oldMigration != null 
@@ -380,7 +380,7 @@ final class RealmCache {
                     try {
                         outputStream.close();
                     } catch (IOException e) {
-                        // Ignore this one if there was an exception when close inputStream.
+                        // Ignores this one if there was an exception when close inputStream.
                         if (exceptionWhenClose == null) {
                             exceptionWhenClose = e;
                         }

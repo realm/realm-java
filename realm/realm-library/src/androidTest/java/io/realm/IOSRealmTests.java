@@ -80,11 +80,11 @@ public class IOSRealmTests {
                     "ios/" + iosVersion + "-alltypes.realm", REALM_NAME);
             realm = Realm.getDefaultInstance();
             RealmResults<IOSAllTypes> result = realm.where(IOSAllTypes.class).findAllSorted("id", Sort.ASCENDING);
-            // Verify metadata
+            // Verifies metadata.
             Table table = realm.getTable(IOSAllTypes.class);
             assertTrue(table.hasPrimaryKey());
             assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
-            // iterative check
+            // Iterative check.
             for (int i = 0; i < 10; i++) {
                 IOSAllTypes obj = result.get(i);
                 assertTrue(obj.isBoolCol());

@@ -64,7 +64,7 @@ public class TableQuery implements NativeObject {
      * Checks in core if query syntax is valid. Throws exception, if not.
      */
     void validateQuery() {
-        if (! queryValidated) { // If not yet validated, check if syntax is valid
+        if (! queryValidated) { // If not yet validated, checks if syntax is valid
             String invalidMessage = nativeValidateQuery(nativePtr);
             if (invalidMessage.equals(""))
                 queryValidated = true; // If empty string error message, query is valid
@@ -99,7 +99,7 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    // Query for integer values.
+    // Queries for integer values.
 
     public TableQuery equalTo(long columnIndexes[], long value) {
         nativeEqual(nativePtr, columnIndexes, value);
@@ -143,7 +143,7 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    // Query for float values.
+    // Queries for float values.
 
     public TableQuery equalTo(long columnIndex[], float value) {
         nativeEqual(nativePtr, columnIndex, value);
@@ -187,7 +187,7 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    // Query for double values.
+    // Queries for double values.
 
     public TableQuery equalTo(long columnIndex[], double value) {
         nativeEqual(nativePtr, columnIndex, value);
@@ -239,7 +239,7 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    // Query for Date values
+    // Queries for Date values.
 
     private final static String DATE_NULL_ERROR_MESSAGE = "Date value in query criteria must not be null.";
 
@@ -301,7 +301,7 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    // Query for Binary values.
+    // Queries for Binary values.
 
     public TableQuery equalTo(long[] columnIndices, byte[] value) {
         nativeEqual(nativePtr, columnIndices, value);
@@ -319,7 +319,7 @@ public class TableQuery implements NativeObject {
 
     private final static String STRING_NULL_ERROR_MESSAGE = "String value in query criteria must not be null.";
 
-    // Equal
+    // Equals
     public TableQuery equalTo(long[] columnIndexes, String value, Case caseSensitive) {
         nativeEqual(nativePtr, columnIndexes, value, caseSensitive.getValue());
         queryValidated = false;
@@ -332,7 +332,7 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    // Not Equal
+    // Not Equals
     public TableQuery notEqualTo(long columnIndex[], String value, Case caseSensitive) {
         nativeNotEqual(nativePtr, columnIndex, value, caseSensitive.getValue());
         queryValidated = false;
@@ -481,7 +481,7 @@ public class TableQuery implements NativeObject {
         return nativeAverageInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
 
-    // float aggregation
+    // Float aggregation
 
     public double sumFloat(long columnIndex, long start, long end, long limit) {
         validateQuery();
@@ -519,7 +519,7 @@ public class TableQuery implements NativeObject {
         return nativeAverageFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
 
-    // double aggregation
+    // Double aggregation
 
     public double sumDouble(long columnIndex, long start, long end, long limit) {
         validateQuery();
@@ -557,7 +557,7 @@ public class TableQuery implements NativeObject {
         return nativeAverageDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
 
-    // date aggregation
+    // Date aggregation
 
     public Date maximumDate(long columnIndex, long start, long end, long limit) {
         validateQuery();
@@ -606,7 +606,7 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    // count
+    // Count
 
     // TODO: Rename all start, end parameter names to firstRow, lastRow
     public long count(long start, long end, long limit) {

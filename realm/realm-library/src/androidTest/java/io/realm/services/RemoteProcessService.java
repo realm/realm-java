@@ -46,8 +46,8 @@ public class RemoteProcessService extends Service {
 
         abstract void run();
 
-        // Pass a null to tell main process that everything is OK.
-        // Otherwise, pass a error String which will be used by assertion in main process.
+        // Passes a null to tell main process that everything is OK.
+        // Otherwise, passes a error String which will be used by assertion in main process.
         protected void response(String error) {
             try {
                 Message msg = Message.obtain(null, message);
@@ -117,7 +117,7 @@ public class RemoteProcessService extends Service {
         }
     }
 
-    // Call this function to return the String of current class and line number.
+    // Calls this function to return the String of current class and line number.
     private static String currentLine() {
         StackTraceElement element = new Throwable().getStackTrace()[1];
         return element.getClassName() + " line " + element.getLineNumber() + ": ";

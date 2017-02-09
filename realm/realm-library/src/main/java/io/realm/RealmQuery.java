@@ -203,7 +203,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmQuery<E> isNull(String fieldName) {
         long columnIndices[] = schema.getColumnIndices(fieldName);
 
-        // checking that fieldName has the correct type is done in C++
+        // Checks that fieldName has the correct type is done in C++.
         this.query.isNull(columnIndices);
         return this;
     }
@@ -219,7 +219,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmQuery<E> isNotNull(String fieldName) {
         long columnIndices[] = schema.getColumnIndices(fieldName);
 
-        // checking that fieldName has the correct type is done in C++
+        // Checks that fieldName has the correct type is done in C++.
         this.query.isNotNull(columnIndices);
         return this;
     }
@@ -418,7 +418,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, String[] values) {
         return in(fieldName, values, Case.SENSITIVE);
@@ -431,7 +432,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param values array of values to compare with and it cannot be null or empty.
      * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, String[] values, Case casing) {
         if (values == null || values.length == 0) {
@@ -450,7 +452,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Byte field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Byte field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, Byte[] values) {
         if (values == null || values.length == 0) {
@@ -469,7 +472,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Short field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Short field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, Short[] values) {
         if (values == null || values.length == 0) {
@@ -488,7 +492,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Integer field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Integer field or {@code values} is {@code null}
+     * or empty.
      */
     public RealmQuery<E> in(String fieldName, Integer[] values) {
         if (values == null || values.length == 0) {
@@ -507,7 +512,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Long field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Long field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, Long[] values) {
         if (values == null || values.length == 0) {
@@ -526,7 +532,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Double field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Double field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, Double[] values) {
         if (values == null || values.length == 0) {
@@ -545,7 +552,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Float field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Float field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, Float[] values) {
         if (values == null || values.length == 0) {
@@ -564,7 +572,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Boolean field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Boolean field or {@code values} is {@code null}
+     * or empty.
      */
     public RealmQuery<E> in(String fieldName, Boolean[] values) {
         if (values == null || values.length == 0) {
@@ -583,7 +592,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Date field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Date field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, Date[] values) {
         if (values == null || values.length == 0) {
@@ -1737,7 +1747,7 @@ public class RealmQuery<E extends RealmModel> {
             // See OS Results::prepare_async()
             row = new Collection(realm.sharedRealm, query).firstUncheckedRow();
         } else {
-            // prepare an empty reference of the RealmObject which is backed by a pending query,
+            // prepares an empty reference of the RealmObject which is backed by a pending query,
             // then update it once the query complete in the background.
 
             // TODO: The performance by the pending query will be a little bit worse than directly calling core's

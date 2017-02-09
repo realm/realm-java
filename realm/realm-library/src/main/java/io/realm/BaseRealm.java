@@ -262,7 +262,7 @@ abstract class BaseRealm implements Closeable {
         RealmCache.invokeWithLock(new RealmCache.Callback0() {
             @Override
             public void onCall() {
-                // Check if the Realm instance has been closed
+                // Checks if the Realm instance has been closed.
                 if (sharedRealm == null || sharedRealm.isClosed()) {
                     throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
                 }
@@ -348,7 +348,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
         }
 
-        // Check if we are in the right thread
+        // Checks if we are in the right thread.
         if (threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(BaseRealm.INCORRECT_THREAD_MESSAGE);
         }
@@ -361,7 +361,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Check if the Realm is valid and in a transaction.
+     * Checks if the Realm is valid and in a transaction.
      */
     protected void checkIfValidAndInTransaction() {
         if (!isInTransaction()) {
@@ -370,7 +370,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Check if the Realm is not built with a SyncRealmConfiguration
+     * Checks if the Realm is not built with a SyncRealmConfiguration.
      */
     void checkNotInSync() {
         if (configuration.isSyncConfiguration()) {
@@ -657,7 +657,7 @@ abstract class BaseRealm implements Closeable {
         super.finalize();
     }
 
-    // Internal delegate for migrations
+    // Internal delegate for migrations.
     protected interface MigrationCallback {
         void migrationComplete();
     }

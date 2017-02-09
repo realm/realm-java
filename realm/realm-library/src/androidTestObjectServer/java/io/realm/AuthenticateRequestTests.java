@@ -22,6 +22,7 @@ import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -39,10 +40,10 @@ public class AuthenticateRequestTests {
     @Test
     public void realmLogin() throws URISyntaxException, JSONException {
         Token t = SyncTestUtils.createTestUser().getSyncUser().getUserToken();
-        AuthenticateRequest request = AuthenticateRequest.realmLogin(t, new URI("realm://objectserver/" + t.value() + "/default"));
+        AuthenticateRequest request = AuthenticateRequest.realmLogin(t, new URI("realm://objectserver/" + t.identity() + "/default"));
 
         JSONObject obj = new JSONObject(request.toJson());
-        assertEquals("/" + t.value() + "/default", obj.get("path"));
+        assertEquals("/" + t.identity() + "/default", obj.get("path"));
         assertEquals(t.value(), obj.get("data"));
         assertEquals("realm", obj.get("provider"));
     }
@@ -60,10 +61,10 @@ public class AuthenticateRequestTests {
     @Test
     public void userRefresh() throws URISyntaxException, JSONException {
         Token t = SyncTestUtils.createTestUser().getSyncUser().getUserToken();
-        AuthenticateRequest request = AuthenticateRequest.userRefresh(t);
+        AuthenticateRequest request = AuthenticateRequest.userRefresh(t, new URI("realm://objectserver/" + t.identity() + "/default"));
 
         JSONObject obj = new JSONObject(request.toJson());
-        assertFalse(obj.has("path"));
+        assertTrue(obj.has("path"));
         assertEquals(t.value(), obj.get("data"));
         assertEquals("realm", obj.get("provider"));
     }

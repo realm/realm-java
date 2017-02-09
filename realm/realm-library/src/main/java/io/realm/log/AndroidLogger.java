@@ -69,7 +69,7 @@ public class AndroidLogger implements Logger {
 
     @Override
     public int getMinimumNativeDebugLevel() {
-        // Map Android log level to Realms log levels
+        // Maps Android log level to Realms log levels.
         switch (minimumLogLevel) {
             case Log.VERBOSE:   return LogLevel.TRACE;
             case Log.DEBUG:     return LogLevel.DEBUG;
@@ -89,7 +89,7 @@ public class AndroidLogger implements Logger {
         }
         if (message == null) {
             if (t == null) {
-                return; // Ignore event if message is null and there's no throwable.
+                return; // Ignores event if message is null and there's no throwable.
             }
             message = getStackTraceString(t);
         } else {
@@ -101,14 +101,14 @@ public class AndroidLogger implements Logger {
             }
         }
 
-        // Message fit one line. Just print and exit
+        // Message fits one line. Just prints and exits.
         if (message.length() < LOG_ENTRY_MAX_LENGTH) {
             Log.println(androidLogLevel, logTag, message);
             return;
         }
 
         // Message does not fit one line.
-        // Split by line, then ensure each line can fit into Log's maximum length.
+        // Splits by line, then ensures each line can fit into Log's maximum length.
         for (int i = 0, length = message.length(); i < length; i++) {
             int newline = message.indexOf('\n', i);
             newline = newline != -1 ? newline : length;

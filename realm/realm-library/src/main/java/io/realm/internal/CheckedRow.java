@@ -92,7 +92,7 @@ public class CheckedRow extends UncheckedRow {
     }
 
     /**
-     * Set null to a row pointer with checking if a column is nullable, except when the column type
+     * Sets null to a row pointer with checking if a column is nullable, except when the column type
      * is binary.
      *
      * @param columnIndex 0 based index value of the cell column.

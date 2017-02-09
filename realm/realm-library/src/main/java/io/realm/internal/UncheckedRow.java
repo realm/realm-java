@@ -225,7 +225,7 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     /**
-     * Set a string value to a row pointer.
+     * Sets a string value to a row pointer.
      *
      * @param columnIndex 0 based index value of the cell column.
      * @param value the value to to a row
@@ -266,7 +266,7 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     /**
-     * Set null to a row pointer.
+     * Sets null to a row pointer.
      *
      * @param columnIndex 0 based index value of the cell column.
      */

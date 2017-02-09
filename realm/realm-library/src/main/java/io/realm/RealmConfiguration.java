@@ -260,21 +260,21 @@ public class RealmConfiguration {
         return result;
     }
 
-    // Creates the mediator that defines the current schema
+    // Creates the mediator that defines the current schema.
     protected static RealmProxyMediator createSchemaMediator(Set<Object> modules,
                                                              Set<Class<? extends RealmModel>> debugSchema) {
 
-        // If using debug schema, use special mediator
+        // If using debug schema, uses special mediator.
         if (debugSchema.size() > 0) {
             return new FilterableMediator(DEFAULT_MODULE_MEDIATOR, debugSchema);
         }
 
-        // If only one module, use that mediator directly
+        // If only one module, uses that mediator directly.
         if (modules.size() == 1) {
             return getModuleMediator(modules.iterator().next().getClass().getCanonicalName());
         }
 
-        // Otherwise combine all mediators
+        // Otherwise combines all mediators.
         RealmProxyMediator[] mediators = new RealmProxyMediator[modules.size()];
         int i = 0;
         for (Object module : modules) {
@@ -284,7 +284,7 @@ public class RealmConfiguration {
         return new CompositeMediator(mediators);
     }
 
-    // Finds the mediator associated with a given module
+    // Finds the mediator associated with a given module.
     private static RealmProxyMediator getModuleMediator(String fullyQualifiedModuleClassName) {
         String[] moduleNameParts = fullyQualifiedModuleClassName.split("\\.");
         String moduleSimpleName = moduleNameParts[moduleNameParts.length - 1];
@@ -349,7 +349,7 @@ public class RealmConfiguration {
         return rxJavaAvailable;
     }
 
-    // Get the canonical path for a given file
+    // Gets the canonical path for a given file.
     protected static String getCanonicalPath(File realmFile) {
         try {
             return realmFile.getCanonicalPath();
@@ -360,7 +360,7 @@ public class RealmConfiguration {
         }
     }
 
-    // Check if this configuration is a SyncConfiguration instance.
+    // Checks if this configuration is a SyncConfiguration instance.
     boolean isSyncConfiguration() {
         return false;
     }
@@ -369,7 +369,7 @@ public class RealmConfiguration {
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */
     public static class Builder {
-         // IMPORTANT: When adding any new methods to this class also add them to SyncConfiguration.
+        // IMPORTANT: When adding any new methods to this class also add them to SyncConfiguration.
         private File directory;
         private String fileName;
         private String assetFilePath;
@@ -402,7 +402,7 @@ public class RealmConfiguration {
             initializeBuilder(context);
         }
 
-        // Setup builder in its initial state
+        // Setups builder in its initial state.
         private void initializeBuilder(Context context) {
             this.directory = context.getFilesDir();
             this.fileName = Realm.DEFAULT_REALM_NAME;
@@ -429,7 +429,7 @@ public class RealmConfiguration {
         }
 
         /**
-         * Specify the directory where the Realm file will be saved. The default value is {@code context.getFiles()}.
+         * Specifies the directory where the Realm file will be saved. The default value is {@code context.getFiles()}.
          * If the directory does not exist, it will be created.
          *
          * @param directory the directory to save the Realm file in. Directory must be writable.

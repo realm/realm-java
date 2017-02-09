@@ -142,11 +142,12 @@ public class RealmObjectSchema {
     }
 
     /**
-     * Sets a new name for this RealmObject class. This is equivalent to renaming it. When {@link RealmObjectSchema#table}
-     * has a primary key, this will transfer the primary key for the new class name.
+     * Sets a new name for this RealmObject class. This is equivalent to renaming it. When
+     * {@link RealmObjectSchema#table} has a primary key, this will transfer the primary key for the new class name.
      *
      * @param className the new name for this class.
-     * @throws IllegalArgumentException if className is {@code null} or an empty string, or its length exceeds 56 characters.
+     * @throws IllegalArgumentException if className is {@code null} or an empty string, or its length exceeds 56
+     * characters.
      * @see RealmSchema#rename(String, String)
      */
     public RealmObjectSchema setClassName(String className) {
@@ -181,12 +182,13 @@ public class RealmObjectSchema {
     }
 
     /**
-     * Adds a new simple field to the RealmObject class. The type must be one supported by Realm. See {@link RealmObject}
-     * for the list of supported types. If the field should allow {@code null} values use the boxed type instead e.g.,
-     * {@code Integer.class} instead of {@code int.class}.
+     * Adds a new simple field to the RealmObject class. The type must be one supported by Realm. See
+     * {@link RealmObject} for the list of supported types. If the field should allow {@code null} values use the boxed
+     * type instead e.g., {@code Integer.class} instead of {@code int.class}.
      * <p>
-     * To add fields that reference other RealmObjects or RealmLists use {@link #addRealmObjectField(String, RealmObjectSchema)}
-     * or {@link #addRealmListField(String, RealmObjectSchema)} instead.
+     * To add fields that reference other RealmObjects or RealmLists use
+     * {@link #addRealmObjectField(String, RealmObjectSchema)} or {@link #addRealmListField(String, RealmObjectSchema)}
+     * instead.
      *
      * @param fieldName name of the field to add.
      * @param fieldType type of field to add. See {@link RealmObject} for the full list.
@@ -306,7 +308,7 @@ public class RealmObjectSchema {
      * Renames a field from one name to another.
      *
      * @param currentFieldName field name to rename.
-     * @param newFieldName     the new field name.
+     * @param newFieldName the new field name.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist or if the new field name already exists.
      */
@@ -335,8 +337,8 @@ public class RealmObjectSchema {
     }
 
     /**
-     * Adds an index to a given field. This is the equivalent of adding the {@link io.realm.annotations.Index} annotation
-     * on the field.
+     * Adds an index to a given field. This is the equivalent of adding the {@link io.realm.annotations.Index}
+     * annotation on the field.
      *
      * @param fieldName field to add index to.
      * @return the updated schema.
@@ -377,7 +379,7 @@ public class RealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exist or the field doesn't have an index.
      */
     public RealmObjectSchema removeIndex(String fieldName) {
-        realm.checkNotInSync(); // destructive modifications are not permitted
+        realm.checkNotInSync(); // Destructive modifications are not permitted.
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
         long columnIndex = getColumnIndex(fieldName);
@@ -390,7 +392,8 @@ public class RealmObjectSchema {
 
     /**
      * Adds a primary key to a given field. This is the same as adding the {@link io.realm.annotations.PrimaryKey}
-     * annotation on the field. Further, this implicitly adds {@link io.realm.annotations.Index} annotation to the field as well.
+     * annotation on the field. Further, this implicitly adds {@link io.realm.annotations.Index} annotation to the field
+     * as well.
      *
      * @param fieldName field to set as primary key.
      * @return the updated schema.
@@ -414,13 +417,14 @@ public class RealmObjectSchema {
 
     /**
      * Removes the primary key from this class. This is the same as removing the {@link io.realm.annotations.PrimaryKey}
-     * annotation from the class. Further, this implicitly removes {@link io.realm.annotations.Index} annotation from the field as well.
+     * annotation from the class. Further, this implicitly removes {@link io.realm.annotations.Index} annotation from
+     * the field as well.
      *
      * @return the updated schema.
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
      */
     public RealmObjectSchema removePrimaryKey() {
-        realm.checkNotInSync(); // destructive modifications are not permitted
+        realm.checkNotInSync(); // Destructive modifications are not permitted.
         if (!table.hasPrimaryKey()) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
         }
@@ -595,7 +599,7 @@ public class RealmObjectSchema {
                 // REQUIRED is being handled when adding the column using addField through the nullable parameter.
             }
         } catch (Exception e) {
-            // If something went wrong, revert all attributes
+            // If something went wrong, revert all attributes.
             long columnIndex = getColumnIndex(fieldName);
             if (indexAdded) {
                 table.removeSearchIndex(columnIndex);
@@ -678,7 +682,7 @@ public class RealmObjectSchema {
         Table table = this.table;
         boolean checkColumnType = validColumnTypes != null && validColumnTypes.length > 0;
         if (fieldDescription.contains(".")) {
-            // Resolve field description down to last field name
+            // Resolves field description down to last field name.
             String[] names = fieldDescription.split("\\.");
             long[] columnIndices = new long[names.length];
             for (int i = 0; i < names.length - 1; i++) {
@@ -695,7 +699,7 @@ public class RealmObjectSchema {
                 }
             }
 
-            // Check if last field name is a valid field
+            // Checks if last field name is a valid field.
             String columnName = names[names.length - 1];
             long columnIndex = table.getColumnIndex(columnName);
             columnIndices[names.length - 1] = columnIndex;
@@ -773,7 +777,7 @@ public class RealmObjectSchema {
         void apply(DynamicRealmObject obj);
     }
 
-    // Tuple containing data about each supported Java type
+    // Tuple containing data about each supported Java type.
     private static class FieldMetaData {
         public final RealmFieldType realmType;
         public final boolean defaultNullable;

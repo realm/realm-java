@@ -142,7 +142,7 @@ public class UnManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void unsupportedMethods_unManagedCollections() {
-        // RealmCollection methods
+        // RealmCollection methods.
         for (OrderedRealmCollectionMethod method : OrderedRealmCollectionMethod.values()) {
             try {
                 switch (method) {

@@ -130,7 +130,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
 
     public void setConstructionFinished() {
         underConstruction = false;
-        // only used while construction.
+        // Only used while construction.
         excludeFields = null;
     }
 
