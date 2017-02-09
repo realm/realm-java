@@ -234,10 +234,11 @@ sum // only numbers // only numbers
 * Schemas can already be restrict using modules, making `<E extends RealmModel>` inaccurate anyway.
 * RealmCollection will have to contain optional methods no matter what, so adding them to RealmQuery doesn't break
   that pattern.
+* Would allow us to remove the requirement that people implements `RealmModel`, they could just use the `@RealmClass`
+  annotation.
 
 **Disadvantages**
-* People can now accidentally try to save non-realm classes, which will not break before runtime (IntelliJ plugin might
-  help here).
+* API gets a lot less type safe (IntelliJ plugin might help here).
 * `RealmQuery` will suddenly have a ton of new methods that will only work for primitive arrays (lint check?)
 
 
@@ -257,14 +258,25 @@ sum // only numbers // only numbers
 * Type safety is not guaranteed anyway if we allow `<Object>`` as generic.
 
 
+# Work required
+
+- [ ] Extend JSON API to support primitive lists.
+- [ ] Extend RealmObjectSchema to support primitive lists
+- [ ] Extend DynamicRealmObject to support primitive lists (Design required).
+- [ ] Annotation processor must be updated
+- [ ] Add support for primitive arrays using RealmTransformer (maybe not part of this RFC?)
+- [ ] Implement new classes (depends on chosen solution).
+- [ ] Refactor current Collection API's + unit tests.
+
 # Unresolved questions
 
-We need more feedback on the two proposals.
+1. We need more feedback on the two proposals.
 
-* Unclear how we are going to support lists-of-lists, e.g. what kind of queries do you want to run on a `int[][]`
+2. Unclear how we are going to support lists-of-lists, e.g. what kind of queries do you want to run on a `int[][]`
   (if any) ?
 
-None.
+3. Should we support `int[]` using bytecode transformation? Basically replace `int[]` and friends with `RealmList<Integer/.../...>` ?
+
 
 # Version history
 
