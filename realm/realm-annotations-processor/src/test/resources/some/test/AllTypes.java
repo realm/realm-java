@@ -20,12 +20,15 @@ import java.util.Date;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.RealmResults;
+import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 public class AllTypes extends RealmObject {
 
     public static final String TAG = "AllTypes";
+    public static final String FIELD_PARENTS = "parentObjects";
 
     @PrimaryKey
     private String columnString;
@@ -39,6 +42,8 @@ public class AllTypes extends RealmObject {
     private byte[] columnBinary;
     private AllTypes columnObject;
     private RealmList<AllTypes> columnRealmList;
+    @LinkingObjects(FIELD_PARENTS)
+    private RealmResults<AllTypes> parentObjects;
 
     public String getColumnString() {
         return realmGet$columnString();

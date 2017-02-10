@@ -90,7 +90,7 @@ public class RealmProxyClassGenerator {
         imports.add("org.json.JSONException");
         imports.add("org.json.JSONArray");
 
-//!!!FIXME
+//!!!!!!FIXME[GBM]
 //        imports.add(metadata.getFullyQualifiedClassName());
 //
 //        List<VariableElement> allFields = new ArrayList<VariableElement>();
@@ -476,7 +476,7 @@ public class RealmProxyClassGenerator {
                 writer.endControlFlow();
                 writer.endMethod();
             } else {
-                //!!!FIXME throw new UnsupportedOperationException(
+                //!!!FIXME[GBM] throw new UnsupportedOperationException(
                 System.err.println(String.format("Type '%s' of field '%s' is not supported", fieldTypeCanonicalName, fieldName));
             }
             writer.emitEmptyLine();
@@ -562,8 +562,7 @@ public class RealmProxyClassGenerator {
                 writer.emitEmptyLine();
 
             } else {
-                // !!!FIXME throw new IllegalArgumentException(
-                    System.err.println(String.format("Type %s of field %s is not supported", fieldTypeCanonicalName, fieldName));
+                System.err.println(String.format("Type %s of field %s is not supported", fieldTypeCanonicalName, fieldName));
             }
         }
     }

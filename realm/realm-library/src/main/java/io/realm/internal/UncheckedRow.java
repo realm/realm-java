@@ -193,7 +193,7 @@ public class UncheckedRow implements NativeObject, Row {
         try {
             return new TableView(context, getTable(), backlinkViewPtr);
         } catch (RuntimeException e) {
-            // !!!FIXME TableView.nativeClose(backlinkViewPtr);
+            // !!!FIXME[GBM] TableView.nativeClose(backlinkViewPtr);
             throw e;
         }
     }

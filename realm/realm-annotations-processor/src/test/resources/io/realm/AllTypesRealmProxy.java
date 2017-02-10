@@ -1,24 +1,11 @@
 package io.realm;
 
-
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import io.realm.RealmObjectSchema;
+import io.realm.RealmSchema;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
@@ -29,6 +16,17 @@ import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class AllTypesRealmProxy extends some.test.AllTypes
         implements RealmObjectProxy, AllTypesRealmProxyInterface {
@@ -465,6 +463,19 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
     }
 
+    public RealmResults<some.test.AllTypes> realmGet$parentObjects() {
+        proxyState.getRealm$realm().checkIfValid();
+        BaseRealm realm = proxyState.getRealm$realm();
+        Row row = proxyState.getRow$realm();
+        Table srcTable = realm.getSchema().getTable(some.test.AllTypes.class);
+        long srcColumnIndex = realm.getSchema().getSchemaForClass(some.test.AllTypes.class).getFieldIndex("parentObjects");
+        return RealmResults.createFromTableOrView(realm, row.getBacklinkView(srcTable, srcColumnIndex), some.test.AllTypes.class);
+    }
+
+    public void realmSet$parentObjects(RealmResults<some.test.AllTypes> value) {
+        throw new UnsupportedOperationException("Fields that are @LinkingObjects cannot be modified. They are managed by Realm.");
+    }
+
     public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
         if (!realmSchema.contains("AllTypes")) {
             RealmObjectSchema realmObjectSchema = realmSchema.create("AllTypes");
@@ -488,22 +499,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return realmSchema.get("AllTypes");
     }
 
-    public RealmResults<AllTypes> realmGet$parentObjects() {
-        BaseRealm realm = proxyState.getRealm$realm();
-        Row row = proxyState.getRow$realm();
-        Table srcTable = realm.getSchema().getTable(AllTypes.class);
-        long srcColumnIndex = realm.getSchema().getSchemaForClass(AllTypes.class).getFieldIndex("parentObject");
-        cachedParentObjects = RealmResults.createFromTableOrView(realm, row.getBacklinkView(srcTable, srcColumnIndex));
-        return cachedParentObjects;
-    }
-
-    public void realmSet$parentObjects(RealmResults<AllTypes> value) {
-        throw new UnsupportedOperationException("Fields that are @LinkingObjects cannot be modified. They are managed by Realm.");
-    }
-
-    public static Table initTable(ImplicitTransaction transaction) {
-        if (!transaction.hasTable("class_AllTypes")) {
-            Table table = transaction.getTable("class_AllTypes");
+    public static Table initTable(SharedRealm sharedRealm) {
+        if (!sharedRealm.hasTable("class_AllTypes")) {
+            Table table = sharedRealm.getTable("class_AllTypes");
             table.addColumn(RealmFieldType.STRING, "columnString", Table.NULLABLE);
             table.addColumn(RealmFieldType.INTEGER, "columnLong", Table.NOT_NULLABLE);
             table.addColumn(RealmFieldType.FLOAT, "columnFloat", Table.NOT_NULLABLE);
