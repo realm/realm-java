@@ -1,10 +1,11 @@
+## 2.4.0
+
 ## 2.3.2
 
 ### Internal
 
 * Updated to Realm Sync v1.0.4.
 * Updated to Realm Core v2.3.1.
-
 
 ## 2.3.1
 
