@@ -99,7 +99,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     }
 
     /**
-     * A {@link RealmResults} is always a managed iteratorCollection.
+     * A {@link RealmResults} is always a managed collection.
      *
      * @return {@code true}.
      * @see RealmCollection#isManaged()

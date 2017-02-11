@@ -102,8 +102,7 @@ public class Collection implements NativeObject {
         void checkValid() {
             if (iteratorCollection == null)  {
                 throw new ConcurrentModificationException(
-                        "No outside changes to a Realm is allowed while iterating a RealmResults." +
-                                " Don't call Realm.refresh() while iterating or use iterators across event loops.");
+                        "No outside changes to a Realm is allowed while iterating a living Realm collection.");
             }
         }
 
