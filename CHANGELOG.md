@@ -8,6 +8,7 @@
 ### Enhancements
 
 * Added support for sorting by link's field (#672).
+* Added `OrderedRealmCollectionSnapshot` class and `OrderedRealmCollection.createSnapshot()` methods. `OrderedRealmCollectionSnapshot` would be useful when changing `RealmResults` or `RealmList` in simple loops.
 
 ### Internal
 

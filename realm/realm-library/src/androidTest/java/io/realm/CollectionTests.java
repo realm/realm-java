@@ -34,7 +34,9 @@ public abstract class CollectionTests {
 
     // Enumerates all known collection classes from the Realm API.
     protected enum CollectionClass {
-        MANAGED_REALMLIST, UNMANAGED_REALMLIST, REALMRESULTS
+        MANAGED_REALMLIST, UNMANAGED_REALMLIST, REALMRESULTS,
+        REALMRESULTSSNAPSHOT_RESULTS_BASE, REALMRESULTSSNAPSHOT_LIST_BASE
+
     }
 
     // Enumerates all current supported collections that can be in unmanaged mode.
@@ -44,7 +46,7 @@ public abstract class CollectionTests {
 
     // Enumerates all current supported collections that can be managed by Realm.
     protected enum ManagedCollection {
-        MANAGED_REALMLIST, REALMRESULTS
+        MANAGED_REALMLIST, REALMRESULTS, REALMRESULTSSNAPSHOT_RESULTS_BASE, REALMRESULTSSNAPSHOT_LIST_BASE
     }
 
     // Enumerates all methods from the RealmCollection interface that depend on Realm API's.
@@ -67,7 +69,7 @@ public abstract class CollectionTests {
 
     // Enumerates all methods from the OrderedRealmCollection interface that depend on Realm API's.
     protected enum OrderedRealmCollectionMethod {
-        DELETE_INDEX, DELETE_FIRST, DELETE_LAST, SORT, SORT_FIELD, SORT_2FIELDS, SORT_MULTI
+        DELETE_INDEX, DELETE_FIRST, DELETE_LAST, SORT, SORT_FIELD, SORT_2FIELDS, SORT_MULTI, CREATE_SNAPSHOT
     }
 
     // Enumerates all methods that can mutate a RealmCollection.
@@ -191,7 +193,9 @@ public abstract class CollectionTests {
     protected OrderedRealmCollection<AllJavaTypes> createStringCollection(Realm realm, ManagedCollection collectionClass, String... args) {
         realm.beginTransaction();
         realm.deleteAll();
+        OrderedRealmCollection<AllJavaTypes> orderedCollection;
         switch (collectionClass) {
+            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 int id = 0;
                 for (String arg : args) {
@@ -199,8 +203,10 @@ public abstract class CollectionTests {
                     obj.setFieldString(arg);
                 }
                 realm.commitTransaction();
-                return realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_STRING);
+                orderedCollection = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_STRING);
+                break;
 
+            case REALMRESULTSSNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 AllJavaTypes first = realm.createObject(AllJavaTypes.class, 0);
                 first.setFieldString(args[0]);
@@ -211,11 +217,27 @@ public abstract class CollectionTests {
                     first.getFieldList().add(obj);
                 }
                 realm.commitTransaction();
-                return first.getFieldList();
+                orderedCollection = first.getFieldList();
+                break;
 
             default:
                 throw new AssertionError("Unknown collection: " + collectionClass);
         }
+
+        if (isSnapshot(collectionClass)) {
+            orderedCollection = orderedCollection.createSnapshot();
+        }
+
+        return orderedCollection;
     }
 
+    boolean isSnapshot(ManagedCollection collectionClass) {
+        return collectionClass == ManagedCollection.REALMRESULTSSNAPSHOT_LIST_BASE ||
+                collectionClass == ManagedCollection.REALMRESULTSSNAPSHOT_RESULTS_BASE;
+    }
+
+    boolean isSnapshot(CollectionClass collectionClass) {
+        return collectionClass == CollectionClass.REALMRESULTSSNAPSHOT_LIST_BASE ||
+                collectionClass == CollectionClass.REALMRESULTSSNAPSHOT_RESULTS_BASE;
+    }
 }

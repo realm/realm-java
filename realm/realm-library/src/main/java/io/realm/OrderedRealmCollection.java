@@ -137,4 +137,14 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
      * @throws UnsupportedOperationException if the collection is unmanaged.
      */
     boolean deleteLastFromRealm();
+
+    /**
+     * Creates a snapshot from this {@link OrderedRealmCollection}.
+     *
+     * @return the snapshot of this collection.
+     * @see OrderedRealmCollectionSnapshot
+     * @throws java.lang.IllegalStateException if the Realm is closed or the method is called from the wrong thread.
+     * @throws UnsupportedOperationException if the collection is unmanaged.
+     */
+    OrderedRealmCollectionSnapshot<E> createSnapshot();
 }

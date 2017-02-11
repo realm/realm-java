@@ -21,7 +21,6 @@ import android.support.test.rule.UiThreadTestRule;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -83,15 +82,19 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     }
 
     private OrderedRealmCollection<AllJavaTypes> createCollection(Realm realm, CollectionClass collectionClass, int sampleSize) {
+        OrderedRealmCollection<AllJavaTypes> orderedCollection;
+
         switch (collectionClass) {
+            case REALMRESULTSSNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 boolean isEmpty = (sampleSize == 0);
                 int newSampleSize = (isEmpty) ? 2 : sampleSize;
                 populateRealm(realm, newSampleSize);
-                return realm.where(AllJavaTypes.class)
-                    .equalTo(AllJavaTypes.FIELD_LONG, isEmpty ? 1 : 0)
-                    .findFirst()
-                    .getFieldList();
+                orderedCollection = realm.where(AllJavaTypes.class)
+                        .equalTo(AllJavaTypes.FIELD_LONG, isEmpty ? 1 : 0)
+                        .findFirst()
+                        .getFieldList();
+                break;
 
             case UNMANAGED_REALMLIST:
                 populateRealm(realm, sampleSize);
@@ -100,30 +103,20 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 inMemoryList.addAll(objects);
                 return inMemoryList;
 
+            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 populateRealm(realm, sampleSize);
-                return realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+                orderedCollection = realm.where(AllJavaTypes.class)
+                        .findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+                break;
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
         }
-    }
-
-    private void appendElementToCollection(Realm realm, CollectionClass collection) {
-        realm.beginTransaction();
-        switch (collectionClass) {
-            case MANAGED_REALMLIST:
-                realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst().getFieldList().add(new AllJavaTypes(TEST_SIZE + 1));
-                break;
-
-            case UNMANAGED_REALMLIST:
-            case REALMRESULTS:
-                realm.createObject(AllJavaTypes.class, TEST_SIZE + 1);
-                break;
-            default:
-                fail("Unknown class: " + collection);
+        if (isSnapshot(collectionClass)) {
+            orderedCollection = orderedCollection.createSnapshot();
         }
-        realm.commitTransaction();
+        return orderedCollection;
     }
 
     private void createNewObject() {
@@ -152,6 +145,19 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             }
         }
         return false;
+    }
+
+    private void assertResultsOrSnapshot() {
+        if (collectionClass != CollectionClass.REALMRESULTS && !isSnapshot(collectionClass))  {
+            fail("Collection class " + collectionClass + "is not results or snapshot.");
+        }
+    }
+
+    private void assertRealmList() {
+        if (collectionClass != CollectionClass.UNMANAGED_REALMLIST &&
+                collectionClass != CollectionClass.MANAGED_REALMLIST)  {
+            fail("Collection class " + collectionClass + "is not RealmList.");
+        }
     }
 
     @Test
@@ -230,7 +236,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         } catch (IllegalStateException e) {
             assertEquals(CollectionClass.MANAGED_REALMLIST, collectionClass);
         } catch (UnsupportedOperationException e) {
-            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertResultsOrSnapshot();
         }
     }
 
@@ -243,9 +249,9 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             it.remove();
             fail();
         } catch (UnsupportedOperationException e) {
-            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertResultsOrSnapshot();
         } catch (IllegalStateException ignored) {
-            assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertRealmList();
         }
     }
 
@@ -260,7 +266,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             it.remove();
         } catch (UnsupportedOperationException e) {
             // RealmResults doesn't support remove.
-            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertResultsOrSnapshot();
             return;
         }
 
@@ -281,6 +287,11 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         realm.commitTransaction();
 
         switch (collectionClass) {
+            // Snapshot
+            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTSSNAPSHOT_LIST_BASE:
+                assertFalse(collection.get(1).isValid());
+                break;
             // Managed RealmLists are directly associated with their table. Thus any indirect deletion will
             // also remove it from the LinkView.
             case MANAGED_REALMLIST:
@@ -300,7 +311,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void iterator_removeCalledTwice() {
-        if (skipTest(CollectionClass.REALMRESULTS)) {
+        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTSSNAPSHOT_LIST_BASE,
+                CollectionClass.REALMRESULTSSNAPSHOT_RESULTS_BASE)) {
             return; // remove() not supported by RealmResults.
         }
 
@@ -418,9 +430,9 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         try {
             it.remove();
         } catch (IllegalStateException e) {
-            assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertRealmList();
         } catch (UnsupportedOperationException e) {
-            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertResultsOrSnapshot();
         }
     }
 
@@ -437,6 +449,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 thrown.expect(IllegalStateException.class);
                 it.remove();
                 break;
+            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 try {
                     it.remove(); // Method not supported.
@@ -506,9 +520,9 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             it.remove();
             fail();
         } catch (IllegalStateException e) {
-            assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertRealmList();
         } catch (UnsupportedOperationException ignored) {
-            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertResultsOrSnapshot();
         }
     }
 
@@ -537,25 +551,36 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     }
 
     @Test
-    public void listIterator_remove_doesNotDeleteObject() {
+    public void listIterator_remove_realmList_doesNotDeleteObject() {
+        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTSSNAPSHOT_LIST_BASE,
+                CollectionClass.REALMRESULTSSNAPSHOT_RESULTS_BASE)) {
+            return;
+        }
         ListIterator<AllJavaTypes> it = collection.listIterator();
         AllJavaTypes obj = it.next();
         assertEquals("test data 0", obj.getFieldString());
         realm.beginTransaction();
-        try {
-            it.remove();
-            if (collectionClass == CollectionClass.REALMRESULTS) {
-                fail();
-            }
-            assertTrue(obj.isValid());
-        } catch (UnsupportedOperationException e) {
-            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+        it.remove();
+        assertTrue(obj.isValid());
+    }
+
+    @Test
+    public void listIterator_remove_nonRealmList_throwUnsupported() {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+           return;
         }
+        ListIterator<AllJavaTypes> it = collection.listIterator();
+        AllJavaTypes obj = it.next();
+        assertEquals("test data 0", obj.getFieldString());
+        realm.beginTransaction();
+        thrown.expect(UnsupportedOperationException.class);
+        it.remove();
     }
 
     @Test
     public void listIterator_set() {
-        if (skipTest(CollectionClass.REALMRESULTS)) {
+        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTSSNAPSHOT_RESULTS_BASE,
+                CollectionClass.REALMRESULTSSNAPSHOT_LIST_BASE)) {
             return;
         }
 
@@ -608,33 +633,34 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             it.remove();
             fail();
         } catch (UnsupportedOperationException e) {
-            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertResultsOrSnapshot();
         } catch (IllegalStateException e) {
-            assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertRealmList();
         }
 
         try {
             it.add(null);
             fail();
         } catch (UnsupportedOperationException e) {
-            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertResultsOrSnapshot();
         } catch (IllegalArgumentException e) {
-            assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertRealmList();
         }
 
         try {
             it.set(new AllJavaTypes());
             fail();
         } catch (UnsupportedOperationException e) {
-            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertResultsOrSnapshot();
         } catch (IllegalStateException e) {
-            assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
+            assertRealmList();
         }
     }
 
     @Test
     public void iterator_outsideChangeToSizeThrowsConcurrentModification() {
-        if (skipTest(CollectionClass.REALMRESULTS)) {
+        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTSSNAPSHOT_RESULTS_BASE,
+                CollectionClass.REALMRESULTSSNAPSHOT_LIST_BASE)) {
             return;
         }
 
@@ -700,7 +726,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void iterator_outsideChangeToSizeThrowsConcurrentModification_managedCollection() {
-        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.UNMANAGED_REALMLIST,
+                CollectionClass.REALMRESULTSSNAPSHOT_LIST_BASE, CollectionClass.REALMRESULTSSNAPSHOT_RESULTS_BASE)) {
             return;
         }
 
@@ -747,6 +774,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 case SORT_FIELD:
                 case SORT_2FIELDS:
                 case SORT_MULTI:
+                case CREATE_SNAPSHOT:
                     realm.cancelTransaction();
                     continue;
                 default:
@@ -770,8 +798,10 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
     }
 
+    // Accessing RealmResults iterator after receving remote change notification will throw.
+    // But it is valid operation for snapshot.
     @Test
-    public void iterator_realmResultsThrowConcurrentModification() {
+    public void iterator_realmResultsThrowConcurrentModification_snapshotJustWorks() {
         if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
@@ -794,19 +824,19 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         realm.waitForChange();
         try {
             it.next();
-            fail();
+            assertEquals(TEST_SIZE, collection.size());
         } catch (ConcurrentModificationException ignored) {
+            assertEquals(collectionClass, CollectionClass.REALMRESULTS);
         }
     }
 
     @Test
-    @Ignore("Enable this test when support RealmCollectionSnapshot")
     public void useCase_simpleIterator_modifyQueryResult_innerTransaction() {
-        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST,
+                CollectionClass.REALMRESULTS)) {
             return;
         }
 
-        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
         assertEquals(TEST_SIZE, collection.size());
         for (int i = 0; i < collection.size(); i++) {
             realm.beginTransaction();
@@ -820,13 +850,12 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     }
 
     @Test
-    @Ignore("Enable this test when support RealmCollectionSnapshot")
     public void useCase_simpleIterator_modifyQueryResult_outerTransaction() {
-        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST,
+                CollectionClass.REALMRESULTS)) {
             return;
         }
 
-        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
         assertEquals(TEST_SIZE, collection.size());
         realm.beginTransaction();
         for (int i = 0; i < collection.size(); i++) {
@@ -845,7 +874,6 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             return;
         }
 
-        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
         assertEquals(TEST_SIZE, collection.size());
         for (AllJavaTypes obj : collection) {
             realm.beginTransaction();
@@ -863,7 +891,6 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             return;
         }
 
-        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
         assertEquals(TEST_SIZE, collection.size());
         realm.beginTransaction();
         for (AllJavaTypes obj : collection) {
@@ -877,13 +904,12 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     @UiThreadTest
-    @Ignore("Enable this test when support RealmCollectionSnapshot")
     public void useCase_simpleIterator_modifyQueryResult_innerTransaction_looperThread() {
-        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST,
+                CollectionClass.REALMRESULTS)) {
             return;
         }
 
-        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
         assertEquals(TEST_SIZE, collection.size());
         for (int i = 0; i < collection.size(); i++) {
             realm.beginTransaction();
@@ -898,13 +924,12 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     @UiThreadTest
-    @Ignore("Enable this test when support RealmCollectionSnapshot")
     public void useCase_simpleIterator_modifyQueryResult_outerTransaction_looperThread() {
-        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST,
+                CollectionClass.REALMRESULTS)) {
             return;
         }
 
-        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
         assertEquals(TEST_SIZE, collection.size());
         realm.beginTransaction();
         for (int i = 0; i < collection.size(); i++) {
@@ -924,7 +949,6 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             return;
         }
 
-        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
         assertEquals(TEST_SIZE, collection.size());
         for (AllJavaTypes obj : collection) {
             realm.beginTransaction();
@@ -943,7 +967,6 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             return;
         }
 
-        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
         assertEquals(TEST_SIZE, collection.size());
         realm.beginTransaction();
         for (AllJavaTypes obj : collection) {
