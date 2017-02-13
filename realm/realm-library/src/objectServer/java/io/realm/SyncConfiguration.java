@@ -277,7 +277,8 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param user the user for this Realm. An authenticated {@link SyncUser} is required to open any Realm managed
          *             by a Realm Object Server.
-         * @param uri URI identifying the Realm.
+         * @param uri URI identifying the Realm. If only a path like {@code /~/default} is given, the configuration will
+         *            assume the file is located on the same server returned by {@link SyncUser#getAuthenticationUrl()}.
          *
          * @see SyncUser#isValid()
          */
@@ -319,10 +320,44 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("Invalid URI: " + uri, e);
             }
 
-            // scheme must be realm or realms
-            String scheme = serverUrl.getScheme();
-            if (!scheme.equals("realm") && !scheme.equals("realms")) {
-                throw new IllegalArgumentException("Invalid scheme: " + scheme);
+            try {
+                // Automatically set scheme based on auth server if not set or wrongly set
+                String serverScheme = serverUrl.getScheme();
+                if (serverScheme == null) {
+                    String authProtocol = user.getAuthenticationUrl().getProtocol();
+                    if (authProtocol.equalsIgnoreCase("https")) {
+                        serverScheme = "realms";
+                    } else {
+                        serverScheme = "realm";
+                    }
+                } else if (serverScheme.equalsIgnoreCase("http")) {
+                    serverScheme = "realm";
+                } else if (serverScheme.equalsIgnoreCase("https")) {
+                    serverScheme = "realms";
+                }
+
+                // Automatically set host if one wasn't defined
+                String host = serverUrl.getHost();
+                if (host == null) {
+                    host = user.getAuthenticationUrl().getHost();
+                }
+
+                // Convert relative paths to absolute if required
+                String path = serverUrl.getPath();
+                if (path != null && !path.startsWith("/")) {
+                    path = "/" + path;
+                }
+
+                serverUrl = new URI(serverScheme,
+                        serverUrl.getUserInfo(),
+                        host,
+                        serverUrl.getPort(),
+                        (path != null) ? path.replace(host + "/", "") : null, // Remove host if it accidentially was interpreted as a path segment
+                        serverUrl.getQuery(),
+                        serverUrl.getRawFragment());
+
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("Invalid URI: " + uri, e);
             }
 
             // Detect last path segment as it is the default file name

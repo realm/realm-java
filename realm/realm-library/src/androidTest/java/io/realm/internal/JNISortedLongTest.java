@@ -49,23 +49,23 @@ public class JNISortedLongTest extends TestCase {
     public void testShouldTestSortedIntTable() {
         init();
 
-        // before first entry
+        // Before first entry.
         assertEquals(0, table.lowerBoundLong(0, 0));
         assertEquals(0, table.upperBoundLong(0, 0));
 
-        // find middle match
+        // Finds middle match.
         assertEquals(4, table.lowerBoundLong(0, 40));
         assertEquals(5, table.upperBoundLong(0, 40));
 
-        // find middle (nonexisting)
+        // Finds middle (nonexisting).
         assertEquals(5, table.lowerBoundLong(0, 41));
         assertEquals(5, table.upperBoundLong(0, 41));
 
-        // beyond last entry
+        // Beyond last entry.
         assertEquals(8, table.lowerBoundLong(0, 100));
         assertEquals(8, table.upperBoundLong(0, 100));
 
-        // find last match (duplicated)
+        // Finds last match (duplicated).
         assertEquals(6, table.lowerBoundLong(0, 60));
         assertEquals(8, table.upperBoundLong(0, 60));
 

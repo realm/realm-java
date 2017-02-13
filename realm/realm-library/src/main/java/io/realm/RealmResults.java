@@ -85,8 +85,8 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     private final List<RealmChangeListener<RealmResults<E>>> listeners = new CopyOnWriteArrayList<RealmChangeListener<RealmResults<E>>>();
     private Future<Long> pendingQuery;
     private boolean asyncQueryCompleted = false;
-    // Keep track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners will
-    // clear it.
+    // Keeps track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners
+    // will clear it.
     private boolean viewUpdated = false;
 
 
@@ -189,14 +189,22 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
      */
     @Override
     public boolean contains(Object object) {
-        boolean contains = false;
-        if (isLoaded() && object instanceof RealmObjectProxy) {
-            RealmObjectProxy proxy = (RealmObjectProxy) object;
-            if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
-                contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
+        if (isLoaded()) {
+            // Deleted objects can never be part of a RealmResults
+            if (object instanceof RealmObjectProxy) {
+                RealmObjectProxy proxy = (RealmObjectProxy) object;
+                if (proxy.realmGet$proxyState().getRow$realm() == InvalidRow.INSTANCE) {
+                    return false;
+                }
+            }
+
+            for (E e : this) {
+                if (e.equals(object)) {
+                    return true;
+                }
             }
         }
-        return contains;
+        return false;
     }
 
     /**
@@ -781,7 +789,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
             throw new UnsupportedOperationException("remove() is not supported by RealmResults iterators.");
         }
 
-        protected void checkRealmIsStable() {
+        void checkRealmIsStable() {
             long version = table.getVersion();
             // Any change within a write transaction will immediately update the table version. This means that we
             // cannot depend on the tableVersion heuristic in that case.

@@ -426,7 +426,7 @@ public class TableView implements TableOrView, NativeObject {
         }
     }
 
-    // Search for first match
+    // Searches for first match
     @Override
     public long findFirstLong(long columnIndex, long value){
         return nativeFindFirstInt(nativePtr, columnIndex, value);
@@ -459,7 +459,7 @@ public class TableView implements TableOrView, NativeObject {
         return nativeFindFirstString(nativePtr, columnIndex, value);
     }
 
-    // Search for all matches
+    // Searches for all matches
 
     // TODO..
     @Override
@@ -618,7 +618,7 @@ public class TableView implements TableOrView, NativeObject {
         return new Date(result);
     }
 
-    // Sorting
+    // Sortings
     public void sort(long columnIndex, Sort sortOrder) {
         // Don't check for immutable. Sorting does not modify original table
         nativeSort(nativePtr, columnIndex, sortOrder.getValue());
@@ -723,7 +723,7 @@ public class TableView implements TableOrView, NativeObject {
     }
 
     /**
-     * If two rows are indentical (for the given set of distinct-columns), then the last row is
+     * If two rows are identical (for the given set of distinct-columns), then the last row is
      * removed unless sorted, in which case the first object is returned.
      * Each time distinct() gets called, it will first fetch the full original TableView contents
      * and then apply distinct() on that, invalidating previous distinct().

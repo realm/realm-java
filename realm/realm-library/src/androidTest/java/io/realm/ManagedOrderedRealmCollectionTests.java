@@ -275,7 +275,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
         RealmResults<NullTypes> sortedList = copy.sort(fieldName, Sort.ASCENDING);
         assertEquals("Should have same size", original.size(), sortedList.size());
-        // Null should always be the first one in the ascending sorted list
+        // Null should always be the first one in the ascending sorted list.
         assertEquals(2, sortedList.first().getId());
         assertEquals(1, sortedList.last().getId());
 
@@ -283,11 +283,11 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         sortedList = sortedList.sort(fieldName, Sort.DESCENDING);
         assertEquals("Should have same size", original.size(), sortedList.size());
         assertEquals(1, sortedList.first().getId());
-        // Null should always be the last one in the descending sorted list
+        // Null should always be the last one in the descending sorted list.
         assertEquals(2, sortedList.last().getId());
     }
 
-    // Test sort on nullable fields with null values partially
+    // Tests sort on nullable fields with null values partially.
     @Test
     public void sort_rowsWithPartialNullValues() {
         populatePartialNullRowsForNumericTesting(realm);
@@ -410,7 +410,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         assertEquals("αύριο", collection.get(2).getFieldString());
     }
 
-    //No sorting order defined. There are Korean, Arabic and Chinese characters.
+    // No sorting order defined. There are Korean, Arabic and Chinese characters.
     @Test
     public void sort_manyDifferentCharacters() {
         OrderedRealmCollection<AllJavaTypes> collection = createStringCollection(realm, collectionClass,
@@ -630,8 +630,8 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         assertEquals(0, collection.size());
     }
 
-    // Test all methods that mutate data throw correctly if not inside an transaction.
-    // Due to implementation details both UnsupportedOperation and IllegalState is accepted at this level
+    // Tests all methods that mutate data throw correctly if not inside an transaction.
+    // Due to implementation details both UnsupportedOperation and IllegalState is accepted at this level.
     @Test
     public void mutableMethodsOutsideTransactions() {
 
@@ -648,7 +648,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                         expected = UnsupportedOperationException.class;
                         break;
                     default:
-                        // Use default exception
+                        // Uses default exception.
                 }
             }
 
@@ -715,7 +715,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                // Define expected exception
+                // Defines expected exception.
                 Class<? extends Throwable> expected = IllegalStateException.class;
                 if (collectionClass == ManagedCollection.REALMRESULTS) {
                     switch (method) {
@@ -726,7 +726,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                             expected = UnsupportedOperationException.class;
                             break;
                         default:
-                            // Use default exception
+                            // Uses default exception.
                     }
                 }
 

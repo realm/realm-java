@@ -44,7 +44,7 @@ public abstract class ExponentialBackoffTask<T extends AuthServerResponse> imple
         }
     }
 
-    // Callback when task is have succeeded
+    // Callback when task have succeeded
     protected abstract void onSuccess(T response);
 
     // Callback when task has failed

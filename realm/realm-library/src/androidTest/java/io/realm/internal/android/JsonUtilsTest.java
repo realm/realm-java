@@ -89,40 +89,40 @@ public class JsonUtilsTest extends AndroidTestCase {
         Date dateZeroMillis = cal.getTime();
         cal.set(Calendar.SECOND, 0);
 
-        // Parse date with short time and decimal second
+        // Parses date with short time and decimal second.
         Date d = JsonUtils.stringToDate("2007-08-13T195123.789Z");
         assertEquals(date, d);
 
-        // Short time without decimal second
+        // Short time without decimal second.
         d = JsonUtils.stringToDate("2007-08-13T195123Z");
         assertEquals(dateZeroMillis, d);
 
-        // GMT+2 with decimal second
+        // GMT+2 with decimal second.
         d = JsonUtils.stringToDate("2007-08-13T215123.789+02:00");
         assertEquals(date, d);
 
-        // Tests without time
+        // Tests without time.
         cal = new GregorianCalendar(2007, 8 - 1, 13, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
         cal.setTimeZone(TimeZone.getTimeZone("GMT"));
         Date dateWithoutTime = cal.getTime();
 
-        // Date only with hyphens
+        // Date only with hyphens.
         d = JsonUtils.stringToDate("2007-08-13Z");
         assertEquals(dateWithoutTime, d);
 
-        // Date, no hyphens
+        // Date, no hyphens.
         d = JsonUtils.stringToDate("20070813Z");
         assertEquals(dateWithoutTime, d);
 
-        // Hyphenated Date with empty time
+        // Hyphenated Date with empty time.
         d = JsonUtils.stringToDate("2007-08-13+00:00");
         assertEquals(dateWithoutTime, d);
 
-        // Non-hyphenated date with empty time
+        // Non-hyphenated date with empty time.
         d = JsonUtils.stringToDate("20070813+00:00");
         assertEquals(dateWithoutTime, d);
 
-        // Please see the ISO8601UtilsTest.java file for a full suite of ISO8601 tests
+        // Please see the ISO8601UtilsTest.java file for a full suite of ISO8601 tests.
     }
 }

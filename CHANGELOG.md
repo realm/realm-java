@@ -1,14 +1,33 @@
 ## 2.4.0
 
+## 2.3.2
+
+### Internal
+
+* Updated to Realm Sync v1.0.4.
+* Updated to Realm Core v2.3.1.
+
 ## 2.3.1
+
+### Enhancements
+
+* [ObjectServer] The `serverUrl` given to `SyncConfiguration.Builder()` is now more lenient and will also accept only paths as argument (#4144).
 
 ### Bug fixes
 
-* Fixed NPE problem happened in SharedRealm.finalize() (#3730).
+* NPE problem in SharedRealm.finalize() (#3730).
+* `RealmList.contains()` and `RealmResults.contains()` now correctly use custom `equals()` method on Realm model classes.
+* Build error when the project is using Kotlin (#4087).
+* Bug causing classes to be replaced by classes already in Gradle's classpath (#3568).
+* NullPointerException when notifying a single object that it changed (#4086).
+
+### Enhancements
+
+* [ObjectServer] Add a timer to refresh periodically the access_token.
 
 ## 2.3.0
 
-### Object Server API Changes 
+### Object Server API Changes
 
 * Realm Sync v1.0.0 has been released, and Realm Mobile Platform is no longer considered in beta.
 * Breaking change: Location of Realm files are now placed in `getFilesDir()/<userIdentifier>` instead of `getFilesDir()/`.

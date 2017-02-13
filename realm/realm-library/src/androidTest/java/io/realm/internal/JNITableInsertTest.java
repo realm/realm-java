@@ -16,8 +16,6 @@
 
 package io.realm.internal;
 
-import android.test.MoreAsserts;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -31,7 +29,6 @@ import java.util.List;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -87,14 +84,14 @@ public class JNITableInsertTest {
 
                 Table t = new Table();
 
-                //If the objects matches no exception will be thrown
+                // If the objects matches no exception will be thrown.
                 if (value.get(i).getClass().equals(value.get(j).getClass())) {
                     assertTrue(true);
 
                 } else {
-                    //Add column
+                    // Adds column.
                     t.addColumn(TestHelper.getColumnType(value.get(j)), value.get(j).getClass().getSimpleName());
-                    //Add value
+                    // Adds value.
                     try {
                         t.add(value.get(i));
                         fail("No matching type");

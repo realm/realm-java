@@ -33,6 +33,7 @@ public enum Sort {
 
     /**
      * Returns the value for this setting that is used by the underlying query engine.
+     *
      * @return the value used by the underlying query engine to indicate this value.
      */
     public boolean getValue() {
