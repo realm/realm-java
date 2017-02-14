@@ -501,4 +501,11 @@ public class RealmProcessorTest {
                 .failsToCompile();
     }
 
+    @Test
+    public void failsOnLinkingObjectsWithRequiredFields() {
+        ASSERT.about(javaSource())
+                .that(JavaFileObjects.forResource("some/test/Backlinks_Required.java"))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
 }

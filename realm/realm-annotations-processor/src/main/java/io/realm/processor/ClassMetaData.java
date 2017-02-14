@@ -103,13 +103,13 @@ public class ClassMetaData {
         // Get the package of the class
         Element enclosingElement = classType.getEnclosingElement();
         if (!enclosingElement.getKind().equals(ElementKind.PACKAGE)) {
-            Utils.error("The RealmClass annotation does not support nested classes", classType);
+            Utils.error("The RealmClass annotation does not support nested classes.", classType);
             return false;
         }
 
         TypeElement parentElement = (TypeElement) Utils.getSuperClass(classType);
         if (!parentElement.toString().equals("java.lang.Object") && !parentElement.toString().equals("io.realm.RealmObject")) {
-                Utils.error("Realm model classes must either extend RealmObject or implement RealmModel to be considered a valid model class", classType);
+                Utils.error("Valid model classes must either extend RealmObject or implement RealmModel.", classType);
                 return false;
         }
 
@@ -127,36 +127,28 @@ public class ClassMetaData {
         return true; // Meta data was successfully generated
     }
 
-    private boolean checkForTransientFields() {
-        for (VariableElement field : fields) {
-            if (field.getModifiers().contains(Modifier.TRANSIENT)) {
-                Utils.error("Transient fields are not allowed. Class: " + className + ", Field: " +
-                        field.getSimpleName().toString());
-                return false;
-            }
-        }
-        return true;
-    }
+    // Iterate through all class elements and add them to the appropriate internal data structures.
+    // Returns true if all elements could be false if elements could not be categorized,
+    private boolean categorizeClassElements() {
+        for (Element element : classType.getEnclosedElements()) {
+            ElementKind elementKind = element.getKind();
+            switch (elementKind) {
+                case CONSTRUCTOR:
+                    if (Utils.isDefaultConstructor(element)) { hasDefaultConstructor = true; }
+                    break;
 
-    private boolean checkForVolatileFields() {
-        for (VariableElement field : fields) {
-            if (field.getModifiers().contains(Modifier.VOLATILE)) {
-                Utils.error("Volatile fields are not allowed. Class: " + className + ", Field: " +
-                        field.getSimpleName().toString());
-                return false;
-            }
-        }
-        return true;
-    }
+                case FIELD:
+                    if (!categorizeField(element)) { return false; }
+                    break;
 
-    private boolean checkForFinalFields() {
-        for (VariableElement field : fields) {
-            if (field.getModifiers().contains(Modifier.FINAL)) {
-                Utils.error("Final fields are not allowed. Class: " + className + ", Field: " +
-                        field.getSimpleName().toString());
-                return false;
+                default:
             }
         }
+
+        if (fields.size() == 0) {
+            Utils.error(String.format("Class \"%s\" must contain at least 1 persistable field.", className));
+        }
+
         return true;
     }
 
@@ -165,7 +157,7 @@ public class ClassMetaData {
             if (Utils.isRealmList(field) || Utils.isRealmResults(field)) {
                 // Check for missing generic (default back to Object)
                 if (Utils.getGenericTypeQualifiedName(field) == null) {
-                    Utils.error("No generic type supplied for field", field);
+                    Utils.error(String.format("Field \"%s\" must have a generic type supplied.", field));
                     return false;
                 }
 
@@ -175,8 +167,10 @@ public class ClassMetaData {
                 String genericCanonicalType = typeArguments.get(0).toString();
                 TypeElement typeElement = elements.getTypeElement(genericCanonicalType);
                 if (typeElement.getSuperclass().getKind() == TypeKind.NONE) {
-                    Utils.error("Only concrete Realm classes are allowed in RealmLists. Neither " +
-                            "interfaces nor abstract classes can be used.", field);
+                    Utils.error(
+                        "Only concrete Realm classes are allowed in RealmLists. "
+                            + "Neither interfaces nor abstract classes are allowed.",
+                        field);
                     return false;
                 }
             }
@@ -191,8 +185,10 @@ public class ClassMetaData {
                 // Check that the referenced type is a concrete class and not an interface
                 TypeElement typeElement = elements.getTypeElement(field.asType().toString());
                 if (typeElement.getSuperclass().getKind() == TypeKind.NONE) {
-                    Utils.error("Only concrete Realm classes can be referenced in model classes. " +
-                            "Neither interfaces nor abstract classes can be used.", field);
+                    Utils.error(
+                        "Only concrete Realm classes can be referenced from model classes. "
+                            + "Neither interfaces nor abstract classes are allowed.",
+                        field);
                     return false;
                 }
             }
@@ -201,146 +197,196 @@ public class ClassMetaData {
         return true;
     }
 
-
-
     // Report if the default constructor is missing
     private boolean checkDefaultConstructor() {
         if (!hasDefaultConstructor) {
-            Utils.error("A default public constructor with no argument must be declared in " + className + " if a custom constructor is declared.");
+            Utils.error(String.format(
+                "Class \"%s\" must declare a public constructor with no arguments if it contains custom constructors.",
+                className));
             return false;
         } else {
             return true;
         }
     }
 
-    // Iterate through all class elements and add them to the appropriate internal data structures.
-    // Returns true if all elements could be false if elements could not be categorized,
-    private boolean categorizeClassElements() {
-        for (Element element : classType.getEnclosedElements()) {
-            ElementKind elementKind = element.getKind();
-
-            if (elementKind.equals(ElementKind.FIELD)) {
-                VariableElement variableElement = (VariableElement) element;
-
-                Set<Modifier> modifiers = variableElement.getModifiers();
-                if (modifiers.contains(Modifier.STATIC)) {
-                    continue; // completely ignore any static fields
-                }
-
-                if (variableElement.getAnnotation(Ignore.class) != null) {
-                    continue;
-                }
-
-                if (variableElement.getAnnotation(Index.class) != null) {
-                    // The field has the @Index annotation. It's only valid for column types:
-                    // STRING, DATE, INTEGER, BOOLEAN
-                    String elementTypeCanonicalName = variableElement.asType().toString();
-                    String columnType = Constants.JAVA_TO_COLUMN_TYPES.get(elementTypeCanonicalName);
-                    if (columnType != null && (columnType.equals("RealmFieldType.STRING") ||
-                            columnType.equals("RealmFieldType.DATE") ||
-                            columnType.equals("RealmFieldType.INTEGER") ||
-                            columnType.equals("RealmFieldType.BOOLEAN"))) {
-                        indexedFields.add(variableElement);
-                    } else {
-                        Utils.error("@Index is not applicable to this field " + element + ".");
-                        return false;
-                    }
-                }
-
-                if (variableElement.getAnnotation(Required.class) == null) {
-                    // The field doesn't have the @Required annotation.
-                    // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
-                    // nullableFields.
-                    // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
-                    if (!Utils.isPrimitiveType(variableElement) && !Utils.isRealmList(variableElement)) {
-                        nullableFields.add(variableElement);
-                    }
-                } else {
-                    // The field has the @Required annotation
-                    if (Utils.isPrimitiveType(variableElement)) {
-                        Utils.error("@Required is not needed for field " + element +
-                                " with the type " + element.asType());
-                    } else if (Utils.isRealmList(variableElement)) {
-                        Utils.error("@Required is invalid for field " + element +
-                                " with the type " + element.asType());
-                    } else if (Utils.isRealmModel(variableElement)) {
-                        Utils.error("@Required is invalid for field " + element +
-                                " with the type " + element.asType());
-                    } else {
-                        // Should never get here - user should remove @Required
-                        if (nullableFields.contains(variableElement)) {
-                            Utils.error("Annotated field " + element + " with type " + element.asType() +
-                                    " has been added to the nullableFields before. Consider to remove @Required.");
-                        }
-                    }
-                }
-
-                if (variableElement.getAnnotation(PrimaryKey.class) != null) {
-                    // The field has the @PrimaryKey annotation. It is only valid for
-                    // String, short, int, long and must only be present one time
-                    if (primaryKey != null) {
-                        Utils.error(String.format("@PrimaryKey cannot be defined more than once. It was found here \"%s\" and here \"%s\"",
-                                primaryKey.getSimpleName().toString(),
-                                variableElement.getSimpleName().toString()));
-                        return false;
-                    }
-
-                    TypeMirror fieldType = variableElement.asType();
-                    if (!isValidPrimaryKeyType(fieldType)) {
-                        Utils.error("\"" + variableElement.getSimpleName().toString() + "\" is not allowed as primary key. See @PrimaryKey for allowed types.");
-                        return false;
-                    }
-
-                    primaryKey = variableElement;
-
-                    // Also add as index. All types of primary key can be indexed.
-                    if (!indexedFields.contains(variableElement)) {
-                        indexedFields.add(variableElement);
-                    }
-                }
-
-                // Check @LinkingObjects last since it is not allowed to be either @Index, @Required or @PrimaryKey
-                if (variableElement.getAnnotation(LinkingObjects.class) != null) {
-
-                    if (!Utils.isRealmResults(variableElement)) {
-                        Utils.error(String.format("@LinkingObjects is only allowed on RealmResults. Field %s was %s",
-                                variableElement.getSimpleName().toString(), variableElement.asType().toString()));
-                        return false;
-                    }
-                    // Since @LinkingObjects might reference a type from a library project that is not
-                    // part of this processing round, we can only do basic type checking here.
-                    // Real validation must be done at runtime.
-                    String backlinkField = variableElement.getAnnotation(LinkingObjects.class).value();
-                    if (backlinkField == null || backlinkField.equals("")) {
-                        Utils.error(String.format("@LinkingObjects is missing a non-empty field parameter: %s",
-                                variableElement.getSimpleName().toString()));
-                        return false;
-                    }
-
-                    // Using link syntax to try to reference a linked field is not possible.
-                    if (backlinkField.contains(".")) {
-                        Utils.error("Only fields in the @LinkingObjects class can be be used. Using '.' to specify " +
-                                "fields in referenced classes is not possible.");
-                        return false;
-                    }
-
-                    backlinkFields.add(
-                        new Backlink(variableElement, Utils.getGenericTypeQualifiedName(variableElement), backlinkField));
-                    continue;
-                }
-
-                // Standard field that appear valid (more fine grained checks might fail later).
-                fields.add(variableElement);
-
-            } else if (elementKind.equals(ElementKind.CONSTRUCTOR)) {
-                hasDefaultConstructor =  hasDefaultConstructor || Utils.isDefaultConstructor(element);
-
+    private boolean checkForFinalFields() {
+        for (VariableElement field : fields) {
+            if (field.getModifiers().contains(Modifier.FINAL)) {
+                Utils.error(String.format(
+                    "Class \"%s\" contains illegal final field \"%s\".", className, field.getSimpleName().toString()));
+                return false;
             }
         }
+        return true;
+    }
 
-        if (fields.size() == 0) {
-            Utils.error(className + " must contain at least 1 persistable field");
+    private boolean checkForTransientFields() {
+        for (VariableElement field : fields) {
+            if (field.getModifiers().contains(Modifier.TRANSIENT)) {
+                Utils.error(String.format(
+                    "Class \"%s\" contains illegal transient field \"%s\".", className, field.getSimpleName().toString()));
+                return false;
+            }
         }
+        return true;
+    }
+
+    private boolean checkForVolatileFields() {
+        for (VariableElement field : fields) {
+            if (field.getModifiers().contains(Modifier.VOLATILE)) {
+                Utils.error(String.format(
+                    "Class \"%s\" contains illegal volatile field \"%s\".", className, field.getSimpleName().toString()));
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean categorizeField(Element element) {
+        VariableElement variableElement = (VariableElement) element;
+
+        // completely ignore any static fields
+        if (variableElement.getModifiers().contains(Modifier.STATIC)) { return true; }
+
+        if (variableElement.getAnnotation(Ignore.class) != null) { return true; }
+
+        if (variableElement.getAnnotation(Index.class) != null) {
+            if (!categorizeIndexField(element, variableElement)) { return false; }
+        }
+
+        if (variableElement.getAnnotation(Required.class) != null) {
+            categorizeRequiredField(element, variableElement);
+        }
+        else {
+            // The field doesn't have the @Required annotation.
+            // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
+            // nullableFields.
+            // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
+            if (!Utils.isPrimitiveType(variableElement) && !Utils.isRealmList(variableElement)) {
+                nullableFields.add(variableElement);
+            }
+       }
+
+        if (variableElement.getAnnotation(PrimaryKey.class) != null) {
+            if (!categorizePrimaryKeyField(variableElement)) { return false; }
+        }
+
+        // Check @LinkingObjects last since it is not allowed to be either @Index, @Required or @PrimaryKey
+        if (variableElement.getAnnotation(LinkingObjects.class) != null) {
+            return categorizeBacklinkField(variableElement);
+        }
+
+        // Standard field that appear valid (more fine grained checks might fail later).
+        fields.add(variableElement);
+
+        return true;
+    }
+
+    private boolean categorizeIndexField(Element element, VariableElement variableElement) {
+        // The field has the @Index annotation. It's only valid for column types:
+        // STRING, DATE, INTEGER, BOOLEAN
+        String elementTypeCanonicalName = variableElement.asType().toString();
+        String columnType = Constants.JAVA_TO_COLUMN_TYPES.get(elementTypeCanonicalName);
+        if (columnType != null &&
+            (columnType.equals("RealmFieldType.STRING") ||
+            columnType.equals("RealmFieldType.DATE") ||
+            columnType.equals("RealmFieldType.INTEGER") ||
+            columnType.equals("RealmFieldType.BOOLEAN")))
+        {
+            indexedFields.add(variableElement);
+        }
+        else {
+            Utils.error(String.format("Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
+            return false;
+        }
+
+        return true;
+    }
+
+    // The field has the @Required annotation
+    private void categorizeRequiredField(Element element, VariableElement variableElement) {
+        if (Utils.isPrimitiveType(variableElement)) {
+            Utils.error(String.format(
+                "@Required annotation is unnecessary for primitive field \"%s\".", element));
+        }
+        else if (Utils.isRealmList(variableElement) || Utils.isRealmModel(variableElement)) {
+            Utils.error(String.format(
+                "Field \"%s\" with type \"%s\" cannot be @Required.", element,  element.asType()));
+        }
+        else {
+            // Should never get here - user should remove @Required
+            if (nullableFields.contains(variableElement)) {
+                Utils.error(String.format(
+                    "Field \"%s\" with type \"%s\" appears to be nullable. Consider removing @Required.",
+                    element,
+                    element.asType()));
+            }
+        }
+    }
+
+    // The field has the @PrimaryKey annotation. It is only valid for
+    // String, short, int, long and must only be present one time
+    private boolean categorizePrimaryKeyField(VariableElement variableElement) {
+        if (primaryKey != null) {
+            Utils.error(String.format(
+                "A class cannot have more than one @PrimaryKey. Both \"%s\" and \"%s\" are annotated as @PrimaryKey.",
+                primaryKey.getSimpleName().toString(),
+                variableElement.getSimpleName().toString()));
+            return false;
+        }
+
+        TypeMirror fieldType = variableElement.asType();
+        if (!isValidPrimaryKeyType(fieldType)) {
+            Utils.error(String.format(
+                "Field \"%s\" with type \"%s\" cannot be used as primary key. See @PrimaryKey for legal types.",
+                variableElement.getSimpleName().toString(),
+                fieldType));
+            return false;
+        }
+
+        primaryKey = variableElement;
+
+        // Also add as index. All types of primary key can be indexed.
+        if (!indexedFields.contains(variableElement)) {
+            indexedFields.add(variableElement);
+        }
+
+        return true;
+    }
+
+    private boolean categorizeBacklinkField(VariableElement variableElement) {
+        if (!Utils.isRealmResults(variableElement)) {
+            Utils.error(String.format("Only RealmResults can be @LinkingObjects. Field \"%s\" is a \"%s\".",
+                variableElement.getSimpleName().toString(), variableElement.asType().toString()));
+            return false;
+        }
+
+        // A @LinkingObjects cannot be @Required
+        if (variableElement.getAnnotation(Required.class) != null) {
+            Utils.error(String.format("A @LinkingObjects field (\"%s\") cannot be @Required.",
+                variableElement.getSimpleName().toString()));
+        }
+
+        // Since @LinkingObjects might reference a type from a library project that is not
+        // part of this processing round, we can only do basic type checking here.
+        // Real validation must be done at runtime.
+        String backlinkField = variableElement.getAnnotation(LinkingObjects.class).value();
+        if (backlinkField == null || backlinkField.equals("")) {
+            Utils.error(String.format(
+                "@LinkingObjects annotation for field \"%s\" requires a parameter identifying the link target.",
+                variableElement.getSimpleName().toString()));
+            return false;
+        }
+
+        // Using link syntax to try to reference a linked field is not possible.
+        if (backlinkField.contains(".")) {
+            Utils.error("@LinkingObjects must refer to a field of the linked class. "
+                + "Using '.' to specify fields in referenced classes is not supported.");
+            return false;
+        }
+
+        backlinkFields.add(
+            new Backlink(variableElement, Utils.getGenericTypeQualifiedName(variableElement), backlinkField));
 
         return true;
     }

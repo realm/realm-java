@@ -58,8 +58,8 @@ public class RealmProxyClassGenerator {
         // Set source code indent
         writer.setIndent(Constants.INDENT);
 
-        writer.emitPackage(Constants.REALM_PACKAGE_NAME)
-                .emitEmptyLine();
+        writer.emitPackage(Constants.REALM_PACKAGE_NAME);
+        writer.emitEmptyLine();
 
         ArrayList<String> imports = new ArrayList<String>();
         imports.add("android.annotation.TargetApi");
@@ -89,26 +89,6 @@ public class RealmProxyClassGenerator {
         imports.add("org.json.JSONObject");
         imports.add("org.json.JSONException");
         imports.add("org.json.JSONArray");
-
-//!!!!!!FIXME[GBM]
-//        imports.add(metadata.getFullyQualifiedClassName());
-//
-//        List<VariableElement> allFields = new ArrayList<VariableElement>();
-//        allFields.addAll(metadata.getFields());
-//        for (ClassMetaData.Backlink backlink : metadata.getBacklinkFields()) {
-//            allFields.add(backlink.field);
-//        }
-//        for (VariableElement field : allFields) {
-//            String fieldTypeName = "";
-//            if (Utils.isRealmModel(field)) { // Links
-//                fieldTypeName = field.asType().toString();
-//            } else if (Utils.isRealmList(field) || Utils.isRealmResults(field)) { // LinkLists, Backlinks
-//                fieldTypeName = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
-//            }
-//            if (!fieldTypeName.isEmpty() && !imports.contains(fieldTypeName)) {
-//                imports.add(fieldTypeName);
-//            }
-//        }
 
         writer.emitImports(imports);
         writer.emitEmptyLine();
@@ -263,224 +243,252 @@ public class RealmProxyClassGenerator {
             final String fieldTypeCanonicalName = field.asType().toString();
 
             if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
-                /**
-                 * Primitives and boxed types
-                 */
-                final String realmType = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
-
-                // Getter
-                writer.emitAnnotation("SuppressWarnings", "\"cast\"");
-                writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
-                emitCodeForInjectingObjectContext(writer);
-                writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
-
-                // For String and bytes[], null value will be returned by JNI code. Try to save one JNI call here.
-                if (metadata.isNullable(field) && !Utils.isString(field) && !Utils.isByteArray(field)) {
-                    writer.beginControlFlow("if (proxyState.getRow$realm().isNull(%s))", fieldIndexVariableReference(field));
-                    writer.emitStatement("return null");
-                    writer.endControlFlow();
-                }
-
-                // For Boxed types, this should be the corresponding primitive types. Others remain the same.
-                String castingBackType;
-                if (Utils.isBoxedType(fieldTypeCanonicalName)) {
-                    Types typeUtils = processingEnvironment.getTypeUtils();
-                    castingBackType = typeUtils.unboxedType(field.asType()).toString();
-                } else {
-                    castingBackType = fieldTypeCanonicalName;
-                }
-                writer.emitStatement(
-                        "return (%s) proxyState.getRow$realm().get%s(%s)",
-                        castingBackType, realmType, fieldIndexVariableReference(field));
-                writer.endMethod();
-                writer.emitEmptyLine();
-
-                // Setter
-                writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                emitCodeForInjectingObjectContext(writer);
-                emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field), new CodeEmitter() {
-                    @Override
-                    public void emit(JavaWriter writer) throws IOException {
-                        // set value as default value
-                        writer.emitStatement("final Row row = proxyState.getRow$realm()");
-
-                        if (metadata.isNullable(field)) {
-                            writer.beginControlFlow("if (value == null)")
-                                    .emitStatement("row.getTable().setNull(%s, row.getIndex(), true)",
-                                            fieldIndexVariableReference(field))
-                                    .emitStatement("return")
-                                .endControlFlow();
-                        } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
-                            writer.beginControlFlow("if (value == null)")
-                                    .emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
-                                .endControlFlow();
-                        }
-                        writer.emitStatement(
-                                "row.getTable().set%s(%s, row.getIndex(), value, true)",
-                                realmType, fieldIndexVariableReference(field));
-                        writer.emitStatement("return");
-                    }
-                });
-                writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
-                // Although setting null value for String and bytes[] can be handled by the JNI code, we still generate the same code here.
-                // Compared with getter, null value won't trigger more native calls in setter which is relatively cheaper.
-                if (metadata.isPrimaryKey(field)) {
-                    // Primary key is not allowed to be changed after object created.
-                    writer.emitStatement(Constants.STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED, fieldName);
-                } else {
-                    if (metadata.isNullable(field)) {
-                        writer.beginControlFlow("if (value == null)")
-                                .emitStatement("proxyState.getRow$realm().setNull(%s)", fieldIndexVariableReference(field))
-                                .emitStatement("return")
-                                .endControlFlow();
-                    } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
-                        // Same reason, throw IAE earlier.
-                        writer
-                                .beginControlFlow("if (value == null)")
-                                .emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
-                                .endControlFlow();
-                    }
-                    writer.emitStatement(
-                            "proxyState.getRow$realm().set%s(%s, value)",
-                            realmType, fieldIndexVariableReference(field));
-                }
-                writer.endMethod();
+                emitPrimitiveType(writer, field, fieldName, fieldTypeCanonicalName);
             } else if (Utils.isRealmModel(field)) {
-                /**
-                 * Links
-                 */
-
-                // Getter
-                writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
-                emitCodeForInjectingObjectContext(writer);
-                writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
-                writer.beginControlFlow("if (proxyState.getRow$realm().isNullLink(%s))", fieldIndexVariableReference(field));
-                        writer.emitStatement("return null");
-                        writer.endControlFlow();
-                writer.emitStatement("return proxyState.getRealm$realm().get(%s.class, proxyState.getRow$realm().getLink(%s), false, Collections.<String>emptyList())",
-                        fieldTypeCanonicalName, fieldIndexVariableReference(field));
-                writer.endMethod();
-                writer.emitEmptyLine();
-
-                // Setter
-                writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                emitCodeForInjectingObjectContext(writer);
-                emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field), new CodeEmitter() {
-                    @Override
-                    public void emit(JavaWriter writer) throws IOException {
-                        // check excludeFields
-                        writer.beginControlFlow("if (proxyState.getExcludeFields$realm().contains(\"%1$s\"))",
-                                field.getSimpleName().toString())
-                                .emitStatement("return")
-                            .endControlFlow();
-                        writer.beginControlFlow("if (value != null && !RealmObject.isManaged(value))")
-                                .emitStatement("value = ((Realm) proxyState.getRealm$realm()).copyToRealm(value)")
-                            .endControlFlow();
-
-                        // set value as default value
-                        writer.emitStatement("final Row row = proxyState.getRow$realm()");
-                        writer.beginControlFlow("if (value == null)")
-                                .emitSingleLineComment("Table#nullifyLink() does not support default value. Just using Row.")
-                                .emitStatement("row.nullifyLink(%s)", fieldIndexVariableReference(field))
-                                .emitStatement("return")
-                            .endControlFlow();
-                        writer.beginControlFlow("if (!RealmObject.isValid(value))")
-                                .emitStatement("throw new IllegalArgumentException(\"'value' is not a valid managed object.\")")
-                            .endControlFlow();
-                        writer.beginControlFlow("if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())")
-                                .emitStatement("throw new IllegalArgumentException(\"'value' belongs to a different Realm.\")")
-                            .endControlFlow();
-                        writer.emitStatement("row.getTable().setLink(%s, row.getIndex(), ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getIndex(), true)",
-                                fieldIndexVariableReference(field));
-                        writer.emitStatement("return");
-                    }
-                });
-                writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
-                writer.beginControlFlow("if (value == null)");
-                    writer.emitStatement("proxyState.getRow$realm().nullifyLink(%s)", fieldIndexVariableReference(field));
-                    writer.emitStatement("return");
-                writer.endControlFlow();
-                writer.beginControlFlow("if (!(RealmObject.isManaged(value) && RealmObject.isValid(value)))");
-                    writer.emitStatement("throw new IllegalArgumentException(\"'value' is not a valid managed object.\")");
-                writer.endControlFlow();
-                writer.beginControlFlow("if (((RealmObjectProxy)value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())");
-                    writer.emitStatement("throw new IllegalArgumentException(\"'value' belongs to a different Realm.\")");
-                writer.endControlFlow();
-                writer.emitStatement("proxyState.getRow$realm().setLink(%s, ((RealmObjectProxy)value).realmGet$proxyState().getRow$realm().getIndex())", fieldIndexVariableReference(field));
-                writer.endMethod();
+                emitRealmModel(writer, field, fieldName, fieldTypeCanonicalName);
             } else if (Utils.isRealmList(field)) {
-                /**
-                 * LinkLists
-                 */
-                String genericType = Utils.getGenericTypeQualifiedName(field);
-
-                // Getter
-                writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
-                emitCodeForInjectingObjectContext(writer);
-                writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
-                writer.emitSingleLineComment("use the cached value if available");
-                writer.beginControlFlow("if (" + fieldName + "RealmList != null)");
-                        writer.emitStatement("return " + fieldName + "RealmList");
-                writer.nextControlFlow("else");
-                    writer.emitStatement("LinkView linkView = proxyState.getRow$realm().getLinkList(%s)", fieldIndexVariableReference(field));
-                    writer.emitStatement(fieldName + "RealmList = new RealmList<%s>(%s.class, linkView, proxyState.getRealm$realm())",
-                        genericType, genericType);
-                    writer.emitStatement("return " + fieldName + "RealmList");
-                writer.endControlFlow();
-
-                writer.endMethod();
-                writer.emitEmptyLine();
-
-                // Setter
-                writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                emitCodeForInjectingObjectContext(writer);
-                emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field), new CodeEmitter() {
-                    @Override
-                    public void emit(JavaWriter writer) throws IOException {
-                        // check excludeFields
-                        writer.beginControlFlow("if (proxyState.getExcludeFields$realm().contains(\"%1$s\"))",
-                                field.getSimpleName().toString())
-                                .emitStatement("return")
-                                .endControlFlow();
-                        final String modelFqcn = Utils.getGenericTypeQualifiedName(field);
-                        writer.beginControlFlow("if (value != null && !value.isManaged())")
-                                .emitStatement("final Realm realm = (Realm) proxyState.getRealm$realm()")
-                                .emitStatement("final RealmList<%1$s> original = value", modelFqcn)
-                                .emitStatement("value = new RealmList<%1$s>()", modelFqcn)
-                                .beginControlFlow("for (%1$s item : original)", modelFqcn)
-                                    .beginControlFlow("if (item == null || RealmObject.isManaged(item))")
-                                        .emitStatement("value.add(item)")
-                                    .nextControlFlow("else")
-                                        .emitStatement("value.add(realm.copyToRealm(item))")
-                                    .endControlFlow()
-                                .endControlFlow()
-                            .endControlFlow();
-
-                        // LinkView currently does not support default value feature. Just fallback to normal code.
-                    }
-                });
-                writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
-                writer.emitStatement("LinkView links = proxyState.getRow$realm().getLinkList(%s)", fieldIndexVariableReference(field));
-                writer.emitStatement("links.clear()");
-                writer.beginControlFlow("if (value == null)");
-                    writer.emitStatement("return");
-                writer.endControlFlow();
-                writer.beginControlFlow("for (RealmModel linkedObject : (RealmList<? extends RealmModel>) value)");
-                    writer.beginControlFlow("if (!(RealmObject.isManaged(linkedObject) && RealmObject.isValid(linkedObject)))");
-                        writer.emitStatement("throw new IllegalArgumentException(\"Each element of 'value' must be a valid managed object.\")");
-                    writer.endControlFlow();
-                    writer.beginControlFlow("if (((RealmObjectProxy)linkedObject).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())");
-                        writer.emitStatement("throw new IllegalArgumentException(\"Each element of 'value' must belong to the same Realm.\")");
-                    writer.endControlFlow();
-                    writer.emitStatement("links.add(((RealmObjectProxy)linkedObject).realmGet$proxyState().getRow$realm().getIndex())");
-                writer.endControlFlow();
-                writer.endMethod();
+                emitRealmList(writer, field, fieldName, fieldTypeCanonicalName);
             } else {
-                //!!!FIXME[GBM] throw new UnsupportedOperationException(
-                System.err.println(String.format("Type '%s' of field '%s' is not supported", fieldTypeCanonicalName, fieldName));
+                throw new UnsupportedOperationException(String.format(
+                    "Field \"%s\" of type \"%s\" is not supported.", fieldName, fieldTypeCanonicalName));
             }
+
             writer.emitEmptyLine();
         }
+    }
+
+    /**
+     * Primitives and boxed types
+     */
+    private void emitPrimitiveType(
+        JavaWriter writer,
+        final VariableElement field,
+        final String fieldName,
+        String fieldTypeCanonicalName) throws IOException
+    {
+        final String realmType = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
+
+        // Getter
+        writer.emitAnnotation("SuppressWarnings", "\"cast\"");
+        writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
+        emitCodeForInjectingObjectContext(writer);
+        writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
+
+        // For String and bytes[], null value will be returned by JNI code. Try to save one JNI call here.
+        if (metadata.isNullable(field) && !Utils.isString(field) && !Utils.isByteArray(field)) {
+            writer.beginControlFlow("if (proxyState.getRow$realm().isNull(%s))", fieldIndexVariableReference(field));
+            writer.emitStatement("return null");
+            writer.endControlFlow();
+        }
+
+        // For Boxed types, this should be the corresponding primitive types. Others remain the same.
+        String castingBackType;
+        if (Utils.isBoxedType(fieldTypeCanonicalName)) {
+            Types typeUtils = processingEnvironment.getTypeUtils();
+            castingBackType = typeUtils.unboxedType(field.asType()).toString();
+        } else {
+            castingBackType = fieldTypeCanonicalName;
+        }
+        writer.emitStatement(
+            "return (%s) proxyState.getRow$realm().get%s(%s)",
+            castingBackType, realmType, fieldIndexVariableReference(field));
+        writer.endMethod();
+        writer.emitEmptyLine();
+
+        // Setter
+        writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
+        emitCodeForInjectingObjectContext(writer);
+        emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field), new CodeEmitter() {
+            @Override
+            public void emit(JavaWriter writer) throws IOException {
+                // set value as default value
+                writer.emitStatement("final Row row = proxyState.getRow$realm()");
+
+                if (metadata.isNullable(field)) {
+                    writer.beginControlFlow("if (value == null)")
+                        .emitStatement("row.getTable().setNull(%s, row.getIndex(), true)",
+                            fieldIndexVariableReference(field))
+                        .emitStatement("return")
+                        .endControlFlow();
+                } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
+                    writer.beginControlFlow("if (value == null)")
+                        .emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
+                        .endControlFlow();
+                }
+                writer.emitStatement(
+                    "row.getTable().set%s(%s, row.getIndex(), value, true)",
+                    realmType, fieldIndexVariableReference(field));
+                writer.emitStatement("return");
+            }
+        });
+        writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
+        // Although setting null value for String and bytes[] can be handled by the JNI code, we still generate the same code here.
+        // Compared with getter, null value won't trigger more native calls in setter which is relatively cheaper.
+        if (metadata.isPrimaryKey(field)) {
+            // Primary key is not allowed to be changed after object created.
+            writer.emitStatement(Constants.STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED, fieldName);
+        } else {
+            if (metadata.isNullable(field)) {
+                writer.beginControlFlow("if (value == null)")
+                    .emitStatement("proxyState.getRow$realm().setNull(%s)", fieldIndexVariableReference(field))
+                    .emitStatement("return")
+                    .endControlFlow();
+            } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
+                // Same reason, throw IAE earlier.
+                writer
+                    .beginControlFlow("if (value == null)")
+                    .emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
+                    .endControlFlow();
+            }
+            writer.emitStatement(
+                "proxyState.getRow$realm().set%s(%s, value)",
+                realmType, fieldIndexVariableReference(field));
+        }
+        writer.endMethod();
+    }
+
+    /**
+     * Links
+     */
+    private void emitRealmModel(
+        JavaWriter writer,
+        final VariableElement field,
+        String fieldName,
+        String fieldTypeCanonicalName) throws IOException
+    {
+
+        // Getter
+        writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
+        emitCodeForInjectingObjectContext(writer);
+        writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
+        writer.beginControlFlow("if (proxyState.getRow$realm().isNullLink(%s))", fieldIndexVariableReference(field));
+        writer.emitStatement("return null");
+        writer.endControlFlow();
+        writer.emitStatement("return proxyState.getRealm$realm().get(%s.class, proxyState.getRow$realm().getLink(%s), false, Collections.<String>emptyList())",
+            fieldTypeCanonicalName, fieldIndexVariableReference(field));
+        writer.endMethod();
+        writer.emitEmptyLine();
+
+        // Setter
+        writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
+        emitCodeForInjectingObjectContext(writer);
+        emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field), new CodeEmitter() {
+            @Override
+            public void emit(JavaWriter writer) throws IOException {
+                // check excludeFields
+                writer.beginControlFlow("if (proxyState.getExcludeFields$realm().contains(\"%1$s\"))",
+                    field.getSimpleName().toString())
+                    .emitStatement("return")
+                    .endControlFlow();
+                writer.beginControlFlow("if (value != null && !RealmObject.isManaged(value))")
+                    .emitStatement("value = ((Realm) proxyState.getRealm$realm()).copyToRealm(value)")
+                    .endControlFlow();
+
+                // set value as default value
+                writer.emitStatement("final Row row = proxyState.getRow$realm()");
+                writer.beginControlFlow("if (value == null)")
+                    .emitSingleLineComment("Table#nullifyLink() does not support default value. Just using Row.")
+                    .emitStatement("row.nullifyLink(%s)", fieldIndexVariableReference(field))
+                    .emitStatement("return")
+                    .endControlFlow();
+                writer.beginControlFlow("if (!RealmObject.isValid(value))")
+                    .emitStatement("throw new IllegalArgumentException(\"'value' is not a valid managed object.\")")
+                    .endControlFlow();
+                writer.beginControlFlow("if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())")
+                    .emitStatement("throw new IllegalArgumentException(\"'value' belongs to a different Realm.\")")
+                    .endControlFlow();
+                writer.emitStatement("row.getTable().setLink(%s, row.getIndex(), ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getIndex(), true)",
+                    fieldIndexVariableReference(field));
+                writer.emitStatement("return");
+            }
+        });
+        writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
+        writer.beginControlFlow("if (value == null)");
+        writer.emitStatement("proxyState.getRow$realm().nullifyLink(%s)", fieldIndexVariableReference(field));
+        writer.emitStatement("return");
+        writer.endControlFlow();
+        writer.beginControlFlow("if (!(RealmObject.isManaged(value) && RealmObject.isValid(value)))");
+        writer.emitStatement("throw new IllegalArgumentException(\"'value' is not a valid managed object.\")");
+        writer.endControlFlow();
+        writer.beginControlFlow("if (((RealmObjectProxy)value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())");
+        writer.emitStatement("throw new IllegalArgumentException(\"'value' belongs to a different Realm.\")");
+        writer.endControlFlow();
+        writer.emitStatement("proxyState.getRow$realm().setLink(%s, ((RealmObjectProxy)value).realmGet$proxyState().getRow$realm().getIndex())", fieldIndexVariableReference(field));
+        writer.endMethod();
+    }
+
+    /**
+     * LinkLists
+     */
+    private void emitRealmList(
+        JavaWriter writer,
+        final VariableElement field,
+        String fieldName,
+        String fieldTypeCanonicalName) throws IOException
+    {
+        String genericType = Utils.getGenericTypeQualifiedName(field);
+
+        // Getter
+        writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
+        emitCodeForInjectingObjectContext(writer);
+        writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
+        writer.emitSingleLineComment("use the cached value if available");
+        writer.beginControlFlow("if (" + fieldName + "RealmList != null)");
+        writer.emitStatement("return " + fieldName + "RealmList");
+        writer.nextControlFlow("else");
+        writer.emitStatement("LinkView linkView = proxyState.getRow$realm().getLinkList(%s)", fieldIndexVariableReference(field));
+        writer.emitStatement(fieldName + "RealmList = new RealmList<%s>(%s.class, linkView, proxyState.getRealm$realm())",
+            genericType, genericType);
+        writer.emitStatement("return " + fieldName + "RealmList");
+        writer.endControlFlow();
+
+        writer.endMethod();
+        writer.emitEmptyLine();
+
+        // Setter
+        writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
+        emitCodeForInjectingObjectContext(writer);
+        emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field), new CodeEmitter() {
+            @Override
+            public void emit(JavaWriter writer) throws IOException {
+                // check excludeFields
+                writer.beginControlFlow("if (proxyState.getExcludeFields$realm().contains(\"%1$s\"))",
+                        field.getSimpleName().toString())
+                        .emitStatement("return")
+                        .endControlFlow();
+                final String modelFqcn = Utils.getGenericTypeQualifiedName(field);
+                writer.beginControlFlow("if (value != null && !value.isManaged())")
+                        .emitStatement("final Realm realm = (Realm) proxyState.getRealm$realm()")
+                        .emitStatement("final RealmList<%1$s> original = value", modelFqcn)
+                        .emitStatement("value = new RealmList<%1$s>()", modelFqcn)
+                        .beginControlFlow("for (%1$s item : original)", modelFqcn)
+                            .beginControlFlow("if (item == null || RealmObject.isManaged(item))")
+                                .emitStatement("value.add(item)")
+                            .nextControlFlow("else")
+                                .emitStatement("value.add(realm.copyToRealm(item))")
+                            .endControlFlow()
+                        .endControlFlow()
+                    .endControlFlow();
+
+                // LinkView currently does not support default value feature. Just fallback to normal code.
+            }
+        });
+        writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
+        writer.emitStatement("LinkView links = proxyState.getRow$realm().getLinkList(%s)", fieldIndexVariableReference(field));
+        writer.emitStatement("links.clear()");
+        writer.beginControlFlow("if (value == null)");
+        writer.emitStatement("return");
+        writer.endControlFlow();
+        writer.beginControlFlow("for (RealmModel linkedObject : (RealmList<? extends RealmModel>) value)");
+        writer.beginControlFlow("if (!(RealmObject.isManaged(linkedObject) && RealmObject.isValid(linkedObject)))");
+        writer.emitStatement("throw new IllegalArgumentException(\"Each element of 'value' must be a valid managed object.\")");
+        writer.endControlFlow();
+        writer.beginControlFlow("if (((RealmObjectProxy)linkedObject).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())");
+        writer.emitStatement("throw new IllegalArgumentException(\"Each element of 'value' must belong to the same Realm.\")");
+        writer.endControlFlow();
+        writer.emitStatement("links.add(((RealmObjectProxy)linkedObject).realmGet$proxyState().getRow$realm().getIndex())");
+        writer.endControlFlow();
+        writer.endMethod();
     }
 
     private void emitCodeForInjectingObjectContext(JavaWriter writer) throws IOException {

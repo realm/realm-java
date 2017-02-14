@@ -23,9 +23,9 @@ import io.realm.RealmFieldType;
 /**
  * Wrapper around a Row in Realm Core.
  *
- * IMPORTANT: All access to methods using this class are non-checking. Safety guarantees are given by the annotation
- * processor and {@link RealmProxyMediator#validateTable(Class, SharedRealm)} which is called before the typed
- * API can be used.
+ * IMPORTANT: All access to methods using this class are non-checking. Safety guarantees are given by the
+ * annotation processor and {@link RealmProxyMediator#validateTable(Class, SharedRealm, boolean)}
+ * which is called before the typed API can be used.
  *
  * For low-level access to Row data where error checking is required, use {@link CheckedRow}.
  */
@@ -190,12 +190,7 @@ public class UncheckedRow implements NativeObject, Row {
     @Override
     public TableView getBacklinkView(Table srcTable, long srcColumnIndex) {
         long backlinkViewPtr = nativeGetBacklinkView(nativePtr, srcTable.nativePtr, srcColumnIndex);
-        try {
-            return new TableView(context, getTable(), backlinkViewPtr);
-        } catch (RuntimeException e) {
-            // !!!FIXME[GBM] TableView.nativeClose(backlinkViewPtr);
-            throw e;
-        }
+        return new TableView(context, getTable(), backlinkViewPtr);
     }
 
     // Setters

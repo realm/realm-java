@@ -47,7 +47,7 @@ import java.lang.annotation.Target;
  *
  * Linking objects have the following properties:
  * <ul>
- *     <li>The link is maintained by Realm and only work on managed objects.</li>
+ *     <li>The link is maintained by Realm and only works for managed objects.</li>
  *     <li>They can be queried just like normal references.</li>
  *     <li>They can be followed just like normal references.</li>
  *     <li>They will be ignored when doing a `copyToRealm()`</li>

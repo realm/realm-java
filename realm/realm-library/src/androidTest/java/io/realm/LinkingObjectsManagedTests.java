@@ -30,12 +30,14 @@ import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class LinkingObjectsTests {
+public class LinkingObjectsManagedTests {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
@@ -64,100 +66,13 @@ public class LinkingObjectsTests {
         // TODO How to test this?
     }
 
+    // ???
     @Test
     public void backlinkFieldName_typeNotBacklink() {
         // TODO How to test this?
     }
 
-    @Test
-    public void singleBacklink_link() {
-        realm.beginTransaction();
-        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
-        AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
-        parent.setFieldObject(child);
-        realm.commitTransaction();
-
-        assertEquals(1, child.getObjectParents().size());
-        assertEquals(parent, child.getObjectParents().first());
-    }
-
-    @Test
-    public void singleBacklink_linkList() {
-        realm.beginTransaction();
-        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
-        AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
-        parent.getFieldList().add(child);
-        realm.commitTransaction();
-
-        assertEquals(1, child.getListParents().size());
-        assertEquals(parent, child.getListParents().first());
-    }
-
-    @Test
-    public void multipleBacklinks_link() {
-        realm.beginTransaction();
-        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
-        AllJavaTypes parent1 = realm.createObject(AllJavaTypes.class, 2);
-        AllJavaTypes parent2 = realm.createObject(AllJavaTypes.class, 3);
-        parent1.setFieldObject(child);
-        parent2.setFieldObject(child);
-        realm.commitTransaction();
-
-        assertEquals(2, child.getObjectParents().size());
-    }
-
-    @Test
-    public void multipleBacklinks_linkList() {
-        realm.beginTransaction();
-        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
-        AllJavaTypes parent1 = realm.createObject(AllJavaTypes.class, 2);
-        AllJavaTypes parent2 = realm.createObject(AllJavaTypes.class, 3);
-        parent1.getFieldList().add(child);
-        parent2.getFieldList().add(child);
-        realm.commitTransaction();
-
-        assertEquals(2, child.getListParents().size());
-    }
-
-    @Test
-    public void multipleReferencesFromParentList() {
-        realm.beginTransaction();
-        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
-        AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
-        parent.getFieldList().add(child);
-        parent.getFieldList().add(child);
-        realm.commitTransaction();
-
-        // One entry for each reference, so two references from a LinkList will
-        // result in two backlinks.
-        assertEquals(2, child.getListParents().size());
-        assertEquals(parent, child.getListParents().first());
-        assertEquals(parent, child.getListParents().last());
-    }
-
-    public void queryStartingWithBacklink() {
-
-    }
-
-    public void queryEndingWithBacklink() {
-
-    }
-
-    public void queryBacklinkInMiddle() {
-
-    }
-
-    public void queryOnlyBacklinks() {
-
-    }
-
-    public void setUnmanagedLinkingObjects() {
-        AllJavaTypes obj = new AllJavaTypes(1);
-        obj.setObjectParents(realm.where(AllJavaTypes.class).findAll());
-        assertNotNull(obj.getObjectParents());
-        assertEquals(0, obj.getObjectParents().size());
-    }
-
+    // In a managed object, the backlinks field cannot be set
     public void setManagedLinkingObjectsThrows() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
@@ -174,48 +89,148 @@ public class LinkingObjectsTests {
         }
     }
 
-    public void copyToRealm_ignoreLinkingObjects() {
-        AllJavaTypes child = new AllJavaTypes(1);
-        AllJavaTypes parent = new AllJavaTypes(2);
-        parent.setFieldObject(child);
-        child.setObjectParents(realm.where(AllJavaTypes.class).findAll());
-
-        AllJavaTypes managedParent = realm.copyToRealm(parent);
-
-        // Backlinks are null when copied out of Realm.
-        assertEquals(2, realm.where(AllJavaTypes.class).count());
-        assertEquals(1, managedParent.getFieldObject().getObjectParents().size());
-    }
-
-    public void copyFromRealm_ignoreLinkingObjects() {
+    // Setting the linked object field creates the correct backlink
+    @Test
+    public void singleBacklink_link() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
         AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
         parent.setFieldObject(child);
         realm.commitTransaction();
 
-        AllJavaTypes unmanagedParent = realm.copyFromRealm(parent);
-
-        // Backlinks are null when copied out of Realm.
-        assertNull(unmanagedParent.getFieldObject().getObjectParents());
+        assertEquals(1, child.getObjectParents().size());
+        assertEquals(parent, child.getObjectParents().first());
     }
 
-    public void dynamicQuery_fieldNotFound() {
+    // Setting a linked list field creates the correct backlink
+    @Test
+    public void singleBacklink_linkList() {
+        realm.beginTransaction();
+        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
+        AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
+        parent.getFieldList().add(child);
+        realm.commitTransaction();
+
+        assertEquals(1, child.getListParents().size());
+        assertEquals(parent, child.getListParents().first());
+    }
+
+    // Setting multiple object links creates multiple backlinks
+    @Test
+    public void multipleBacklinks_link() {
+        realm.beginTransaction();
+        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
+        AllJavaTypes parent1 = realm.createObject(AllJavaTypes.class, 2);
+        AllJavaTypes parent2 = realm.createObject(AllJavaTypes.class, 3);
+        parent1.setFieldObject(child);
+        parent2.setFieldObject(child);
+        realm.commitTransaction();
+
+        assertEquals(2, child.getObjectParents().size());
+    }
+
+    // Setting multiple list links creates multiple backlinks
+    @Test
+    public void multipleBacklinks_linkList() {
+        realm.beginTransaction();
+        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
+        AllJavaTypes parent1 = realm.createObject(AllJavaTypes.class, 2);
+        AllJavaTypes parent2 = realm.createObject(AllJavaTypes.class, 3);
+        parent1.getFieldList().add(child);
+        parent2.getFieldList().add(child);
+        realm.commitTransaction();
+
+        assertEquals(2, child.getListParents().size());
+    }
+
+    // Adding multiple list links creates multiple backlinks,
+    // even if the links are to a single object
+    @Test
+    public void multipleReferencesFromParentList() {
+        realm.beginTransaction();
+        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
+        AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
+        parent.getFieldList().add(child);
+        parent.getFieldList().add(child);
+        realm.commitTransaction();
+
+        // One entry for each reference, so two references from a LinkList will
+        // result in two backlinks.
+        assertEquals(2, child.getListParents().size());
+        assertEquals(parent, child.getListParents().first());
+        assertEquals(parent, child.getListParents().last());
+    }
+
+    // Query on a field descriptor starting with a backlink
+    @Test
+    public void queryStartingWithBacklink() {
+        realm.beginTransaction();
+        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
+        AllJavaTypes parent1 = realm.createObject(AllJavaTypes.class, 2);
+        AllJavaTypes parent2 = realm.createObject(AllJavaTypes.class, 3);
+        AllJavaTypes parent3 = realm.createObject(AllJavaTypes.class, 4);
+        parent1.getFieldList().add(child);
+        parent2.getFieldList().add(child);
+        parent3.getFieldList().add(child);
+        realm.commitTransaction();
+
+        RealmResults<AllJavaTypes> result
+            = realm.where(AllJavaTypes.class)
+            .equalTo("fieldLong", 1)
+            .greaterThan("objectParents.fieldLong", 2)
+            .findAll();
+        assertEquals(2, result.size());
+        assertFalse(result.contains(parent1));
+        assertTrue(result.contains(parent2));
+        assertTrue(result.contains(parent3));
+    }
+
+    // Query on a field descriptor that ends with a backlink
+    @Test
+    public void queryEndingWithBacklink() {
 
     }
 
-    public void dynamicQuery_typeNotBacklink() {
+    // Query on a field descriptor that has a backlink in the middle
+    @Test
+    public void queryBacklinkInMiddle() {
 
     }
 
-    public void dynamicQuery_invalidSyntax() {
-        String[] invalidBacklinks = new String[] {
-                "linkingObject(x",
-                "linkingObject(x.y",
-                "linkingObject(x.y)",
-                "linkingObject(x.y).",
-                "linkingObject(x.y)..z",
-                "linkingObject(x.y).linkingObjects(x1.y1).z"
-        };
+    // Query on a field descriptor containing mulitple backlinks
+    @Test
+    public void queryOnlyBacklinks() {
+
+    }
+
+    // A newly added notification callback should be called immediately for an object
+    // that has acquired a backlink
+    @Test
+    public void notifcationSentInitially() {
+
+    }
+
+    // A notification callback should be called on a commit that adds a backlink
+    @Test
+    public void notifcationOnCommit() {
+
+    }
+
+    // A notification callback should be called when a backlinked object is deleted
+    @Test
+    public void notifcationOnDelete() {
+
+    }
+
+    // A notification callback should not be called for unrelated changes on the same object
+    @Test
+    public void notifcationNotSentOnUnrelatedChange() {
+
+    }
+
+    // ???
+    @Test
+    public void notifcationSentOnlyForRefresh() {
     }
 }
+
