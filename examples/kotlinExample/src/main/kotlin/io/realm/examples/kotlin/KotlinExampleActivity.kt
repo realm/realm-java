@@ -51,16 +51,16 @@ class KotlinExampleActivity : Activity() {
         // Open the realm for the UI thread.
         realm = Realm.getDefaultInstance()
 
-        basicCRUD(realm)
-        basicQuery(realm)
-        basicLinkQuery(realm)
-
         // Delete all persons
         // Using executeTransaction with a lambda reduces code size and makes it impossible
         // to forget to commit the transaction.
         realm.executeTransaction {
-            realm.delete(Person::class.java)
+            realm.deleteAll()
         }
+
+        basicCRUD(realm)
+        basicQuery(realm)
+        basicLinkQuery(realm)
 
         // More complex operations can be executed on another thread, for example using
         // Anko's async extension method.
@@ -93,7 +93,7 @@ class KotlinExampleActivity : Activity() {
         // All writes must be wrapped in a transaction to facilitate safe multi threading
         realm.executeTransaction {
             // Add a person
-            val person = realm.createObject(Person::class.java, 1)
+            val person = realm.createObject(Person::class.java, 0)
             person.name = "Young Person"
             person.age = 14
         }
@@ -139,9 +139,8 @@ class KotlinExampleActivity : Activity() {
         realm.executeTransaction {
             val fido = realm.createObject(Dog::class.java)
             fido.name = "fido"
-            for (i in 0..9) {
-                val person = realm.createObject(Person::class.java)
-                person.id = i.toLong()
+            for (i in 1..9) {
+                val person = realm.createObject(Person::class.java, i.toLong())
                 person.name = "Person no. $i"
                 person.age = i
                 person.dog = fido
@@ -177,7 +176,6 @@ class KotlinExampleActivity : Activity() {
 
         // Sorting
         val sortedPersons = realm.where(Person::class.java).findAllSorted("age", Sort.DESCENDING)
-        check(realm.where(Person::class.java).findAll().last().name == sortedPersons.first().name)
         status += "\nSorting ${sortedPersons.last().name} == ${realm.where(Person::class.java).findAll().first().name}"
 
         realm.close()
