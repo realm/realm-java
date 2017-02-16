@@ -22,29 +22,20 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import io.realm.entities.AllJavaTypes;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class LinkingObjectsUnmanagedTests {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
-    @Rule
-    public final RunInLooperThread looperThread = new RunInLooperThread();
 
     private Realm realm;
 
@@ -61,17 +52,8 @@ public class LinkingObjectsUnmanagedTests {
         }
     }
 
-    @Test
-    public void backlinkFieldName_notFound() {
-        // TODO How to test this?
-    }
-
-    @Test
-    public void backlinkFieldName_typeNotBacklink() {
-        // TODO How to test this?
-    }
-
     // In an unmanaged object, the backlinks field can be set
+    @Test
     public void setUnmanagedLinkingObjects() {
         AllJavaTypes obj = new AllJavaTypes(1);
         obj.setObjectParents(realm.where(AllJavaTypes.class).findAll());
@@ -82,6 +64,7 @@ public class LinkingObjectsUnmanagedTests {
     // When managed, an object has the existing content of a backlinked field
     // replaced with actual backlinks
     // !!! Should this generate a warning?
+    @Test
     public void copyToRealm_ignoreLinkingObjects() {
         AllJavaTypes child = new AllJavaTypes(1);
         AllJavaTypes parent = new AllJavaTypes(2);
@@ -96,6 +79,7 @@ public class LinkingObjectsUnmanagedTests {
     }
 
     // When unmanaged, an object's backlinks fields a nulled
+    @Test
     public void copyFromRealm_ignoreLinkingObjects() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);

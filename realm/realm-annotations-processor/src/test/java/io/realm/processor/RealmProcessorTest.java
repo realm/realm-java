@@ -464,9 +464,9 @@ public class RealmProcessorTest {
     @Test
     public void compileBacklinks() {
         ASSERT.about(javaSource())
-                .that(JavaFileObjects.forResource("some/test/Backlinks.java"))
-                .processedWith(new RealmProcessor())
-                .compilesWithoutError();
+            .that(JavaFileObjects.forResource("some/test/Backlinks.java"))
+            .processedWith(new RealmProcessor())
+            .compilesWithoutError();
     }
 
     @Test
@@ -478,11 +478,19 @@ public class RealmProcessorTest {
     }
 
     @Test
+    public void failsOnLinkingObjectsWithLinkedFields() {
+        ASSERT.about(javaSource())
+            .that(JavaFileObjects.forResource("some/test/Backlinks_LinkedFields.java"))
+            .processedWith(new RealmProcessor())
+            .failsToCompile();
+    }
+
+    @Test
     public void failsOnLinkingObjectsMissingFieldName() {
         ASSERT.about(javaSource())
-                .that(JavaFileObjects.forResource("some/test/Backlinks_MissingField.java"))
-                .processedWith(new RealmProcessor())
-                .failsToCompile();
+            .that(JavaFileObjects.forResource("some/test/Backlinks_MissingField.java"))
+            .processedWith(new RealmProcessor())
+            .failsToCompile();
     }
 
     @Test
@@ -494,17 +502,25 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void failsOnLinkingObjectsWithLinkedFields() {
+    public void failsOnLinkingObjectsFieldNotFound() {
         ASSERT.about(javaSource())
-                .that(JavaFileObjects.forResource("some/test/Backlinks_LinkedFields.java"))
-                .processedWith(new RealmProcessor())
-                .failsToCompile();
+            .that(JavaFileObjects.forResource("some/test/Backlinks_NotFound.java"))
+            .processedWith(new RealmProcessor())
+            .failsToCompile();
     }
 
     @Test
     public void failsOnLinkingObjectsWithRequiredFields() {
         ASSERT.about(javaSource())
-                .that(JavaFileObjects.forResource("some/test/Backlinks_Required.java"))
+            .that(JavaFileObjects.forResource("some/test/Backlinks_Required.java"))
+            .processedWith(new RealmProcessor())
+            .failsToCompile();
+    }
+
+    @Test
+    public void failsOnLinkingObjectsWithFieldWrongType() {
+        ASSERT.about(javaSource())
+                .that(JavaFileObjects.forResource("some/test/Backlinks_WrongType.java"))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

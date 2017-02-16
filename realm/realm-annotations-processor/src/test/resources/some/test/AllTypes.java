@@ -28,7 +28,7 @@ import io.realm.annotations.Required;
 public class AllTypes extends RealmObject {
 
     public static final String TAG = "AllTypes";
-    public static final String FIELD_PARENTS = "parentObjects";
+    public static final String FIELD_PARENTS = "columnObject";
 
     @PrimaryKey
     private String columnString;

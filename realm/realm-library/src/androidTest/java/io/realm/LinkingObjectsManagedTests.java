@@ -31,8 +31,6 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -61,17 +59,6 @@ public class LinkingObjectsManagedTests {
         }
     }
 
-    @Test
-    public void backlinkFieldName_notFound() {
-        // TODO How to test this?
-    }
-
-    // ???
-    @Test
-    public void backlinkFieldName_typeNotBacklink() {
-        // TODO How to test this?
-    }
-
     // In a managed object, the backlinks field cannot be set
     public void setManagedLinkingObjectsThrows() {
         realm.beginTransaction();
@@ -83,8 +70,10 @@ public class LinkingObjectsManagedTests {
             // Trying to set @LinkingObjects in managed mode is illegal
             parent.setObjectParents(realm.where(AllJavaTypes.class).findAll());
             fail();
-        } catch (UnsupportedOperationException ignored) {
-        } finally {
+        }
+        catch (UnsupportedOperationException ignored) {
+        }
+        finally {
             realm.cancelTransaction();
         }
     }
@@ -165,19 +154,45 @@ public class LinkingObjectsManagedTests {
     @Test
     public void queryStartingWithBacklink() {
         realm.beginTransaction();
-        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
-        AllJavaTypes parent1 = realm.createObject(AllJavaTypes.class, 2);
-        AllJavaTypes parent2 = realm.createObject(AllJavaTypes.class, 3);
-        AllJavaTypes parent3 = realm.createObject(AllJavaTypes.class, 4);
-        parent1.getFieldList().add(child);
-        parent2.getFieldList().add(child);
-        parent3.getFieldList().add(child);
+        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 10);
+
+        AllJavaTypes parent1 = realm.createObject(AllJavaTypes.class, 1);
+        parent1.setFieldObject(child);
+
+        AllJavaTypes parent2 = realm.createObject(AllJavaTypes.class, 2);
+        parent2.setFieldObject(child);
+
+        AllJavaTypes parent3 = realm.createObject(AllJavaTypes.class, 3);
+        parent3.setFieldObject(child);
         realm.commitTransaction();
 
-        RealmResults<AllJavaTypes> result
-            = realm.where(AllJavaTypes.class)
-            .equalTo("fieldLong", 1)
-            .greaterThan("objectParents.fieldLong", 2)
+        RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
+            .greaterThan("objectParents.fieldId", 1)
+            .findAll();
+        assertEquals(2, result.size());
+        assertFalse(result.contains(parent1));
+        assertTrue(result.contains(parent2));
+        assertTrue(result.contains(parent3));
+    }
+
+    // Query on a field descriptor that has a backlink in the middle
+    @Test
+    public void queryBacklinkInMiddle() {
+        realm.beginTransaction();
+        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
+
+        AllJavaTypes parent1 = realm.createObject(AllJavaTypes.class, 2);
+        parent1.setFieldObject(child);
+
+        AllJavaTypes parent2 = realm.createObject(AllJavaTypes.class, 3);
+        parent2.setFieldObject(child);
+
+        AllJavaTypes parent3 = realm.createObject(AllJavaTypes.class, 4);
+        parent3.setFieldObject(child);
+        realm.commitTransaction();
+
+        RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
+            .greaterThan("fieldObject.objectParents.fieldId", 1)
             .findAll();
         assertEquals(2, result.size());
         assertFalse(result.contains(parent1));
@@ -188,19 +203,32 @@ public class LinkingObjectsManagedTests {
     // Query on a field descriptor that ends with a backlink
     @Test
     public void queryEndingWithBacklink() {
-
-    }
-
-    // Query on a field descriptor that has a backlink in the middle
-    @Test
-    public void queryBacklinkInMiddle() {
-
+        //equalTo("selectedFieldParents.selectedFieldParents")
     }
 
     // Query on a field descriptor containing mulitple backlinks
     @Test
-    public void queryOnlyBacklinks() {
+    public void queryMultipleBacklinks() {
+        realm.beginTransaction();
+        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
 
+        AllJavaTypes parent1 = realm.createObject(AllJavaTypes.class, 2);
+        parent1.setFieldObject(child);
+
+        AllJavaTypes parent2 = realm.createObject(AllJavaTypes.class, 3);
+        parent2.setFieldObject(child);
+
+        AllJavaTypes parent3 = realm.createObject(AllJavaTypes.class, 4);
+        parent3.setFieldObject(child);
+        realm.commitTransaction();
+
+        RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
+            .greaterThan("objectParents.objectParents.fieldId", 1)
+            .findAll();
+        assertEquals(2, result.size());
+        assertFalse(result.contains(parent1));
+        assertTrue(result.contains(parent2));
+        assertTrue(result.contains(parent3));
     }
 
     // A newly added notification callback should be called immediately for an object

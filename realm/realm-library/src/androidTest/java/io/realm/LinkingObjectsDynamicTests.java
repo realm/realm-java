@@ -22,29 +22,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import io.realm.entities.AllJavaTypes;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class LinkingObjectsDynamicTests {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
-    @Rule
-    public final RunInLooperThread looperThread = new RunInLooperThread();
 
     private Realm realm;
 
@@ -61,25 +47,15 @@ public class LinkingObjectsDynamicTests {
         }
     }
 
-    public void dynamicQuery_fieldNotFound() {
-
-    }
-
-    public void dynamicQuery_typeNotBacklink() {
-
-    }
-
+    @Test
     public void dynamicQuery_invalidSyntax() {
         String[] invalidBacklinks = new String[] {
-                "linkingObject(x",
-                "linkingObject(x.y",
-                "linkingObject(x.y)",
-                "linkingObject(x.y).",
-                "linkingObject(x.y)..z",
-                "linkingObject(x.y).linkingObjects(x1.y1).z"
+            "linkingObject(x",
+            "linkingObject(x.y",
+            "linkingObject(x.y)",
+            "linkingObject(x.y).",
+            "linkingObject(x.y)..z",
+            "linkingObject(x.y).linkingObjects(x1.y1).z"
         };
     }
 }
-
-// Nothing works on unmanaged objects.
-

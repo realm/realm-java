@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package io.realm.entities;
+package some.test;
 
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.annotations.LinkingObjects;
 
-public class BacklinkNotFound  extends RealmObject {
-    @LinkingObjects("IWasHereButDisappear")
-    private RealmResults<BacklinkNotFound> objectParents;
+public class Backlinks_NotFound extends RealmObject {
+
+    private Backlinks_NotFound child;
+
+    @LinkingObjects("xxx")
+    private RealmResults<Backlinks_NotFound> selectedFieldParents;
 }

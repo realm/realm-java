@@ -17,7 +17,10 @@
 package io.realm.processor;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -29,6 +32,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 
 import io.realm.annotations.RealmClass;
 
@@ -122,12 +126,17 @@ import io.realm.annotations.RealmClass;
         "io.realm.annotations.Required"
 })
 public class RealmProcessor extends AbstractProcessor {
-
     // Don't consume annotations. This allows 3rd party annotation processors to run.
     private static final boolean CONSUME_ANNOTATIONS = false;
 
-    Set<ClassMetaData> classesToValidate = new HashSet<ClassMetaData>();
+
+    // List of all fields maintained by Realm (RealmResults)
+    private final Set<ClassMetaData> classesToValidate = new HashSet<ClassMetaData>();
+    // List of backlinks
+    private final Set<Backlink> backlinksToValidate = new HashSet<Backlink>();
+
     private boolean hasProcessedModules = false;
+    private int round;
 
     @Override public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latestSupported();
@@ -135,42 +144,60 @@ public class RealmProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        // Don't run this processor in subsequent runs. We created everything in the first one.
-        if (hasProcessedModules) {
-            return CONSUME_ANNOTATIONS;
+        round++;
+
+        if (round == 0) {
+            RealmVersionChecker updateChecker = RealmVersionChecker.getInstance(processingEnv);
+            updateChecker.executeRealmVersionUpdate();
         }
-        RealmVersionChecker updateChecker = RealmVersionChecker.getInstance(processingEnv);
-        updateChecker.executeRealmVersionUpdate();
 
-        Utils.initialize(processingEnv);
+        if (!hasProcessedModules) {
+            Utils.initialize(processingEnv);
 
-        Set<String> packages = new TreeSet<String>();
+            if (processAnnotations(roundEnv)) {
+                return true; // Abort processing by claiming all annotations
+            }
 
-        // Create all proxy classes
+            hasProcessedModules = true;
+            processModules(roundEnv);
+        }
+
+        if (roundEnv.processingOver()) {
+            if (validateBacklinks()) {
+                return true;
+            }
+        }
+
+        return CONSUME_ANNOTATIONS;
+    }
+
+    // Create all proxy classes
+    private boolean processAnnotations(RoundEnvironment roundEnv) {
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
 
             // The class must either extend RealmObject or implement RealmModel
             if (!Utils.isImplementingMarkerInterface(classElement)) {
-                Utils.error("A RealmClass annotated object must implement RealmModel or derive from RealmObject", classElement);
+                Utils.error("A RealmClass annotated object must implement RealmModel or derive from RealmObject.", classElement);
             }
 
             // Check the annotation was applied to a Class
             if (!classElement.getKind().equals(ElementKind.CLASS)) {
-                Utils.error("The RealmClass annotation can only be applied to classes", classElement);
-                return true; // Abort processing by claiming all annotations
+                Utils.error("The RealmClass annotation can only be applied to classes.", classElement);
+                return true;
             }
 
             ClassMetaData metadata = new ClassMetaData(processingEnv, (TypeElement) classElement);
             if (!metadata.isModelClass()) {
                 continue;
             }
+
             Utils.note("Processing class " + metadata.getSimpleClassName());
+
             boolean success = metadata.generate();
-            if (!success) {
-                return true;
-            }
+            if (!success) { return true; }
+
             classesToValidate.add(metadata);
-            packages.add(metadata.getPackageName());
+            backlinksToValidate.addAll(metadata.getBacklinkFields());
 
             RealmProxyInterfaceGenerator interfaceGenerator = new RealmProxyInterfaceGenerator(processingEnv, metadata);
             try {
@@ -189,15 +216,11 @@ public class RealmProcessor extends AbstractProcessor {
             }
         }
 
-        hasProcessedModules = true;
-        processModules(roundEnv);
-
-        return CONSUME_ANNOTATIONS;
+        return false;
     }
 
     // Returns true if modules was processed successfully, false otherwise
     private boolean processModules(RoundEnvironment roundEnv) {
-
         ModuleMetaData moduleMetaData = new ModuleMetaData(roundEnv, classesToValidate);
         if (!moduleMetaData.generate(processingEnv)) {
             return false;
@@ -244,5 +267,49 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         return true;
+    }
+
+    // Because library classes are processed separately, there is no guarantee
+    // that this method can see all of the classes necessary to completely validate
+    // all of the backlinks.  If it can find the fully-qualified class, though,
+    // and prove that the class either does not contain the necessary field, or
+    // that it does contain the field, but the field is of the wrong type, it can
+    // catch the error at compile time.
+    private boolean validateBacklinks() {
+        boolean validated = true;
+
+        Map<String, ClassMetaData> realmClasses = new HashMap<String, ClassMetaData>(classesToValidate.size());
+        for (ClassMetaData classData: classesToValidate) {
+            realmClasses.put(classData.getFQClassName(), classData);
+        }
+
+        for (Backlink backlink: backlinksToValidate) {
+            ClassMetaData metaData = realmClasses.get(backlink.targetClass);
+
+            if (metaData == null) { continue; }
+
+            // We have the class.  If is doesn't work, that proves failure.
+            Map<String, VariableElement> fields = metaData.getFieldMap();
+            VariableElement field = fields.get(backlink.targetField);
+            if (field == null) {
+                Utils.error(String.format(
+                    "\"%s\", the target of the @LinkedObjects annotation on field \"%s\" in class \"%s\", does not exist in class \"%s\".",
+                    backlink.targetField, backlink.sourceField, backlink.sourceClass, metaData.getFQClassName()));
+
+                validated = false;
+                continue;
+            }
+
+            if (!backlink.sourceClass.equals(field.asType().toString())) {
+                Utils.error(String.format(
+                    "\"%s\", the target of the @LinkedObjects annotation on field \"%s\" in class \"%s\", has type \"%s\" instead of \"%s\".",
+                    backlink.targetField, backlink.sourceField, backlink.sourceClass, field.asType().toString(), backlink.targetClass));
+
+                validated = false;
+            }
+
+        }
+
+        return validated;
     }
 }
