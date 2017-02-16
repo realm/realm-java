@@ -68,7 +68,7 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ThrowException(env, IllegalArgument, ss.str());
     }
     catch (RealmFileException& e) {
-        ss << e.what() << " (" <<  e.underlying() <<  ") in " << file << " line " << line;
+        ss << e.what() << " (" <<  e.underlying() << ") (" << e.path() << ") in " << file << " line " << line;
         ThrowRealmFileException(env, ss.str(), e.kind());
     }
     catch (File::AccessError& e) {
