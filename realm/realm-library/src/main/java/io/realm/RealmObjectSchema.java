@@ -155,7 +155,7 @@ public class RealmObjectSchema {
         checkEmpty(className);
         String internalTableName = Table.TABLE_PREFIX + className;
         if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
-            throw new IllegalArgumentException("Class name is to long. Limit is 56 characters: \'" + className + "\' (" + Integer.toString(className.length()) + ")");
+            throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: \'" + className + "\' (" + Integer.toString(className.length()) + ")");
         }
         if (realm.sharedRealm.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);

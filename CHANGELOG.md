@@ -14,6 +14,13 @@
   - Use Object Store's notification mechanism to trigger listeners.
   - Local commit triggers Realm global listener and `RealmObject` listener on current thread immediately instead of in the next event loop.
 
+## 2.3.2
+
+### Internal
+
+* Updated to Realm Sync v1.0.4.
+* Updated to Realm Core v2.3.1.
+
 ## 2.3.1
 
 ### Enhancements
