@@ -15,12 +15,13 @@ import io.realm.internal.UncheckedRow;
 
 /**
  * General implementation for {@link OrderedRealmCollection} which is based on the {@link Collection}.
- * Currently only {@link RealmResults} and {@link OrderedRealmCollectionSnapshot} is inherited from this class. But
- * {@link RealmList} could also inherit from this to share the same iterator implementation.
+ * Currently only {@link RealmResults} and {@link OrderedRealmCollectionSnapshot} extend this class. But
+ * {@link RealmList} could also extend this to share the same iterator implementation.
  */
 abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         extends AbstractList<E> implements OrderedRealmCollection<E> {
-    private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by RealmResults.";
+    private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by 'RealmResults' or" +
+            " 'OrderedRealmCollectionSnapshot'.";
 
     final BaseRealm realm;
     Class<E> classSpec;   // Return type
@@ -56,7 +57,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     /**
-     * A {@link RealmResults} is always a managed collection.
+     * A {@link RealmResults} or a {@link OrderedRealmCollectionSnapshot} is always a managed collection.
      *
      * @return {@code true}.
      * @see RealmCollection#isManaged()
@@ -66,11 +67,11 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     /**
-     * Searches this {@link RealmResults} for the specified object.
+     * Searches this {@link OrderedRealmCollection} for the specified object.
      *
      * @param object the object to search for.
-     * @return {@code true} if {@code object} is an element of this {@code RealmResults},
-     *         {@code false} otherwise
+     * @return {@code true} if {@code object} is an element of this {@code OrderedRealmCollection},
+     *         {@code false} otherwise.
      */
     @Override
     public boolean contains(Object object) {
@@ -171,7 +172,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      */
     @Override
     public void deleteFromRealm(int location) {
-        // TODO: Implement the deleteLast in OS level and do check there!
+        // TODO: Implement the delete in OS level and do check there!
         realm.checkIfValidAndInTransaction();
         collection.delete(location);
     }
@@ -237,7 +238,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
             throw new IllegalArgumentException("Non-empty field name required.");
         }
         if (fieldName.contains(".")) {
-            throw new IllegalArgumentException("Sorting using child object fields is not supported: " + fieldName);
+            throw new IllegalArgumentException("Aggregates on child object fields is not supported: " + fieldName);
         }
         long columnIndex = collection.getTable().getColumnIndex(fieldName);
         if (columnIndex < 0) {
@@ -422,7 +423,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     // Deleting
 
     /**
-     * Not supported by RealmResults.
+     * Not supported by {@link RealmResults} and {@link OrderedRealmCollectionSnapshot}.
      *
      * @throws UnsupportedOperationException
      */
@@ -433,7 +434,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     /**
-     * Not supported by RealmResults.
+     * Not supported by {@link RealmResults} and {@link OrderedRealmCollectionSnapshot}.
      *
      * @throws UnsupportedOperationException
      */
@@ -444,7 +445,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     /**
-     * Not supported by RealmResults.
+     * Not supported by {@link RealmResults} and {@link OrderedRealmCollectionSnapshot}.
      *
      * @throws UnsupportedOperationException
      */
@@ -455,7 +456,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     /**
-     * Not supported by RealmResults.
+     * Not supported by {@link RealmResults} and {@link OrderedRealmCollectionSnapshot}.
      *
      * @throws UnsupportedOperationException
      */
@@ -465,10 +466,8 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
-
-
     /**
-     * Not supported by RealmResults.
+     * Not supported by {@link RealmResults} and {@link OrderedRealmCollectionSnapshot}.
      *
      * @throws UnsupportedOperationException
      */
@@ -503,7 +502,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     /**
-     * Not supported by RealmResults.
+     * Not supported by {@link RealmResults} and {@link OrderedRealmCollectionSnapshot}.
      *
      * @throws UnsupportedOperationException always.
      */
@@ -514,7 +513,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     /**
-     * Not supported by RealmResults.
+     * Not supported by {@link RealmResults} and {@link OrderedRealmCollectionSnapshot}.
      *
      * @throws UnsupportedOperationException always.
      */
@@ -525,7 +524,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     /**
-     * Not supported by RealmResults.
+     * Not supported by {@link RealmResults} and {@link OrderedRealmCollectionSnapshot}.
      *
      * @throws UnsupportedOperationException always.
      */
@@ -536,7 +535,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     /**
-     * Not supported by RealmResults.
+     * Not supported by {@link RealmResults} and {@link OrderedRealmCollectionSnapshot}.
      *
      * @throws UnsupportedOperationException always.
      */
@@ -548,7 +547,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     /**
-     * Not supported by RealmResults.
+     * Not supported by {@link RealmResults} and {@link OrderedRealmCollectionSnapshot}.
      *
      * @throws UnsupportedOperationException always.
      */

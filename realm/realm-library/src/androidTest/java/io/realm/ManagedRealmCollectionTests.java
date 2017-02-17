@@ -560,9 +560,9 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertEquals(new Date(-YEAR_MILLIS * 20 * TEST_SIZE / 2), collection.minDate(AllJavaTypes.FIELD_DATE));
     }
 
-    // Delete the last row in the collection then test the aggregates methods.
+    // Deletes the last row in the collection then tests the aggregates methods.
     // Since deletion will turn the corresponding object into invalid for collection snapshot, this tests if the
-    // aggregates methods ignores the invalid rows and returns the correct result.
+    // aggregates methods ignore the invalid rows and return the correct result.
     @Test
     public void aggregates_deleteLastRow() {
         assertTrue(TEST_SIZE > 3);

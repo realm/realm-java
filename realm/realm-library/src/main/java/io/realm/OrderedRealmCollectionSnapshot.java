@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm;
 
 import io.realm.internal.Collection;
@@ -5,10 +21,10 @@ import io.realm.internal.UncheckedRow;
 
 /**
  * An {@link OrderedRealmCollectionSnapshot} is a special type of {@link OrderedRealmCollection}. It can be created by
- * calling {@link OrderedRealmCollection#createSnapshot()}. Unlike {@link RealmResults} and {@link RealmList}, it's
- * size and orders of elements will never be changed after creation.
+ * calling {@link OrderedRealmCollection#createSnapshot()}. Unlike {@link RealmResults} and {@link RealmList}, its
+ * size and order of elements will never be changed after creation.
  * <p>
- * {@link OrderedRealmCollectionSnapshot} is useful when making changes which may impact on the size or orders of the
+ * {@link OrderedRealmCollectionSnapshot} is useful when making changes which may impact the size or order of the
  * collection in simple loops. For example:
  * <p>
  * <pre>
@@ -20,7 +36,7 @@ import io.realm.internal.UncheckedRow;
  *     @Override
  *     public void execute(Realm realm) {
  *         for (int i = 0; i < dogsCount; i++) {
- *         // This won't work since RealmResults is always up-to-day, its size gets decreased by 1 after every loop. An
+ *         // This won't work since RealmResults is always up-to-date, its size gets decreased by 1 after every loop. An
  *         // IndexOutOfBoundsException will be thrown after 5 loops.
  *         // dogs.deleteFromRealm(i);
  *         snapshot.deleteFromRealm(i); // Deletion on OrderedRealmCollectionSnapshot won't change the size of it.
@@ -87,6 +103,12 @@ public class OrderedRealmCollectionSnapshot<E extends RealmModel> extends Ordere
         throw getUnsupportedException("sort");
     }
 
+    /**
+     * Not supported by {@link OrderedRealmCollectionSnapshot}. Use 'sort()' on the original
+     * {@link OrderedRealmCollection} instead.
+     *
+     * @throws UnsupportedOperationException
+     */
     @Override
     public RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders) {
         throw getUnsupportedException("sort");
@@ -127,6 +149,9 @@ public class OrderedRealmCollectionSnapshot<E extends RealmModel> extends Ordere
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public OrderedRealmCollectionSnapshot<E> createSnapshot() {
         realm.checkIfValid();
@@ -134,8 +159,8 @@ public class OrderedRealmCollectionSnapshot<E extends RealmModel> extends Ordere
     }
 
     /**
-     * Deletes the object at the given index from the Realm. The object at the given index becomes invalid. Just returns
-     * if the object is invalid already.
+     * Deletes the object at the given index from the Realm. The object at the given index will become invalid. Just
+     * returns if the object is invalid already.
      *
      * @param location the array index identifying the object to be removed.
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
@@ -151,7 +176,7 @@ public class OrderedRealmCollectionSnapshot<E extends RealmModel> extends Ordere
     }
 
     /**
-     * Deletes the first object from the Realm. The first object becomes invalid.
+     * Deletes the first object from the Realm. The first object will become invalid.
      *
      * @return {@code true} if an object was deleted, {@code false} otherwise.
      * @throws java.lang.IllegalStateException if the Realm is closed or the method is called on the wrong thread.
@@ -164,7 +189,7 @@ public class OrderedRealmCollectionSnapshot<E extends RealmModel> extends Ordere
     }
 
     /**
-     * Deletes the last object from the Realm. The last object becomes invalid.
+     * Deletes the last object from the Realm. The last object will become invalid.
      *
      * @return {@code true} if an object was deleted, {@code false} otherwise.
      * @throws java.lang.IllegalStateException if the Realm is closed or the method is called from the wrong thread.
@@ -173,12 +198,12 @@ public class OrderedRealmCollectionSnapshot<E extends RealmModel> extends Ordere
     public boolean deleteLastFromRealm() {
         realm.checkIfValidAndInTransaction();
         UncheckedRow row = collection.lastUncheckedRow();
-        return  row != null && row.isAttached() && collection.deleteLast();
+        return row != null && row.isAttached() && collection.deleteLast();
     }
 
     /**
      * This deletes all objects in the collection from the underlying Realm. All objects in the collection snapshot
-     * becomes invalid.
+     * will become invalid.
      *
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @return {@code true} if objects was deleted, {@code false} otherwise.
