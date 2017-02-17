@@ -25,11 +25,9 @@ import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.ListIterator;
-import java.util.NoSuchElementException;
 
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.Collection;
@@ -72,7 +70,6 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     String className;     // Class name used by DynamicRealmObjects
 
     private final Collection collection;
-    private boolean loadedManually = false;
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
         this.realm = realm;
@@ -615,114 +612,25 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
 
     // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
     private class RealmResultsIterator extends Collection.Iterator<E> {
-        int pos = -1;
-
         RealmResultsIterator() {
-            super(collection);
+            super(RealmResults.this.collection);
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        public boolean hasNext() {
-            return pos + 1 < size();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        public E next() {
-            realm.checkIfValid();
-            checkRealmIsStable();
-            pos++;
-            if (pos >= size()) {
-                throw new NoSuchElementException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
-            }
-            return get(pos);
-        }
-
-        /**
-         * Not supported by RealmResults iterators.
-         *
-         * @throws UnsupportedOperationException
-         */
-        @Deprecated
-        public void remove() {
-            throw new UnsupportedOperationException("remove() is not supported by RealmResults iterators.");
+        @Override
+        protected E convertRowToObject(UncheckedRow row) {
+            return realm.get(classSpec, className, row);
         }
     }
 
     // Custom RealmResults list iterator.
-    private class RealmResultsListIterator extends RealmResultsIterator implements ListIterator<E> {
-
+    private class RealmResultsListIterator extends Collection.ListIterator<E> {
         RealmResultsListIterator(int start) {
-            if (start >= 0 && start <= size()) {
-                pos = start - 1;
-            } else {
-                throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, " + (size() - 1) + "]. Yours was " + start);
-            }
+            super(RealmResults.this.collection, start);
         }
 
-        /**
-         * Unsupported by RealmResults iterators.
-         *
-         * @throws UnsupportedOperationException
-         */
         @Override
-        @Deprecated
-        public void add(E object) {
-            throw new UnsupportedOperationException("Adding an element is not supported. Use Realm.createObject() instead.");
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean hasPrevious() {
-            return pos >= 0;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int nextIndex() {
-            return pos + 1;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public E previous() {
-            realm.checkIfValid();
-            checkRealmIsStable();
-            try {
-                E obj = get(pos);
-                pos--;
-                return obj;
-            } catch (IndexOutOfBoundsException e) {
-                throw new NoSuchElementException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
-            }
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int previousIndex() {
-            return pos;
-        }
-
-        /**
-         * Unsupported by RealmResults iterators.
-         *
-         * @throws UnsupportedOperationException
-         */
-        @Override
-        @Deprecated
-        public void set(E object) {
-            throw new UnsupportedOperationException("Replacing and element is not supported.");
+        protected E convertRowToObject(UncheckedRow row) {
+            return realm.get(classSpec, className, row);
         }
     }
 
@@ -734,7 +642,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
      */
     public boolean isLoaded() {
         realm.checkIfValid();
-        return loadedManually || collection.getMode() == Collection.Mode.TABLEVIEW;
+        return collection.isLoaded();
     }
 
     /**
@@ -748,7 +656,8 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
         // Instead, accessing the Collection will just trigger the execution of query if needed. We add this flag is
         // only to keep the original behavior of those APIs. eg.: For a async RealmResults, before query returns, the
         // size() call should return 0 instead of running the query get the real size.
-        loadedManually = true;
+        realm.checkIfValid();
+        collection.load();
         return true;
     }
 

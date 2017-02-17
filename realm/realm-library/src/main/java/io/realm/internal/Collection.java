@@ -16,11 +16,9 @@
 
 package io.realm.internal;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
-import java.util.List;
+import java.util.NoSuchElementException;
 
 import io.realm.RealmChangeListener;
 
@@ -42,27 +40,157 @@ public class Collection implements NativeObject {
     }
 
     // Custom Collection iterator. It ensures that we only iterate on a Realm collection that hasn't changed.
-    // TODO: Consider to replace RealmResultsIterator implementation by this since it could be shared by the RealmList.
     public static abstract class Iterator<T> implements java.util.Iterator<T> {
-        private final WeakReference<Collection> collectionWeakReference;
+        Collection iteratorCollection;
+        protected int pos = -1;
 
         public Iterator(Collection collection) {
-            collectionWeakReference = new WeakReference<Collection>(collection);
-            collection.stableIterators.add(new WeakReference<Iterator>(this));
+            this.iteratorCollection = collection;
+
+            if (collection.sharedRealm.isInTransaction()) {
+                detach();
+            } else {
+                iteratorCollection.sharedRealm.addIterator(this);
+            }
         }
 
-        protected void checkRealmIsStable() {
-            Collection collection = collectionWeakReference.get();
-            if (collection != null) {
-                for (WeakReference<Iterator> it : collection.stableIterators) {
-                    if (it.get() == this) {
-                        return;
-                    }
-                }
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean hasNext() {
+            checkValid();
+            return pos + 1 < iteratorCollection.size();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public T next() {
+            checkValid();
+            pos++;
+            if (pos >= iteratorCollection.size()) {
+                throw new NoSuchElementException("Cannot access index " + pos + " when size is " + iteratorCollection.size() +
+                        ". Remember to check hasNext() before using next().");
             }
-            throw new ConcurrentModificationException(
-                    "No outside changes to a Realm is allowed while iterating a RealmResults." +
-                            " Don't call Realm.refresh() while iterating.");
+            return get(pos);
+        }
+
+        /**
+         * Not supported by Realm collection iterators.
+         *
+         * @throws UnsupportedOperationException
+         */
+        @Deprecated
+        public void remove() {
+            throw new UnsupportedOperationException("remove() is not supported by RealmResults iterators.");
+        }
+
+        void detach() {
+            iteratorCollection = iteratorCollection.createSnapshot();
+        }
+
+        // The iterator becomes invalid after receiving a remote change notification. In Java, the destruction of
+        // iterator totally depends on GC. If we just detach those iterators when remote change notification received
+        // like what realm-cocoa does, we will have a massive overhead since all the iterators created in the previous
+        // event loop need to be detached.
+        void invalidate() {
+            iteratorCollection = null;
+        }
+
+        void checkValid() {
+            if (iteratorCollection == null)  {
+                throw new ConcurrentModificationException(
+                        "No outside changes to a Realm is allowed while iterating a living Realm collection.");
+            }
+        }
+
+        T get(int pos) {
+            return convertRowToObject(iteratorCollection.getUncheckedRow(pos));
+        }
+
+        // Returns the RealmModel by given row in this list. This has to be implemented in the upper layer since
+        // we don't have information about the object types in the internal package.
+        protected abstract T convertRowToObject(UncheckedRow row);
+    }
+
+    // Custom Realm collection list iterator.
+    public static abstract class ListIterator<T> extends Iterator<T> implements java.util.ListIterator<T> {
+
+        public ListIterator(Collection collection, int start) {
+            super(collection);
+            if (start >= 0 && start <= iteratorCollection.size()) {
+                pos = start - 1;
+            } else {
+                throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, "
+                        + (iteratorCollection.size() - 1) + "]. Yours was " + start);
+            }
+        }
+
+        /**
+         * Unsupported by Realm collection iterators.
+         *
+         * @throws UnsupportedOperationException
+         */
+        @Override
+        @Deprecated
+        public void add(T object) {
+            throw new UnsupportedOperationException("Adding an element is not supported. Use Realm.createObject() instead.");
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean hasPrevious() {
+            checkValid();
+            return pos >= 0;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int nextIndex() {
+            checkValid();
+            return pos + 1;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public T previous() {
+            checkValid();
+            try {
+                T obj = get(pos);
+                pos--;
+                return obj;
+            } catch (IndexOutOfBoundsException e) {
+                throw new NoSuchElementException("Cannot access index less than zero. This was " + pos +
+                        ". Remember to check hasPrevious() before using previous().");
+            }
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int previousIndex() {
+            checkValid();
+            return pos;
+        }
+
+        /**
+         * Unsupported by RealmResults iterators.
+         *
+         * @throws UnsupportedOperationException
+         */
+        @Override
+        @Deprecated
+        public void set(T object) {
+            throw new UnsupportedOperationException("Replacing and element is not supported.");
         }
     }
 
@@ -71,6 +199,7 @@ public class Collection implements NativeObject {
     private final SharedRealm sharedRealm;
     private final Context context;
     private final Table table;
+    private boolean loaded = false;
     private final ObserverPairList<CollectionObserverPair> observerPairs =
             new ObserverPairList<CollectionObserverPair>();
     private static final ObserverPairList.Callback<CollectionObserverPair> onChangeCallback =
@@ -81,8 +210,6 @@ public class Collection implements NativeObject {
                     pair.onChange(observer);
                 }
             };
-    // Maintains a list of stable iterators. Iterator becomes invalid when the reattaching happens.
-    private final List<WeakReference<Iterator>> stableIterators = new ArrayList<WeakReference<Iterator>>();
 
     // Public for static checking in JNI
     @SuppressWarnings("WeakerAccess")
@@ -145,11 +272,8 @@ public class Collection implements NativeObject {
         }
     }
 
-    // neverDetach means the collection won't be detached when local transaction starts. This is useful for the
-    // PendingRow implementation.
     public Collection(SharedRealm sharedRealm, TableQuery query,
-                      SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor,
-                      boolean neverDetach) {
+                      SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
         query.validateQuery();
 
         this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
@@ -160,14 +284,6 @@ public class Collection implements NativeObject {
         this.context = sharedRealm.context;
         this.table = query.getTable();
         this.context.addReference(this);
-        if (!neverDetach) {
-            sharedRealm.addCollection(this);
-        }
-    }
-
-    public Collection(SharedRealm sharedRealm, TableQuery query,
-                      SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
-        this(sharedRealm, query, sortDescriptor, distinctDescriptor, false);
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor) {
@@ -185,7 +301,10 @@ public class Collection implements NativeObject {
         this.nativePtr = nativePtr;
 
         this.context.addReference(this);
-        sharedRealm.addCollection(this);
+    }
+
+    public Collection createSnapshot() {
+        return new Collection(sharedRealm, table, nativeCreateSnapshot(nativePtr));
     }
 
     @Override
@@ -305,7 +424,13 @@ public class Collection implements NativeObject {
     // Called by JNI
     @SuppressWarnings("unused")
     private void notifyChangeListeners(boolean emptyChanges) {
-        if (isDetached()) return;
+        if (emptyChanges && isLoaded()) {
+            return;
+        }
+        loaded = true;
+        // TODO: For the fine grained notification, remember to call the callback with empty change set if the
+        // isLoaded() returns false even when the change set is not empty. Since in that case, it is the first time
+        // the listener gets called to indicate async query returns.
         observerPairs.foreach(onChangeCallback);
     }
 
@@ -313,26 +438,32 @@ public class Collection implements NativeObject {
         return Mode.getByValue(nativeGetMode(nativePtr));
     }
 
-    // Turns this collection to be backed by a snapshot results. A snapshot results will never be auto-updated.
-    void detach() {
-        nativeDetach(nativePtr);
+    // The Results of Object Store will be queried asynchronously in nature. But we do have to support "sync" query by
+    // Java like RealmQuery.findAll().
+    // The flag is used for following cases:
+    // 1. For sync query, loaded will be set to true when collection is created. So we will bypass the first trigger of
+    //    listener if it comes with empty change set from Object Store since we assume user already got the query
+    //    result.
+    // 2. For async query, when load() gets called with loaded not set, the listener should be triggered with empty
+    //    change set since it is considered as query first returned.
+    // 3. If the listener triggered with empty change set after load() called for async queries, it is treated as the
+    //    same case as 1).
+    // TODO: Results built from a LinkView has not been considered yet. Maybe it should bet set as loaded when create.
+    public boolean isLoaded() {
+        return loaded;
     }
 
-    // Turns this collection to be backed by the original results to enable the auto-updating again.
-    void reattach() {
-        // Invalidate all current iterators.
-        stableIterators.clear();
-        nativeReattach(nativePtr);
-    }
-
-    // Return true if this is backed by a snapshot results.
-    boolean isDetached() {
-        return nativeIsDetached(nativePtr);
+    public void load() {
+        if (loaded) {
+            return;
+        }
+        notifyChangeListeners(true);
     }
 
     private static native long nativeGetFinalizerPtr();
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
                                                    SortDescriptor sortDesc, SortDescriptor distinctDesc);
+    private static native long nativeCreateSnapshot(long nativePtr);
     private static native long nativeGetRow(long nativePtr, int index);
     private static native long nativeFirstRow(long nativePtr);
     private static native long nativeLastRow(long nativePtr);
@@ -351,9 +482,6 @@ public class Collection implements NativeObject {
     private static native long nativeWhere(long nativePtr);
     private static native long nativeIndexOf(long nativePtr, long rowNativePtr);
     private static native long nativeIndexOfBySourceRowIndex(long nativePtr, long sourceRowIndex);
-    private static native void nativeDetach(long nativePtr);
-    private static native void nativeReattach(long nativePtr);
-    private static native boolean nativeIsDetached(long nativePtr);
     private static native boolean nativeIsValid(long nativePtr);
     private static native byte nativeGetMode(long nativePtr);
 }

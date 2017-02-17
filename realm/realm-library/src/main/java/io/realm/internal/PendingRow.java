@@ -35,7 +35,7 @@ public class PendingRow implements Row {
 
     public PendingRow(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor,
                       final boolean returnCheckedRow) {
-        pendingCollection = new Collection(sharedRealm, query, sortDescriptor, null, true);
+        pendingCollection = new Collection(sharedRealm, query, sortDescriptor, null);
 
         listener = new RealmChangeListener<PendingRow>() {
             @Override

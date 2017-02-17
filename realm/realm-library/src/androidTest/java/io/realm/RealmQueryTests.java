@@ -2989,9 +2989,9 @@ public class RealmQueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class)
-                .distinct(AnnotationIndexTypes.FIELD_INDEX_DATE);
+                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
         final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class)
-                .distinct(AnnotationIndexTypes.FIELD_INDEX_STRING);
+                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
 
         final Runnable endTest = new Runnable() {
             @Override

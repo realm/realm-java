@@ -21,6 +21,7 @@ import android.support.test.rule.UiThreadTestRule;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -283,13 +284,12 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             // Managed RealmLists are directly associated with their table. Thus any indirect deletion will
             // also remove it from the LinkView.
             case MANAGED_REALMLIST:
+            case REALMRESULTS:
                 assertEquals(TEST_SIZE - 1, collection.size());
                 break;
 
-            // Unmanaged collections are not affected by changes to Realm and RealmResult should maintain a stable
-            // view until next time sync_if_needed is called.
+            // Unmanaged collections are not affected by changes to Realm.
             case UNMANAGED_REALMLIST:
-            case REALMRESULTS:
                 assertEquals(TEST_SIZE, collection.size());
                 break;
 
@@ -515,23 +515,22 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     @Test
     public void listIterator_deleteManagedObjectIndirectly() {
         realm.beginTransaction();
-        Iterator<AllJavaTypes> it = collection.iterator();
+        ListIterator<AllJavaTypes> it = collection.listIterator();
         it.next();
         it.next().deleteFromRealm();
         realm.commitTransaction();
 
         switch (collectionClass) {
             case MANAGED_REALMLIST:
+            case REALMRESULTS:
                 assertEquals(TEST_SIZE - 1, collection.size());
                 break;
             case UNMANAGED_REALMLIST:
-            case REALMRESULTS:
                 assertEquals(TEST_SIZE, collection.size());
                 break;
         }
-        it = collection.listIterator();
-        it.next();
-        AllJavaTypes types = it.next(); // Iterator can still access the deleted object.
+        it.previous();
+        AllJavaTypes types = it.next(); // Iterator can still access the deleted object
 
         //noinspection SimplifiableConditionalExpression
         assertTrue(collectionClass == CollectionClass.MANAGED_REALMLIST ? types.isValid() : !types.isValid());
@@ -801,6 +800,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     }
 
     @Test
+    @Ignore("Enable this test when support RealmCollectionSnapshot")
     public void useCase_simpleIterator_modifyQueryResult_innerTransaction() {
         if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;
@@ -820,6 +820,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     }
 
     @Test
+    @Ignore("Enable this test when support RealmCollectionSnapshot")
     public void useCase_simpleIterator_modifyQueryResult_outerTransaction() {
         if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;
@@ -876,6 +877,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     @UiThreadTest
+    @Ignore("Enable this test when support RealmCollectionSnapshot")
     public void useCase_simpleIterator_modifyQueryResult_innerTransaction_looperThread() {
         if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;
@@ -896,6 +898,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     @UiThreadTest
+    @Ignore("Enable this test when support RealmCollectionSnapshot")
     public void useCase_simpleIterator_modifyQueryResult_outerTransaction_looperThread() {
         if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;

@@ -19,6 +19,7 @@ package io.realm.internal;
 import java.io.Closeable;
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -111,9 +112,8 @@ public final class SharedRealm implements Closeable, NativeObject {
     public final ObjectServerFacade objectServerFacade;
     public final List<WeakReference<Collection>> collections = new CopyOnWriteArrayList<WeakReference<Collection>>();
     public final Capabilities capabilities;
-
-    // To prevent overflow the message queue.
-    public boolean reattachCollectionsPosted = false;
+    public final List<WeakReference<Collection.Iterator>> iterators =
+            new ArrayList<WeakReference<Collection.Iterator>>();
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -233,19 +233,17 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     public void beginTransaction() {
-        detachCollections();
+        detachIterators();
         nativeBeginTransaction(nativePtr);
         invokeSchemaChangeListenerIfSchemaChanged();
     }
 
     public void commitTransaction() {
         nativeCommitTransaction(nativePtr);
-        postToReattachCollections();
     }
 
     public void cancelTransaction() {
         nativeCancelTransaction(nativePtr);
-        postToReattachCollections();
     }
 
     public boolean isInTransaction() {
@@ -393,65 +391,34 @@ public final class SharedRealm implements Closeable, NativeObject {
         }
     }
 
-    // addCollection(), detachCollections(), reattachCollections() and postToReattachCollections() are used to make
-    // RealmResults stable iterators work. When a Collection is detached from a living OS Results, it won't receive
-    // notifications and its elements won't be changed.
+    // addIterator(), detachIterators() and invalidateIterators() are used to make RealmResults stable iterators work.
+    // The iterator will iterate on a snapshot Results if it is accessed inside a transaction.
     // See https://github.com/realm/realm-java/issues/3883 for more information.
-    // Should only be called by Collection's constructor.
-    void addCollection(Collection collection) {
-        if (realmNotifier != null) {
-            collections.add(new WeakReference<Collection>(collection));
-        }
+    // Should only be called by Iterator's constructor.
+    void addIterator(Collection.Iterator iterator) {
+        iterators.add(new WeakReference<Collection.Iterator>(iterator));
     }
 
     // The detaching should happen before transaction begins.
-    private void detachCollections() {
-        for (WeakReference<Collection> collectionRef : collections) {
-            Collection collection = collectionRef.get();
-            if (collection == null) {
-                collections.remove(collectionRef);
-            } else {
-                collection.detach();
+    void detachIterators() {
+        for (WeakReference<Collection.Iterator> iteratorRef : iterators) {
+            Collection.Iterator iterator = iteratorRef.get();
+            if (iterator != null) {
+                iterator.detach();
             }
         }
+        iterators.clear();
     }
 
-    // Ideally the reattaching should happen at the very end of the event loop, but it is impossible for most event
-    // framework. We need to ensure:
-    // 1) It happens before any other coming events get handled (eg: UI redraw event).
-    // 2) It happens before Object Store async callbacks since the Object Store event_loop_signal might use a different
-    //    event queue. This is guaranteed by call this function in the binding_context::before_notify callback.
-    void reattachCollections() {
-        if (isClosed()) {
-            return;
-        }
-        if (isInTransaction()) {
-            // This should never happen.
-            throw new IllegalStateException( "Collection cannot be reattached if the Realm is in transaction." +
-                    " Please remember to commit or cancel transaction before finishing the current event loop.");
-        }
-        for (WeakReference<Collection> collectionRef : collections) {
-            Collection collection = collectionRef.get();
-            if (collection == null) {
-                collections.remove(collectionRef);
-            } else {
-                collection.reattach();
+    // Invalidates all iterators when a remote change notification is received.
+    void invalidateIterators() {
+        for (WeakReference<Collection.Iterator> iteratorRef : iterators) {
+            Collection.Iterator iterator = iteratorRef.get();
+            if (iterator != null) {
+                iterator.invalidate();
             }
         }
-    }
-
-    // To handle the point 1) in the reattachCollections comments.
-    private void postToReattachCollections() {
-        if (realmNotifier != null && !collections.isEmpty() && !reattachCollectionsPosted) {
-            reattachCollectionsPosted = true;
-            realmNotifier.postAtFrontOfQueue(new Runnable() {
-                @Override
-                public void run() {
-                    reattachCollectionsPosted = false;
-                    reattachCollections();
-                }
-            });
-        }
+        iterators.clear();
     }
 
     private static native void nativeInit(String temporaryDirectoryPath);

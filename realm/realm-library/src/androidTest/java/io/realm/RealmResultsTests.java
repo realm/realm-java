@@ -104,8 +104,8 @@ public class RealmResultsTests extends CollectionTests {
     public void size_returns_Integer_MAX_VALUE_for_huge_results() {
         final Collection collection = Mockito.mock(Collection.class);
         final RealmResults<AllTypes> targetResult = TestHelper.newRealmResults(realm, collection, AllTypes.class);
-        targetResult.load();
 
+        Mockito.when(collection.isLoaded()).thenReturn(true);
         Mockito.when(collection.size()).thenReturn(((long) Integer.MAX_VALUE) - 1);
         assertEquals(Integer.MAX_VALUE - 1, targetResult.size());
         Mockito.when(collection.size()).thenReturn(((long) Integer.MAX_VALUE));
@@ -848,13 +848,7 @@ public class RealmResultsTests extends CollectionTests {
 
         // Step 3
         assertEquals(true, dogs.isValid());
-        assertEquals(5, dogs.size());
-        assertEquals("name_0", dogs.first().getName());
-        assertEquals("name_4", dogs.last().getName());
-        assertEquals(0, dogs.min(Dog.FIELD_AGE).intValue());
-        assertEquals(4, dogs.max(Dog.FIELD_AGE).intValue());
-        assertEquals(new Date(0), dogs.minDate(Dog.FIELD_BIRTHDAY));
-        assertEquals(new Date(4), dogs.maxDate(Dog.FIELD_BIRTHDAY));
+        assertEquals(0, dogs.size());
         // The link view has been deleted.
         assertEquals(0, dogs.where().findAll().size());
     }

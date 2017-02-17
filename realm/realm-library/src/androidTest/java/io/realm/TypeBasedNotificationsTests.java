@@ -624,7 +624,7 @@ public class TypeBasedNotificationsTests {
         akamaru.setName("Akamaru");
         realm.commitTransaction();
 
-        final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
+        final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
         looperThread.keepStrongReference.add(dogs);
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override

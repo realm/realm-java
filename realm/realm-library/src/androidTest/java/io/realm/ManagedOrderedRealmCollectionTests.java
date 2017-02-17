@@ -592,7 +592,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                     dog.setName("Dog " + i);
                 }
                 realm.commitTransaction();
-                return realm.where(Dog.class).findAll();
+                return realm.where(Dog.class).findAllSorted(Dog.FIELD_AGE);
 
             default:
                 throw new AssertionError("Unknown collection class: " + collectionClass);

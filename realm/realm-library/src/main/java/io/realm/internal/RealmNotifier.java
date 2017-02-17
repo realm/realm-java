@@ -110,7 +110,7 @@ public abstract class RealmNotifier implements Closeable {
     @SuppressWarnings("unused")
     void beforeNotify() {
         // For the stable iteration.
-        sharedRealm.reattachCollections();
+        sharedRealm.invalidateIterators();
     }
 
     /**
@@ -144,13 +144,6 @@ public abstract class RealmNotifier implements Closeable {
     public void addTransactionCallback(Runnable runnable) {
         transactionCallbacks.add(runnable);
     }
-
-    /**
-     * Post a runnable to be executed at the very next event loop. Used by current stable Collection iterator.
-     *
-     * @param runnable to be executed at the next event loop.
-     */
-    public abstract boolean postAtFrontOfQueue(Runnable runnable);
 
     /**
      * For current implementation of async transaction only. See comments for {@link #transactionCallbacks}.
