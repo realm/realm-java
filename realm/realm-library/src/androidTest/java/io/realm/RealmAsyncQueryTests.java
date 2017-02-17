@@ -696,7 +696,7 @@ public class RealmAsyncQueryTests {
         final RealmResults<AllTypes> allTypesAsync = looperThread.realm.where(AllTypes.class).greaterThan("columnLong", 5).findAllAsync();
         final RealmResults<AllTypes> allTypesSync = allTypesAsync.where().greaterThan("columnLong", 3).findAll();
 
-        // Call where() on an async results will load query. But to maintain the original behaviour of
+        // Call where() on an async results will load query. But to maintain the pre version 2.4.0 behaviour of
         // RealmResults.load(), we still treat it as a not loaded results.
         assertEquals(0, allTypesAsync.size());
         assertEquals(4, allTypesSync.size()); // columnLong > 5 && columnLong > 3

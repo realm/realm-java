@@ -438,11 +438,11 @@ public class Collection implements NativeObject {
         return Mode.getByValue(nativeGetMode(nativePtr));
     }
 
-    // The Results of Object Store will be queried asynchronously by nature. But we do have to support "sync" query by
+    // The Results of Object Store will be queried asynchronously in nature. But we do have to support "sync" query by
     // Java like RealmQuery.findAll().
     // The flag is used for following cases:
-    // 1. For sync query, the loaded will be set to true when collection created. So we will bypass the first trigger of
-    //    listener if it comes with empty change set from Object Store since we assume user already get the query
+    // 1. For sync query, loaded will be set to true when collection is created. So we will bypass the first trigger of
+    //    listener if it comes with empty change set from Object Store since we assume user already got the query
     //    result.
     // 2. For async query, when load() gets called with loaded not set, the listener should be triggered with empty
     //    change set since it is considered as query first returned.

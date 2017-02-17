@@ -3,7 +3,7 @@
 ### Breaking changes
 
 * `RealmResults.distinct()` returns a new `RealmResults` object instead of filtering on the original object (#2947).
-* `RealmResults` is auto-updated all the time. Any transaction on the caller thread which may have impact on the order or elements of the `RealmResults` will change the `RealmResults` immediately instead of change it in the next event loop. Iterator behavior of `RealmResults` stays the same, transaction inside the iterating still works as expected.
+* `RealmResults` is auto-updated continuously. Any transaction on the caller thread which may have an impact on the order or elements of the `RealmResults` will change the `RealmResults` immediately instead of change it in the next event loop. Iterator behavior of `RealmResults` stays the same, transactions inside the iterating still works as expected.
 
 ### Enhancements
 
