@@ -335,8 +335,9 @@ Java_io_realm_internal_Collection_nativeDeleteLast(JNIEnv *env, jclass, jlong na
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        if (wrapper->m_results.size() > 0) {
-            wrapper->m_results.get_tableview().remove_last();
+        auto row = wrapper->m_results.last();
+        if (row && row->is_attached()) {
+            row->move_last_over();
             return JNI_TRUE;
         }
     } CATCH_STD()
@@ -350,8 +351,9 @@ Java_io_realm_internal_Collection_nativeDeleteFirst(JNIEnv *env, jclass, jlong n
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        if (wrapper->m_results.size() > 0) {
-            wrapper->m_results.get_tableview().remove(0);
+        auto row = wrapper->m_results.first();
+        if (row && row->is_attached()) {
+            row->move_last_over();
             return JNI_TRUE;
         }
     } CATCH_STD()
@@ -365,12 +367,10 @@ Java_io_realm_internal_Collection_nativeDelete(JNIEnv *env, jclass, jlong native
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto view = wrapper->m_results.get_tableview();
-        size_t size = view.size();
-        if (index < 0 || index >= static_cast<jlong>(size)) {
-            throw Results::OutOfBoundsIndexException{static_cast<size_t>(index), size};
+        auto row = wrapper->m_results.get(index);
+        if (row.is_attached()) {
+            row.move_last_over();
         }
-        view.remove(static_cast<size_t>(index));
     } CATCH_STD()
 }
 
