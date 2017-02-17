@@ -6,12 +6,11 @@ import io.realm.RealmResults;
 import io.realm.annotations.LinkingObjects;
 
 public class Backlinks extends RealmObject {
-    private Backlinks child;
-    private RealmList<Backlinks> listChildren;
+    private int id;
 
     @LinkingObjects("child")
-    private RealmResults<Backlinks> simpleParents;
+    private RealmResults<BacklinkTarget> simpleParents;
 
-    @LinkingObjects("listChildren")
-    private RealmResults<Backlinks> listParents;
+    @LinkingObjects("children")
+    private RealmResults<BacklinkTarget> listParents;
 }

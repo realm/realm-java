@@ -469,7 +469,14 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         BaseRealm realm = proxyState.getRealm$realm();
         Row row = proxyState.getRow$realm();
         Table srcTable = realm.getSchema().getTable(some.test.AllTypes.class);
-        long srcColumnIndex = realm.getSchema().getSchemaForClass(some.test.AllTypes.class).getFieldIndex("columnObject");
+        Long idx = realm.getSchema().getSchemaForClass(some.test.AllTypes.class).getFieldIndex("columnObject");
+        if (idx == null) {
+            throw new UnsupportedOperationException("Field \"columnObject\" not found in class \"some.test.AllTypes\"");
+        }
+        long srcColumnIndex = idx.longValue();
+        if (!row.getTable().equals(srcTable.getCheckedRow(srcColumnIndex).getTable())) {
+            throw new UnsupportedOperationException("Field \"columnObject\" in class \"some.test.AllTypes\" is not of type \"some.test.AllTypes\"");
+        }
         return RealmResults.createFromTableOrView(realm, row.getBacklinkView(srcTable, srcColumnIndex), some.test.AllTypes.class);
     }
 

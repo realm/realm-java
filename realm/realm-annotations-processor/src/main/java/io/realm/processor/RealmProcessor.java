@@ -17,13 +17,10 @@
 package io.realm.processor;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -32,9 +29,9 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 
 import io.realm.annotations.RealmClass;
+import io.realm.annotations.RealmModule;
 
 /**
  * The RealmProcessor is responsible for creating the plumbing that connects the RealmObjects to a Realm. The process
@@ -151,21 +148,19 @@ public class RealmProcessor extends AbstractProcessor {
             updateChecker.executeRealmVersionUpdate();
         }
 
+        if (roundEnv.errorRaised()) { return true; }
+
         if (!hasProcessedModules) {
             Utils.initialize(processingEnv);
 
-            if (processAnnotations(roundEnv)) {
-                return true; // Abort processing by claiming all annotations
-            }
+            if (!processAnnotations(roundEnv)) { return true; }
 
             hasProcessedModules = true;
             processModules(roundEnv);
         }
 
         if (roundEnv.processingOver()) {
-            if (!validateBacklinks()) {
-                return true;
-            }
+            if (!validateBacklinks()) { return true; }
         }
 
         return CONSUME_ANNOTATIONS;
@@ -183,18 +178,14 @@ public class RealmProcessor extends AbstractProcessor {
             // Check the annotation was applied to a Class
             if (!classElement.getKind().equals(ElementKind.CLASS)) {
                 Utils.error("The RealmClass annotation can only be applied to classes.", classElement);
-                return true;
+                return false;
             }
 
             ClassMetaData metadata = new ClassMetaData(processingEnv, (TypeElement) classElement);
-            if (!metadata.isModelClass()) {
-                continue;
-            }
+            if (!metadata.isModelClass()) { continue; }
 
             Utils.note("Processing class " + metadata.getSimpleClassName());
-
-            boolean success = metadata.generate();
-            if (!success) { return true; }
+            if (!metadata.generate()) { return false; }
 
             classesToValidate.add(metadata);
             backlinksToValidate.addAll(metadata.getBacklinkFields());
@@ -216,13 +207,13 @@ public class RealmProcessor extends AbstractProcessor {
             }
         }
 
-        return false;
+        return true;
     }
 
     // Returns true if modules was processed successfully, false otherwise
     private boolean processModules(RoundEnvironment roundEnv) {
-        ModuleMetaData moduleMetaData = new ModuleMetaData(roundEnv, classesToValidate);
-        if (!moduleMetaData.generate(processingEnv)) {
+        ModuleMetaData moduleMetaData = new ModuleMetaData(classesToValidate);
+        if (!moduleMetaData.generate(roundEnv.getElementsAnnotatedWith(RealmModule.class))) {
             return false;
         }
 
@@ -287,11 +278,11 @@ public class RealmProcessor extends AbstractProcessor {
         for (Backlink backlink: backlinksToValidate) {
             ClassMetaData klass = realmClasses.get(backlink.getTargetClass());
 
+            // If the class is not here it might be part of some other compilation unit.
+            if (klass == null) { continue; }
+
             // If the class is here, we can validate it.
-            // If it is not, it might be part of some other compilation unit.
-            if (klass != null) {
-                if (!backlink.validateTarget(klass) && allValid) { allValid = false; }
-            }
+            if (!backlink.validateTarget(klass) && allValid) { allValid = false; }
         }
 
         return allValid;

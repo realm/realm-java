@@ -153,7 +153,6 @@ public class LinkingObjectsManagedTests {
 
     // Query on a field descriptor starting with a backlink
     @Test
-    @Ignore
     public void queryStartingWithBacklink() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 10);
@@ -179,7 +178,6 @@ public class LinkingObjectsManagedTests {
 
     // Query on a field descriptor that has a backlink in the middle
     @Test
-    @Ignore
     public void queryBacklinkInMiddle() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
@@ -211,7 +209,6 @@ public class LinkingObjectsManagedTests {
 
     // Query on a field descriptor containing mulitple backlinks
     @Test
-    @Ignore
     public void queryMultipleBacklinks() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);

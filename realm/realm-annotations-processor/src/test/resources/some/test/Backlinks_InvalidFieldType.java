@@ -5,9 +5,9 @@ import io.realm.RealmResults;
 import io.realm.annotations.LinkingObjects;
 
 public class Backlinks_InvalidFieldType extends RealmObject {
-    private Backlinks_InvalidFieldType child;
+    private int id;
 
     // Backlinks must be RealmResults
     @LinkingObjects("child")
-    private Backlinks_InvalidFieldType parents;
+    private BacklinkTarget parents;
 }

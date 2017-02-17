@@ -491,7 +491,6 @@ public class ClassMetaData {
     }
 
     private boolean categorizeBacklinkField(VariableElement variableElement) {
-
         Backlink backlink = new Backlink(this, variableElement);
         if (!backlink.validateSource()) { return false; }
 

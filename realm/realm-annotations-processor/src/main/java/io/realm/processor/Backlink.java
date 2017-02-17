@@ -28,24 +28,24 @@ import io.realm.annotations.Required;
 
 /**
  * A Backlink is:
- *
+ * <p>
  * <code>
  * class SourceClass {
- *     // ...
- *
- *     &at;LinkingObjects("targetField")
- *     RealmResults&lt;TargetClass&gt; sourceField;
+ * // ...
+ * <p>
+ * {@literal @}LinkingObjects("targetField")
+ * RealmResults&lt;TargetClass&gt; sourceField;
  * }
  * </code>.
- *
+ * <p>
  * When managed, an instance X of a class with such a declaration will contain in the sourceField
  * references to any instances of TargetClass whose targetField contains a reference to X.
  * When managed, the sourceField cannot be assigned.  It can be queried normally.
- *
+ * <p>
  * When unmanaged, the sourceField is just another field: it can be set normally.  Managing an unmanaged
  * instance of SourceClass destroys any previous contents of the backlinked field and replaces it with
  * backlinks.  Unmanagning a managed instance of SourceClass nulls the backlinks field.
- *
+ * <p>
  * Note that, because subclassing subclasses of RealmObject is forbidden, so are constructs like:
  * <code>RealmResults&lt;? extends Foos&lt;</code>
  */
@@ -104,33 +104,45 @@ final class Backlink {
     public boolean validateSource() {
         // A @LinkingObjects cannot be @Required
         if (backlink.getAnnotation(Required.class) != null) {
-            Utils.error(String.format("The @LinkingObjects field \"%s\" cannot be @Required.", sourceField));
+            Utils.error(String.format(
+                "The @LinkingObjects field \"%s.%s\" cannot be @Required.",
+                sourceClass,
+                sourceField));
         }
 
         // The annotation must have an argument, identifying the linked field
         if (targetField == null || targetField.equals("")) {
             Utils.error(String.format(
-                "@LinkingObjects annotation for field \"%s\" requires a parameter identifying the link target.",
+                "The @LinkingObjects annotation for the field \"%s.%s\" must have a parameter identifying the link target.",
+                sourceClass,
                 sourceField));
             return false;
         }
 
         // Using link syntax to try to reference a linked field is not possible.
         if (targetField.contains(".")) {
-            Utils.error("@LinkingObjects must refer to a field of the linked class. "
-                + "Using '.' to specify fields in referenced classes is not supported.");
+            Utils.error(String.format(
+                "The parameter to the @LinkingObjects annotation for the field \"%s.%s\" contains a '.'.  The use of '.' to specify fields in referenced classes is not supported.",
+                sourceClass,
+                sourceField));
             return false;
         }
 
         // The annotated element must be a RealmResult
         if (!Utils.isRealmResults(backlink)) {
-            Utils.error(String.format("Only RealmResults can be @LinkingObjects. Field \"%s\" is a \"%s\".",
-                sourceField, sourceClass));
+            Utils.error(String.format(
+                "The field \"%s.%s\" is a \"%s\". Fields annotated with @LinkingObjects must be RealmResults.",
+                sourceClass,
+                sourceField,
+                backlink.asType()));
             return false;
         }
 
         if (targetClass == null) {
-            Utils.error("A declaration annotated with @LinkingObjects must be a generically typed RealmResults.");
+            Utils.error(String.format(
+                "\"The field \"%s.%s\", annotated with @LinkingObjects, must specify a generic type.",
+                sourceClass,
+                sourceField));
             return false;
         }
 
@@ -142,23 +154,24 @@ final class Backlink {
 
         if (field == null) {
             Utils.error(String.format(
-                "\"%s\", the target of the @LinkedObjects annotation on field \"%s\" in class \"%s\", does not exist in class \"%s\".",
+                "Field \"%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", does not exist in class \"%s\".",
                 targetField,
-                sourceField,
                 sourceClass,
-                klass.getFullyQualifiedClassName()));
+                sourceField,
+                targetClass));
             return false;
         }
 
         String fieldType = field.asType().toString();
-        if (!(targetClass.equals(fieldType) || targetClass.equals(getRealmListType(field)))) {
+        if (!(sourceClass.equals(fieldType) || sourceClass.equals(getRealmListType(field)))) {
             Utils.error(String.format(
-                "\"%s\", the target of the @LinkedObjects annotation on field \"%s\" in class \"%s\", has type \"%s\" instead of \"%s\".",
+                "Field \"%s.%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", has type \"%s\" instead of \"%s\".",
+                targetClass,
                 targetField,
-                sourceField,
                 sourceClass,
+                sourceField,
                 fieldType,
-                targetClass));
+                sourceClass));
             return false;
         }
 

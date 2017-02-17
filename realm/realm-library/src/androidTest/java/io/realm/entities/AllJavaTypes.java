@@ -63,10 +63,10 @@ public class AllJavaTypes extends RealmObject {
     private AllJavaTypes fieldObject;
     private RealmList<AllJavaTypes> fieldList;
 
-    @LinkingObjects(FIELD_OBJECT)
+    @LinkingObjects("fieldObject")
     private RealmResults<AllJavaTypes> objectParents;
 
-    @LinkingObjects(FIELD_LIST)
+    @LinkingObjects("fieldList")
     private RealmResults<AllJavaTypes> listParents;
 
     public AllJavaTypes() {

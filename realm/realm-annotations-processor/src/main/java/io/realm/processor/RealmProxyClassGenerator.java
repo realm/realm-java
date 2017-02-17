@@ -553,7 +553,14 @@ public class RealmProxyClassGenerator {
             writer.emitStatement("BaseRealm realm = proxyState.getRealm$realm()");
             writer.emitStatement("Row row = proxyState.getRow$realm()");
             writer.emitStatement("Table srcTable = realm.getSchema().getTable(%s.class)", backlink.getTargetClass());
-            writer.emitStatement("long srcColumnIndex = realm.getSchema().getSchemaForClass(%s.class).getFieldIndex(\"%s\")", backlink.getTargetClass(), backlink.getTargetField());
+            writer.emitStatement("Long idx = realm.getSchema().getSchemaForClass(%s.class).getFieldIndex(\"%s\")", backlink.getTargetClass(), backlink.getTargetField());
+            writer.beginControlFlow("if (idx == null)")
+                .emitStatement("throw new UnsupportedOperationException(\"Field \\\"%s\\\" not found in class \\\"%s\\\"\")", backlink.getTargetField(), backlink.getTargetClass())
+                .endControlFlow();
+            writer.emitStatement("long srcColumnIndex = idx.longValue()");
+            writer.beginControlFlow("if (!row.getTable().equals(srcTable.getCheckedRow(srcColumnIndex).getTable()))")
+                .emitStatement("throw new UnsupportedOperationException(\"Field \\\"%s\\\" in class \\\"%s\\\" is not of type \\\"%s\\\"\")", backlink.getTargetField(), backlink.getTargetClass(), backlink.getSourceClass())
+                .endControlFlow();
             writer.emitStatement("return RealmResults.createFromTableOrView(realm, row.getBacklinkView(srcTable, srcColumnIndex), %s.class)", backlink.getTargetClass());
             writer.endMethod();
             writer.emitEmptyLine();

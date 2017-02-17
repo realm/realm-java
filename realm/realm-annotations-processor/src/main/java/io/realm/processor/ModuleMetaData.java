@@ -16,12 +16,20 @@
 
 package io.realm.processor;
 
-import io.realm.annotations.RealmModule;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.*;
-import java.util.*;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+
+import io.realm.annotations.RealmModule;
 
 /**
  * Utility class for holding metadata for the Realm modules.
@@ -29,14 +37,12 @@ import java.util.*;
 public class ModuleMetaData {
 
     private final Set<ClassMetaData> availableClasses;
-    private final RoundEnvironment env;
     private Map<String, Set<ClassMetaData>> modules = new HashMap<String, Set<ClassMetaData>>();
     private Map<String, Set<ClassMetaData>> libraryModules = new HashMap<String, Set<ClassMetaData>>();
     private Map<String, ClassMetaData> classMetaData = new HashMap<String, ClassMetaData>(); // <FullyQualifiedClassName, ClassMetaData>
     private boolean shouldCreateDefaultModule;
 
-    public ModuleMetaData(RoundEnvironment env, Set<ClassMetaData> availableClasses) {
-        this.env = env;
+    public ModuleMetaData(Set<ClassMetaData> availableClasses) {
         this.availableClasses = availableClasses;
         for (ClassMetaData classMetaData : availableClasses) {
             this.classMetaData.put(classMetaData.getFullyQualifiedClassName(), classMetaData);
@@ -48,10 +54,10 @@ public class ModuleMetaData {
      *
      * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
-    public boolean generate(ProcessingEnvironment processingEnv) {
+    public boolean generate(Set<? extends Element> klasses) {
 
         // Check that modules are setup correctly
-        for (Element classElement : env.getElementsAnnotatedWith(RealmModule.class)) {
+        for (Element classElement : klasses) {
             String classSimpleName = classElement.getSimpleName().toString();
 
             // Check that the annotation is only applied to a class
