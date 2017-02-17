@@ -91,7 +91,7 @@ public class Collection implements NativeObject {
             iteratorCollection = iteratorCollection.createSnapshot();
         }
 
-        // The iterator become invalid after receiving a remote change notification. In Java, the destruction of
+        // The iterator becomes invalid after receiving a remote change notification. In Java, the destruction of
         // iterator totally depends on GC. If we just detach those iterators when remote change notification received
         // like what realm-cocoa does, we will have a massive overhead since all the iterators created in the previous
         // event loop need to be detached.
