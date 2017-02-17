@@ -122,7 +122,7 @@ import rx.Observable;
  * @see <a href="http://en.wikipedia.org/wiki/ACID">ACID</a>
  * @see <a href="https://github.com/realm/realm-java/tree/master/examples">Examples using Realm</a>
  */
-public class Realm extends BaseRealm {
+public class Realm extends BaseRealm implements io.realm.Observable<Realm> {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
@@ -1283,6 +1283,11 @@ public class Realm extends BaseRealm {
      */
     public void addChangeListener(RealmChangeListener<Realm> listener) {
         super.addListener(listener);
+    }
+
+    @Override
+    public void removeChangeListener(RealmChangeListener<Realm> listener) {
+        super.removeListener(listener);
     }
 
     /**
