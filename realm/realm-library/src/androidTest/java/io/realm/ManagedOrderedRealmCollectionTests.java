@@ -684,7 +684,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                     dog.setName("Dog " + i);
                 }
                 realm.commitTransaction();
-                orderedCollection = realm.where(Dog.class).findAll();
+                orderedCollection = realm.where(Dog.class).findAllSorted(Dog.FIELD_AGE);
                 break;
 
             default:

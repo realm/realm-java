@@ -488,7 +488,7 @@ public class RealmMigrationTests {
                 realm.getSchema()
                         .get(MigrationPrimaryKey.CLASS_NAME)
                         // 57 characters
-                        .setClassName("MigrationNameIsLongerThan56charThisShouldThrowAnException");
+                        .setClassName("MigrationNameIsLongerThan56CharThisShouldThrowAnException");
             }
         };
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
@@ -501,7 +501,7 @@ public class RealmMigrationTests {
             Realm.getInstance(realmConfig);
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals("Class name is to long. Limit is 56 characters: 'MigrationNameIsLongerThan56charThisShouldThrowAnException' (57)",
+            assertEquals("Class name is too long. Limit is 56 characters: 'MigrationNameIsLongerThan56CharThisShouldThrowAnException' (57)",
                     expected.getMessage());
         }
     }
