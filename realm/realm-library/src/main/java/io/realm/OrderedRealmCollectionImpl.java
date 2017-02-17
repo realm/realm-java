@@ -14,7 +14,7 @@ import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 
 /**
- * General implementation for {@link OrderedRealmCollection} which is based on the {@link Collection}.
+ * General implementation for {@link OrderedRealmCollection} which is based on the {@code Collection}.
  * Currently only {@link RealmResults} and {@link OrderedRealmCollectionSnapshot} extend this class. But
  * {@link RealmList} could also extend this to share the same iterator implementation.
  */

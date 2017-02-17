@@ -26,14 +26,13 @@ import io.realm.internal.UncheckedRow;
  * <p>
  * {@link OrderedRealmCollectionSnapshot} is useful when making changes which may impact the size or order of the
  * collection in simple loops. For example:
- * <p>
  * <pre>
  * {@code
  * final RealmResults<Dog>  dogs = realm.where(Dog.class).findAll();
  * final OrderedRealmCollectionSnapshot<Dog> snapshot = dogs.createSnapshot();
  * final int dogsCount = snapshot.size(); // dogs.size() == snapshot.size() == 10
  * realm.executeTransaction(new Realm.Transaction() {
- *     @Override
+ *     /@Override
  *     public void execute(Realm realm) {
  *         for (int i = 0; i < dogsCount; i++) {
  *         // This won't work since RealmResults is always up-to-date, its size gets decreased by 1 after every loop. An
