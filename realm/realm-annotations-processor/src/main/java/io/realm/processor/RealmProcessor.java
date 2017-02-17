@@ -163,7 +163,7 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         if (roundEnv.processingOver()) {
-            if (validateBacklinks()) {
+            if (!validateBacklinks()) {
                 return true;
             }
         }
@@ -275,41 +275,25 @@ public class RealmProcessor extends AbstractProcessor {
     // and prove that the class either does not contain the necessary field, or
     // that it does contain the field, but the field is of the wrong type, it can
     // catch the error at compile time.
+    // Give all failure messages before failing
     private boolean validateBacklinks() {
-        boolean validated = true;
+        boolean allValid = true;
 
         Map<String, ClassMetaData> realmClasses = new HashMap<String, ClassMetaData>(classesToValidate.size());
         for (ClassMetaData classData: classesToValidate) {
-            realmClasses.put(classData.getFQClassName(), classData);
+            realmClasses.put(classData.getFullyQualifiedClassName(), classData);
         }
 
         for (Backlink backlink: backlinksToValidate) {
-            ClassMetaData metaData = realmClasses.get(backlink.targetClass);
+            ClassMetaData klass = realmClasses.get(backlink.getTargetClass());
 
-            if (metaData == null) { continue; }
-
-            // We have the class.  If is doesn't work, that proves failure.
-            Map<String, VariableElement> fields = metaData.getFieldMap();
-            VariableElement field = fields.get(backlink.targetField);
-            if (field == null) {
-                Utils.error(String.format(
-                    "\"%s\", the target of the @LinkedObjects annotation on field \"%s\" in class \"%s\", does not exist in class \"%s\".",
-                    backlink.targetField, backlink.sourceField, backlink.sourceClass, metaData.getFQClassName()));
-
-                validated = false;
-                continue;
+            // If the class is here, we can validate it.
+            // If it is not, it might be part of some other compilation unit.
+            if (klass != null) {
+                if (!backlink.validateTarget(klass) && allValid) { allValid = false; }
             }
-
-            if (!backlink.sourceClass.equals(field.asType().toString())) {
-                Utils.error(String.format(
-                    "\"%s\", the target of the @LinkedObjects annotation on field \"%s\" in class \"%s\", has type \"%s\" instead of \"%s\".",
-                    backlink.targetField, backlink.sourceField, backlink.sourceClass, field.asType().toString(), backlink.targetClass));
-
-                validated = false;
-            }
-
         }
 
-        return validated;
+        return allValid;
     }
 }

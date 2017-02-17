@@ -10,9 +10,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
@@ -192,29 +190,6 @@ public class Utils {
             return null;
         }
         return typeArguments.get(0).toString();
-    }
-
-    public static DeclaredType getGenericTypeForElement(VariableElement field) {
-        TypeMirror fieldType = field.asType();
-        TypeKind kind = fieldType.getKind();
-        if (kind != TypeKind.DECLARED) { return null; }
-
-        List<? extends TypeMirror> args = ((DeclaredType) fieldType).getTypeArguments();
-        if (args.size() <= 0) { return null; }
-
-        fieldType = args.get(0);
-        kind = fieldType.getKind();
-        if (kind == TypeKind.DECLARED) { return (DeclaredType) fieldType; }
-
-        if (kind != TypeKind.WILDCARD) { return null; }
-
-        fieldType = ((WildcardType) fieldType).getExtendsBound();
-        if (fieldType == null) { return null; }
-
-        kind = fieldType.getKind();
-        if (kind != TypeKind.DECLARED) { return null; }
-
-        return (DeclaredType) fieldType;
     }
 
     /**

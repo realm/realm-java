@@ -21,9 +21,10 @@ import io.realm.RealmResults;
 import io.realm.annotations.LinkingObjects;
 
 public class Backlinks_WrongType extends RealmObject {
-
     private String child;
 
+    // The type of the field named in the @LinkingObjects annotation must match
+    // the generic type of the annotated field
     @LinkingObjects("child")
-    private RealmResults<Backlinks_WrongType> selectedFieldParents;
+    private RealmResults<Backlinks_WrongType> parents;
 }

@@ -18,11 +18,9 @@ package io.realm.processor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -56,7 +54,7 @@ public class ClassMetaData {
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
-    private Map<String, VariableElement> fields = new HashMap<String, VariableElement>(); // List of all fields in the class except those @Ignored.
+    private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
     private Set<Backlink> backlinks = new HashSet<Backlink>();
     private Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
@@ -75,11 +73,11 @@ public class ClassMetaData {
         elements = env.getElementUtils();
         TypeMirror stringType = env.getElementUtils().getTypeElement("java.lang.String").asType();
         validPrimaryKeyTypes = Arrays.asList(
-                stringType,
-                typeUtils.getPrimitiveType(TypeKind.SHORT),
-                typeUtils.getPrimitiveType(TypeKind.INT),
-                typeUtils.getPrimitiveType(TypeKind.LONG),
-                typeUtils.getPrimitiveType(TypeKind.BYTE)
+            stringType,
+            typeUtils.getPrimitiveType(TypeKind.SHORT),
+            typeUtils.getPrimitiveType(TypeKind.INT),
+            typeUtils.getPrimitiveType(TypeKind.LONG),
+            typeUtils.getPrimitiveType(TypeKind.BYTE)
         );
 
         for (Element element : classType.getEnclosedElements()) {
@@ -87,13 +85,140 @@ public class ClassMetaData {
                 Name name = element.getSimpleName();
                 if (name.contentEquals("toString")) {
                     this.containsToString = true;
-                } else if (name.contentEquals("equals")) {
+                }
+                else if (name.contentEquals("equals")) {
                     this.containsEquals = true;
-                } else if (name.contentEquals("hashCode")) {
+                }
+                else if (name.contentEquals("hashCode")) {
                     this.containsHashCode = true;
                 }
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "class " + getFullyQualifiedClassName();
+    }
+
+    public String getSimpleClassName() {
+        return className;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public String getFullyQualifiedClassName() {
+        return packageName + "." + className;
+    }
+
+    public List<VariableElement> getFields() {
+        return Collections.unmodifiableList(fields);
+    }
+
+    public Set<Backlink> getBacklinkFields() {
+        return backlinks;
+    }
+
+    public String getGetter(String fieldName) {
+        return "realmGet$" + fieldName;
+    }
+
+    public String getSetter(String fieldName) {
+        return "realmSet$" + fieldName;
+    }
+
+    public List<VariableElement> getIndexedFields() {
+        return indexedFields;
+    }
+
+    public boolean hasPrimaryKey() {
+        return primaryKey != null;
+    }
+
+    public VariableElement getPrimaryKey() {
+        return primaryKey;
+    }
+
+    public String getPrimaryKeyGetter() {
+        return getGetter(primaryKey.getSimpleName().toString());
+    }
+
+    public boolean containsToString() {
+        return containsToString;
+    }
+
+    public boolean containsEquals() {
+        return containsEquals;
+    }
+
+    public boolean containsHashCode() {
+        return containsHashCode;
+    }
+
+    /**
+     * Checks if a VariableElement is nullable.
+     *
+     * @return {@code true} if a VariableElement is nullable type, {@code false} otherwise.
+     */
+    public boolean isNullable(VariableElement variableElement) {
+        return nullableFields.contains(variableElement);
+    }
+
+    /**
+     * Checks if a VariableElement is indexed.
+     *
+     * @param variableElement the element/field
+     * @return {@code true} if a VariableElement is indexed, {@code false} otherwise.
+     */
+    public boolean isIndexed(VariableElement variableElement) {
+        return indexedFields.contains(variableElement);
+    }
+
+    /**
+     * Checks if a VariableElement is a primary key.
+     *
+     * @param variableElement the element/field
+     * @return {@code true} if a VariableElement is primary key, {@code false} otherwise.
+     */
+    public boolean isPrimaryKey(VariableElement variableElement) {
+        if (primaryKey == null) {
+            return false;
+        }
+        return primaryKey.equals(variableElement);
+    }
+
+    /**
+     * Returns {@code true} if the class is considered to be a valid RealmObject class.
+     * RealmObject and Proxy classes also have the @RealmClass annotation but are not considered valid
+     * RealmObject classes.
+     */
+    public boolean isModelClass() {
+        String type = classType.toString();
+        if (type.equals("io.realm.DynamicRealmObject")) {
+            return false;
+        }
+        return (!type.endsWith(".RealmObject") && !type.endsWith("RealmProxy"));
+    }
+
+    /**
+     * Find the named field in this classes list of fields.
+     * This method is called only during backlink checking,
+     * so creating a map, even lazily, doesn't seem like a worthwhile optimization.
+     * If it gets used more widely, that decision should be revisited.
+     *
+     * @param fieldName The name of the sought field
+     * @return the named field's VariableElement, or null if not found
+     */
+    public VariableElement getDeclaredField(String fieldName) {
+        if (fieldName == null) { return null; }
+        for (VariableElement field : fields) {
+            if (field.getSimpleName().toString().equals(fieldName)) {
+                return field;
+            }
+        }
+        return null;
     }
 
     /**
@@ -111,7 +236,9 @@ public class ClassMetaData {
         }
 
         TypeElement parentElement = (TypeElement) Utils.getSuperClass(classType);
-        if (!parentElement.toString().equals("java.lang.Object") && !parentElement.toString().equals("io.realm.RealmObject")) {
+        if (!parentElement.toString().equals("java.lang.Object") && !parentElement.toString()
+            .equals("io.realm.RealmObject"))
+        {
             Utils.error("Valid model classes must either extend RealmObject or implement RealmModel.", classType);
             return false;
         }
@@ -156,10 +283,11 @@ public class ClassMetaData {
     }
 
     private boolean checkListTypes() {
-        for (VariableElement field : fields.values()) {
+        for (VariableElement field : fields) {
             if (Utils.isRealmList(field) || Utils.isRealmResults(field)) {
                 // Check for missing generic (default back to Object)
                 if (Utils.getGenericTypeQualifiedName(field) == null) {
+                    TypeMirror fieldType = field.asType();
                     Utils.error(String.format("Field \"%s\" must have a generic type supplied.", field));
                     return false;
                 }
@@ -183,7 +311,7 @@ public class ClassMetaData {
     }
 
     private boolean checkReferenceTypes() {
-        for (VariableElement field : fields.values()) {
+        for (VariableElement field : fields) {
             if (Utils.isRealmModel(field)) {
                 // Check that the referenced type is a concrete class and not an interface
                 TypeElement typeElement = elements.getTypeElement(field.asType().toString());
@@ -214,7 +342,7 @@ public class ClassMetaData {
     }
 
     private boolean checkForFinalFields() {
-        for (VariableElement field : fields.values()) {
+        for (VariableElement field : fields) {
             if (field.getModifiers().contains(Modifier.FINAL)) {
                 Utils.error(String.format(
                     "Class \"%s\" contains illegal final field \"%s\".", className, field.getSimpleName().toString()));
@@ -225,7 +353,7 @@ public class ClassMetaData {
     }
 
     private boolean checkForTransientFields() {
-        for (VariableElement field : fields.values()) {
+        for (VariableElement field : fields) {
             if (field.getModifiers().contains(Modifier.TRANSIENT)) {
                 Utils.error(String.format(
                     "Class \"%s\" contains illegal transient field \"%s\".",
@@ -238,7 +366,7 @@ public class ClassMetaData {
     }
 
     private boolean checkForVolatileFields() {
-        for (VariableElement field : fields.values()) {
+        for (VariableElement field : fields) {
             if (field.getModifiers().contains(Modifier.VOLATILE)) {
                 Utils.error(String.format(
                     "Class \"%s\" contains illegal volatile field \"%s\".",
@@ -285,7 +413,7 @@ public class ClassMetaData {
         }
 
         // Standard field that appear valid (more fine grained checks might fail later).
-        fields.put(variableElement.getSimpleName().toString(), variableElement);
+        fields.add(variableElement);
 
         return true;
     }
@@ -297,9 +425,9 @@ public class ClassMetaData {
         String columnType = Constants.JAVA_TO_COLUMN_TYPES.get(elementTypeCanonicalName);
         if (columnType != null &&
             (columnType.equals("RealmFieldType.STRING") ||
-            columnType.equals("RealmFieldType.DATE") ||
-            columnType.equals("RealmFieldType.INTEGER") ||
-            columnType.equals("RealmFieldType.BOOLEAN")))
+                columnType.equals("RealmFieldType.DATE") ||
+                columnType.equals("RealmFieldType.INTEGER") ||
+                columnType.equals("RealmFieldType.BOOLEAN")))
         {
             indexedFields.add(variableElement);
         }
@@ -363,149 +491,13 @@ public class ClassMetaData {
     }
 
     private boolean categorizeBacklinkField(VariableElement variableElement) {
-        String fieldName = variableElement.getSimpleName().toString();
 
-        // The annotation must have an argument, identifying the linked field
-        String backlinkField = variableElement.getAnnotation(LinkingObjects.class).value();
-        if (backlinkField == null || backlinkField.equals("")) {
-            Utils.error(String.format(
-                "@LinkingObjects annotation for field \"%s\" requires a parameter identifying the link target.",
-                fieldName));
-            return false;
-        }
+        Backlink backlink = new Backlink(this, variableElement);
+        if (!backlink.validateSource()) { return false; }
 
-        // A @LinkingObjects cannot be @Required
-        if (variableElement.getAnnotation(Required.class) != null) {
-            Utils.error(String.format("The @LinkingObjects field \"%s\" cannot be @Required.", fieldName));
-        }
-
-        // Using link syntax to try to reference a linked field is not possible.
-        if (backlinkField.contains(".")) {
-            Utils.error("@LinkingObjects must refer to a field of the linked class. "
-                + "Using '.' to specify fields in referenced classes is not supported.");
-            return false;
-        }
-
-        String fieldType = variableElement.asType().toString();
-
-        // The annotated element must be a RealmResult
-        if (!Utils.isRealmResults(variableElement)) {
-            Utils.error(String.format("Only RealmResults can be @LinkingObjects. Field \"%s\" is a \"%s\".",
-                fieldName, fieldType));
-            return false;
-        }
-
-        DeclaredType backlinkType = Utils.getGenericTypeForElement(variableElement);
-        if (backlinkType == null) {
-            Utils.error("A declaration annotated with @LinkingObjects must be a generically typed RealmResults.");
-            return false;
-        }
-
-        backlinks.add(new Backlink(getFQClassName(), fieldName, fieldType, backlinkType.toString(), backlinkField));
+        backlinks.add(backlink);
 
         return true;
-    }
-
-    public String getSimpleClassName() {
-        return className;
-    }
-
-    /**
-     * Returns {@code true} if the class is considered to be a valid RealmObject class.
-     * RealmObject and Proxy classes also have the @RealmClass annotation but are not considered valid
-     * RealmObject classes.
-     */
-    public boolean isModelClass() {
-        String type = getFQClassName();
-        if (type.equals("io.realm.DynamicRealmObject")) {
-            return false;
-        }
-        return (!type.endsWith(".RealmObject") && !type.endsWith("RealmProxy"));
-    }
-
-    public String getPackageName() {
-        return packageName;
-    }
-
-    public String getFQClassName() {
-        return classType.toString();
-    }
-
-    public String getFullyQualifiedClassName() {
-        return packageName + "." + className;
-    }
-
-    public Collection<VariableElement> getFields() {
-        return fields.values();
-    }
-
-    public Map<String, VariableElement> getFieldMap() {
-        return fields;
-    }
-
-    public Set<Backlink> getBacklinkFields() {
-        return backlinks;
-    }
-
-    public String getGetter(String fieldName) {
-        return "realmGet$" + fieldName;
-    }
-
-    public String getSetter(String fieldName) {
-        return "realmSet$" + fieldName;
-    }
-
-    public List<VariableElement> getIndexedFields() {
-        return indexedFields;
-    }
-
-    public boolean hasPrimaryKey() {
-        return primaryKey != null;
-    }
-
-    public VariableElement getPrimaryKey() {
-        return primaryKey;
-    }
-
-    public String getPrimaryKeyGetter() {
-        return getGetter(primaryKey.getSimpleName().toString());
-    }
-
-    @Override
-    public String toString() {
-        return "class " + packageName + "." + className;
-    }
-
-    /**
-     * Checks if a VariableElement is nullable.
-     *
-     * @return {@code true} if a VariableElement is nullable type, {@code false} otherwise.
-     */
-    public boolean isNullable(VariableElement variableElement) {
-        return nullableFields.contains(variableElement);
-    }
-
-    /**
-     * Checks if a VariableElement is indexed.
-     *
-     * @param variableElement the element/field
-     * @return {@code true} if a VariableElement is indexed, {@code false} otherwise.
-     */
-    public boolean isIndexed(VariableElement variableElement) {
-        return indexedFields.contains(variableElement);
-    }
-
-    /**
-     * Checks if a VariableElement is a primary key.
-     *
-     * @param variableElement the element/field
-     * @return {@code true} if a VariableElement is primary key, {@code false} otherwise.
-     */
-    public boolean isPrimaryKey(VariableElement variableElement) {
-        if (primaryKey == null) {
-            return false;
-        }
-        return primaryKey.equals(variableElement);
     }
 
     private boolean isValidPrimaryKeyType(TypeMirror type) {
@@ -515,18 +507,6 @@ public class ClassMetaData {
             }
         }
         return false;
-    }
-
-    public boolean containsToString() {
-        return containsToString;
-    }
-
-    public boolean containsEquals() {
-        return containsEquals;
-    }
-
-    public boolean containsHashCode() {
-        return containsHashCode;
     }
 }
 

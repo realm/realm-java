@@ -21,9 +21,9 @@ import io.realm.RealmResults;
 import io.realm.annotations.LinkingObjects;
 
 public class Backlinks_NotFound extends RealmObject {
-
     private Backlinks_NotFound child;
 
+    // The argument to the @LinkingObjects annotation must name a field in the target class
     @LinkingObjects("xxx")
-    private RealmResults<Backlinks_NotFound> selectedFieldParents;
+    private RealmResults<Backlinks_NotFound> parents;
 }

@@ -5,9 +5,9 @@ import io.realm.RealmResults;
 import io.realm.annotations.LinkingObjects;
 
 public class Backlinks_MissingField extends RealmObject {
-
     private Backlinks_MissingField child;
 
-    @LinkingObjects // Forgot to specify the field
-    private RealmResults<Backlinks_MissingField> selectedFieldParents;
+    // Forgot to specify the backlinked field
+    @LinkingObjects
+    private RealmResults<Backlinks_MissingField> parents;
 }

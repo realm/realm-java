@@ -545,20 +545,21 @@ public class RealmProxyClassGenerator {
 
     private void emitBacklinkFieldAccessors(JavaWriter writer) throws IOException {
         for (Backlink backlink : metadata.getBacklinkFields()) {
+            String realmResultsType = "RealmResults<" + backlink.getTargetClass() + ">";
 
             // Getter
-            writer.beginMethod(backlink.sourceFieldType, metadata.getGetter(backlink.sourceField), EnumSet.of(Modifier.PUBLIC));
+            writer.beginMethod(realmResultsType, metadata.getGetter(backlink.getSourceField()), EnumSet.of(Modifier.PUBLIC));
             writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
             writer.emitStatement("BaseRealm realm = proxyState.getRealm$realm()");
             writer.emitStatement("Row row = proxyState.getRow$realm()");
-            writer.emitStatement("Table srcTable = realm.getSchema().getTable(%s.class)", backlink.targetClass);
-            writer.emitStatement("long srcColumnIndex = realm.getSchema().getSchemaForClass(%s.class).getFieldIndex(\"%s\")", backlink.targetClass, backlink.targetField);
-            writer.emitStatement("return RealmResults.createFromTableOrView(realm, row.getBacklinkView(srcTable, srcColumnIndex), %s.class)", backlink.targetClass);
+            writer.emitStatement("Table srcTable = realm.getSchema().getTable(%s.class)", backlink.getTargetClass());
+            writer.emitStatement("long srcColumnIndex = realm.getSchema().getSchemaForClass(%s.class).getFieldIndex(\"%s\")", backlink.getTargetClass(), backlink.getTargetField());
+            writer.emitStatement("return RealmResults.createFromTableOrView(realm, row.getBacklinkView(srcTable, srcColumnIndex), %s.class)", backlink.getTargetClass());
             writer.endMethod();
             writer.emitEmptyLine();
 
             // Setter
-            writer.beginMethod("void", metadata.getSetter(backlink.sourceField), EnumSet.of(Modifier.PUBLIC), backlink.sourceFieldType, "value");
+            writer.beginMethod("void", metadata.getSetter(backlink.getSourceField()), EnumSet.of(Modifier.PUBLIC), realmResultsType, "value");
             writer.emitStatement("throw new UnsupportedOperationException(\"Fields that are @LinkingObjects cannot be modified. They are managed by Realm.\")");
             writer.endMethod();
             writer.emitEmptyLine();

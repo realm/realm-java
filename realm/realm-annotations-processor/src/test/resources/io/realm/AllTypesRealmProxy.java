@@ -1,5 +1,6 @@
 package io.realm;
 
+
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
@@ -468,7 +469,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         BaseRealm realm = proxyState.getRealm$realm();
         Row row = proxyState.getRow$realm();
         Table srcTable = realm.getSchema().getTable(some.test.AllTypes.class);
-        long srcColumnIndex = realm.getSchema().getSchemaForClass(some.test.AllTypes.class).getFieldIndex("parentObjects");
+        long srcColumnIndex = realm.getSchema().getSchemaForClass(some.test.AllTypes.class).getFieldIndex("columnObject");
         return RealmResults.createFromTableOrView(realm, row.getBacklinkView(srcTable, srcColumnIndex), some.test.AllTypes.class);
     }
 

@@ -20,6 +20,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,6 +66,7 @@ public class LinkingObjectsUnmanagedTests {
     // replaced with actual backlinks
     // !!! Should this generate a warning?
     @Test
+    @Ignore
     public void copyToRealm_ignoreLinkingObjects() {
         AllJavaTypes child = new AllJavaTypes(1);
         AllJavaTypes parent = new AllJavaTypes(2);
@@ -80,6 +82,7 @@ public class LinkingObjectsUnmanagedTests {
 
     // When unmanaged, an object's backlinks fields a nulled
     @Test
+    @Ignore
     public void copyFromRealm_ignoreLinkingObjects() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
