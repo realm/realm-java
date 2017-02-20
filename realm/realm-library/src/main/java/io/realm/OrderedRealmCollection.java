@@ -27,10 +27,11 @@ import java.util.List;
  * <p>
  *
  * There are three types of {@link OrderedRealmCollection}. {@link RealmResults} and {@link RealmList} are live
- * collections. They are up-to-date all the time and they will never contain a invalid {@link RealmObject}.
+ * collections. They are up-to-date all the time and they will never contain an invalid {@link RealmObject}.
  * {@link OrderedRealmCollectionSnapshot} is different. An {@link OrderedRealmCollectionSnapshot} can be created from
  * another {@link OrderedRealmCollection}. Its size and elements order stay the same as the original collection's when
- * it was created. {@link OrderedRealmCollection} may contain invalid {@link RealmObject} if the object gets deleted.
+ * it was created. {@link OrderedRealmCollectionSnapshot} may contain invalid {@link RealmObject}s if the objects get
+ * deleted.
  *
  * <p>
  *
@@ -52,15 +53,14 @@ import java.util.List;
  * }
  * </pre>
  *
- * You can delete the element while iterating without impacting the iterator. But whenever the element in the
- * {@link RealmResults} changes, the {@link RealmResults} will be impacted. Like the above example, during the iterating
- * after a element gets deleted, the {@link RealmResults}'s size become different. So does the order if modifications
- * applied to the element can impact the elements order of the {@link RealmResults}. {@link RealmList} has the same
- * behaviour with {@link RealmResults} since they are both live collections.
+ * An iterator created from a live collection will create a stable view when the iterator is created, allowing you to
+ * delete and modify elements while iterating without impacting the iterator. However, the {@code RealmResults} backing
+ * the iterator will still be live updated meaning that size and order of elements can change when iterating.
+ * {@link RealmList} has the same behaviour as {@link RealmResults} since they are both live collections.
  *
  * <p>
  *
- * Simple for-loop is different. See below example:
+ * A simple for-loop is different. See below example:
  *
  * <pre>
  * {@code
