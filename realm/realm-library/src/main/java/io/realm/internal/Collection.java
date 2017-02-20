@@ -199,6 +199,8 @@ public class Collection implements NativeObject {
         }
     }
 
+
+
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final SharedRealm sharedRealm;
@@ -206,8 +208,7 @@ public class Collection implements NativeObject {
     private final Table table;
     private boolean loaded = false;
     private boolean isSnapshot = false;
-    private final ObserverPairList<CollectionObserverPair> observerPairs =
-            new ObserverPairList<CollectionObserverPair>();
+    private final ObserverPairList<CollectionObserverPair> observerPairs = new ObserverPairList<>();
     private static final ObserverPairList.Callback<CollectionObserverPair> onChangeCallback =
             new ObserverPairList.Callback<CollectionObserverPair>() {
                 @Override
@@ -276,6 +277,15 @@ public class Collection implements NativeObject {
                     throw new IllegalArgumentException("Invalid value: " + value);
             }
         }
+    }
+
+    public static Collection getBacklinksCollection(SharedRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
+        long backlinks = nativeCreateResultsFromBacklinks(
+            realm.getNativePtr(),
+            row.getNativePtr(),
+            srcTable.getNativePtr(),
+            srcTable.getColumnIndex(srcFieldName));
+        return new Collection(realm, row.getTable(), backlinks);
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query,
@@ -421,12 +431,12 @@ public class Collection implements NativeObject {
         if (observerPairs.isEmpty()) {
             nativeStartListening(nativePtr);
         }
-        CollectionObserverPair<T> collectionObserverPair = new CollectionObserverPair<T>(observer, listener);
+        CollectionObserverPair<T> collectionObserverPair = new CollectionObserverPair<>(observer, listener);
         observerPairs.add(collectionObserverPair);
     }
 
     public <T> void removeListener(T observer, RealmChangeListener<T> listener) {
-        CollectionObserverPair<T> collectionObserverPair = new CollectionObserverPair<T>(observer, listener);
+        CollectionObserverPair<T> collectionObserverPair = new CollectionObserverPair<>(observer, listener);
         observerPairs.remove(collectionObserverPair);
         if (observerPairs.isEmpty()) {
             nativeStopListening(nativePtr);
@@ -507,4 +517,5 @@ public class Collection implements NativeObject {
     private static native long nativeIndexOfBySourceRowIndex(long nativePtr, long sourceRowIndex);
     private static native boolean nativeIsValid(long nativePtr);
     private static native byte nativeGetMode(long nativePtr);
+    private static native long nativeCreateResultsFromBacklinks(long sharedRealmNativePtr, long rowNativePtr, long srcTableNativePtr, long srColIndex);
 }

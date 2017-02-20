@@ -30,11 +30,11 @@ import io.realm.RealmFieldType;
  * For low-level access to Row data where error checking is required, use {@link CheckedRow}.
  */
 public class UncheckedRow implements NativeObject, Row {
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
-    final Context context; // This is only kept because for now it's needed by the constructor of LinkView
+    private final Context context; // This is only kept because for now it's needed by the constructor of LinkView
     private final Table parent;
     private final long nativePtr;
-    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     UncheckedRow(Context context, Table parent, long nativePtr) {
         this.context = context;
@@ -187,12 +187,6 @@ public class UncheckedRow implements NativeObject, Row {
         return new LinkView(context, parent, columnIndex, nativeLinkViewPtr);
     }
 
-    @Override
-    public TableView getBacklinkView(Table srcTable, long srcColumnIndex) {
-        long backlinkViewPtr = nativeGetBacklinkView(nativePtr, srcTable.nativePtr, srcColumnIndex);
-        return new TableView(context, getTable(), backlinkViewPtr);
-    }
-
     // Setters
 
     @Override
@@ -330,6 +324,5 @@ public class UncheckedRow implements NativeObject, Row {
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
     protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
     protected native void nativeSetNull(long nativeRowPtr, long columnIndex);
-    protected native long nativeGetBacklinkView(long nativeRowPtr, long backlinkTablePtr, long backlinkColumnIndex);
     private static native long nativeGetFinalizerPtr();
 }

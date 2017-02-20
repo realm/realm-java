@@ -424,3 +424,19 @@ Java_io_realm_internal_Collection_nativeGetMode(JNIEnv *env, jclass, jlong nativ
     return -1; // Invalid mode value
 }
 
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_Collection_nativeCreateResultsFromBacklinks(JNIEnv *env, jclass, jlong shared_realm_ptr, jlong row_ptr, jlong src_table_ptr, jlong src_col_index) {
+    TR_ENTER_PTR(row_ptr)
+    if (!ROW_VALID(env, ROW(row_ptr)))
+        return -1;
+    try {
+        Row* row = ROW(row_ptr);
+        Table* src_table = TBL(src_table_ptr);
+        TableView backlink_view = row->get_table()->get_backlink_view(row->get_index(), src_table, src_col_index);
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        Results results(shared_realm, std::move(backlink_view));
+        auto wrapper = new ResultsWrapper(results);
+        return reinterpret_cast<jlong>(wrapper);
+    } CATCH_STD()
+    return -1;
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import java.lang.annotation.Target;
  *     <li>They can be followed just like normal references.</li>
  *     <li>They will be ignored when doing a `copyToRealm()`</li>
  *     <li>They will be ignored when doing a `copyFromRealm()`</li>
+ *     <li>They will be ignored when using the various a `creatObjectFromJson*` and `createAllFromJson*` methods</li>
  * </ul>
  */
 @Retention(RetentionPolicy.SOURCE)

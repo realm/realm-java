@@ -20,7 +20,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -32,6 +31,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -71,10 +71,8 @@ public class LinkingObjectsManagedTests {
             // Trying to set @LinkingObjects in managed mode is illegal
             parent.setObjectParents(realm.where(AllJavaTypes.class).findAll());
             fail();
-        }
-        catch (UnsupportedOperationException ignored) {
-        }
-        finally {
+        } catch (UnsupportedOperationException ignored) {
+        } finally {
             realm.cancelTransaction();
         }
     }
@@ -149,6 +147,30 @@ public class LinkingObjectsManagedTests {
         assertEquals(2, child.getListParents().size());
         assertEquals(parent, child.getListParents().first());
         assertEquals(parent, child.getListParents().last());
+    }
+
+    // Fields annotated with @LinkingObjects should not be affected by JSON updates
+    @Test
+    public void jsonUpdate() {
+        realm.beginTransaction();
+        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
+        AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
+        parent.getFieldList().add(child);
+        realm.commitTransaction();
+
+        try {
+            realm.beginTransaction();
+            realm.createOrUpdateAllFromJson(AllJavaTypes.class, "{ \"fieldId\" : 1, \"columnLong\" : null }");
+        } catch (IllegalStateException ignore) {
+
+        } finally {
+            realm.commitTransaction();
+        }
+
+        RealmResults<AllJavaTypes> parents = child.getObjectParents();
+        assertNotNull(parents);
+        assertEquals(1, parents.size());
+        assertEquals(parent, parents.first());
     }
 
     // Query on a field descriptor starting with a backlink
@@ -241,25 +263,25 @@ public class LinkingObjectsManagedTests {
 
     // A notification callback should be called on a commit that adds a backlink
     @Test
-    public void notifcationOnCommit() {
+    public void notificationOnCommit() {
 
     }
 
     // A notification callback should be called when a backlinked object is deleted
     @Test
-    public void notifcationOnDelete() {
+    public void notificationOnDelete() {
 
     }
 
     // A notification callback should not be called for unrelated changes on the same object
     @Test
-    public void notifcationNotSentOnUnrelatedChange() {
+    public void notificationNotSentOnUnrelatedChange() {
 
     }
 
     // ???
     @Test
-    public void notifcationSentOnlyForRefresh() {
+    public void notificationSentOnlyForRefresh() {
     }
 }
 

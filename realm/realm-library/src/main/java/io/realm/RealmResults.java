@@ -20,17 +20,9 @@ package io.realm;
 import android.app.IntentService;
 import android.os.Looper;
 
-import java.util.AbstractList;
-import java.util.ConcurrentModificationException;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.ListIterator;
-
-import io.realm.internal.InvalidRow;
-import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.SortDescriptor;
-import io.realm.internal.Table;
 import io.realm.internal.Collection;
+import io.realm.internal.Row;
+import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import rx.Observable;
 
@@ -62,6 +54,18 @@ import rx.Observable;
  * @see Realm#executeTransaction(Realm.Transaction)
  */
 public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionImpl<E> {
+    public static <T extends RealmModel> RealmResults<T> getBacklinkResults(BaseRealm realm, Row row, Class<T> srcTableType, String srcFieldName) {
+        if (!(row instanceof UncheckedRow)) {
+            throw new IllegalArgumentException("Row is " + row.getClass());
+        }
+        UncheckedRow uncheckedRow = (UncheckedRow) row;
+        Table srcTable = realm.getSchema().getTable(srcTableType);
+        return new RealmResults<>(
+            realm,
+            Collection.getBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
+            srcTableType);
+    }
+
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
         super(realm, collection, clazz);

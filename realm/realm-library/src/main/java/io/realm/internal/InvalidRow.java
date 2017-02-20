@@ -109,11 +109,6 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public TableView getBacklinkView(Table srcTable, long srcColumnIndex) {
-        throw getStubException();
-    }
-
-    @Override
     public void setLong(long columnIndex, long value) {
         throw getStubException();
     }

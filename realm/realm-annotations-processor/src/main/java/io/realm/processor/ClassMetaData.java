@@ -121,11 +121,11 @@ public class ClassMetaData {
         return backlinks;
     }
 
-    public String getGetter(String fieldName) {
+    public String getInternalGetter(String fieldName) {
         return "realmGet$" + fieldName;
     }
 
-    public String getSetter(String fieldName) {
+    public String getInternalSetter(String fieldName) {
         return "realmSet$" + fieldName;
     }
 
@@ -142,7 +142,7 @@ public class ClassMetaData {
     }
 
     public String getPrimaryKeyGetter() {
-        return getGetter(primaryKey.getSimpleName().toString());
+        return getInternalGetter(primaryKey.getSimpleName().toString());
     }
 
     public boolean containsToString() {

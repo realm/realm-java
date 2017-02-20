@@ -30,50 +30,56 @@ import io.realm.annotations.Required;
  * A Backlink is:
  * <p>
  * <code>
- * class SourceClass {
- * // ...
- * <p>
- * {@literal @}LinkingObjects("targetField")
- * RealmResults&lt;TargetClass&gt; sourceField;
+ * class TargetClass {
+ *     // ...
+ *     {@literal @}LinkingObjects("sourceField")
+ *     RealmResults&lt;SourceClass&gt; targetField;
  * }
  * </code>.
  * <p>
- * When managed, an instance X of a class with such a declaration will contain in the sourceField
- * references to any instances of TargetClass whose targetField contains a reference to X.
- * When managed, the sourceField cannot be assigned.  It can be queried normally.
+ * The targetField of a managed object cannot be assigned.  It can be queried normally.
+ * When an instance X of a class with such a declaration is copied to Realm (`copyToRealm()`),
+ * the result will contain in its targetField references to any instances of SourceClass
+ * whose sourceField contains a reference to X.  Any previous contents of the targetField are lost.
  * <p>
- * When unmanaged, the sourceField is just another field: it can be set normally.  Managing an unmanaged
- * instance of SourceClass destroys any previous contents of the backlinked field and replaces it with
- * backlinks.  Unmanagning a managed instance of SourceClass nulls the backlinks field.
+ * When an instance X is copied from Realm (`copyFromRealm()`) the targetField in the returned object
+ * is just another field: it can be set normally. The field is initially set to be `null`.
  * <p>
  * Note that, because subclassing subclasses of RealmObject is forbidden, so are constructs like:
  * <code>RealmResults&lt;? extends Foos&lt;</code>
+ * <p>
+ * In the code link direction is from the perspective of the link, not the backlink: the source is the
+ * instance to which the backlink points, the target is the instance holding the pointer.
+ * This is consistent with the use of terms in the Realm Core.
  */
 final class Backlink {
     private final VariableElement backlink;
 
     /**
-     * The class containing the field <code>sourceField</code> with the backlink annotation
-     */
-    private final String sourceClass;
-
-    /**
-     * The name of the backlinked field, in sourceClass.
-     * The <code>RealmResults</code> field annotated with @LinkingObjects.
-     */
-    private final String sourceField;
-
-    /**
-     * The class to which the backlink, from sourceField, points
+     * The FQN of the class containing the field <code>targetField</code> that is
+     * annotated with the {@literal @}LinkingObjects annotation.
      */
     private final String targetClass;
 
     /**
-     * The name of the field, in <code>targetClass</code> that creates the backlink.
-     * Making this field, in A, a reference to B will cause the <code>sourceField</code> of B
-     * (the <code>sourceClass</code>) to contain a backlink to A.
+     * The name of the backlinked field, in <code>targetClass</code>.
+     * A <code>RealmResults&lt;&gt;</code> field annotated with a {@literal @}LinkingObjects annotation.
      */
     private final String targetField;
+
+    /**
+     * The FQN of the class to which the backlinks, from <code>targetField</code>, point:
+     * The generic argument to the type of the <code>targetField</code> field.
+     */
+    private final String sourceClass;
+
+    /**
+     * The name of the field, in <code>sourceClass</code> that creates the backlink.
+     * Making this field, in an instance X of <code>sourceClass</code>,
+     * a reference to an instance Y of <code>targetClass</code>
+     * will cause the <code>targetField</code> of Y to contain a backlink to X.
+     */
+    private final String sourceField;
 
 
     public Backlink(ClassMetaData klass, VariableElement backlink) {
@@ -82,19 +88,19 @@ final class Backlink {
         }
 
         this.backlink = backlink;
-        this.sourceClass = klass.getFullyQualifiedClassName();
-        this.sourceField = backlink.getSimpleName().toString();
-        this.targetClass = getRealmResultsType(backlink);
-        this.targetField = backlink.getAnnotation(LinkingObjects.class).value();
+        this.targetClass = klass.getFullyQualifiedClassName();
+        this.targetField = backlink.getSimpleName().toString();
+        this.sourceClass = getRealmResultsType(backlink);
+        this.sourceField = backlink.getAnnotation(LinkingObjects.class).value();
     }
-
-    public String getSourceClass() { return sourceClass; }
-
-    public String getSourceField() { return sourceField; }
 
     public String getTargetClass() { return targetClass; }
 
     public String getTargetField() { return targetField; }
+
+    public String getSourceClass() { return sourceClass; }
+
+    public String getSourceField() { return sourceField; }
 
     /**
      * Validate the source side of the backlink.
@@ -106,25 +112,25 @@ final class Backlink {
         if (backlink.getAnnotation(Required.class) != null) {
             Utils.error(String.format(
                 "The @LinkingObjects field \"%s.%s\" cannot be @Required.",
-                sourceClass,
-                sourceField));
+                targetClass,
+                targetField));
         }
 
         // The annotation must have an argument, identifying the linked field
-        if (targetField == null || targetField.equals("")) {
+        if ((sourceField == null) || sourceField.equals("")) {
             Utils.error(String.format(
                 "The @LinkingObjects annotation for the field \"%s.%s\" must have a parameter identifying the link target.",
-                sourceClass,
-                sourceField));
+                targetClass,
+                targetField));
             return false;
         }
 
         // Using link syntax to try to reference a linked field is not possible.
-        if (targetField.contains(".")) {
+        if (sourceField.contains(".")) {
             Utils.error(String.format(
                 "The parameter to the @LinkingObjects annotation for the field \"%s.%s\" contains a '.'.  The use of '.' to specify fields in referenced classes is not supported.",
-                sourceClass,
-                sourceField));
+                targetClass,
+                targetField));
             return false;
         }
 
@@ -132,17 +138,17 @@ final class Backlink {
         if (!Utils.isRealmResults(backlink)) {
             Utils.error(String.format(
                 "The field \"%s.%s\" is a \"%s\". Fields annotated with @LinkingObjects must be RealmResults.",
-                sourceClass,
-                sourceField,
+                targetClass,
+                targetField,
                 backlink.asType()));
             return false;
         }
 
-        if (targetClass == null) {
+        if (sourceClass == null) {
             Utils.error(String.format(
                 "\"The field \"%s.%s\", annotated with @LinkingObjects, must specify a generic type.",
-                sourceClass,
-                sourceField));
+                targetClass,
+                targetField));
             return false;
         }
 
@@ -150,28 +156,28 @@ final class Backlink {
     }
 
     public boolean validateTarget(ClassMetaData klass) {
-        VariableElement field = klass.getDeclaredField(targetField);
+        VariableElement field = klass.getDeclaredField(sourceField);
 
         if (field == null) {
             Utils.error(String.format(
                 "Field \"%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", does not exist in class \"%s\".",
-                targetField,
-                sourceClass,
                 sourceField,
-                targetClass));
+                targetClass,
+                targetField,
+                sourceClass));
             return false;
         }
 
         String fieldType = field.asType().toString();
-        if (!(sourceClass.equals(fieldType) || sourceClass.equals(getRealmListType(field)))) {
+        if (!(targetClass.equals(fieldType) || targetClass.equals(getRealmListType(field)))) {
             Utils.error(String.format(
                 "Field \"%s.%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", has type \"%s\" instead of \"%s\".",
-                targetClass,
-                targetField,
                 sourceClass,
                 sourceField,
+                targetClass,
+                targetField,
                 fieldType,
-                sourceClass));
+                targetClass));
             return false;
         }
 
@@ -191,18 +197,18 @@ final class Backlink {
         if (!(o instanceof Backlink)) { return false; }
         Backlink backlink = (Backlink) o;
 
-        return sourceClass.equals(backlink.sourceClass)
-            && sourceField.equals(backlink.sourceField)
-            && targetClass.equals(backlink.targetClass)
-            && targetField.equals(backlink.targetField);
+        return targetClass.equals(backlink.targetClass)
+            && targetField.equals(backlink.targetField)
+            && sourceClass.equals(backlink.sourceClass)
+            && sourceField.equals(backlink.sourceField);
     }
 
     @Override
     public int hashCode() {
-        int result = sourceClass.hashCode();
-        result = 31 * result + sourceField.hashCode();
-        result = 31 * result + targetClass.hashCode();
+        int result = targetClass.hashCode();
         result = 31 * result + targetField.hashCode();
+        result = 31 * result + sourceClass.hashCode();
+        result = 31 * result + sourceField.hashCode();
         return result;
     }
 

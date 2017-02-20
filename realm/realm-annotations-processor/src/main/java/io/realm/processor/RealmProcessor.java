@@ -156,7 +156,7 @@ public class RealmProcessor extends AbstractProcessor {
             if (!processAnnotations(roundEnv)) { return true; }
 
             hasProcessedModules = true;
-            processModules(roundEnv);
+            if (!processModules(roundEnv)) { return true; }
         }
 
         if (roundEnv.processingOver()) {
@@ -276,7 +276,7 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         for (Backlink backlink: backlinksToValidate) {
-            ClassMetaData klass = realmClasses.get(backlink.getTargetClass());
+            ClassMetaData klass = realmClasses.get(backlink.getSourceClass());
 
             // If the class is not here it might be part of some other compilation unit.
             if (klass == null) { continue; }

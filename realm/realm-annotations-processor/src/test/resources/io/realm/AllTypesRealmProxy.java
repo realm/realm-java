@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
+
 import io.realm.RealmObjectSchema;
 import io.realm.RealmSchema;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -16,6 +17,7 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -464,19 +467,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     public RealmResults<some.test.AllTypes> realmGet$parentObjects() {
-        proxyState.getRealm$realm().checkIfValid();
         BaseRealm realm = proxyState.getRealm$realm();
-        Row row = proxyState.getRow$realm();
-        Table srcTable = realm.getSchema().getTable(some.test.AllTypes.class);
-        Long idx = realm.getSchema().getSchemaForClass(some.test.AllTypes.class).getFieldIndex("columnObject");
-        if (idx == null) {
-            throw new UnsupportedOperationException("Field \"columnObject\" not found in class \"some.test.AllTypes\"");
-        }
-        long srcColumnIndex = idx.longValue();
-        if (!row.getTable().equals(srcTable.getCheckedRow(srcColumnIndex).getTable())) {
-            throw new UnsupportedOperationException("Field \"columnObject\" in class \"some.test.AllTypes\" is not of type \"some.test.AllTypes\"");
-        }
-        return RealmResults.createFromTableOrView(realm, row.getBacklinkView(srcTable, srcColumnIndex), some.test.AllTypes.class);
+        realm.checkIfValid();
+        return RealmResults.getBacklinkResults(realm, proxyState.getRow$realm(), some.test.AllTypes.class, "columnObject");
     }
 
     public void realmSet$parentObjects(RealmResults<some.test.AllTypes> value) {

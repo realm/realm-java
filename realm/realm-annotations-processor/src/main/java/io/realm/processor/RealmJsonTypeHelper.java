@@ -185,7 +185,7 @@ public class RealmJsonTypeHelper {
 
     public static void emitFillJavaTypeFromStream(String interfaceName, ClassMetaData metaData, String fieldName, String
             fieldType, JavaWriter writer) throws IOException {
-        String setter = metaData.getSetter(fieldName);
+        String setter = metaData.getInternalSetter(fieldName);
         boolean isPrimaryKey = false;
         if (metaData.hasPrimaryKey() && metaData.getPrimaryKey().getSimpleName().toString().equals(fieldName)) {
             isPrimaryKey = true;
