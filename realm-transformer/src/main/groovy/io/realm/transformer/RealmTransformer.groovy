@@ -131,6 +131,7 @@ class RealmTransformer extends Transform {
         inputModelClasses.each {
             BytecodeModifier.addRealmAccessors(it)
             BytecodeModifier.addRealmProxyInterface(it, classPool)
+            BytecodeModifier.callInjectObjectContextFromDefaultConstructor(it, classPool)
         }
 
         // Use accessors instead of direct field access
