@@ -50,7 +50,7 @@ public class CheckedRow extends UncheckedRow {
      * @return an instance of Row for the table and index specified.
      */
     public static CheckedRow get(Context context, Table table, long index) {
-        long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
+        long nativeRowPointer = table.nativeGetRowPtr(table.getNativePtr(), index);
         return new CheckedRow(context, table, nativeRowPointer);
     }
 
@@ -72,7 +72,7 @@ public class CheckedRow extends UncheckedRow {
      *
      * @return an checked instance of {@link Row}.
      */
-    static CheckedRow getFromRow(UncheckedRow row) {
+    public static CheckedRow getFromRow(UncheckedRow row) {
         return new CheckedRow(row);
     }
 
