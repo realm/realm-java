@@ -294,8 +294,6 @@ public class JNITableTest {
         assertEquals(3, t.count(2, 3.0f));
         assertEquals(3, t.count(3, "s1"));
 
-        assertEquals(3, t.findAllDouble(1, 2.0d).size());
-        assertEquals(3, t.findAllFloat(2, 3.0f).size());
 
         assertEquals(3, t.findFirstDouble(1, 20.0d)); // Find rows index for first double value of 20.0 in column 1.
         assertEquals(4, t.findFirstFloat(2, 300.0f)); // Find rows index for first float value of 300.0 in column 2.

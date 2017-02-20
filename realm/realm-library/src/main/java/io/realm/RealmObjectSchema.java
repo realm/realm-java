@@ -26,7 +26,6 @@ import java.util.Set;
 
 import io.realm.annotations.Required;
 import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
 
 /**
  * Class for interacting with the schema for a given RealmObject class. This makes it possible to
@@ -334,7 +333,7 @@ public class RealmObjectSchema {
      * @return {@code true} if the field exists, {@code false} otherwise.
      */
     public boolean hasField(String fieldName) {
-        return table.getColumnIndex(fieldName) != TableOrView.NO_MATCH;
+        return table.getColumnIndex(fieldName) != Table.NO_MATCH;
     }
 
     /**
@@ -636,13 +635,13 @@ public class RealmObjectSchema {
     }
 
     private void checkFieldNameIsAvailable(String fieldName) {
-        if (table.getColumnIndex(fieldName) != TableOrView.NO_MATCH) {
+        if (table.getColumnIndex(fieldName) != Table.NO_MATCH) {
             throw new IllegalArgumentException("Field already exists in '" + getClassName() + "': " + fieldName);
         }
     }
 
     private void checkFieldExists(String fieldName) {
-        if (table.getColumnIndex(fieldName) == TableOrView.NO_MATCH) {
+        if (table.getColumnIndex(fieldName) == Table.NO_MATCH) {
             throw new IllegalArgumentException("Field name doesn't exist on object '" + getClassName() + "': " + fieldName);
         }
     }

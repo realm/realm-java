@@ -39,47 +39,6 @@ public class TableIndexAndDistinctTest extends TestCase {
         assertEquals(7, table.size());
     }
 
-    public void testShouldTestDistinct() {
-        init();
-
-        // Must set index before using distinct().
-        table.addSearchIndex(1);
-        assertEquals(true, table.hasSearchIndex(1));
-
-        TableView view = table.getDistinctView(1);
-        assertEquals(4, view.size());
-        assertEquals(0, view.getLong(0, 0));
-        assertEquals(1, view.getLong(0, 1));
-        assertEquals(2, view.getLong(0, 2));
-        assertEquals(4, view.getLong(0, 3));
-    }
-
-// TODO: parametric test
-/*    *//**
-     * Should throw exception if trying to get distinct on columns where index has not been set.
-     * @param index
-     *//*
-
-    @Test(expectedExceptions = UnsupportedOperationException.class, dataProvider = "columnIndex")
-    public void shouldTestDistinctErrorWhenNoIndex(Long index) {
-
-        // Gets a table with all available column types.
-        Table t = TestHelper.getTableWithAllColumnTypes();
-
-        TableView view = table.getDistinctView(1);
-    }*/
-
-    public void testShouldTestDistinctErrorWhenIndexOutOfBounds() {
-        init();
-
-        try {
-            TableView view = table.getDistinctView(3);
-            fail();
-        } catch (ArrayIndexOutOfBoundsException e) {
-            assertNotNull(e);
-        }
-    }
-
     /**
      * Checks that Index can be set on multiple columns, with the String.
      * @param
@@ -129,17 +88,6 @@ public class TableIndexAndDistinctTest extends TestCase {
     public void testShouldCheckIndexIsOkOnColumn() {
         init();
         table.addSearchIndex(1);
-    }
-
-    public void testShouldThrowDistinctErrorWhenWrongColumnType() {
-        init();
-        table.addSearchIndex(1);
-        try {
-            TableView view = table.getDistinctView(0);
-            fail();
-        } catch (UnsupportedOperationException e) {
-            assertNotNull(e);
-        }
     }
 
     public void testRemoveSearchIndex() {

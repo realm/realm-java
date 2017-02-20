@@ -14,7 +14,6 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
 import java.io.IOException;
@@ -119,7 +118,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     private void injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (AllTypesColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState<some.test.AllTypes>(some.test.AllTypes.class, this);
+        this.proxyState = new ProxyState<some.test.AllTypes>(this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
@@ -655,13 +654,13 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (update) {
             Table table = realm.getTable(some.test.AllTypes.class);
             long pkColumnIndex = table.getPrimaryKey();
-            long rowIndex = TableOrView.NO_MATCH;
+            long rowIndex = Table.NO_MATCH;
             if (json.isNull("columnString")) {
                 rowIndex = table.findFirstNull(pkColumnIndex);
             } else {
                 rowIndex = table.findFirstString(pkColumnIndex, json.getString("columnString"));
             }
-            if (rowIndex != TableOrView.NO_MATCH) {
+            if (rowIndex != Table.NO_MATCH) {
                 final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
                 try {
                     objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), false, Collections.<String> emptyList());
@@ -873,13 +872,13 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 Table table = realm.getTable(some.test.AllTypes.class);
                 long pkColumnIndex = table.getPrimaryKey();
                 String value = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
-                long rowIndex = TableOrView.NO_MATCH;
+                long rowIndex = Table.NO_MATCH;
                 if (value == null) {
                     rowIndex = table.findFirstNull(pkColumnIndex);
                 } else {
                     rowIndex = table.findFirstString(pkColumnIndex, value);
                 }
-                if (rowIndex != TableOrView.NO_MATCH) {
+                if (rowIndex != Table.NO_MATCH) {
                     try {
                         objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), false, Collections.<String> emptyList());
                         realmObject = new io.realm.AllTypesRealmProxy();
@@ -954,13 +953,13 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.schema.getColumnInfo(some.test.AllTypes.class);
         long pkColumnIndex = table.getPrimaryKey();
         String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
-        long rowIndex = TableOrView.NO_MATCH;
+        long rowIndex = Table.NO_MATCH;
         if (primaryKeyValue == null) {
             rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
         } else {
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
-        if (rowIndex == TableOrView.NO_MATCH) {
+        if (rowIndex == Table.NO_MATCH) {
             rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false);
         } else {
             Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
@@ -1017,13 +1016,13 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     continue;
                 }
                 String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
-                long rowIndex = TableOrView.NO_MATCH;
+                long rowIndex = Table.NO_MATCH;
                 if (primaryKeyValue == null) {
                     rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
                 } else {
                     rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
                 }
-                if (rowIndex == TableOrView.NO_MATCH) {
+                if (rowIndex == Table.NO_MATCH) {
                     rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false);
                 } else {
                     Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
@@ -1076,13 +1075,13 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.schema.getColumnInfo(some.test.AllTypes.class);
         long pkColumnIndex = table.getPrimaryKey();
         String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
-        long rowIndex = TableOrView.NO_MATCH;
+        long rowIndex = Table.NO_MATCH;
         if (primaryKeyValue == null) {
             rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
         } else {
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
-        if (rowIndex == TableOrView.NO_MATCH) {
+        if (rowIndex == Table.NO_MATCH) {
             rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false);
         }
         cache.put(object, rowIndex);
@@ -1144,13 +1143,13 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     continue;
                 }
                 String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
-                long rowIndex = TableOrView.NO_MATCH;
+                long rowIndex = Table.NO_MATCH;
                 if (primaryKeyValue == null) {
                     rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
                 } else {
                     rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
                 }
-                if (rowIndex == TableOrView.NO_MATCH) {
+                if (rowIndex == Table.NO_MATCH) {
                     rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false);
                 }
                 cache.put(object, rowIndex);
