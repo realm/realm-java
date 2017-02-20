@@ -35,7 +35,7 @@ public abstract class CollectionTests {
     // Enumerates all known collection classes from the Realm API.
     protected enum CollectionClass {
         MANAGED_REALMLIST, UNMANAGED_REALMLIST, REALMRESULTS,
-        REALMRESULTSSNAPSHOT_RESULTS_BASE, REALMRESULTSSNAPSHOT_LIST_BASE
+        REALMRESULTS_SNAPSHOT_RESULTS_BASE, REALMRESULTS_SNAPSHOT_LIST_BASE
 
     }
 
@@ -46,12 +46,11 @@ public abstract class CollectionTests {
 
     // Enumerates all current supported collections that can be managed by Realm.
     protected enum ManagedCollection {
-        MANAGED_REALMLIST, REALMRESULTS, REALMRESULTSSNAPSHOT_RESULTS_BASE, REALMRESULTSSNAPSHOT_LIST_BASE
+        MANAGED_REALMLIST, REALMRESULTS, REALMRESULTS_SNAPSHOT_RESULTS_BASE, REALMRESULTS_SNAPSHOT_LIST_BASE
     }
 
     // Enumerates all methods from the RealmCollection interface that depend on Realm API's.
-    protected enum RealmCollectionMethod {
-        WHERE, MIN, MAX, SUM, AVERAGE, MIN_DATE, MAX_DATE, DELETE_ALL_FROM_REALM, IS_VALID, IS_MANAGED
+    protected enum RealmCollectionMethod { WHERE, MIN, MAX, SUM, AVERAGE, MIN_DATE, MAX_DATE, DELETE_ALL_FROM_REALM, IS_VALID, IS_MANAGED
     }
 
     // Enumerates all methods from the Collection interface
@@ -195,7 +194,7 @@ public abstract class CollectionTests {
         realm.deleteAll();
         OrderedRealmCollection<AllJavaTypes> orderedCollection;
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 int id = 0;
                 for (String arg : args) {
@@ -206,7 +205,7 @@ public abstract class CollectionTests {
                 orderedCollection = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_STRING);
                 break;
 
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 AllJavaTypes first = realm.createObject(AllJavaTypes.class, 0);
                 first.setFieldString(args[0]);
@@ -232,12 +231,12 @@ public abstract class CollectionTests {
     }
 
     boolean isSnapshot(ManagedCollection collectionClass) {
-        return collectionClass == ManagedCollection.REALMRESULTSSNAPSHOT_LIST_BASE ||
-                collectionClass == ManagedCollection.REALMRESULTSSNAPSHOT_RESULTS_BASE;
+        return collectionClass == ManagedCollection.REALMRESULTS_SNAPSHOT_LIST_BASE ||
+                collectionClass == ManagedCollection.REALMRESULTS_SNAPSHOT_RESULTS_BASE;
     }
 
     boolean isSnapshot(CollectionClass collectionClass) {
-        return collectionClass == CollectionClass.REALMRESULTSSNAPSHOT_LIST_BASE ||
-                collectionClass == CollectionClass.REALMRESULTSSNAPSHOT_RESULTS_BASE;
+        return collectionClass == CollectionClass.REALMRESULTS_SNAPSHOT_LIST_BASE ||
+                collectionClass == CollectionClass.REALMRESULTS_SNAPSHOT_RESULTS_BASE;
     }
 }

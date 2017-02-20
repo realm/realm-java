@@ -85,7 +85,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         OrderedRealmCollection<AllJavaTypes> orderedCollection;
 
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 boolean isEmpty = (sampleSize == 0);
                 int newSampleSize = (isEmpty) ? 2 : sampleSize;
@@ -103,7 +103,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 inMemoryList.addAll(objects);
                 return inMemoryList;
 
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 populateRealm(realm, sampleSize);
                 orderedCollection = realm.where(AllJavaTypes.class)
@@ -288,8 +288,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
         switch (collectionClass) {
             // Snapshot
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
                 assertFalse(collection.get(1).isValid());
                 break;
             // Managed RealmLists are directly associated with their table. Thus any indirect deletion will
@@ -311,8 +311,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void iterator_removeCalledTwice() {
-        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTSSNAPSHOT_LIST_BASE,
-                CollectionClass.REALMRESULTSSNAPSHOT_RESULTS_BASE)) {
+        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTS_SNAPSHOT_LIST_BASE,
+                CollectionClass.REALMRESULTS_SNAPSHOT_RESULTS_BASE)) {
             return; // remove() not supported by RealmResults.
         }
 
@@ -449,8 +449,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 thrown.expect(IllegalStateException.class);
                 it.remove();
                 break;
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 try {
                     it.remove(); // Method not supported.
@@ -552,8 +552,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void listIterator_remove_realmList_doesNotDeleteObject() {
-        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTSSNAPSHOT_LIST_BASE,
-                CollectionClass.REALMRESULTSSNAPSHOT_RESULTS_BASE)) {
+        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTS_SNAPSHOT_LIST_BASE,
+                CollectionClass.REALMRESULTS_SNAPSHOT_RESULTS_BASE)) {
             return;
         }
         ListIterator<AllJavaTypes> it = collection.listIterator();
@@ -579,8 +579,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void listIterator_set() {
-        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTSSNAPSHOT_RESULTS_BASE,
-                CollectionClass.REALMRESULTSSNAPSHOT_LIST_BASE)) {
+        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTS_SNAPSHOT_RESULTS_BASE,
+                CollectionClass.REALMRESULTS_SNAPSHOT_LIST_BASE)) {
             return;
         }
 
@@ -659,8 +659,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void iterator_outsideChangeToSizeThrowsConcurrentModification() {
-        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTSSNAPSHOT_RESULTS_BASE,
-                CollectionClass.REALMRESULTSSNAPSHOT_LIST_BASE)) {
+        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTS_SNAPSHOT_RESULTS_BASE,
+                CollectionClass.REALMRESULTS_SNAPSHOT_LIST_BASE)) {
             return;
         }
 
@@ -727,7 +727,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     @Test
     public void iterator_outsideChangeToSizeThrowsConcurrentModification_managedCollection() {
         if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.UNMANAGED_REALMLIST,
-                CollectionClass.REALMRESULTSSNAPSHOT_LIST_BASE, CollectionClass.REALMRESULTSSNAPSHOT_RESULTS_BASE)) {
+                CollectionClass.REALMRESULTS_SNAPSHOT_LIST_BASE, CollectionClass.REALMRESULTS_SNAPSHOT_RESULTS_BASE)) {
             return;
         }
 

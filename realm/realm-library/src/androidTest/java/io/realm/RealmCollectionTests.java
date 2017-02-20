@@ -116,7 +116,7 @@ public class RealmCollectionTests extends CollectionTests {
     private RealmCollection<AllJavaTypes> createCollection(CollectionClass collectionClass) {
         OrderedRealmCollection<AllJavaTypes> orderedCollection;
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 populateRealm(realm, TEST_SIZE);
                 orderedCollection = realm.where(AllJavaTypes.class)
@@ -128,7 +128,7 @@ public class RealmCollectionTests extends CollectionTests {
             case UNMANAGED_REALMLIST:
                 return populateInMemoryList(TEST_SIZE);
 
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 populateRealm(realm, TEST_SIZE);
                 orderedCollection = realm.where(AllJavaTypes.class).findAll();
@@ -147,7 +147,7 @@ public class RealmCollectionTests extends CollectionTests {
         OrderedRealmCollection<CustomMethods> orderedCollection;
 
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 realm.beginTransaction();
                 CustomMethods top = realm.createObject(CustomMethods.class);
@@ -166,7 +166,7 @@ public class RealmCollectionTests extends CollectionTests {
                 }
                 return list;
 
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 realm.beginTransaction();
                 for (int i = 0; i < TEST_SIZE; i++) {
@@ -189,7 +189,7 @@ public class RealmCollectionTests extends CollectionTests {
     private OrderedRealmCollection<NullTypes> createEmptyCollection(Realm realm, CollectionClass collectionClass) {
         OrderedRealmCollection<NullTypes> orderedCollection;
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 realm.beginTransaction();
                 NullTypes obj = realm.createObject(NullTypes.class, 0);
@@ -200,7 +200,7 @@ public class RealmCollectionTests extends CollectionTests {
             case UNMANAGED_REALMLIST:
                 return new RealmList<NullTypes>();
 
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 orderedCollection = realm.where(NullTypes.class).findAll();
                 break;

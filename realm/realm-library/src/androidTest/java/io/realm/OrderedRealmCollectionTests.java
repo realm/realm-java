@@ -142,7 +142,7 @@ public class OrderedRealmCollectionTests extends CollectionTests {
     private OrderedRealmCollection<AllJavaTypes> createCollection(Realm realm, CollectionClass collectionClass) {
         OrderedRealmCollection<AllJavaTypes> orderedCollection;
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 populateRealm(realm, TEST_SIZE);
                 orderedCollection = realm.where(AllJavaTypes.class)
@@ -154,7 +154,7 @@ public class OrderedRealmCollectionTests extends CollectionTests {
             case UNMANAGED_REALMLIST:
                 return populateInMemoryList(TEST_SIZE);
 
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 populateRealm(realm, TEST_SIZE);
                 orderedCollection = realm.where(AllJavaTypes.class).findAll();
@@ -172,7 +172,7 @@ public class OrderedRealmCollectionTests extends CollectionTests {
     private OrderedRealmCollection<AllJavaTypes> createEmptyCollection(Realm realm, CollectionClass collectionClass) {
         OrderedRealmCollection<AllJavaTypes> orderedCollection;
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 orderedCollection = realm.where(AllJavaTypes.class)
                         .equalTo(AllJavaTypes.FIELD_LONG, 1)
@@ -183,7 +183,7 @@ public class OrderedRealmCollectionTests extends CollectionTests {
             case UNMANAGED_REALMLIST:
                 return new RealmList<AllJavaTypes>();
 
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 orderedCollection = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, -1).findAll();
                 break;
@@ -202,7 +202,7 @@ public class OrderedRealmCollectionTests extends CollectionTests {
         OrderedRealmCollection<AllJavaTypes>  orderedCollection;
         AllJavaTypes obj;
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 obj = realm.where(AllJavaTypes.class)
                         .equalTo(AllJavaTypes.FIELD_LONG, 1)
@@ -218,7 +218,7 @@ public class OrderedRealmCollectionTests extends CollectionTests {
                 obj = new AllJavaTypes(1);
                 return new Pair<AllJavaTypes, OrderedRealmCollection<AllJavaTypes>>(obj, new RealmList<AllJavaTypes>(obj, obj));
 
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 1).findAll();
                 obj = result.first();
@@ -421,8 +421,8 @@ public class OrderedRealmCollectionTests extends CollectionTests {
         }
         OrderedRealmCollectionSnapshot snapshot = collection.createSnapshot();
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
                 // Creating snapshot from a snapshot will just return the same object.
                 assertSame(collection, snapshot);
                 break;

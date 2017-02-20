@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.mockito.internal.matchers.Equals;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,7 +35,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllJavaTypes;
-import io.realm.entities.AllTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -127,7 +125,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     private OrderedRealmCollection<AllJavaTypes> createCollection(ManagedCollection collectionClass) {
         OrderedRealmCollection<AllJavaTypes> orderedCollection;
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 orderedCollection = realm.where(AllJavaTypes.class)
                         .equalTo(AllJavaTypes.FIELD_LONG, 0)
@@ -135,7 +133,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         .getFieldList();
                 break;
 
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 orderedCollection = realm.where(AllJavaTypes.class)
                         .findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
@@ -153,7 +151,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     private OrderedRealmCollection<NullTypes> createEmptyCollection(Realm realm, ManagedCollection collectionClass) {
         OrderedRealmCollection<NullTypes> orderedCollection;
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 realm.beginTransaction();
                 NullTypes obj = realm.createObject(NullTypes.class, 0);
@@ -161,7 +159,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                 orderedCollection = obj.getFieldListNull();
                 break;
 
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 orderedCollection = realm.where(NullTypes.class).findAll();
                 break;
@@ -179,7 +177,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         TestHelper.populateAllNullRowsForNumericTesting(realm);
         OrderedRealmCollection<NullTypes> orderedCollection;
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 RealmResults<NullTypes> results = realm.where(NullTypes.class).findAll();
                 RealmList<NullTypes> list = results.get(0).getFieldListNull();
@@ -191,7 +189,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                 orderedCollection = list;
                 break;
 
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 orderedCollection = realm.where(NullTypes.class).findAll();
                 break;
@@ -210,7 +208,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         populatePartialNullRowsForNumericTesting(realm);
         OrderedRealmCollection<NullTypes> orderedCollection;
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 RealmResults<NullTypes> results = realm.where(NullTypes.class).findAll();
                 RealmList<NullTypes> list = results.get(0).getFieldListNull();
@@ -223,7 +221,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                 orderedCollection = list;
                 break;
 
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 orderedCollection = realm.where(NullTypes.class).findAll();
                 break;
@@ -241,7 +239,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     private OrderedRealmCollection<NonLatinFieldNames> createNonLatinCollection(Realm realm, ManagedCollection collectionClass) {
         OrderedRealmCollection<NonLatinFieldNames> orderedCollection;
         switch (collectionClass) {
-            case REALMRESULTSSNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 realm.beginTransaction();
                 RealmResults<NonLatinFieldNames> results = realm.where(NonLatinFieldNames.class).findAll();
@@ -253,7 +251,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                 orderedCollection = list;
                 break;
 
-            case REALMRESULTSSNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 orderedCollection = realm.where(NonLatinFieldNames.class).findAll();
                 break;
