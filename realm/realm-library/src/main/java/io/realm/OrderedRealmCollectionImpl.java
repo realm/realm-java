@@ -238,7 +238,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
             throw new IllegalArgumentException("Non-empty field name required.");
         }
         if (fieldName.contains(".")) {
-            throw new IllegalArgumentException("Aggregates on child object fields is not supported: " + fieldName);
+            throw new IllegalArgumentException("Aggregates on child object fields are not supported: " + fieldName);
         }
         long columnIndex = collection.getTable().getColumnIndex(fieldName);
         if (columnIndex < 0) {
