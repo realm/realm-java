@@ -45,8 +45,7 @@ public class RealmNotifierTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
-    private RealmConfiguration config;
-    Capabilities capabilitiesCanDeliver = new Capabilities() {
+    private Capabilities capabilitiesCanDeliver = new Capabilities() {
         @Override
         public boolean canDeliverNotification() {
             return true;
@@ -59,7 +58,6 @@ public class RealmNotifierTests {
 
     @Before
     public void setUp() throws Exception {
-        config = configFactory.createConfiguration();
     }
 
     @After
@@ -134,8 +132,7 @@ public class RealmNotifierTests {
                 int listenerCount = listenerCounter.addAndGet(1);
                 assertEquals(commits, listenerCount);
                 if (commits == TIMES) {
-                    // FIXME: Enable this after https://github.com/realm/realm-object-store/pull/318 fixed
-                    //sharedRealm.close();
+                    sharedRealm.close();
                     looperThread.testComplete();
                 } else {
                     makeRemoteChanges(looperThread.realmConfiguration);
@@ -162,8 +159,7 @@ public class RealmNotifierTests {
         sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
             @Override
             public void onChange(SharedRealm sharedRealm) {
-                // FIXME: Enable this after https://github.com/realm/realm-object-store/pull/318 fixed
-                //sharedRealm.close();
+                sharedRealm.close();
                 looperThread.testComplete();
             }
         });
