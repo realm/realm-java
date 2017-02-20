@@ -795,6 +795,26 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public OrderedRealmCollectionSnapshot<E> createSnapshot() {
+        if (!managedMode) {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+        checkValidView();
+        if (className != null) {
+            return new OrderedRealmCollectionSnapshot<E>(realm,
+                    new io.realm.internal.Collection(realm.sharedRealm, view, null),
+                    className);
+        } else {
+            return new OrderedRealmCollectionSnapshot<E>(realm,
+                    new io.realm.internal.Collection(realm.sharedRealm, view, null),
+                    clazz);
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

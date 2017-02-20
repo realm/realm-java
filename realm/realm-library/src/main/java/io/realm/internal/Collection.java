@@ -47,6 +47,11 @@ public class Collection implements NativeObject {
         public Iterator(Collection collection) {
             this.iteratorCollection = collection;
 
+            if (collection.isSnapshot) {
+                // No need to detach a snapshot.
+                return;
+            }
+
             if (collection.sharedRealm.isInTransaction()) {
                 detach();
             } else {
@@ -200,6 +205,7 @@ public class Collection implements NativeObject {
     private final Context context;
     private final Table table;
     private boolean loaded = false;
+    private boolean isSnapshot = false;
     private final ObserverPairList<CollectionObserverPair> observerPairs =
             new ObserverPairList<CollectionObserverPair>();
     private static final ObserverPairList.Callback<CollectionObserverPair> onChangeCallback =
@@ -294,6 +300,16 @@ public class Collection implements NativeObject {
         this(sharedRealm, query, null, null);
     }
 
+    public Collection(SharedRealm sharedRealm, LinkView linkView, SortDescriptor sortDescriptor) {
+        this.nativePtr = nativeCreateResultsFromLinkView(sharedRealm.getNativePtr(), linkView.getNativePtr(),
+                sortDescriptor);
+
+        this.sharedRealm = sharedRealm;
+        this.context = sharedRealm.context;
+        this.table = linkView.getTable();
+        this.context.addReference(this);
+    }
+
     private Collection(SharedRealm sharedRealm, Table table, long nativePtr) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
@@ -304,7 +320,12 @@ public class Collection implements NativeObject {
     }
 
     public Collection createSnapshot() {
-        return new Collection(sharedRealm, table, nativeCreateSnapshot(nativePtr));
+        if (isSnapshot) {
+            return this;
+        }
+        Collection collection = new Collection(sharedRealm, table, nativeCreateSnapshot(nativePtr));
+        collection.isSnapshot = true;
+        return collection;
     }
 
     @Override
@@ -463,6 +484,8 @@ public class Collection implements NativeObject {
     private static native long nativeGetFinalizerPtr();
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
                                                    SortDescriptor sortDesc, SortDescriptor distinctDesc);
+    private static native long nativeCreateResultsFromLinkView(long sharedRealmNativePtr, long linkViewPtr,
+                                                   SortDescriptor sortDesc);
     private static native long nativeCreateSnapshot(long nativePtr);
     private static native long nativeGetRow(long nativePtr, int index);
     private static native long nativeFirstRow(long nativePtr);

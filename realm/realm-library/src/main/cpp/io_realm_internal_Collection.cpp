@@ -80,6 +80,23 @@ Java_io_realm_internal_Collection_nativeCreateResults(JNIEnv* env, jclass, jlong
 }
 
 JNIEXPORT jlong JNICALL
+Java_io_realm_internal_Collection_nativeCreateResultsFromLinkView(JNIEnv* env, jclass, jlong shared_realm_ptr,
+                                                                  jlong link_view_ptr, jobject sort_desc)
+{
+    TR_ENTER()
+    try {
+        auto link_view_ref = reinterpret_cast<LinkViewRef*>(link_view_ptr);
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        Results results(shared_realm, *link_view_ref, util::none,
+                        SortDescriptor(JavaSortDescriptor(env, sort_desc)));
+        auto wrapper = new ResultsWrapper(results);
+
+        return reinterpret_cast<jlong>(wrapper);
+    } CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL
 Java_io_realm_internal_Collection_nativeCreateSnapshot(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr);
