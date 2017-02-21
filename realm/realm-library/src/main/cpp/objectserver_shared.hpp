@@ -28,7 +28,6 @@
 #include <object-store/src/sync/sync_user.hpp>
 #include <object-store/src/sync/sync_config.hpp>
 #include <object-store/src/sync/sync_session.hpp>
-
 #include "util.hpp"
 #include "jni_util/jni_utils.hpp"
 
@@ -54,25 +53,38 @@ public:
     JniConfigWrapper(REALM_UNUSED JNIEnv* env,
                      REALM_UNUSED Realm::Config* config,
                      REALM_UNUSED jstring sync_realm_url,
-                     REALM_UNUSED jstring sync_user_identity)
+                     REALM_UNUSED jstring sync_realm_auth_url,
+                     REALM_UNUSED jstring sync_user_identity,
+                     REALM_UNUSED jstring sync_refresh_token)
     {
 #ifdef REALM_ENABLE_SYNC
         m_config = config;
         jclass java_syncmanager = GetClass(env, "io/realm/SyncManager");
         jmethodID java_error_callback = env->GetStaticMethodID(java_syncmanager, "notifyErrorHandler", "(ILjava/lang/String;Ljava/lang/String;)V");
+        jmethodID java_access_token_refresh = env->GetStaticMethodID(java_syncmanager, "bindSessionWithConfig", "(Ljava/lang/String;)V");
 
-        auto error_handler = [&, java_error_callback](std::shared_ptr<SyncSession> session, SyncError error) {
+        auto error_handler = [java_syncmanager, java_error_callback](std::shared_ptr<SyncSession> session, SyncError error) {
+            realm::jni_util::Log::d("error_handler lambda invoked");
+
             JNIEnv *env = realm::jni_util::JniUtils::get_env(true);
-            env->CallVoidMethod(java_syncmanager,
+            env->CallStaticVoidMethod(java_syncmanager,
                                       java_error_callback,
                                       error.error_code,
                                       env->NewStringUTF(error.message.c_str()),
                                       env->NewStringUTF(session.get()->path().c_str()));
         };
 
-        auto bind_handler = [](const std::string&, const SyncConfig&, std::shared_ptr<SyncSession>) {
-            // Callback to Java requesting token
-            // FIXME
+        // path on disk of the Realm file.
+        // the sync configuration object.
+        // the session which should be bound.
+        auto bind_handler = [java_syncmanager,java_access_token_refresh](const std::string& path, const SyncConfig&, std::shared_ptr<SyncSession>) {
+            realm::jni_util::Log::d("Callback to Java requesting token for path");
+
+            JNIEnv *env = realm::jni_util::JniUtils::get_env(true);
+            env->CallStaticVoidMethod(java_syncmanager,
+                                java_access_token_refresh,
+                                to_jstring(env, path.c_str()));
+
         };
 
         // Get logged in user
@@ -81,10 +93,9 @@ public:
         std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_identity);
         if (!user)
         {
-//            ThrowException(env, IllegalArgument, "User wasn't logged in: " + std::string(user_identity));
-//            return realm::not_found;
-            // FIXME work-around until user migration complete
-            user = SyncManager::shared().get_user(user_identity, "foo", realm::util::Optional<std::string>("http://auth.realm.io/auth"));
+            JStringAccessor realm_auth_url(env, sync_realm_auth_url);
+            JStringAccessor refresh_token(env, sync_refresh_token);
+            user = SyncManager::shared().get_user(user_identity, refresh_token, realm::util::Optional<std::string>(realm_auth_url));
         }
         config->sync_config = std::make_shared<SyncConfig>(user,
                                                            realm_url,

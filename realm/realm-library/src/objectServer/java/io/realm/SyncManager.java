@@ -52,7 +52,7 @@ public class SyncManager {
 
     // Thread pool used when doing network requests against the Realm Authentication Server.
     // FIXME Set proper parameters
-    public static final ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
+    static final ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
             10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
 
     private static final SyncSession.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new SyncSession.ErrorHandler() {
@@ -73,7 +73,6 @@ public class SyncManager {
             }
         }
     };
-
     private static Map<String, SyncSession> sessions = new HashMap<String, SyncSession>();
     private static CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
 
@@ -83,12 +82,9 @@ public class SyncManager {
     private static volatile UserStore userStore;
 
     static volatile SyncSession.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
-    @SuppressWarnings("FieldCanBeLocal")
-    private static Thread clientThread;
 
     // Initialize the SyncManager
     static void init(String appId, UserStore userStore) {
-
         SyncManager.APP_ID = appId;
         SyncManager.userStore = userStore;
 
@@ -153,6 +149,11 @@ public class SyncManager {
      * Gets any cached {@link SyncSession} for the given {@link SyncConfiguration} or create a new one if
      * no one exists.
      *
+     * Note: This will not create a new native (Object Store) session, this will only associate a Realm's path
+     *       with a {@link SyncSession}. Object Store's SyncManager is responsible of the life cycle (including creation)
+     *       of the native session, the provided Java wrap, helps interact with the native session, when reporting error
+     *       or requesting an {@code access_token} for example.
+     *
      * @param syncConfiguration configuration object for the synchronized Realm.
      * @return the {@link SyncSession} for the specified Realm.
      * @throws IllegalArgumentException if syncConfiguration is {@code null}.
@@ -165,21 +166,24 @@ public class SyncManager {
         SyncSession session = sessions.get(syncConfiguration.getPath());
         if (session == null) {
             session = new SyncSession(syncConfiguration);
-            syncConfiguration.getSyncPolicy().onSessionCreated(session);
             sessions.put(syncConfiguration.getPath(), session);
         }
+
         return session;
     }
 
-    private static synchronized SyncSession getSession(String path) {
-        SyncSession session = sessions.get(path);
-        if (session == null) {
-            throw new IllegalStateException("Matching Java SyncSession could not be found for: " + path);
+    /**
+     * Remove the wrapped Java session.
+     * @param syncConfiguration configuration object for the synchronized Realm.
+     */
+    public static synchronized void removeSession(SyncConfiguration syncConfiguration) {
+        if (syncConfiguration == null) {
+            throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
-        return session;
+        sessions.remove(syncConfiguration.getPath());
     }
 
-    public static AuthenticationServer getAuthServer() {
+    static AuthenticationServer getAuthServer() {
         return authServer;
     }
 
@@ -226,14 +230,25 @@ public class SyncManager {
         }
     }
 
-    @SuppressWarnings("unused")
-    private static void onObjectStoreSessionCreated(String path) {
-        getSession(path).objectStoreSessionAvailable(true);
-    }
+    /**
+     * This is called from the Object Store (through JNI) to request an {@code access_token} for
+     * the session specified by sessionPath.
+     *
+     * This will also schedule a timer to proactively refresh the {@code access_token} regularly, before
+     * the {@code access_token} expires.
+     *
+     * @throws IllegalStateException if the wrapped Java session is not found.
+     * @param sessionPath The path to the previously Java wraped session.
+     */
+    private static synchronized void bindSessionWithConfig(String sessionPath) {
+        // TODO schedule a refresh timer here
+        final SyncSession syncSession = sessions.get(sessionPath);
+        if (syncSession == null) {
+            throw new IllegalStateException("Matching Java SyncSession could not be found for: " + sessionPath);
 
-    @SuppressWarnings("unused")
-    private static void onObjectStoreSessionDestroyed(String path) {
-        getSession(path).objectStoreSessionAvailable(false);
+        } else {
+            syncSession.accessToken(authServer);
+        }
     }
 
     /**
@@ -243,9 +258,6 @@ public class SyncManager {
      * Only call this method when testing
      */
     static synchronized void reset() {
-        for (SyncSession syncSession : sessions.values()) {
-            syncSession.stop();
-        }
         nativeReset();
         sessions.clear();
     }

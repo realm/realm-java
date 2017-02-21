@@ -30,9 +30,6 @@
 
 #include "io_realm_SyncManager.h"
 
-#include "jni_util/log.hpp"
-#include "jni_util/jni_utils.hpp"
-
 using namespace realm;
 using namespace realm::sync;
 using namespace realm::jni_util;
@@ -41,12 +38,14 @@ std::unique_ptr<Client> sync_client;
 
 struct AndroidClientListener : public realm::ClientThreadListener {
 
-    void on_client_thread_ready(sync::Client*) override {
+    void on_client_thread_ready() override {
+        realm::jni_util::Log::d("on_client_thread_ready");
         // Attach the sync client thread to the JVM so errors can be returned properly
         realm::jni_util::JniUtils::get_env(true);
     }
 
-    void on_client_thread_closing(sync::Client*) override {
+    void on_client_thread_closing() override {
+        realm::jni_util::Log::d("on_client_thread_closing");
         // Failing to detach the JVM before closing the thread will crash on ART
         realm::jni_util::JniUtils::detach_current_thread();
     }

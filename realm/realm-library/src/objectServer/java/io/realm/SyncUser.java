@@ -255,12 +255,7 @@ public class SyncUser {
                 }
             }
 
-            // Stop all active sessions immediately. If we waited until after talking to the server
-            // there is a high chance errors would be reported from the Sync Client first which would
-            // be confusing.
-            for (SyncSession session : sessions) {
-                session.stop();
-            }
+            //TODO call Object Store logout (SyncUser::log_out())
 
             // Remove all local tokens, preventing further connections.
             // FIXME We still need to cache the user token so it can be revoked.
@@ -351,9 +346,9 @@ public class SyncUser {
      *
      * @return the user's access token. If this user has logged out or the login has expired {@code null} is returned.
      */
-    public String getAccessToken() {
+    public Token getAccessToken() {
         Token userToken = syncUser.getUserToken();
-        return (userToken != null) ? userToken.value() : null;
+        return (userToken != null) ? userToken : null;
     }
 
     /**
@@ -421,6 +416,10 @@ public class SyncUser {
     // Expose internal representation for other package protected classes
     ObjectServerUser getSyncUser() {
         return syncUser;
+    }
+
+    public String getAuthURL () {
+        return syncUser.getAuthenticationUrl().toString();
     }
 
     public interface Callback {

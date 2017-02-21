@@ -34,8 +34,6 @@ import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
-import io.realm.internal.syncpolicy.AutomaticSyncPolicy;
-import io.realm.internal.syncpolicy.SyncPolicy;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
@@ -72,19 +70,14 @@ import io.realm.rx.RxObservableFactory;
  */
 @Beta
 public class SyncConfiguration extends RealmConfiguration {
-
-    public static final int PORT_REALM = 80;
-    public static final int PORT_REALMS = 443;
-
     // The FAT file system has limitations of length. Also, not all characters are permitted.
     // https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx
-    public static final int MAX_FULL_PATH_LENGTH = 256;
-    public static final int MAX_FILE_NAME_LENGTH = 255;
+    static final int MAX_FULL_PATH_LENGTH = 256;
+    static final int MAX_FILE_NAME_LENGTH = 255;
     private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
 
     private final URI serverUrl;
     private final SyncUser user;
-    private final SyncPolicy syncPolicy;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
 
@@ -102,7 +95,6 @@ public class SyncConfiguration extends RealmConfiguration {
                                 Realm.Transaction initialDataTransaction,
                                 SyncUser user,
                                 URI serverUrl,
-                                SyncPolicy syncPolicy,
                                 SyncSession.ErrorHandler errorHandler,
                                 boolean deleteRealmOnLogout
     ) {
@@ -122,7 +114,6 @@ public class SyncConfiguration extends RealmConfiguration {
 
         this.user = user;
         this.serverUrl = serverUrl;
-        this.syncPolicy = syncPolicy;
         this.errorHandler = errorHandler;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
     }
@@ -159,7 +150,6 @@ public class SyncConfiguration extends RealmConfiguration {
         if (deleteRealmOnLogout != that.deleteRealmOnLogout) return false;
         if (!serverUrl.equals(that.serverUrl)) return false;
         if (!user.equals(that.user)) return false;
-        if (!syncPolicy.equals(that.syncPolicy)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
         return true;
     }
@@ -170,7 +160,6 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + serverUrl.hashCode();
         result = 31 * result + user.hashCode();
         result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
-        result = 31 * result + syncPolicy.hashCode();
         result = 31 * result + errorHandler.hashCode();
         return result;
     }
@@ -183,17 +172,10 @@ public class SyncConfiguration extends RealmConfiguration {
         stringBuilder.append("\n");
         stringBuilder.append("user: " + user);
         stringBuilder.append("\n");
-        stringBuilder.append("syncPolicy: " + syncPolicy);
-        stringBuilder.append("\n");
         stringBuilder.append("errorHandler: " + errorHandler);
         stringBuilder.append("\n");
         stringBuilder.append("deleteRealmOnLogout: " + deleteRealmOnLogout);
         return stringBuilder.toString();
-    }
-
-    // Keeping this package protected for now. The API might still be subject to change.
-    SyncPolicy getSyncPolicy() {
-        return syncPolicy;
     }
 
     /**
@@ -250,7 +232,6 @@ public class SyncConfiguration extends RealmConfiguration {
         private Realm.Transaction initialDataTransaction;
         private URI serverUrl;
         private SyncUser user = null;
-        private SyncPolicy syncPolicy = new AutomaticSyncPolicy();
         private SyncSession.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
         private File defaultFolder;
         private String defaultLocalFileName;
@@ -491,20 +472,6 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the {@link SyncPolicy} used to control when changes should be synchronized with the remote Realm.
-         * The default policy is {@link AutomaticSyncPolicy}.
-         *
-         * @param syncPolicy policy to use.
-         *
-         * @see SyncSession
-         */
-        Builder syncPolicy(SyncPolicy syncPolicy) {
-            // Package protected until SyncPolicy API is more stable.
-            this.syncPolicy = syncPolicy;
-            return this;
-        }
-
-        /**
          * Sets the error handler used by this configuration. This will override any handler set by calling
          * {@link SyncManager#setDefaultSessionErrorHandler(SyncSession.ErrorHandler)}.
          * <p>
@@ -632,7 +599,6 @@ public class SyncConfiguration extends RealmConfiguration {
                     // Sync Configuration specific
                     user,
                     resolvedServerUrl,
-                    syncPolicy,
                     errorHandler,
                     deleteRealmOnLogout
             );

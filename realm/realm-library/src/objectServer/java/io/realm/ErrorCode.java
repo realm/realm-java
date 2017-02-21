@@ -108,9 +108,9 @@ public enum ErrorCode {
      * <p>
      * FATAL: The session cannot be recovered and needs to be re-created. A likely cause is that the User does not
      * have access to this Realm. Check that the {@link SyncConfiguration} is correct. Any fatal error will cause
-     * the session to be become {@link SessionState#STOPPED}.
+     * the session to become SessionState#STOPPED.
      * <p>
-     * RECOVERABLE: Temporary error. The session becomes {@link SessionState#UNBOUND}, but will automatically try to
+     * RECOVERABLE: Temporary error. The session becomes @link SessionState#UNBOUND, but will automatically try to
      * recover as soon as possible.
      * <p>
      *

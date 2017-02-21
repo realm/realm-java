@@ -27,7 +27,6 @@ import java.lang.reflect.Method;
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
-import io.realm.SyncSession;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
 
@@ -69,34 +68,12 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
-    public void notifyCommit(RealmConfiguration configuration, long lastSnapshotVersion) {
-        // FIXME This should happen automatically now?
-//        if (configuration instanceof SyncConfiguration) {
-//            SyncSession publicSession = SyncManager.getSession((SyncConfiguration) configuration);
-//            ObjectServerSession session = SessionStore.getPrivateSession(publicSession);
-//            session.notifyCommit(lastSnapshotVersion);
-//        } else {
-//            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
-//        }
-    }
-
-    @Override
     public void realmClosed(RealmConfiguration configuration) {
+        // Last Thread using the specified configuration is closed
+        // delete the wrapped Java session
         if (configuration instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            SyncSession session = SyncManager.getSession(syncConfig);
-            session.getSyncPolicy().onRealmClosed(session);
-        } else {
-            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
-        }
-    }
-
-    @Override
-    public void realmOpened(RealmConfiguration configuration) {
-        if (configuration instanceof SyncConfiguration) {
-            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            SyncSession session = SyncManager.getSession(syncConfig);
-            session.getSyncPolicy().onRealmOpened(session);
+            SyncManager.removeSession(syncConfig);
         } else {
             throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
         }
@@ -108,19 +85,11 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             String rosServerUrl = syncConfig.getServerUrl().toString();
             String rosUserIdentity = syncConfig.getUser().getIdentity();
-            return new String[]{rosUserIdentity, rosServerUrl};
+            String syncRealmAuthUrl = syncConfig.getUser().getAuthURL();
+            String rosRefreshToken = syncConfig.getUser().getAccessToken().value();
+            return new String[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosRefreshToken};
         } else {
-            return new String[2];
-        }
-    }
-
-    // Returns the associated Java SyncSession (if any) for this configuration.
-    @Override
-    public Object getSyncSession(RealmConfiguration config) {
-        if (config instanceof SyncConfiguration) {
-            return SyncManager.getSession((SyncConfiguration) config);
-        } else {
-            return null;
+            return new String[4];
         }
     }
 

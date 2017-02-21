@@ -279,7 +279,7 @@ public class Realm extends BaseRealm {
         }
     }
 
-    static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
+    private static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
         Realm realm = new Realm(configuration);
         long currentVersion = realm.getVersion();
         long requiredVersion = configuration.getSchemaVersion();

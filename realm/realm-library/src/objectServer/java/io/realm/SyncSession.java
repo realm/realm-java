@@ -17,36 +17,37 @@
 package io.realm;
 
 import java.net.URI;
+import java.util.concurrent.Future;
 
 import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
 import io.realm.internal.KeepMember;
-import io.realm.internal.syncpolicy.SyncPolicy;
+import io.realm.internal.SyncObjectServerFacade;
+import io.realm.internal.async.RealmAsyncTaskImpl;
+import io.realm.internal.network.AuthenticateResponse;
+import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.network.ExponentialBackoffTask;
+import io.realm.internal.network.NetworkStateReceiver;
+import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.log.RealmLog;
 
 /**
  * @Beta
  * This class represents the connection to the Realm Object Server for one {@link SyncConfiguration}.
  * <p>
- * A Session is created by either calling {@link SyncManager#getSession(SyncConfiguration)} or by opening
- * a Realm instance using that configuration. Once a session has been created, it will continue to exist until the app
- * is closed or the {@link SyncConfiguration} is no longer used.
+ * A Session is created by opening a Realm instance using that configuration. Once a session has been created,
+ * it will continue to exist until the app is closed or all Threads using this {@link SyncConfiguration} closes their respective {@link Realm}s.
  * <p>
  * A session is fully controlled by Realm, but can provide additional information in case of errors.
  * It is passed along in all {@link SyncSession.ErrorHandler}s.
  * <p>
  * This object is thread safe.
- *
- * @see SessionState
  */
 @Keep
 @Beta
 public class SyncSession {
-
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
-    // If 'true', the OS SyncSession is available.
-    private volatile boolean osSessionAvailable = true;
 
     SyncSession(SyncConfiguration configuration) {
         this.configuration = configuration;
@@ -81,49 +82,6 @@ public class SyncSession {
         return configuration.getServerUrl();
     }
 
-    public synchronized void start() {
-        if (osSessionAvailable) {
-            nativeStartSession(configuration.getPath());
-        }
-
-    }
-
-    public synchronized void stop() {
-        if (osSessionAvailable) {
-            nativeStopSession(configuration.getPath());
-        }
-    }
-
-    /**
-     * Returns the state of this session.
-     *
-     * @return the current {@link SessionState} for this sessiOon.
-     */
-    public SessionState getState() {
-        return SessionState.INITIAL;
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        if (getState() != SessionState.STOPPED) {
-            RealmLog.warn("JNI Session was not closed before Java Session being finalized.");
-        }
-    }
-
-    /**
-     * Toggle if the underlying ObjectStore SyncSession object is still available.
-     * @param osSessionAvailable
-     */
-    synchronized void objectStoreSessionAvailable(boolean osSessionAvailable) {
-//        this.osSessionAvailable = osSessionAvailable;
-//        if (osSessionAvailable) {
-//            getSyncPolicy().onSessionCreated(this);
-//        } else {
-//            getSyncPolicy().onSessionDestroyed(this);
-//        }
-    }
-
     // Called from native code.
     // This callback will happen on the thread running the Sync Client.
     @KeepMember
@@ -132,10 +90,6 @@ public class SyncSession {
         if (errorHandler != null) {
             errorHandler.onError(this, error);
         }
-    }
-
-    public SyncPolicy getSyncPolicy() {
-        return configuration.getSyncPolicy();
     }
 
     /**
@@ -154,7 +108,81 @@ public class SyncSession {
         void onError(SyncSession session, ObjectServerError error);
     }
 
-    private native void nativeStartSession(String path);
-    private native void nativeStopSession(String path);
+    private RealmAsyncTask networkRequest;
+    private NetworkStateReceiver.ConnectionListener networkListener;
+
+    void accessToken(final AuthenticationServer authServer) {
+        if (NetworkStateReceiver.isOnline(SyncObjectServerFacade.getApplicationContext())) {
+            authenticate(authServer);
+        } else {
+            // Wait for connection to become available, before trying again.
+            // The Session might potentially stay in this state for the lifetime of the application.
+            // This is acceptable.
+            networkListener = new NetworkStateReceiver.ConnectionListener() {
+                @Override
+                public void onChange(boolean connectionAvailable) {
+                    if (connectionAvailable) {
+                        authenticate(authServer);
+                        NetworkStateReceiver.removeListener(this);
+                    }
+                }
+            };
+            NetworkStateReceiver.addListener(networkListener);
+        }
+    }
+
+    private void authenticate(final AuthenticationServer authServer) {
+        authenticateRealm(authServer, new Runnable() {
+            @Override
+            public void run() {
+                RealmLog.debug("Session[%s]: Access token acquired", configuration.getPath());
+                //FIXME should update the correspondent user (work to be done when implementing refresh with timer)
+                nativeRefreshAccessToken(configuration.getPath(), getUser().getSyncUser().getAccessToken(configuration.getServerUrl()).value(), configuration.getServerUrl().toString());
+            }
+        }, new SyncSession.ErrorHandler() {
+            @Override
+            public void onError(SyncSession s, ObjectServerError error) {
+                RealmLog.debug("Session[%s]: Failed to get access token (%d)", configuration.getPath(), error.getErrorCode());
+                errorHandler.onError(SyncSession.this, error);
+            }
+        });
+    }
+
+    // Authenticate by getting access tokens for the specific Realm
+    private void authenticateRealm(final AuthenticationServer authServer, final Runnable onSuccess, final ErrorHandler errorHandler) {
+        if (networkRequest != null) {
+            networkRequest.cancel();
+        }
+        // Authenticate in a background thread. This allows incremental backoff and retries in a safe manner.
+        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
+            @Override
+            protected AuthenticateResponse execute() {
+                return authServer.loginToRealm(
+                        getUser().getAccessToken(),//refresh token in fact
+                        configuration.getServerUrl(),
+                        getUser().getSyncUser().getAuthenticationUrl()
+                );
+            }
+
+            @Override
+            protected void onSuccess(AuthenticateResponse response) {
+                ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(
+                        response.getAccessToken(),
+                        configuration.getPath(),
+                        configuration.shouldDeleteRealmOnLogout()
+                );
+                getUser().getSyncUser().addRealm(configuration.getServerUrl(), desc);
+                onSuccess.run();
+            }
+
+            @Override
+            protected void onError(AuthenticateResponse response) {
+                errorHandler.onError(SyncSession.this, response.getError());
+            }
+        });
+        networkRequest = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
+    }
+
+    private native void nativeRefreshAccessToken(String path, String accessToken, String authURL);
 }
 

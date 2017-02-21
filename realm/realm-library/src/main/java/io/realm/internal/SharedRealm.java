@@ -186,9 +186,11 @@ public final class SharedRealm implements Closeable {
 
     public static SharedRealm getInstance(RealmConfiguration config, RealmNotifier realmNotifier,
                                           SchemaVersionListener schemaVersionListener, boolean autoChangeNotifications) {
-        String[] userAndServer = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
-        String syncUserIdentifier = userAndServer[0];
-        String syncRealmUrl = userAndServer[1];
+        String[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
+        String syncUserIdentifier = syncUserConf[0];
+        String syncRealmUrl = syncUserConf[1];
+        String syncRealmAuthUrl = syncUserConf[2];
+        String syncRefreshToken = syncUserConf[3];
         boolean enable_caching = false; // Handled in Java currently
         boolean disableFormatUpgrade = false; // TODO Double negatives :/
         long nativeConfigPtr = nativeCreateConfig(
@@ -200,14 +202,17 @@ public final class SharedRealm implements Closeable {
                 disableFormatUpgrade,
                 autoChangeNotifications,
                 syncRealmUrl,
-                syncUserIdentifier);
+                syncRealmAuthUrl,
+                syncUserIdentifier,
+                syncRefreshToken);
         try {
+            ObjectServerFacade.getSyncFacadeIfPossible().createSessionIfRequired(config);
+
             SharedRealm realm = new SharedRealm(
                     nativeGetSharedRealm(nativeConfigPtr, realmNotifier),
                     config,
                     realmNotifier,
                     schemaVersionListener);
-            ObjectServerFacade.getSyncFacadeIfPossible().createSessionIfRequired(config);
             return realm;
         } finally {
             nativeCloseConfig(nativeConfigPtr);
@@ -375,7 +380,10 @@ public final class SharedRealm implements Closeable {
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
                                                   boolean cache, boolean disableFormatUpgrade,
                                                   boolean autoChangeNotification,
-                                                  String syncServerURL, String syncUserIdentity);
+                                                  String syncServerURL,
+                                                  String syncServerAuthURL,
+                                                  String syncUserIdentity,
+                                                  String syncRefreshToken);
     private static native void nativeCloseConfig(long nativeConfigPtr);
     private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
     private static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);
