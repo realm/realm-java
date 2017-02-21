@@ -2,7 +2,7 @@
 
 ### Bug fixes
 
-* Fixed log levelis in JNI layer (#4204).
+* Fixed log levels in JNI layer (#4204).
 
 ### Internal
 
