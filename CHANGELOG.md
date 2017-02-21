@@ -1,5 +1,9 @@
 ## 2.3.2
 
+### Bug fixes
+
+* Fixed log levelis in JNI layer (#4204).
+
 ### Internal
 
 * Updated to Realm Sync v1.0.4.
