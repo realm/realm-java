@@ -754,18 +754,6 @@ public class TypeBasedNotificationsTests {
     public void multiple_callbacks_should_be_invoked_realmresults_sync() {
         final int NUMBER_OF_LISTENERS = 7;
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener<Realm>() {
-            @Override
-            public void onChange(Realm object) {
-                looperThread.postRunnable(new Runnable() {
-                    @Override
-                    public void run() {
-                        assertEquals(NUMBER_OF_LISTENERS, typebasedCommitInvocations.get());
-                        looperThread.testComplete();
-                    }
-                });
-            }
-        });
 
         realm.beginTransaction();
         Dog akamaru = realm.createObject(Dog.class);
@@ -776,8 +764,12 @@ public class TypeBasedNotificationsTests {
         for (int i = 0; i < NUMBER_OF_LISTENERS; i++) {
             dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
                 @Override
-                public void onChange(RealmResults<Dog> object) {
-                    typebasedCommitInvocations.incrementAndGet();
+                public void onChange(RealmResults<Dog> results) {
+                    assertEquals(17, results.first().getAge());
+                    if (typebasedCommitInvocations.incrementAndGet() == NUMBER_OF_LISTENERS) {
+                        looperThread.testComplete();
+                    }
+                    assertTrue(typebasedCommitInvocations.get() <= NUMBER_OF_LISTENERS);
                 }
             });
         }
