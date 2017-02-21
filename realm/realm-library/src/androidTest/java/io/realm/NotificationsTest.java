@@ -465,7 +465,7 @@ public class NotificationsTest {
             @Override
             public void onChange(Realm object) {
                 listenerBCalled.incrementAndGet();
-                if (listenerACalled.get() == 1) {
+                if (listenerBCalled.get() == 1) {
                     // 2. Reverse order.
                     realm.removeAllChangeListeners();
                     realm.addChangeListener(this);
@@ -476,6 +476,8 @@ public class NotificationsTest {
                         public void execute(Realm realm) {
                         }
                     });
+                } else if (listenerBCalled.get() == 2) {
+                    assertEquals(1, listenerACalled.get());
                 }
             }
         };
