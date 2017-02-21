@@ -198,4 +198,53 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
             throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava.");
         }
     }
+
+    /**
+     * Returns a distinct set of objects of a specific class. If the result is sorted, the first
+     * object will be returned in case of multiple occurrences, otherwise it is undefined which
+     * object is returned.
+     *
+     * @param fieldName the field name.
+     * @return a new non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
+     */
+    public RealmResults<E> distinct(String fieldName) {
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(collection.getTable(), fieldName);
+        Collection distinctCollection = collection.distinct(distinctDescriptor);
+        return createLoadedResults(distinctCollection);
+    }
+
+    /**
+     * Asynchronously returns a distinct set of objects of a specific class. If the result is
+     * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
+     * undefined which object is returned.
+     *
+     * @param fieldName the field name.
+     * @return immediately a {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
+     * query completes.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
+     */
+    public RealmResults<E> distinctAsync(String fieldName) {
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(RealmQuery.ASYNC_QUERY_WRONG_THREAD_MESSAGE);
+        return where().distinctAsync(fieldName);
+    }
+
+    /**
+     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     */
+    public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
+        return where().distinct(firstFieldName, remainingFieldNames);
+    }
 }
