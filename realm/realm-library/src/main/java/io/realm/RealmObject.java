@@ -65,7 +65,7 @@ import rx.Observable;
  */
 
 @RealmClass
-public abstract class RealmObject implements RealmModel {
+public abstract class RealmObject implements RealmModel, RealmObservable<RealmChangeListener<? extends RealmModel>> {
 
     /**
      * Deletes the object from the Realm it is currently associated to.
@@ -321,10 +321,12 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalArgumentException if object is an unmanaged RealmObject.
      * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
      */
-    public final <E extends RealmModel> void addChangeListener(RealmChangeListener<E> listener) {
+    @Override
+    public void addChangeListener(RealmChangeListener<RealmChangeListener<? extends RealmModel>> listener) {
         //noinspection unchecked
-        RealmObject.addChangeListener((E) this, listener);
+        RealmObject.addChangeListener(this, listener);
     }
+
 
     /**
      * Adds a change listener to a RealmObject.
