@@ -21,7 +21,7 @@ package io.realm;
  * collection is changed. It will report insertions, deletions and changes, but not _how_ an individual element changed.
  * When a change is detected all registered listeners will be triggered.
  * <p>
- * This is commonly useful when updating UI elements, e.g {@code RecyclerView.Adapter} can provide nicer animations and
+ * This is often useful when updating UI elements, e.g. {@code RecyclerView.Adapter} can provide nicer animations and
  * work more effectively if it knows exactly which elements changed.
  * @see RealmObservable for information about more coarse-grained notifications.
  * @see <a href="https://realm.io/docs/java/latest/#adapters">Android Adapters<a>

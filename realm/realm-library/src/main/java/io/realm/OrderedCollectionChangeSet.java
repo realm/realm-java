@@ -23,51 +23,51 @@ package io.realm;
  * by {@link RealmResults#addChangeListener(OrderedRealmCollectionChangeListener)}.
  * <p>
  * The change information is available in two formats: a simple array of row indices in the collection for each type of
- * change, and an array of {@link Range}s.
+ * change, or an array of {@link Range}s.
  */
 public interface OrderedCollectionChangeSet {
     /**
-     * The indices of objects in the previous version of the collection which have been removed from this one.
+     * The deleted indices in the previous version of the collection.
      *
-     * @return the indices array. A zero-sized array will be returned if no deletion in the change set.
+     * @return the indices array. A zero-sized array will be returned if no objects were deleted.
      */
     long[] getDeletions();
 
     /**
-     * The indices in the new version of the collection which were newly inserted.
+     * The inserted indices in the new version of the collection.
      *
-     * @return the indices array. A zero-sized array will be returned if no insertion in the change set.
+     * @return the indices array. A zero-sized array will be returned if no objects were inserted.
      */
     long[] getInsertions();
 
     /**
-     * The indices in the new version of the collection which were modified.
+     * The modified indices in the new version of the collection.
      * <p>
-     * For {@link RealmResults}, this means that one or more of the properties of the object at that index were
+     * For {@link RealmResults}, this means that one or more of the properties of the object at the given index were
      * modified (or an object linked to by that object was modified).
      *
-     * @return the indices array. A zero-sized array will be returned if no modification in the change set.
+     * @return the indices array. A zero-sized array will be returned if objects were modified.
      */
     long[] getChanges();
 
     /**
-     * The ranges of objects in the previous version of the collection which have been removed from this one.
+     * The deleted ranges of objects in the previous version of the collection.
      *
-     * @return the {@link Range} array. A zero-sized array will be returned if no deletion in the change set.
+     * @return the {@link Range} array. A zero-sized array will be returned if no objects were deleted.
      */
     Range[] getDeletionRanges();
 
     /**
-     * The ranges of objects in the new version of the collection which were newly inserted.
+     * The inserted ranges of objects in the new version of the collection.
      *
-     * @return the {@link Range} array. A zero-sized array will be returned if no insertion in the change set.
+     * @return the {@link Range} array. A zero-sized array will be returned if no objects were inserted.
      */
     Range[] getInsertionRanges();
 
     /**
-     * The ranges of objects in the new version of the collection which were modified.
+     * The modified ranges of objects in the new version of the collection.
      *
-     * @return the {@link Range} array. A zero-sized array will be returned if no modification in the change set.
+     * @return the {@link Range} array. A zero-sized array will be returned if no objects were modified.
      */
     Range[] getChangeRanges();
 

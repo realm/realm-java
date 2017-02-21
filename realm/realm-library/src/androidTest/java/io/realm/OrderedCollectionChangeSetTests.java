@@ -263,6 +263,63 @@ public class OrderedCollectionChangeSetTests {
         // [-1, -2, 2, *3, *4, 6, 7, 8, *9, 11, 12]
     }
 
+    // Change some objects then delete them. Only deletion changes should be sent.
+    @Test
+    @RunTestInLooperThread
+    public void changes_then_delete() {
+        Realm realm = looperThread.realm;
+        populateData(realm, 10);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_LONG);
+        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> collection, OrderedCollectionChangeSet changes) {
+                checkRanges(changes.getDeletionRanges(),
+                        0, 2,
+                        5, 1);
+                assertArrayEquals(changes.getDeletions(), new long[]{0, 1, 5});
+
+                assertEquals(0, changes.getInsertionRanges().length);
+                assertEquals(0, changes.getInsertions().length);
+                assertEquals(0, changes.getChangeRanges().length);
+                assertEquals(0, changes.getChanges().length);
+
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        modifyObjects(realm, 0, 1, 5);
+        deleteObjects(realm, 0, 1, 5);
+        realm.commitTransaction();
+    }
+
+    // Insert some objects then delete them in the same transaction, the listener should not be triggered.
+    @Test
+    @RunTestInLooperThread
+    public void insert_then_delete() {
+        Realm realm = looperThread.realm;
+        populateData(realm, 10);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_LONG);
+        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> collection, OrderedCollectionChangeSet changes) {
+                fail("The listener should not be triggered since the collection has no changes compared with before.");
+            }
+        });
+
+        looperThread.postRunnableDelayed(new Runnable() {
+            @Override
+            public void run() {
+                looperThread.testComplete();
+            }
+        }, 1000);
+
+        realm.beginTransaction();
+        createObjects(realm, 10, 11);
+        deleteObjects(realm, 10, 11);
+        realm.commitTransaction();
+    }
+
     // The change set should empty when the async query returns at the first time.
     @Test
     @RunTestInLooperThread
@@ -281,6 +338,9 @@ public class OrderedCollectionChangeSetTests {
         });
 
         final CountDownLatch bgDeletionLatch = new CountDownLatch(1);
+        // beginTransaction() will make the async query return immediately. So we have to create an object in another
+        // thread. Also, the latch has to be counted down after transaction committed so the async query results can
+        // contain the modification in the background transaction.
         new Thread(new Runnable() {
             @Override
             public void run() {

@@ -45,8 +45,11 @@ static jlongArray index_set_to_jlong_array(JNIEnv* env, const IndexSet& index_se
     }
 
     if (ranges_vector.size() > io_realm_internal_CollectionChangeSet_MAX_ARRAY_LENGTH) {
-        ThrowException(env, IllegalState,
-                       "There are too many ranges changed in this change set. They cannot fit into an array.");
+        std::ostringstream error_msg;
+        error_msg << "There are too many ranges changed in this change set. They cannot fit into an array." <<
+            " ranges_vector's size: " << ranges_vector.size() <<
+            " Java array's max size: " << io_realm_internal_CollectionChangeSet_MAX_ARRAY_LENGTH << ".";
+        ThrowException(env, IllegalState, error_msg.str());
         return nullptr;
     }
     jlongArray jlong_array = env->NewLongArray(static_cast<jsize>(ranges_vector.size()));
@@ -65,8 +68,11 @@ static jlongArray index_set_to_indices_array(JNIEnv* env, const IndexSet& index_
         indices_vector.push_back(index);
     }
     if (indices_vector.size() > io_realm_internal_CollectionChangeSet_MAX_ARRAY_LENGTH) {
-        ThrowException(env, IllegalState,
-                       "There are too many indices in this change set. They cannot fit into an array.");
+        std::ostringstream error_msg;
+        error_msg << "There are too many indices in this change set. They cannot fit into an array." <<
+            " indices_vector's size: " << indices_vector.size() <<
+            " Java array's max size: " << io_realm_internal_CollectionChangeSet_MAX_ARRAY_LENGTH << ".";
+        ThrowException(env, IllegalState, error_msg.str());
         return nullptr;
     }
     jlongArray jlong_array = env->NewLongArray(static_cast<jsize>(indices_vector.size()));
@@ -95,11 +101,9 @@ Java_io_realm_internal_CollectionChangeSet_nativeGetRanges(JNIEnv *env, jclass, 
         case io_realm_internal_CollectionChangeSet_TYPE_MODIFICATION:
             return index_set_to_jlong_array(env, change_set.modifications_new);
         default:
+            REALM_UNREACHABLE();
             break;
     }
-
-    REALM_UNREACHABLE();
-    return nullptr;
 }
 
 JNIEXPORT jlongArray JNICALL
@@ -116,10 +120,8 @@ Java_io_realm_internal_CollectionChangeSet_nativeGetIndices(JNIEnv *env, jclass,
         case io_realm_internal_CollectionChangeSet_TYPE_MODIFICATION:
             return index_set_to_indices_array(env, change_set.modifications_new);
         default:
+            REALM_UNREACHABLE();
             break;
     }
-
-    REALM_UNREACHABLE();
-    return nullptr;
 }
 

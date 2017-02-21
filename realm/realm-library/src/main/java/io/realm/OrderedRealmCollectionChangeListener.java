@@ -28,8 +28,9 @@ package io.realm;
  * @see {@link RealmResults#addChangeListener(OrderedRealmCollectionChangeListener)}.
  */
 public interface OrderedRealmCollectionChangeListener<T> {
+
     /**
-     * This will be called when the async query finished at the first time or the collection gets changed.
+     * This will be called when the async query is finished the first time or the collection of objects has changed.
      *
      * @param collection the collection this listener is registered to.
      * @param changes {@code null} if the it is first time async query returns or information about which rows in the

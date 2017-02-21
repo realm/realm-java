@@ -49,8 +49,7 @@ class ObserverPairList<T extends ObserverPairList.ObserverPair> {
             this.observerRef = new WeakReference<T>(observer);
         }
 
-        // The two pairs will be treated as the same only when the observers are the same and the listeners equal to
-        // each other.
+        // The two pairs will be treated as the same only when the observers are the same and the listeners are equal.
         @Override
         public boolean equals(Object obj) {
             if (this == obj) {
