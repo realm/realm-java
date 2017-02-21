@@ -229,23 +229,8 @@ public class RealmProxyClassGenerator {
         // FooRealmProxy(ColumnInfo)
         writer.beginConstructor(EnumSet.noneOf(Modifier.class));
         writer.beginControlFlow("if (proxyState == null)")
-                .emitStatement("injectObjectContext()");
-        boolean isFirstRealmListField = true;
-        for (VariableElement field : metadata.getFields()) {
-            if (!Utils.isRealmList(field)) {
-                continue;
-            }
-            if (isFirstRealmListField) {
-                writer.nextControlFlow("else");
-                isFirstRealmListField = false;
-            }
-            final String realmListCacheFieldName = field.getSimpleName().toString() + "RealmList";
-            writer.beginControlFlow("if (%1$s != null)", realmListCacheFieldName);
-                writer.emitStatement("%1$s.setIgnoreModification(false)", realmListCacheFieldName);
-            writer.endControlFlow();
-        }
-        writer.endControlFlow();
-
+                .emitStatement("injectObjectContext()")
+                .endControlFlow();
         writer.emitStatement("proxyState.setConstructionFinished()");
         writer.endConstructor();
         writer.emitEmptyLine();
@@ -419,12 +404,6 @@ public class RealmProxyClassGenerator {
                     writer.emitStatement("LinkView linkView = proxyState.getRow$realm().getLinkList(%s)", fieldIndexVariableReference(field));
                     writer.emitStatement(fieldName + "RealmList = new RealmList<%s>(%s.class, linkView, proxyState.getRealm$realm())",
                         genericType, genericType);
-                    writer.beginControlFlow("if (proxyState.isUnderConstruction())");
-                        writer.beginControlFlow("if (!proxyState.getAcceptDefaultValue$realm() || proxyState.getExcludeFields$realm().contains(\"%1$s\"))",
-                                fieldName);
-                            writer.emitStatement("%1$sRealmList.setIgnoreModification(true)", fieldName);
-                        writer.endControlFlow();
-                    writer.endControlFlow();
                     writer.emitStatement("return " + fieldName + "RealmList");
                 writer.endControlFlow();
 

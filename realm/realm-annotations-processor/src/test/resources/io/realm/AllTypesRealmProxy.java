@@ -112,10 +112,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     AllTypesRealmProxy() {
         if (proxyState == null) {
             injectObjectContext();
-        } else {
-            if (columnRealmListRealmList != null) {
-                columnRealmListRealmList.setIgnoreModification(false);
-            }
         }
         proxyState.setConstructionFinished();
     }
@@ -420,11 +416,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         } else {
             LinkView linkView = proxyState.getRow$realm().getLinkList(columnInfo.columnRealmListIndex);
             columnRealmListRealmList = new RealmList<some.test.AllTypes>(some.test.AllTypes.class, linkView, proxyState.getRealm$realm());
-            if (proxyState.isUnderConstruction()) {
-                if (!proxyState.getAcceptDefaultValue$realm() || proxyState.getExcludeFields$realm().contains("columnRealmList")) {
-                    columnRealmListRealmList.setIgnoreModification(true);
-                }
-            }
             return columnRealmListRealmList;
         }
     }
