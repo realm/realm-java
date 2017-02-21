@@ -175,11 +175,11 @@ To run these tests you must have a device connected to the build computer and th
 
 1. Connect an Android device and verify that that the command `adb devices` shows a connected device:
 
-   ```sh
-   adb devices
-   List of devices attached
-   004c03eb5615429f	device
-   ```
+	```sh
+	adb devices
+	List of devices attached
+	004c03eb5615429f device
+	```
    
 2. Run instrumentation tests:
 
