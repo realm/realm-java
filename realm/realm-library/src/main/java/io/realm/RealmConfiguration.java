@@ -429,7 +429,7 @@ public class RealmConfiguration {
         }
 
         /**
-         * Specifies the directory where the Realm file will be saved. The default value is {@code context.getFiles()}.
+         * Specifies the directory where the Realm file will be saved. The default value is {@code context.getFilesDir()}.
          * If the directory does not exist, it will be created.
          *
          * @param directory the directory to save the Realm file in. Directory must be writable.
