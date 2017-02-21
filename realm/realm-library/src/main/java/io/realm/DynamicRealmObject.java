@@ -836,6 +836,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     @Override
+    public void realm$injectObjectContext() {
+        // nothing to do for DynamicRealmObject
+    }
+
+    @Override
     public ProxyState realmGet$proxyState() {
         return proxyState;
     }
