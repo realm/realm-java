@@ -7,7 +7,7 @@
 
 ### Enhancements
 
-* Improved performance of getters and setters in proxy classes. As a side-effect of this improvement, now all proxy classes have a public method of `realm$injectObjectContext()`.
+* Improved performance of getters and setters in proxy classes.
 
 ## 2.3.1
 
