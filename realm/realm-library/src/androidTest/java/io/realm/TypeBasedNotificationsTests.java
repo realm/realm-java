@@ -1030,7 +1030,6 @@ public class TypeBasedNotificationsTests {
         realm.beginTransaction();
         Dog akamaru = realm.createObject(Dog.class);
         realm.commitTransaction();
-        looperThread.keepStrongReference.add(akamaru);
 
         RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
         looperThread.keepStrongReference.add(dogs);
