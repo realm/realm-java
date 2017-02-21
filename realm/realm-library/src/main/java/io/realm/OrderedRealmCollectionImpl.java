@@ -15,8 +15,7 @@ import io.realm.internal.UncheckedRow;
 
 /**
  * General implementation for {@link OrderedRealmCollection} which is based on the {@code Collection}.
- * Currently only {@link RealmResults} and {@link OrderedRealmCollectionSnapshot} extend this class. But
- * {@link RealmList} could also extend this to share the same iterator implementation.
+ * Currently only {@link RealmResults} and {@link OrderedRealmCollectionSnapshot} extend this class.
  */
 abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         extends AbstractList<E> implements OrderedRealmCollection<E> {
