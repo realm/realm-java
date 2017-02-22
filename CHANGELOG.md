@@ -18,16 +18,25 @@
 
 ## 2.3.2
 
+### Bug fixes
+
+* Fixed log levels in JNI layer (#4204).
+
 ### Internal
 
 * Updated to Realm Sync v1.0.4.
 * Updated to Realm Core v2.3.1.
+
+### Enhancements
+
+* Improved performance of getters and setters in proxy classes.
 
 ## 2.3.1
 
 ### Enhancements
 
 * [ObjectServer] The `serverUrl` given to `SyncConfiguration.Builder()` is now more lenient and will also accept only paths as argument (#4144).
+* [ObjectServer] Add a timer to refresh periodically the access_token.
 
 ### Bug fixes
 
@@ -37,9 +46,6 @@
 * Bug causing classes to be replaced by classes already in Gradle's classpath (#3568).
 * NullPointerException when notifying a single object that it changed (#4086).
 
-### Enhancements
-
-* [ObjectServer] Add a timer to refresh periodically the access_token.
 
 ## 2.3.0
 

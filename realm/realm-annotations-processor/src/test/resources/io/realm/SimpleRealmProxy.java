@@ -73,13 +73,11 @@ public class SimpleRealmProxy extends some.test.Simple
     }
 
     SimpleRealmProxy() {
-        if (proxyState == null) {
-            injectObjectContext();
-        }
         proxyState.setConstructionFinished();
     }
 
-    private void injectObjectContext() {
+    @Override
+    public void realm$injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (SimpleColumnInfo) context.getColumnInfo();
         this.proxyState = new ProxyState<some.test.Simple>(this);
@@ -91,21 +89,11 @@ public class SimpleRealmProxy extends some.test.Simple
 
     @SuppressWarnings("cast")
     public String realmGet$name() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.nameIndex);
     }
 
     public void realmSet$name(String value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -129,21 +117,11 @@ public class SimpleRealmProxy extends some.test.Simple
 
     @SuppressWarnings("cast")
     public int realmGet$age() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (int) proxyState.getRow$realm().getLong(columnInfo.ageIndex);
     }
 
     public void realmSet$age(int value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
