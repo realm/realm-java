@@ -74,16 +74,16 @@ public class Collection implements NativeObject {
     }
 
     private static class Callback implements ObserverPairList.Callback<CollectionObserverPair> {
-        private final OrderedCollectionChangeSet changes;
+        private final OrderedCollectionChangeSet changeSet;
 
-        Callback(OrderedCollectionChangeSet changes) {
-            this.changes = changes;
+        Callback(OrderedCollectionChangeSet changeSet) {
+            this.changeSet = changeSet;
         }
 
         @Override
         public void onCalled(CollectionObserverPair pair, Object observer) {
             //noinspection unchecked
-            pair.onChange(observer, changes);
+            pair.onChange(observer, changeSet);
         }
     }
 
