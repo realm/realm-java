@@ -110,18 +110,18 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @Override
     public void addChangeListener(RealmChangeListener<RealmResults<E>> listener) {
-        checkForAddRemoveListener(listener);
+        checkForAddRemoveListener(listener, true);
         collection.addListener(this, listener);
     }
 
     @Override
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmResults<E>> listener) {
-        checkForAddRemoveListener(listener);
+        checkForAddRemoveListener(listener, true);
         collection.addListener(this, listener);
     }
 
-    private void checkForAddRemoveListener(Object listener) {
-        if (listener == null) {
+    private void checkForAddRemoveListener(Object listener, boolean checkListener) {
+        if (checkListener && listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
@@ -133,8 +133,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @Override
     public void removeAllChangeListeners() {
-        realm.checkIfValid();
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+        checkForAddRemoveListener(null, false);
         collection.removeAllListeners();
     }
 
@@ -151,13 +150,13 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @Override
     public void removeChangeListener(RealmChangeListener listener) {
-        checkForAddRemoveListener(listener);
+        checkForAddRemoveListener(listener, true);
         collection.removeListener(this, listener);
     }
 
     @Override
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmResults<E>> listener) {
-        checkForAddRemoveListener(listener);
+        checkForAddRemoveListener(listener, true);
         collection.removeListener(this, listener);
     }
 

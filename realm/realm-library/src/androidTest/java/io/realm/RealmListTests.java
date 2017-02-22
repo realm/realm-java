@@ -1023,7 +1023,7 @@ public class RealmListTests extends CollectionTests {
 
     @Test
     @RunTestInLooperThread
-    public void removeALlChangeListeners() {
+    public void removeAllChangeListeners() {
         collection = prepareRealmListInLooperThread();
         Realm realm = looperThread.realm;
         final AtomicInteger listenerCalledCount = new AtomicInteger(0);

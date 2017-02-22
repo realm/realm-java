@@ -842,8 +842,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E>
         return sb.toString();
     }
 
-    private void checkForAddRemoveListener(Object listener) {
-        if (listener == null) {
+    private void checkForAddRemoveListener(Object listener, boolean checkListener) {
+        if (checkListener && listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
@@ -855,7 +855,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E>
      */
     @Override
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
-        checkForAddRemoveListener(listener);
+        checkForAddRemoveListener(listener, true);
         collection.addListener(this, listener);
     }
 
@@ -864,7 +864,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E>
      */
     @Override
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
-        checkForAddRemoveListener(listener);
+        checkForAddRemoveListener(listener, true);
         collection.removeListener(this, listener);
     }
 
@@ -873,7 +873,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E>
      */
     @Override
     public void addChangeListener(RealmChangeListener<RealmList<E>> listener) {
-        checkForAddRemoveListener(listener);
+        checkForAddRemoveListener(listener, true);
         collection.addListener(this, listener);
     }
 
@@ -882,7 +882,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E>
      */
     @Override
     public void removeChangeListener(RealmChangeListener<RealmList<E>> listener) {
-        checkForAddRemoveListener(listener);
+        checkForAddRemoveListener(listener, true);
         collection.removeListener(this, listener);
     }
 
@@ -891,8 +891,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E>
      */
     @Override
     public void removeAllChangeListeners() {
-        realm.checkIfValid();
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+        checkForAddRemoveListener(null, false);
         collection.removeAllListeners();
     }
 
