@@ -110,7 +110,7 @@ public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeOb
     // Convert long array returned by the nativeGetXxxRanges() to Range array.
     private Range[] longArrayToRangeArray(long[] longArray) {
         if (longArray == null) {
-            // Returns a size 0 array so we know the JNI gets called.
+            // Returns a size 0 array so we know JNI gets called.
             return new Range[0];
         }
 

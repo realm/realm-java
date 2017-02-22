@@ -18,8 +18,8 @@ package io.realm;
 
 /**
  * A collection class implementing this interface is capable of reporting fine-grained notifications about how the
- * collection is changed. It will report insertions, deletions and changes, but not _how_ an individual element changed.
- * When a change is detected all registered listeners will be triggered.
+ * collection is changed. It will report insertions, deletions and changes, but not <i>how</i> an individual element
+ * changed. When a change is detected all registered listeners will be triggered.
  * <p>
  * This is often useful when updating UI elements, e.g. {@code RecyclerView.Adapter} can provide nicer animations and
  * work more effectively if it knows exactly which elements changed.
@@ -29,7 +29,7 @@ package io.realm;
 public interface RealmCollectionObservable<T, S extends OrderedRealmCollectionChangeListener>
         extends RealmObservable<T> {
     /**
-     * Adds a change listener to this RealmResults.
+     * Adds a change listener to this {@link OrderedRealmCollection}.
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.

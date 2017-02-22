@@ -25,7 +25,8 @@ package io.realm;
  */
 public interface RealmObservable<T> {
     /**
-     * Adds a change listener to this {@link RealmResults}, {@link Realm}, {@link DynamicRealm} or {@link RealmObject}.
+     * Adds a change listener to this {@link RealmResults}, {@link RealmList}, {@link Realm}, {@link DynamicRealm} or
+     * {@link RealmObject}.
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.
