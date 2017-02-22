@@ -118,7 +118,7 @@ public class OrderedCollectionChangeSetTests {
                         0, 1,
                         2, 3,
                         8, 2);
-                assertArrayEquals(changes.getDeletions(), new long[]{0, 2, 3, 4, 8, 9});
+                assertArrayEquals(changes.getDeletions(), new int[]{0, 2, 3, 4, 8, 9});
                 assertEquals(0, changes.getChangeRanges().length);
                 assertEquals(0, changes.getInsertionRanges().length);
                 assertEquals(0, changes.getChanges().length);
@@ -150,7 +150,7 @@ public class OrderedCollectionChangeSetTests {
                         1, 1,
                         3, 2,
                         8, 1);
-                assertArrayEquals(changes.getInsertions(), new long[]{1, 3, 4, 8});
+                assertArrayEquals(changes.getInsertions(), new int[]{1, 3, 4, 8});
                 assertEquals(0, changes.getChangeRanges().length);
                 assertEquals(0, changes.getDeletionRanges().length);
                 assertEquals(0, changes.getChanges().length);
@@ -180,7 +180,7 @@ public class OrderedCollectionChangeSetTests {
                         0, 1,
                         2, 3,
                         8, 2);
-                assertArrayEquals(changes.getChanges(), new long[]{0, 2, 3, 4, 8, 9});
+                assertArrayEquals(changes.getChanges(), new int[]{0, 2, 3, 4, 8, 9});
                 assertEquals(0, changes.getInsertionRanges().length);
                 assertEquals(0, changes.getDeletionRanges().length);
                 assertEquals(0, changes.getInsertions().length);
@@ -209,11 +209,11 @@ public class OrderedCollectionChangeSetTests {
                 checkRanges(changes.getDeletionRanges(),
                         0, 1,
                         9, 1);
-                assertArrayEquals(changes.getDeletions(), new long[]{0, 9});
+                assertArrayEquals(changes.getDeletions(), new int[]{0, 9});
                 checkRanges(changes.getInsertionRanges(),
                         0, 1,
                         9, 1);
-                assertArrayEquals(changes.getInsertions(), new long[]{0, 9});
+                assertArrayEquals(changes.getInsertions(), new int[]{0, 9});
                 assertEquals(0, changes.getChangeRanges().length);
                 assertEquals(0, changes.getChanges().length);
                 looperThread.testComplete();
@@ -237,17 +237,17 @@ public class OrderedCollectionChangeSetTests {
                 checkRanges(changes.getDeletionRanges(),
                         0, 2,
                         5, 1);
-                assertArrayEquals(changes.getDeletions(), new long[]{0, 1, 5});
+                assertArrayEquals(changes.getDeletions(), new int[]{0, 1, 5});
 
                 checkRanges(changes.getInsertionRanges(),
                         0, 2,
                         9, 2);
-                assertArrayEquals(changes.getInsertions(), new long[]{0, 1, 9, 10});
+                assertArrayEquals(changes.getInsertions(), new int[]{0, 1, 9, 10});
 
                 checkRanges(changes.getChangeRanges(),
                         3, 2,
                         8, 1);
-                assertArrayEquals(changes.getChanges(), new long[]{3, 4, 8});
+                assertArrayEquals(changes.getChanges(), new int[]{3, 4, 8});
 
                 looperThread.testComplete();
             }
@@ -276,7 +276,7 @@ public class OrderedCollectionChangeSetTests {
                 checkRanges(changes.getDeletionRanges(),
                         0, 2,
                         5, 1);
-                assertArrayEquals(changes.getDeletions(), new long[]{0, 1, 5});
+                assertArrayEquals(changes.getDeletions(), new int[]{0, 1, 5});
 
                 assertEquals(0, changes.getInsertionRanges().length);
                 assertEquals(0, changes.getInsertions().length);
