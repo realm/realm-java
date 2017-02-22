@@ -703,7 +703,7 @@ public class RealmObjectTests {
         final CountDownLatch createLatch = new CountDownLatch(1);
         final CountDownLatch testEndLatch = new CountDownLatch(1);
 
-        final AtomicReference<CyclicType> objFromAnotherThread = new AtomicReference<>();
+        final AtomicReference<CyclicType> objFromAnotherThread = new AtomicReference<CyclicType>();
 
         java.lang.Thread thread = new java.lang.Thread() {
             @Override
@@ -754,7 +754,7 @@ public class RealmObjectTests {
         try {
             CyclicType target = realm.createObject(CyclicType.class);
 
-            RealmList<CyclicType> list = new RealmList<>();
+            RealmList<CyclicType> list = new RealmList<CyclicType>();
             list.add(realm.createObject(CyclicType.class));
             list.add(unmanaged); // List contains an unmanaged object
             list.add(realm.createObject(CyclicType.class));
@@ -778,7 +778,7 @@ public class RealmObjectTests {
             CyclicType removed = realm.createObject(CyclicType.class);
             removed.deleteFromRealm();
 
-            RealmList<CyclicType> list = new RealmList<>();
+            RealmList<CyclicType> list = new RealmList<CyclicType>();
             list.add(realm.createObject(CyclicType.class));
             list.add(removed); // List contains a deleted object.
             list.add(realm.createObject(CyclicType.class));
@@ -806,7 +806,7 @@ public class RealmObjectTests {
         try {
             CyclicType target = realm.createObject(CyclicType.class);
 
-            RealmList<CyclicType> list = new RealmList<>();
+            RealmList<CyclicType> list = new RealmList<CyclicType>();
             list.add(realm.createObject(CyclicType.class));
             list.add(closed); // List contains a closed object.
             list.add(realm.createObject(CyclicType.class));
@@ -835,7 +835,7 @@ public class RealmObjectTests {
             try {
                 CyclicType target = realm.createObject(CyclicType.class);
 
-                RealmList<CyclicType> list = new RealmList<>();
+                RealmList<CyclicType> list = new RealmList<CyclicType>();
                 list.add(realm.createObject(CyclicType.class));
                 list.add(objFromAnotherRealm); // List contains an object from another Realm.
                 list.add(realm.createObject(CyclicType.class));
@@ -858,7 +858,7 @@ public class RealmObjectTests {
         final CountDownLatch createLatch = new CountDownLatch(1);
         final CountDownLatch testEndLatch = new CountDownLatch(1);
 
-        final AtomicReference<CyclicType> objFromAnotherThread = new AtomicReference<>();
+        final AtomicReference<CyclicType> objFromAnotherThread = new AtomicReference<CyclicType>();
 
         java.lang.Thread thread = new java.lang.Thread() {
             @Override
@@ -888,7 +888,7 @@ public class RealmObjectTests {
         try {
             CyclicType target = realm.createObject(CyclicType.class);
 
-            RealmList<CyclicType> list = new RealmList<>();
+            RealmList<CyclicType> list = new RealmList<CyclicType>();
             list.add(realm.createObject(CyclicType.class));
             list.add(objFromAnotherThread.get()); // List contains an object from another thread.
             list.add(realm.createObject(CyclicType.class));

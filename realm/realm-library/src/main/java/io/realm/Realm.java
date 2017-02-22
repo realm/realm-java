@@ -341,7 +341,7 @@ public class Realm extends BaseRealm implements RealmObservable<Realm> {
             final RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
-            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
+            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 // Creates and validates table.
                 if (unversioned) {
@@ -361,7 +361,7 @@ public class Realm extends BaseRealm implements RealmObservable<Realm> {
             }
         } catch (Exception e) {
             commitChanges = false;
-            throw e;
+            throw new RuntimeException(e);
         } finally {
             if (commitChanges) {
                 realm.commitTransaction();
@@ -383,7 +383,7 @@ public class Realm extends BaseRealm implements RealmObservable<Realm> {
             final RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
-            final ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<>();
+            final ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<RealmObjectSchema>();
             final RealmSchema realmSchemaCache = new RealmSchema();
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 RealmObjectSchema realmObjectSchema = mediator.createRealmObjectSchema(modelClass, realmSchemaCache);
@@ -405,7 +405,7 @@ public class Realm extends BaseRealm implements RealmObservable<Realm> {
                 commitChanges = true;
             }
 
-            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
+            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
@@ -420,7 +420,7 @@ public class Realm extends BaseRealm implements RealmObservable<Realm> {
             }
         } catch (Exception e) {
             commitChanges = false;
-            throw e;
+            throw new RuntimeException(e);
         } finally {
             if (commitChanges) {
                 realm.commitTransaction();
@@ -1326,7 +1326,7 @@ public class Realm extends BaseRealm implements RealmObservable<Realm> {
             } else {
                 RealmLog.warn("Could not cancel transaction, not currently in a transaction.");
             }
-            throw e;
+            throw new RuntimeException(e);
         }
     }
 

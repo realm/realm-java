@@ -192,7 +192,8 @@ public class RealmProcessorTest {
     @Test
     public void compileAppModuleMixedParametersFail() throws Exception {
         ASSERT.about(javaSources())
-                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAppModuleMixedParameters.java")))
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource(
+                    "some/test/InvalidAllTypesModuleMixedParameters.java")))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }
@@ -200,7 +201,8 @@ public class RealmProcessorTest {
     @Test
     public void compileAppModuleWrongTypeFail() throws Exception {
         ASSERT.about(javaSources())
-                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAppModuleWrongType.java")))
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource(
+                    "some/test/InvalidAllTypesModuleWrongType.java")))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

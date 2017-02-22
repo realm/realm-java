@@ -34,6 +34,8 @@ import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 
 public class RealmProxyClassGenerator {
+    private static final String BACKLINKS_FIELD_EXTENSION = "Backlinks";
+
     private final ProcessingEnvironment processingEnvironment;
     private final ClassMetaData metadata;
     private final String simpleClassName;
@@ -212,6 +214,13 @@ public class RealmProxyClassGenerator {
                 String genericType = Utils.getGenericTypeQualifiedName(variableElement);
                 writer.emitField("RealmList<" + genericType + ">", variableElement.getSimpleName().toString() + "RealmList", EnumSet.of(Modifier.PRIVATE));
             }
+        }
+
+        for (Backlink backlink : metadata.getBacklinkFields()) {
+            writer.emitField(
+                "RealmResults<" + backlink.getSourceClass() + ">",
+                backlink.getTargetField() + BACKLINKS_FIELD_EXTENSION,
+                EnumSet.of(Modifier.PRIVATE));
         }
 
         writer.emitField("List<String>", "FIELD_NAMES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
@@ -522,15 +531,19 @@ public class RealmProxyClassGenerator {
 
     private void emitBacklinkFieldAccessors(JavaWriter writer) throws IOException {
         for (Backlink backlink : metadata.getBacklinkFields()) {
+            String cacheFieldName = backlink.getTargetField() + BACKLINKS_FIELD_EXTENSION;
             String realmResultsType = "RealmResults<" + backlink.getSourceClass() + ">";
 
             // Getter
             writer.beginMethod(realmResultsType, metadata.getInternalGetter(backlink.getTargetField()), EnumSet.of(Modifier.PUBLIC));
             writer.emitStatement("BaseRealm realm = proxyState.getRealm$realm()");
             writer.emitStatement("realm.checkIfValid()");
+            writer.beginControlFlow("if (" + cacheFieldName + " == null)");
             writer.emitStatement(
-                "return RealmResults.getBacklinkResults(realm, proxyState.getRow$realm(), %s.class, \"%s\")",
+                cacheFieldName + " = RealmResults.createBacklinkResults(realm, proxyState.getRow$realm(), %s.class, \"%s\")",
                 backlink.getSourceClass(), backlink.getSourceField());
+            writer.endControlFlow();
+            writer.emitStatement("return " + cacheFieldName);
             writer.endMethod();
 
             writer.emitEmptyLine();

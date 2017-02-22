@@ -96,6 +96,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     private AllTypesColumnInfo columnInfo;
     private ProxyState<some.test.AllTypes> proxyState;
     private RealmList<some.test.AllTypes> columnRealmListRealmList;
+    private RealmResults<some.test.AllTypes> parentObjectsBacklinks;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -376,7 +377,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     public RealmResults<some.test.AllTypes> realmGet$parentObjects() {
         BaseRealm realm = proxyState.getRealm$realm();
         realm.checkIfValid();
-        return RealmResults.getBacklinkResults(realm, proxyState.getRow$realm(), some.test.AllTypes.class, "columnObject");
+        if (parentObjectsBacklinks == null) {
+            parentObjectsBacklinks = RealmResults.createBacklinkResults(realm, proxyState.getRow$realm(), some.test.AllTypes.class, "columnObject");
+        }
+        return parentObjectsBacklinks;
     }
 
     public void realmSet$parentObjects(RealmResults<some.test.AllTypes> value) {

@@ -145,7 +145,7 @@ public class BulkInsertTests {
         allTypes.columnDouble = 3.1415;
         allTypes.columnFloat = 1.234567f;
         allTypes.columnString = "test data";
-        allTypes.columnByte = 0b0010_1010;
+        allTypes.columnByte = 0x2A;
 
         realm.beginTransaction();
         realm.insert(allTypes);

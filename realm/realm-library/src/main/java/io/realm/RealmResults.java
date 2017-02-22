@@ -20,6 +20,9 @@ package io.realm;
 import android.os.Looper;
 
 import io.realm.internal.Collection;
+import io.realm.internal.Row;
+import io.realm.internal.Table;
+import io.realm.internal.UncheckedRow;
 import rx.Observable;
 
 /**

@@ -657,7 +657,7 @@ public class RealmTests {
 
     @Test
     public void executeTransaction_canceled() {
-        final AtomicReference<RuntimeException> thrownException = new AtomicReference<>(null);
+        final AtomicReference<RuntimeException> thrownException = new AtomicReference<RuntimeException>(null);
 
         assertEquals(0, realm.where(Owner.class).count());
         try {
@@ -2448,7 +2448,7 @@ public class RealmTests {
             fieldObjectValue.setFieldInt(fieldObjectIntValue);
             obj.setFieldObject(fieldObjectValue);
 
-            final RealmList<RandomPrimaryKey> list = new RealmList<>();
+            final RealmList<RandomPrimaryKey> list = new RealmList<RandomPrimaryKey>();
             final RandomPrimaryKey listItem = new RandomPrimaryKey();
             listItem.setFieldInt(fieldListIntValue);
             list.add(listItem);
@@ -2503,7 +2503,7 @@ public class RealmTests {
             fieldObjectValue.setFieldInt(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 1);
             obj.setFieldObject(fieldObjectValue);
 
-            final RealmList<RandomPrimaryKey> list = new RealmList<>();
+            final RealmList<RandomPrimaryKey> list = new RealmList<RandomPrimaryKey>();
             final RandomPrimaryKey listItem = new RandomPrimaryKey();
             listItem.setFieldInt(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 2);
             list.add(listItem);
