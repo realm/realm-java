@@ -83,13 +83,11 @@ public class BooleansRealmProxy extends some.test.Booleans
     }
 
     BooleansRealmProxy() {
-        if (proxyState == null) {
-            injectObjectContext();
-        }
         proxyState.setConstructionFinished();
     }
 
-    private void injectObjectContext() {
+    @Override
+    public void realm$injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (BooleansColumnInfo) context.getColumnInfo();
         this.proxyState = new ProxyState<some.test.Booleans>(this);
@@ -101,21 +99,11 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     @SuppressWarnings("cast")
     public boolean realmGet$done() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.doneIndex);
     }
 
     public void realmSet$done(boolean value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -131,21 +119,11 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     @SuppressWarnings("cast")
     public boolean realmGet$isReady() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.isReadyIndex);
     }
 
     public void realmSet$isReady(boolean value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -161,21 +139,11 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     @SuppressWarnings("cast")
     public boolean realmGet$mCompleted() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.mCompletedIndex);
     }
 
     public void realmSet$mCompleted(boolean value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -191,21 +159,11 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     @SuppressWarnings("cast")
     public boolean realmGet$anotherBoolean() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.anotherBooleanIndex);
     }
 
     public void realmSet$anotherBoolean(boolean value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;

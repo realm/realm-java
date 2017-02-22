@@ -281,22 +281,22 @@ public class RealmObjectTests {
 
         // Checks initial size.
         RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
-        assertEquals(TEST_SIZE, dogs.size());
+        OrderedRealmCollectionSnapshot<Dog> snapshot = dogs.createSnapshot();
+        assertEquals(TEST_SIZE, snapshot.size());
 
         // Checks that calling deleteFromRealm doesn't remove the object from the RealmResult.
         realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
-            dogs.get(removeFromFront ? i : TEST_SIZE - 1 - i).deleteFromRealm();
+            snapshot.get(removeFromFront ? i : TEST_SIZE - 1 - i).deleteFromRealm();
         }
         realm.commitTransaction();
 
-        assertEquals(TEST_SIZE, dogs.size());
-        assertEquals(0, realm.where(Dog.class).count());
+        assertEquals(TEST_SIZE, snapshot.size());
+        assertEquals(0, dogs.size());
     }
 
-    // Tests calling deleteFromRealm on a RealmResults instead of RealmResults.remove().
+    // Tests calling deleteFromRealm on a OrderedRealmCollectionSnapshot instead of RealmResults.remove().
     @Test
-    @Ignore("Enable this test when implementing RealmCollectionSnapshot")
     public void deleteFromRealm_atPosition() {
         removeOneByOne(REMOVE_FIRST);
         removeOneByOne(REMOVE_LAST);
