@@ -65,7 +65,7 @@ public class OrderedCollectionChangeSetTests {
     }
 
     // The args should be [startIndex1, length1, startIndex2, length2, ...]
-    private void checkRanges(OrderedCollectionChangeSet.Range[] ranges, long... indexAndLen) {
+    private void checkRanges(OrderedCollectionChangeSet.Range[] ranges, int... indexAndLen) {
         if ((indexAndLen.length % 2 != 0))  {
             fail("The 'indexAndLen' array length is not an even number.");
         }
@@ -74,8 +74,8 @@ public class OrderedCollectionChangeSetTests {
         }
         for (int i = 0; i < ranges.length; i++) {
             OrderedCollectionChangeSet.Range range = ranges[i];
-            long startIndex = indexAndLen[i * 2];
-            long length = indexAndLen[i * 2 + 1];
+            int startIndex = indexAndLen[i * 2];
+            int length = indexAndLen[i * 2 + 1];
             if (range.startIndex != startIndex || range.length != length) {
                 fail("Range at index " + i + " doesn't match start index " + startIndex + " length " + length + ".");
             }
@@ -83,22 +83,22 @@ public class OrderedCollectionChangeSetTests {
     }
 
     // Deletes AllTypes objects which's columnLong is in the indices array.
-    private void deleteObjects(Realm realm, long... indices) {
-        for (long index : indices) {
+    private void deleteObjects(Realm realm, int... indices) {
+        for (int index : indices) {
             realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, index).findFirst().deleteFromRealm();
         }
     }
 
     // Creates AllTypes objects with columnLong set to the value elements in indices array.
-    private void createObjects(Realm realm, long... indices) {
-        for (long index : indices) {
+    private void createObjects(Realm realm, int... indices) {
+        for (int index : indices) {
             realm.createObject(AllTypes.class).setColumnLong(index);
         }
     }
 
     // Modifies AllTypes objects which's columnLong is in the indices array.
-    private void modifyObjects(Realm realm, long... indices) {
-        for (long index : indices) {
+    private void modifyObjects(Realm realm, int... indices) {
+        for (int index : indices) {
             AllTypes obj = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, index).findFirst();
             assertNotNull(obj);
             obj.setColumnString("modified");
@@ -338,7 +338,7 @@ public class OrderedCollectionChangeSetTests {
         });
 
         final CountDownLatch bgDeletionLatch = new CountDownLatch(1);
-        // beginTransaction() will make the async query return immediately. So we have to create an object in another
+        // beginTransaction() will make the async query return immediately. So we have to delete an object in another
         // thread. Also, the latch has to be counted down after transaction committed so the async query results can
         // contain the modification in the background transaction.
         new Thread(new Runnable() {
