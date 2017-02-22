@@ -33,8 +33,8 @@ public interface OrderedRealmCollectionChangeListener<T> {
      * This will be called when the async query is finished the first time or the collection of objects has changed.
      *
      * @param collection the collection this listener is registered to.
-     * @param changes {@code null} if the it is first time async query returns or information about which rows in the
-     * collection were added, removed or modified.
+     * @param changeSet object with information about which rows in the collection were added, removed or modified.
+     * {@code null} is returned the first time an async query is completed.
      */
-    void onChange(T collection, OrderedCollectionChangeSet changes);
+    void onChange(T collection, OrderedCollectionChangeSet changeSet);
 }

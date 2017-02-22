@@ -31,14 +31,14 @@ public interface OrderedCollectionChangeSet {
      *
      * @return the indices array. A zero-sized array will be returned if no objects were deleted.
      */
-    long[] getDeletions();
+    int[] getDeletions();
 
     /**
      * The inserted indices in the new version of the collection.
      *
      * @return the indices array. A zero-sized array will be returned if no objects were inserted.
      */
-    long[] getInsertions();
+    int[] getInsertions();
 
     /**
      * The modified indices in the new version of the collection.
@@ -48,7 +48,7 @@ public interface OrderedCollectionChangeSet {
      *
      * @return the indices array. A zero-sized array will be returned if objects were modified.
      */
-    long[] getChanges();
+    int[] getChanges();
 
     /**
      * The deleted ranges of objects in the previous version of the collection.
@@ -78,12 +78,12 @@ public interface OrderedCollectionChangeSet {
         /**
          * The start index of this change range.
          */
-        public final long startIndex;
+        public final int startIndex;
 
         /**
          * How many elements are inside this range.
          */
-        public final long length;
+        public final int length;
 
         /**
          * Creates a {@link Range} with given start index and length.
@@ -91,7 +91,7 @@ public interface OrderedCollectionChangeSet {
          * @param startIndex the start index of this change range.
          * @param length how many elements are inside this range.
          */
-        public Range(long startIndex, long length) {
+        public Range(int startIndex, int length) {
             this.startIndex = startIndex;
             this.length = length;
         }

@@ -49,7 +49,7 @@ public class OrderedCollectionChangeSetTests {
     }
 
     private interface ChangesCheck {
-        void check(OrderedCollectionChangeSet changes);
+        void check(OrderedCollectionChangeSet changeSet);
     }
 
     @Rule
@@ -160,8 +160,8 @@ public class OrderedCollectionChangeSetTests {
                 looperThread.keepStrongReference.add(results);
                 results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
                     @Override
-                    public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changes) {
-                        changesCheck.check(changes);
+                    public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
+                        changesCheck.check(changeSet);
                     }
                 });
                 break;
@@ -170,8 +170,8 @@ public class OrderedCollectionChangeSetTests {
                 looperThread.keepStrongReference.add(list);
                 list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
                     @Override
-                    public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
-                        changesCheck.check(changes);
+                    public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changeSet) {
+                        changesCheck.check(changeSet);
                     }
                 });
                 break;
@@ -186,16 +186,16 @@ public class OrderedCollectionChangeSetTests {
 
         final ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void check(OrderedCollectionChangeSet changes) {
-                checkRanges(changes.getDeletionRanges(),
+            public void check(OrderedCollectionChangeSet changeSet) {
+                checkRanges(changeSet.getDeletionRanges(),
                         0, 1,
                         2, 3,
                         8, 2);
-                assertArrayEquals(changes.getDeletions(), new long[]{0, 2, 3, 4, 8, 9});
-                assertEquals(0, changes.getChangeRanges().length);
-                assertEquals(0, changes.getInsertionRanges().length);
-                assertEquals(0, changes.getChanges().length);
-                assertEquals(0, changes.getInsertions().length);
+                assertArrayEquals(changeSet.getDeletions(), new int[]{0, 2, 3, 4, 8, 9});
+                assertEquals(0, changeSet.getChangeRanges().length);
+                assertEquals(0, changeSet.getInsertionRanges().length);
+                assertEquals(0, changeSet.getChanges().length);
+                assertEquals(0, changeSet.getInsertions().length);
                 looperThread.testComplete();
             }
         };
@@ -221,16 +221,16 @@ public class OrderedCollectionChangeSetTests {
 
         ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void check(OrderedCollectionChangeSet changes) {
-                checkRanges(changes.getInsertionRanges(),
+            public void check(OrderedCollectionChangeSet changeSet) {
+                checkRanges(changeSet.getInsertionRanges(),
                         1, 1,
                         3, 2,
                         8, 1);
-                assertArrayEquals(changes.getInsertions(), new long[]{1, 3, 4, 8});
-                assertEquals(0, changes.getChangeRanges().length);
-                assertEquals(0, changes.getDeletionRanges().length);
-                assertEquals(0, changes.getChanges().length);
-                assertEquals(0, changes.getDeletions().length);
+                assertArrayEquals(changeSet.getInsertions(), new int[]{1, 3, 4, 8});
+                assertEquals(0, changeSet.getChangeRanges().length);
+                assertEquals(0, changeSet.getDeletionRanges().length);
+                assertEquals(0, changeSet.getChanges().length);
+                assertEquals(0, changeSet.getDeletions().length);
                 looperThread.testComplete();
             }
         };
@@ -251,16 +251,16 @@ public class OrderedCollectionChangeSetTests {
         populateData(realm, 10);
         ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void check(OrderedCollectionChangeSet changes) {
-                checkRanges(changes.getChangeRanges(),
+            public void check(OrderedCollectionChangeSet changeSet) {
+                checkRanges(changeSet.getChangeRanges(),
                         0, 1,
                         2, 3,
                         8, 2);
-                assertArrayEquals(changes.getChanges(), new long[]{0, 2, 3, 4, 8, 9});
-                assertEquals(0, changes.getInsertionRanges().length);
-                assertEquals(0, changes.getDeletionRanges().length);
-                assertEquals(0, changes.getInsertions().length);
-                assertEquals(0, changes.getDeletions().length);
+                assertArrayEquals(changeSet.getChanges(), new int[]{0, 2, 3, 4, 8, 9});
+                assertEquals(0, changeSet.getInsertionRanges().length);
+                assertEquals(0, changeSet.getDeletionRanges().length);
+                assertEquals(0, changeSet.getInsertions().length);
+                assertEquals(0, changeSet.getDeletions().length);
                 looperThread.testComplete();
             }
         };
@@ -282,17 +282,17 @@ public class OrderedCollectionChangeSetTests {
         populateData(realm, 10);
         ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void check(OrderedCollectionChangeSet changes) {
-                checkRanges(changes.getDeletionRanges(),
+            public void check(OrderedCollectionChangeSet changeSet) {
+                checkRanges(changeSet.getDeletionRanges(),
                         0, 1,
                         9, 1);
-                assertArrayEquals(changes.getDeletions(), new long[]{0, 9});
-                checkRanges(changes.getInsertionRanges(),
+                assertArrayEquals(changeSet.getDeletions(), new int[]{0, 9});
+                checkRanges(changeSet.getInsertionRanges(),
                         0, 1,
                         9, 1);
-                assertArrayEquals(changes.getInsertions(), new long[]{0, 9});
-                assertEquals(0, changes.getChangeRanges().length);
-                assertEquals(0, changes.getChanges().length);
+                assertArrayEquals(changeSet.getInsertions(), new int[]{0, 9});
+                assertEquals(0, changeSet.getChangeRanges().length);
+                assertEquals(0, changeSet.getChanges().length);
                 looperThread.testComplete();
             }
         };
@@ -311,21 +311,21 @@ public class OrderedCollectionChangeSetTests {
         populateData(realm, 10);
         ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void check(OrderedCollectionChangeSet changes) {
-                checkRanges(changes.getDeletionRanges(),
+            public void check(OrderedCollectionChangeSet changeSet) {
+                checkRanges(changeSet.getDeletionRanges(),
                         0, 2,
                         5, 1);
-                assertArrayEquals(changes.getDeletions(), new long[]{0, 1, 5});
+                assertArrayEquals(changeSet.getDeletions(), new int[]{0, 1, 5});
 
-                checkRanges(changes.getInsertionRanges(),
+                checkRanges(changeSet.getInsertionRanges(),
                         0, 2,
                         9, 2);
-                assertArrayEquals(changes.getInsertions(), new long[]{0, 1, 9, 10});
+                assertArrayEquals(changeSet.getInsertions(), new int[]{0, 1, 9, 10});
 
-                checkRanges(changes.getChangeRanges(),
+                checkRanges(changeSet.getChangeRanges(),
                         3, 2,
                         8, 1);
-                assertArrayEquals(changes.getChanges(), new long[]{3, 4, 8});
+                assertArrayEquals(changeSet.getChanges(), new int[]{3, 4, 8});
 
                 looperThread.testComplete();
             }
@@ -351,16 +351,16 @@ public class OrderedCollectionChangeSetTests {
         populateData(realm, 10);
         ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void check(OrderedCollectionChangeSet changes) {
-                checkRanges(changes.getDeletionRanges(),
+            public void check(OrderedCollectionChangeSet changeSet) {
+                checkRanges(changeSet.getDeletionRanges(),
                         0, 2,
                         5, 1);
-                assertArrayEquals(changes.getDeletions(), new long[]{0, 1, 5});
+                assertArrayEquals(changeSet.getDeletions(), new int[]{0, 1, 5});
 
-                assertEquals(0, changes.getInsertionRanges().length);
-                assertEquals(0, changes.getInsertions().length);
-                assertEquals(0, changes.getChangeRanges().length);
-                assertEquals(0, changes.getChanges().length);
+                assertEquals(0, changeSet.getInsertionRanges().length);
+                assertEquals(0, changeSet.getInsertions().length);
+                assertEquals(0, changeSet.getChangeRanges().length);
+                assertEquals(0, changeSet.getChanges().length);
 
                 looperThread.testComplete();
             }
@@ -381,7 +381,7 @@ public class OrderedCollectionChangeSetTests {
         populateData(realm, 10);
         ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void check(OrderedCollectionChangeSet changes) {
+            public void check(OrderedCollectionChangeSet changeSet) {
                 fail("The listener should not be triggered since the collection has no changes compared with before.");
             }
         };
@@ -414,10 +414,10 @@ public class OrderedCollectionChangeSetTests {
         final RealmResults<Dog> results = realm.where(Dog.class).findAllSortedAsync(Dog.FIELD_AGE);
         results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
             @Override
-            public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changes) {
+            public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
                 assertSame(collection, results);
                 assertEquals(9, collection.size());
-                assertNull(changes);
+                assertNull(changeSet);
                 looperThread.testComplete();
             }
         });

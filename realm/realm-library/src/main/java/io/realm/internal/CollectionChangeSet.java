@@ -35,7 +35,7 @@ public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeOb
     public static final int TYPE_MODIFICATION = 2;
     // Max array length is VM dependent. This is a safe value.
     // See http://stackoverflow.com/questions/3038392/do-java-arrays-have-a-maximum-size
-    @SuppressWarnings("WeakerAccess")
+    @SuppressWarnings({"WeakerAccess", "unused"})
     public static final int MAX_ARRAY_LENGTH = Integer.MAX_VALUE - 8;
 
     private static long finalizerPtr = nativeGetFinalizerPtr();
@@ -50,7 +50,7 @@ public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeOb
      * {@inheritDoc}
      */
     @Override
-    public long[] getDeletions() {
+    public int[] getDeletions() {
         return nativeGetIndices(nativePtr, TYPE_DELETION);
     }
 
@@ -58,7 +58,7 @@ public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeOb
      * {@inheritDoc}
      */
     @Override
-    public long[] getInsertions() {
+    public int[] getInsertions() {
         return nativeGetIndices(nativePtr, TYPE_INSERTION);
     }
 
@@ -66,7 +66,7 @@ public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeOb
      * {@inheritDoc}
      */
     @Override
-    public long[] getChanges()  {
+    public int[] getChanges()  {
         return nativeGetIndices(nativePtr, TYPE_MODIFICATION);
     }
 
@@ -108,9 +108,9 @@ public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeOb
     }
 
     // Convert long array returned by the nativeGetXxxRanges() to Range array.
-    private Range[] longArrayToRangeArray(long[] longArray) {
+    private Range[] longArrayToRangeArray(int[] longArray) {
         if (longArray == null) {
-            // Returns a size 0 array so we know the JNI gets called.
+            // Returns a size 0 array so we know JNI gets called.
             return new Range[0];
         }
 
@@ -123,7 +123,7 @@ public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeOb
 
     private native static long nativeGetFinalizerPtr();
     // Returns the ranges as an long array. eg.: [startIndex1, length1, startIndex2, length2, ...]
-    private native static long[] nativeGetRanges(long nativePtr, int type);
+    private native static int[] nativeGetRanges(long nativePtr, int type);
     // Returns the indices array.
-    private native static long[] nativeGetIndices(long nativePtr, int type);
+    private native static int[] nativeGetIndices(long nativePtr, int type);
 }
