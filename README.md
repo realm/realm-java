@@ -61,26 +61,23 @@ In case you don't want to use the precompiled version, you can build Realm yours
 
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
  * Download & install the Android SDK **Build-Tools 24.0.0**, **Android N (API 24)** (for example through Android Studio’s **Android SDK Manager**).
- * Download the **Android NDK (= r10e)** for [OS X](http://dl.google.com/android/ndk/android-ndk-r10e-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
- * Or you can use [Hombrew-versions](https://github.com/Homebrew/homebrew-versions) to install Android NDK for Mac:
+
+ * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
+You may unzip the file wherever you choose.  For OSX, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
+
+ * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/local.properties` and assign it the full path name of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
 
     ```
-    brew tap homebrew/versions
-    brew install android-ndk-r10e
+    ndk.dir=/Users/brian/Library/Android/android-ndk-r10e/r10e
+
     ```
 
- * Add two environment variables to your profile (presuming you used brew to install the NDK):
+ * Add two environment variables to your profile (presuming you installed the NDK in `~/Library/android-ndk-r10e`):
 
     ```
     export ANDROID_HOME=~/Library/Android/sdk
-    export ANDROID_NDK_HOME=/usr/local/Cellar/android-ndk-r10e/r10e
-    ```
-
- * If you want to build with Android Studio, `ndk.dir` has to be defined in the `realm/local.properties` as well.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.  Again, presuming you used brew to install the NDK:
-
-    ```
-    ndk.dir=/usr/local/Cellar/android-ndk-r10e/r10e
+    export ANDROID_NDK_HOME=~/Library/Android/android-ndk-r10e
     ```
 
  * If you will be launching Android Studio from the OS X Finder, you should also run the following two commands:
@@ -219,6 +216,9 @@ To run a testing server locally:
 	cd realm
 	./gradlew connectedObjectServerDebugAndroidTest
 	```
+
+Note that if using VirtualBox (Genymotion), the network needs to be bridged for the tests to work.
+This is done in `VirtualBox > Network`. Set "Adapter 2" to "Bridged Adapter".
 
 These tests may take as much as half an hour to complete.
 

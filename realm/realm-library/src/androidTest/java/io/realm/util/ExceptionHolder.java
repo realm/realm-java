@@ -51,7 +51,7 @@ public class ExceptionHolder {
     private Throwable exception;
 
     /**
-     * Sets the exception held by this container. This is a one-shot operation.
+     * Sets the exception held by this container. This is an one-shot operation.
      *
      * @param throwable error to save.
      * @throws IllegalStateException if an exception have already been put into this holder.

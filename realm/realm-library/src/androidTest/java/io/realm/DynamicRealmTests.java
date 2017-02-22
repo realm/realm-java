@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.os.Handler;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -41,7 +40,6 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.exceptions.RealmException;
-import io.realm.internal.HandlerControllerConstants;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -71,7 +69,7 @@ public class DynamicRealmTests {
     public void setUp() {
         defaultConfig = configFactory.createConfiguration();
 
-        // Initialize schema. DynamicRealm will not do that, so let a normal Realm create the file first.
+        // Initializes schema. DynamicRealm will not do that, so let a normal Realm create the file first.
         Realm.getInstance(defaultConfig).close();
         realm = DynamicRealm.getInstance(defaultConfig);
     }
@@ -108,7 +106,7 @@ public class DynamicRealmTests {
         }
     }
 
-    // Test that the SharedGroupManager is not reused across Realm/DynamicRealm on the same thread.
+    // Tests that the SharedGroupManager is not reused across Realm/DynamicRealm on the same thread.
     // This is done by starting a write transaction in one Realm and verifying that none of the data
     // written (but not committed) is available in the other Realm.
     @Test
@@ -131,7 +129,7 @@ public class DynamicRealmTests {
         }
     }
 
-    // Test that Realms can only be deleted after all Typed and Dynamic instances are closed
+    // Tests that Realms can only be deleted after all Typed and Dynamic instances are closed.
     @Test
     public void deleteRealm_ThrowsIfDynamicRealmIsOpen() {
         realm.close(); // Close Realm opened in setUp();
@@ -333,12 +331,21 @@ public class DynamicRealmTests {
                 }
             });
         } catch (RuntimeException ignored) {
-            // Ensure that we pass a valuable error message to the logger for developers.
+            // Ensures that we pass a valuable error message to the logger for developers.
             assertEquals(testLogger.message, "Could not cancel transaction, not currently in a transaction.");
         } finally {
             RealmLog.remove(testLogger);
         }
         assertEquals(0, realm.where("Owner").count());
+    }
+
+    @Test
+    public void findFirst() {
+        populateTestRealm(realm, 10);
+        final DynamicRealmObject allTypes = realm.where(AllTypes.CLASS_NAME)
+                .between(AllTypes.FIELD_LONG, 4, 9)
+                .findFirst();
+        assertEquals("test data 4", allTypes.getString(AllTypes.FIELD_STRING));
     }
 
     @Test
@@ -410,7 +417,7 @@ public class DynamicRealmTests {
         looperThread.keepStrongReference.add(allTypes);
     }
 
-    // Initialize a Dynamic Realm used by the *Async tests and keep it ref in the looperThread.
+    // Initializes a Dynamic Realm used by the *Async tests and keeps it ref in the looperThread.
     private DynamicRealm initializeDynamicRealm() {
         RealmConfiguration defaultConfig = looperThread.realmConfiguration;
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
@@ -439,14 +446,14 @@ public class DynamicRealmTests {
         dynamicRealm.commitTransaction();
         dynamicRealm.setAutoRefresh(true);
 
-        // Sort first set by using: String[ASC], Long[DESC]
+        // Sorts first set by using: String[ASC], Long[DESC].
         final RealmResults<DynamicRealmObject> realmResults1 = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .findAllSortedAsync(
                         new String[]{AllTypes.FIELD_STRING, AllTypes.FIELD_LONG},
                         new Sort[]{Sort.ASCENDING, Sort.DESCENDING}
                 );
 
-        // Sort second set by using: String[DESC], Long[ASC]
+        // Sorts second set by using: String[DESC], Long[ASC].
         final RealmResults<DynamicRealmObject> realmResults2 = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 0, 5)
                 .findAllSortedAsync(
@@ -532,41 +539,19 @@ public class DynamicRealmTests {
     @RunTestInLooperThread
     public void accessingDynamicRealmObjectBeforeAsyncQueryCompleted() {
         final DynamicRealm dynamicRealm = initializeDynamicRealm();
-        final DynamicRealmObject[] dynamicRealmObject = new DynamicRealmObject[1];
-
-        // Intercept completion of the async DynamicRealmObject query
-        Handler handler = new HandlerProxy(dynamicRealm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT: {
-                        post(new Runnable() {
-                            @Override
-                            public void run() {
-                                assertFalse(dynamicRealmObject[0].isLoaded());
-                                assertFalse(dynamicRealmObject[0].isValid());
-                                try {
-                                    dynamicRealmObject[0].getObject(AllTypes.FIELD_BINARY);
-                                    fail("trying to access a DynamicRealmObject property should throw");
-                                } catch (IllegalStateException ignored) {
-
-                                } finally {
-                                    dynamicRealm.close();
-                                    looperThread.testComplete();
-                                }
-                            }
-                        });
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-
-        dynamicRealm.setHandler(handler);
-        dynamicRealmObject[0] = dynamicRealm.where(AllTypes.CLASS_NAME)
+        final DynamicRealmObject dynamicRealmObject = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 4, 9)
                 .findFirstAsync();
+        assertFalse(dynamicRealmObject.isLoaded());
+        assertFalse(dynamicRealmObject.isValid());
+        try {
+            dynamicRealmObject.getObject(AllTypes.FIELD_BINARY);
+            fail("trying to access a DynamicRealmObject property should throw");
+        } catch (IllegalStateException ignored) {
+        } finally {
+            dynamicRealm.close();
+            looperThread.testComplete();
+        }
     }
 
     @Test

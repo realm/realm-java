@@ -57,7 +57,7 @@ public class SyncUserTests {
     @BeforeClass
     public static void initUserStore() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
-        UserStore userStore = new RealmFileUserStore(InstrumentationRegistry.getTargetContext().getFilesDir().getPath());
+        UserStore userStore = new RealmFileUserStore();
         SyncManager.setUserStore(userStore);
     }
 
@@ -150,7 +150,7 @@ public class SyncUserTests {
 
         Map<String, SyncUser> users = SyncUser.all();
         assertEquals(1, users.size());
-        assertTrue(users.get(users.keySet().iterator().next()).isValid());
+        assertTrue(users.entrySet().iterator().next().getValue().isValid());
     }
 
     // Tests that the user store returns the last user to login
@@ -197,4 +197,19 @@ public class SyncUserTests {
         assertTrue(str != null && !str.isEmpty());
     }
 
+    // Test that a login with an access token logs the user in directly without touching the network
+    @Test
+    public void login_withAccessToken() {
+        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenThrow(new AssertionError("Server contacted."));
+        AuthenticationServer originalServer = SyncManager.getAuthServer();
+        SyncManager.setAuthServerImpl(authServer);
+        try {
+            SyncCredentials credentials = SyncCredentials.accessToken("foo", "bar");
+            SyncUser user = SyncUser.login(credentials, "http://ros.realm.io/auth");
+            assertTrue(user.isValid());
+        } finally {
+            SyncManager.setAuthServerImpl(originalServer);
+        }
+    }
 }

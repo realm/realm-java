@@ -84,11 +84,11 @@ public class UnManagedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void unsupportedMethods_unManagedCollections() {
-        // RealmCollection methods
+        // RealmCollection methods.
         for (RealmCollectionMethod method : RealmCollectionMethod.values()) {
             try {
                 switch (method) {
-                    // Unsupported methods
+                    // Unsupported methods.
                     case WHERE: collection.where(); break;
                     case MIN: collection.min(AllJavaTypes.FIELD_LONG); break;
                     case MAX: collection.max(AllJavaTypes.FIELD_LONG); break;
@@ -98,7 +98,7 @@ public class UnManagedRealmCollectionTests extends CollectionTests {
                     case MAX_DATE: collection.maxDate(AllJavaTypes.FIELD_DATE); break;
                     case DELETE_ALL_FROM_REALM: collection.deleteAllFromRealm(); break;
 
-                    // Supported methods
+                    // Supported methods.
                     case IS_VALID: assertTrue(collection.isValid()); continue;
                     case IS_MANAGED: assertFalse(collection.isManaged()); continue;
                 }

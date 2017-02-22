@@ -18,8 +18,6 @@ package io.realm;
 
 import android.app.IntentService;
 
-import java.util.List;
-
 import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
@@ -153,15 +151,16 @@ public abstract class RealmObject implements RealmModel {
     /**
      * Checks if the query used to find this RealmObject has completed.
      *
-     * Async methods like {@link RealmQuery#findFirstAsync()} return an {@link RealmObject} that represents the future result
-     * of the {@link RealmQuery}. It can be considered similar to a {@link java.util.concurrent.Future} in this regard.
+     * Async methods like {@link RealmQuery#findFirstAsync()} return an {@link RealmObject} that represents the future
+     * result of the {@link RealmQuery}. It can be considered similar to a {@link java.util.concurrent.Future} in this
+     * regard.
      *
      * Once {@code isLoaded()} returns {@code true}, the object represents the query result even if the query
      * didn't find any object matching the query parameters. In this case the {@link RealmObject} will
      * become a "null" object.
      *
-     * "Null" objects represents {@code null}.  An exception is throw if any accessor is called, so it is important to also
-     * check {@link #isValid()} before calling any methods. A common pattern is:
+     * "Null" objects represents {@code null}.  An exception is throw if any accessor is called, so it is important to
+     * also check {@link #isValid()} before calling any methods. A common pattern is:
      *
      * <pre>
      * {@code
@@ -224,7 +223,6 @@ public abstract class RealmObject implements RealmModel {
      * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
      * This method will return {@code true} if called on an unmanaged object (created outside of Realm).
      *
-     *
      * @param object RealmObject to check.
      * @return {@code true} if the query has completed, {@code false} if the query is in
      * progress.
@@ -235,10 +233,9 @@ public abstract class RealmObject implements RealmModel {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
-            return proxy.realmGet$proxyState().getPendingQuery$realm() == null || proxy.realmGet$proxyState().isCompleted$realm();
-        } else {
-            return true;
+            return proxy.realmGet$proxyState().isLoaded();
         }
+        return true;
     }
 
     /**
@@ -309,15 +306,11 @@ public abstract class RealmObject implements RealmModel {
     public static <E extends RealmModel> boolean load(E object) {
         if (RealmObject.isLoaded(object)) {
             return true;
-        } else {
-            if (object instanceof RealmObjectProxy) {
-                // doesn't guarantee to import correctly the result (because the user may have advanced)
-                // in this case the Realm#handler will be responsible of retrying
-                return ((RealmObjectProxy) object).realmGet$proxyState().onCompleted$realm();
-            } else {
-                return false;
-            }
+        } else if (object instanceof RealmObjectProxy) {
+            ((RealmObjectProxy) object).realmGet$proxyState().load();
+            return true;
         }
+        return false;
     }
 
     /**
@@ -329,6 +322,7 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
      */
     public final <E extends RealmModel> void addChangeListener(RealmChangeListener<E> listener) {
+        //noinspection unchecked
         RealmObject.addChangeListener((E) this, listener);
     }
 
@@ -352,19 +346,9 @@ public abstract class RealmObject implements RealmModel {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
-            if (!realm.handlerController.isAutoRefreshEnabled()) {
-                throw new IllegalStateException("You can't register a listener from a non-Looper thread or IntentService thread.");
-            }
-            List<RealmChangeListener> listeners = proxy.realmGet$proxyState().getListeners$realm();
-            if (!listeners.contains(listener)) {
-                listeners.add(listener);
-            }
-            if (isLoaded(proxy)) {
-                // Try to add this object to the realmObjects if it has already been loaded.
-                // For newly created async objects, it will be handled in RealmQuery.findFirstAsync &
-                // HandlerController.completedAsyncRealmObject.
-                realm.handlerController.addToRealmObjects(proxy);
-            }
+            realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+            //noinspection unchecked
+            proxy.realmGet$proxyState().addChangeListener(listener);
         } else {
             throw new IllegalArgumentException("Cannot add listener from this unmanaged RealmObject (created outside of Realm)");
         }
@@ -400,8 +384,11 @@ public abstract class RealmObject implements RealmModel {
         }
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
-            proxy.realmGet$proxyState().getListeners$realm().remove(listener);
+            BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
+            realm.checkIfValid();
+            realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+            //noinspection unchecked
+            proxy.realmGet$proxyState().removeChangeListener(listener);
         } else {
             throw new IllegalArgumentException("Cannot remove listener from this unmanaged RealmObject (created outside of Realm)");
         }
@@ -423,8 +410,10 @@ public abstract class RealmObject implements RealmModel {
     public static <E extends RealmModel> void removeChangeListeners(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
-            proxy.realmGet$proxyState().getListeners$realm().clear();
+            BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
+            realm.checkIfValid();
+            realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+            proxy.realmGet$proxyState().removeAllChangeListeners();
         } else {
             throw new IllegalArgumentException("Cannot remove listeners from this unmanaged RealmObject (created outside of Realm)");
         }
@@ -463,6 +452,7 @@ public abstract class RealmObject implements RealmModel {
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public final <E extends RealmObject> Observable<E> asObservable() {
+        //noinspection unchecked
         return (Observable<E>) RealmObject.asObservable(this);
     }
 

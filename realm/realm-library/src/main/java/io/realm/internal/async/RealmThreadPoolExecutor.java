@@ -37,7 +37,7 @@ import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     private static final String SYS_CPU_DIR = "/sys/devices/system/cpu/";
 
-    // reduce context switching by using a number of thread proportionate to the number of cores
+    // Reduces context switching by using a number of thread proportionate to the number of cores.
     private static final int CORE_POOL_SIZE = calculateCorePoolSize();
     private static final int QUEUE_SIZE = 100;
 
@@ -60,7 +60,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
     /**
-     * Try using the number of files named 'cpuNN' in sysfs to figure out the number of
+     * Tries using the number of files named 'cpuNN' in sysfs to figure out the number of
      * processors on this device. `Runtime.getRuntime().availableProcessors()` may return
      * a smaller number when the device is sleeping.
      *
@@ -76,8 +76,8 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
     /**
-     * @param dirPath A directory path
-     * @param pattern A regex
+     * @param dirPath a directory path
+     * @param pattern a regex
      * @return the number of files, in the `dirPath` directory, whose names match `pattern`
      */
     private static int countFilesInDir(String dirPath, String pattern) {
@@ -174,7 +174,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
     /**
-     * Resume executing any scheduled tasks.
+     * Resumes executing any scheduled tasks.
      */
     public void resume() {
         pauseLock.lock();

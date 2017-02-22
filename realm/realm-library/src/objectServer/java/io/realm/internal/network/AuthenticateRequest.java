@@ -56,11 +56,11 @@ public class AuthenticateRequest {
     /**
      * Generates a request for refreshing a user token.
      */
-    public static AuthenticateRequest userRefresh(Token userToken) {
+    public static AuthenticateRequest userRefresh(Token userToken, URI serverUrl) {
         return new AuthenticateRequest("realm",
                 userToken.value(),
                 SyncManager.APP_ID,
-                null,
+                serverUrl.getPath(),
                 Collections.<String, Object>emptyMap()
         );
     }

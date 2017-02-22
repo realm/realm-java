@@ -1,32 +1,83 @@
-## 2.3.0
+## 2.4.0
 
 ### Breaking changes
 
+* `RealmResults.distinct()` returns a new `RealmResults` object instead of filtering on the original object (#2947).
+* `RealmResults` is auto-updated continuously. Any transaction on the current thread which may have an impact on the order or elements of the `RealmResults` will change the `RealmResults` immediately instead of change it in the next event loop. The standard `RealmResults.iterator()` will continue to work as normal, which means that you can still delete or modify elements without impacting the iterator. The same is not true for simple for-loops. In some cases a simple for-loop will not work (https://realm.io/docs/java/2.3.1/api/io/realm/OrderedRealmCollection.html#loops), and you must use the new createSnapshot() method.
 * Removed deprecated classes `Logger` and `AndroidLogger`.
 
-### Object Server API Changes (In Beta)
+### Enhancements
 
-* Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
-* Change the order of arguments to SyncCredentials.custom to match iOS: token, provider, userInfo
-* `SyncUser.all()` now returns Map instead of List.
+* Added support for sorting by link's field (#672).
+* Added `OrderedRealmCollectionSnapshot` class and `OrderedRealmCollection.createSnapshot()` method. `OrderedRealmCollectionSnapshot` is useful when changing `RealmResults` or `RealmList` in simple loops.
 
-## 2.2.3
+### Internal
+
+* Use Object Store's `Results` as the backend for `RealmResults` (#3372).
+  - Use Object Store's notification mechanism to trigger listeners.
+  - Local commit triggers Realm global listener and `RealmObject` listener on current thread immediately instead of in the next event loop.
+
+## 2.3.2
+
+### Bug fixes
+
+* Fixed log levels in JNI layer (#4204).
+
+### Internal
+
+* Updated to Realm Sync v1.0.4.
+* Updated to Realm Core v2.3.1.
+
+## 2.3.1
+
+### Enhancements
+
+* [ObjectServer] The `serverUrl` given to `SyncConfiguration.Builder()` is now more lenient and will also accept only paths as argument (#4144).
+
+### Bug fixes
+
+* NPE problem in SharedRealm.finalize() (#3730).
+* `RealmList.contains()` and `RealmResults.contains()` now correctly use custom `equals()` method on Realm model classes.
+* Build error when the project is using Kotlin (#4087).
+* Bug causing classes to be replaced by classes already in Gradle's classpath (#3568).
+* NullPointerException when notifying a single object that it changed (#4086).
+
+### Enhancements
+
+* [ObjectServer] Add a timer to refresh periodically the access_token.
+
+## 2.3.0
+
+### Object Server API Changes
+
+* Realm Sync v1.0.0 has been released, and Realm Mobile Platform is no longer considered in beta.
+* Breaking change: Location of Realm files are now placed in `getFilesDir()/<userIdentifier>` instead of `getFilesDir()/`.
+  This is done in order to support shared Realms among users, while each user retaining their own local copy.
+* Breaking change: `SyncUser.all()` now returns Map instead of List.
+* Breaking change: Added a default `UserStore` saving users in a Realm file (`RealmFileUserStore`).
+* Breaking change: Added multi-user support to `UserStore`. Added `get(String)` and `remove(String)`, removed `remove()` and renamed `get()` to `getCurrent()`.
+* Breaking change: Changed the order of arguments to `SyncCredentials.custom()` to match iOS: token, provider, userInfo.
+* Added support for `PermissionOffer` and `PermissionOfferResponse` to `SyncUser.getManagementRealm()`.
+* Exceptions thrown in error handlers are ignored but logged (#3559).
+* Removed unused public constants in `SyncConfiguration` (#4047).
+* Fixed bug, preventing Sync client to renew the access token (#4038) (#4039).
+* Now `SyncUser.logout()` properly revokes tokens (#3639).
 
 ### Bug fixes
 
 * Fixed native memory leak setting the value of a primary key (#3993).
 * Activated Realm's annotation processor on connectedTest when the project is using kapt (#4008).
-* Fixed bug, preventing Sync client to renew the access token (#4038) (#4039).
 * Fixed "too many open files" issue (#4002).
+* Added temporary work-around for bug crashing Samsung Tab 3 devices on startup (#3651).
 
-### Object Server API Changes (In Beta)
+### Enhancements
 
-* Exceptions thrown in error handlers are ignored but logged (#3559).
+* Added `like` predicate for String fields (#3752).
 
 ### Internal
 
-* Updated Realm Sync to 1.0.0-BETA-7.1.
-* Add a Realm backup when receiving a Sync client reset message from the server.
+* Updated to Realm Sync v1.0.0.
+* Added a Realm backup when receiving a Sync client reset message from the server.
 
 ## 2.2.2
 
@@ -48,7 +99,6 @@
 * All major public classes are now non-final. This is mostly a compromise to support Mockito. All protected fields/methods are still not considered part of the public API and can change without notice (#3869).
 * All Realm instances share a single notification daemon thread.
 * Fixed Java lint warnings with generated proxy classes (#2929).
-* Add 'like' predicate for String fields (#3752)
 
 ### Internal
 

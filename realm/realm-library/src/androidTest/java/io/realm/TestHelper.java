@@ -56,8 +56,8 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.internal.Collection;
 import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLogger;
@@ -101,7 +101,7 @@ public class TestHelper {
     }
 
     /**
-     * Creates an empty table with 1 column of all our supported column types, currently 9 columns
+     * Creates an empty table with 1 column of all our supported column types, currently 9 columns.
      *
      * @return
      */
@@ -141,7 +141,7 @@ public class TestHelper {
         return new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
     }
 
-    // Creates a simple migration step in order to support null
+    // Creates a simple migration step in order to support null.
     // FIXME: generate a new encrypted.realm will null support
     public static RealmMigration prepareMigrationToNullSupportStep() {
         RealmMigration realmMigration = new RealmMigration() {
@@ -231,7 +231,7 @@ public class TestHelper {
         }
     }
 
-    // Alloc as much garbage as we can. Pass maxSize = 0 to use it.
+    // Allocs as much garbage as we can. Pass maxSize = 0 to use it.
     public static byte[] allocGarbage(int garbageSize) {
         if (garbageSize == 0) {
             long maxMemory = Runtime.getRuntime().maxMemory();
@@ -479,7 +479,7 @@ public class TestHelper {
 
     public static void populateTestRealmForNullTests(Realm testRealm) {
 
-        // Create 3 NullTypes objects. The objects are self-referenced (link) in
+        // Creates 3 NullTypes objects. The objects are self-referenced (link) in
         // order to test link queries.
         //
         // +-+--------+------+---------+--------+--------------------+
@@ -778,13 +778,13 @@ public class TestHelper {
     }
 
     public static void awaitOrFail(CountDownLatch latch) {
-        awaitOrFail(latch, 10);
+        awaitOrFail(latch, 60);
     }
 
     public static void awaitOrFail(CountDownLatch latch, int numberOfSeconds) {
         try {
             if (android.os.Debug.isDebuggerConnected()) {
-                // If we are debugging the tests, just wait without a timeout. In case we are stopping at a break point
+                // If we are debugging the tests, just waits without a timeout. In case we are stopping at a break point
                 // and timeout happens.
                 latch.await();
             } else if (!latch.await(numberOfSeconds, TimeUnit.SECONDS)) {
@@ -795,14 +795,14 @@ public class TestHelper {
         }
     }
 
-    // clean resource, shutdown the executor service & throw any background exception
+    // Cleans resource, shutdowns the executor service and throws any background exception.
     public static void exitOrThrow(final ExecutorService executorService,
                                    final CountDownLatch signalTestFinished,
                                    final CountDownLatch signalClosedRealm,
                                    final Looper[] looper,
                                    final Throwable[] throwable) throws Throwable {
 
-        // wait for the signal indicating the test's use case is done
+        // Waits for the signal indicating the test's use case is done.
         try {
             // Even if this fails we want to try as hard as possible to cleanup. If we fail to close all resources
             // properly, the `after()` method will most likely throw as well because it tries do delete any Realms
@@ -810,19 +810,19 @@ public class TestHelper {
             TestHelper.awaitOrFail(signalTestFinished);
         } finally {
             if (looper[0] != null) {
-                // failing to quit the looper will not execute the finally block responsible
-                // of closing the Realm
+                // Failing to quit the looper will not execute the finally block responsible
+                // of closing the Realm.
                 looper[0].quit();
             }
 
-            // wait for the finally block to execute & close the Realm
+            // Waits for the finally block to execute and closes the Realm.
             TestHelper.awaitOrFail(signalClosedRealm);
-            // Close the executor.
+            // Closes the executor.
             // This needs to be called after waiting since it might interrupt waitRealmThreadExecutorFinish().
             executorService.shutdownNow();
 
             if (throwable[0] != null) {
-                // throw any assertion errors happened in the background thread
+                // Throws any assertion errors happened in the background thread.
                 throw throwable[0];
             }
         }
@@ -847,19 +847,19 @@ public class TestHelper {
      * This helper method is useful to create a mocked {@link RealmResults}.
      *
      * @param realm a {@link Realm} or a {@link DynamicRealm} instance.
-     * @param table a {@link Table} or a {@link io.realm.internal.TableView} instance.
+     * @param collection a {@link Collection} instance.
      * @param tableClass a Class of Table.
      * @return a created {@link RealmResults} instance.
      */
     public static <T extends RealmObject> RealmResults<T> newRealmResults(
-            BaseRealm realm, TableOrView table, Class<T> tableClass) {
+            BaseRealm realm, Collection collection, Class<T> tableClass) {
         //noinspection TryWithIdenticalCatches
         try {
             final Constructor<RealmResults> c = RealmResults.class.getDeclaredConstructor(
-                    BaseRealm.class, TableOrView.class, Class.class);
+                    BaseRealm.class, Collection.class, Class.class);
             c.setAccessible(true);
             //noinspection unchecked
-            return c.newInstance(realm, table, tableClass);
+            return c.newInstance(realm, collection, tableClass);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (InstantiationException e) {
@@ -958,7 +958,7 @@ public class TestHelper {
     }
 
     /**
-     * Wait and check if all tasks in BaseRealm.asyncTaskExecutor can be finished in 5 seconds, otherwise fail the test.
+     * Waits and checks if all tasks in BaseRealm.asyncTaskExecutor can be finished in 5 seconds, otherwise fails the test.
      */
     public static void waitRealmThreadExecutorFinish() {
         int counter = 50;

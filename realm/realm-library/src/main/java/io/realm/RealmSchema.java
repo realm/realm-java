@@ -102,7 +102,6 @@ public class RealmSchema {
      *
      * @param className name of the class
      * @return schema object for that class or {@code null} if the class doesn't exists.
-     *
      */
     public RealmObjectSchema get(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
@@ -160,7 +159,7 @@ public class RealmSchema {
      * @return a Realm schema object for that class.
      */
     public RealmObjectSchema create(String className) {
-        // adding a class is always permitted
+        // Adding a class is always permitted.
         checkEmpty(className, EMPTY_STRING_MSG);
         if (realm == null) {
             RealmObjectSchema realmObjectSchema = new RealmObjectSchema(className);
@@ -169,7 +168,7 @@ public class RealmSchema {
         } else {
             String internalTableName = TABLE_PREFIX + className;
             if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
-                throw new IllegalArgumentException("Class name is to long. Limit is 57 characters: " + className.length());
+                throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
             }
             if (realm.sharedRealm.hasTable(internalTableName)) {
                 throw new IllegalArgumentException("Class already exists: " + className);
@@ -182,12 +181,12 @@ public class RealmSchema {
 
     /**
      * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
-     * to it will throw an {@link IllegalStateException}. Remove those classes or fields first.
+     * to it will throw an {@link IllegalStateException}. Removes those classes or fields first.
      *
      * @param className name of the class to remove.
      */
     public void remove(String className) {
-        realm.checkNotInSync(); // destructive modifications are not permitted
+        realm.checkNotInSync(); // Destructive modifications are not permitted.
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
         checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
@@ -206,7 +205,7 @@ public class RealmSchema {
      * @return a schema object for renamed class.
      */
     public RealmObjectSchema rename(String oldClassName, String newClassName) {
-        realm.checkNotInSync(); // destructive modifications are not permitted
+        realm.checkNotInSync(); // Destructive modifications are not permitted.
         checkEmpty(oldClassName, "Class names cannot be empty or null");
         checkEmpty(newClassName, "Class names cannot be empty or null");
         String oldInternalName = TABLE_PREFIX + oldClassName;
@@ -216,7 +215,7 @@ public class RealmSchema {
             throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
         }
 
-        // Check if there is a primary key defined for the old class.
+        // Checks if there is a primary key defined for the old class.
         Table oldTable = getTable(oldClassName);
         String pkField = null;
         if (oldTable.hasPrimaryKey()) {
@@ -227,7 +226,7 @@ public class RealmSchema {
         realm.sharedRealm.renameTable(oldInternalName, newInternalName);
         Table table = realm.sharedRealm.getTable(newInternalName);
 
-        // Set the primary key for the new class if necessary
+        // Sets the primary key for the new class if necessary.
         if (pkField != null) {
             table.setPrimaryKey(pkField);
         }
@@ -289,7 +288,7 @@ public class RealmSchema {
         if (table == null) {
             Class<? extends RealmModel> originalClass = Util.getOriginalModelClass(clazz);
             if (isProxyClass(originalClass, clazz)) {
-                // if passed 'clazz' is the proxy, try again with model class
+                // If passed 'clazz' is the proxy, try again with model class.
                 table = classToTable.get(originalClass);
             }
             if (table == null) {
@@ -297,7 +296,7 @@ public class RealmSchema {
                 classToTable.put(originalClass, table);
             }
             if (isProxyClass(originalClass, clazz)) {
-                // 'clazz' is the proxy class for 'originalClass'
+                // 'clazz' is the proxy class for 'originalClass'.
                 classToTable.put(clazz, table);
             }
         }
@@ -309,7 +308,7 @@ public class RealmSchema {
         if (classSchema == null) {
             Class<? extends RealmModel> originalClass = Util.getOriginalModelClass(clazz);
             if (isProxyClass(originalClass, clazz)) {
-                // if passed 'clazz' is the proxy, try again with model class
+                // If passed 'clazz' is the proxy, try again with model class.
                 classSchema = classToSchema.get(originalClass);
             }
             if (classSchema == null) {
@@ -318,7 +317,7 @@ public class RealmSchema {
                 classToSchema.put(originalClass, classSchema);
             }
             if (isProxyClass(originalClass, clazz)) {
-                // 'clazz' is the proxy class for 'originalClass'
+                // 'clazz' is the proxy class for 'originalClass'.
                 classToSchema.put(clazz, classSchema);
             }
         }

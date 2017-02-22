@@ -20,10 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.realm.annotations.Beta;
-
 /**
- * @Beta
  * Credentials represent a login with a 3rd party login provider in an OAuth2 login flow, and are used by the Realm
  * Object Server to verify the user and grant access.
  * <p>
@@ -63,7 +60,6 @@ import io.realm.annotations.Beta;
  * }
  * </pre>
  */
-@Beta
 public class SyncCredentials {
 
     private final String userIdentifier;
@@ -137,7 +133,7 @@ public class SyncCredentials {
      * Creates a custom set of credentials. The behaviour will depend on the type of {@code identityProvider} and
      * {@code userInfo} used.
      *
-     * @param userIdentifier String identifying the user. Usually a username of userIdentifier.
+     * @param userIdentifier String identifying the user. Usually a username or user token.
      * @param identityProvider provider used to verify the credentials.
      * @param userInfo data describing the user further or {@code null} if the user does not have any extra data. The
      *              data will be serialized to JSON, so all values must be mappable to a valid JSON data type. Custom
@@ -153,6 +149,23 @@ public class SyncCredentials {
             userInfo = new HashMap<String, Object>();
         }
         return new SyncCredentials(userIdentifier, identityProvider, userInfo);
+    }
+
+    /**
+     * Creates credentials from an existing access token. Since an access token is the proof that a user already
+     * has logged in. Credentials created this way are automatically assumed to have successfully logged in.
+     * This means that providing this credential to {@link SyncUser#login(SyncCredentials, String)} will always
+     * succeed, but accessing any Realm after might fail if the token is no longer valid.
+     *
+     * @param accessToken user's access token.
+     * @param identifier user identifier.
+     * @return a set of credentials that can be used to log into the Object Server using
+     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
+     */
+    public static SyncCredentials accessToken(String accessToken, String identifier) {
+        HashMap<String, Object> userInfo = new HashMap<String, Object>();
+        userInfo.put("_token", accessToken);
+        return new SyncCredentials(identifier, IdentityProvider.ACCESS_TOKEN, userInfo);
     }
 
     private static void assertStringNotEmpty(String string, String message) {
@@ -201,6 +214,14 @@ public class SyncCredentials {
      * verifying that a given credential is valid.
      */
     public static final class IdentityProvider {
+
+        /**
+         * The provided identity is an already registered user (represented by the access token). Logging in with this
+         * type of identity will happen purely on the device without contacting the Realm Object Server. Acquiring
+         * access to individual Realms will still require talking to the Object Server.
+         */
+        public static final String ACCESS_TOKEN = "_access_token";
+
         /**
          * Any credentials verified by the debug identity provider will always be considered valid.
          * It is only available if configured on the Object Server, and it is disabled by default.

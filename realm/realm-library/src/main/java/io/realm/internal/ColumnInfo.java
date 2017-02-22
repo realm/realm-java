@@ -50,7 +50,7 @@ public abstract class ColumnInfo implements Cloneable {
     /**
      * Copies the column index value from other {@link ColumnInfo} object.
      *
-     * @param other The class of {@code other} must be exactly the same as this instance.
+     * @param other the class of {@code other} must be exactly the same as this instance.
      *              It must not be {@code null}.
      * @throws IllegalArgumentException if {@code other} has different class than this.
      */

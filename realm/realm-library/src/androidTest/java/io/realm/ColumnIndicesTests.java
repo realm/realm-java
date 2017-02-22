@@ -89,7 +89,7 @@ public class ColumnIndicesTests {
         assertEquals(columnIndices.getColumnIndex(Dog.class, Dog.FIELD_AGE),
                 deepCopy.getColumnIndex(Dog.class, Dog.FIELD_AGE));
 
-        // check if those are different instance.
+        // Checks if those are different instance.
         assertNotSame(columnIndices, deepCopy);
         assertNotSame(columnIndices.getColumnInfo(Cat.class), deepCopy.getColumnInfo(Cat.class));
         assertNotSame(columnIndices.getColumnInfo(Dog.class), deepCopy.getColumnInfo(Dog.class));
@@ -108,7 +108,7 @@ public class ColumnIndicesTests {
 
         catColumnInfoInSource.nameIndex++;
 
-        // check preconditions
+        // Checks preconditions.
         assertNotEquals(catColumnInfoInSource.nameIndex, catColumnInfoInTarget.nameIndex);
         assertNotSame(catColumnInfoInSource.getIndicesMap(), catColumnInfoInTarget.getIndicesMap());
 

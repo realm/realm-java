@@ -19,17 +19,14 @@ package io.realm;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 
-import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
 
 /**
- * @Beta
  * Internal initializer class for the Object Server.
  * Use to keep the `SyncManager` free from Android dependencies
  */
 @SuppressWarnings("unused")
 @Keep
-@Beta
 class ObjectServer {
 
     public static void init(Context context) {
@@ -41,8 +38,13 @@ class ObjectServer {
         } catch (Exception ignore) {
         }
 
+        // init the "sync_manager.cpp" metadata Realm, this is also needed later, when re try
+        // to schedule a client reset. in realm-java#master this is already done, when initialising
+        // the RealmFileUserStore (not available now on releases)
+        SyncManager.nativeConfigureMetaDataSystem(context.getFilesDir().getPath());
+
         // Configure default UserStore
-        UserStore userStore = new RealmFileUserStore(context.getFilesDir().getPath());
+        UserStore userStore = new RealmFileUserStore();
 
         SyncManager.init(appId, userStore);
     }

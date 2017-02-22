@@ -18,7 +18,7 @@ package io.realm.internal;
 import java.util.IdentityHashMap;
 
 /**
- * Identity based Set, that guarantee store & retrieve in O(1)
+ * Identity based Set, that guarantees store & retrieve in O(1)
  * without a huge overhead in space complexity.
  */
 public class IdentitySet<K> extends IdentityHashMap<K,Integer> {
