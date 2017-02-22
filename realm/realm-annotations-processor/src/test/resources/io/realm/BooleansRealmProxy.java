@@ -86,7 +86,6 @@ public class BooleansRealmProxy extends some.test.Booleans
         proxyState.setConstructionFinished();
     }
 
-    @Override
     public void realm$injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (BooleansColumnInfo) context.getColumnInfo();

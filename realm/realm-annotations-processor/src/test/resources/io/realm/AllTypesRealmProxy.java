@@ -115,7 +115,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.setConstructionFinished();
     }
 
-    @Override
     public void realm$injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (AllTypesColumnInfo) context.getColumnInfo();

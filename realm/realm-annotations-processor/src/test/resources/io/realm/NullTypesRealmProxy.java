@@ -171,7 +171,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.setConstructionFinished();
     }
 
-    @Override
     public void realm$injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (NullTypesColumnInfo) context.getColumnInfo();

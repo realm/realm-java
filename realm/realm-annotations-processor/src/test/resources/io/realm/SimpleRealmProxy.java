@@ -76,7 +76,6 @@ public class SimpleRealmProxy extends some.test.Simple
         proxyState.setConstructionFinished();
     }
 
-    @Override
     public void realm$injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (SimpleColumnInfo) context.getColumnInfo();
