@@ -25,7 +25,7 @@ package io.realm;
  * {@link OrderedRealmCollectionChangeListener}.
  * <p>
  *
- * @see {@link RealmResults#addChangeListener(OrderedRealmCollectionChangeListener)}.
+ * @see RealmResults#addChangeListener(OrderedRealmCollectionChangeListener)
  */
 public interface OrderedRealmCollectionChangeListener<T> {
 

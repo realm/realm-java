@@ -20,7 +20,7 @@ package io.realm;
  * A class implementing this interface is capable of reporting when the data stored by the class have changed. When that
  * happens all registered {@link RealmChangeListener}'s will be triggered.
  * <p>
- * This class will only report that <i>something<i> changed, not what changed.
+ * This class will only report that <i>something</i> changed, not what changed.
  * @see RealmCollectionObservable for information about more fine-grained collection notifications.
  */
 public interface RealmObservable<T> {

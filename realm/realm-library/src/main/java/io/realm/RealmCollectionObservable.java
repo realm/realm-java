@@ -24,7 +24,7 @@ package io.realm;
  * This is often useful when updating UI elements, e.g. {@code RecyclerView.Adapter} can provide nicer animations and
  * work more effectively if it knows exactly which elements changed.
  * @see RealmObservable for information about more coarse-grained notifications.
- * @see <a href="https://realm.io/docs/java/latest/#adapters">Android Adapters<a>
+ * @see <a href="https://realm.io/docs/java/latest/#adapters">Android Adapters</a>
  */
 public interface RealmCollectionObservable<T, S extends OrderedRealmCollectionChangeListener>
         extends RealmObservable<T> {
