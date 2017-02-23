@@ -132,18 +132,15 @@ public class ObserverPairListTests {
 
         // Create a new Integer 1 to see if the equality is checked by the same object.
         //noinspection UnnecessaryBoxing
-        pair = new TestObserverPair(new Integer(1), testListener);
-        observerPairs.remove(pair);
+        observerPairs.remove(new Integer(1), testListener);
         assertEquals(1, observerPairs.size());
 
         // Different listener
-        pair = new TestObserverPair(ONE, new TestListener());
-        observerPairs.remove(pair);
+        observerPairs.remove(ONE, new TestListener());
         assertEquals(1, observerPairs.size());
 
         // Should remove now
-        pair = new TestObserverPair(ONE, testListener);
-        observerPairs.remove(pair);
+        observerPairs.remove(ONE, testListener);
         assertEquals(0, observerPairs.size());
     }
 
@@ -240,7 +237,8 @@ public class ObserverPairListTests {
     public void foreach_canRemove() {
         final AtomicInteger count = new AtomicInteger(0);
         final TestObserverPair pair1 = new TestObserverPair(ONE, new TestListener());
-        final TestObserverPair pair2 = new TestObserverPair(TWO, new TestListener());
+        final TestListener listener2 = new TestListener();
+        final TestObserverPair pair2 = new TestObserverPair(TWO, listener2);
         final TestObserverPair pair3 = new TestObserverPair(THREE, new TestListener());
         observerPairs.add(pair1);
         observerPairs.add(pair2);
@@ -250,7 +248,7 @@ public class ObserverPairListTests {
             @Override
             public void onCalled(TestObserverPair pair, Object observer) {
                 assertFalse(((Integer) observer) == 2);
-                observerPairs.remove(pair2);
+                observerPairs.remove(TWO, listener2);
                 count.getAndIncrement();
             }
         });

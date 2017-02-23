@@ -32,25 +32,24 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * @param <T> the type of {@link ObserverPair}.
  */
-public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
+class ObserverPairList<T extends ObserverPairList.ObserverPair> {
 
     /**
      * @param <T> the type of observer.
      * @param <S> the type of listener.
      */
-    public abstract static class ObserverPair<T, S> {
-        protected final WeakReference<T> observerRef;
+    abstract static class ObserverPair<T, S> {
+        final WeakReference<T> observerRef;
         protected final S listener;
         // Should only be set by the outer class. To marked it as removed in case it is removed in foreach callback.
         boolean removed = false;
 
-        public ObserverPair(T observer, S listener) {
+        ObserverPair(T observer, S listener) {
             this.listener = listener;
             this.observerRef = new WeakReference<T>(observer);
         }
 
-        // The two pairs will be treated as the same only when the observers are the same and the listeners are the same
-        // as well.
+        // The two pairs will be treated as the same only when the observers are the same and the listeners are equal.
         @Override
         public boolean equals(Object obj) {
             if (this == obj) {
@@ -96,7 +95,7 @@ public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
      *
      * @param callback to be executed on the pair.
      */
-    public void foreach(Callback<T> callback) {
+    void foreach(Callback<T> callback) {
         for (T pair : pairs) {
             if (cleared) {
                 break;
@@ -123,23 +122,28 @@ public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
     public void add(T pair) {
         if (!pairs.contains(pair)) {
             pairs.add(pair);
+            pair.removed = false;
         }
         if (cleared) {
             cleared = false;
         }
     }
 
-    public void remove(T pair) {
-        pair.removed = true;
-        pairs.remove(pair);
+    public <S, U> void remove(S observer, U listener) {
+        for (T pair : pairs) {
+            if (observer == pair.observerRef.get() && listener.equals(pair.listener)) {
+                pair.removed = true;
+                pairs.remove(pair);
+                break;
+            }
+        }
     }
 
-    public void removeByObserver(Object observer) {
+    void removeByObserver(Object observer) {
         for (T pair : pairs) {
             Object object = pair.observerRef.get();
-            if (object == null) {
-                pairs.remove(pair);
-            } else if (object == observer) {
+            if (object == null || object == observer) {
+                pair.removed = true;
                 pairs.remove(pair);
             }
         }

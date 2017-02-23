@@ -3,8 +3,12 @@
 ### Breaking changes
 
 * `RealmResults.distinct()` returns a new `RealmResults` object instead of filtering on the original object (#2947).
-* `RealmResults` is auto-updated continuously. Any transaction on the current thread which may have an impact on the order or elements of the `RealmResults` will change the `RealmResults` immediately instead of change it in the next event loop. The standard `RealmResults.iterator()` will continue to work as normal, which means that you can still delete or modify elements without impacting the iterator. The same is not true for simple for-loops. In some cases a simple for-loop will not work (https://realm.io/docs/java/2.3.1/api/io/realm/OrderedRealmCollection.html#loops), and you must use the new createSnapshot() method.
+* `RealmResults` is auto-updated continuously. Any transaction on the current thread which may have an impact on the order or elements of the `RealmResults` will change the `RealmResults` immediately instead of change it in the next event loop. The standard `RealmResults.iterator()` will continue to work as normal, which means that you can still delete or modify elements without impacting the iterator. The same is not true for simple for-loops. In some cases a simple for-loop will not work (https://realm.io/docs/java/3.0.0/api/io/realm/OrderedRealmCollection.html#loops), and you must use the new createSnapshot() method.
 * Removed deprecated classes `Logger` and `AndroidLogger`.
+
+### Deprecated
+
+* `RealmResults.removeChangeListeners()`. Use `RealmResults.removeAllChangeListeners()` instead.
 
 ### Enhancements
 
@@ -28,11 +32,16 @@
 * Updated to Realm Sync v1.0.4.
 * Updated to Realm Core v2.3.1.
 
+### Enhancements
+
+* Improved performance of getters and setters in proxy classes.
+
 ## 2.3.1
 
 ### Enhancements
 
 * [ObjectServer] The `serverUrl` given to `SyncConfiguration.Builder()` is now more lenient and will also accept only paths as argument (#4144).
+* [ObjectServer] Add a timer to refresh periodically the access_token.
 
 ### Bug fixes
 
@@ -42,9 +51,6 @@
 * Bug causing classes to be replaced by classes already in Gradle's classpath (#3568).
 * NullPointerException when notifying a single object that it changed (#4086).
 
-### Enhancements
-
-* [ObjectServer] Add a timer to refresh periodically the access_token.
 
 ## 2.3.0
 

@@ -227,9 +227,6 @@ public class RealmProxyClassGenerator {
     private void emitConstructor(JavaWriter writer) throws IOException {
         // FooRealmProxy(ColumnInfo)
         writer.beginConstructor(EnumSet.noneOf(Modifier.class));
-        writer.beginControlFlow("if (proxyState == null)")
-                .emitStatement("injectObjectContext()")
-                .endControlFlow();
         writer.emitStatement("proxyState.setConstructionFinished()");
         writer.endConstructor();
         writer.emitEmptyLine();
@@ -249,7 +246,6 @@ public class RealmProxyClassGenerator {
                 // Getter
                 writer.emitAnnotation("SuppressWarnings", "\"cast\"");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
-                emitCodeForInjectingObjectContext(writer);
                 writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
 
                 // For String and bytes[], null value will be returned by JNI code. Try to save one JNI call here.
@@ -275,7 +271,6 @@ public class RealmProxyClassGenerator {
 
                 // Setter
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                emitCodeForInjectingObjectContext(writer);
                 emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field), new CodeEmitter() {
                     @Override
                     public void emit(JavaWriter writer) throws IOException {
@@ -330,7 +325,6 @@ public class RealmProxyClassGenerator {
 
                 // Getter
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
-                emitCodeForInjectingObjectContext(writer);
                 writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
                 writer.beginControlFlow("if (proxyState.getRow$realm().isNullLink(%s))", fieldIndexVariableReference(field));
                         writer.emitStatement("return null");
@@ -342,7 +336,6 @@ public class RealmProxyClassGenerator {
 
                 // Setter
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                emitCodeForInjectingObjectContext(writer);
                 emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field), new CodeEmitter() {
                     @Override
                     public void emit(JavaWriter writer) throws IOException {
@@ -394,7 +387,6 @@ public class RealmProxyClassGenerator {
 
                 // Getter
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
-                emitCodeForInjectingObjectContext(writer);
                 writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
                 writer.emitSingleLineComment("use the cached value if available");
                 writer.beginControlFlow("if (" + fieldName + "RealmList != null)");
@@ -411,7 +403,6 @@ public class RealmProxyClassGenerator {
 
                 // Setter
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                emitCodeForInjectingObjectContext(writer);
                 emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field), new CodeEmitter() {
                     @Override
                     public void emit(JavaWriter writer) throws IOException {
@@ -461,17 +452,6 @@ public class RealmProxyClassGenerator {
         }
     }
 
-    private void emitCodeForInjectingObjectContext(JavaWriter writer) throws IOException {
-        // if invoked from model's constructor, inject BaseRealm and Row
-        writer.beginControlFlow("if (proxyState == null)");
-        {
-            writer.emitSingleLineComment("Called from model's constructor. Inject context.");
-            writer.emitStatement("injectObjectContext()");
-        }
-        writer.endControlFlow();
-        writer.emitEmptyLine();
-    }
-
     private interface CodeEmitter {
         void emit(JavaWriter writer) throws IOException;
     }
@@ -493,10 +473,11 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitInjectContextMethod(JavaWriter writer) throws IOException {
+        writer.emitAnnotation("Override");
         writer.beginMethod(
                 "void", // Return type
-                "injectObjectContext", // Method name
-                EnumSet.of(Modifier.PRIVATE) // Modifiers
+                "realm$injectObjectContext", // Method name
+                EnumSet.of(Modifier.PUBLIC) // Modifiers
                 ); // Argument type & argument name
 
         writer.emitStatement("final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get()");
@@ -510,7 +491,6 @@ public class RealmProxyClassGenerator {
         writer.endMethod();
         writer.emitEmptyLine();
     }
-
 
     private void emitRealmObjectProxyImplementation(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");

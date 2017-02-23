@@ -38,7 +38,7 @@ set(classes_LIST
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.RealmSchema
     io.realm.RealmObjectSchema io.realm.internal.Collection
-    io.realm.internal.NativeObjectReference
+    io.realm.internal.NativeObjectReference io.realm.internal.CollectionChangeSet
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319
@@ -95,7 +95,7 @@ if (NOT EXISTS ${sync_lib_PATH})
     elseif (ARM64_V8A)
         set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm64.a)
     else()
-        message(FATAL_ERROR "Cannot find core lib file: ${core_lib_PATH}")
+        message(FATAL_ERROR "Cannot find core lib file: ${sync_lib_PATH}")
     endif()
 endif()
 add_library(lib_realm_sync STATIC IMPORTED)
