@@ -20,6 +20,8 @@ import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.NoSuchElementException;
 
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
 
 /**
@@ -29,13 +31,59 @@ import io.realm.RealmChangeListener;
 @Keep
 public class Collection implements NativeObject {
 
-    private class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmChangeListener<T>> {
-        public CollectionObserverPair(T observer, RealmChangeListener<T> listener) {
+    private class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
+        public CollectionObserverPair(T observer, Object listener) {
             super(observer, listener);
         }
 
-        public void onChange(T observer) {
-            listener.onChange(observer);
+        public void onChange(T observer, OrderedCollectionChangeSet changes) {
+            if (listener instanceof OrderedRealmCollectionChangeListener) {
+                //noinspection unchecked
+                ((OrderedRealmCollectionChangeListener<T>)listener).onChange(observer, changes);
+            } else if (listener instanceof RealmChangeListener) {
+                //noinspection unchecked
+                ((RealmChangeListener<T>)listener).onChange(observer);
+            } else {
+                throw new RuntimeException("Unsupported listener type: " + listener);
+            }
+        }
+    }
+
+    private static class RealmChangeListenerWrapper<T> implements OrderedRealmCollectionChangeListener<T> {
+        private final RealmChangeListener<T> listener;
+
+        RealmChangeListenerWrapper(RealmChangeListener<T> listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void onChange(T collection, OrderedCollectionChangeSet changes) {
+            listener.onChange(collection);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof RealmChangeListenerWrapper &&
+                    listener == ((RealmChangeListenerWrapper) obj).listener;
+        }
+
+        @Override
+        public int hashCode() {
+            return listener.hashCode();
+        }
+    }
+
+    private static class Callback implements ObserverPairList.Callback<CollectionObserverPair> {
+        private final OrderedCollectionChangeSet changeSet;
+
+        Callback(OrderedCollectionChangeSet changeSet) {
+            this.changeSet = changeSet;
+        }
+
+        @Override
+        public void onCalled(CollectionObserverPair pair, Object observer) {
+            //noinspection unchecked
+            pair.onChange(observer, changeSet);
         }
     }
 
@@ -208,14 +256,6 @@ public class Collection implements NativeObject {
     private boolean isSnapshot = false;
     private final ObserverPairList<CollectionObserverPair> observerPairs =
             new ObserverPairList<CollectionObserverPair>();
-    private static final ObserverPairList.Callback<CollectionObserverPair> onChangeCallback =
-            new ObserverPairList.Callback<CollectionObserverPair>() {
-                @Override
-                public void onCalled(CollectionObserverPair pair, Object observer) {
-                    //noinspection unchecked
-                    pair.onChange(observer);
-                }
-            };
 
     // Public for static checking in JNI
     @SuppressWarnings("WeakerAccess")
@@ -417,7 +457,7 @@ public class Collection implements NativeObject {
         return nativeDeleteLast(nativePtr);
     }
 
-    public <T> void addListener(T observer, RealmChangeListener<T> listener) {
+    public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
         if (observerPairs.isEmpty()) {
             nativeStartListening(nativePtr);
         }
@@ -425,12 +465,19 @@ public class Collection implements NativeObject {
         observerPairs.add(collectionObserverPair);
     }
 
-    public <T> void removeListener(T observer, RealmChangeListener<T> listener) {
-        CollectionObserverPair<T> collectionObserverPair = new CollectionObserverPair<T>(observer, listener);
-        observerPairs.remove(collectionObserverPair);
+    public <T> void addListener(T observer, RealmChangeListener<T> listener) {
+        addListener(observer, new RealmChangeListenerWrapper<T>(listener));
+    }
+
+    public <T> void removeListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
+        observerPairs.remove(observer, listener);
         if (observerPairs.isEmpty()) {
             nativeStopListening(nativePtr);
         }
+    }
+
+    public <T> void removeListener(T observer, RealmChangeListener<T> listener) {
+        removeListener(observer, new RealmChangeListenerWrapper<T>(listener));
     }
 
     public void removeAllListeners() {
@@ -444,15 +491,17 @@ public class Collection implements NativeObject {
 
     // Called by JNI
     @SuppressWarnings("unused")
-    private void notifyChangeListeners(boolean emptyChanges) {
-        if (emptyChanges && isLoaded()) {
+    private void notifyChangeListeners(long nativeChangeSetPtr) {
+        if (nativeChangeSetPtr == 0 && isLoaded()) {
             return;
         }
+        boolean wasLoaded = loaded;
         loaded = true;
-        // TODO: For the fine grained notification, remember to call the callback with empty change set if the
-        // isLoaded() returns false even when the change set is not empty. Since in that case, it is the first time
-        // the listener gets called to indicate async query returns.
-        observerPairs.foreach(onChangeCallback);
+        // Object Store compute the change set between the SharedGroup versions when the query created and the latest.
+        // So it is possible it deliver a non-empty change set for the first async query returns. In this case, we
+        // return an empty change set to user since it is considered as the first time async query returns.
+        observerPairs.foreach(new Callback(nativeChangeSetPtr == 0 || !wasLoaded ?
+                        null : new CollectionChangeSet(nativeChangeSetPtr)));
     }
 
     public Mode getMode() {
@@ -478,7 +527,7 @@ public class Collection implements NativeObject {
         if (loaded) {
             return;
         }
-        notifyChangeListeners(true);
+        notifyChangeListeners(0);
     }
 
     private static native long nativeGetFinalizerPtr();
