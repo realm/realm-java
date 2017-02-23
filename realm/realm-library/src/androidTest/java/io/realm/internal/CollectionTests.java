@@ -408,7 +408,7 @@ public class CollectionTests {
     }
 
     private static class TestIterator extends Collection.Iterator<Integer> {
-        public TestIterator(Collection collection) {
+        TestIterator(Collection collection) {
             super(collection);
         }
 
