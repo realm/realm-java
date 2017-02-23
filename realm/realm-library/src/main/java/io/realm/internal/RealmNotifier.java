@@ -16,50 +16,142 @@
 
 package io.realm.internal;
 
-import io.realm.internal.async.QueryUpdateTask;
+import java.io.Closeable;
+import java.util.ArrayList;
+import java.util.List;
+
+import io.realm.RealmChangeListener;
 
 /**
  * This interface needs to be implemented by Java and pass to Realm Object Store in order to get notifications when
  * other thread/process changes the Realm file.
  */
 @Keep
-public interface RealmNotifier {
-    /**
-     * This is called from Java when the changes have been made on the same thread.
-     */
-    void notifyCommitByLocalThread();
+public abstract class RealmNotifier implements Closeable {
 
-    /**
-     * This is called in Realm Object Store's JavaBindingContext::changes_available.
-     * This is getting called on the same thread which created this Realm when the same Realm file has been changed by
-     * other thread. The changes on the same thread should not trigger this call.
-     */
+// Calling sequences for a remote commit
+// |-------------------------------+--------------+-----------------------------------|
+// | Thread A                      | Thread B     | Daemon Thread                     |
+// |-------------------------------+--------------+-----------------------------------|
+// |                               | Make changes |                                   |
+// |-------------------------------+--------------+-----------------------------------|
+// |                               |              | epoll callback and notify ALooper |
+// |-------------------------------+--------------+-----------------------------------|
+// | ALooper callback              |              |                                   |
+// | BindingContext::before_notify |              |                                   |
+// | RealmNotifier.beforeNotify    |              |                                   |
+// | BindingContext::did_change    |              |                                   |
+// | RealmNotifier.didChange       |              |                                   |
+// | process_available_async       |              |                                   |
+// | Collection listeners          |              |                                   |
+// |-------------------------------+--------------+-----------------------------------|
+
+    private static class RealmObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmChangeListener<T>> {
+        public RealmObserverPair(T observer, RealmChangeListener<T> listener) {
+            super(observer, listener);
+        }
+
+        private void onChange(T observer) {
+            if (observer != null) {
+                listener.onChange(observer);
+            }
+        }
+    }
+
+    private ObserverPairList<RealmObserverPair> realmObserverPairs = new ObserverPairList<RealmObserverPair>();
+    private final ObserverPairList.Callback<RealmObserverPair> onChangeCallBack =
+            new ObserverPairList.Callback<RealmObserverPair>() {
+                @Override
+                public void onCalled(RealmObserverPair pair, Object observer) {
+                    //noinspection unchecked
+                    if (sharedRealm != null && !sharedRealm.isClosed()) {
+                        pair.onChange(observer);
+                    }
+                }
+            };
+
+    protected RealmNotifier(SharedRealm sharedRealm) {
+        this.sharedRealm = sharedRealm;
+    }
+
+    private SharedRealm sharedRealm;
+    // TODO: The only reason we have this is that async transactions is not supported by OS yet. And OS is using ALopper
+    // which will be using a different message queue from which java is using to deliver remote Realm changes message.
+    // We need a way to deliver the async transaction onSuccess callback to the caller thread after the caller Realm
+    // advanced. This is implemented by posting the callback by RealmNotifier.post() first, and check the realm version
+    // in the posted Runnable. If the Realm version there is still behind the async transaction we committed, the
+    // onSuccess callback will be added to this list and be executed later when we get the change event from OS.
+    // This list is NOT supposed to be thread safe!
+    private List<Runnable> transactionCallbacks = new ArrayList<Runnable>();
+
+
+    // Called from JavaBindingContext::did_change.
+    // This will be called in the caller thread when:
+    // - A committed remote transaction, called from changed event handler.
+    // - A committed remote transaction, called directly from refresh call.
+    // - A committed local transaction, called directly from commitTransaction instead of next event.
+    //   loop.
+    // Package protected to avoid finding class by name in JNI.
     @SuppressWarnings("unused") // called from java_binding_context.cpp
-    void notifyCommitByOtherThread();
+    void didChange() {
+        realmObserverPairs.foreach(onChangeCallBack);
+        for (Runnable runnable : transactionCallbacks) {
+            runnable.run();
+        }
+        transactionCallbacks.clear();
+    }
 
-    /**
-     * Post a runnable to be run in the next event loop on the thread which creates the corresponding Realm.
-     *
-     * @param runnable to be posted.
-     */
-    void post(Runnable runnable);
-
-    /**
-     * Is the current notifier valid? eg. Notifier created on non-looper thread cannot be notified.
-     *
-     * @return {@code true} if the thread which owns this notifier can be notified. Otherwise {@code false}
-     */
-    boolean isValid();
+    // Called from JavaBindingContext::before_notify.
+    // This will be called in the caller thread when:
+    // 1. Get changed notification by this/other Realm instances.
+    // 2. SharedRealm::refresh called.
+    // In both cases, this will be called before the any other callbacks (changed callbacks, async query callbacks.).
+    // Package protected to avoid finding class by name in JNI.
+    @SuppressWarnings("unused")
+    void beforeNotify() {
+        // For the stable iteration.
+        sharedRealm.invalidateIterators();
+    }
 
     /**
      * Called when close SharedRealm to clean up any event left in to queue.
      */
-    void close();
+    @Override
+    public void close() {
+        removeAllChangeListeners();
+    }
 
-    // FIXME: These are for decoupling handler from async query. Async query needs refactor to either adapt the OS or
-    //        abstract the logic from Android handlers.
-    void completeAsyncResults(QueryUpdateTask.Result result);
-    void completeAsyncObject(QueryUpdateTask.Result result);
-    void throwBackgroundException(Throwable throwable);
-    void completeUpdateAsyncQueries(QueryUpdateTask.Result result);
+    public <T> void addChangeListener(T observer, RealmChangeListener<T> realmChangeListener) {
+        RealmObserverPair observerPair = new RealmObserverPair<T>(observer, realmChangeListener);
+        realmObserverPairs.add(observerPair);
+    }
+
+    public <E> void removeChangeListener(E observer, RealmChangeListener<E> realmChangeListener) {
+        realmObserverPairs.remove(observer, realmChangeListener);
+    }
+
+    public <E> void removeChangeListeners(E observer) {
+       realmObserverPairs.removeByObserver(observer);
+    }
+
+    // Since RealmObject is using this notifier as well, use removeChangeListeners to remove all listeners by the given
+    // observer.
+    private void removeAllChangeListeners() {
+        realmObserverPairs.clear();
+    }
+
+    public void addTransactionCallback(Runnable runnable) {
+        transactionCallbacks.add(runnable);
+    }
+
+    /**
+     * For current implementation of async transaction only. See comments for {@link #transactionCallbacks}.
+     *
+     * @param runnable to be executed in the following event loop.
+     */
+    public abstract boolean post(Runnable runnable);
+
+    public int getListenersListSize() {
+        return realmObserverPairs.size();
+    }
 }

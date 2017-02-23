@@ -14,7 +14,6 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
 import java.io.IOException;
@@ -176,7 +175,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     public void realm$injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (NullTypesColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState<some.test.NullTypes>(some.test.NullTypes.class, this);
+        this.proxyState = new ProxyState<some.test.NullTypes>(this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
