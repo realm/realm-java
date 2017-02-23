@@ -1661,7 +1661,7 @@ public class RealmObjectTests {
      */
     @Test
     @RunTestInLooperThread
-    public void removeChangeListeners() {
+    public void removeAllChangeListeners() {
         final Realm realm = looperThread.realm;
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
@@ -1673,7 +1673,7 @@ public class RealmObjectTests {
                 assertTrue(false);
             }
         });
-        dog.removeChangeListeners();
+        dog.removeAllChangeListeners();
 
         realm.beginTransaction();
         Dog sameDog = realm.where(Dog.class).equalTo(Dog.FIELD_AGE, 13).findFirst();
@@ -1702,11 +1702,11 @@ public class RealmObjectTests {
 
     @Test
     @RunTestInLooperThread
-    public void removeChangeListeners_throwOnUnmanagedObject() {
+    public void removeAllChangeListeners_throwOnUnmanagedObject() {
         Dog dog = new Dog();
 
         try {
-            dog.removeChangeListeners();
+            dog.removeAllChangeListeners();
             fail("Failed to remove null listener.");
         } catch (IllegalArgumentException ignore) {
             looperThread.testComplete();

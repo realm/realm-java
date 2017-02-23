@@ -354,7 +354,6 @@ public abstract class RealmObject implements RealmModel {
         }
     }
 
-
     /**
      * Removes a previously registered listener.
      *
@@ -396,9 +395,31 @@ public abstract class RealmObject implements RealmModel {
 
     /**
      * Removes all registered listeners.
+     *
+     * @deprecated Use {@link #removeAllChangeListeners()} instead.
      */
+    @Deprecated
     public final void removeChangeListeners() {
         RealmObject.removeChangeListeners(this);
+    }
+
+    /**
+     * Removes all registered listeners.
+     */
+    public final void removeAllChangeListeners() {
+        RealmObject.removeAllChangeListeners(this);
+    }
+
+    /**
+     * Removes all registered listeners from the given RealmObject.
+     *
+     * @param object RealmObject to remove all listeners from.
+     * @throws IllegalArgumentException if object is {@code null} or isn't managed by Realm.
+     * @deprecated Use {@link RealmObject#removeAllChangeListeners(RealmModel)} instead.
+     */
+    @Deprecated
+    public static <E extends RealmModel> void removeChangeListeners(E object) {
+        removeAllChangeListeners(object);
     }
 
     /**
@@ -407,7 +428,7 @@ public abstract class RealmObject implements RealmModel {
      * @param object RealmObject to remove all listeners from.
      * @throws IllegalArgumentException if object is {@code null} or isn't managed by Realm.
      */
-    public static <E extends RealmModel> void removeChangeListeners(E object) {
+    public static <E extends RealmModel> void removeAllChangeListeners(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
