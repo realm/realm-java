@@ -50,9 +50,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 }
 #endif
 
-// Use this macro when logging a pointer using '%p'
-#define VOID_PTR(ptr) reinterpret_cast<void*>(ptr)
-
 #define STRINGIZE_DETAIL(x) #x
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
 
@@ -81,7 +78,6 @@ std::string num_to_string(T pNumber)
 #define B(x)    static_cast<bool>(x)
 #define S64(x)  static_cast<int64_t>(x)
 #define TBL(x)  reinterpret_cast<realm::Table*>(x)
-#define TV(x)   reinterpret_cast<realm::TableView*>(x)
 #define LV(x)   reinterpret_cast<realm::LinkViewRef*>(x)
 #define Q(x)    reinterpret_cast<realm::Query*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
