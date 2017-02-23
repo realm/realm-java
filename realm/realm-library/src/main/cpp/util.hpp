@@ -184,7 +184,7 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
 
     }
     if (!valid) {
-        realm::jni_util::Log::e("Table %1 is no longer attached!", VOID_PTR(objPtr));
+        realm::jni_util::Log::e("Table %1 is no longer attached!", reinterpret_cast<int64_t>(objPtr));
         ThrowException(env, IllegalState, "Table is no longer valid to operate on.");
     }
     return valid;
@@ -194,7 +194,7 @@ inline bool RowIsValid(JNIEnv* env, realm::Row* rowPtr)
 {
     bool valid = (rowPtr != NULL && rowPtr->is_attached());
     if (!valid) {
-        realm::jni_util::Log::e("Row %1 is no longer attached!", VOID_PTR(rowPtr));
+        realm::jni_util::Log::e("Row %1 is no longer attached!", reinterpret_cast<int64_t>(rowPtr));
         ThrowException(env, IllegalState, "Object is no longer valid to operate on. Was it deleted by another thread?");
     }
     return valid;
