@@ -348,6 +348,7 @@ public class Collection implements NativeObject {
         this.context = sharedRealm.context;
         this.table = linkView.getTable();
         this.context.addReference(this);
+        this.loaded = true;
     }
 
     private Collection(SharedRealm sharedRealm, Table table, long nativePtr) {
