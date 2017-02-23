@@ -93,7 +93,7 @@ public class OrderedCollectionChangeSetTests {
     }
 
     // The args should be [startIndex1, length1, startIndex2, length2, ...]
-    private void checkRanges(OrderedCollectionChangeSet.Range[] ranges, long... indexAndLen) {
+    private void checkRanges(OrderedCollectionChangeSet.Range[] ranges, int... indexAndLen) {
         if ((indexAndLen.length % 2 != 0))  {
             fail("The 'indexAndLen' array length is not an even number.");
         }
@@ -102,8 +102,8 @@ public class OrderedCollectionChangeSetTests {
         }
         for (int i = 0; i < ranges.length; i++) {
             OrderedCollectionChangeSet.Range range = ranges[i];
-            long startIndex = indexAndLen[i * 2];
-            long length = indexAndLen[i * 2 + 1];
+            int startIndex = indexAndLen[i * 2];
+            int length = indexAndLen[i * 2 + 1];
             if (range.startIndex != startIndex || range.length != length) {
                 fail("Range at index " + i + " doesn't match start index " + startIndex + " length " + length + ".");
             }
@@ -121,15 +121,15 @@ public class OrderedCollectionChangeSetTests {
     }
 
     // Deletes Dogs objects which's columnLong is in the indices array.
-    private void deleteObjects(Realm realm, long... indices) {
-        for (long index : indices) {
+    private void deleteObjects(Realm realm, int... indices) {
+        for (int index : indices) {
             realm.where(Dog.class).equalTo(Dog.FIELD_AGE, index).findFirst().deleteFromRealm();
         }
     }
 
     // Creates Dogs objects with columnLong set to the value elements in indices array.
-    private void createObjects(Realm realm, long... indices) {
-        for (long index : indices) {
+    private void createObjects(Realm realm, int... indices) {
+        for (int index : indices) {
             realm.createObject(Dog.class).setAge(index);
         }
         if (type == ObservablesType.REALM_LIST) {
@@ -138,15 +138,15 @@ public class OrderedCollectionChangeSetTests {
     }
 
     // Modifies Dogs objects which's columnLong is in the indices array.
-    private void modifyObjects(Realm realm, long... indices) {
-        for (long index : indices) {
+    private void modifyObjects(Realm realm, int... indices) {
+        for (int index : indices) {
             Dog obj = realm.where(Dog.class).equalTo(Dog.FIELD_AGE, index).findFirst();
             assertNotNull(obj);
             obj.setName("modified");
         }
     }
 
-    private void moveObjects(Realm realm, long originAge, long newAge) {
+    private void moveObjects(Realm realm, int originAge, int newAge) {
         realm.where(Dog.class).equalTo(Dog.FIELD_AGE, originAge).findFirst().setAge(newAge);
         if (type == ObservablesType.REALM_LIST) {
             reorderRealmList(realm);

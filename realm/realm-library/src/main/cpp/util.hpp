@@ -31,7 +31,6 @@
 #include <realm/timestamp.hpp>
 #include <realm/util/meta.hpp>
 #include <realm/util/safe_int_ops.hpp>
-#include <realm/sync/client.hpp>
 
 #include <util/format.hpp>
 
@@ -86,8 +85,6 @@ std::string num_to_string(T pNumber)
 #define Q(x)    reinterpret_cast<realm::Query*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
-#define SC(ptr) reinterpret_cast<realm::sync::Client*>(ptr)
-#define SS(ptr) reinterpret_cast<JniSession*>(ptr)
 
 // Exception handling
 enum ExceptionKind {

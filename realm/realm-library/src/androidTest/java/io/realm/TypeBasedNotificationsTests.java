@@ -569,8 +569,6 @@ public class TypeBasedNotificationsTests {
     // UC 1 Sync RealmResults.
     @Test
     @RunTestInLooperThread
-    @Ignore("Flaky test because of Object Store always run Results query callbacks even " +
-            "if the query returned and nothing changes.")
     public void callback_with_relevant_commit_realmresults_sync() {
         final Realm realm = looperThread.realm;
 
@@ -581,8 +579,6 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
-        // Execute the query.
-        dogs.first();
         looperThread.keepStrongReference.add(dogs);
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
@@ -754,18 +750,6 @@ public class TypeBasedNotificationsTests {
     public void multiple_callbacks_should_be_invoked_realmresults_sync() {
         final int NUMBER_OF_LISTENERS = 7;
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener<Realm>() {
-            @Override
-            public void onChange(Realm object) {
-                looperThread.postRunnable(new Runnable() {
-                    @Override
-                    public void run() {
-                        assertEquals(NUMBER_OF_LISTENERS, typebasedCommitInvocations.get());
-                        looperThread.testComplete();
-                    }
-                });
-            }
-        });
 
         realm.beginTransaction();
         Dog akamaru = realm.createObject(Dog.class);
@@ -776,8 +760,12 @@ public class TypeBasedNotificationsTests {
         for (int i = 0; i < NUMBER_OF_LISTENERS; i++) {
             dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
                 @Override
-                public void onChange(RealmResults<Dog> object) {
-                    typebasedCommitInvocations.incrementAndGet();
+                public void onChange(RealmResults<Dog> results) {
+                    assertEquals(17, results.first().getAge());
+                    if (typebasedCommitInvocations.incrementAndGet() == NUMBER_OF_LISTENERS) {
+                        looperThread.testComplete();
+                    }
+                    assertTrue(typebasedCommitInvocations.get() <= NUMBER_OF_LISTENERS);
                 }
             });
         }
@@ -1170,8 +1158,6 @@ public class TypeBasedNotificationsTests {
     // "invalid" RealmResults.
     @Test
     @RunTestInLooperThread
-    // FIXME: https://github.com/realm/realm-core/pull/2385
-    @Ignore("Enable this after core 2.3.1 released!!")
     public void changeListener_onResultsBuiltOnDeletedLinkView() {
         final Realm realm = looperThread.realm;
         realm.beginTransaction();
