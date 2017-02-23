@@ -49,6 +49,7 @@ import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.entities.Thread;
 import io.realm.entities.migration.MigrationClassRenamed;
+import io.realm.entities.migration.MigrationFieldRenameAndAdd;
 import io.realm.entities.migration.MigrationFieldRenamed;
 import io.realm.entities.migration.MigrationFieldTypeToInt;
 import io.realm.entities.migration.MigrationFieldTypeToInteger;
@@ -1207,6 +1208,30 @@ public class RealmMigrationTests {
         RealmConfiguration config = configFactory.createConfiguration();
         thrown.expect(FileNotFoundException.class);
         Realm.migrateRealm(config, migration);
+    }
+
+    @Test
+    public void renameAndAddField() {
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                realm.schema.get("MigrationFieldRenameAndAdd")
+                        .renameField("string1", "string2")
+                        .addField("string1", String.class);
+            }
+        };
+
+        RealmConfiguration config = new RealmConfiguration.Builder()
+                .schema(MigrationFieldRenameAndAdd.class)
+                .schemaVersion(2)
+                .migration(migration)
+                .assetFile("rename-add-add.realm")
+                .build();
+
+        Realm realm = Realm.getInstance(config);
+        assertTrue(realm.getSchema().get("MigrationFieldRenameAndAdd").hasField("string1"));
+        assertTrue(realm.getSchema().get("MigrationFieldRenameAndAdd").hasField("string1"));
+        realm.close();
     }
 
     // TODO Add unit tests for default nullability
