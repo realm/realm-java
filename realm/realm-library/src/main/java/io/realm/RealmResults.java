@@ -20,6 +20,7 @@ package io.realm;
 import android.os.Looper;
 
 import io.realm.internal.Collection;
+import io.realm.internal.SortDescriptor;
 import rx.Observable;
 
 /**
