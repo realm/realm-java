@@ -73,7 +73,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_n
   (JNIEnv *, jobject, jlong sessionPointer)
 {
     TR_ENTER()
-    JniSession* session = SS(sessionPointer);
+    JniSession* session = reinterpret_cast<JniSession*>(sessionPointer);
     delete session; // TODO Can we avoid killing the session here?
 }
 
@@ -82,7 +82,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_n
 {
     TR_ENTER()
     try {
-        JniSession* session_wrapper = SS(sessionPointer);
+        JniSession* session_wrapper = reinterpret_cast<JniSession*>(sessionPointer);
 
         JStringAccessor token_tmp(env, accessToken); // throws
         StringData access_token = StringData(token_tmp);
@@ -97,7 +97,7 @@ Java_io_realm_internal_objectserver_ObjectServerSession_nativeNotifyCommitHappen
 {
     TR_ENTER()
     try {
-        JniSession* session_wrapper = SS(sessionPointer);
+        JniSession* session_wrapper = reinterpret_cast<JniSession*>(sessionPointer);
         session_wrapper->get_session()->nonsync_transact_notify(version);
     } CATCH_STD()
 }
