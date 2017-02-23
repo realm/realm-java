@@ -979,7 +979,7 @@ public class RealmResultsTests extends CollectionTests {
     @UiThreadTest
     public void addChangeListener_null() {
         try {
-            collection.addChangeListener(null);
+            collection.addChangeListener((RealmChangeListener<RealmResults<AllTypes>>) null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -1024,7 +1024,7 @@ public class RealmResultsTests extends CollectionTests {
     @UiThreadTest
     public void removeChangeListener_null() {
         try {
-            collection.removeChangeListener(null);
+            collection.removeChangeListener((RealmChangeListener) null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -1053,7 +1053,7 @@ public class RealmResultsTests extends CollectionTests {
         looperThread.keepStrongReference.add(collection);
         collection.addChangeListener(listenerA);
         collection.addChangeListener(listenerB);
-        collection.removeChangeListeners();
+        collection.removeAllChangeListeners();
 
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
