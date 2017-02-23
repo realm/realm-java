@@ -74,8 +74,9 @@ std::string num_to_string(T pNumber)
 #define MAX_JINT   0x7FFFFFFFL
 #define MAX_JSIZE  MAX_JINT
 
+// TODO: Clean up those marcos. Casting with marcos reduces the readability, and it is actually breaking the C++ type
+// conversion. e.g.: You cannot cast a pointer with S64 below.
 // Helper macros for better readability
-// Use S64() when logging
 #define S(x)    static_cast<size_t>(x)
 #define B(x)    static_cast<bool>(x)
 #define S64(x)  static_cast<int64_t>(x)
