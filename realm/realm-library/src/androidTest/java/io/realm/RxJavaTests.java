@@ -31,8 +31,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import dk.ilios.spanner.All;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -124,30 +126,6 @@ public class RxJavaTests {
     }
 
     @Test
-    @RunTestInLooperThread
-    public void realmObject_emittedOnDelete() {
-        final AtomicInteger subscriberCalled = new AtomicInteger(0);
-        Realm realm = looperThread.realm;
-        realm.beginTransaction();
-        final AllTypes obj = realm.createObject(AllTypes.class);
-        realm.commitTransaction();
-
-        subscription = obj.<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
-            @Override
-            public void call(AllTypes rxObject) {
-                if (subscriberCalled.incrementAndGet() == 2) {
-                    assertFalse(rxObject.isValid());
-                    looperThread.testComplete();
-                }
-            }
-        });
-
-        realm.beginTransaction();
-        obj.deleteFromRealm();
-        realm.commitTransaction();
-    }
-
-    @Test
     @UiThreadTest
     public void findFirst_emittedOnSubscribe() {
         realm.beginTransaction();
@@ -206,6 +184,44 @@ public class RxJavaTests {
         realm.beginTransaction();
         obj.setColumnLong(1);
         realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void findFirstAsync_emittedOnDelete() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        final Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        final AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        subscription = realm.where(AllTypes.class).findFirstAsync().<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
+            @Override
+            public void call(final AllTypes rxObject) {
+                switch (subscriberCalled.incrementAndGet()) {
+                    case 1:
+                        assertFalse(rxObject.isLoaded());
+                        break;
+                    case 2:
+                        assertTrue(rxObject.isLoaded());
+                        assertTrue(rxObject.isValid());
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.delete(AllTypes.class);
+                            }
+                        });
+                        break;
+                    case 3:
+                        assertTrue(rxObject.isLoaded());
+                        assertFalse(rxObject.isValid());
+                        looperThread.testComplete();
+                        break;
+                    default:
+                        fail();
+                }
+            }
+        });
     }
 
     @Test
