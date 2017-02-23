@@ -47,7 +47,6 @@ import io.realm.RealmResults;
 import io.realm.examples.unittesting.model.Person;
 import io.realm.internal.RealmCore;
 import io.realm.internal.Util;
-import io.realm.log.Logger;
 import io.realm.log.RealmLog;
 
 import static org.hamcrest.CoreMatchers.is;
