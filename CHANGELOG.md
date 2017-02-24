@@ -10,6 +10,7 @@
 ### Deprecated
 
 * `RealmResults.removeChangeListeners()`. Use `RealmResults.removeAllChangeListeners()` instead.
+* `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
 
 ### Enhancements
 
