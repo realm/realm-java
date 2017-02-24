@@ -252,7 +252,7 @@ public class Collection implements NativeObject {
     private final SharedRealm sharedRealm;
     private final Context context;
     private final Table table;
-    private boolean loaded = false;
+    private boolean loaded;
     private boolean isSnapshot = false;
     private final ObserverPairList<CollectionObserverPair> observerPairs =
             new ObserverPairList<CollectionObserverPair>();
@@ -330,6 +330,7 @@ public class Collection implements NativeObject {
         this.context = sharedRealm.context;
         this.table = query.getTable();
         this.context.addReference(this);
+        this.loaded = false;
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor) {
@@ -348,6 +349,9 @@ public class Collection implements NativeObject {
         this.context = sharedRealm.context;
         this.table = linkView.getTable();
         this.context.addReference(this);
+        // Collection created from LinkView is loaded by default. So that the listener will be triggered first time
+        // with empty change set.
+        this.loaded = true;
     }
 
     private Collection(SharedRealm sharedRealm, Table table, long nativePtr) {
@@ -355,8 +359,8 @@ public class Collection implements NativeObject {
         this.context = sharedRealm.context;
         this.table = table;
         this.nativePtr = nativePtr;
-
         this.context.addReference(this);
+        this.loaded = false;
     }
 
     public Collection createSnapshot() {
