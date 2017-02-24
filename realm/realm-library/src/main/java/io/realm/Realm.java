@@ -47,7 +47,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.Capabilities;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.ObjectServerFacade;
@@ -1294,7 +1293,7 @@ public class Realm extends BaseRealm {
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener<Realm> listener) {
-        super.removeListener(listener);
+        removeListener(listener);
     }
 
     /**
@@ -1304,7 +1303,7 @@ public class Realm extends BaseRealm {
      * @see io.realm.RealmChangeListener
      */
     public void removeAllChangeListeners() {
-        super.removeAllListeners();
+        removeAllListeners();
     }
 
     /**
