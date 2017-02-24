@@ -1,13 +1,14 @@
-## 2.3.2
+## 2.3.2 (YYYY-MM-DD)
 
 ### Bug fixes
 
 * Fixed log levels in JNI layer (#4204).
+* Fixed a bug in encryption (#4128).
 
 ### Internal
 
-* Updated to Realm Sync v1.0.4.
-* Updated to Realm Core v2.3.1.
+* Updated to Realm Sync v1.2.1.
+* Updated to Realm Core v2.3.2.
 
 ### Enhancements
 
