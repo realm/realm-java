@@ -42,7 +42,7 @@ import rx.Observable;
  * @see Realm
  * @see RealmSchema
  */
-public class DynamicRealm extends BaseRealm implements RealmObservable<DynamicRealm> {
+public class DynamicRealm extends BaseRealm {
 
     private DynamicRealm(RealmConfiguration configuration) {
         super(configuration);
@@ -134,23 +134,28 @@ public class DynamicRealm extends BaseRealm implements RealmObservable<DynamicRe
      * @see #removeAllChangeListeners()
      * @see #waitForChange()
      */
-    @Override
     public void addChangeListener(RealmChangeListener<DynamicRealm> listener) {
         super.addListener(listener);
     }
 
     /**
-     * {@inheritDoc}
+     * Removes the specified change listener.
+     *
+     * @param listener the change listener to be removed.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
      */
-    @Override
     public void removeChangeListener(RealmChangeListener<DynamicRealm> listener) {
         super.removeListener(listener);
     }
 
     /**
-     * {@inheritDoc}
+     * Removes all user-defined change listeners.
+     *
+     * @throws IllegalStateException if you try to remove listeners from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
      */
-    @Override
     public void removeAllChangeListeners() {
         super.removeAllListeners();
     }

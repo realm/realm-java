@@ -49,9 +49,7 @@ import io.realm.internal.RealmObjectProxy;
  * @param <E> the class of objects in list.
  */
 
-public class RealmList<E extends RealmModel> extends AbstractList<E>
-        implements OrderedRealmCollection<E>,
-        RealmCollectionObservable<RealmList<E>, OrderedRealmCollectionChangeListener<RealmList<E>>> {
+public class RealmList<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
@@ -851,45 +849,63 @@ public class RealmList<E extends RealmModel> extends AbstractList<E>
     }
 
     /**
-     * {@inheritDoc}
+     * Adds a change listener to this {@link RealmList}.
+     *
+     * @param listener the change listener to be notified.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException if you try to add a listener from a non-Looper or
+     * {@link android.app.IntentService} thread.
      */
-    @Override
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
         collection.addListener(this, listener);
     }
 
     /**
-     * {@inheritDoc}
+     * Removes the specified change listener.
+     *
+     * @param listener the change listener to be removed.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
      */
-    @Override
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
         collection.removeListener(this, listener);
     }
 
     /**
-     * {@inheritDoc}
+     * Adds a change listener to this {@link RealmList}.
+     *
+     * @param listener the change listener to be notified.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException if you try to add a listener from a non-Looper or
+     * {@link android.app.IntentService} thread.
      */
-    @Override
     public void addChangeListener(RealmChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
         collection.addListener(this, listener);
     }
 
     /**
-     * {@inheritDoc}
+     * Removes the specified change listener.
+     *
+     * @param listener the change listener to be removed.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
      */
-    @Override
     public void removeChangeListener(RealmChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
         collection.removeListener(this, listener);
     }
 
     /**
-     * {@inheritDoc}
+     * Removes all user-defined change listeners.
+     *
+     * @throws IllegalStateException if you try to remove listeners from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
      */
-    @Override
     public void removeAllChangeListeners() {
         checkForAddRemoveListener(null, false);
         collection.removeAllListeners();
