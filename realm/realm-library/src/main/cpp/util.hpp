@@ -31,7 +31,6 @@
 #include <realm/timestamp.hpp>
 #include <realm/util/meta.hpp>
 #include <realm/util/safe_int_ops.hpp>
-#include <realm/sync/client.hpp>
 
 #include <util/format.hpp>
 
@@ -50,9 +49,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 #ifdef __cplusplus
 }
 #endif
-
-// Use this macro when logging a pointer using '%p'
-#define VOID_PTR(ptr) reinterpret_cast<void*>(ptr)
 
 #define STRINGIZE_DETAIL(x) #x
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
@@ -75,8 +71,9 @@ std::string num_to_string(T pNumber)
 #define MAX_JINT   0x7FFFFFFFL
 #define MAX_JSIZE  MAX_JINT
 
+// TODO: Clean up those marcos. Casting with marcos reduces the readability, and it is actually breaking the C++ type
+// conversion. e.g.: You cannot cast a pointer with S64 below.
 // Helper macros for better readability
-// Use S64() when logging
 #define S(x)    static_cast<size_t>(x)
 #define B(x)    static_cast<bool>(x)
 #define S64(x)  static_cast<int64_t>(x)
@@ -86,8 +83,6 @@ std::string num_to_string(T pNumber)
 #define Q(x)    reinterpret_cast<realm::Query*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
-#define SC(ptr) reinterpret_cast<realm::sync::Client*>(ptr)
-#define SS(ptr) reinterpret_cast<JniSession*>(ptr)
 
 // Exception handling
 enum ExceptionKind {
@@ -187,7 +182,7 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
 
     }
     if (!valid) {
-        realm::jni_util::Log::e("Table %1 is no longer attached!", VOID_PTR(objPtr));
+        realm::jni_util::Log::e("Table %1 is no longer attached!", reinterpret_cast<int64_t>(objPtr));
         ThrowException(env, IllegalState, "Table is no longer valid to operate on.");
     }
     return valid;
@@ -197,7 +192,7 @@ inline bool RowIsValid(JNIEnv* env, realm::Row* rowPtr)
 {
     bool valid = (rowPtr != NULL && rowPtr->is_attached());
     if (!valid) {
-        realm::jni_util::Log::e("Row %1 is no longer attached!", VOID_PTR(rowPtr));
+        realm::jni_util::Log::e("Row %1 is no longer attached!", reinterpret_cast<int64_t>(rowPtr));
         ThrowException(env, IllegalState, "Object is no longer valid to operate on. Was it deleted by another thread?");
     }
     return valid;
