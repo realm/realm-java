@@ -30,6 +30,7 @@ import java.util.NoSuchElementException;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
+import rx.Observable;
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
@@ -838,6 +839,47 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         }
         sb.append("]");
         return sb.toString();
+    }
+
+
+    /**
+     * Returns an Rx Observable that monitors changes to this RealmList. It will emit the current RealmList when
+     * subscribed to. RealmList will continually be emitted as the RealmList is updated -
+     * {@code onComplete} will never be called.
+     *
+     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * only emit only the first item by using the {@code first()} operator:
+     *
+     *<pre>
+     * {@code
+     * list.asObservable()
+     *      .first()
+     *      .subscribe( ... ) // You only get the results once
+     * }
+     * </pre>
+     *
+     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
+     * with {@code subscribeOn()} and {@code observeOn()}.
+     *
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    @SuppressWarnings("unchecked")
+    public Observable<RealmList<E>> asObservable() {
+        if (realm instanceof Realm) {
+            return realm.configuration.getRxFactory().from((Realm) realm, this);
+        } else if (realm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+            RealmList<DynamicRealmObject> dynamicList = (RealmList<DynamicRealmObject>) this;
+            @SuppressWarnings("UnnecessaryLocalVariable")
+            Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicList);
+            return results;
+        } else {
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava.");
+        }
     }
 
     private void checkForAddRemoveListener(Object listener, boolean checkListener) {

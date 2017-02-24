@@ -16,7 +16,8 @@
 
 * Added support for sorting by link's field (#672).
 * Added `OrderedRealmCollectionSnapshot` class and `OrderedRealmCollection.createSnapshot()` method. `OrderedRealmCollectionSnapshot` is useful when changing `RealmResults` or `RealmList` in simple loops.
-* Added support for adding listeners on `RealmList`.
+* Added support for ChangeListeners on `RealmList`.
+* Added `RealmList.asObservable()`.
 
 ### Internal
 

@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
+import io.realm.entities.Dog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -240,6 +241,24 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
+    public void realmList_emittedOnSubscribe() {
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        realm.beginTransaction();
+        final RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
+        realm.commitTransaction();
+        subscription = list.asObservable().subscribe(new Action1<RealmList<Dog>>() {
+            @Override
+            public void call(RealmList<Dog> rxList) {
+                assertTrue(rxList == list);
+                subscribedNotified.set(true);
+            }
+        });
+        assertTrue(subscribedNotified.get());
+        subscription.unsubscribe();
+    }
+
+    @Test
+    @UiThreadTest
     public void dynamicRealmResults_emittedOnSubscribe() {
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
@@ -276,6 +295,30 @@ public class RxJavaTests {
 
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void realmList_emittedOnUpdate() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        final RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
+        realm.commitTransaction();
+
+        subscription = list.asObservable().subscribe(new Action1<RealmList<Dog>>() {
+            @Override
+            public void call(RealmList<Dog> dogs) {
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    assertEquals(1, list.size());
+                    looperThread.testComplete();
+                }
+            }
+        });
+
+        realm.beginTransaction();
+        list.add(new Dog());
         realm.commitTransaction();
     }
 
@@ -542,6 +585,29 @@ public class RxJavaTests {
         subscription = observable.subscribe(new Action1<RealmResults<AllTypes>>() {
             @Override
             public void call(RealmResults<AllTypes> allTypes) {
+            }
+        });
+
+        subscription.unsubscribe();
+        assertTrue(realm.isClosed());
+    }
+
+    @Test
+    @UiThreadTest
+    public void realmList_closeInDoOnUnsubscribe() {
+        realm.beginTransaction();
+        RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
+        realm.commitTransaction();
+
+        Observable<RealmList<Dog>> observable = list.asObservable().doOnUnsubscribe(new Action0() {
+            @Override
+            public void call() {
+                realm.close();
+            }
+        });
+        subscription = observable.subscribe(new Action1<RealmList<Dog>>() {
+            @Override
+            public void call(RealmList<Dog> dogs) {
             }
         });
 
