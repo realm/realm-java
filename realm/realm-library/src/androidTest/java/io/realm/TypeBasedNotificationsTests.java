@@ -1053,22 +1053,23 @@ public class TypeBasedNotificationsTests {
     public void multiple_callbacks_should_be_invoked_realmresults_async() {
         final int NUMBER_OF_LISTENERS = 7;
         final Realm realm = looperThread.realm;
+
+        realm.beginTransaction();
+        Dog akamaru = realm.createObject(Dog.class);
+        realm.commitTransaction();
+
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
-                looperThread.postRunnable(new Runnable() {
+                looperThread.postRunnableDelayed(new Runnable() {
                     @Override
                     public void run() {
                         assertEquals(NUMBER_OF_LISTENERS, typebasedCommitInvocations.get());
                         looperThread.testComplete();
                     }
-                });
+                }, 100L /* wait for listeners in RealmResults. Next run loop is not enough. */);
             }
         });
-
-        realm.beginTransaction();
-        Dog akamaru = realm.createObject(Dog.class);
-        realm.commitTransaction();
 
         RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
         assertTrue(dogs.load());
