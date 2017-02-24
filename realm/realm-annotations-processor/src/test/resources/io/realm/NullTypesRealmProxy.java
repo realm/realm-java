@@ -169,13 +169,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     NullTypesRealmProxy() {
-        if (proxyState == null) {
-            injectObjectContext();
-        }
         proxyState.setConstructionFinished();
     }
 
-    private void injectObjectContext() {
+    @Override
+    public void realm$injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (NullTypesColumnInfo) context.getColumnInfo();
         this.proxyState = new ProxyState<some.test.NullTypes>(some.test.NullTypes.class, this);
@@ -187,21 +185,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public String realmGet$fieldStringNotNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.fieldStringNotNullIndex);
     }
 
     public void realmSet$fieldStringNotNull(String value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -223,21 +211,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public String realmGet$fieldStringNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.fieldStringNullIndex);
     }
 
     public void realmSet$fieldStringNull(String value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -261,21 +239,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Boolean realmGet$fieldBooleanNotNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.fieldBooleanNotNullIndex);
     }
 
     public void realmSet$fieldBooleanNotNull(Boolean value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -297,11 +265,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Boolean realmGet$fieldBooleanNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldBooleanNullIndex)) {
             return null;
@@ -310,11 +273,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldBooleanNull(Boolean value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -338,21 +296,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public byte[] realmGet$fieldBytesNotNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (byte[]) proxyState.getRow$realm().getBinaryByteArray(columnInfo.fieldBytesNotNullIndex);
     }
 
     public void realmSet$fieldBytesNotNull(byte[] value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -374,21 +322,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public byte[] realmGet$fieldBytesNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (byte[]) proxyState.getRow$realm().getBinaryByteArray(columnInfo.fieldBytesNullIndex);
     }
 
     public void realmSet$fieldBytesNull(byte[] value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -412,21 +350,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Byte realmGet$fieldByteNotNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (byte) proxyState.getRow$realm().getLong(columnInfo.fieldByteNotNullIndex);
     }
 
     public void realmSet$fieldByteNotNull(Byte value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -448,11 +376,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Byte realmGet$fieldByteNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldByteNullIndex)) {
             return null;
@@ -461,11 +384,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldByteNull(Byte value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -489,21 +407,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Short realmGet$fieldShortNotNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (short) proxyState.getRow$realm().getLong(columnInfo.fieldShortNotNullIndex);
     }
 
     public void realmSet$fieldShortNotNull(Short value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -525,11 +433,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Short realmGet$fieldShortNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldShortNullIndex)) {
             return null;
@@ -538,11 +441,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldShortNull(Short value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -566,21 +464,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Integer realmGet$fieldIntegerNotNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (int) proxyState.getRow$realm().getLong(columnInfo.fieldIntegerNotNullIndex);
     }
 
     public void realmSet$fieldIntegerNotNull(Integer value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -602,11 +490,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Integer realmGet$fieldIntegerNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldIntegerNullIndex)) {
             return null;
@@ -615,11 +498,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldIntegerNull(Integer value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -643,21 +521,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Long realmGet$fieldLongNotNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (long) proxyState.getRow$realm().getLong(columnInfo.fieldLongNotNullIndex);
     }
 
     public void realmSet$fieldLongNotNull(Long value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -679,11 +547,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Long realmGet$fieldLongNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldLongNullIndex)) {
             return null;
@@ -692,11 +555,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldLongNull(Long value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -720,21 +578,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Float realmGet$fieldFloatNotNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (float) proxyState.getRow$realm().getFloat(columnInfo.fieldFloatNotNullIndex);
     }
 
     public void realmSet$fieldFloatNotNull(Float value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -756,11 +604,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Float realmGet$fieldFloatNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldFloatNullIndex)) {
             return null;
@@ -769,11 +612,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldFloatNull(Float value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -797,21 +635,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Double realmGet$fieldDoubleNotNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (double) proxyState.getRow$realm().getDouble(columnInfo.fieldDoubleNotNullIndex);
     }
 
     public void realmSet$fieldDoubleNotNull(Double value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -833,11 +661,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Double realmGet$fieldDoubleNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldDoubleNullIndex)) {
             return null;
@@ -846,11 +669,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldDoubleNull(Double value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -874,21 +692,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Date realmGet$fieldDateNotNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (java.util.Date) proxyState.getRow$realm().getDate(columnInfo.fieldDateNotNullIndex);
     }
 
     public void realmSet$fieldDateNotNull(Date value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -910,11 +718,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Date realmGet$fieldDateNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldDateNullIndex)) {
             return null;
@@ -923,11 +726,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldDateNull(Date value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -950,11 +748,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public some.test.NullTypes realmGet$fieldObjectNull() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNullLink(columnInfo.fieldObjectNullIndex)) {
             return null;
@@ -963,11 +756,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldObjectNull(some.test.NullTypes value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
