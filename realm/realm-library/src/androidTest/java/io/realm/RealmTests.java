@@ -1032,6 +1032,22 @@ public class RealmTests {
     }
 
     @Test
+    public void compactRealm_onExternalStorage() {
+        final File externalFilesDir = context.getExternalFilesDir(null);
+        final RealmConfiguration config = new RealmConfiguration.Builder()
+                .directory(externalFilesDir)
+                .name("external.realm")
+                .build();
+        Realm.deleteRealm(config);
+        Realm realm = Realm.getInstance(config);
+        realm.close();
+        assertTrue(Realm.compactRealm(config));
+        realm = Realm.getInstance(config);
+        realm.close();
+        Realm.deleteRealm(config);
+    }
+
+    @Test
     public void copyToRealm_null() {
         realm.beginTransaction();
         try {
