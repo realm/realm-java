@@ -208,6 +208,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @deprecated use {@link RealmQuery#distinct(String)} on the return value of {@link #where()} instead. This will
      * be removed in coming 3.x.x minor releases.
      */
+    @Deprecated
     public RealmResults<E> distinct(String fieldName) {
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(collection.getTable(), fieldName);
         Collection distinctCollection = collection.distinct(distinctDescriptor);
@@ -218,6 +219,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @deprecated use {@link RealmQuery#distinctAsync(String)} on the return value of {@link #where()} instead. This
      * will be removed in coming 3.x.x minor releases.
      */
+    @Deprecated
     public RealmResults<E> distinctAsync(String fieldName) {
         return where().distinctAsync(fieldName);
     }
@@ -226,6 +228,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @deprecated use {@link RealmQuery#distinct(String, String...)} on the return value of {@link #where()} instead.
      * This will be removed in coming 3.x.x minor releases.
      */
+    @Deprecated
     public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
         return where().distinct(firstFieldName, remainingFieldNames);
     }
