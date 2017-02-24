@@ -1605,6 +1605,27 @@ public class RealmObjectTests {
 
     @Test
     @RunTestInLooperThread
+    public void changeListener_triggeredWhenObjectIsdeleted() {
+        final Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        obj.addChangeListener(new RealmChangeListener<AllTypes>() {
+            @Override
+            public void onChange(AllTypes obj) {
+                assertFalse(obj.isValid());
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        obj.deleteFromRealm();
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
     public void addChangeListener_throwOnUnmanagedObject() {
         Dog dog = new Dog();
 

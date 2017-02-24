@@ -44,6 +44,7 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -182,6 +183,44 @@ public class RxJavaTests {
         realm.beginTransaction();
         obj.setColumnLong(1);
         realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void findFirstAsync_emittedOnDelete() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        final Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        final AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        subscription = realm.where(AllTypes.class).findFirstAsync().<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
+            @Override
+            public void call(final AllTypes rxObject) {
+                switch (subscriberCalled.incrementAndGet()) {
+                    case 1:
+                        assertFalse(rxObject.isLoaded());
+                        break;
+                    case 2:
+                        assertTrue(rxObject.isLoaded());
+                        assertTrue(rxObject.isValid());
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.delete(AllTypes.class);
+                            }
+                        });
+                        break;
+                    case 3:
+                        assertTrue(rxObject.isLoaded());
+                        assertFalse(rxObject.isValid());
+                        looperThread.testComplete();
+                        break;
+                    default:
+                        fail();
+                }
+            }
+        });
     }
 
     @Test

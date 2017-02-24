@@ -1,9 +1,11 @@
-## 2.4.0
+## 2.4.0 (YYYY-MM-DD)
 
 ### Breaking changes
 
 * `RealmResults.distinct()` returns a new `RealmResults` object instead of filtering on the original object (#2947).
 * `RealmResults` is auto-updated continuously. Any transaction on the current thread which may have an impact on the order or elements of the `RealmResults` will change the `RealmResults` immediately instead of change it in the next event loop. The standard `RealmResults.iterator()` will continue to work as normal, which means that you can still delete or modify elements without impacting the iterator. The same is not true for simple for-loops. In some cases a simple for-loop will not work (https://realm.io/docs/java/3.0.0/api/io/realm/OrderedRealmCollection.html#loops), and you must use the new createSnapshot() method.
+* `RealmChangeListener` on `RealmObject` will now also be triggered when the object is deleted. Use `RealmObject.isValid()` to check this state(#3138).
+* `RealmObject.asObservable()` will now emit the object when it is deleted. Use `RealmObject.isValid()` to check this state (#3138).
 
 ### Deprecated
 
@@ -13,7 +15,7 @@
 
 * Added support for sorting by link's field (#672).
 * Added `OrderedRealmCollectionSnapshot` class and `OrderedRealmCollection.createSnapshot()` method. `OrderedRealmCollectionSnapshot` is useful when changing `RealmResults` or `RealmList` in simple loops.
-* Added support for adding listeners on `RealmList`.
+* Added support for ChangeListeners on `RealmList`.
 * Added `RealmList.asObservable()`.
 
 ### Internal
@@ -22,16 +24,17 @@
   - Use Object Store's notification mechanism to trigger listeners.
   - Local commit triggers Realm global listener and `RealmObject` listener on current thread immediately instead of in the next event loop.
 
-## 2.3.2
+## 2.3.2 (YYYY-MM-DD)
 
 ### Bug fixes
 
 * Fixed log levels in JNI layer (#4204).
+* Fixed a bug in encryption (#4128).
 
 ### Internal
 
-* Updated to Realm Sync v1.0.4.
-* Updated to Realm Core v2.3.1.
+* Updated to Realm Sync v1.2.1.
+* Updated to Realm Core v2.3.2.
 
 ### Enhancements
 
