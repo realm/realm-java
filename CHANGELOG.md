@@ -1,4 +1,4 @@
-## 2.4.0
+## 2.4.0 (YYYY-MM-DD)
 
 ### Breaking changes
 
@@ -20,7 +20,7 @@
   - Use Object Store's notification mechanism to trigger listeners.
   - Local commit triggers Realm global listener and `RealmObject` listener on current thread immediately instead of in the next event loop.
 
-## 2.3.2
+## 2.3.2 (YYYY-MM-DD)
 
 ### Bug fixes
 
