@@ -16,17 +16,19 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import io.realm.entities.AllTypes;
+import io.realm.entities.Dog;
+import io.realm.entities.Owner;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -38,15 +40,33 @@ import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertArrayEquals;
 
-// Tests for the ordered collection fine grained notifications.
-// This should be expanded to test the notifications for RealmList as well in the future.
-@RunWith(AndroidJUnit4.class)
+// Tests for the ordered collection fine grained notifications for both RealmResults and RealmList.
+@RunWith(Parameterized.class)
 public class OrderedCollectionChangeSetTests {
+
+    private enum ObservablesType {
+        REALM_RESULTS, REALM_LIST
+    }
+
+    private interface ChangesCheck {
+        void check(OrderedCollectionChangeSet changeSet);
+    }
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
+
+    private final ObservablesType type;
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<ObservablesType> data() {
+        return Arrays.asList(ObservablesType.values());
+    }
+
+    public OrderedCollectionChangeSetTests(ObservablesType type) {
+        this.type = type;
+    }
 
     @Before
     public void setUp() {
@@ -57,9 +77,17 @@ public class OrderedCollectionChangeSetTests {
     }
 
     private void populateData(Realm realm, int testSize) {
+        Owner owner = null;
         realm.beginTransaction();
+        if (type == ObservablesType.REALM_LIST) {
+            owner = realm.createObject(Owner.class);
+        }
         for (int i = 0; i < testSize; i++) {
-            realm.createObject(AllTypes.class).setColumnLong(i);
+            Dog dog = realm.createObject(Dog.class);
+            dog.setAge(i);
+            if (type == ObservablesType.REALM_LIST) {
+                owner.getDogs().add(dog);
+            }
         }
         realm.commitTransaction();
     }
@@ -82,26 +110,71 @@ public class OrderedCollectionChangeSetTests {
         }
     }
 
-    // Deletes AllTypes objects which's columnLong is in the indices array.
+    // Re-adds the dogs so they would be sorted by age in the list.
+    private void reorderRealmList(Realm realm) {
+        RealmResults<Dog> dogs = realm.where(Dog.class).findAllSorted(Dog.FIELD_AGE);
+        Owner owner = realm.where(Owner.class).findFirst();
+        owner.getDogs().clear();
+        for (Dog dog : dogs) {
+            owner.getDogs().add(dog);
+        }
+    }
+
+    // Deletes Dogs objects which's columnLong is in the indices array.
     private void deleteObjects(Realm realm, int... indices) {
         for (int index : indices) {
-            realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, index).findFirst().deleteFromRealm();
+            realm.where(Dog.class).equalTo(Dog.FIELD_AGE, index).findFirst().deleteFromRealm();
         }
     }
 
-    // Creates AllTypes objects with columnLong set to the value elements in indices array.
+    // Creates Dogs objects with columnLong set to the value elements in indices array.
     private void createObjects(Realm realm, int... indices) {
         for (int index : indices) {
-            realm.createObject(AllTypes.class).setColumnLong(index);
+            realm.createObject(Dog.class).setAge(index);
+        }
+        if (type == ObservablesType.REALM_LIST) {
+            reorderRealmList(realm);
         }
     }
 
-    // Modifies AllTypes objects which's columnLong is in the indices array.
+    // Modifies Dogs objects which's columnLong is in the indices array.
     private void modifyObjects(Realm realm, int... indices) {
         for (int index : indices) {
-            AllTypes obj = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, index).findFirst();
+            Dog obj = realm.where(Dog.class).equalTo(Dog.FIELD_AGE, index).findFirst();
             assertNotNull(obj);
-            obj.setColumnString("modified");
+            obj.setName("modified");
+        }
+    }
+
+    private void moveObjects(Realm realm, int originAge, int newAge) {
+        realm.where(Dog.class).equalTo(Dog.FIELD_AGE, originAge).findFirst().setAge(newAge);
+        if (type == ObservablesType.REALM_LIST) {
+            reorderRealmList(realm);
+        }
+    }
+
+    private void registerCheckListener(Realm realm, final ChangesCheck changesCheck) {
+        switch (type) {
+            case REALM_RESULTS:
+                RealmResults<Dog> results = realm.where(Dog.class).findAllSorted(Dog.FIELD_AGE);
+                looperThread.keepStrongReference.add(results);
+                results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
+                    @Override
+                    public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
+                        changesCheck.check(changeSet);
+                    }
+                });
+                break;
+            case REALM_LIST:
+                RealmList<Dog> list = realm.where(Owner.class).findFirst().getDogs();
+                looperThread.keepStrongReference.add(list);
+                list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
+                    @Override
+                    public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changeSet) {
+                        changesCheck.check(changeSet);
+                    }
+                });
+                break;
         }
     }
 
@@ -110,10 +183,10 @@ public class OrderedCollectionChangeSetTests {
     public void deletion() {
         Realm realm = looperThread.realm;
         populateData(realm, 10);
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_LONG);
-        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
+
+        final ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void onChange(RealmResults<AllTypes> collection, OrderedCollectionChangeSet changeSet) {
+            public void check(OrderedCollectionChangeSet changeSet) {
                 checkRanges(changeSet.getDeletionRanges(),
                         0, 1,
                         2, 3,
@@ -125,7 +198,9 @@ public class OrderedCollectionChangeSetTests {
                 assertEquals(0, changeSet.getInsertions().length);
                 looperThread.testComplete();
             }
-        });
+        };
+
+        registerCheckListener(realm, changesCheck);
 
         realm.beginTransaction();
         deleteObjects(realm,
@@ -139,13 +214,14 @@ public class OrderedCollectionChangeSetTests {
     @RunTestInLooperThread
     public void insertion() {
         Realm realm = looperThread.realm;
+        populateData(realm, 0); // We need to create the owner.
         realm.beginTransaction();
         createObjects(realm, 0, 2, 5, 6, 7, 9);
         realm.commitTransaction();
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_LONG);
-        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
+
+        ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void onChange(RealmResults<AllTypes> collection, OrderedCollectionChangeSet changeSet) {
+            public void check(OrderedCollectionChangeSet changeSet) {
                 checkRanges(changeSet.getInsertionRanges(),
                         1, 1,
                         3, 2,
@@ -157,7 +233,8 @@ public class OrderedCollectionChangeSetTests {
                 assertEquals(0, changeSet.getDeletions().length);
                 looperThread.testComplete();
             }
-        });
+        };
+        registerCheckListener(realm, changesCheck);
 
         realm.beginTransaction();
         createObjects(realm,
@@ -172,10 +249,9 @@ public class OrderedCollectionChangeSetTests {
     public void changes() {
         Realm realm = looperThread.realm;
         populateData(realm, 10);
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_LONG);
-        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
+        ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void onChange(RealmResults<AllTypes> collection, OrderedCollectionChangeSet changeSet) {
+            public void check(OrderedCollectionChangeSet changeSet) {
                 checkRanges(changeSet.getChangeRanges(),
                         0, 1,
                         2, 3,
@@ -187,7 +263,9 @@ public class OrderedCollectionChangeSetTests {
                 assertEquals(0, changeSet.getDeletions().length);
                 looperThread.testComplete();
             }
-        });
+        };
+
+        registerCheckListener(realm, changesCheck);
 
         realm.beginTransaction();
         modifyObjects(realm,
@@ -202,10 +280,9 @@ public class OrderedCollectionChangeSetTests {
     public void moves() {
         Realm realm = looperThread.realm;
         populateData(realm, 10);
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_LONG);
-        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
+        ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void onChange(RealmResults<AllTypes> collection, OrderedCollectionChangeSet changeSet) {
+            public void check(OrderedCollectionChangeSet changeSet) {
                 checkRanges(changeSet.getDeletionRanges(),
                         0, 1,
                         9, 1);
@@ -218,10 +295,12 @@ public class OrderedCollectionChangeSetTests {
                 assertEquals(0, changeSet.getChanges().length);
                 looperThread.testComplete();
             }
-        });
+        };
+        registerCheckListener(realm, changesCheck);
+
         realm.beginTransaction();
-        realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 0).findFirst().setColumnLong(10);
-        realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 9).findFirst().setColumnLong(0);
+        moveObjects(realm, 0, 10);
+        moveObjects(realm, 9, 0);
         realm.commitTransaction();
     }
 
@@ -230,10 +309,9 @@ public class OrderedCollectionChangeSetTests {
     public void mixed_changes() {
         Realm realm = looperThread.realm;
         populateData(realm, 10);
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_LONG);
-        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
+        ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void onChange(RealmResults<AllTypes> collection, OrderedCollectionChangeSet changeSet) {
+            public void check(OrderedCollectionChangeSet changeSet) {
                 checkRanges(changeSet.getDeletionRanges(),
                         0, 2,
                         5, 1);
@@ -251,7 +329,9 @@ public class OrderedCollectionChangeSetTests {
 
                 looperThread.testComplete();
             }
-        });
+        };
+
+        registerCheckListener(realm, changesCheck);
 
         realm.beginTransaction();
         createObjects(realm, 11, 12, -1, -2);
@@ -269,10 +349,9 @@ public class OrderedCollectionChangeSetTests {
     public void changes_then_delete() {
         Realm realm = looperThread.realm;
         populateData(realm, 10);
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_LONG);
-        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
+        ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void onChange(RealmResults<AllTypes> collection, OrderedCollectionChangeSet changeSet) {
+            public void check(OrderedCollectionChangeSet changeSet) {
                 checkRanges(changeSet.getDeletionRanges(),
                         0, 2,
                         5, 1);
@@ -285,7 +364,8 @@ public class OrderedCollectionChangeSetTests {
 
                 looperThread.testComplete();
             }
-        });
+        };
+        registerCheckListener(realm, changesCheck);
 
         realm.beginTransaction();
         modifyObjects(realm, 0, 1, 5);
@@ -299,13 +379,14 @@ public class OrderedCollectionChangeSetTests {
     public void insert_then_delete() {
         Realm realm = looperThread.realm;
         populateData(realm, 10);
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_LONG);
-        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
+        ChangesCheck changesCheck = new ChangesCheck() {
             @Override
-            public void onChange(RealmResults<AllTypes> collection, OrderedCollectionChangeSet changeSet) {
+            public void check(OrderedCollectionChangeSet changeSet) {
                 fail("The listener should not be triggered since the collection has no changes compared with before.");
             }
-        });
+        };
+
+        registerCheckListener(realm, changesCheck);
 
         looperThread.postRunnableDelayed(new Runnable() {
             @Override
@@ -324,12 +405,16 @@ public class OrderedCollectionChangeSetTests {
     @Test
     @RunTestInLooperThread
     public void emptyChangeSet_findAllAsync(){
+        if (type == ObservablesType.REALM_LIST) {
+            looperThread.testComplete();
+            return;
+        }
         Realm realm = looperThread.realm;
         populateData(realm, 10);
-        final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllSortedAsync(AllTypes.FIELD_LONG);
-        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
+        final RealmResults<Dog> results = realm.where(Dog.class).findAllSortedAsync(Dog.FIELD_AGE);
+        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
             @Override
-            public void onChange(RealmResults<AllTypes> collection, OrderedCollectionChangeSet changeSet) {
+            public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
                 assertSame(collection, results);
                 assertEquals(9, collection.size());
                 assertNull(changeSet);
@@ -338,7 +423,7 @@ public class OrderedCollectionChangeSetTests {
         });
 
         final CountDownLatch bgDeletionLatch = new CountDownLatch(1);
-        // beginTransaction() will make the async query return immediately. So we have to delete an object in another
+        // beginTransaction() will make the async query return immediately. So we have to create an object in another
         // thread. Also, the latch has to be counted down after transaction committed so the async query results can
         // contain the modification in the background transaction.
         new Thread(new Runnable() {
@@ -346,7 +431,7 @@ public class OrderedCollectionChangeSetTests {
             public void run() {
                 Realm realm = Realm.getInstance(looperThread.realmConfiguration)      ;
                 realm.beginTransaction();
-                realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 0).findFirst().deleteFromRealm();
+                realm.where(Dog.class).equalTo(Dog.FIELD_AGE, 0).findFirst().deleteFromRealm();
                 realm.commitTransaction();
                 realm.close();
                 bgDeletionLatch.countDown();
