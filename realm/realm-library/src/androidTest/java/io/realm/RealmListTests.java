@@ -1068,7 +1068,7 @@ public class RealmListTests extends CollectionTests {
                 new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
                     @Override
                     public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
-                        fail();
+                        assertEquals(0, listenerCalledCount.getAndIncrement());
                     }
                 };
 
@@ -1079,12 +1079,11 @@ public class RealmListTests extends CollectionTests {
         realm.commitTransaction();
 
         collection.removeChangeListener(listener1);
-        collection.removeChangeListener(listener2);
 
         // This should trigger the listener if there is any.
         realm.beginTransaction();
         realm.cancelTransaction();
-        assertEquals(0, listenerCalledCount.get());
+        assertEquals(1, listenerCalledCount.get());
         looperThread.testComplete();
     }
 }
