@@ -166,7 +166,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
      */
-    public void removeChangeListener(RealmChangeListener listener) {
+    public void removeChangeListener(RealmChangeListener<RealmResults<E>> listener) {
         checkForAddRemoveListener(listener, true);
         collection.removeListener(this, listener);
     }
