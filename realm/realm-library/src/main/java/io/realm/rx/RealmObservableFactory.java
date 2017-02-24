@@ -47,7 +47,7 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     // Maps for storing strong references to Realm classes while they are subscribed to.
     // This is needed if users create Observables without manually maintaining a reference to them.
-    // In that case RealmObjects/RealmResults/RealmList might be GC'ed too early.
+    // In that case RealmObjects/RealmResults/RealmLists might be GC'ed too early.
     ThreadLocal<StrongReferenceCounter<RealmResults>> resultsRefs = new ThreadLocal<StrongReferenceCounter<RealmResults>>() {
         @Override
         protected StrongReferenceCounter<RealmResults> initialValue() {
