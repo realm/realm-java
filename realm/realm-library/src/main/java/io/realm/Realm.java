@@ -124,7 +124,7 @@ import rx.Observable;
  * @see <a href="http://en.wikipedia.org/wiki/ACID">ACID</a>
  * @see <a href="https://github.com/realm/realm-java/tree/master/examples">Examples using Realm</a>
  */
-public class Realm extends BaseRealm implements RealmObservable<Realm> {
+public class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
@@ -1281,23 +1281,28 @@ public class Realm extends BaseRealm implements RealmObservable<Realm> {
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
      */
-    @Override
     public void addChangeListener(RealmChangeListener<Realm> listener) {
         super.addListener(listener);
     }
 
     /**
-     * {@inheritDoc}
+     * Removes the specified change listener.
+     *
+     * @param listener the change listener to be removed.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
      */
-    @Override
     public void removeChangeListener(RealmChangeListener<Realm> listener) {
         super.removeListener(listener);
     }
 
     /**
-     * {@inheritDoc}
+     * Removes all user-defined change listeners.
+     *
+     * @throws IllegalStateException if you try to remove listeners from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
      */
-    @Override
     public void removeAllChangeListeners() {
         super.removeAllListeners();
     }
