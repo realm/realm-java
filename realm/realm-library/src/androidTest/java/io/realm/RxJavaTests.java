@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
+import io.realm.entities.Dog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -43,6 +44,7 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -184,6 +186,44 @@ public class RxJavaTests {
     }
 
     @Test
+    @RunTestInLooperThread
+    public void findFirstAsync_emittedOnDelete() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        final Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        final AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        subscription = realm.where(AllTypes.class).findFirstAsync().<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
+            @Override
+            public void call(final AllTypes rxObject) {
+                switch (subscriberCalled.incrementAndGet()) {
+                    case 1:
+                        assertFalse(rxObject.isLoaded());
+                        break;
+                    case 2:
+                        assertTrue(rxObject.isLoaded());
+                        assertTrue(rxObject.isValid());
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.delete(AllTypes.class);
+                            }
+                        });
+                        break;
+                    case 3:
+                        assertTrue(rxObject.isLoaded());
+                        assertFalse(rxObject.isValid());
+                        looperThread.testComplete();
+                        break;
+                    default:
+                        fail();
+                }
+            }
+        });
+    }
+
+    @Test
     @UiThreadTest
     public void realmResults_emittedOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
@@ -192,6 +232,24 @@ public class RxJavaTests {
             @Override
             public void call(RealmResults<AllTypes> rxResults) {
                 assertTrue(rxResults == results);
+                subscribedNotified.set(true);
+            }
+        });
+        assertTrue(subscribedNotified.get());
+        subscription.unsubscribe();
+    }
+
+    @Test
+    @UiThreadTest
+    public void realmList_emittedOnSubscribe() {
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        realm.beginTransaction();
+        final RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
+        realm.commitTransaction();
+        subscription = list.asObservable().subscribe(new Action1<RealmList<Dog>>() {
+            @Override
+            public void call(RealmList<Dog> rxList) {
+                assertTrue(rxList == list);
                 subscribedNotified.set(true);
             }
         });
@@ -237,6 +295,30 @@ public class RxJavaTests {
 
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void realmList_emittedOnUpdate() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        final RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
+        realm.commitTransaction();
+
+        subscription = list.asObservable().subscribe(new Action1<RealmList<Dog>>() {
+            @Override
+            public void call(RealmList<Dog> dogs) {
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    assertEquals(1, list.size());
+                    looperThread.testComplete();
+                }
+            }
+        });
+
+        realm.beginTransaction();
+        list.add(new Dog());
         realm.commitTransaction();
     }
 
@@ -503,6 +585,29 @@ public class RxJavaTests {
         subscription = observable.subscribe(new Action1<RealmResults<AllTypes>>() {
             @Override
             public void call(RealmResults<AllTypes> allTypes) {
+            }
+        });
+
+        subscription.unsubscribe();
+        assertTrue(realm.isClosed());
+    }
+
+    @Test
+    @UiThreadTest
+    public void realmList_closeInDoOnUnsubscribe() {
+        realm.beginTransaction();
+        RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
+        realm.commitTransaction();
+
+        Observable<RealmList<Dog>> observable = list.asObservable().doOnUnsubscribe(new Action0() {
+            @Override
+            public void call() {
+                realm.close();
+            }
+        });
+        subscription = observable.subscribe(new Action1<RealmList<Dog>>() {
+            @Override
+            public void call(RealmList<Dog> dogs) {
             }
         });
 
