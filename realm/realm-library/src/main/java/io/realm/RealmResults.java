@@ -20,7 +20,10 @@ package io.realm;
 import android.os.Looper;
 
 import io.realm.internal.Collection;
+import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
+import io.realm.internal.Table;
+import io.realm.internal.UncheckedRow;
 import rx.Observable;
 
 /**
@@ -62,6 +65,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
             Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
             srcTableType);
     }
+
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
         super(realm, collection, clazz);

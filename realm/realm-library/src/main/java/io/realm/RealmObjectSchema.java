@@ -175,7 +175,7 @@ public class RealmObjectSchema {
             } catch (Exception e) {
                 // revert the table name back when something goes wrong
                 realm.sharedRealm.renameTable(table.getName(), oldTableName);
-                throw new RuntimeException(e);
+                throw e;
             }
         }
         return this;
@@ -220,7 +220,7 @@ public class RealmObjectSchema {
         } catch (Exception e) {
             // Modifiers have been removed by the addModifiers method()
             table.removeColumn(columnIndex);
-            throw new RuntimeException(e);
+            throw e;
         }
         return this;
     }

@@ -236,8 +236,7 @@ public class ClassMetaData {
         }
 
         TypeElement parentElement = (TypeElement) Utils.getSuperClass(classType);
-        if (!parentElement.toString().equals("java.lang.Object") && !parentElement.toString()
-            .equals("io.realm.RealmObject"))
+        if (!parentElement.toString().equals("java.lang.Object") && !parentElement.toString().equals("io.realm.RealmObject"))
         {
             Utils.error("Valid model classes must either extend RealmObject or implement RealmModel.", classType);
             return false;
@@ -287,8 +286,7 @@ public class ClassMetaData {
             if (Utils.isRealmList(field) || Utils.isRealmResults(field)) {
                 // Check for missing generic (default back to Object)
                 if (Utils.getGenericTypeQualifiedName(field) == null) {
-                    TypeMirror fieldType = field.asType();
-                    Utils.error(String.format("Field \"%s\" must have a generic type supplied.", field));
+                    Utils.error("No generic type supplied for field", field);
                     return false;
                 }
 
