@@ -85,11 +85,12 @@ class BytecodeModifier {
         clazz.addInterface(proxyInterface)
     }
 
-    public static void callInjectObjectContextFromDefaultConstructor(CtClass clazz) {
-        def defaultConstructor = clazz.getDeclaredConstructor()
-        defaultConstructor.insertBeforeBody('if ($0 instanceof io.realm.internal.RealmObjectProxy) {' +
-                ' ((io.realm.internal.RealmObjectProxy) $0).realm$injectObjectContext();' +
-                ' }')
+    public static void callInjectObjectContextFromConstructors(CtClass clazz) {
+        clazz.getConstructors().each {
+            it.insertBeforeBody('if ($0 instanceof io.realm.internal.RealmObjectProxy) {' +
+                    ' ((io.realm.internal.RealmObjectProxy) $0).realm$injectObjectContext();' +
+                    ' }')
+        }
     }
 
     /**
