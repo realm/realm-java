@@ -1383,6 +1383,7 @@ public class RealmQuery<E extends RealmModel> {
      * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(query.getTable(), fieldName);
         return createRealmResults(query, null, distinctDescriptor, false);
     }
