@@ -79,6 +79,9 @@ public class SimpleRealmProxy extends some.test.Simple
 
     @Override
     public void realm$injectObjectContext() {
+        if (this.proxyState != null) {
+            return;
+        }
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (SimpleColumnInfo) context.getColumnInfo();
         this.proxyState = new ProxyState<some.test.Simple>(some.test.Simple.class, this);

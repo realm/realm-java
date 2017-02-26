@@ -481,6 +481,9 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC) // Modifiers
                 ); // Argument type & argument name
 
+        writer.beginControlFlow("if (this.proxyState != null)");
+        writer.emitStatement("return");
+        writer.endControlFlow();
         writer.emitStatement("final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get()");
         writer.emitStatement("this.columnInfo = (%1$s) context.getColumnInfo()", columnInfoClassName());
         writer.emitStatement("this.proxyState = new ProxyState<%1$s>(%1$s.class, this)", qualifiedClassName);
