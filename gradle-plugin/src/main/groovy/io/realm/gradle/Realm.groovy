@@ -20,6 +20,7 @@ import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.LibraryPlugin
 import com.neenbedankt.gradle.androidapt.AndroidAptPlugin
 import io.realm.transformer.RealmTransformer
+import io.realm.transformer.TransformerConfigProvider
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -54,7 +55,32 @@ class Realm implements Plugin<Project> {
             usesAptPlugin = true
         }
 
-        project.android.registerTransform(new RealmTransformer(project))
+        // note that project.android.bootClasspath is not ready here.
+        project.android.registerTransform(new RealmTransformer(new TransformerConfigProvider() {
+            @Override
+            boolean getSyncEnabled() {
+                return project.realm.syncEnabled != null && project.realm.syncEnabled
+            }
+
+            @Override
+            List<String> getBootClassPathList() {
+                List<String> bootClassPathList = []
+                project.android.bootClasspath.each {
+                    bootClassPathList.add(it.absolutePath)
+                }
+                return bootClassPathList
+            }
+
+            @Override
+            String getTargetSdkVersion() {
+                return project.android.defaultConfig?.targetSdkVersion?.mApiLevel as String;
+            }
+
+            @Override
+            String getMinSdkVersion() {
+                return project.android.defaultConfig?.minSdkVersion?.mApiLevel as String;
+            }
+        }))
 
         project.repositories.add(project.getRepositories().jcenter())
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
