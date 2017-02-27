@@ -1,11 +1,16 @@
-## 2.3.2 (YYYY-MM-DD)
+## 2.3.3 (YYYY-MM-DD)
 
 ### Bug fixes
 
-* Fixed log levels in JNI layer (#4204).
-* Fixed a bug in encryption (#4128).
-* Fixed "Read-only file system" exception when compacting Realm file on external storage (#4140).
-* Fixed element type checking in `DynamicRealmObject#setList()` (#4252).
+* Element type checking in `DynamicRealmObject#setList()` (#4252).
+
+## 2.3.2 (2017-02-27)
+
+### Bug fixes
+
+* Log levels in JNI layer were all reported as "Error" (#4204).
+* Encrypted realms can end up corrupted if many threads are reading and writing at the same time (#4128).
+* "Read-only file system" exception when compacting Realm file on external storage (#4140).
 
 ### Internal
 
