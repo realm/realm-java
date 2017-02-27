@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -31,8 +30,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -3023,6 +3020,7 @@ public class RealmQueryTests {
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_doesNotExist() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -3032,9 +3030,11 @@ public class RealmQueryTests {
             realm.where(AnnotationIndexTypes.class).distinctAsync("doesNotExist");
         } catch (IllegalArgumentException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_invalidTypes() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
@@ -3044,9 +3044,11 @@ public class RealmQueryTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_indexedLinkedFields() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -3059,9 +3061,11 @@ public class RealmQueryTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_notIndexedLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
@@ -3069,6 +3073,7 @@ public class RealmQueryTests {
             realm.where(AllJavaTypes.class).distinctAsync(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY);
         } catch (IllegalArgumentException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test

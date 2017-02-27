@@ -87,6 +87,9 @@ public class BooleansRealmProxy extends some.test.Booleans
     }
 
     public void realm$injectObjectContext() {
+        if (this.proxyState != null) {
+            return;
+        }
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (BooleansColumnInfo) context.getColumnInfo();
         this.proxyState = new ProxyState<some.test.Booleans>(this);
