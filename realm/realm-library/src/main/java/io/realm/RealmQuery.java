@@ -191,11 +191,9 @@ public class RealmQuery<E extends RealmModel> {
      * @return {@code true} if still valid to use, {@code false} otherwise.
      */
     public boolean isValid() {
-        if (realm == null || realm.isClosed()) {
+        if (realm == null || realm.isClosed() /* this includes thread checking */) {
             return false;
         }
-
-        realm.checkIfValid();
 
         if (linkView != null) {
             return linkView.isAttached();
