@@ -18,7 +18,6 @@ package io.realm;
 
 import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Pair;
 
 import org.junit.After;
 import org.junit.Before;
@@ -150,11 +149,7 @@ public class RealmQueryTests {
         populateNoPrimaryKeyNullTypesRows(realm, TEST_NO_PRIMARY_KEY_NULL_TYPES_SIZE);
     }
 
-    private static <F> Pair<F, String> pairOf(F first, String second) {
-        return new Pair<F, String>(first, second);
-    }
-
-    private enum ThreadConfinedQueryMethods {
+    private enum ThreadConfinedMethods {
         EQUAL_TO_STRING,
         EQUAL_TO_STRING_WITH_CASE,
         EQUAL_TO_BYTE,
@@ -276,7 +271,6 @@ public class RealmQueryTests {
         DISTINCT,
         DISTINCT_BY_MULTIPLE_FIELDS,
         DISTINCT_ASYNC,
-        DISTINCT_ASYNC_BY_MULTIPLE_FIELDS,
 
         SUM,
         AVERAGE,
@@ -301,117 +295,117 @@ public class RealmQueryTests {
         FIND_FIRST_ASYNC,
     }
 
-    private static void callThreadConfinedMethod(RealmQuery<?> query, ThreadConfinedQueryMethods method, String fieldName) {
+    private static void callThreadConfinedMethod(RealmQuery<?> query, ThreadConfinedMethods method) {
         switch (method) {
-            case EQUAL_TO_STRING: query.equalTo(fieldName, "dummy value"); break;
-            case EQUAL_TO_STRING_WITH_CASE: query.equalTo(fieldName, "dummy value", Case.INSENSITIVE); break;
-            case EQUAL_TO_BYTE: query.equalTo(fieldName, (byte) 1); break;
-            case EQUAL_TO_BYTE_ARRAY: query.equalTo(fieldName, new byte[] {0, 1, 2}); break;
-            case EQUAL_TO_SHORT: query.equalTo(fieldName, (short) 1); break;
-            case EQUAL_TO_INTEGER: query.equalTo(fieldName, 1); break;
-            case EQUAL_TO_LONG: query.equalTo(fieldName, 1L); break;
-            case EQUAL_TO_DOUBLE: query.equalTo(fieldName, 1D); break;
-            case EQUAL_TO_FLOAT: query.equalTo(fieldName, 1F); break;
-            case EQUAL_TO_BOOLEAN: query.equalTo(fieldName, true); break;
-            case EQUAL_TO_DATE: query.equalTo(fieldName, new Date(0L)); break;
+            case EQUAL_TO_STRING: query.equalTo(           AllJavaTypes.FIELD_STRING,  "dummy value"); break;
+            case EQUAL_TO_STRING_WITH_CASE: query.equalTo( AllJavaTypes.FIELD_STRING,  "dummy value", Case.INSENSITIVE); break;
+            case EQUAL_TO_BYTE: query.equalTo(             AllJavaTypes.FIELD_BYTE,    (byte) 1); break;
+            case EQUAL_TO_BYTE_ARRAY: query.equalTo(       AllJavaTypes.FIELD_BINARY,  new byte[] {0, 1, 2}); break;
+            case EQUAL_TO_SHORT: query.equalTo(            AllJavaTypes.FIELD_SHORT,   (short) 1); break;
+            case EQUAL_TO_INTEGER: query.equalTo(          AllJavaTypes.FIELD_INT,     1); break;
+            case EQUAL_TO_LONG: query.equalTo(             AllJavaTypes.FIELD_LONG,    1L); break;
+            case EQUAL_TO_DOUBLE: query.equalTo(           AllJavaTypes.FIELD_DOUBLE,  1D); break;
+            case EQUAL_TO_FLOAT: query.equalTo(            AllJavaTypes.FIELD_FLOAT,   1F); break;
+            case EQUAL_TO_BOOLEAN: query.equalTo(          AllJavaTypes.FIELD_BOOLEAN, true); break;
+            case EQUAL_TO_DATE: query.equalTo(             AllJavaTypes.FIELD_DATE,    new Date(0L)); break;
 
-            case IN_STRING: query.in(fieldName, new String[] {"dummy value1", "dummy value2"}); break;
-            case IN_STRING_WITH_CASE: query.in(fieldName, new String[] {"dummy value1", "dummy value2"}, Case.INSENSITIVE); break;
-            case IN_BYTE: query.in(fieldName, new Byte[] {1, 2, 3}); break;
-            case IN_SHORT: query.in(fieldName, new Short[] {1, 2, 3}); break;
-            case IN_INTEGER: query.in(fieldName, new Integer[] {1, 2, 3}); break;
-            case IN_LONG: query.in(fieldName, new Long[] {1L, 2L, 3L}); break;
-            case IN_DOUBLE: query.in(fieldName, new Double[] {1D, 2D, 3D}); break;
-            case IN_FLOAT: query.in(fieldName, new Float[] {1F, 2F, 3F}); break;
-            case IN_BOOLEAN: query.in(fieldName, new Boolean[] {true, false}); break;
-            case IN_DATE: query.in(fieldName, new Date[] {new Date(0L)}); break;
+            case IN_STRING: query.in(           AllJavaTypes.FIELD_STRING,  new String[] {"dummy value1", "dummy value2"}); break;
+            case IN_STRING_WITH_CASE: query.in( AllJavaTypes.FIELD_STRING,  new String[] {"dummy value1", "dummy value2"}, Case.INSENSITIVE); break;
+            case IN_BYTE: query.in(             AllJavaTypes.FIELD_BYTE,    new Byte[] {1, 2, 3}); break;
+            case IN_SHORT: query.in(            AllJavaTypes.FIELD_SHORT,   new Short[] {1, 2, 3}); break;
+            case IN_INTEGER: query.in(          AllJavaTypes.FIELD_INT,     new Integer[] {1, 2, 3}); break;
+            case IN_LONG: query.in(             AllJavaTypes.FIELD_LONG,    new Long[] {1L, 2L, 3L}); break;
+            case IN_DOUBLE: query.in(           AllJavaTypes.FIELD_DOUBLE,  new Double[] {1D, 2D, 3D}); break;
+            case IN_FLOAT: query.in(            AllJavaTypes.FIELD_FLOAT,   new Float[] {1F, 2F, 3F}); break;
+            case IN_BOOLEAN: query.in(          AllJavaTypes.FIELD_BOOLEAN, new Boolean[] {true, false}); break;
+            case IN_DATE: query.in(             AllJavaTypes.FIELD_DATE,    new Date[] {new Date(0L)}); break;
 
-            case NOT_EQUAL_TO_STRING: query.notEqualTo(fieldName, "dummy value"); break;
-            case NOT_EQUAL_TO_STRING_WITH_CASE: query.notEqualTo(fieldName, "dummy value", Case.INSENSITIVE); break;
-            case NOT_EQUAL_TO_BYTE: query.notEqualTo(fieldName, (byte) 1); break;
-            case NOT_EQUAL_TO_BYTE_ARRAY: query.notEqualTo(fieldName, new byte[] {1,2,3}); break;
-            case NOT_EQUAL_TO_SHORT: query.notEqualTo(fieldName, (short) 1); break;
-            case NOT_EQUAL_TO_INTEGER: query.notEqualTo(fieldName, 1); break;
-            case NOT_EQUAL_TO_LONG: query.notEqualTo(fieldName, 1L); break;
-            case NOT_EQUAL_TO_DOUBLE: query.notEqualTo(fieldName, 1D); break;
-            case NOT_EQUAL_TO_FLOAT: query.notEqualTo(fieldName, 1F); break;
-            case NOT_EQUAL_TO_BOOLEAN: query.notEqualTo(fieldName, true); break;
-            case NOT_EQUAL_TO_DATE: query.notEqualTo(fieldName, new Date(0L)); break;
+            case NOT_EQUAL_TO_STRING: query.notEqualTo(           AllJavaTypes.FIELD_STRING,  "dummy value"); break;
+            case NOT_EQUAL_TO_STRING_WITH_CASE: query.notEqualTo( AllJavaTypes.FIELD_STRING,  "dummy value", Case.INSENSITIVE); break;
+            case NOT_EQUAL_TO_BYTE: query.notEqualTo(             AllJavaTypes.FIELD_BYTE,    (byte) 1); break;
+            case NOT_EQUAL_TO_BYTE_ARRAY: query.notEqualTo(       AllJavaTypes.FIELD_BINARY,  new byte[] {1,2,3}); break;
+            case NOT_EQUAL_TO_SHORT: query.notEqualTo(            AllJavaTypes.FIELD_SHORT,   (short) 1); break;
+            case NOT_EQUAL_TO_INTEGER: query.notEqualTo(          AllJavaTypes.FIELD_INT,     1); break;
+            case NOT_EQUAL_TO_LONG: query.notEqualTo(             AllJavaTypes.FIELD_LONG,    1L); break;
+            case NOT_EQUAL_TO_DOUBLE: query.notEqualTo(           AllJavaTypes.FIELD_DOUBLE,  1D); break;
+            case NOT_EQUAL_TO_FLOAT: query.notEqualTo(            AllJavaTypes.FIELD_FLOAT,   1F); break;
+            case NOT_EQUAL_TO_BOOLEAN: query.notEqualTo(          AllJavaTypes.FIELD_BOOLEAN, true); break;
+            case NOT_EQUAL_TO_DATE: query.notEqualTo(             AllJavaTypes.FIELD_DATE,    new Date(0L)); break;
 
-            case GREATER_THAN_INTEGER: query.greaterThan(fieldName, 1); break;
-            case GREATER_THAN_LONG: query.greaterThan(fieldName, 1L); break;
-            case GREATER_THAN_DOUBLE: query.greaterThan(fieldName, 1D); break;
-            case GREATER_THAN_FLOAT: query.greaterThan(fieldName, 1F); break;
-            case GREATER_THAN_DATE: query.greaterThan(fieldName, new Date(0L)); break;
+            case GREATER_THAN_INTEGER: query.greaterThan( AllJavaTypes.FIELD_INT,    1); break;
+            case GREATER_THAN_LONG: query.greaterThan(    AllJavaTypes.FIELD_LONG,   1L); break;
+            case GREATER_THAN_DOUBLE: query.greaterThan(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
+            case GREATER_THAN_FLOAT: query.greaterThan(   AllJavaTypes.FIELD_FLOAT,  1F); break;
+            case GREATER_THAN_DATE: query.greaterThan(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
 
-            case GREATER_THAN_OR_EQUAL_TO_INTEGER: query.greaterThanOrEqualTo(fieldName, 1); break;
-            case GREATER_THAN_OR_EQUAL_TO_LONG: query.greaterThanOrEqualTo(fieldName, 1L); break;
-            case GREATER_THAN_OR_EQUAL_TO_DOUBLE: query.greaterThanOrEqualTo(fieldName, 1D); break;
-            case GREATER_THAN_OR_EQUAL_TO_FLOAT: query.greaterThanOrEqualTo(fieldName, 1F); break;
-            case GREATER_THAN_OR_EQUAL_TO_DATE: query.greaterThanOrEqualTo(fieldName, new Date(0L)); break;
+            case GREATER_THAN_OR_EQUAL_TO_INTEGER: query.greaterThanOrEqualTo( AllJavaTypes.FIELD_INT,    1); break;
+            case GREATER_THAN_OR_EQUAL_TO_LONG: query.greaterThanOrEqualTo(    AllJavaTypes.FIELD_LONG,   1L); break;
+            case GREATER_THAN_OR_EQUAL_TO_DOUBLE: query.greaterThanOrEqualTo(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
+            case GREATER_THAN_OR_EQUAL_TO_FLOAT: query.greaterThanOrEqualTo(   AllJavaTypes.FIELD_FLOAT,  1F); break;
+            case GREATER_THAN_OR_EQUAL_TO_DATE: query.greaterThanOrEqualTo(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
 
-            case LESS_THAN_INTEGER: query.lessThan(fieldName, 1); break;
-            case LESS_THAN_LONG: query.lessThan(fieldName, 1L); break;
-            case LESS_THAN_DOUBLE: query.lessThan(fieldName, 1D); break;
-            case LESS_THAN_FLOAT: query.lessThan(fieldName, 1F); break;
-            case LESS_THAN_DATE: query.lessThan(fieldName, new Date(0L)); break;
+            case LESS_THAN_INTEGER: query.lessThan( AllJavaTypes.FIELD_INT,    1); break;
+            case LESS_THAN_LONG: query.lessThan(    AllJavaTypes.FIELD_LONG,   1L); break;
+            case LESS_THAN_DOUBLE: query.lessThan(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
+            case LESS_THAN_FLOAT: query.lessThan(   AllJavaTypes.FIELD_FLOAT,  1F); break;
+            case LESS_THAN_DATE: query.lessThan(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
 
-            case LESS_THAN_OR_EQUAL_TO_INTEGER: query.lessThanOrEqualTo(fieldName, 1); break;
-            case LESS_THAN_OR_EQUAL_TO_LONG: query.lessThanOrEqualTo(fieldName, 1L); break;
-            case LESS_THAN_OR_EQUAL_TO_DOUBLE: query.lessThanOrEqualTo(fieldName, 1D); break;
-            case LESS_THAN_OR_EQUAL_TO_FLOAT: query.lessThanOrEqualTo(fieldName, 1F); break;
-            case LESS_THAN_OR_EQUAL_TO_DATE: query.lessThanOrEqualTo(fieldName, new Date(0L)); break;
+            case LESS_THAN_OR_EQUAL_TO_INTEGER: query.lessThanOrEqualTo( AllJavaTypes.FIELD_INT,    1); break;
+            case LESS_THAN_OR_EQUAL_TO_LONG: query.lessThanOrEqualTo(    AllJavaTypes.FIELD_LONG,   1L); break;
+            case LESS_THAN_OR_EQUAL_TO_DOUBLE: query.lessThanOrEqualTo(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
+            case LESS_THAN_OR_EQUAL_TO_FLOAT: query.lessThanOrEqualTo(   AllJavaTypes.FIELD_FLOAT,  1F); break;
+            case LESS_THAN_OR_EQUAL_TO_DATE: query.lessThanOrEqualTo(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
 
-            case BETWEEN_INTEGER: query.between(fieldName, 1, 100); break;
-            case BETWEEN_LONG: query.between(fieldName, 1L, 100L); break;
-            case BETWEEN_DOUBLE: query.between(fieldName, 1D, 100D); break;
-            case BETWEEN_FLOAT: query.between(fieldName, 1F, 100F); break;
-            case BETWEEN_DATE: query.between(fieldName, new Date(0L), new Date(10000L)); break;
+            case BETWEEN_INTEGER: query.between( AllJavaTypes.FIELD_INT,    1, 100); break;
+            case BETWEEN_LONG: query.between(    AllJavaTypes.FIELD_LONG,   1L, 100L); break;
+            case BETWEEN_DOUBLE: query.between(  AllJavaTypes.FIELD_DOUBLE, 1D, 100D); break;
+            case BETWEEN_FLOAT: query.between(   AllJavaTypes.FIELD_FLOAT,  1F, 100F); break;
+            case BETWEEN_DATE: query.between(    AllJavaTypes.FIELD_DATE,   new Date(0L), new Date(10000L)); break;
 
-            case CONTAINS_STRING: query.contains(fieldName, "dummy value"); break;
-            case CONTAINS_STRING_WITH_CASE: query.contains(fieldName, "dummy value", Case.INSENSITIVE); break;
+            case CONTAINS_STRING: query.contains(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
+            case CONTAINS_STRING_WITH_CASE: query.contains( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
-            case BEGINS_WITH_STRING: query.beginsWith(fieldName, "dummy value"); break;
-            case BEGINS_WITH_STRING_WITH_CASE: query.beginsWith(fieldName, "dummy value", Case.INSENSITIVE); break;
+            case BEGINS_WITH_STRING: query.beginsWith(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
+            case BEGINS_WITH_STRING_WITH_CASE: query.beginsWith( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
-            case ENDS_WITH_STRING: query.endsWith(fieldName, "dummy value"); break;
-            case WNDS_WITH_STRING_WITH_CASE: query.endsWith(fieldName, "dummy value", Case.INSENSITIVE); break;
+            case ENDS_WITH_STRING: query.endsWith(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
+            case WNDS_WITH_STRING_WITH_CASE: query.endsWith( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
-            case LIKE_STRING: query.like(fieldName, "dummy value"); break;
-            case LIKE_STRING_WITH_CASE: query.like(fieldName, "dummy value", Case.INSENSITIVE); break;
+            case LIKE_STRING: query.like(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
+            case LIKE_STRING_WITH_CASE: query.like( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
             case BEGIN_GROUP: query.beginGroup(); break;
             case END_GROUP: query.endGroup(); break;
             case OR: query.or(); break;
             case NOT: query.not(); break;
-            case IS_NULL: query.isNull(fieldName); break;
-            case IS_NOT_NULL: query.isNotNull(fieldName); break;
-            case IS_EMPTY: query.isEmpty(fieldName); break;
-            case IS_NOT_EMPTY: query.isNotEmpty(fieldName); break;
+            case IS_NULL: query.isNull(          AllJavaTypes.FIELD_DATE); break;
+            case IS_NOT_NULL: query.isNotNull(   AllJavaTypes.FIELD_DATE); break;
+            case IS_EMPTY: query.isEmpty(        AllJavaTypes.FIELD_STRING); break;
+            case IS_NOT_EMPTY: query.isNotEmpty( AllJavaTypes.FIELD_STRING); break;
 
             case IS_VALID: query.isValid(); break;
-            case DISTINCT: query.distinct(fieldName); break;
-            case DISTINCT_BY_MULTIPLE_FIELDS: query.distinct(fieldName, AllJavaTypes.FIELD_ID); break;
-            case DISTINCT_ASYNC: query.distinctAsync(fieldName); break;
+            case DISTINCT: query.distinct(                    AllJavaTypes.FIELD_STRING); break;
+            case DISTINCT_BY_MULTIPLE_FIELDS: query.distinct( AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID); break;
+            case DISTINCT_ASYNC: query.distinctAsync(         AllJavaTypes.FIELD_STRING); break;
 
-            case SUM: query.sum(fieldName); break;
-            case AVERAGE: query.average(fieldName); break;
-            case MIN: query.min(fieldName); break;
-            case MINIMUM_DATE: query.minimumDate(fieldName); break;
-            case MAX: query.max(fieldName); break;
-            case MAXIMUM_DATE: query.maximumDate(fieldName); break;
+            case SUM: query.sum(                  AllJavaTypes.FIELD_INT); break;
+            case AVERAGE: query.average(          AllJavaTypes.FIELD_INT); break;
+            case MIN: query.min(                  AllJavaTypes.FIELD_INT); break;
+            case MINIMUM_DATE: query.minimumDate( AllJavaTypes.FIELD_INT); break;
+            case MAX: query.max(                  AllJavaTypes.FIELD_INT); break;
+            case MAXIMUM_DATE: query.maximumDate( AllJavaTypes.FIELD_INT); break;
             case COUNT: query.count(); break;
 
             case FIND_ALL: query.findAll(); break;
             case FIND_ALL_ASYNC: query.findAllAsync(); break;
-            case FIND_ALL_SORTED: query.findAllSorted(fieldName); break;
-            case FIND_ALL_SORTED_ASYNC: query.findAllSortedAsync(fieldName); break;
-            case FIND_ALL_SORTED_WITH_ORDER: query.findAllSorted(fieldName, Sort.DESCENDING); break;
-            case FIND_ALL_SORTED_ASYNC_WITH_ORDER: query.findAllSortedAsync(fieldName, Sort.DESCENDING); break;
-            case FIND_ALL_SORTED_WITH_TWO_ORDERS: query.findAllSorted(fieldName, Sort.DESCENDING, AllJavaTypes.FIELD_ID, Sort.DESCENDING); break;
-            case FIND_ALL_SORTED_ASYNC_WITH_TWO_ORDERS: query.findAllSortedAsync(fieldName, Sort.DESCENDING, AllJavaTypes.FIELD_ID, Sort.DESCENDING); break;
-            case FIND_ALL_SORTED_WITH_MANY_ORDERS: query.findAllSorted(new String[] {fieldName, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
-            case FIND_ALL_SORTED_ASYNC_WITH_MANY_ORDERS: query.findAllSortedAsync(new String[] {fieldName, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
+            case FIND_ALL_SORTED: query.findAllSorted(                             AllJavaTypes.FIELD_STRING); break;
+            case FIND_ALL_SORTED_ASYNC: query.findAllSortedAsync(                  AllJavaTypes.FIELD_STRING); break;
+            case FIND_ALL_SORTED_WITH_ORDER: query.findAllSorted(                  AllJavaTypes.FIELD_STRING, Sort.DESCENDING); break;
+            case FIND_ALL_SORTED_ASYNC_WITH_ORDER: query.findAllSortedAsync(       AllJavaTypes.FIELD_STRING, Sort.DESCENDING); break;
+            case FIND_ALL_SORTED_WITH_TWO_ORDERS: query.findAllSorted(             AllJavaTypes.FIELD_STRING, Sort.DESCENDING, AllJavaTypes.FIELD_ID, Sort.DESCENDING); break;
+            case FIND_ALL_SORTED_ASYNC_WITH_TWO_ORDERS: query.findAllSortedAsync(  AllJavaTypes.FIELD_STRING, Sort.DESCENDING, AllJavaTypes.FIELD_ID, Sort.DESCENDING); break;
+            case FIND_ALL_SORTED_WITH_MANY_ORDERS: query.findAllSorted(            new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
+            case FIND_ALL_SORTED_ASYNC_WITH_MANY_ORDERS: query.findAllSortedAsync( new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
 
             case FIND_FIRST: query.findFirst(); break;
             case FIND_FIRST_ASYNC: query.findFirstAsync(); break;
@@ -423,126 +417,6 @@ public class RealmQueryTests {
 
     @Test
     public void callThreadConfinedMethodsFromWrongThread() throws Throwable {
-        final List<Pair<ThreadConfinedQueryMethods, String>> methodParams = Arrays.asList(
-                pairOf(ThreadConfinedQueryMethods.EQUAL_TO_STRING, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.EQUAL_TO_STRING, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.EQUAL_TO_STRING_WITH_CASE, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.EQUAL_TO_BYTE, AllJavaTypes.FIELD_BYTE),
-                pairOf(ThreadConfinedQueryMethods.EQUAL_TO_BYTE_ARRAY, AllJavaTypes.FIELD_BINARY),
-                pairOf(ThreadConfinedQueryMethods.EQUAL_TO_SHORT, AllJavaTypes.FIELD_SHORT),
-                pairOf(ThreadConfinedQueryMethods.EQUAL_TO_INTEGER, AllJavaTypes.FIELD_INT),
-                pairOf(ThreadConfinedQueryMethods.EQUAL_TO_LONG, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.EQUAL_TO_DOUBLE, AllJavaTypes.FIELD_DOUBLE),
-                pairOf(ThreadConfinedQueryMethods.EQUAL_TO_FLOAT, AllJavaTypes.FIELD_FLOAT),
-                pairOf(ThreadConfinedQueryMethods.EQUAL_TO_BOOLEAN, AllJavaTypes.FIELD_BOOLEAN),
-                pairOf(ThreadConfinedQueryMethods.EQUAL_TO_DATE, AllJavaTypes.FIELD_DATE),
-
-                pairOf(ThreadConfinedQueryMethods.IN_STRING, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.IN_STRING_WITH_CASE, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.IN_BYTE, AllJavaTypes.FIELD_BYTE),
-                pairOf(ThreadConfinedQueryMethods.IN_SHORT, AllJavaTypes.FIELD_SHORT),
-                pairOf(ThreadConfinedQueryMethods.IN_INTEGER, AllJavaTypes.FIELD_INT),
-                pairOf(ThreadConfinedQueryMethods.IN_LONG, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.IN_DOUBLE, AllJavaTypes.FIELD_DOUBLE),
-                pairOf(ThreadConfinedQueryMethods.IN_FLOAT, AllJavaTypes.FIELD_FLOAT),
-                pairOf(ThreadConfinedQueryMethods.IN_BOOLEAN, AllJavaTypes.FIELD_BOOLEAN),
-                pairOf(ThreadConfinedQueryMethods.IN_DATE, AllJavaTypes.FIELD_DATE),
-
-                pairOf(ThreadConfinedQueryMethods.NOT_EQUAL_TO_STRING, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.NOT_EQUAL_TO_STRING_WITH_CASE, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.NOT_EQUAL_TO_BYTE, AllJavaTypes.FIELD_BYTE),
-                pairOf(ThreadConfinedQueryMethods.NOT_EQUAL_TO_BYTE_ARRAY, AllJavaTypes.FIELD_BINARY),
-                pairOf(ThreadConfinedQueryMethods.NOT_EQUAL_TO_SHORT, AllJavaTypes.FIELD_SHORT),
-                pairOf(ThreadConfinedQueryMethods.NOT_EQUAL_TO_INTEGER, AllJavaTypes.FIELD_INT),
-                pairOf(ThreadConfinedQueryMethods.NOT_EQUAL_TO_LONG, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.NOT_EQUAL_TO_DOUBLE, AllJavaTypes.FIELD_DOUBLE),
-                pairOf(ThreadConfinedQueryMethods.NOT_EQUAL_TO_FLOAT, AllJavaTypes.FIELD_FLOAT),
-                pairOf(ThreadConfinedQueryMethods.NOT_EQUAL_TO_BOOLEAN, AllJavaTypes.FIELD_BOOLEAN),
-                pairOf(ThreadConfinedQueryMethods.NOT_EQUAL_TO_DATE, AllJavaTypes.FIELD_DATE),
-
-                pairOf(ThreadConfinedQueryMethods.GREATER_THAN_INTEGER, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.GREATER_THAN_LONG, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.GREATER_THAN_DOUBLE, AllJavaTypes.FIELD_DOUBLE),
-                pairOf(ThreadConfinedQueryMethods.GREATER_THAN_FLOAT, AllJavaTypes.FIELD_FLOAT),
-                pairOf(ThreadConfinedQueryMethods.GREATER_THAN_DATE, AllJavaTypes.FIELD_DATE),
-
-                pairOf(ThreadConfinedQueryMethods.GREATER_THAN_OR_EQUAL_TO_INTEGER, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.GREATER_THAN_OR_EQUAL_TO_LONG, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.GREATER_THAN_OR_EQUAL_TO_DOUBLE, AllJavaTypes.FIELD_DOUBLE),
-                pairOf(ThreadConfinedQueryMethods.GREATER_THAN_OR_EQUAL_TO_FLOAT, AllJavaTypes.FIELD_FLOAT),
-                pairOf(ThreadConfinedQueryMethods.GREATER_THAN_OR_EQUAL_TO_DATE, AllJavaTypes.FIELD_DATE),
-
-                pairOf(ThreadConfinedQueryMethods.LESS_THAN_INTEGER, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.LESS_THAN_LONG, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.LESS_THAN_DOUBLE, AllJavaTypes.FIELD_DOUBLE),
-                pairOf(ThreadConfinedQueryMethods.LESS_THAN_FLOAT, AllJavaTypes.FIELD_FLOAT),
-                pairOf(ThreadConfinedQueryMethods.LESS_THAN_DATE, AllJavaTypes.FIELD_DATE),
-
-                pairOf(ThreadConfinedQueryMethods.LESS_THAN_OR_EQUAL_TO_INTEGER, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.LESS_THAN_OR_EQUAL_TO_LONG, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.LESS_THAN_OR_EQUAL_TO_DOUBLE, AllJavaTypes.FIELD_DOUBLE),
-                pairOf(ThreadConfinedQueryMethods.LESS_THAN_OR_EQUAL_TO_FLOAT, AllJavaTypes.FIELD_FLOAT),
-                pairOf(ThreadConfinedQueryMethods.LESS_THAN_OR_EQUAL_TO_DATE, AllJavaTypes.FIELD_DATE),
-
-                pairOf(ThreadConfinedQueryMethods.BETWEEN_INTEGER, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.BETWEEN_LONG, AllJavaTypes.FIELD_LONG),
-                pairOf(ThreadConfinedQueryMethods.BETWEEN_DOUBLE, AllJavaTypes.FIELD_DOUBLE),
-                pairOf(ThreadConfinedQueryMethods.BETWEEN_FLOAT, AllJavaTypes.FIELD_FLOAT),
-                pairOf(ThreadConfinedQueryMethods.BETWEEN_DATE, AllJavaTypes.FIELD_DATE),
-
-                pairOf(ThreadConfinedQueryMethods.CONTAINS_STRING, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.CONTAINS_STRING_WITH_CASE, AllJavaTypes.FIELD_STRING),
-
-                pairOf(ThreadConfinedQueryMethods.BEGINS_WITH_STRING, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.BEGINS_WITH_STRING_WITH_CASE, AllJavaTypes.FIELD_STRING),
-
-                pairOf(ThreadConfinedQueryMethods.ENDS_WITH_STRING, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.WNDS_WITH_STRING_WITH_CASE, AllJavaTypes.FIELD_STRING),
-
-                pairOf(ThreadConfinedQueryMethods.LIKE_STRING, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.LIKE_STRING_WITH_CASE, AllJavaTypes.FIELD_STRING),
-
-                pairOf(ThreadConfinedQueryMethods.BEGIN_GROUP, null),
-                pairOf(ThreadConfinedQueryMethods.END_GROUP, null),
-                pairOf(ThreadConfinedQueryMethods.OR, null),
-                pairOf(ThreadConfinedQueryMethods.NOT, null),
-                pairOf(ThreadConfinedQueryMethods.IS_NULL, AllJavaTypes.FIELD_DATE),
-                pairOf(ThreadConfinedQueryMethods.IS_NOT_NULL, AllJavaTypes.FIELD_DATE),
-                pairOf(ThreadConfinedQueryMethods.IS_EMPTY, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.IS_NOT_EMPTY, AllJavaTypes.FIELD_STRING),
-
-                pairOf(ThreadConfinedQueryMethods.IS_VALID, null),
-                pairOf(ThreadConfinedQueryMethods.DISTINCT, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.DISTINCT_BY_MULTIPLE_FIELDS, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.DISTINCT_ASYNC, AllJavaTypes.FIELD_STRING),
-
-                pairOf(ThreadConfinedQueryMethods.SUM, AllJavaTypes.FIELD_INT),
-                pairOf(ThreadConfinedQueryMethods.AVERAGE, AllJavaTypes.FIELD_INT),
-                pairOf(ThreadConfinedQueryMethods.MIN, AllJavaTypes.FIELD_INT),
-                pairOf(ThreadConfinedQueryMethods.MINIMUM_DATE, AllJavaTypes.FIELD_INT),
-                pairOf(ThreadConfinedQueryMethods.MAX, AllJavaTypes.FIELD_INT),
-                pairOf(ThreadConfinedQueryMethods.MAXIMUM_DATE, AllJavaTypes.FIELD_INT),
-                pairOf(ThreadConfinedQueryMethods.COUNT, null),
-
-                pairOf(ThreadConfinedQueryMethods.FIND_ALL, null),
-                pairOf(ThreadConfinedQueryMethods.FIND_ALL_ASYNC, null),
-                pairOf(ThreadConfinedQueryMethods.FIND_ALL_SORTED, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.FIND_ALL_SORTED_ASYNC, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.FIND_ALL_SORTED_WITH_ORDER, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.FIND_ALL_SORTED_ASYNC_WITH_ORDER, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.FIND_ALL_SORTED_WITH_TWO_ORDERS, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.FIND_ALL_SORTED_ASYNC_WITH_TWO_ORDERS, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.FIND_ALL_SORTED_WITH_MANY_ORDERS, AllJavaTypes.FIELD_STRING),
-                pairOf(ThreadConfinedQueryMethods.FIND_ALL_SORTED_ASYNC_WITH_MANY_ORDERS, AllJavaTypes.FIELD_STRING),
-
-                pairOf(ThreadConfinedQueryMethods.FIND_FIRST, null),
-                pairOf(ThreadConfinedQueryMethods.FIND_FIRST_ASYNC, null)
-        );
-
-        if (ThreadConfinedQueryMethods.values().length != methodParams.size()) {
-            throw new RuntimeException("missing some entries in 'methodParams'.");
-        }
-
         final RealmQuery<AllJavaTypes> query = realm.where(AllJavaTypes.class);
 
         final AtomicReference<Throwable> throwableFromThread = new AtomicReference<Throwable>();
@@ -560,15 +434,13 @@ public class RealmQueryTests {
             throw new AssertionError(e);
         }
 
-        final Thread thread = new Thread("addingQueryParamFromWrongThread") {
+        final Thread thread = new Thread("callThreadConfinedMethodsFromWrongThread") {
             @Override
             public void run() {
                 try {
-                    for (Pair<ThreadConfinedQueryMethods, String> methodParam : methodParams) {
-                        ThreadConfinedQueryMethods queryMethod = methodParam.first;
-                        String fieldName = methodParam.second;
+                    for (ThreadConfinedMethods method : ThreadConfinedMethods.values()) {
                         try {
-                            callThreadConfinedMethod(query, queryMethod, fieldName);
+                            callThreadConfinedMethod(query, method);
                             fail("IllegalStateException must be thrown.");
                         } catch (Throwable e) {
                             if (e instanceof IllegalStateException && expectedMessage.equals(e.getMessage())) {
