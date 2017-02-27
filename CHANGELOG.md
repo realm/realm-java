@@ -1,4 +1,4 @@
-## 2.4.0 (YYYY-MM-DD)
+## 3.0.0 (YYYY-MM-DD)
 
 ### Breaking changes
 
@@ -27,15 +27,15 @@
 
 * Use Object Store's `Results` as the backend for `RealmResults` (#3372).
   - Use Object Store's notification mechanism to trigger listeners.
-  - Local commit triggers Realm global listener and `RealmObject` listener on current thread immediately instead of in the next event loop.
+  - Local commits triggers Realm global listener and `RealmObject` listener on current thread immediately instead of in the next event loop.
 
-## 2.3.2 (YYYY-MM-DD)
+## 2.3.2 (2017-02-27)
 
 ### Bug fixes
 
-* Fixed log levels in JNI layer (#4204).
-* Fixed a bug in encryption (#4128).
-* Fixed "Read-only file system" exception when compacting Realm file on external storage (#4140).
+* Log levels in JNI layer were all reported as "Error" (#4204).
+* Encrypted realms can end up corrupted if many threads are reading and writing at the same time (#4128).
+* "Read-only file system" exception when compacting Realm file on external storage (#4140).
 
 ### Internal
 
