@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -31,8 +30,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -108,6 +105,11 @@ public class RealmQueryTests {
             nonLatinFieldNames.setΔέλτα(i);
             nonLatinFieldNames.set베타(1.234567f + i);
             nonLatinFieldNames.setΒήτα(1.234567f + i);
+
+            Dog dog = testRealm.createObject(Dog.class);
+            dog.setAge(i);
+            dog.setName("test data " + i);
+            allTypes.setColumnRealmObject(dog);
         }
         testRealm.commitTransaction();
     }
@@ -261,6 +263,21 @@ public class RealmQueryTests {
 
         resultList = query.or().equalTo(AllTypes.FIELD_STRING, "test data 117").findAll();
         assertEquals(22, resultList.size());
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilters() {
+        realm.where(AllTypes.class).or().findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilterBefore() {
+        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilterAfter() {
+        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
     }
 
     @Test
@@ -2678,40 +2695,73 @@ public class RealmQueryTests {
     }
 
     @Test
-    public void findAllSorted_onSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        realm.where(AllTypes.class).findAllSorted(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    public void findAllSorted_onSubObjectField() {
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSorted(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
+        assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+        assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
     }
 
     @Test
-    public void findAllSortedAsync_onSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        realm.where(AllTypes.class).findAllSortedAsync(
-                AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    @RunTestInLooperThread
+    public void findAllSortedAsync_onSubObjectField() {
+        Realm realm = looperThread.realm;
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSortedAsync(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
+        looperThread.keepStrongReference.add(results);
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+                assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
+                looperThread.testComplete();
+            }
+        });
     }
 
     @Test
-    public void findAllSorted_listOnSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        String[] fieldNames = new String[1];
-        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
-        Sort[] sorts = new Sort[1];
+    public void findAllSorted_listOnSubObjectField() {
+        String[] fieldNames = new String[2];
+        fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+        fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+
+        Sort[] sorts = new Sort[2];
         sorts[0] = Sort.ASCENDING;
-        realm.where(AllTypes.class).findAllSorted(fieldNames, sorts);
+        sorts[1] = Sort.ASCENDING;
+
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSorted(fieldNames, sorts);
+        assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+        assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
     }
 
     @Test
-    public void findAllSortedAsync_listOnSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        String[] fieldNames = new String[1];
-        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
-        Sort[] sorts = new Sort[1];
+    @RunTestInLooperThread
+    public void findAllSortedAsync_listOnSubObjectField() {
+        Realm realm = looperThread.realm;
+        String[] fieldNames = new String[2];
+        fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+        fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+
+        Sort[] sorts = new Sort[2];
         sorts[0] = Sort.ASCENDING;
-        realm.where(AllTypes.class).findAllSortedAsync(fieldNames, sorts);
+        sorts[1] = Sort.ASCENDING;
+
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSortedAsync(fieldNames, sorts);
+        looperThread.keepStrongReference.add(results);
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+                assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
+                looperThread.testComplete();
+            }
+        });
     }
 
     // RealmQuery.distinct(): requires indexing, and type = boolean, integer, date, string.
@@ -2850,13 +2900,6 @@ public class RealmQueryTests {
         }
     }
 
-    // distinctAsync
-    private Realm openRealmInstance(String name) {
-        RealmConfiguration config = configFactory.createConfiguration(name);
-        Realm.deleteRealm(config);
-        return Realm.getInstance(config);
-    }
-
     @Test
     @RunTestInLooperThread
     public void distinctAsync() throws Throwable {
@@ -2934,91 +2977,50 @@ public class RealmQueryTests {
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_withNullValues() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(2);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        final AtomicInteger changeListenerCalled = new AtomicInteger(2);
+        final Realm realm = looperThread.realm;
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
+
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class)
+                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class)
+                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
+
+        final Runnable endTest = new Runnable() {
             @Override
             public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-
-                Realm asyncRealm = null;
-                try {
-                    Realm.asyncTaskExecutor.pause();
-                    asyncRealm = openRealmInstance("testDistinctAsyncQueryWithNull");
-                    final long numberOfBlocks = 25;
-                    final long numberOfObjects = 10; // Must be greater than 1
-                    populateForDistinct(asyncRealm, numberOfBlocks, numberOfObjects, true);
-
-                    final RealmResults<AnnotationIndexTypes> distinctDate = asyncRealm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
-                    final RealmResults<AnnotationIndexTypes> distinctString = asyncRealm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
-
-                    assertFalse(distinctDate.isLoaded());
-                    assertTrue(distinctDate.isValid());
-                    assertTrue(distinctDate.isEmpty());
-
-                    assertFalse(distinctString.isLoaded());
-                    assertTrue(distinctString.isValid());
-                    assertTrue(distinctString.isEmpty());
-
-                    Realm.asyncTaskExecutor.resume();
-
-                    distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
-                        @Override
-                        public void onChange(RealmResults<AnnotationIndexTypes> object) {
-                            assertEquals(1, distinctDate.size());
-                            signalCallbackFinished.countDown();
-                        }
-                    });
-
-                    distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
-                        @Override
-                        public void onChange(RealmResults<AnnotationIndexTypes> object) {
-                            assertEquals(1, distinctString.size());
-                            signalCallbackFinished.countDown();
-                        }
-                    });
-
-                    Looper.loop();
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (asyncRealm != null) {
-                        asyncRealm.close();
-                    }
-                    signalClosedRealm.countDown();
+                if (changeListenerCalled.decrementAndGet() == 0) {
+                    looperThread.testComplete();
                 }
+            }
+        };
+
+        looperThread.keepStrongReference.add(distinctDate);
+        looperThread.keepStrongReference.add(distinctString);
+
+        distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(1, distinctDate.size());
+                endTest.run();
             }
         });
 
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
-    }
-
-    @Test
-    public void distinctAsync_notIndexedFields() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
-        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
-
-        for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
-            try {
-                realm.where(AnnotationIndexTypes.class).distinctAsync(field);
-                fail(field);
-            } catch (IllegalArgumentException ignored) {
+        distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(1, distinctString.size());
+                endTest.run();
             }
-        }
+        });
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_doesNotExist() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -3028,9 +3030,11 @@ public class RealmQueryTests {
             realm.where(AnnotationIndexTypes.class).distinctAsync("doesNotExist");
         } catch (IllegalArgumentException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_invalidTypes() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
@@ -3040,9 +3044,11 @@ public class RealmQueryTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_indexedLinkedFields() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -3055,9 +3061,11 @@ public class RealmQueryTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_notIndexedLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
@@ -3065,6 +3073,7 @@ public class RealmQueryTests {
             realm.where(AllJavaTypes.class).distinctAsync(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY);
         } catch (IllegalArgumentException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
@@ -3229,5 +3238,15 @@ public class RealmQueryTests {
             query.distinct(AllJavaTypes.INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT, AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT);
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void beginGroup_missingEndGroup() {
+        realm.where(AllTypes.class).beginGroup().findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void endGroup_missingBeginGroup() {
+        realm.where(AllTypes.class).endGroup().findAll();
     }
 }

@@ -113,7 +113,7 @@ public class LinkView implements NativeObject {
 
     public boolean contains(long tableRowIndex) {
         long index = nativeFind(nativePtr, tableRowIndex);
-        return (index != TableOrView.NO_MATCH);
+        return (index != Table.NO_MATCH);
     }
 
     public long size() {
@@ -126,7 +126,7 @@ public class LinkView implements NativeObject {
 
     public TableQuery where() {
         long nativeQueryPtr = nativeWhere(nativePtr);
-        return new TableQuery(this.context, this.parent, nativeQueryPtr);
+        return new TableQuery(this.context, this.getTargetTable(), nativeQueryPtr);
     }
 
     public boolean isAttached() {

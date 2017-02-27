@@ -73,7 +73,6 @@ public class RealmProxyClassGenerator {
         imports.add("io.realm.internal.RealmObjectProxy");
         imports.add("io.realm.internal.Row");
         imports.add("io.realm.internal.Table");
-        imports.add("io.realm.internal.TableOrView");
         imports.add("io.realm.internal.SharedRealm");
         imports.add("io.realm.internal.LinkView");
         imports.add("io.realm.internal.android.JsonUtils");
@@ -486,7 +485,7 @@ public class RealmProxyClassGenerator {
         writer.endControlFlow();
         writer.emitStatement("final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get()");
         writer.emitStatement("this.columnInfo = (%1$s) context.getColumnInfo()", columnInfoClassName());
-        writer.emitStatement("this.proxyState = new ProxyState<%1$s>(%1$s.class, this)", qualifiedClassName);
+        writer.emitStatement("this.proxyState = new ProxyState<%1$s>(this)", qualifiedClassName);
         writer.emitStatement("proxyState.setRealm$realm(context.getRealm())");
         writer.emitStatement("proxyState.setRow$realm(context.getRow())");
         writer.emitStatement("proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue())");
@@ -717,7 +716,7 @@ public class RealmProxyClassGenerator {
                     // check before migrating a nullable field containing null value to not-nullable PrimaryKey field for Realm version 0.89+
                     if (metadata.isPrimaryKey(field)) {
                         writer
-                            .beginControlFlow("if (table.isColumnNullable(%s) && table.findFirstNull(%s) != TableOrView.NO_MATCH)",
+                            .beginControlFlow("if (table.isColumnNullable(%s) && table.findFirstNull(%s) != Table.NO_MATCH)",
                                     fieldIndexVariableReference(field), fieldIndexVariableReference(field))
                             .emitStatement("throw new IllegalStateException(\"Cannot migrate an object with null value in field '%s'." +
                                     " Either maintain the same type for primary key field '%s', or remove the object with null value before migration.\")",
@@ -858,7 +857,7 @@ public class RealmProxyClassGenerator {
                     if (Utils.isString(primaryKeyElement)) {
                         writer
                             .emitStatement("String value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                            .emitStatement("long rowIndex = TableOrView.NO_MATCH")
+                            .emitStatement("long rowIndex = Table.NO_MATCH")
                             .beginControlFlow("if (value == null)")
                                 .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
                             .nextControlFlow("else")
@@ -867,7 +866,7 @@ public class RealmProxyClassGenerator {
                     } else {
                         writer
                             .emitStatement("Number value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                            .emitStatement("long rowIndex = TableOrView.NO_MATCH")
+                            .emitStatement("long rowIndex = Table.NO_MATCH")
                             .beginControlFlow("if (value == null)")
                                 .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
                             .nextControlFlow("else")
@@ -881,7 +880,7 @@ public class RealmProxyClassGenerator {
                 }
 
                 writer
-                    .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
+                    .beginControlFlow("if (rowIndex != Table.NO_MATCH)")
                         .beginControlFlow("try")
                             .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex)," +
                                     " realm.schema.getColumnInfo(%s.class)," +
@@ -1329,7 +1328,7 @@ public class RealmProxyClassGenerator {
                 if (Utils.isString(primaryKeyElement)) {
                     writer
                         .emitStatement("String primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                        .emitStatement("long rowIndex = TableOrView.NO_MATCH")
+                        .emitStatement("long rowIndex = Table.NO_MATCH")
                         .beginControlFlow("if (primaryKeyValue == null)")
                         .emitStatement("rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex)")
                         .nextControlFlow("else")
@@ -1338,7 +1337,7 @@ public class RealmProxyClassGenerator {
                 } else {
                     writer
                         .emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                        .emitStatement("long rowIndex = TableOrView.NO_MATCH")
+                        .emitStatement("long rowIndex = Table.NO_MATCH")
                         .beginControlFlow("if (primaryKeyValue == null)")
                         .emitStatement("rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex)")
                         .nextControlFlow("else")
@@ -1346,7 +1345,7 @@ public class RealmProxyClassGenerator {
                         .endControlFlow();
                 }
             } else {
-                writer.emitStatement("long rowIndex = TableOrView.NO_MATCH");
+                writer.emitStatement("long rowIndex = Table.NO_MATCH");
                 writer.emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter);
                 writer.beginControlFlow("if (primaryKeyValue != null)");
 
@@ -1358,7 +1357,7 @@ public class RealmProxyClassGenerator {
                 writer.endControlFlow();
             }
 
-            writer.beginControlFlow("if (rowIndex == TableOrView.NO_MATCH)");
+            writer.beginControlFlow("if (rowIndex == Table.NO_MATCH)");
             if (Utils.isString(metadata.getPrimaryKey())) {
                 writer.emitStatement("rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false)");
             } else {
@@ -1727,7 +1726,7 @@ public class RealmProxyClassGenerator {
                 .beginControlFlow("if (update)")
                     .emitStatement("Table table = realm.getTable(%s.class)", qualifiedClassName)
                     .emitStatement("long pkColumnIndex = table.getPrimaryKey()")
-                    .emitStatement("long rowIndex = TableOrView.NO_MATCH");
+                    .emitStatement("long rowIndex = Table.NO_MATCH");
             if (metadata.isNullable(metadata.getPrimaryKey())) {
                 writer
                     .beginControlFlow("if (json.isNull(\"%s\"))", metadata.getPrimaryKey().getSimpleName())
@@ -1744,7 +1743,7 @@ public class RealmProxyClassGenerator {
                     .endControlFlow();
             }
             writer
-                    .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
+                    .beginControlFlow("if (rowIndex != Table.NO_MATCH)")
                         .emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
                         .beginControlFlow("try")
                             .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex)," +

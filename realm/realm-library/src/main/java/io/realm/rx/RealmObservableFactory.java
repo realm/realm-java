@@ -45,13 +45,19 @@ import rx.subscriptions.Subscriptions;
  */
 public class RealmObservableFactory implements RxObservableFactory {
 
-    // Maps for storing strong references to RealmResults while they are subscribed to.
+    // Maps for storing strong references to Realm classes while they are subscribed to.
     // This is needed if users create Observables without manually maintaining a reference to them.
-    // In that case RealmObjects/RealmResults might be GC'ed too early.
+    // In that case RealmObjects/RealmResults/RealmLists might be GC'ed too early.
     ThreadLocal<StrongReferenceCounter<RealmResults>> resultsRefs = new ThreadLocal<StrongReferenceCounter<RealmResults>>() {
         @Override
         protected StrongReferenceCounter<RealmResults> initialValue() {
             return new StrongReferenceCounter<RealmResults>();
+        }
+    };
+    ThreadLocal<StrongReferenceCounter<RealmList>> listRefs = new ThreadLocal<StrongReferenceCounter<RealmList>>() {
+        @Override
+        protected StrongReferenceCounter<RealmList> initialValue() {
+            return new StrongReferenceCounter<RealmList>();
         }
     };
     ThreadLocal<StrongReferenceCounter<RealmModel>> objectRefs = new ThreadLocal<StrongReferenceCounter<RealmModel>>() {
@@ -127,7 +133,6 @@ public class RealmObservableFactory implements RxObservableFactory {
     @Override
     public <E extends RealmModel> Observable<RealmResults<E>> from(final Realm realm, final RealmResults<E> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
-
         return Observable.create(new Observable.OnSubscribe<RealmResults<E>>() {
             @Override
             public void call(final Subscriber<? super RealmResults<E>> subscriber) {
@@ -198,17 +203,75 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmModel> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
-        return getRealmListObservable();
+    public <E extends RealmModel> Observable<RealmList<E>> from(Realm realm, final RealmList<E> list) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
+        return Observable.create(new Observable.OnSubscribe<RealmList<E>>() {
+            @Override
+            public void call(final Subscriber<? super RealmList<E>> subscriber) {
+                // Gets instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final Realm observableRealm = Realm.getInstance(realmConfig);
+                listRefs.get().acquireReference(list);
+
+                final RealmChangeListener<RealmList<E>> listener = new RealmChangeListener<RealmList<E>>() {
+                    @Override
+                    public void onChange(RealmList<E> result) {
+                        if (!subscriber.isUnsubscribed()) {
+                            subscriber.onNext(list);
+                        }
+                    }
+                };
+                list.addChangeListener(listener);
+                subscriber.add(Subscriptions.create(new Action0() {
+                    @Override
+                    public void call() {
+                        list.removeChangeListener(listener);
+                        observableRealm.close();
+                        listRefs.get().releaseReference(list);
+                    }
+                }));
+
+                // Immediately calls onNext with the current value, as due to Realm's auto-update, it will be the latest
+                // value.
+                subscriber.onNext(list);
+            }
+        });
     }
 
     @Override
-    public Observable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
-        return getRealmListObservable();
-    }
+    public Observable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, final RealmList<DynamicRealmObject> list) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
+        return Observable.create(new Observable.OnSubscribe<RealmList<DynamicRealmObject>>() {
+            @Override
+            public void call(final Subscriber<? super RealmList<DynamicRealmObject>> subscriber) {
+                // Gets instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
+                listRefs.get().acquireReference(list);
 
-    private <E extends RealmModel> Observable<RealmList<E>> getRealmListObservable() {
-        throw new RuntimeException("RealmList does not support change listeners yet, so cannot create an Observable");
+                final RealmChangeListener<RealmList<DynamicRealmObject>> listener = new RealmChangeListener<RealmList<DynamicRealmObject>>() {
+                    @Override
+                    public void onChange(RealmList<DynamicRealmObject> result) {
+                        if (!subscriber.isUnsubscribed()) {
+                            subscriber.onNext(list);
+                        }
+                    }
+                };
+                list.addChangeListener(listener);
+                subscriber.add(Subscriptions.create(new Action0() {
+                    @Override
+                    public void call() {
+                        list.removeChangeListener(listener);
+                        observableRealm.close();
+                        listRefs.get().releaseReference(list);
+                    }
+                }));
+
+                // Immediately calls onNext with the current value, as due to Realm's auto-update, it will be the latest
+                // value.
+                subscriber.onNext(list);
+            }
+        });
     }
 
     @Override

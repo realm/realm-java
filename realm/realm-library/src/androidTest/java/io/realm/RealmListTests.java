@@ -25,10 +25,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
@@ -37,6 +37,8 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -58,6 +60,8 @@ public class RealmListTests extends CollectionTests {
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
 
     private Realm realm;
     private RealmList<Dog> collection;
@@ -580,7 +584,7 @@ public class RealmListTests extends CollectionTests {
     @Test
     public void removeAll_managedMode() {
         realm.beginTransaction();
-        List<Dog> objectsToRemove = Arrays.asList(collection.get(0));
+        List<Dog> objectsToRemove = Collections.singletonList(collection.get(0));
         assertTrue(collection.removeAll(objectsToRemove));
         assertFalse(collection.contains(objectsToRemove.get(0)));
     }
@@ -742,6 +746,7 @@ public class RealmListTests extends CollectionTests {
                     case SORT_FIELD: results.sort(CyclicType.FIELD_NAME, Sort.ASCENDING); break;
                     case SORT_2FIELDS: results.sort(CyclicType.FIELD_NAME, Sort.ASCENDING, CyclicType.FIELD_DATE, Sort.DESCENDING); break;
                     case SORT_MULTI: results.sort(new String[] { CyclicType.FIELD_NAME, CyclicType.FIELD_DATE }, new Sort[] { Sort.ASCENDING, Sort.DESCENDING});
+                    case CREATE_SNAPSHOT: results.createSnapshot();
                 }
                 fail(method + " should have thrown an Exception");
             } catch (IllegalStateException ignored) {
@@ -973,4 +978,112 @@ public class RealmListTests extends CollectionTests {
         dynamicRealm.close();
     }
 
+    private RealmList<Dog> prepareRealmListInLooperThread() {
+        Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        Owner owner = realm.createObject(Owner.class);
+        owner.setName("Owner");
+        for (int i = 0; i < TEST_SIZE; i++) {
+            Dog dog = realm.createObject(Dog.class);
+            dog.setName("Dog " + i);
+            owner.getDogs().add(dog);
+        }
+        realm.commitTransaction();
+        return owner.getDogs();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void addChangeListener() {
+        collection = prepareRealmListInLooperThread();
+        Realm realm = looperThread.realm;
+        final AtomicInteger listenerCalledCount = new AtomicInteger(0);
+        collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> element) {
+                assertEquals(0, listenerCalledCount.getAndIncrement());
+            }
+        });
+        collection.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
+                assertEquals(1, listenerCalledCount.getAndIncrement());
+            }
+        });
+        realm.beginTransaction();
+        collection.get(0).setAge(42);
+        realm.commitTransaction();
+
+        // This should trigger the listener.
+        realm.beginTransaction();
+        realm.cancelTransaction();
+        assertEquals(2, listenerCalledCount.get());
+        looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeAllChangeListeners() {
+        collection = prepareRealmListInLooperThread();
+        Realm realm = looperThread.realm;
+        final AtomicInteger listenerCalledCount = new AtomicInteger(0);
+        collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> element) {
+                fail();
+            }
+        });
+        collection.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
+                fail();
+            }
+        });
+        realm.beginTransaction();
+        collection.get(0).setAge(42);
+        realm.commitTransaction();
+
+        collection.removeAllChangeListeners();
+
+        // This should trigger the listener if there is any.
+        realm.beginTransaction();
+        realm.cancelTransaction();
+        assertEquals(0, listenerCalledCount.get());
+        looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeChangeListener() {
+        collection = prepareRealmListInLooperThread();
+        Realm realm = looperThread.realm;
+        final AtomicInteger listenerCalledCount = new AtomicInteger(0);
+        RealmChangeListener<RealmList<Dog>> listener1 = new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> element) {
+                fail();
+            }
+        };
+        OrderedRealmCollectionChangeListener<RealmList<Dog>> listener2 =
+                new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
+                    @Override
+                    public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
+                        assertEquals(0, listenerCalledCount.getAndIncrement());
+                    }
+                };
+
+        collection.addChangeListener(listener1);
+        collection.addChangeListener(listener2);
+        realm.beginTransaction();
+        collection.get(0).setAge(42);
+        realm.commitTransaction();
+
+        collection.removeChangeListener(listener1);
+
+        // This should trigger the listener if there is any.
+        realm.beginTransaction();
+        realm.cancelTransaction();
+        assertEquals(1, listenerCalledCount.get());
+        looperThread.testComplete();
+    }
 }

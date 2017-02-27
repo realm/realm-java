@@ -1178,52 +1178,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull(
 
 // FindAll
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllInt(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong value)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int))
-        return 0;
-    try {
-        TableView* pTableView = new TableView( TBL(nativeTablePtr)->find_all_int( S(columnIndex), value) );
-        return reinterpret_cast<jlong>(pTableView);
-    } CATCH_STD()
-    return 0;
-}
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllFloat(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jfloat value)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Float))
-        return 0;
-    try {
-        TableView* pTableView = new TableView( TBL(nativeTablePtr)->find_all_float( S(columnIndex), value) );
-        return reinterpret_cast<jlong>(pTableView);
-    } CATCH_STD()
-    return 0;
-}
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllDouble(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jdouble value)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Double))
-        return 0;
-    try {
-        TableView* pTableView = new TableView( TBL(nativeTablePtr)->find_all_double( S(columnIndex), value) );
-        return reinterpret_cast<jlong>(pTableView);
-    } CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllBool(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jboolean value)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Bool))
-        return 0;
-
-    TableView* pTableView = new TableView( TBL(nativeTablePtr)->find_all_bool( S(columnIndex),
-                                           value != 0 ? true : false) );
-    return reinterpret_cast<jlong>(pTableView);
-}
 
 // FIXME: reenable when find_first_timestamp() is implemented
 /*
@@ -1240,20 +1196,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllTimestamp(
 }
 */
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllString(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jstring value)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_String))
-        return 0;
-
-    Table* pTable = TBL(nativeTablePtr);
-    try {
-        JStringAccessor value2(env, value); // throws
-        TableView* pTableView = new TableView( pTable->find_all_string( S(columnIndex), value2) );
-        return reinterpret_cast<jlong>(pTableView);
-    } CATCH_STD()
-    return 0;
-}
 
 
 // experimental
@@ -1286,35 +1228,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeUpperBoundInt(
 }
 
 //
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDistinctView(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
-{
-    Table* pTable = TBL(nativeTablePtr);
-    if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
-        return 0;
-    if (!pTable->has_search_index(S(columnIndex))) {
-        ThrowException(env, UnsupportedOperation, "The field must be indexed before distinct() can be used.");
-        return 0;
-    }
-    switch (pTable->get_column_type(S(columnIndex))) {
-        case type_Bool:
-        case type_Int:
-        case type_String:
-        case type_Timestamp:
-            try {
-                TableView* pTableView = new TableView( pTable->get_distinct_view(S(columnIndex)) );
-                return reinterpret_cast<jlong>(pTableView);
-            } CATCH_STD()
-            break;
-        default:
-            ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
-            return 0;
-        break;
-    }
-    return 0;
-}
-
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
    JNIEnv *env, jobject, jlong nativeTablePtr, jlongArray columnIndices, jbooleanArray ascending)
