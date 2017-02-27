@@ -1,3 +1,9 @@
+## 2.3.3 (YY-MM-DD)
+
+### Bug fixes
+
+* Throws `IllegalStateException` instead of process crash when any of thread confined methods in `RealmQuery` is called from wrong thread (#4228).
+
 ## 2.3.2 (2017-02-27)
 
 ### Bug fixes
