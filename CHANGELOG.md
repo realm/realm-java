@@ -5,6 +5,7 @@
 * Fixed log levels in JNI layer (#4204).
 * Fixed a bug in encryption (#4128).
 * Fixed "Read-only file system" exception when compacting Realm file on external storage (#4140).
+* Fixed element type checking in `DynamicRealmOject#setList()` (#4252).
 
 ### Internal
 
