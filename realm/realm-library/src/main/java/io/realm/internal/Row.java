@@ -22,6 +22,12 @@ import io.realm.RealmFieldType;
 
 /**
  * Interface for Row objects that act as wrappers around the Realm Core Row object.
+ * <p>
+ * When the actual class which implements this interface is {@link CheckedRow}, all methods in this
+ * interface always validate thier parameters and throw appropriate exception if invalid.
+ * For example, methods which accept a column name check the existence of the column and throw
+ * {@link IllegalArgumentException} if not found.
+ *
  */
 public interface Row {
 

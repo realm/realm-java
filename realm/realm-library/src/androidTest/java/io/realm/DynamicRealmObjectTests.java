@@ -698,7 +698,8 @@ public class DynamicRealmObjectTests {
                 DynamicRealmObject anotherAllTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
                         .equalTo(AllTypes.FIELD_STRING, "bender2")
                         .findFirst();
-                anotherAllTypes.getList(AllTypes.FIELD_REALMLIST).get(0).setString(Dog.FIELD_NAME, "nibbler_modified");
+                anotherAllTypes.getList(AllTypes.FIELD_REALMLIST).first()
+                        .setString(Dog.FIELD_NAME, "nibbler_modified");
             }
         });
 
