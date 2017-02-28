@@ -147,7 +147,7 @@ public class DynamicRealm extends BaseRealm {
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener<DynamicRealm> listener) {
-        super.removeListener(listener);
+        removeListener(listener);
     }
 
     /**
@@ -157,7 +157,7 @@ public class DynamicRealm extends BaseRealm {
      * @see io.realm.RealmChangeListener
      */
     public void removeAllChangeListeners() {
-        super.removeAllListeners();
+        removeAllListeners();
     }
 
     /**
