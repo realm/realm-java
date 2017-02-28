@@ -22,7 +22,7 @@
 * Added support for ChangeListeners on `RealmList`.
 * Added `RealmList.asObservable()`.
 
-# Bug Fixes
+### Bug Fixes
 
 * Element type checking in `DynamicRealmObject#setList()` (#4252).
 * Now throws `IllegalStateException` instead of process crash when any of thread confined methods in `RealmQuery` is called from wrong thread (#4228).
