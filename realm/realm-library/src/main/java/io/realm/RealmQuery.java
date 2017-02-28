@@ -241,8 +241,6 @@ public class RealmQuery<E extends RealmModel> {
         return this;
     }
 
-    // Equal
-
     /**
      * Equal-to comparison.
      *
@@ -484,8 +482,6 @@ public class RealmQuery<E extends RealmModel> {
         return this;
     }
 
-    // In
-
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
@@ -697,8 +693,6 @@ public class RealmQuery<E extends RealmModel> {
         }
         return endGroupWithoutThreadValidation();
     }
-
-    // Not Equal
 
     /**
      * Not-equal-to comparison.
@@ -912,8 +906,6 @@ public class RealmQuery<E extends RealmModel> {
         return this;
     }
 
-    // Greater Than
-
     /**
      * Greater-than comparison.
      *
@@ -993,8 +985,6 @@ public class RealmQuery<E extends RealmModel> {
         this.query.greaterThan(columnIndices, value);
         return this;
     }
-
-    // Greater Than Or Equal To
 
     /**
      * Greater-than-or-equal-to comparison.
@@ -1076,8 +1066,6 @@ public class RealmQuery<E extends RealmModel> {
         return this;
     }
 
-    // Less Than
-
     /**
      * Less-than comparison.
      *
@@ -1158,8 +1146,6 @@ public class RealmQuery<E extends RealmModel> {
         return this;
     }
 
-    // Less Than Or Equal To
-
     /**
      * Less-than-or-equal-to comparison.
      *
@@ -1239,8 +1225,6 @@ public class RealmQuery<E extends RealmModel> {
         this.query.lessThanOrEqual(columnIndices, value);
         return this;
     }
-
-    // Between
 
     /**
      * Between condition.
@@ -1328,8 +1312,6 @@ public class RealmQuery<E extends RealmModel> {
     }
 
 
-    // Contains
-
     /**
      * Condition that value of field contains the specified substring.
      *
@@ -1358,8 +1340,6 @@ public class RealmQuery<E extends RealmModel> {
         this.query.contains(columnIndices, value, casing);
         return this;
     }
-
-    // Begins With
 
     /**
      * Condition that the value of field begins with the specified string.
@@ -1390,8 +1370,6 @@ public class RealmQuery<E extends RealmModel> {
         return this;
     }
 
-    // Ends With
-
     /**
      * Condition that the value of field ends with the specified string.
      *
@@ -1420,8 +1398,6 @@ public class RealmQuery<E extends RealmModel> {
         this.query.endsWith(columnIndices, value, casing);
         return this;
     }
-
-    // Like
 
     /**
      * Condition that the value of field matches with the specified substring, with wildcards:
@@ -1460,8 +1436,6 @@ public class RealmQuery<E extends RealmModel> {
         return this;
     }
 
-
-    // Grouping
 
     /**
      * Begin grouping of conditions ("left parenthesis"). A group must be closed with a call to {@code endGroup()}.
@@ -1737,10 +1711,6 @@ public class RealmQuery<E extends RealmModel> {
         return columnIndexes;
     }
 
-    // Aggregates
-
-    // Sum
-
     /**
      * Calculates the sum of a given field.
      *
@@ -1766,8 +1736,6 @@ public class RealmQuery<E extends RealmModel> {
         }
     }
 
-    // Average
-
     /**
      * Returns the average of a given field.
      *
@@ -1792,8 +1760,6 @@ public class RealmQuery<E extends RealmModel> {
                 throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }
-
-    // Min
 
     /**
      * Finds the minimum value of a field.
@@ -1835,8 +1801,6 @@ public class RealmQuery<E extends RealmModel> {
         long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         return this.query.minimumDate(columnIndex);
     }
-
-    // Max
 
     /**
      * Finds the maximum value of a field.
