@@ -173,11 +173,24 @@ public class Utils {
      * @return the simple type name for a field.
      */
     public static String getFieldTypeSimpleName(VariableElement field) {
-        String fieldTypeQualifiedName = getFieldTypeQualifiedName(field);
-        if (!fieldTypeQualifiedName.contains(".")) {
-            return fieldTypeQualifiedName;
+        return  (null == field) ? null : getFieldTypeSimpleName(getFieldTypeQualifiedName(field));
+    }
+
+    /**
+     * @return the simple type name for a field.
+     */
+    public static String getFieldTypeSimpleName(DeclaredType type) {
+        return (null == type) ? null : getFieldTypeSimpleName(type.toString());
+    }
+
+    /**
+     * @return the simple type name for a field.
+     */
+    public static String getFieldTypeSimpleName(String fieldTypeQualifiedName) {
+        if ((null != fieldTypeQualifiedName) && (fieldTypeQualifiedName.contains("."))) {
+            fieldTypeQualifiedName = fieldTypeQualifiedName.substring(fieldTypeQualifiedName.lastIndexOf('.') + 1);
         }
-        return fieldTypeQualifiedName.substring(fieldTypeQualifiedName.lastIndexOf('.') + 1);
+        return fieldTypeQualifiedName;
     }
 
     /**

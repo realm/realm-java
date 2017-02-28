@@ -527,7 +527,6 @@ public class RealmProcessorTest {
 
     @Test
     public void failsOnLinkingObjectsFieldNotFound() {
-        System.out.println(">>> TEST");
         ASSERT.about(javaSources())
             .that(Arrays.asList(backlinks, backlinksTarget, backlinksNotFound))
             .processedWith(new RealmProcessor())

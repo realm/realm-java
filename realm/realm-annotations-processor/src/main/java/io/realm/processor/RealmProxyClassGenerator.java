@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
@@ -35,6 +36,7 @@ import javax.tools.JavaFileObject;
 
 public class RealmProxyClassGenerator {
     private static final String BACKLINKS_FIELD_EXTENSION = "Backlinks";
+    private static final String MIGRATION_NEEDED_EXCEPTION = "throw new RealmMigrationNeededException(sharedRealm.getPath(), ";
 
     private final ProcessingEnvironment processingEnvironment;
     private final ClassMetaData metadata;
@@ -678,29 +680,41 @@ public class RealmProxyClassGenerator {
 
     private void emitValidateTableMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
-                columnInfoClassName(),        // Return type
-                "validateTable",              // Method name
-                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "SharedRealm", "sharedRealm", // Argument type & argument name
-                "boolean", "allowExtraColumns");
+            columnInfoClassName(),        // Return type
+            "validateTable",              // Method name
+            EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
+            "SharedRealm", "sharedRealm", // Argument type & argument name
+            "boolean", "allowExtraColumns");
 
-        writer.beginControlFlow("if (sharedRealm.hasTable(\"" + Constants.TABLE_PREFIX + this.simpleClassName + "\"))");
-        writer.emitStatement("Table table = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.simpleClassName);
+        writer.beginControlFlow(
+            "if (!sharedRealm.hasTable(\"" + Constants.TABLE_PREFIX + this.simpleClassName + "\"))");
+        writer.emitStatement(
+            MIGRATION_NEEDED_EXCEPTION + "\"The '%s' class is missing from the schema for this Realm.\")",
+            metadata.getSimpleClassName());
+        writer.endControlFlow();
+
+        writer.emitStatement(
+            "Table table = sharedRealm.getTable(\"%s%s\")",
+            Constants.TABLE_PREFIX,
+            this.simpleClassName);
 
         // verify number of columns
         writer.emitStatement("final long columnCount = table.getColumnCount()");
         writer.beginControlFlow("if (columnCount != %d)", metadata.getFields().size());
-            writer.beginControlFlow("if (columnCount < %d)", metadata.getFields().size());
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count is less than expected - expected %d but was \" + columnCount)",
-                        metadata.getFields().size());
-            writer.endControlFlow();
-            writer.beginControlFlow("if (allowExtraColumns)");
-                writer.emitStatement("RealmLog.debug(\"Field count is more than expected - expected %d but was %%1$d\", columnCount)",
-                        metadata.getFields().size());
-            writer.nextControlFlow("else");
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count is more than expected - expected %d but was \" + columnCount)",
-                        metadata.getFields().size());
-            writer.endControlFlow();
+        writer.beginControlFlow("if (columnCount < %d)", metadata.getFields().size());
+        writer.emitStatement(
+            MIGRATION_NEEDED_EXCEPTION + "\"Field count is less than expected - expected %d but was \" + columnCount)",
+            metadata.getFields().size());
+        writer.endControlFlow();
+        writer.beginControlFlow("if (allowExtraColumns)");
+        writer.emitStatement(
+            "RealmLog.debug(\"Field count is more than expected - expected %d but was %%1$d\", columnCount)",
+            metadata.getFields().size());
+        writer.nextControlFlow("else");
+        writer.emitStatement(
+            MIGRATION_NEEDED_EXCEPTION + "\"Field count is more than expected - expected %d but was \" + columnCount)",
+            metadata.getFields().size());
+        writer.endControlFlow();
         writer.endControlFlow();
 
         // create type dictionary for lookup
@@ -719,149 +733,222 @@ public class RealmProxyClassGenerator {
             // the current model defines a PK, make sure it's defined in the Realm schema
             String fieldName = metadata.getPrimaryKey().getSimpleName().toString();
             writer.beginControlFlow("if (!table.hasPrimaryKey())")
-                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary key not defined for field '%s' in existing Realm file. @PrimaryKey was added.\")", metadata.getPrimaryKey().getSimpleName().toString())
-                    .nextControlFlow("else")
-                    .beginControlFlow("if (table.getPrimaryKey() != columnInfo.%sIndex)", fieldName)
-                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key annotation definition was changed, from field \" + table.getColumnName(table.getPrimaryKey()) + \" to field %s\")" ,metadata.getPrimaryKey().getSimpleName().toString())
-                    .endControlFlow()
-                    .endControlFlow();
-        } else {
+                .emitStatement(
+                    MIGRATION_NEEDED_EXCEPTION + "\"Primary key not defined for field '%s' in existing Realm file. @PrimaryKey was added.\")",
+                    metadata.getPrimaryKey().getSimpleName().toString())
+                .nextControlFlow("else")
+                .beginControlFlow("if (table.getPrimaryKey() != columnInfo.%sIndex)", fieldName)
+                .emitStatement(
+                    MIGRATION_NEEDED_EXCEPTION + "\"Primary Key annotation definition was changed, from field \" + table.getColumnName(table.getPrimaryKey()) + \" to field %s\")",
+                    metadata.getPrimaryKey().getSimpleName().toString())
+                .endControlFlow()
+                .endControlFlow();
+        }
+        else {
             // the current model doesn't define a PK, make sure it's not defined in the Realm schema
             writer.beginControlFlow("if (table.hasPrimaryKey())")
-                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key defined for field \" + table.getColumnName(table.getPrimaryKey()) + \" was removed.\")")
-                    .endControlFlow();
+                .emitStatement(
+                    MIGRATION_NEEDED_EXCEPTION + "\"Primary Key defined for field \" + table.getColumnName(table.getPrimaryKey()) + \" was removed.\")")
+                .endControlFlow();
         }
         writer.emitEmptyLine();
 
         // For each field verify there is a corresponding
-        long fieldIndex = 0;
+        long fieldIndex = -1;
         for (VariableElement field : metadata.getFields()) {
+            fieldIndex++;
             String fieldName = field.getSimpleName().toString();
             String fieldTypeQualifiedName = Utils.getFieldTypeQualifiedName(field);
-            String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
-
             if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeQualifiedName)) {
-                // make sure types align
-                writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Missing field '%s' in existing Realm file. " +
-                        "Either remove field or migrate using io.realm.internal.Table.addColumn()." +
-                        "\")", fieldName);
-                writer.endControlFlow();
-                writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)",
-                        fieldName, Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeQualifiedName));
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Invalid type '%s' for field '%s' in existing Realm file.\")",
-                        fieldTypeSimpleName, fieldName);
-                writer.endControlFlow();
-
-                // make sure that nullability matches
-                if (metadata.isNullable(field)) {
-                    writer.beginControlFlow("if (!table.isColumnNullable(%s))", fieldIndexVariableReference(field));
-                    // Check if the existing PrimaryKey does support null value for String, Byte, Short, Integer, & Long
-                    if (metadata.isPrimaryKey(field)) {
-                        writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                "\"@PrimaryKey field '%s' does not support null values in the existing Realm file. " +
-                                "Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.\")",
-                                fieldName);
-                    // nullability check for boxed types
-                    } else if (Utils.isBoxedType(fieldTypeQualifiedName)) {
-                        writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                "\"Field '%s' does not support null values in the existing Realm file. " +
-                                "Either set @Required, use the primitive type for field '%s' " +
-                                "or migrate using RealmObjectSchema.setNullable().\")",
-                                fieldName, fieldName);
-                    } else {
-                        writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                " \"Field '%s' is required. Either set @Required to field '%s' " +
-                                "or migrate using RealmObjectSchema.setNullable().\")",
-                                fieldName, fieldName);
-                    }
-                    writer.endControlFlow();
-                } else {
-                    // check before migrating a nullable field containing null value to not-nullable PrimaryKey field for Realm version 0.89+
-                    if (metadata.isPrimaryKey(field)) {
-                        writer
-                            .beginControlFlow("if (table.isColumnNullable(%s) && table.findFirstNull(%s) != Table.NO_MATCH)",
-                                    fieldIndexVariableReference(field), fieldIndexVariableReference(field))
-                            .emitStatement("throw new IllegalStateException(\"Cannot migrate an object with null value in field '%s'." +
-                                    " Either maintain the same type for primary key field '%s', or remove the object with null value before migration.\")",
-                                    fieldName, fieldName)
-                            .endControlFlow();
-                    } else {
-                        writer.beginControlFlow("if (table.isColumnNullable(%s))", fieldIndexVariableReference(field));
-                        if (Utils.isPrimitiveType(fieldTypeQualifiedName)) {
-                            writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                    " \"Field '%s' does support null values in the existing Realm file. " +
-                                    "Use corresponding boxed type for field '%s' or migrate using RealmObjectSchema.setNullable().\")",
-                                    fieldName, fieldName);
-                        } else {
-                            writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                    " \"Field '%s' does support null values in the existing Realm file. " +
-                                    "Remove @Required or @PrimaryKey from field '%s' or migrate using RealmObjectSchema.setNullable().\")",
-                                    fieldName, fieldName);
-                        }
-                        writer.endControlFlow();
-                    }
-                }
-
-                // Validate @Index
-                if (metadata.getIndexedFields().contains(field)) {
-                    writer.beginControlFlow("if (!table.hasSearchIndex(table.getColumnIndex(\"%s\")))", fieldName);
-                    writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Index not defined for field '%s' in existing Realm file. " +
-                            "Either set @Index or migrate using io.realm.internal.Table.removeSearchIndex().\")", fieldName);
-                    writer.endControlFlow();
-                }
-
-            } else if (Utils.isRealmModel(field)) { // Links
-                writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Missing field '%s' in existing Realm file. " +
-                        "Either remove field or migrate using io.realm.internal.Table.addColumn().\")", fieldName);
-                writer.endControlFlow();
-                writer.beginControlFlow("if (columnTypes.get(\"%s\") != RealmFieldType.OBJECT)", fieldName);
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Invalid type '%s' for field '%s'\")",
-                        fieldTypeSimpleName, fieldName);
-                writer.endControlFlow();
-                writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Missing class '%s%s' for field '%s'\")",
-                        Constants.TABLE_PREFIX, fieldTypeSimpleName, fieldName);
-                writer.endControlFlow();
-
-                writer.emitStatement("Table table_%d = sharedRealm.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, fieldTypeSimpleName);
-                writer.beginControlFlow("if (!table.getLinkTarget(%s).hasSameSchema(table_%d))",
-                        fieldIndexVariableReference(field), fieldIndex);
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Invalid RealmObject for field '%s': '\" + table.getLinkTarget(%s).getName() + \"' expected - was '\" + table_%d.getName() + \"'\")",
-                        fieldName, fieldIndexVariableReference(field), fieldIndex);
-                writer.endControlFlow();
-            } else if (Utils.isRealmList(field)) { // Link Lists
-                String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-                writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Missing field '%s'\")", fieldName);
-                writer.endControlFlow();
-                writer.beginControlFlow("if (columnTypes.get(\"%s\") != RealmFieldType.LIST)", fieldName);
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Invalid type '%s' for field '%s'\")",
-                        genericTypeSimpleName, fieldName);
-                writer.endControlFlow();
-                writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, genericTypeSimpleName);
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Missing class '%s%s' for field '%s'\")",
-                        Constants.TABLE_PREFIX, genericTypeSimpleName, fieldName);
-                writer.endControlFlow();
-
-                writer.emitStatement("Table table_%d = sharedRealm.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, genericTypeSimpleName);
-                writer.beginControlFlow("if (!table.getLinkTarget(%s).hasSameSchema(table_%d))",
-                        fieldIndexVariableReference(field), fieldIndex);
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Invalid RealmList type for field '%s': '\" + table.getLinkTarget(%s).getName() + \"' expected - was '\" + table_%d.getName() + \"'\")",
-                        fieldName, fieldIndexVariableReference(field), fieldIndex);
-                writer.endControlFlow();
+                emitValidateRealmType(writer, field, fieldName, fieldTypeQualifiedName);
             }
-            fieldIndex++;
+            else if (Utils.isRealmModel(field)) { // Links
+                emitValidateRealmModelType(writer, field, fieldIndex, fieldName);
+            }
+            else if (Utils.isRealmList(field)) { // Link Lists
+                emitValidateRealmListType(writer, field, fieldIndex, fieldName);
+            }
         }
 
+        // verify the backlinks
+        Set<Backlink> backlinks = metadata.getBacklinkFields();
+        if (backlinks.size() > 0) {
+            writer.emitEmptyLine();
+            writer.emitStatement("long blidx");
+            writer.emitStatement("Table backlinkSourceTable");
+            writer.emitStatement("RealmFieldType backlinkSourceType");
+            for (Backlink backlink : metadata.getBacklinkFields()) {
+                emitValidateBacklink(writer, backlink);
+            }
+        }
+
+        writer.emitEmptyLine();
         writer.emitStatement("return %s", "columnInfo");
 
-        writer.nextControlFlow("else");
-        writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"The '%s' class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
-        writer.endControlFlow();
         writer.endMethod();
         writer.emitEmptyLine();
+    }
+
+    private void emitValidateRealmType(JavaWriter writer, VariableElement field, String fieldName, String fieldTypeQualifiedName)
+        throws IOException {
+
+        // make sure types align
+        writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
+        writer.emitStatement(MIGRATION_NEEDED_EXCEPTION + "\"Missing field '%s' in existing Realm file. " +
+                "Either remove field or migrate using io.realm.internal.Table.addColumn()." +
+                "\")", fieldName);
+        writer.endControlFlow();
+        writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)",
+                fieldName, Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeQualifiedName));
+        writer.emitStatement(MIGRATION_NEEDED_EXCEPTION + "\"Invalid type '%s' for field '%s' in existing Realm file.\")",
+            Utils.getFieldTypeSimpleName(field), fieldName);
+        writer.endControlFlow();
+
+        // make sure that nullability matches
+        if (metadata.isNullable(field)) {
+            writer.beginControlFlow("if (!table.isColumnNullable(%s))", fieldIndexVariableReference(field));
+            // Check if the existing PrimaryKey does support null value for String, Byte, Short, Integer, & Long
+            if (metadata.isPrimaryKey(field)) {
+                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
+                        "\"@PrimaryKey field '%s' does not support null values in the existing Realm file. " +
+                        "Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.\")",
+                        fieldName);
+            // nullability check for boxed types
+            } else if (Utils.isBoxedType(fieldTypeQualifiedName)) {
+                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
+                        "\"Field '%s' does not support null values in the existing Realm file. " +
+                        "Either set @Required, use the primitive type for field '%s' " +
+                        "or migrate using RealmObjectSchema.setNullable().\")",
+                        fieldName, fieldName);
+            } else {
+                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
+                        " \"Field '%s' is required. Either set @Required to field '%s' " +
+                        "or migrate using RealmObjectSchema.setNullable().\")",
+                        fieldName, fieldName);
+            }
+            writer.endControlFlow();
+        } else {
+            // check before migrating a nullable field containing null value to not-nullable PrimaryKey field for Realm version 0.89+
+            if (metadata.isPrimaryKey(field)) {
+                writer
+                    .beginControlFlow("if (table.isColumnNullable(%s) && table.findFirstNull(%s) != Table.NO_MATCH)",
+                            fieldIndexVariableReference(field), fieldIndexVariableReference(field))
+                    .emitStatement("throw new IllegalStateException(\"Cannot migrate an object with null value in field '%s'." +
+                            " Either maintain the same type for primary key field '%s', or remove the object with null value before migration.\")",
+                            fieldName, fieldName)
+                    .endControlFlow();
+            } else {
+                writer.beginControlFlow("if (table.isColumnNullable(%s))", fieldIndexVariableReference(field));
+                if (Utils.isPrimitiveType(fieldTypeQualifiedName)) {
+                    writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
+                            " \"Field '%s' does support null values in the existing Realm file. " +
+                            "Use corresponding boxed type for field '%s' or migrate using RealmObjectSchema.setNullable().\")",
+                            fieldName, fieldName);
+                } else {
+                    writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
+                            " \"Field '%s' does support null values in the existing Realm file. " +
+                            "Remove @Required or @PrimaryKey from field '%s' or migrate using RealmObjectSchema.setNullable().\")",
+                            fieldName, fieldName);
+                }
+                writer.endControlFlow();
+            }
+        }
+
+        // Validate @Index
+        if (metadata.getIndexedFields().contains(field)) {
+            writer.beginControlFlow("if (!table.hasSearchIndex(table.getColumnIndex(\"%s\")))", fieldName);
+            writer.emitStatement(MIGRATION_NEEDED_EXCEPTION + "\"Index not defined for field '%s' in existing Realm file. " +
+                    "Either set @Index or migrate using io.realm.internal.Table.removeSearchIndex().\")", fieldName);
+            writer.endControlFlow();
+        }
+    }
+
+    private void emitValidateRealmModelType(JavaWriter writer, VariableElement field, long fieldIndex, String fieldName)
+        throws IOException {
+        String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
+
+        writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
+        writer.emitStatement(MIGRATION_NEEDED_EXCEPTION + "\"Missing field '%s' in existing Realm file. " +
+            "Either remove field or migrate using io.realm.internal.Table.addColumn().\")", fieldName);
+        writer.endControlFlow();
+        writer.beginControlFlow("if (columnTypes.get(\"%s\") != RealmFieldType.OBJECT)", fieldName);
+        writer.emitStatement(MIGRATION_NEEDED_EXCEPTION + "\"Invalid type '%s' for field '%s'\")",
+            fieldTypeSimpleName, fieldName);
+        writer.endControlFlow();
+        writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
+        writer.emitStatement(MIGRATION_NEEDED_EXCEPTION + "\"Missing class '%s%s' for field '%s'\")",
+            Constants.TABLE_PREFIX, fieldTypeSimpleName, fieldName);
+        writer.endControlFlow();
+
+        writer.emitStatement("Table table_%d = sharedRealm.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, fieldTypeSimpleName);
+        writer.beginControlFlow("if (!table.getLinkTarget(%s).hasSameSchema(table_%d))",
+            fieldIndexVariableReference(field), fieldIndex);
+        writer.emitStatement(MIGRATION_NEEDED_EXCEPTION + "\"Invalid RealmObject for field '%s': '\" + table.getLinkTarget(%s).getName() + \"' expected - was '\" + table_%d.getName() + \"'\")",
+            fieldName, fieldIndexVariableReference(field), fieldIndex);
+        writer.endControlFlow();
+    }
+
+    private void emitValidateRealmListType(JavaWriter writer, VariableElement field, long fieldIndex, String fieldName)
+        throws IOException
+    {
+        String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
+        writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
+        writer.emitStatement(MIGRATION_NEEDED_EXCEPTION + "\"Missing field '%s'\")", fieldName);
+        writer.endControlFlow();
+        writer.beginControlFlow("if (columnTypes.get(\"%s\") != RealmFieldType.LIST)", fieldName);
+        writer.emitStatement(MIGRATION_NEEDED_EXCEPTION + "\"Invalid type '%s' for field '%s'\")",
+            genericTypeSimpleName, fieldName);
+        writer.endControlFlow();
+        writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, genericTypeSimpleName);
+        writer.emitStatement(MIGRATION_NEEDED_EXCEPTION + "\"Missing class '%s%s' for field '%s'\")",
+            Constants.TABLE_PREFIX, genericTypeSimpleName, fieldName);
+        writer.endControlFlow();
+
+        writer.emitStatement("Table table_%d = sharedRealm.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, genericTypeSimpleName);
+        writer.beginControlFlow("if (!table.getLinkTarget(%s).hasSameSchema(table_%d))",
+            fieldIndexVariableReference(field), fieldIndex);
+        writer.emitStatement(MIGRATION_NEEDED_EXCEPTION + "\"Invalid RealmList type for field '%s': '\" + table.getLinkTarget(%s).getName() + \"' expected - was '\" + table_%d.getName() + \"'\")",
+            fieldName, fieldIndexVariableReference(field), fieldIndex);
+        writer.endControlFlow();
+    }
+
+    private void emitValidateBacklink(JavaWriter writer, Backlink backlink) throws IOException {
+        // verify that the backlink field is not in the table
+        String targetField = backlink.getTargetField();
+        String targetClass = backlink.getTargetClass();
+        writer.emitStatement("blidx = table.getColumnIndex(\"%s\")", targetField);
+        writer.beginControlFlow("if (blidx != Table.NO_MATCH)");
+        writer.emitStatement(
+            MIGRATION_NEEDED_EXCEPTION + "\"@LinkingObjects field '%s.%s' already exists with type '\" + table.getColumnType(blidx) + \"'\")",
+            targetClass, targetField);
+        writer.endControlFlow();
+
+        // verify that the source class exists
+        String sourceClass = backlink.getSimpleSourceClass();
+        String fullyQualifiedSourceClass = backlink.getSourceClass();
+        writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, sourceClass);
+        writer.emitStatement(
+            MIGRATION_NEEDED_EXCEPTION + "\"Cannot find source class '%s' for @LinkingObjects field '%s.%s'\")",
+            fullyQualifiedSourceClass, targetClass, targetField);
+        writer.endControlFlow();
+
+        // verify that the source class contains the source field
+        String sourceField = backlink.getSourceField();
+        writer.emitStatement("backlinkSourceTable = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, sourceClass);
+        writer.emitStatement("blidx = backlinkSourceTable.getColumnIndex(\"%s\")", sourceField);
+        writer.beginControlFlow("if (blidx == Table.NO_MATCH)");
+        writer.emitStatement(
+            MIGRATION_NEEDED_EXCEPTION + "\"Cannot find source field '%s.%s' for @LinkingObjects field '%s.%s'\")",
+            fullyQualifiedSourceClass, sourceField, targetClass, targetField);
+        writer.endControlFlow();
+
+        // verify that the source field type is target class
+        writer.emitStatement("backlinkSourceType = backlinkSourceTable.getColumnType(blidx)");
+        writer.beginControlFlow("if (!backlinkSourceType.equals(\"%s\"))", sourceClass);
+        writer.emitStatement("//" + // FIXME!!!
+            MIGRATION_NEEDED_EXCEPTION + "\"Source field '%s.%s' for @LinkingObjects field '%s.%s' has wrong type '\" + backlinkSourceType + \"'\")",
+            fullyQualifiedSourceClass, sourceField, targetClass, targetField);
+        writer.endControlFlow();
     }
 
     private void emitGetTableNameMethod(JavaWriter writer) throws IOException {
@@ -1830,11 +1917,6 @@ public class RealmProxyClassGenerator {
             writer.endControlFlow();
         }
 
-        // The setter would throw an Exception anyway
-        for (Backlink backlink : metadata.getBacklinkFields()) {
-            RealmJsonTypeHelper.emitIllegalJsonValueException("@LinkingObject", backlink.getTargetField(), writer);
-        }
-
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
             String qualifiedFieldType = field.asType().toString();
@@ -1873,6 +1955,11 @@ public class RealmProxyClassGenerator {
             }
         }
 
+        // The setter would throw an Exception anyway
+        for (Backlink backlink : metadata.getBacklinkFields()) {
+            RealmJsonTypeHelper.emitIllegalJsonValueException("@LinkingObject", backlink.getTargetField(), writer);
+        }
+
         writer.emitStatement("return obj");
         writer.endMethod();
         writer.emitEmptyLine();
@@ -1908,24 +1995,13 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("reader.beginObject()");
         writer.beginControlFlow("while (reader.hasNext())");
         writer.emitStatement("String name = reader.nextName()");
-
-        int statements = 0;
         writer.beginControlFlow("if (false)");
-
-        // The setter is going to throw an Exception anyway
-        for (Backlink backlink : metadata.getBacklinkFields()) {
-            String fieldName = backlink.getTargetField();
-            writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
-            writer.emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_JSON_LOAD, "@LinkingObject", fieldName);
-            statements++;
-        }
 
         Collection<VariableElement> fields = metadata.getFields();
         for (VariableElement field: fields) {
             String fieldName = field.getSimpleName().toString();
             String qualifiedFieldType = field.asType().toString();
             writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
-            statements++;
 
             if (Utils.isRealmModel(field)) {
                 RealmJsonTypeHelper.emitFillRealmObjectFromStream(
@@ -1957,11 +2033,16 @@ public class RealmProxyClassGenerator {
             }
         }
 
-        if (statements > 0) {
-            writer.nextControlFlow("else");
-            writer.emitStatement("reader.skipValue()");
-            writer.endControlFlow();
+        // The setter is going to throw an Exception anyway
+        for (Backlink backlink : metadata.getBacklinkFields()) {
+            String fieldName = backlink.getTargetField();
+            writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
+            writer.emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_JSON_LOAD, "@LinkingObject", fieldName);
         }
+
+        writer.nextControlFlow("else");
+        writer.emitStatement("reader.skipValue()");
+        writer.endControlFlow();
 
         writer.endControlFlow();
         writer.emitStatement("reader.endObject()");

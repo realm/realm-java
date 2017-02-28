@@ -102,7 +102,9 @@ final class Backlink {
 
     public String getSourceField() { return sourceField; }
 
-    public String getTargetFieldType() { return "io.realm.RealmResults<" + sourceClass + ">"; }
+    public String getTargetFieldType() { return backlink.asType().toString(); }
+
+    public String getSimpleSourceClass() { return Utils.getFieldTypeSimpleName(getGenericTypeForContainer(backlink)); }
 
     /**
      * Validate the source side of the backlink.

@@ -71,6 +71,25 @@ public class RealmProxyInterfaceGenerator {
                         .endMethod();
             }
         }
+
+        for (Backlink backlink : metaData.getBacklinkFields()) {
+            String fieldName = backlink.getTargetField();
+            String fieldTypeCanonicalName = backlink.getTargetFieldType();
+            writer
+                .beginMethod(
+                    fieldTypeCanonicalName,
+                    metaData.getInternalGetter(fieldName),
+                    EnumSet.of(Modifier.PUBLIC))
+                .endMethod()
+                .beginMethod(
+                    "void",
+                    metaData.getInternalSetter(fieldName),
+                    EnumSet.of(Modifier.PUBLIC),
+                    fieldTypeCanonicalName,
+                    "value")
+                .endMethod();
+        }
+
         writer.endType();
         writer.close();
     }
