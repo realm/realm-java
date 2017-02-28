@@ -34,7 +34,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllJavaTypes;
-import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
@@ -151,38 +150,60 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     }
 
     OrderedRealmCollection<AllJavaTypes> createCollection(ManagedCollection collectionClass) {
+        OrderedRealmCollection<AllJavaTypes> orderedCollection;
         switch (collectionClass) {
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
-                return realm.where(AllJavaTypes.class)
+                orderedCollection = realm.where(AllJavaTypes.class)
                         .equalTo(AllJavaTypes.FIELD_LONG, 0)
                         .findFirst()
                         .getFieldList();
+                break;
 
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
-                return realm.where(AllJavaTypes.class).findAll();
+                orderedCollection = realm.where(AllJavaTypes.class).findAll();
+                break;
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
         }
+        if (isSnapshot(collectionClass)) {
+            orderedCollection = orderedCollection.createSnapshot();
+        }
+        return orderedCollection;
     }
 
     private OrderedRealmCollection<NullTypes> createEmptyCollection(Realm realm, ManagedCollection collectionClass) {
+        OrderedRealmCollection<NullTypes> orderedCollection;
         switch (collectionClass) {
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 realm.beginTransaction();
                 NullTypes obj = realm.createObject(NullTypes.class, 0);
                 realm.commitTransaction();
-                return obj.getFieldListNull();
+                orderedCollection = obj.getFieldListNull();
+                break;
 
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
-                return realm.where(NullTypes.class).findAll();
+                orderedCollection = realm.where(NullTypes.class).findAll();
+                break;
+            default:
+                throw new AssertionError("Unknown collection: " + collectionClass);
         }
 
-        throw new AssertionError("Unknown collection: " + collectionClass);
+        if (isSnapshot(collectionClass)) {
+            orderedCollection = orderedCollection.createSnapshot();
+        }
+        return orderedCollection;
     }
 
     @Test
     public void sort_twoFields() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> sortedList = collection.sort(AllJavaTypes.FIELD_BOOLEAN, Sort.ASCENDING, AllJavaTypes.FIELD_LONG, Sort.DESCENDING);
         AllJavaTypes obj = sortedList.first();
         assertFalse(obj.isFieldBoolean());
@@ -191,6 +212,9 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_boolean() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> sortedList = collection.sort(AllJavaTypes.FIELD_BOOLEAN, Sort.DESCENDING);
         assertEquals(TEST_SIZE, sortedList.size());
         assertEquals(false, sortedList.last().isFieldBoolean());
@@ -212,6 +236,9 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_string() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> resultList = collection;
         OrderedRealmCollection<AllJavaTypes> sortedList = createCollection(collectionClass);
         sortedList = sortedList.sort(AllJavaTypes.FIELD_STRING, Sort.DESCENDING);
@@ -235,6 +262,9 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_double() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> resultList = collection;
         OrderedRealmCollection<AllJavaTypes> sortedList = createCollection(collectionClass);
         sortedList = sortedList.sort(AllJavaTypes.FIELD_DOUBLE, Sort.DESCENDING);
@@ -253,6 +283,9 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_float() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> resultList = collection;
         OrderedRealmCollection<AllJavaTypes> sortedList = createCollection(collectionClass);
         sortedList = sortedList.sort(AllJavaTypes.FIELD_FLOAT, Sort.DESCENDING);
@@ -290,10 +323,14 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     // Tests sort on nullable fields with null values partially.
     @Test
     public void sort_rowsWithPartialNullValues() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         populatePartialNullRowsForNumericTesting(realm);
         OrderedRealmCollection<NullTypes> original;
         OrderedRealmCollection<NullTypes> copy;
         switch (collectionClass) {
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 realm.beginTransaction();
                 RealmResults<NullTypes> objects = realm.where(NullTypes.class).findAll();
@@ -309,6 +346,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                 copy = parent.getFieldListNull();
                 break;
 
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 original = realm.where(NullTypes.class).findAll();
                 copy = realm.where(NullTypes.class).findAll();
@@ -316,6 +354,10 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
             default:
                 throw new AssertionError("Unknown collection class: " + collectionClass);
+        }
+
+        if (isSnapshot(collectionClass)) {
+            copy = copy.createSnapshot();
         }
 
         // 1 String
@@ -339,13 +381,19 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_nonExistingColumn() {
-        RealmResults<AllJavaTypes> resultList = realm.where(AllJavaTypes.class).findAll();
-        thrown.expect(IllegalArgumentException.class);
-        resultList.sort("Non-existing");
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        } else {
+            thrown.expect(IllegalArgumentException.class);
+        }
+        collection.sort("Non-existing");
     }
 
     @Test
     public void sort_danishCharacters() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> collection = createStringCollection(realm, collectionClass,
                 "Æble",
                 "Øl",
@@ -368,6 +416,9 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_russianCharacters() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> collection = createStringCollection(realm, collectionClass,
                 "Санкт-Петербург",
                 "Москва",
@@ -390,6 +441,9 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_greekCharacters() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> collection = createStringCollection(realm, collectionClass,
                 "αύριο",
                 "ημέρες",
@@ -413,6 +467,9 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     // No sorting order defined. There are Korean, Arabic and Chinese characters.
     @Test
     public void sort_manyDifferentCharacters() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> collection = createStringCollection(realm, collectionClass,
                 "단위",
                 "테스트",
@@ -433,6 +490,9 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_twoLanguages() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> collection = createStringCollection(realm, collectionClass,
                 "test",
                 "αύριο",
@@ -448,26 +508,30 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_usingChildObject() {
-        realm.beginTransaction();
-        Owner owner = realm.createObject(Owner.class);
-        owner.setName("owner");
-        Cat cat = realm.createObject(Cat.class);
-        cat.setName("cat");
-        owner.setCat(cat);
-        realm.commitTransaction();
-
-        RealmQuery<Owner> query = realm.where(Owner.class);
-        RealmResults<Owner> owners = query.findAll();
-
-        try {
-            owners.sort("cat.name");
-            fail("Sorting by child object properties should result in a IllegalArgumentException");
-        } catch (IllegalArgumentException ignore) {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
         }
+        OrderedRealmCollection<AllJavaTypes> resultList = collection;
+        OrderedRealmCollection<AllJavaTypes> sortedList = createCollection(collectionClass);
+        sortedList = sortedList.sort(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LONG, Sort.DESCENDING);
+        assertEquals("Should have same size", resultList.size(), sortedList.size());
+        assertEquals(TEST_SIZE, sortedList.size());
+        assertEquals("First excepted to be last", resultList.first().getFieldLong(), sortedList.last().getFieldLong());
+
+        sortedList = sortedList.sort(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+        assertEquals(TEST_SIZE, sortedList.size());
+        assertEquals("First excepted to be first", resultList.first().getFieldLong(), sortedList.first().getFieldLong());
+        assertEquals("Last excepted to be last", resultList.last().getFieldLong(), sortedList.last().getFieldLong());
+
+        sortedList = sortedList.sort(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LONG, Sort.DESCENDING);
+        assertEquals(TEST_SIZE, sortedList.size());
     }
 
     @Test
     public void sort_nullArguments() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> result = collection;
         try {
             result.sort((String) null);
@@ -483,6 +547,9 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_emptyResults() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<NullTypes> collection = createEmptyCollection(realm, collectionClass);
         assertEquals(0, collection.size());
         collection.sort(NullTypes.FIELD_STRING_NULL);
@@ -491,6 +558,9 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_singleField() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         RealmResults<AllJavaTypes> sortedList = collection.sort(new String[]{AllJavaTypes.FIELD_LONG}, new Sort[]{Sort.DESCENDING});
         assertEquals(TEST_SIZE, sortedList.size());
         assertEquals(TEST_SIZE - 1, sortedList.first().getFieldLong());
@@ -499,6 +569,9 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_date() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> resultList = collection;
         OrderedRealmCollection<AllJavaTypes> sortedList = createCollection(collectionClass);
         sortedList = sortedList.sort(AllJavaTypes.FIELD_DATE, Sort.DESCENDING);
@@ -517,6 +590,9 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_long() {
+        if (isSnapshot(collectionClass)) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
         OrderedRealmCollection<AllJavaTypes> resultList = collection;
         OrderedRealmCollection<AllJavaTypes> sortedList = createCollection(collectionClass);
         sortedList = sortedList.sort(AllJavaTypes.FIELD_LONG, Sort.DESCENDING);
@@ -540,8 +616,13 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         realm.beginTransaction();
         collection.deleteFromRealm(0);
         realm.commitTransaction();
-        assertEquals(TEST_SIZE - 1, collection.size());
-        assertEquals(2, collection.get(1).getAge());
+        if (isSnapshot(collectionClass)) {
+            assertEquals(TEST_SIZE, collection.size());
+            assertFalse(collection.get(0).isValid());
+        } else {
+            assertEquals(TEST_SIZE - 1, collection.size());
+            assertEquals(2, collection.get(1).getAge());
+        }
     }
 
     @Test
@@ -567,14 +648,21 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         realm.beginTransaction();
         assertTrue(collection.deleteFirstFromRealm());
         realm.commitTransaction();
-        assertEquals(TEST_SIZE - 1, collection.size());
-        assertEquals(1, collection.get(0).getAge());
+        if (isSnapshot(collectionClass)) {
+            assertEquals(TEST_SIZE, collection.size());
+            assertFalse(collection.first().isValid());
+        } else {
+            assertEquals(TEST_SIZE - 1, collection.size());
+            assertEquals(1, collection.get(0).getAge());
+        }
     }
 
     private OrderedRealmCollection<Dog> createNonCyclicCollection(Realm realm, ManagedCollection collectionClass) {
         realm.beginTransaction();
         realm.deleteAll();
+        OrderedRealmCollection<Dog> orderedCollection;
         switch (collectionClass) {
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case MANAGED_REALMLIST:
                 Owner owner = realm.createObject(Owner.class);
                 RealmList<Dog> dogs = owner.getDogs();
@@ -585,8 +673,10 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                     dogs.add(dog);
                 }
                 realm.commitTransaction();
-                return dogs;
+                orderedCollection = dogs;
+                break;
 
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case REALMRESULTS:
                 for (int i = 0; i < TEST_SIZE; i++) {
                     Dog dog = realm.createObject(Dog.class);
@@ -594,12 +684,16 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                     dog.setName("Dog " + i);
                 }
                 realm.commitTransaction();
-                return realm.where(Dog.class).findAll();
+                orderedCollection = realm.where(Dog.class).findAllSorted(Dog.FIELD_AGE);
+                break;
 
             default:
                 throw new AssertionError("Unknown collection class: " + collectionClass);
         }
-
+        if (isSnapshot(collectionClass)) {
+            orderedCollection = orderedCollection.createSnapshot();
+        }
+        return orderedCollection;
     }
 
     @Test
@@ -617,8 +711,13 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         realm.beginTransaction();
         assertTrue(collection.deleteLastFromRealm());
         realm.commitTransaction();
-        assertEquals(TEST_SIZE - 1, collection.size());
-        assertEquals(TEST_SIZE - 2, collection.last().getFieldLong());
+        if (isSnapshot(collectionClass)) {
+            assertEquals(TEST_SIZE, collection.size());
+            assertFalse(collection.last().isValid());
+        } else {
+            assertEquals(TEST_SIZE - 1, collection.size());
+            assertEquals(TEST_SIZE - 2, collection.last().getFieldLong());
+        }
     }
 
     @Test
@@ -639,7 +738,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
             // Define expected exception
             Class<? extends Throwable> expected = IllegalStateException.class;
-            if (collectionClass == ManagedCollection.REALMRESULTS) {
+            if (collectionClass == ManagedCollection.REALMRESULTS || isSnapshot(collectionClass)) {
                 switch (method) {
                     case ADD_INDEX:
                     case ADD_ALL_INDEX:
@@ -688,6 +787,20 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
+                // Defines expected exception.
+                Class<? extends Throwable> expected = IllegalStateException.class;
+                if (isSnapshot(collectionClass)) {
+                    switch (method) {
+                        case SORT:
+                        case SORT_FIELD:
+                        case SORT_2FIELDS:
+                        case SORT_MULTI:
+                            expected = UnsupportedOperationException.class;
+                        default:
+                            break;
+                    }
+                }
+
                 try {
                     switch (method) {
                         case DELETE_INDEX: collection.deleteFromRealm(0); break;
@@ -697,10 +810,11 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                         case SORT_FIELD: collection.sort(AllJavaTypes.FIELD_STRING, Sort.ASCENDING); break;
                         case SORT_2FIELDS: collection.sort(AllJavaTypes.FIELD_STRING, Sort.ASCENDING, AllJavaTypes.FIELD_LONG, Sort.DESCENDING); break;
                         case SORT_MULTI: collection.sort(new String[] { AllJavaTypes.FIELD_STRING }, new Sort[] { Sort.ASCENDING }); break;
+                        case CREATE_SNAPSHOT: collection.createSnapshot(); break;
                     }
                     return false;
-                } catch (IllegalStateException ignored) {
-                    return true;
+                } catch (Throwable t) {
+                    return t.getClass().equals(expected);
                 }
             }
         });
@@ -717,7 +831,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
             public Boolean call() throws Exception {
                 // Defines expected exception.
                 Class<? extends Throwable> expected = IllegalStateException.class;
-                if (collectionClass == ManagedCollection.REALMRESULTS) {
+                if (collectionClass == ManagedCollection.REALMRESULTS || isSnapshot(collectionClass)) {
                     switch (method) {
                         case ADD_INDEX:
                         case ADD_ALL_INDEX:

@@ -34,8 +34,6 @@ private:
     struct ConcreteJavaBindContext {
         JNIEnv* jni_env;
         jobject java_notifier;
-        explicit ConcreteJavaBindContext(JNIEnv* env, jobject notifier)
-            :jni_env(env), java_notifier(notifier) { }
     };
 
     // A weak global ref to the implementation of RealmNotifier
@@ -43,11 +41,14 @@ private:
     jni_util::JavaGlobalWeakRef m_java_notifier;
 
 public:
-    virtual ~JavaBindingContext() {};
-    virtual void changes_available();
+    virtual ~JavaBindingContext() { };
+    virtual void before_notify();
+    virtual void did_change(std::vector<ObserverState> const& observers,
+                            std::vector<void*> const& invalidated,
+                            bool version_changed=true);
 
     explicit JavaBindingContext(const ConcreteJavaBindContext& concrete_context)
-            : m_java_notifier(concrete_context.jni_env, concrete_context.java_notifier) {}
+            : m_java_notifier(concrete_context.jni_env, concrete_context.java_notifier) { }
     JavaBindingContext(const JavaBindingContext&) = delete;
     JavaBindingContext& operator=(const JavaBindingContext&) = delete;
     JavaBindingContext(JavaBindingContext&&) = delete;

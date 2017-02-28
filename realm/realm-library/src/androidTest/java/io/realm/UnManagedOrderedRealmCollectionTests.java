@@ -153,6 +153,7 @@ public class UnManagedOrderedRealmCollectionTests extends CollectionTests {
                     case SORT_FIELD: collection.sort(AllJavaTypes.FIELD_STRING, Sort.ASCENDING); break;
                     case SORT_2FIELDS: collection.sort(AllJavaTypes.FIELD_STRING, Sort.ASCENDING, AllJavaTypes.FIELD_LONG, Sort.DESCENDING); break;
                     case SORT_MULTI: collection.sort(new String[] { AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_LONG }, new Sort[] { Sort.ASCENDING, Sort.DESCENDING }); break;
+                    case CREATE_SNAPSHOT: collection.createSnapshot();
                 }
                 fail(method + " should have thrown an exception.");
             } catch (UnsupportedOperationException ignored) {
