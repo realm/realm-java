@@ -37,11 +37,15 @@ public:
         }
     }
 
-    // Implement those when needed.
+    JavaGlobalWeakRef(JavaGlobalWeakRef&& rhs) : m_weak(rhs.m_weak) { rhs.m_weak = nullptr; }
+    JavaGlobalWeakRef& operator=(JavaGlobalWeakRef&& rhs) {
+        this->~JavaGlobalWeakRef();
+        new(this) JavaGlobalWeakRef(std::move(rhs));
+        return *this;
+    }
+
     JavaGlobalWeakRef(const JavaGlobalWeakRef&) = delete;
     JavaGlobalWeakRef& operator=(const JavaGlobalWeakRef&) = delete;
-    JavaGlobalWeakRef(JavaGlobalWeakRef&& rhs) = delete;
-    JavaGlobalWeakRef& operator=(JavaGlobalWeakRef&& rhs) = delete;
 
     inline operator bool() const noexcept
     {

@@ -34,6 +34,7 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
 
 /**
@@ -43,15 +44,16 @@ import static org.junit.Assert.fail;
  *
  * # RealmOrderedCollection
  *
- * + E first()
- * + E last()
- * - void sort(String field)
- * - void sort(String field, Sort sortOrder)
- * - void sort(String field1, Sort sortOrder1, String field2, Sort sortOrder2)
- * - void sort(String[] fields, Sort[] sortOrders)
- * - void deleteFromRealm(int location)
- * - void deleteFirstFromRealm()
+ * + E first();
+ * + E last();
+ * - void sort(String field);
+ * - void sort(String field, Sort sortOrder);
+ * - void sort(String field1, Sort sortOrder1, String field2, Sort sortOrder2);
+ * - void sort(String[] fields, Sort[] sortOrders);
+ * - void deleteFromRealm(int location);
+ * - void deleteFirstFromRealm();
  * - void deleteLastFromRealm();
+ * - OrderedRealmCollectionSnapshot createSnapshot();
  *
  * # List
  *
@@ -138,49 +140,69 @@ public class OrderedRealmCollectionTests extends CollectionTests {
     }
 
     private OrderedRealmCollection<AllJavaTypes> createCollection(Realm realm, CollectionClass collectionClass) {
+        OrderedRealmCollection<AllJavaTypes> orderedCollection;
         switch (collectionClass) {
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 populateRealm(realm, TEST_SIZE);
-                return realm.where(AllJavaTypes.class)
+                orderedCollection = realm.where(AllJavaTypes.class)
                         .equalTo(AllJavaTypes.FIELD_LONG, 0)
                         .findFirst()
                         .getFieldList();
+                break;
 
             case UNMANAGED_REALMLIST:
                 return populateInMemoryList(TEST_SIZE);
 
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 populateRealm(realm, TEST_SIZE);
-                return realm.where(AllJavaTypes.class).findAll();
+                orderedCollection = realm.where(AllJavaTypes.class).findAll();
+                break;
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
         }
+        if (isSnapshot(collectionClass)) {
+            orderedCollection = orderedCollection.createSnapshot();
+        }
+        return orderedCollection;
     }
 
     private OrderedRealmCollection<AllJavaTypes> createEmptyCollection(Realm realm, CollectionClass collectionClass) {
+        OrderedRealmCollection<AllJavaTypes> orderedCollection;
         switch (collectionClass) {
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
-                return realm.where(AllJavaTypes.class)
+                orderedCollection = realm.where(AllJavaTypes.class)
                         .equalTo(AllJavaTypes.FIELD_LONG, 1)
                         .findFirst()
                         .getFieldList();
+                break;
 
             case UNMANAGED_REALMLIST:
                 return new RealmList<AllJavaTypes>();
 
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
-                return realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, -1).findAll();
+                orderedCollection = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, -1).findAll();
+                break;
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
         }
+        if (isSnapshot(collectionClass)) {
+            orderedCollection = orderedCollection.createSnapshot();
+        }
+        return orderedCollection;
     }
 
     private Pair<AllJavaTypes, OrderedRealmCollection<AllJavaTypes>> createCollectionWithMultipleCopies(Realm realm, CollectionClass collectionClass) {
 
+        OrderedRealmCollection<AllJavaTypes>  orderedCollection;
         AllJavaTypes obj;
         switch (collectionClass) {
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 obj = realm.where(AllJavaTypes.class)
                         .equalTo(AllJavaTypes.FIELD_LONG, 1)
@@ -189,20 +211,29 @@ public class OrderedRealmCollectionTests extends CollectionTests {
                 realm.beginTransaction();
                 list.add(obj);
                 realm.commitTransaction();
-                return new Pair<AllJavaTypes, OrderedRealmCollection<AllJavaTypes>>(obj, list);
+                orderedCollection = list;
+                break;
 
             case UNMANAGED_REALMLIST:
                 obj = new AllJavaTypes(1);
                 return new Pair<AllJavaTypes, OrderedRealmCollection<AllJavaTypes>>(obj, new RealmList<AllJavaTypes>(obj, obj));
 
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 1).findAll();
                 obj = result.first();
-                return new Pair<AllJavaTypes, OrderedRealmCollection<AllJavaTypes>>(obj, result);
+                orderedCollection = result;
+                break;
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
         }
+
+        if (isSnapshot(collectionClass)) {
+            orderedCollection = orderedCollection.createSnapshot();
+        }
+
+        return new Pair<AllJavaTypes, OrderedRealmCollection<AllJavaTypes>>(obj, orderedCollection);
     }
 
     @Test
@@ -325,7 +356,7 @@ public class OrderedRealmCollectionTests extends CollectionTests {
         collection.subList(0, TEST_SIZE + 1);
     }
 
-    // Check that all releveant methods throw a correct IndexOutOfBounds
+    // Checks that all relevant methods throw a correct IndexOutOfBounds
     @Test
     public void methods_indexOutOfBounds() {
         collection = createEmptyCollection(realm, collectionClass);
@@ -371,6 +402,7 @@ public class OrderedRealmCollectionTests extends CollectionTests {
                     case SORT_FIELD:
                     case SORT_2FIELDS:
                     case SORT_MULTI:
+                    case CREATE_SNAPSHOT:
                         continue;
                 }
                 fail(method + " did not throw an exception");
@@ -382,4 +414,24 @@ public class OrderedRealmCollectionTests extends CollectionTests {
         }
     }
 
+    @Test
+    public void createSnapshot() {
+        if (collectionClass == CollectionClass.UNMANAGED_REALMLIST) {
+            thrown.expect(UnsupportedOperationException.class);
+        }
+        OrderedRealmCollectionSnapshot snapshot = collection.createSnapshot();
+        switch (collectionClass) {
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
+                // Creating snapshot from a snapshot will just return the same object.
+                assertSame(collection, snapshot);
+                break;
+            case MANAGED_REALMLIST:
+            case REALMRESULTS:
+                assertEquals(collection.size(), snapshot.size());
+                break;
+            default:
+                break;
+        }
+    }
 }

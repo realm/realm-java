@@ -174,11 +174,14 @@ class RealmTransformer extends Transform {
             it.getPackageName()
         }
 
+        def targetSdk = project?.android?.defaultConfig?.targetSdkVersion?.mApiLevel as String;
+        def minSdk = project?.android?.defaultConfig?.minSdkVersion?.mApiLevel as String;
+
         def env = System.getenv()
         def disableAnalytics = env["REALM_DISABLE_ANALYTICS"]
         if (disableAnalytics == null || disableAnalytics != "true") {
             boolean sync = project?.realm?.syncEnabled != null && project.realm.syncEnabled
-            def analytics = new RealmAnalytics(packages as Set, containsKotlin, sync)
+            def analytics = new RealmAnalytics(packages as Set, containsKotlin, sync, targetSdk, minSdk)
             analytics.execute()
         }
     }
