@@ -138,7 +138,7 @@ public class DynamicRealm extends BaseRealm {
      * @see #removeAllChangeListeners()
      */
     public void addChangeListener(RealmChangeListener<DynamicRealm> listener) {
-        super.addListener(listener);
+        addListener(listener);
     }
 
     /**

@@ -1,8 +1,10 @@
-## 2.3.3 (YY-MM-DD)
+## 2.3.3 (YYYY-MM-DD)
 
 ### Bug fixes
 
+* Element type checking in `DynamicRealmObject#setList()` (#4252).
 * Throws `IllegalStateException` instead of process crash when any of thread confined methods in `RealmQuery` is called from wrong thread (#4228).
+
 
 ## 2.3.2 (2017-02-27)
 
@@ -20,6 +22,7 @@
 ### Enhancements
 
 * Improved performance of getters and setters in proxy classes.
+
 
 ## 2.3.1
 
