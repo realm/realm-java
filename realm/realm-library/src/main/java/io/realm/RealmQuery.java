@@ -19,7 +19,6 @@ package io.realm;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.Locale;
 
 import io.realm.annotations.Required;
 import io.realm.internal.Collection;
@@ -178,7 +177,7 @@ public class RealmQuery<E extends RealmModel> {
      * @return {@code true} if still valid to use, {@code false} otherwise.
      */
     public boolean isValid() {
-        if (realm == null || realm.isClosed()) {
+        if (realm == null || realm.isClosed() /* this includes thread checking */) {
             return false;
         }
 
@@ -201,6 +200,8 @@ public class RealmQuery<E extends RealmModel> {
      * @see Required for further infomation.
      */
     public RealmQuery<E> isNull(String fieldName) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName);
 
         // Checks that fieldName has the correct type is done in C++.
@@ -217,14 +218,14 @@ public class RealmQuery<E extends RealmModel> {
      * @see Required for further infomation.
      */
     public RealmQuery<E> isNotNull(String fieldName) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName);
 
         // Checks that fieldName has the correct type is done in C++.
         this.query.isNotNull(columnIndices);
         return this;
     }
-
-    // Equal
 
     /**
      * Equal-to comparison.
@@ -248,6 +249,12 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, String value, Case casing) {
+        realm.checkIfValid();
+
+        return equalToWithoutThreadValidation(fieldName, value, casing);
+    }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, String value, Case casing) {
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.STRING);
         this.query.equalTo(columnIndices, value, casing);
         return this;
@@ -262,6 +269,12 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, Byte value) {
+        realm.checkIfValid();
+
+        return equalToWithoutThreadValidation(fieldName, value);
+    }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, Byte value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         if (value == null) {
             this.query.isNull(columnIndices);
@@ -280,6 +293,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, byte[] value) {
+        realm.checkIfValid();
+
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
         if (value == null) {
             this.query.isNull(columnIndices);
@@ -298,6 +313,12 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, Short value) {
+        realm.checkIfValid();
+
+        return equalToWithoutThreadValidation(fieldName, value);
+    }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, Short value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         if (value == null) {
             this.query.isNull(columnIndices);
@@ -316,6 +337,12 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, Integer value) {
+        realm.checkIfValid();
+
+        return equalToWithoutThreadValidation(fieldName, value);
+    }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, Integer value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         if (value == null) {
             this.query.isNull(columnIndices);
@@ -334,6 +361,12 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, Long value) {
+        realm.checkIfValid();
+
+        return equalToWithoutThreadValidation(fieldName, value);
+    }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, Long value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         if (value == null) {
             this.query.isNull(columnIndices);
@@ -342,6 +375,7 @@ public class RealmQuery<E extends RealmModel> {
         }
         return this;
     }
+
     /**
      * Equal-to comparison.
      *
@@ -351,6 +385,12 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, Double value) {
+        realm.checkIfValid();
+
+        return equalToWithoutThreadValidation(fieldName, value);
+    }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, Double value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.DOUBLE);
         if (value == null) {
             this.query.isNull(columnIndices);
@@ -369,6 +409,12 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, Float value) {
+        realm.checkIfValid();
+
+        return equalToWithoutThreadValidation(fieldName, value);
+    }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, Float value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.FLOAT);
         if (value == null) {
             this.query.isNull(columnIndices);
@@ -387,6 +433,12 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, Boolean value) {
+        realm.checkIfValid();
+
+        return equalToWithoutThreadValidation(fieldName, value);
+    }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, Boolean value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.BOOLEAN);
         if (value == null) {
             this.query.isNull(columnIndices);
@@ -405,12 +457,16 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, Date value) {
+        realm.checkIfValid();
+
+        return equalToWithoutThreadValidation(fieldName, value);
+    }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, Date value) {
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.DATE);
         this.query.equalTo(columnIndices, value);
         return this;
     }
-
-    // In
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
@@ -436,14 +492,16 @@ public class RealmQuery<E extends RealmModel> {
      * empty.
      */
     public RealmQuery<E> in(String fieldName, String[] values, Case casing) {
+        realm.checkIfValid();
+
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
-        beginGroup().equalTo(fieldName, values[0], casing);
+        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0], casing);
         for (int i = 1; i < values.length; i++) {
-            or().equalTo(fieldName, values[i], casing);
+            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i], casing);
         }
-        return endGroup();
+        return endGroupWithoutThreadValidation();
     }
 
     /**
@@ -456,14 +514,16 @@ public class RealmQuery<E extends RealmModel> {
      * empty.
      */
     public RealmQuery<E> in(String fieldName, Byte[] values) {
+        realm.checkIfValid();
+
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
-        beginGroup().equalTo(fieldName, values[0]);
+        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            or().equalTo(fieldName, values[i]);
+            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
         }
-        return endGroup();
+        return endGroupWithoutThreadValidation();
     }
 
     /**
@@ -476,14 +536,16 @@ public class RealmQuery<E extends RealmModel> {
      * empty.
      */
     public RealmQuery<E> in(String fieldName, Short[] values) {
+        realm.checkIfValid();
+
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
-        beginGroup().equalTo(fieldName, values[0]);
+        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            or().equalTo(fieldName, values[i]);
+            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
         }
-        return endGroup();
+        return endGroupWithoutThreadValidation();
     }
 
     /**
@@ -496,14 +558,16 @@ public class RealmQuery<E extends RealmModel> {
      * or empty.
      */
     public RealmQuery<E> in(String fieldName, Integer[] values) {
+        realm.checkIfValid();
+
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
-        beginGroup().equalTo(fieldName, values[0]);
+        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            or().equalTo(fieldName, values[i]);
+            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
         }
-        return endGroup();
+        return endGroupWithoutThreadValidation();
     }
 
     /**
@@ -516,14 +580,16 @@ public class RealmQuery<E extends RealmModel> {
      * empty.
      */
     public RealmQuery<E> in(String fieldName, Long[] values) {
+        realm.checkIfValid();
+
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
-        beginGroup().equalTo(fieldName, values[0]);
+        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            or().equalTo(fieldName, values[i]);
+            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
         }
-        return endGroup();
+        return endGroupWithoutThreadValidation();
     }
 
     /**
@@ -536,14 +602,16 @@ public class RealmQuery<E extends RealmModel> {
      * empty.
      */
     public RealmQuery<E> in(String fieldName, Double[] values) {
+        realm.checkIfValid();
+
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
-        beginGroup().equalTo(fieldName, values[0]);
+        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            or().equalTo(fieldName, values[i]);
+            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
         }
-        return endGroup();
+        return endGroupWithoutThreadValidation();
     }
 
     /**
@@ -556,14 +624,16 @@ public class RealmQuery<E extends RealmModel> {
      * empty.
      */
     public RealmQuery<E> in(String fieldName, Float[] values) {
+        realm.checkIfValid();
+
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
-        beginGroup().equalTo(fieldName, values[0]);
+        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            or().equalTo(fieldName, values[i]);
+            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
         }
-        return endGroup();
+        return endGroupWithoutThreadValidation();
     }
 
     /**
@@ -576,14 +646,16 @@ public class RealmQuery<E extends RealmModel> {
      * or empty.
      */
     public RealmQuery<E> in(String fieldName, Boolean[] values) {
+        realm.checkIfValid();
+
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
-        beginGroup().equalTo(fieldName, values[0]);
+        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            or().equalTo(fieldName, values[i]);
+            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
         }
-        return endGroup();
+        return endGroupWithoutThreadValidation();
     }
 
     /**
@@ -596,17 +668,17 @@ public class RealmQuery<E extends RealmModel> {
      * empty.
      */
     public RealmQuery<E> in(String fieldName, Date[] values) {
+        realm.checkIfValid();
+
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
-        beginGroup().equalTo(fieldName, values[0]);
+        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            or().equalTo(fieldName, values[i]);
+            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
         }
-        return endGroup();
+        return endGroupWithoutThreadValidation();
     }
-
-    // Not Equal
 
     /**
      * Not-equal-to comparison.
@@ -630,6 +702,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, String value, Case casing) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.STRING);
         if (columnIndices.length > 1 && !casing.getValue()) {
             throw new IllegalArgumentException("Link queries cannot be case insensitive - coming soon.");
@@ -647,6 +721,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, Byte value) {
+        realm.checkIfValid();
+
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         if (value == null) {
             this.query.isNotNull(columnIndices);
@@ -665,6 +741,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, byte[] value) {
+        realm.checkIfValid();
+
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
         if (value == null) {
             this.query.isNotNull(columnIndices);
@@ -683,6 +761,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, Short value) {
+        realm.checkIfValid();
+
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         if (value == null) {
             this.query.isNotNull(columnIndices);
@@ -701,6 +781,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, Integer value) {
+        realm.checkIfValid();
+
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         if (value == null) {
             this.query.isNotNull(columnIndices);
@@ -719,6 +801,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, Long value) {
+        realm.checkIfValid();
+
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         if (value == null) {
             this.query.isNotNull(columnIndices);
@@ -737,6 +821,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, Double value) {
+        realm.checkIfValid();
+
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.DOUBLE);
         if (value == null) {
             this.query.isNotNull(columnIndices);
@@ -755,6 +841,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, Float value) {
+        realm.checkIfValid();
+
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.FLOAT);
         if (value == null) {
             this.query.isNotNull(columnIndices);
@@ -773,6 +861,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, Boolean value) {
+        realm.checkIfValid();
+
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.BOOLEAN);
         if (value == null) {
             this.query.isNotNull(columnIndices);
@@ -791,6 +881,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, Date value) {
+        realm.checkIfValid();
+
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.DATE);
         if (value == null) {
             this.query.isNotNull(columnIndices);
@@ -799,8 +891,6 @@ public class RealmQuery<E extends RealmModel> {
         }
         return this;
     }
-
-    // Greater Than
 
     /**
      * Greater-than comparison.
@@ -811,6 +901,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, int value) {
+        realm.checkIfValid();
+
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         this.query.greaterThan(columnIndices, value);
         return this;
@@ -825,6 +917,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, long value) {
+        realm.checkIfValid();
+
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         this.query.greaterThan(columnIndices, value);
         return this;
@@ -839,6 +933,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, double value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.DOUBLE);
         this.query.greaterThan(columnIndices, value);
         return this;
@@ -853,6 +949,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, float value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.FLOAT);
         this.query.greaterThan(columnIndices, value);
         return this;
@@ -867,6 +965,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, Date value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.DATE);
         this.query.greaterThan(columnIndices, value);
         return this;
@@ -881,6 +981,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, int value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         this.query.greaterThanOrEqual(columnIndices, value);
         return this;
@@ -895,6 +997,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, long value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         this.query.greaterThanOrEqual(columnIndices, value);
         return this;
@@ -909,6 +1013,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, double value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.DOUBLE);
         this.query.greaterThanOrEqual(columnIndices, value);
         return this;
@@ -923,6 +1029,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, float value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.FLOAT);
         this.query.greaterThanOrEqual(columnIndices, value);
         return this;
@@ -937,12 +1045,12 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Date value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.DATE);
         this.query.greaterThanOrEqual(columnIndices, value);
         return this;
     }
-
-    // Less Than
 
     /**
      * Less-than comparison.
@@ -953,6 +1061,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, int value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         this.query.lessThan(columnIndices, value);
         return this;
@@ -967,6 +1077,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, long value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         this.query.lessThan(columnIndices, value);
         return this;
@@ -981,6 +1093,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, double value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.DOUBLE);
         this.query.lessThan(columnIndices, value);
         return this;
@@ -995,6 +1109,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, float value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.FLOAT);
         this.query.lessThan(columnIndices, value);
         return this;
@@ -1009,6 +1125,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, Date value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.DATE);
         this.query.lessThan(columnIndices, value);
         return this;
@@ -1023,6 +1141,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, int value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         this.query.lessThanOrEqual(columnIndices, value);
         return this;
@@ -1037,6 +1157,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, long value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         this.query.lessThanOrEqual(columnIndices, value);
         return this;
@@ -1051,6 +1173,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, double value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.DOUBLE);
         this.query.lessThanOrEqual(columnIndices, value);
         return this;
@@ -1065,6 +1189,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, float value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.FLOAT);
         this.query.lessThanOrEqual(columnIndices, value);
         return this;
@@ -1079,12 +1205,12 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Date value) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.DATE);
         this.query.lessThanOrEqual(columnIndices, value);
         return this;
     }
-
-    // Between
 
     /**
      * Between condition.
@@ -1096,6 +1222,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> between(String fieldName, int from, int to) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         this.query.between(columnIndices, from, to);
         return this;
@@ -1111,6 +1239,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> between(String fieldName, long from, long to) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         this.query.between(columnIndices, from, to);
         return this;
@@ -1126,6 +1256,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> between(String fieldName, double from, double to) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.DOUBLE);
         this.query.between(columnIndices, from, to);
         return this;
@@ -1141,6 +1273,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> between(String fieldName, float from, float to) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.FLOAT);
         this.query.between(columnIndices, from, to);
         return this;
@@ -1156,13 +1290,13 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> between(String fieldName, Date from, Date to) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.DATE);
         this.query.between(columnIndices, from, to);
         return this;
     }
 
-
-    // Contains
 
     /**
      * Condition that value of field contains the specified substring.
@@ -1186,6 +1320,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> contains(String fieldName, String value, Case casing) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.STRING);
         this.query.contains(columnIndices, value, casing);
         return this;
@@ -1213,6 +1349,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> beginsWith(String fieldName, String value, Case casing) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.STRING);
         this.query.beginsWith(columnIndices, value, casing);
         return this;
@@ -1240,12 +1378,12 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> endsWith(String fieldName, String value, Case casing) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.STRING);
         this.query.endsWith(columnIndices, value, casing);
         return this;
     }
-
-    // Like
 
     /**
      * Condition that the value of field matches with the specified substring, with wildcards:
@@ -1277,13 +1415,13 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> like(String fieldName, String value, Case casing) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.STRING);
         this.query.like(columnIndices, value, casing);
         return this;
     }
 
-
-    // Grouping
 
     /**
      * Begin grouping of conditions ("left parenthesis"). A group must be closed with a call to {@code endGroup()}.
@@ -1292,6 +1430,12 @@ public class RealmQuery<E extends RealmModel> {
      * @see #endGroup()
      */
     public RealmQuery<E> beginGroup() {
+        realm.checkIfValid();
+
+        return beginGroupWithoutThreadValidation();
+    }
+
+    private RealmQuery<E> beginGroupWithoutThreadValidation() {
         this.query.group();
         return this;
     }
@@ -1303,6 +1447,12 @@ public class RealmQuery<E extends RealmModel> {
      * @see #beginGroup()
      */
     public RealmQuery<E> endGroup() {
+        realm.checkIfValid();
+
+        return endGroupWithoutThreadValidation();
+    }
+
+    private RealmQuery<E> endGroupWithoutThreadValidation() {
         this.query.endGroup();
         return this;
     }
@@ -1313,6 +1463,12 @@ public class RealmQuery<E extends RealmModel> {
      * @return the query object.
      */
     public RealmQuery<E> or() {
+        realm.checkIfValid();
+
+        return orWithoutThreadValidation();
+    }
+
+    private RealmQuery<E> orWithoutThreadValidation() {
         this.query.or();
         return this;
     }
@@ -1323,6 +1479,8 @@ public class RealmQuery<E extends RealmModel> {
      * @return the query object.
      */
     public RealmQuery<E> not() {
+        realm.checkIfValid();
+
         this.query.not();
         return this;
     }
@@ -1336,6 +1494,8 @@ public class RealmQuery<E extends RealmModel> {
      * String or byte array.
      */
     public RealmQuery<E> isEmpty(String fieldName) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST);
         this.query.isEmpty(columnIndices);
         return this;
@@ -1350,6 +1510,8 @@ public class RealmQuery<E extends RealmModel> {
      * String or byte array.
      */
     public RealmQuery<E> isNotEmpty(String fieldName) {
+        realm.checkIfValid();
+
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST);
         this.query.isNotEmpty(columnIndices);
         return this;
@@ -1366,6 +1528,8 @@ public class RealmQuery<E extends RealmModel> {
      * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinct(String fieldName) {
+        realm.checkIfValid();
+
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(query.getTable(), fieldName);
         return createRealmResults(query, null, distinctDescriptor, true);
     }
@@ -1383,6 +1547,8 @@ public class RealmQuery<E extends RealmModel> {
      * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
+        realm.checkIfValid();
+
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(query.getTable(), fieldName);
         return createRealmResults(query, null, distinctDescriptor, false);
@@ -1401,6 +1567,8 @@ public class RealmQuery<E extends RealmModel> {
      * is an unsupported type, or points to a linked field.
      */
     public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
+        realm.checkIfValid();
+
         String[] fieldNames = new String[1 + remainingFieldNames.length];
 
         fieldNames[0] = firstFieldName;
@@ -1408,10 +1576,6 @@ public class RealmQuery<E extends RealmModel> {
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(table.getTable(), fieldNames);
         return createRealmResults(query, null, distinctDescriptor, true);
     }
-
-    // Aggregates
-
-    // Sum
 
     /**
      * Calculates the sum of a given field.
@@ -1423,6 +1587,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number sum(String fieldName) {
+        realm.checkIfValid();
+
         long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -1436,8 +1602,6 @@ public class RealmQuery<E extends RealmModel> {
         }
     }
 
-    // Average
-
     /**
      * Returns the average of a given field.
      *
@@ -1448,6 +1612,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public double average(String fieldName) {
+        realm.checkIfValid();
+
         long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -1461,8 +1627,6 @@ public class RealmQuery<E extends RealmModel> {
         }
     }
 
-    // Min
-
     /**
      * Finds the minimum value of a field.
      *
@@ -1474,6 +1638,7 @@ public class RealmQuery<E extends RealmModel> {
      */
     public Number min(String fieldName) {
         realm.checkIfValid();
+
         long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -1497,11 +1662,11 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
     public Date minimumDate(String fieldName) {
+        realm.checkIfValid();
+
         long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         return this.query.minimumDate(columnIndex);
     }
-
-    // Max
 
     /**
      * Finds the maximum value of a field.
@@ -1514,6 +1679,7 @@ public class RealmQuery<E extends RealmModel> {
      */
     public Number max(String fieldName) {
         realm.checkIfValid();
+
         long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -1537,6 +1703,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
     public Date maximumDate(String fieldName) {
+        realm.checkIfValid();
+
         long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         return this.query.maximumDate(columnIndex);
     }
@@ -1548,6 +1716,8 @@ public class RealmQuery<E extends RealmModel> {
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
     public long count() {
+        realm.checkIfValid();
+
         return this.query.count();
     }
 
@@ -1560,6 +1730,8 @@ public class RealmQuery<E extends RealmModel> {
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
+        realm.checkIfValid();
+
         return createRealmResults(query, null, null, true);
     }
 
@@ -1572,6 +1744,8 @@ public class RealmQuery<E extends RealmModel> {
      * @see io.realm.RealmResults
      */
     public RealmResults<E> findAllAsync() {
+        realm.checkIfValid();
+
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         return createRealmResults(query, null, null, false);
     }
@@ -1591,6 +1765,8 @@ public class RealmQuery<E extends RealmModel> {
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
+        realm.checkIfValid();
+
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldName, sortOrder);
         return createRealmResults(query, sortDescriptor, null, true);
     }
@@ -1605,6 +1781,8 @@ public class RealmQuery<E extends RealmModel> {
      * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(final String fieldName, final Sort sortOrder) {
+        realm.checkIfValid();
+
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldName, sortOrder);
         return createRealmResults(query, sortDescriptor, null, false);
@@ -1654,6 +1832,8 @@ public class RealmQuery<E extends RealmModel> {
      * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSorted(String fieldNames[], Sort sortOrders[]) {
+        realm.checkIfValid();
+
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldNames, sortOrders);
         return createRealmResults(query, sortDescriptor, null, true);
     }
@@ -1674,6 +1854,8 @@ public class RealmQuery<E extends RealmModel> {
      * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldNames[], final Sort[] sortOrders) {
+        realm.checkIfValid();
+
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldNames, sortOrders);
         return createRealmResults(query, sortDescriptor, null, false);
@@ -1720,6 +1902,8 @@ public class RealmQuery<E extends RealmModel> {
      * @see io.realm.RealmObject
      */
     public E findFirst() {
+        realm.checkIfValid();
+
         long tableRowIndex = getSourceRowIndexForFirstObject();
         if (tableRowIndex >= 0) {
             E realmObject = realm.get(clazz, className, tableRowIndex);
@@ -1741,6 +1925,8 @@ public class RealmQuery<E extends RealmModel> {
      * {@code false}.
      */
     public E findFirstAsync() {
+        realm.checkIfValid();
+
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         Row row;
         if (realm.isInTransaction()) {

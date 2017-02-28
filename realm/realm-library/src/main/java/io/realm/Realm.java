@@ -1281,7 +1281,7 @@ public class Realm extends BaseRealm {
      * @see #removeAllChangeListeners()
      */
     public void addChangeListener(RealmChangeListener<Realm> listener) {
-        super.addListener(listener);
+        addListener(listener);
     }
 
     /**
@@ -1293,7 +1293,7 @@ public class Realm extends BaseRealm {
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener<Realm> listener) {
-        super.removeListener(listener);
+        removeListener(listener);
     }
 
     /**
@@ -1303,7 +1303,7 @@ public class Realm extends BaseRealm {
      * @see io.realm.RealmChangeListener
      */
     public void removeAllChangeListeners() {
-        super.removeAllListeners();
+        removeAllListeners();
     }
 
     /**

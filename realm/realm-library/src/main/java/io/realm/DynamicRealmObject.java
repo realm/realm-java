@@ -84,6 +84,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      */
     @SuppressWarnings("unchecked")
     public <E> E get(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         RealmFieldType type = proxyState.getRow$realm().getColumnType(columnIndex);
         switch (type) {
@@ -115,6 +117,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public boolean getBoolean(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
             return proxyState.getRow$realm().getBoolean(columnIndex);
@@ -166,6 +170,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public long getLong(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
             return proxyState.getRow$realm().getLong(columnIndex);
@@ -202,6 +208,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public float getFloat(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
             return proxyState.getRow$realm().getFloat(columnIndex);
@@ -223,6 +231,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public double getDouble(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
             return proxyState.getRow$realm().getDouble(columnIndex);
@@ -240,6 +250,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain binary data.
      */
     public byte[] getBlob(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
             return proxyState.getRow$realm().getBinaryByteArray(columnIndex);
@@ -257,6 +269,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain Strings.
      */
     public String getString(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
             return proxyState.getRow$realm().getString(columnIndex);
@@ -274,6 +288,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain Dates.
      */
     public Date getDate(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         checkFieldType(fieldName, columnIndex, RealmFieldType.DATE);
         if (proxyState.getRow$realm().isNull(columnIndex)) {
@@ -291,6 +307,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain links to other objects.
      */
     public DynamicRealmObject getObject(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         checkFieldType(fieldName, columnIndex, RealmFieldType.OBJECT);
         if (proxyState.getRow$realm().isNullLink(columnIndex)) {
@@ -310,6 +328,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a list of links.
      */
     public RealmList<DynamicRealmObject> getList(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
             LinkView linkView = proxyState.getRow$realm().getLinkList(columnIndex);
@@ -329,6 +349,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist.
      */
     public boolean isNull(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         RealmFieldType type = proxyState.getRow$realm().getColumnType(columnIndex);
         switch (type) {
@@ -357,6 +379,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @return {@code true} if the object has a field with the given name, {@code false} otherwise.
      */
     public boolean hasField(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         //noinspection SimplifiableIfStatement
         if (fieldName == null || fieldName.isEmpty()) {
             return false;
@@ -370,6 +394,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @return list of field names on this objects or the empty list if the object doesn't have any fields.
      */
     public String[] getFieldNames() {
+        proxyState.getRealm$realm().checkIfValid();
+
         String[] keys = new String[(int) proxyState.getRow$realm().getColumnCount()];
         for (int i = 0; i < keys.length; i++) {
             keys[i] = proxyState.getRow$realm().getColumnName(i);
@@ -391,6 +417,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      */
     @SuppressWarnings("unchecked")
     public void set(String fieldName, Object value) {
+        proxyState.getRealm$realm().checkIfValid();
+
         boolean isString = (value instanceof String);
         String strValue = isString ? (String) value : null;
 
@@ -460,6 +488,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a boolean field.
      */
     public void setBoolean(String fieldName, boolean value) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setBoolean(columnIndex, value);
     }
@@ -473,6 +503,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setShort(String fieldName, short value) {
+        proxyState.getRealm$realm().checkIfValid();
+
         checkIsPrimaryKey(fieldName);
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setLong(columnIndex, value);
@@ -487,6 +519,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setInt(String fieldName, int value) {
+        proxyState.getRealm$realm().checkIfValid();
+
         checkIsPrimaryKey(fieldName);
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setLong(columnIndex, value);
@@ -501,6 +535,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setLong(String fieldName, long value) {
+        proxyState.getRealm$realm().checkIfValid();
+
         checkIsPrimaryKey(fieldName);
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setLong(columnIndex, value);
@@ -515,6 +551,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setByte(String fieldName, byte value) {
+        proxyState.getRealm$realm().checkIfValid();
+
         checkIsPrimaryKey(fieldName);
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setLong(columnIndex, value);
@@ -528,6 +566,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a float field.
      */
     public void setFloat(String fieldName, float value) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setFloat(columnIndex, value);
     }
@@ -540,6 +580,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a double field.
      */
     public void setDouble(String fieldName, double value) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setDouble(columnIndex, value);
     }
@@ -553,6 +595,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setString(String fieldName, String value) {
+        proxyState.getRealm$realm().checkIfValid();
+
         checkIsPrimaryKey(fieldName);
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setString(columnIndex, value);
@@ -566,6 +610,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a binary field.
      */
     public void setBlob(String fieldName, byte[] value) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setBinaryByteArray(columnIndex, value);
     }
@@ -578,6 +624,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a Date field.
      */
     public void setDate(String fieldName, Date value) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         if (value == null) {
             proxyState.getRow$realm().setNull(columnIndex);
@@ -595,6 +643,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * of DynamicRealmObject doesn't match or it belongs to a different Realm.
      */
     public void setObject(String fieldName, DynamicRealmObject value) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         if (value == null) {
             proxyState.getRow$realm().nullifyLink(columnIndex);
@@ -625,30 +675,37 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * different Realm.
      */
     public void setList(String fieldName, RealmList<DynamicRealmObject> list) {
+        proxyState.getRealm$realm().checkIfValid();
+
         if (list == null) {
             throw new IllegalArgumentException("Null values not allowed for lists");
         }
 
-        String tableName = proxyState.getRow$realm().getTable().getName();
+        long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
+        LinkView links = proxyState.getRow$realm().getLinkList(columnIndex);
+        Table linkTargetTable = links.getTargetTable();
+        final String linkTargetTableName = Table.tableNameToClassName(linkTargetTable.getName());
+
         boolean typeValidated;
         if (list.className == null && list.clazz == null) {
             // Unmanaged lists don't know anything about the types they contain. They might even hold objects of
             // multiple types :(, so we have to check each item in the list.
             typeValidated = false;
         } else {
-            String listType = list.className != null ? list.className : proxyState.getRealm$realm().schema.getTable(list.clazz).getName();
-            if (!tableName.equals(listType)) {
-                throw new IllegalArgumentException(String.format("The elements in the list is not the proper type. " +
-                        "Was %s expected %s.", listType, tableName));
+            String listType = list.className != null ? list.className
+                    : Table.tableNameToClassName(proxyState.getRealm$realm().schema.getTable(list.clazz).getName());
+            if (!linkTargetTableName.equals(listType)) {
+                throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                        "The elements in the list are not the proper type. " +
+                        "Was %s expected %s.", listType, linkTargetTableName));
             }
             typeValidated = true;
         }
 
-        long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        LinkView links = proxyState.getRow$realm().getLinkList(columnIndex);
-        links.clear();
-        Table linkTargetTable = links.getTargetTable();
-        for (int i = 0; i < list.size(); i++) {
+        final int listLength = list.size();
+        final long[] indices = new long[listLength];
+
+        for (int i = 0; i < listLength; i++) {
             RealmObjectProxy obj = list.get(i);
             if (obj.realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
                 throw new IllegalArgumentException("Each element in 'list' must belong to the same Realm instance.");
@@ -656,9 +713,17 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             if (!typeValidated && !linkTargetTable.hasSameSchema(obj.realmGet$proxyState().getRow$realm().getTable())) {
                 throw new IllegalArgumentException(String.format(Locale.ENGLISH,
                         "Element at index %d is not the proper type. " +
-                                "Was '%s' expected '%s'.", i, obj.realmGet$proxyState().getRow$realm().getTable().getName(), linkTargetTable.getName()));
+                                "Was '%s' expected '%s'.",
+                        i,
+                        Table.tableNameToClassName(obj.realmGet$proxyState().getRow$realm().getTable().getName()),
+                        linkTargetTableName));
             }
-            links.add(obj.realmGet$proxyState().getRow$realm().getIndex());
+            indices[i] = obj.realmGet$proxyState().getRow$realm().getIndex();
+        }
+
+        links.clear();
+        for (int i = 0; i < listLength; i++) {
+            links.add(indices[i]);
         }
     }
 
@@ -670,6 +735,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setNull(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         RealmFieldType type = proxyState.getRow$realm().getColumnType(columnIndex);
         if (type == RealmFieldType.OBJECT) {
@@ -687,6 +754,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @return this objects type.
      */
     public String getType() {
+        proxyState.getRealm$realm().checkIfValid();
+
         return RealmSchema.getSchemaForTable(proxyState.getRow$realm().getTable());
     }
 
@@ -696,6 +765,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @return the underlying type used by Realm to represent this field.
      */
     public RealmFieldType getFieldType(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         return proxyState.getRow$realm().getColumnType(columnIndex);
     }
@@ -731,6 +802,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      */
     @Override
     public int hashCode() {
+        proxyState.getRealm$realm().checkIfValid();
+
         String realmName = proxyState.getRealm$realm().getPath();
         String tableName = proxyState.getRow$realm().getTable().getName();
         long rowIndex = proxyState.getRow$realm().getIndex();
@@ -744,12 +817,15 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
     @Override
     public boolean equals(Object o) {
+        proxyState.getRealm$realm().checkIfValid();
+
         if (this == o) {
             return true;
         }
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         DynamicRealmObject other = (DynamicRealmObject) o;
 
         String path = proxyState.getRealm$realm().getPath();
@@ -770,7 +846,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
     @Override
     public String toString() {
-        if (proxyState.getRealm$realm() == null || !proxyState.getRow$realm().isAttached()) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        if (!proxyState.getRow$realm().isAttached()) {
             return "Invalid object";
         }
 
