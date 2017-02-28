@@ -652,7 +652,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     : Table.tableNameToClassName(proxyState.getRealm$realm().schema.getTable(list.clazz).getName());
             if (!linkTargetTableName.equals(listType)) {
                 throw new IllegalArgumentException(String.format(Locale.ENGLISH,
-                        "The elements in the list is not the proper type. " +
+                        "The elements in the list are not the proper type. " +
                         "Was %s expected %s.", listType, linkTargetTableName));
             }
             typeValidated = true;
