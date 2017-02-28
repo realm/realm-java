@@ -26,6 +26,14 @@
   - Use Object Store's notification mechanism to trigger listeners.
   - Local commits triggers Realm global listener and `RealmObject` listener on current thread immediately instead of in the next event loop.
 
+
+## 2.3.3 (YYYY-MM-DD)
+
+### Bug fixes
+
+* Element type checking in `DynamicRealmObject#setList()` (#4252).
+
+
 ## 2.3.2 (2017-02-27)
 
 ### Bug fixes
@@ -42,6 +50,7 @@
 ### Enhancements
 
 * Improved performance of getters and setters in proxy classes.
+
 
 ## 2.3.1
 

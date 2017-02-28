@@ -663,6 +663,51 @@ public class DynamicRealmObjectTests {
     }
 
     @Test
+    public void setList_managedRealmList() {
+        dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                realm.deleteAll();
+
+                DynamicRealmObject allTypes = realm.createObject(AllTypes.CLASS_NAME);
+                allTypes.setString(AllTypes.FIELD_STRING, "bender");
+
+                DynamicRealmObject anotherAllTypes;
+                {
+                    anotherAllTypes = realm.createObject(AllTypes.CLASS_NAME);
+                    anotherAllTypes.setString(AllTypes.FIELD_STRING, "bender2");
+                    DynamicRealmObject dog = realm.createObject(Dog.CLASS_NAME);
+                    dog.setString(Dog.FIELD_NAME, "nibbler");
+                    anotherAllTypes.getList(AllTypes.FIELD_REALMLIST).add(dog);
+                }
+
+                // set managed RealmList
+                allTypes.setList(AllTypes.FIELD_REALMLIST, anotherAllTypes.getList(AllTypes.FIELD_REALMLIST));
+            }
+        });
+
+        DynamicRealmObject allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
+                .equalTo(AllTypes.FIELD_STRING, "bender")
+                .findFirst();
+        assertEquals(1, allTypes.getList(AllTypes.FIELD_REALMLIST).size());
+        assertEquals("nibbler", allTypes.getList(AllTypes.FIELD_REALMLIST).first().get(Dog.FIELD_NAME));
+
+        // Check if allTypes and anotherAllTypes share the same Dog object.
+        dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                DynamicRealmObject anotherAllTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
+                        .equalTo(AllTypes.FIELD_STRING, "bender2")
+                        .findFirst();
+                anotherAllTypes.getList(AllTypes.FIELD_REALMLIST).first()
+                        .setString(Dog.FIELD_NAME, "nibbler_modified");
+            }
+        });
+
+        assertEquals("nibbler_modified", allTypes.getList(AllTypes.FIELD_REALMLIST).first().get(Dog.FIELD_NAME));
+    }
+
+    @Test
     public void setList_elementBelongToTypedRealmThrows() {
         RealmList<DynamicRealmObject> list = new RealmList<DynamicRealmObject>();
         list.add(dObjTyped);
