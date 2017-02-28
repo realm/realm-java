@@ -102,6 +102,8 @@ final class Backlink {
 
     public String getSourceField() { return sourceField; }
 
+    public String getTargetFieldType() { return "io.realm.RealmResults<" + sourceClass + ">"; }
+
     /**
      * Validate the source side of the backlink.
      *

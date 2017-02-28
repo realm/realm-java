@@ -27,6 +27,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.exceptions.RealmException;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -160,14 +161,13 @@ public class LinkingObjectsManagedTests {
         parent.setFieldObject(child);
         realm.commitTransaction();
 
+        realm.beginTransaction();
         try {
-            realm.beginTransaction();
-            realm.createOrUpdateAllFromJson(AllJavaTypes.class, "[{ \"fieldId\" : 1, \"columnObject\" : null }]");
-            // should fail here?
-        } catch (IllegalStateException ignore) {
-        } finally {
-            realm.commitTransaction();
+            realm.createOrUpdateAllFromJson(AllJavaTypes.class, "[{ \"fieldId\" : 1, \"objectParents\" : null }]");
+            fail("Expected attempt to load the @LinkingObjects 'objectParents' field to fail");
+        } catch (RealmException ignore) {
         }
+        realm.commitTransaction();
 
         RealmResults<AllJavaTypes> parents = child.getObjectParents();
         assertNotNull(parents);
@@ -184,14 +184,13 @@ public class LinkingObjectsManagedTests {
         parent.getFieldList().add(child);
         realm.commitTransaction();
 
+        realm.beginTransaction();
         try {
-            realm.beginTransaction();
             realm.createOrUpdateAllFromJson(AllJavaTypes.class, "[{ \"fieldId\" : 1, \"listParents\" : null }]");
-            // should fail here?
-        } catch (Exception ignore) {
-        } finally {
-            realm.commitTransaction();
+            fail("Expected attempt to load the @LinkingObjects 'listParents' field to fail");
+        } catch (RealmException ignore) {
         }
+        realm.commitTransaction();
 
         RealmResults<AllJavaTypes> parents = child.getListParents();
         assertNotNull(parents);

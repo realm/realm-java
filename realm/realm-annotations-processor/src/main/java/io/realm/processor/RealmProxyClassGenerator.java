@@ -218,7 +218,7 @@ public class RealmProxyClassGenerator {
 
         for (Backlink backlink : metadata.getBacklinkFields()) {
             writer.emitField(
-                "RealmResults<" + backlink.getSourceClass() + ">",
+                backlink.getTargetFieldType(),
                 backlink.getTargetField() + BACKLINKS_FIELD_EXTENSION,
                 EnumSet.of(Modifier.PRIVATE));
         }
@@ -1830,6 +1830,11 @@ public class RealmProxyClassGenerator {
             writer.endControlFlow();
         }
 
+        // The setter would throw an Exception anyway
+        for (Backlink backlink : metadata.getBacklinkFields()) {
+            RealmJsonTypeHelper.emitIllegalJsonValueException("@LinkingObject", backlink.getTargetField(), writer);
+        }
+
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
             String qualifiedFieldType = field.asType().toString();
@@ -1904,18 +1909,24 @@ public class RealmProxyClassGenerator {
         writer.beginControlFlow("while (reader.hasNext())");
         writer.emitStatement("String name = reader.nextName()");
 
+        int statements = 0;
+        writer.beginControlFlow("if (false)");
+
+        // The setter is going to throw an Exception anyway
+        for (Backlink backlink : metadata.getBacklinkFields()) {
+            String fieldName = backlink.getTargetField();
+            writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
+            writer.emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_JSON_LOAD, "@LinkingObject", fieldName);
+            statements++;
+        }
+
         Collection<VariableElement> fields = metadata.getFields();
-        boolean first = true;
         for (VariableElement field: fields) {
             String fieldName = field.getSimpleName().toString();
             String qualifiedFieldType = field.asType().toString();
+            writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
+            statements++;
 
-            if (first) {
-                writer.beginControlFlow("if (name.equals(\"%s\"))", fieldName);
-                first = false;
-            } else {
-                writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
-            }
             if (Utils.isRealmModel(field)) {
                 RealmJsonTypeHelper.emitFillRealmObjectFromStream(
                         interfaceName,
@@ -1946,23 +1957,25 @@ public class RealmProxyClassGenerator {
             }
         }
 
-        if (fields.size() > 0) {
+        if (statements > 0) {
             writer.nextControlFlow("else");
             writer.emitStatement("reader.skipValue()");
             writer.endControlFlow();
         }
+
         writer.endControlFlow();
         writer.emitStatement("reader.endObject()");
+
         if (metadata.hasPrimaryKey()) {
             writer.beginControlFlow("if (!jsonHasPrimaryKey)");
             writer.emitStatement(Constants.STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON, metadata.getPrimaryKey());
             writer.endControlFlow();
         }
+
         writer.emitStatement("obj = realm.copyToRealm(obj)");
         writer.emitStatement("return obj");
         writer.endMethod();
         writer.emitEmptyLine();
-
     }
 
     private String columnInfoClassName() {

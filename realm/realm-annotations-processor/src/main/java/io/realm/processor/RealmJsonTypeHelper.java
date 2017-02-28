@@ -150,6 +150,13 @@ public class RealmJsonTypeHelper {
         }
     }
 
+    public static void emitIllegalJsonValueException(String fieldType, String fieldName, JavaWriter writer)
+        throws IOException {
+        writer.beginControlFlow("if (json.has(\"%s\"))", fieldName);
+        writer.emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_JSON_LOAD, fieldType, fieldName);
+        writer.endControlFlow();
+    }
+
     public static void emitFillRealmObjectWithJsonValue(String interfaceName, String setter, String fieldName, String
             qualifiedFieldType, String proxyClass, JavaWriter writer) throws IOException {
         writer
