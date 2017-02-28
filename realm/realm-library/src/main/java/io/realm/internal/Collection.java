@@ -324,7 +324,7 @@ public class Collection implements NativeObject {
             row.getNativePtr(),
             srcTable.getNativePtr(),
             srcTable.getColumnIndex(srcFieldName));
-        return new Collection(realm, row.getTable(), backlinks);
+        return new Collection(realm, row.getTable(), backlinks, true);
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query,
@@ -364,12 +364,16 @@ public class Collection implements NativeObject {
     }
 
     private Collection(SharedRealm sharedRealm, Table table, long nativePtr) {
+        this(sharedRealm, table, nativePtr, false);
+    }
+
+    private Collection(SharedRealm sharedRealm, Table table, long nativePtr, boolean loaded) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.table = table;
         this.nativePtr = nativePtr;
         this.context.addReference(this);
-        this.loaded = false;
+        this.loaded = loaded;
     }
 
     public Collection createSnapshot() {
