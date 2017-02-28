@@ -733,6 +733,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void setObject_objectBelongToDiffThreadRealmThrows() {
         final CountDownLatch finishedLatch = new CountDownLatch(1);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
