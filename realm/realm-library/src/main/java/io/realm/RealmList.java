@@ -247,8 +247,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
 
             if (proxy instanceof DynamicRealmObject) {
                 String listClassName = RealmSchema.getSchemaForTable(view.getTargetTable());
-                String objectClassName = ((DynamicRealmObject) object).getType();
                 if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
+                    String objectClassName = ((DynamicRealmObject) object).getType();
                     if (listClassName.equals(objectClassName)) {
                         // Same Realm instance and same target table
                         return object;
