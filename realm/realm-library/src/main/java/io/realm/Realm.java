@@ -1281,7 +1281,7 @@ public class Realm extends BaseRealm {
      * @see #removeAllChangeListeners()
      */
     public void addChangeListener(RealmChangeListener<Realm> listener) {
-        super.addListener(listener);
+        addListener(listener);
     }
 
     /**
