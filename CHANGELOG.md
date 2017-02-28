@@ -3,7 +3,8 @@
 ### Bug fixes
 
 * Element type checking in `DynamicRealmObject#setList()` (#4252).
-* Throws `IllegalStateException` instead of process crash when any of thread confined methods in `RealmQuery` is called from wrong thread (#4228).
+* Now throws `IllegalStateException` instead of process crash when any of thread confined methods in `RealmQuery` is called from wrong thread (#4228).
+* Now throws `IllegalStateException` when any of thread confined methods in `DynamicRealmObject` is called from wrong thread (#4258).
 
 
 ## 2.3.2 (2017-02-27)

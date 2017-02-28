@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
@@ -854,49 +855,60 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void add_set_dynamicObjectFromOtherThread() {
+    public void add_set_dynamicObjectFromOtherThread() throws Throwable {
         final CountDownLatch finishedLatch = new CountDownLatch(1);
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         final DynamicRealmObject dynDog = dynamicRealm.where(Dog.CLASS_NAME).findFirst();
         final String expectedMsg = "Cannot copy an object to a Realm instance created in another thread.";
+
+        final AtomicReference<Throwable> thrownErrorRef = new AtomicReference<Throwable>();
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
                 dynamicRealm.beginTransaction();
-                RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
-                        .getList(Owner.FIELD_DOGS);
-                list.add(dynamicRealm.createObject(Dog.CLASS_NAME));
-
                 try {
-                    list.add(dynDog);
-                    fail();
-                } catch (IllegalStateException expected) {
-                    assertEquals(expectedMsg, expected.getMessage());
-                }
+                    RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
+                            .getList(Owner.FIELD_DOGS);
+                    list.add(dynamicRealm.createObject(Dog.CLASS_NAME));
 
-                try {
-                    list.add(0, dynDog);
-                    fail();
-                } catch (IllegalStateException expected) {
-                    assertEquals(expectedMsg, expected.getMessage());
-                }
+                    try {
+                        list.add(dynDog);
+                        fail();
+                    } catch (IllegalStateException expected) {
+                        assertEquals(expectedMsg, expected.getMessage());
+                    }
 
-                try {
-                    list.set(0, dynDog);
-                    fail();
-                } catch (IllegalStateException expected) {
-                    assertEquals(expectedMsg, expected.getMessage());
-                }
+                    try {
+                        list.add(0, dynDog);
+                        fail();
+                    } catch (IllegalStateException expected) {
+                        assertEquals(expectedMsg, expected.getMessage());
+                    }
 
-                dynamicRealm.cancelTransaction();
-                dynamicRealm.close();
-                finishedLatch.countDown();
+                    try {
+                        list.set(0, dynDog);
+                        fail();
+                    } catch (IllegalStateException expected) {
+                        assertEquals(expectedMsg, expected.getMessage());
+                    }
+                } catch (Throwable throwable) {
+                    thrownErrorRef.set(throwable);
+                } finally {
+                    dynamicRealm.cancelTransaction();
+                    dynamicRealm.close();
+                    finishedLatch.countDown();
+                }
             }
         }).start();
         TestHelper.awaitOrFail(finishedLatch);
         dynamicRealm.close();
+
+        final Throwable thrown = thrownErrorRef.get();
+        if (thrown != null) {
+            throw thrown;
+        }
     }
 
     @Test
