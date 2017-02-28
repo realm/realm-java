@@ -1,3 +1,9 @@
+## 2.3.3 (YYYY-MM-DD)
+
+### Bug fixes
+
+* Element type checking in `DynamicRealmObject#setList()` (#4252).
+
 ## 2.3.2 (2017-02-27)
 
 ### Bug fixes

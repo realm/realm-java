@@ -637,26 +637,31 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             throw new IllegalArgumentException("Null values not allowed for lists");
         }
 
-        String tableName = proxyState.getRow$realm().getTable().getName();
+        long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
+        LinkView links = proxyState.getRow$realm().getLinkList(columnIndex);
+        Table linkTargetTable = links.getTargetTable();
+        final String linkTargetTableName = Table.tableNameToClassName(linkTargetTable.getName());
+
         boolean typeValidated;
         if (list.className == null && list.clazz == null) {
             // Unmanaged lists don't know anything about the types they contain. They might even hold objects of
             // multiple types :(, so we have to check each item in the list.
             typeValidated = false;
         } else {
-            String listType = list.className != null ? list.className : proxyState.getRealm$realm().schema.getTable(list.clazz).getName();
-            if (!tableName.equals(listType)) {
-                throw new IllegalArgumentException(String.format("The elements in the list is not the proper type. " +
-                        "Was %s expected %s.", listType, tableName));
+            String listType = list.className != null ? list.className
+                    : Table.tableNameToClassName(proxyState.getRealm$realm().schema.getTable(list.clazz).getName());
+            if (!linkTargetTableName.equals(listType)) {
+                throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                        "The elements in the list are not the proper type. " +
+                        "Was %s expected %s.", listType, linkTargetTableName));
             }
             typeValidated = true;
         }
 
-        long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        LinkView links = proxyState.getRow$realm().getLinkList(columnIndex);
-        links.clear();
-        Table linkTargetTable = links.getTargetTable();
-        for (int i = 0; i < list.size(); i++) {
+        final int listLength = list.size();
+        final long[] indices = new long[listLength];
+
+        for (int i = 0; i < listLength; i++) {
             RealmObjectProxy obj = list.get(i);
             if (obj.realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
                 throw new IllegalArgumentException("Each element in 'list' must belong to the same Realm instance.");
@@ -664,9 +669,17 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             if (!typeValidated && !linkTargetTable.hasSameSchema(obj.realmGet$proxyState().getRow$realm().getTable())) {
                 throw new IllegalArgumentException(String.format(Locale.ENGLISH,
                         "Element at index %d is not the proper type. " +
-                                "Was '%s' expected '%s'.", i, obj.realmGet$proxyState().getRow$realm().getTable().getName(), linkTargetTable.getName()));
+                                "Was '%s' expected '%s'.",
+                        i,
+                        Table.tableNameToClassName(obj.realmGet$proxyState().getRow$realm().getTable().getName()),
+                        linkTargetTableName));
             }
-            links.add(obj.realmGet$proxyState().getRow$realm().getIndex());
+            indices[i] = obj.realmGet$proxyState().getRow$realm().getIndex();
+        }
+
+        links.clear();
+        for (int i = 0; i < listLength; i++) {
+            links.add(indices[i]);
         }
     }
 
