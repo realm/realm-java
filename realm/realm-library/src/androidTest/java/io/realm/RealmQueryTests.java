@@ -165,7 +165,6 @@ public class RealmQueryTests {
         IN_STRING,
         IN_STRING_WITH_CASE,
         IN_BYTE,
-        //IN_BYTE_ARRAY,
         IN_SHORT,
         IN_INTEGER,
         IN_LONG,
@@ -186,64 +185,34 @@ public class RealmQueryTests {
         NOT_EQUAL_TO_BOOLEAN,
         NOT_EQUAL_TO_DATE,
 
-        //GREATER_THAN_STRING,
-        //GREATER_THAN_STRING_WITH_CASE,
-        //GREATER_THAN_BYTE,
-        //GREATER_THAN_BYTE_ARRAY,
-        //GREATER_THAN_SHORT,
         GREATER_THAN_INTEGER,
         GREATER_THAN_LONG,
         GREATER_THAN_DOUBLE,
         GREATER_THAN_FLOAT,
-        //GREATER_THAN_BOOLEAN,
         GREATER_THAN_DATE,
 
-        //GREATER_THAN_OR_EQUAL_TO_STRING,
-        //GREATER_THAN_OR_EQUAL_TO_STRING_WITH_CASE,
-        //GREATER_THAN_OR_EQUAL_TO_BYTE,
-        //GREATER_THAN_OR_EQUAL_TO_BYTE_ARRAY,
-        //GREATER_THAN_OR_EQUAL_TO_SHORT,
         GREATER_THAN_OR_EQUAL_TO_INTEGER,
         GREATER_THAN_OR_EQUAL_TO_LONG,
         GREATER_THAN_OR_EQUAL_TO_DOUBLE,
         GREATER_THAN_OR_EQUAL_TO_FLOAT,
-        //GREATER_THAN_OR_EQUAL_TO_BOOLEAN,
         GREATER_THAN_OR_EQUAL_TO_DATE,
 
-        //LESS_THAN_STRING,
-        //LESS_THAN_STRING_WITH_CASE,
-        //LESS_THAN_BYTE,
-        //LESS_THAN_BYTE_ARRAY,
-        //LESS_THAN_SHORT,
         LESS_THAN_INTEGER,
         LESS_THAN_LONG,
         LESS_THAN_DOUBLE,
         LESS_THAN_FLOAT,
-        //LESS_THAN_BOOLEAN,
         LESS_THAN_DATE,
 
-        //LESS_THAN_OR_EQUAL_TO_STRING,
-        //LESS_THAN_OR_EQUAL_TO_STRING_WITH_CASE,
-        //LESS_THAN_OR_EQUAL_TO_BYTE,
-        //LESS_THAN_OR_EQUAL_TO_BYTE_ARRAY,
-        //LESS_THAN_OR_EQUAL_TO_SHORT,
         LESS_THAN_OR_EQUAL_TO_INTEGER,
         LESS_THAN_OR_EQUAL_TO_LONG,
         LESS_THAN_OR_EQUAL_TO_DOUBLE,
         LESS_THAN_OR_EQUAL_TO_FLOAT,
-        //LESS_THAN_OR_EQUAL_TO_BOOLEAN,
         LESS_THAN_OR_EQUAL_TO_DATE,
 
-        //BETWEEN_STRING,
-        //BETWEEN_STRING_WITH_CASE,
-        //BETWEEN_BYTE,
-        //BETWEEN_BYTE_ARRAY,
-        //BETWEEN_SHORT,
         BETWEEN_INTEGER,
         BETWEEN_LONG,
         BETWEEN_DOUBLE,
         BETWEEN_FLOAT,
-        //BETWEEN_BOOLEAN,
         BETWEEN_DATE,
 
         CONTAINS_STRING,
@@ -253,7 +222,7 @@ public class RealmQueryTests {
         BEGINS_WITH_STRING_WITH_CASE,
 
         ENDS_WITH_STRING,
-        WNDS_WITH_STRING_WITH_CASE,
+        ENDS_WITH_STRING_WITH_CASE,
 
         LIKE_STRING,
         LIKE_STRING_WITH_CASE,
@@ -369,7 +338,7 @@ public class RealmQueryTests {
             case BEGINS_WITH_STRING_WITH_CASE: query.beginsWith( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
             case ENDS_WITH_STRING: query.endsWith(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
-            case WNDS_WITH_STRING_WITH_CASE: query.endsWith( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
+            case ENDS_WITH_STRING_WITH_CASE: query.endsWith( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
             case LIKE_STRING: query.like(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
             case LIKE_STRING_WITH_CASE: query.like( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
