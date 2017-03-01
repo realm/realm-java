@@ -37,14 +37,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
-import io.realm.entities.CyclicType;
 import io.realm.entities.DefaultValueOfField;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.entities.StringOnly;
-import io.realm.internal.Table;
+import io.realm.internal.Collection;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -103,14 +102,15 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     public void size_returns_Integer_MAX_VALUE_for_huge_results() {
-        final Table table = Mockito.mock(Table.class);
-        final RealmResults<AllTypes> targetResult = TestHelper.newRealmResults(realm, table, AllTypes.class);
+        final Collection collection = Mockito.mock(Collection.class);
+        final RealmResults<AllTypes> targetResult = TestHelper.newRealmResults(realm, collection, AllTypes.class);
 
-        Mockito.when(table.size()).thenReturn(((long) Integer.MAX_VALUE) - 1);
+        Mockito.when(collection.isLoaded()).thenReturn(true);
+        Mockito.when(collection.size()).thenReturn(((long) Integer.MAX_VALUE) - 1);
         assertEquals(Integer.MAX_VALUE - 1, targetResult.size());
-        Mockito.when(table.size()).thenReturn(((long) Integer.MAX_VALUE));
+        Mockito.when(collection.size()).thenReturn(((long) Integer.MAX_VALUE));
         assertEquals(Integer.MAX_VALUE, targetResult.size());
-        Mockito.when(table.size()).thenReturn(((long) Integer.MAX_VALUE) + 1);
+        Mockito.when(collection.size()).thenReturn(((long) Integer.MAX_VALUE) + 1);
         assertEquals(Integer.MAX_VALUE, targetResult.size());
     }
 
@@ -243,9 +243,9 @@ public class RealmResultsTests extends CollectionTests {
         // Distinctive Booleans
         RealmResults<AnnotationIndexTypes> distinctBooleans = distinctDates.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL);
         assertEquals("Distinctive Booleans", 2, distinctBooleans.size());
-        // All three results are the same object
-        assertTrue(allResults == distinctDates);
-        assertTrue(allResults == distinctBooleans);
+        // distinct results are not the same object
+        assertTrue(allResults != distinctDates);
+        assertTrue(allResults != distinctBooleans);
     }
 
     @Test
@@ -539,6 +539,7 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_notIndexedFields() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -551,9 +552,11 @@ public class RealmResultsTests extends CollectionTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_doesNotExist() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -563,9 +566,11 @@ public class RealmResultsTests extends CollectionTests {
             realm.where(AnnotationIndexTypes.class).findAll().distinctAsync("doesNotExist");
         } catch (IllegalArgumentException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_invalidTypes() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
@@ -575,9 +580,11 @@ public class RealmResultsTests extends CollectionTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_indexedLinkedFields() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -590,9 +597,11 @@ public class RealmResultsTests extends CollectionTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_notIndexedLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
@@ -600,6 +609,7 @@ public class RealmResultsTests extends CollectionTests {
             realm.where(AllJavaTypes.class).findAll().distinctAsync(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY);
         } catch (IllegalArgumentException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
@@ -766,97 +776,142 @@ public class RealmResultsTests extends CollectionTests {
         }
     }
 
-    private RealmResults<Dog> populateRealmResultsOnDeletedLinkView() {
+    private RealmResults<Dog> populateRealmResultsOnLinkView(Realm realm) {
         realm.beginTransaction();
         Owner owner = realm.createObject(Owner.class);
         for (int i = 0; i < 10; i++) {
             Dog dog = new Dog();
             dog.setName("name_" + i);
             dog.setOwner(owner);
+            dog.setAge(i);
+            dog.setBirthday(new Date(i));
             owner.getDogs().add(dog);
         }
         realm.commitTransaction();
 
 
-        RealmResults<Dog> dogs = owner.getDogs().where().equalTo(Dog.FIELD_NAME, "name_0").findAll();
-
-        realm.beginTransaction();
-        owner.deleteFromRealm();
-        realm.commitTransaction();
-        return dogs;
+        return owner.getDogs().where().lessThan(Dog.FIELD_AGE, 5).findAll();
     }
 
-    // It will still be treated as valid table view in core, just always be empty.
+    // If a RealmResults is built on a link view, when the link view is deleted on the same thread, within the same
+    // event loop, the RealmResults stays without changes since it is detached until the next event loop. In the next
+    // event loop, the results will be empty because of the parent link view is deleted.
+    // 1. Create results from link view.
+    // 2. Delete the parent link view by a local transaction.
+    // 3. Within the same event loop, the results stays the same.
+    // 4. The results change listener called, the results becomes empty.
     @Test
-    public void isValid_resultsBuiltOnDeletedLinkView() {
-        assertEquals(true, populateRealmResultsOnDeletedLinkView().isValid());
+    @RunTestInLooperThread
+    public void accessors_resultsBuiltOnDeletedLinkView_deletionAsALocalCommit() {
+        Realm realm = looperThread.realm;
+        // Step 1
+        RealmResults<Dog> dogs = populateRealmResultsOnLinkView(realm);
+        looperThread.keepStrongReference.add(dogs);
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
+            @Override
+            public void onChange(RealmResults<Dog> dogs) {
+                // Step 4.
+                // The results is still valid, but empty.
+                assertEquals(true, dogs.isValid());
+                assertEquals(true, dogs.isEmpty());
+                assertEquals(0, dogs.size());
+                try {
+                    dogs.first();
+                    fail();
+                } catch (IndexOutOfBoundsException ignored) {
+                }
+
+                assertEquals(0, dogs.sum(Dog.FIELD_AGE).intValue());
+                assertEquals(0f, dogs.sum(Dog.FIELD_HEIGHT).floatValue(), 0f);
+                assertEquals(0d, dogs.sum(Dog.FIELD_WEIGHT).doubleValue(), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_AGE), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_HEIGHT), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_WEIGHT), 0d);
+                assertEquals(null, dogs.min(Dog.FIELD_AGE));
+                assertEquals(null, dogs.max(Dog.FIELD_AGE));
+                assertEquals(null, dogs.minDate(Dog.FIELD_BIRTHDAY));
+                assertEquals(null, dogs.maxDate(Dog.FIELD_BIRTHDAY));
+
+                assertEquals(0, dogs.where().findAll().size());
+
+                looperThread.testComplete();
+            }
+        });
+
+        // Step 2
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(Owner.class).findAll().deleteAllFromRealm();
+            }
+        });
+
+        // Step 3
+        assertEquals(true, dogs.isValid());
+        assertEquals(0, dogs.size());
+        // The link view has been deleted.
+        assertEquals(0, dogs.where().findAll().size());
     }
 
+    // If a RealmResults is built on a link view, when the link view is deleted on a remote thread, within the same
+    // event loop, the RealmResults stays without changes since the Realm version doesn't change. In the next
+    // event loop, the results will be empty because of the parent link view is deleted.
+    // 1. Create results from link view.
+    // 2. Delete the parent link view by a remote transaction.
+    // 3. Within the same event loop, the results stays the same.
+    // 4. The results change listener called, the results becomes empty.
     @Test
-    public void size_resultsBuiltOnDeletedLinkView() {
-        assertEquals(0, populateRealmResultsOnDeletedLinkView().size());
-    }
+    @RunTestInLooperThread
+    public void accessors_resultsBuiltOnDeletedLinkView_deletionAsARemoteCommit() {
+        // Step 1
+        Realm realm = looperThread.realm;
+        RealmResults<Dog> dogs = populateRealmResultsOnLinkView(realm);
+        looperThread.keepStrongReference.add(dogs);
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
+            @Override
+            public void onChange(RealmResults<Dog> dogs) {
+                // Step 4
+                // The results is still valid, but empty.
+                assertEquals(true, dogs.isValid());
+                assertEquals(true, dogs.isEmpty());
+                assertEquals(0, dogs.size());
+                try {
+                    dogs.first();
+                    fail();
+                } catch (IndexOutOfBoundsException ignored) {
+                }
 
-    @Test
-    public void first_resultsBuiltOnDeletedLinkView() {
-        try {
-            populateRealmResultsOnDeletedLinkView().first();
-        } catch (IndexOutOfBoundsException ignored) {
-        }
-    }
+                assertEquals(0, dogs.sum(Dog.FIELD_AGE).intValue());
+                assertEquals(0f, dogs.sum(Dog.FIELD_HEIGHT).floatValue(), 0f);
+                assertEquals(0d, dogs.sum(Dog.FIELD_WEIGHT).doubleValue(), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_AGE), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_HEIGHT), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_WEIGHT), 0d);
+                assertEquals(null, dogs.min(Dog.FIELD_AGE));
+                assertEquals(null, dogs.max(Dog.FIELD_AGE));
+                assertEquals(null, dogs.minDate(Dog.FIELD_BIRTHDAY));
+                assertEquals(null, dogs.maxDate(Dog.FIELD_BIRTHDAY));
 
-    @Test
-    public void last_resultsBuiltOnDeletedLinkView() {
-        try {
-            populateRealmResultsOnDeletedLinkView().last();
-        } catch (IndexOutOfBoundsException ignored) {
-        }
-    }
+                assertEquals(0, dogs.where().findAll().size());
 
-    @Test
-    public void sum_resultsBuiltOnDeletedLinkView() {
-        RealmResults<Dog> dogs = populateRealmResultsOnDeletedLinkView();
-        assertEquals(0, dogs.sum(Dog.FIELD_AGE).intValue());
-        assertEquals(0f, dogs.sum(Dog.FIELD_HEIGHT).floatValue(), 0f);
-        assertEquals(0d, dogs.sum(Dog.FIELD_WEIGHT).doubleValue(), 0d);
-    }
+                looperThread.testComplete();
+            }
+        });
 
-    @Test
-    public void average_resultsBuiltOnDeletedLinkView() {
-        RealmResults<Dog> dogs = populateRealmResultsOnDeletedLinkView();
-        assertEquals(0d, dogs.average(Dog.FIELD_AGE), 0d);
-        assertEquals(0d, dogs.average(Dog.FIELD_HEIGHT), 0d);
-        assertEquals(0d, dogs.average(Dog.FIELD_WEIGHT), 0d);
-    }
 
-    @Test
-    public void where_resultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertEquals(0, results.where().findAll().size());
-    }
+        // Step 2
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(Owner.class).findAll().deleteAllFromRealm();
+            }
+        });
 
-    @Test
-    public void min_resultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertNull(results.min(CyclicType.FIELD_ID));
-    }
-
-    @Test
-    public void min_dateResultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertEquals(null, results.minDate(CyclicType.FIELD_DATE));
-    }
-
-    @Test
-    public void max_dateResultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertEquals(null, results.maxDate(CyclicType.FIELD_DATE));
-    }
-
-    @Test
-    public void max_resultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertNull(results.max(CyclicType.FIELD_ID));
+        // Step 3
+        assertEquals(true, dogs.isValid());
+        assertEquals(5, dogs.size());
+        // The link view still exists
+        assertEquals(5, dogs.where().findAll().size());
     }
 
     @Test
@@ -924,7 +979,7 @@ public class RealmResultsTests extends CollectionTests {
     @UiThreadTest
     public void addChangeListener_null() {
         try {
-            collection.addChangeListener(null);
+            collection.addChangeListener((RealmChangeListener<RealmResults<AllTypes>>) null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -969,7 +1024,7 @@ public class RealmResultsTests extends CollectionTests {
     @UiThreadTest
     public void removeChangeListener_null() {
         try {
-            collection.removeChangeListener(null);
+            collection.removeChangeListener((RealmChangeListener) null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -998,7 +1053,7 @@ public class RealmResultsTests extends CollectionTests {
         looperThread.keepStrongReference.add(collection);
         collection.addChangeListener(listenerA);
         collection.addChangeListener(listenerB);
-        collection.removeChangeListeners();
+        collection.removeAllChangeListeners();
 
         realm.beginTransaction();
         realm.createObject(AllTypes.class);

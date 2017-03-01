@@ -67,6 +67,7 @@ import io.realm.entities.Cat;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.DefaultValueConstructor;
+import io.realm.entities.DefaultValueFromOtherConstructor;
 import io.realm.entities.DefaultValueOfField;
 import io.realm.entities.DefaultValueOverwriteNullLink;
 import io.realm.entities.DefaultValueSetter;
@@ -1029,6 +1030,22 @@ public class RealmTests {
         assertTrue(Realm.compactRealm(realmConfig));
         long after = new File(realmConfig.getPath()).length();
         assertTrue(before >= after);
+    }
+
+    @Test
+    public void compactRealm_onExternalStorage() {
+        final File externalFilesDir = context.getExternalFilesDir(null);
+        final RealmConfiguration config = new RealmConfiguration.Builder()
+                .directory(externalFilesDir)
+                .name("external.realm")
+                .build();
+        Realm.deleteRealm(config);
+        Realm realm = Realm.getInstance(config);
+        realm.close();
+        assertTrue(Realm.compactRealm(config));
+        realm = Realm.getInstance(config);
+        realm.close();
+        Realm.deleteRealm(config);
     }
 
     @Test
@@ -2407,6 +2424,15 @@ public class RealmTests {
         testOneObjectFound(realm, DefaultValueSetter.class,
                 DefaultValueSetter.FIELD_LIST+ "." + RandomPrimaryKey.FIELD_INT,
                         RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 1);
+    }
+
+    @Test
+    public void createObject_defaultValueFromOtherConstructor() {
+        realm.beginTransaction();
+        DefaultValueFromOtherConstructor obj = realm.createObject(DefaultValueFromOtherConstructor.class);
+        realm.commitTransaction();
+
+        assertEquals(42, obj.getFieldLong());
     }
 
     @Test

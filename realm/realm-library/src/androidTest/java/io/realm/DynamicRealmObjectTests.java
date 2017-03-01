@@ -25,11 +25,13 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
@@ -111,6 +113,123 @@ public class DynamicRealmObjectTests {
     private enum SupportedType {
         BOOLEAN, SHORT, INT, LONG, BYTE, FLOAT, DOUBLE, STRING, BINARY, DATE, OBJECT, LIST
     }
+
+    private enum ThreadConfinedMethods {
+        GET_BOOLEAN, GET_BYTE, GET_SHORT, GET_INT, GET_LONG, GET_FLOAT, GET_DOUBLE,
+        GET_BLOB, GET_STRING, GET_DATE, GET_OBJECT, GET_LIST, GET,
+
+        SET_BOOLEAN, SET_BYTE, SET_SHORT, SET_INT, SET_LONG, SET_FLOAT, SET_DOUBLE,
+        SET_BLOB, SET_STRING, SET_DATE, SET_OBJECT, SET_LIST, SET,
+
+        IS_NULL, SET_NULL,
+
+        HAS_FIELD, GET_FIELD_NAMES, GET_TYPE, GET_FIELD_TYPE,
+
+        HASH_CODE, EQUALS, TO_STRING,
+    }
+
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "EqualsWithItself"})
+    private static void callThreadConfinedMethod(DynamicRealmObject obj, ThreadConfinedMethods method) {
+        switch (method) {
+            case GET_BOOLEAN: obj.getBoolean(AllJavaTypes.FIELD_BOOLEAN); break;
+            case GET_BYTE:    obj.getByte(AllJavaTypes.FIELD_BYTE);       break;
+            case GET_SHORT:   obj.getShort(AllJavaTypes.FIELD_SHORT);     break;
+            case GET_INT:     obj.getInt(AllJavaTypes.FIELD_INT);         break;
+            case GET_LONG:    obj.getLong(AllJavaTypes.FIELD_LONG);       break;
+            case GET_FLOAT:   obj.getFloat(AllJavaTypes.FIELD_FLOAT);     break;
+            case GET_DOUBLE:  obj.getDouble(AllJavaTypes.FIELD_DOUBLE);   break;
+            case GET_BLOB:    obj.getBlob(AllJavaTypes.FIELD_BINARY);     break;
+            case GET_STRING:  obj.getString(AllJavaTypes.FIELD_STRING);   break;
+            case GET_DATE:    obj.getDate(AllJavaTypes.FIELD_DATE);       break;
+            case GET_OBJECT:  obj.getObject(AllJavaTypes.FIELD_OBJECT);   break;
+            case GET_LIST:    obj.getList(AllJavaTypes.FIELD_LIST);       break;
+            case GET:         obj.get(AllJavaTypes.FIELD_LONG);           break;
+
+            case SET_BOOLEAN: obj.setBoolean(AllJavaTypes.FIELD_BOOLEAN, true);                 break;
+            case SET_BYTE:    obj.setByte(AllJavaTypes.FIELD_BYTE,       (byte) 1);             break;
+            case SET_SHORT:   obj.setShort(AllJavaTypes.FIELD_SHORT,     (short) 1);            break;
+            case SET_INT:     obj.setInt(AllJavaTypes.FIELD_INT,         1);                    break;
+            case SET_LONG:    obj.setLong(AllJavaTypes.FIELD_LONG,       1L);                   break;
+            case SET_FLOAT:   obj.setFloat(AllJavaTypes.FIELD_FLOAT,     1F);                   break;
+            case SET_DOUBLE:  obj.setDouble(AllJavaTypes.FIELD_DOUBLE,   1D);                   break;
+            case SET_BLOB:    obj.setBlob(AllJavaTypes.FIELD_BINARY,     new byte[] {1, 2, 3}); break;
+            case SET_STRING:  obj.setString(AllJavaTypes.FIELD_STRING,   "12345");              break;
+            case SET_DATE:    obj.setDate(AllJavaTypes.FIELD_DATE,       new Date(1L));         break;
+            case SET_OBJECT:  obj.setObject(AllJavaTypes.FIELD_OBJECT,   obj);                  break;
+            case SET_LIST:    obj.setList(AllJavaTypes.FIELD_LIST,       new RealmList<>(obj)); break;
+            case SET:         obj.set(AllJavaTypes.FIELD_LONG,           1L);                   break;
+
+            case IS_NULL:     obj.isNull(AllJavaTypes.FIELD_OBJECT);           break;
+            case SET_NULL:    obj.setNull(AllJavaTypes.FIELD_OBJECT);          break;
+
+            case HAS_FIELD:       obj.hasField(AllJavaTypes.FIELD_OBJECT);     break;
+            case GET_FIELD_NAMES: obj.getFieldNames();                         break;
+            case GET_TYPE:        obj.getType();                               break;
+            case GET_FIELD_TYPE:  obj.getFieldType(AllJavaTypes.FIELD_OBJECT); break;
+
+            case HASH_CODE:   obj.hashCode();  break;
+            case EQUALS:      obj.equals(obj); break;
+            case TO_STRING:   obj.toString();  break;
+
+            default:
+                throw new AssertionError("missing case for " + method);
+        }
+    }
+
+    @Test
+    public void callThreadConfinedMethodsFromWrongThread() throws Throwable {
+
+        dynamicRealm.beginTransaction();
+        dynamicRealm.deleteAll();
+        final DynamicRealmObject obj = dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 100L);
+        dynamicRealm.commitTransaction();
+
+        final AtomicReference<Throwable> throwableFromThread = new AtomicReference<Throwable>();
+        final CountDownLatch testFinished = new CountDownLatch(1);
+
+        final String expectedMessage;
+        //noinspection TryWithIdenticalCatches
+        try {
+            final Field expectedMessageField = BaseRealm.class.getDeclaredField("INCORRECT_THREAD_MESSAGE");
+            expectedMessageField.setAccessible(true);
+            expectedMessage = (String) expectedMessageField.get(null);
+        } catch (NoSuchFieldException e) {
+            throw new AssertionError(e);
+        } catch (IllegalAccessException e) {
+            throw new AssertionError(e);
+        }
+
+        final Thread thread = new Thread("callThreadConfinedMethodsFromWrongThread") {
+            @Override
+            public void run() {
+                try {
+                    for (ThreadConfinedMethods method : ThreadConfinedMethods.values()) {
+                        try {
+                            callThreadConfinedMethod(obj, method);
+                            fail("IllegalStateException must be thrown.");
+                        } catch (Throwable e) {
+                            if (e instanceof IllegalStateException && expectedMessage.equals(e.getMessage())) {
+                                // expected exception
+                                continue;
+                            }
+                            throwableFromThread.set(e);
+                            return;
+                        }
+                    }
+                } finally {
+                    testFinished.countDown();
+                }
+            }
+        };
+        thread.start();
+
+        TestHelper.awaitOrFail(testFinished);
+        final Throwable throwable = throwableFromThread.get();
+        if (throwable != null) {
+            throw throwable;
+        }
+    }
+
 
     @Test (expected = IllegalArgumentException.class)
     public void constructor_nullThrows () {
@@ -614,6 +733,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void setObject_objectBelongToDiffThreadRealmThrows() {
         final CountDownLatch finishedLatch = new CountDownLatch(1);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -659,6 +779,51 @@ public class DynamicRealmObjectTests {
                 .findFirst();
         assertEquals("nibbler", allTypes.getList(AllTypes.FIELD_REALMLIST).first().get(Dog.FIELD_NAME));
         dynamicRealm.close();
+    }
+
+    @Test
+    public void setList_managedRealmList() {
+        dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                realm.deleteAll();
+
+                DynamicRealmObject allTypes = realm.createObject(AllTypes.CLASS_NAME);
+                allTypes.setString(AllTypes.FIELD_STRING, "bender");
+
+                DynamicRealmObject anotherAllTypes;
+                {
+                    anotherAllTypes = realm.createObject(AllTypes.CLASS_NAME);
+                    anotherAllTypes.setString(AllTypes.FIELD_STRING, "bender2");
+                    DynamicRealmObject dog = realm.createObject(Dog.CLASS_NAME);
+                    dog.setString(Dog.FIELD_NAME, "nibbler");
+                    anotherAllTypes.getList(AllTypes.FIELD_REALMLIST).add(dog);
+                }
+
+                // set managed RealmList
+                allTypes.setList(AllTypes.FIELD_REALMLIST, anotherAllTypes.getList(AllTypes.FIELD_REALMLIST));
+            }
+        });
+
+        DynamicRealmObject allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
+                .equalTo(AllTypes.FIELD_STRING, "bender")
+                .findFirst();
+        assertEquals(1, allTypes.getList(AllTypes.FIELD_REALMLIST).size());
+        assertEquals("nibbler", allTypes.getList(AllTypes.FIELD_REALMLIST).first().get(Dog.FIELD_NAME));
+
+        // Check if allTypes and anotherAllTypes share the same Dog object.
+        dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                DynamicRealmObject anotherAllTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
+                        .equalTo(AllTypes.FIELD_STRING, "bender2")
+                        .findFirst();
+                anotherAllTypes.getList(AllTypes.FIELD_REALMLIST).first()
+                        .setString(Dog.FIELD_NAME, "nibbler_modified");
+            }
+        });
+
+        assertEquals("nibbler_modified", allTypes.getList(AllTypes.FIELD_REALMLIST).first().get(Dog.FIELD_NAME));
     }
 
     @Test

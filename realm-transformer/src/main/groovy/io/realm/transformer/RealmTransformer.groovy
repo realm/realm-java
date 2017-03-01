@@ -26,7 +26,6 @@ import io.realm.annotations.Ignore
 import io.realm.annotations.RealmClass
 import javassist.ClassPool
 import javassist.CtClass
-import javassist.LoaderClassPath
 import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -131,7 +130,7 @@ class RealmTransformer extends Transform {
         inputModelClasses.each {
             BytecodeModifier.addRealmAccessors(it)
             BytecodeModifier.addRealmProxyInterface(it, classPool)
-            BytecodeModifier.callInjectObjectContextFromDefaultConstructor(it)
+            BytecodeModifier.callInjectObjectContextFromConstructors(it)
         }
 
         // Use accessors instead of direct field access
@@ -175,11 +174,14 @@ class RealmTransformer extends Transform {
             it.getPackageName()
         }
 
+        def targetSdk = project?.android?.defaultConfig?.targetSdkVersion?.mApiLevel as String;
+        def minSdk = project?.android?.defaultConfig?.minSdkVersion?.mApiLevel as String;
+
         def env = System.getenv()
         def disableAnalytics = env["REALM_DISABLE_ANALYTICS"]
         if (disableAnalytics == null || disableAnalytics != "true") {
             boolean sync = project?.realm?.syncEnabled != null && project.realm.syncEnabled
-            def analytics = new RealmAnalytics(packages as Set, containsKotlin, sync)
+            def analytics = new RealmAnalytics(packages as Set, containsKotlin, sync, targetSdk, minSdk)
             analytics.execute()
         }
     }

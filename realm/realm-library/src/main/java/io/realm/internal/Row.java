@@ -22,6 +22,12 @@ import io.realm.RealmFieldType;
 
 /**
  * Interface for Row objects that act as wrappers around the Realm Core Row object.
+ * <p>
+ * When the actual class which implements this interface is {@link CheckedRow}, all methods in this
+ * interface always validate their parameters and throw an appropriate exception if invalid.
+ * For example, methods which accept a column name check the existence of the column and throw
+ * {@link IllegalArgumentException} if not found.
+ *
  */
 public interface Row {
 
@@ -111,154 +117,4 @@ public interface Row {
      * @return {@code true} if field name exists, {@code false} otherwise.
      */
     boolean hasColumn(String fieldName);
-
-    Row EMPTY_ROW = new Row() {
-        private final static String UNLOADED_ROW_MESSAGE = "Can't access a row that hasn't been loaded or represents 'null', " +
-                "make sure the instance is loaded and is valid by calling 'RealmObject.isLoaded() && RealmObject.isValid()'.";
-
-        @Override
-        public long getColumnCount() {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public String getColumnName(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public long getColumnIndex(String columnName) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public RealmFieldType getColumnType(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public Table getTable() {
-            return null;
-        }
-
-        @Override
-        public long getIndex() {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public long getLong(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public boolean getBoolean(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public float getFloat(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public double getDouble(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public Date getDate(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public String getString(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public byte[] getBinaryByteArray(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public long getLink(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public boolean isNullLink(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public boolean isNull(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public void setNull(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public LinkView getLinkList(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public void setLong(long columnIndex, long value) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public void setBoolean(long columnIndex, boolean value) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public void setFloat(long columnIndex, float value) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public void setDouble(long columnIndex, double value) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public void setDate(long columnIndex, Date date) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public void setString(long columnIndex, String value) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public void setBinaryByteArray(long columnIndex, byte[] data) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public void setLink(long columnIndex, long value) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public void nullifyLink(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public boolean isAttached() {
-            return false;
-        }
-
-        @Override
-        public boolean hasColumn(String fieldName) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-    };
 }

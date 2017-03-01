@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -26,15 +25,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
@@ -108,6 +107,11 @@ public class RealmQueryTests {
             nonLatinFieldNames.setΔέλτα(i);
             nonLatinFieldNames.set베타(1.234567f + i);
             nonLatinFieldNames.setΒήτα(1.234567f + i);
+
+            Dog dog = testRealm.createObject(Dog.class);
+            dog.setAge(i);
+            dog.setName("test data " + i);
+            allTypes.setColumnRealmObject(dog);
         }
         testRealm.commitTransaction();
     }
@@ -145,6 +149,291 @@ public class RealmQueryTests {
 
     private void populateNoPrimaryKeyNullTypesRows() {
         populateNoPrimaryKeyNullTypesRows(realm, TEST_NO_PRIMARY_KEY_NULL_TYPES_SIZE);
+    }
+
+    private enum ThreadConfinedMethods {
+        EQUAL_TO_STRING,
+        EQUAL_TO_STRING_WITH_CASE,
+        EQUAL_TO_BYTE,
+        EQUAL_TO_BYTE_ARRAY,
+        EQUAL_TO_SHORT,
+        EQUAL_TO_INTEGER,
+        EQUAL_TO_LONG,
+        EQUAL_TO_DOUBLE,
+        EQUAL_TO_FLOAT,
+        EQUAL_TO_BOOLEAN,
+        EQUAL_TO_DATE,
+
+        IN_STRING,
+        IN_STRING_WITH_CASE,
+        IN_BYTE,
+        IN_SHORT,
+        IN_INTEGER,
+        IN_LONG,
+        IN_DOUBLE,
+        IN_FLOAT,
+        IN_BOOLEAN,
+        IN_DATE,
+
+        NOT_EQUAL_TO_STRING,
+        NOT_EQUAL_TO_STRING_WITH_CASE,
+        NOT_EQUAL_TO_BYTE,
+        NOT_EQUAL_TO_BYTE_ARRAY,
+        NOT_EQUAL_TO_SHORT,
+        NOT_EQUAL_TO_INTEGER,
+        NOT_EQUAL_TO_LONG,
+        NOT_EQUAL_TO_DOUBLE,
+        NOT_EQUAL_TO_FLOAT,
+        NOT_EQUAL_TO_BOOLEAN,
+        NOT_EQUAL_TO_DATE,
+
+        GREATER_THAN_INTEGER,
+        GREATER_THAN_LONG,
+        GREATER_THAN_DOUBLE,
+        GREATER_THAN_FLOAT,
+        GREATER_THAN_DATE,
+
+        GREATER_THAN_OR_EQUAL_TO_INTEGER,
+        GREATER_THAN_OR_EQUAL_TO_LONG,
+        GREATER_THAN_OR_EQUAL_TO_DOUBLE,
+        GREATER_THAN_OR_EQUAL_TO_FLOAT,
+        GREATER_THAN_OR_EQUAL_TO_DATE,
+
+        LESS_THAN_INTEGER,
+        LESS_THAN_LONG,
+        LESS_THAN_DOUBLE,
+        LESS_THAN_FLOAT,
+        LESS_THAN_DATE,
+
+        LESS_THAN_OR_EQUAL_TO_INTEGER,
+        LESS_THAN_OR_EQUAL_TO_LONG,
+        LESS_THAN_OR_EQUAL_TO_DOUBLE,
+        LESS_THAN_OR_EQUAL_TO_FLOAT,
+        LESS_THAN_OR_EQUAL_TO_DATE,
+
+        BETWEEN_INTEGER,
+        BETWEEN_LONG,
+        BETWEEN_DOUBLE,
+        BETWEEN_FLOAT,
+        BETWEEN_DATE,
+
+        CONTAINS_STRING,
+        CONTAINS_STRING_WITH_CASE,
+
+        BEGINS_WITH_STRING,
+        BEGINS_WITH_STRING_WITH_CASE,
+
+        ENDS_WITH_STRING,
+        ENDS_WITH_STRING_WITH_CASE,
+
+        LIKE_STRING,
+        LIKE_STRING_WITH_CASE,
+
+        BEGIN_GROUP,
+        END_GROUP,
+        OR,
+        NOT,
+        IS_NULL,
+        IS_NOT_NULL,
+        IS_EMPTY,
+        IS_NOT_EMPTY,
+
+        IS_VALID,
+        DISTINCT,
+        DISTINCT_BY_MULTIPLE_FIELDS,
+        DISTINCT_ASYNC,
+
+        SUM,
+        AVERAGE,
+        MIN,
+        MINIMUM_DATE,
+        MAX,
+        MAXIMUM_DATE,
+        COUNT,
+
+        FIND_ALL,
+        FIND_ALL_ASYNC,
+        FIND_ALL_SORTED,
+        FIND_ALL_SORTED_ASYNC,
+        FIND_ALL_SORTED_WITH_ORDER,
+        FIND_ALL_SORTED_ASYNC_WITH_ORDER,
+        FIND_ALL_SORTED_WITH_TWO_ORDERS,
+        FIND_ALL_SORTED_ASYNC_WITH_TWO_ORDERS,
+        FIND_ALL_SORTED_WITH_MANY_ORDERS,
+        FIND_ALL_SORTED_ASYNC_WITH_MANY_ORDERS,
+
+        FIND_FIRST,
+        FIND_FIRST_ASYNC,
+    }
+
+    private static void callThreadConfinedMethod(RealmQuery<?> query, ThreadConfinedMethods method) {
+        switch (method) {
+            case EQUAL_TO_STRING: query.equalTo(           AllJavaTypes.FIELD_STRING,  "dummy value"); break;
+            case EQUAL_TO_STRING_WITH_CASE: query.equalTo( AllJavaTypes.FIELD_STRING,  "dummy value", Case.INSENSITIVE); break;
+            case EQUAL_TO_BYTE: query.equalTo(             AllJavaTypes.FIELD_BYTE,    (byte) 1); break;
+            case EQUAL_TO_BYTE_ARRAY: query.equalTo(       AllJavaTypes.FIELD_BINARY,  new byte[] {0, 1, 2}); break;
+            case EQUAL_TO_SHORT: query.equalTo(            AllJavaTypes.FIELD_SHORT,   (short) 1); break;
+            case EQUAL_TO_INTEGER: query.equalTo(          AllJavaTypes.FIELD_INT,     1); break;
+            case EQUAL_TO_LONG: query.equalTo(             AllJavaTypes.FIELD_LONG,    1L); break;
+            case EQUAL_TO_DOUBLE: query.equalTo(           AllJavaTypes.FIELD_DOUBLE,  1D); break;
+            case EQUAL_TO_FLOAT: query.equalTo(            AllJavaTypes.FIELD_FLOAT,   1F); break;
+            case EQUAL_TO_BOOLEAN: query.equalTo(          AllJavaTypes.FIELD_BOOLEAN, true); break;
+            case EQUAL_TO_DATE: query.equalTo(             AllJavaTypes.FIELD_DATE,    new Date(0L)); break;
+
+            case IN_STRING: query.in(           AllJavaTypes.FIELD_STRING,  new String[] {"dummy value1", "dummy value2"}); break;
+            case IN_STRING_WITH_CASE: query.in( AllJavaTypes.FIELD_STRING,  new String[] {"dummy value1", "dummy value2"}, Case.INSENSITIVE); break;
+            case IN_BYTE: query.in(             AllJavaTypes.FIELD_BYTE,    new Byte[] {1, 2, 3}); break;
+            case IN_SHORT: query.in(            AllJavaTypes.FIELD_SHORT,   new Short[] {1, 2, 3}); break;
+            case IN_INTEGER: query.in(          AllJavaTypes.FIELD_INT,     new Integer[] {1, 2, 3}); break;
+            case IN_LONG: query.in(             AllJavaTypes.FIELD_LONG,    new Long[] {1L, 2L, 3L}); break;
+            case IN_DOUBLE: query.in(           AllJavaTypes.FIELD_DOUBLE,  new Double[] {1D, 2D, 3D}); break;
+            case IN_FLOAT: query.in(            AllJavaTypes.FIELD_FLOAT,   new Float[] {1F, 2F, 3F}); break;
+            case IN_BOOLEAN: query.in(          AllJavaTypes.FIELD_BOOLEAN, new Boolean[] {true, false}); break;
+            case IN_DATE: query.in(             AllJavaTypes.FIELD_DATE,    new Date[] {new Date(0L)}); break;
+
+            case NOT_EQUAL_TO_STRING: query.notEqualTo(           AllJavaTypes.FIELD_STRING,  "dummy value"); break;
+            case NOT_EQUAL_TO_STRING_WITH_CASE: query.notEqualTo( AllJavaTypes.FIELD_STRING,  "dummy value", Case.INSENSITIVE); break;
+            case NOT_EQUAL_TO_BYTE: query.notEqualTo(             AllJavaTypes.FIELD_BYTE,    (byte) 1); break;
+            case NOT_EQUAL_TO_BYTE_ARRAY: query.notEqualTo(       AllJavaTypes.FIELD_BINARY,  new byte[] {1,2,3}); break;
+            case NOT_EQUAL_TO_SHORT: query.notEqualTo(            AllJavaTypes.FIELD_SHORT,   (short) 1); break;
+            case NOT_EQUAL_TO_INTEGER: query.notEqualTo(          AllJavaTypes.FIELD_INT,     1); break;
+            case NOT_EQUAL_TO_LONG: query.notEqualTo(             AllJavaTypes.FIELD_LONG,    1L); break;
+            case NOT_EQUAL_TO_DOUBLE: query.notEqualTo(           AllJavaTypes.FIELD_DOUBLE,  1D); break;
+            case NOT_EQUAL_TO_FLOAT: query.notEqualTo(            AllJavaTypes.FIELD_FLOAT,   1F); break;
+            case NOT_EQUAL_TO_BOOLEAN: query.notEqualTo(          AllJavaTypes.FIELD_BOOLEAN, true); break;
+            case NOT_EQUAL_TO_DATE: query.notEqualTo(             AllJavaTypes.FIELD_DATE,    new Date(0L)); break;
+
+            case GREATER_THAN_INTEGER: query.greaterThan( AllJavaTypes.FIELD_INT,    1); break;
+            case GREATER_THAN_LONG: query.greaterThan(    AllJavaTypes.FIELD_LONG,   1L); break;
+            case GREATER_THAN_DOUBLE: query.greaterThan(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
+            case GREATER_THAN_FLOAT: query.greaterThan(   AllJavaTypes.FIELD_FLOAT,  1F); break;
+            case GREATER_THAN_DATE: query.greaterThan(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
+
+            case GREATER_THAN_OR_EQUAL_TO_INTEGER: query.greaterThanOrEqualTo( AllJavaTypes.FIELD_INT,    1); break;
+            case GREATER_THAN_OR_EQUAL_TO_LONG: query.greaterThanOrEqualTo(    AllJavaTypes.FIELD_LONG,   1L); break;
+            case GREATER_THAN_OR_EQUAL_TO_DOUBLE: query.greaterThanOrEqualTo(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
+            case GREATER_THAN_OR_EQUAL_TO_FLOAT: query.greaterThanOrEqualTo(   AllJavaTypes.FIELD_FLOAT,  1F); break;
+            case GREATER_THAN_OR_EQUAL_TO_DATE: query.greaterThanOrEqualTo(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
+
+            case LESS_THAN_INTEGER: query.lessThan( AllJavaTypes.FIELD_INT,    1); break;
+            case LESS_THAN_LONG: query.lessThan(    AllJavaTypes.FIELD_LONG,   1L); break;
+            case LESS_THAN_DOUBLE: query.lessThan(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
+            case LESS_THAN_FLOAT: query.lessThan(   AllJavaTypes.FIELD_FLOAT,  1F); break;
+            case LESS_THAN_DATE: query.lessThan(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
+
+            case LESS_THAN_OR_EQUAL_TO_INTEGER: query.lessThanOrEqualTo( AllJavaTypes.FIELD_INT,    1); break;
+            case LESS_THAN_OR_EQUAL_TO_LONG: query.lessThanOrEqualTo(    AllJavaTypes.FIELD_LONG,   1L); break;
+            case LESS_THAN_OR_EQUAL_TO_DOUBLE: query.lessThanOrEqualTo(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
+            case LESS_THAN_OR_EQUAL_TO_FLOAT: query.lessThanOrEqualTo(   AllJavaTypes.FIELD_FLOAT,  1F); break;
+            case LESS_THAN_OR_EQUAL_TO_DATE: query.lessThanOrEqualTo(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
+
+            case BETWEEN_INTEGER: query.between( AllJavaTypes.FIELD_INT,    1, 100); break;
+            case BETWEEN_LONG: query.between(    AllJavaTypes.FIELD_LONG,   1L, 100L); break;
+            case BETWEEN_DOUBLE: query.between(  AllJavaTypes.FIELD_DOUBLE, 1D, 100D); break;
+            case BETWEEN_FLOAT: query.between(   AllJavaTypes.FIELD_FLOAT,  1F, 100F); break;
+            case BETWEEN_DATE: query.between(    AllJavaTypes.FIELD_DATE,   new Date(0L), new Date(10000L)); break;
+
+            case CONTAINS_STRING: query.contains(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
+            case CONTAINS_STRING_WITH_CASE: query.contains( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
+
+            case BEGINS_WITH_STRING: query.beginsWith(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
+            case BEGINS_WITH_STRING_WITH_CASE: query.beginsWith( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
+
+            case ENDS_WITH_STRING: query.endsWith(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
+            case ENDS_WITH_STRING_WITH_CASE: query.endsWith( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
+
+            case LIKE_STRING: query.like(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
+            case LIKE_STRING_WITH_CASE: query.like( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
+
+            case BEGIN_GROUP: query.beginGroup(); break;
+            case END_GROUP: query.endGroup(); break;
+            case OR: query.or(); break;
+            case NOT: query.not(); break;
+            case IS_NULL: query.isNull(          AllJavaTypes.FIELD_DATE); break;
+            case IS_NOT_NULL: query.isNotNull(   AllJavaTypes.FIELD_DATE); break;
+            case IS_EMPTY: query.isEmpty(        AllJavaTypes.FIELD_STRING); break;
+            case IS_NOT_EMPTY: query.isNotEmpty( AllJavaTypes.FIELD_STRING); break;
+
+            case IS_VALID: query.isValid(); break;
+            case DISTINCT: query.distinct(                    AllJavaTypes.FIELD_STRING); break;
+            case DISTINCT_BY_MULTIPLE_FIELDS: query.distinct( AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID); break;
+            case DISTINCT_ASYNC: query.distinctAsync(         AllJavaTypes.FIELD_STRING); break;
+
+            case SUM: query.sum(                  AllJavaTypes.FIELD_INT); break;
+            case AVERAGE: query.average(          AllJavaTypes.FIELD_INT); break;
+            case MIN: query.min(                  AllJavaTypes.FIELD_INT); break;
+            case MINIMUM_DATE: query.minimumDate( AllJavaTypes.FIELD_INT); break;
+            case MAX: query.max(                  AllJavaTypes.FIELD_INT); break;
+            case MAXIMUM_DATE: query.maximumDate( AllJavaTypes.FIELD_INT); break;
+            case COUNT: query.count(); break;
+
+            case FIND_ALL: query.findAll(); break;
+            case FIND_ALL_ASYNC: query.findAllAsync(); break;
+            case FIND_ALL_SORTED: query.findAllSorted(                             AllJavaTypes.FIELD_STRING); break;
+            case FIND_ALL_SORTED_ASYNC: query.findAllSortedAsync(                  AllJavaTypes.FIELD_STRING); break;
+            case FIND_ALL_SORTED_WITH_ORDER: query.findAllSorted(                  AllJavaTypes.FIELD_STRING, Sort.DESCENDING); break;
+            case FIND_ALL_SORTED_ASYNC_WITH_ORDER: query.findAllSortedAsync(       AllJavaTypes.FIELD_STRING, Sort.DESCENDING); break;
+            case FIND_ALL_SORTED_WITH_TWO_ORDERS: query.findAllSorted(             AllJavaTypes.FIELD_STRING, Sort.DESCENDING, AllJavaTypes.FIELD_ID, Sort.DESCENDING); break;
+            case FIND_ALL_SORTED_ASYNC_WITH_TWO_ORDERS: query.findAllSortedAsync(  AllJavaTypes.FIELD_STRING, Sort.DESCENDING, AllJavaTypes.FIELD_ID, Sort.DESCENDING); break;
+            case FIND_ALL_SORTED_WITH_MANY_ORDERS: query.findAllSorted(            new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
+            case FIND_ALL_SORTED_ASYNC_WITH_MANY_ORDERS: query.findAllSortedAsync( new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
+
+            case FIND_FIRST: query.findFirst(); break;
+            case FIND_FIRST_ASYNC: query.findFirstAsync(); break;
+
+            default:
+                throw new AssertionError("missing case for " + method);
+        }
+    }
+
+    @Test
+    public void callThreadConfinedMethodsFromWrongThread() throws Throwable {
+        final RealmQuery<AllJavaTypes> query = realm.where(AllJavaTypes.class);
+
+        final AtomicReference<Throwable> throwableFromThread = new AtomicReference<Throwable>();
+        final CountDownLatch testFinished = new CountDownLatch(1);
+
+        final String expectedMessage;
+        //noinspection TryWithIdenticalCatches
+        try {
+            final Field expectedMessageField = BaseRealm.class.getDeclaredField("INCORRECT_THREAD_MESSAGE");
+            expectedMessageField.setAccessible(true);
+            expectedMessage = (String) expectedMessageField.get(null);
+        } catch (NoSuchFieldException e) {
+            throw new AssertionError(e);
+        } catch (IllegalAccessException e) {
+            throw new AssertionError(e);
+        }
+
+        final Thread thread = new Thread("callThreadConfinedMethodsFromWrongThread") {
+            @Override
+            public void run() {
+                try {
+                    for (ThreadConfinedMethods method : ThreadConfinedMethods.values()) {
+                        try {
+                            callThreadConfinedMethod(query, method);
+                            fail("IllegalStateException must be thrown.");
+                        } catch (Throwable e) {
+                            if (e instanceof IllegalStateException && expectedMessage.equals(e.getMessage())) {
+                                // expected exception
+                                continue;
+                            }
+                            throwableFromThread.set(e);
+                            return;
+                        }
+                    }
+                } finally {
+                    testFinished.countDown();
+                }
+            }
+        };
+        thread.start();
+
+        TestHelper.awaitOrFail(testFinished);
+        final Throwable throwable = throwableFromThread.get();
+        if (throwable != null) {
+            throw throwable;
+        }
     }
 
     @Test
@@ -261,6 +550,21 @@ public class RealmQueryTests {
 
         resultList = query.or().equalTo(AllTypes.FIELD_STRING, "test data 117").findAll();
         assertEquals(22, resultList.size());
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilters() {
+        realm.where(AllTypes.class).or().findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilterBefore() {
+        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilterAfter() {
+        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
     }
 
     @Test
@@ -2678,40 +2982,73 @@ public class RealmQueryTests {
     }
 
     @Test
-    public void findAllSorted_onSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        realm.where(AllTypes.class).findAllSorted(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    public void findAllSorted_onSubObjectField() {
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSorted(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
+        assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+        assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
     }
 
     @Test
-    public void findAllSortedAsync_onSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        realm.where(AllTypes.class).findAllSortedAsync(
-                AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    @RunTestInLooperThread
+    public void findAllSortedAsync_onSubObjectField() {
+        Realm realm = looperThread.realm;
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSortedAsync(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
+        looperThread.keepStrongReference.add(results);
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+                assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
+                looperThread.testComplete();
+            }
+        });
     }
 
     @Test
-    public void findAllSorted_listOnSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        String[] fieldNames = new String[1];
-        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
-        Sort[] sorts = new Sort[1];
+    public void findAllSorted_listOnSubObjectField() {
+        String[] fieldNames = new String[2];
+        fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+        fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+
+        Sort[] sorts = new Sort[2];
         sorts[0] = Sort.ASCENDING;
-        realm.where(AllTypes.class).findAllSorted(fieldNames, sorts);
+        sorts[1] = Sort.ASCENDING;
+
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSorted(fieldNames, sorts);
+        assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+        assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
     }
 
     @Test
-    public void findAllSortedAsync_listOnSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        String[] fieldNames = new String[1];
-        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
-        Sort[] sorts = new Sort[1];
+    @RunTestInLooperThread
+    public void findAllSortedAsync_listOnSubObjectField() {
+        Realm realm = looperThread.realm;
+        String[] fieldNames = new String[2];
+        fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+        fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+
+        Sort[] sorts = new Sort[2];
         sorts[0] = Sort.ASCENDING;
-        realm.where(AllTypes.class).findAllSortedAsync(fieldNames, sorts);
+        sorts[1] = Sort.ASCENDING;
+
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSortedAsync(fieldNames, sorts);
+        looperThread.keepStrongReference.add(results);
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+                assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
+                looperThread.testComplete();
+            }
+        });
     }
 
     // RealmQuery.distinct(): requires indexing, and type = boolean, integer, date, string.
@@ -2850,13 +3187,6 @@ public class RealmQueryTests {
         }
     }
 
-    // distinctAsync
-    private Realm openRealmInstance(String name) {
-        RealmConfiguration config = configFactory.createConfiguration(name);
-        Realm.deleteRealm(config);
-        return Realm.getInstance(config);
-    }
-
     @Test
     @RunTestInLooperThread
     public void distinctAsync() throws Throwable {
@@ -2934,91 +3264,50 @@ public class RealmQueryTests {
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_withNullValues() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(2);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        final AtomicInteger changeListenerCalled = new AtomicInteger(2);
+        final Realm realm = looperThread.realm;
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
+
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class)
+                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class)
+                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
+
+        final Runnable endTest = new Runnable() {
             @Override
             public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-
-                Realm asyncRealm = null;
-                try {
-                    Realm.asyncTaskExecutor.pause();
-                    asyncRealm = openRealmInstance("testDistinctAsyncQueryWithNull");
-                    final long numberOfBlocks = 25;
-                    final long numberOfObjects = 10; // Must be greater than 1
-                    populateForDistinct(asyncRealm, numberOfBlocks, numberOfObjects, true);
-
-                    final RealmResults<AnnotationIndexTypes> distinctDate = asyncRealm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
-                    final RealmResults<AnnotationIndexTypes> distinctString = asyncRealm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
-
-                    assertFalse(distinctDate.isLoaded());
-                    assertTrue(distinctDate.isValid());
-                    assertTrue(distinctDate.isEmpty());
-
-                    assertFalse(distinctString.isLoaded());
-                    assertTrue(distinctString.isValid());
-                    assertTrue(distinctString.isEmpty());
-
-                    Realm.asyncTaskExecutor.resume();
-
-                    distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
-                        @Override
-                        public void onChange(RealmResults<AnnotationIndexTypes> object) {
-                            assertEquals(1, distinctDate.size());
-                            signalCallbackFinished.countDown();
-                        }
-                    });
-
-                    distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
-                        @Override
-                        public void onChange(RealmResults<AnnotationIndexTypes> object) {
-                            assertEquals(1, distinctString.size());
-                            signalCallbackFinished.countDown();
-                        }
-                    });
-
-                    Looper.loop();
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (asyncRealm != null) {
-                        asyncRealm.close();
-                    }
-                    signalClosedRealm.countDown();
+                if (changeListenerCalled.decrementAndGet() == 0) {
+                    looperThread.testComplete();
                 }
+            }
+        };
+
+        looperThread.keepStrongReference.add(distinctDate);
+        looperThread.keepStrongReference.add(distinctString);
+
+        distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(1, distinctDate.size());
+                endTest.run();
             }
         });
 
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
-    }
-
-    @Test
-    public void distinctAsync_notIndexedFields() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
-        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
-
-        for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
-            try {
-                realm.where(AnnotationIndexTypes.class).distinctAsync(field);
-                fail(field);
-            } catch (IllegalArgumentException ignored) {
+        distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(1, distinctString.size());
+                endTest.run();
             }
-        }
+        });
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_doesNotExist() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -3028,9 +3317,11 @@ public class RealmQueryTests {
             realm.where(AnnotationIndexTypes.class).distinctAsync("doesNotExist");
         } catch (IllegalArgumentException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_invalidTypes() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
@@ -3040,9 +3331,11 @@ public class RealmQueryTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_indexedLinkedFields() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -3055,9 +3348,11 @@ public class RealmQueryTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_notIndexedLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
@@ -3065,6 +3360,7 @@ public class RealmQueryTests {
             realm.where(AllJavaTypes.class).distinctAsync(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY);
         } catch (IllegalArgumentException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
@@ -3229,5 +3525,15 @@ public class RealmQueryTests {
             query.distinct(AllJavaTypes.INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT, AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT);
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void beginGroup_missingEndGroup() {
+        realm.where(AllTypes.class).beginGroup().findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void endGroup_missingBeginGroup() {
+        realm.where(AllTypes.class).endGroup().findAll();
     }
 }

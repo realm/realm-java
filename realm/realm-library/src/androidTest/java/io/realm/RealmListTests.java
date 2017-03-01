@@ -25,10 +25,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
@@ -37,6 +38,8 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -58,6 +61,8 @@ public class RealmListTests extends CollectionTests {
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
 
     private Realm realm;
     private RealmList<Dog> collection;
@@ -580,7 +585,7 @@ public class RealmListTests extends CollectionTests {
     @Test
     public void removeAll_managedMode() {
         realm.beginTransaction();
-        List<Dog> objectsToRemove = Arrays.asList(collection.get(0));
+        List<Dog> objectsToRemove = Collections.singletonList(collection.get(0));
         assertTrue(collection.removeAll(objectsToRemove));
         assertFalse(collection.contains(objectsToRemove.get(0)));
     }
@@ -742,6 +747,7 @@ public class RealmListTests extends CollectionTests {
                     case SORT_FIELD: results.sort(CyclicType.FIELD_NAME, Sort.ASCENDING); break;
                     case SORT_2FIELDS: results.sort(CyclicType.FIELD_NAME, Sort.ASCENDING, CyclicType.FIELD_DATE, Sort.DESCENDING); break;
                     case SORT_MULTI: results.sort(new String[] { CyclicType.FIELD_NAME, CyclicType.FIELD_DATE }, new Sort[] { Sort.ASCENDING, Sort.DESCENDING});
+                    case CREATE_SNAPSHOT: results.createSnapshot();
                 }
                 fail(method + " should have thrown an Exception");
             } catch (IllegalStateException ignored) {
@@ -854,49 +860,60 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void add_set_dynamicObjectFromOtherThread() {
+    public void add_set_dynamicObjectFromOtherThread() throws Throwable {
         final CountDownLatch finishedLatch = new CountDownLatch(1);
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         final DynamicRealmObject dynDog = dynamicRealm.where(Dog.CLASS_NAME).findFirst();
         final String expectedMsg = "Cannot copy an object to a Realm instance created in another thread.";
+
+        final AtomicReference<Throwable> thrownErrorRef = new AtomicReference<Throwable>();
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
                 dynamicRealm.beginTransaction();
-                RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
-                        .getList(Owner.FIELD_DOGS);
-                list.add(dynamicRealm.createObject(Dog.CLASS_NAME));
-
                 try {
-                    list.add(dynDog);
-                    fail();
-                } catch (IllegalStateException expected) {
-                    assertEquals(expectedMsg, expected.getMessage());
-                }
+                    RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
+                            .getList(Owner.FIELD_DOGS);
+                    list.add(dynamicRealm.createObject(Dog.CLASS_NAME));
 
-                try {
-                    list.add(0, dynDog);
-                    fail();
-                } catch (IllegalStateException expected) {
-                    assertEquals(expectedMsg, expected.getMessage());
-                }
+                    try {
+                        list.add(dynDog);
+                        fail();
+                    } catch (IllegalStateException expected) {
+                        assertEquals(expectedMsg, expected.getMessage());
+                    }
 
-                try {
-                    list.set(0, dynDog);
-                    fail();
-                } catch (IllegalStateException expected) {
-                    assertEquals(expectedMsg, expected.getMessage());
-                }
+                    try {
+                        list.add(0, dynDog);
+                        fail();
+                    } catch (IllegalStateException expected) {
+                        assertEquals(expectedMsg, expected.getMessage());
+                    }
 
-                dynamicRealm.cancelTransaction();
-                dynamicRealm.close();
-                finishedLatch.countDown();
+                    try {
+                        list.set(0, dynDog);
+                        fail();
+                    } catch (IllegalStateException expected) {
+                        assertEquals(expectedMsg, expected.getMessage());
+                    }
+                } catch (Throwable throwable) {
+                    thrownErrorRef.set(throwable);
+                } finally {
+                    dynamicRealm.cancelTransaction();
+                    dynamicRealm.close();
+                    finishedLatch.countDown();
+                }
             }
         }).start();
         TestHelper.awaitOrFail(finishedLatch);
         dynamicRealm.close();
+
+        final Throwable thrown = thrownErrorRef.get();
+        if (thrown != null) {
+            throw thrown;
+        }
     }
 
     @Test
@@ -973,4 +990,112 @@ public class RealmListTests extends CollectionTests {
         dynamicRealm.close();
     }
 
+    private RealmList<Dog> prepareRealmListInLooperThread() {
+        Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        Owner owner = realm.createObject(Owner.class);
+        owner.setName("Owner");
+        for (int i = 0; i < TEST_SIZE; i++) {
+            Dog dog = realm.createObject(Dog.class);
+            dog.setName("Dog " + i);
+            owner.getDogs().add(dog);
+        }
+        realm.commitTransaction();
+        return owner.getDogs();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void addChangeListener() {
+        collection = prepareRealmListInLooperThread();
+        Realm realm = looperThread.realm;
+        final AtomicInteger listenerCalledCount = new AtomicInteger(0);
+        collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> element) {
+                assertEquals(0, listenerCalledCount.getAndIncrement());
+            }
+        });
+        collection.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
+                assertEquals(1, listenerCalledCount.getAndIncrement());
+            }
+        });
+        realm.beginTransaction();
+        collection.get(0).setAge(42);
+        realm.commitTransaction();
+
+        // This should trigger the listener.
+        realm.beginTransaction();
+        realm.cancelTransaction();
+        assertEquals(2, listenerCalledCount.get());
+        looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeAllChangeListeners() {
+        collection = prepareRealmListInLooperThread();
+        Realm realm = looperThread.realm;
+        final AtomicInteger listenerCalledCount = new AtomicInteger(0);
+        collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> element) {
+                fail();
+            }
+        });
+        collection.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
+                fail();
+            }
+        });
+        realm.beginTransaction();
+        collection.get(0).setAge(42);
+        realm.commitTransaction();
+
+        collection.removeAllChangeListeners();
+
+        // This should trigger the listener if there is any.
+        realm.beginTransaction();
+        realm.cancelTransaction();
+        assertEquals(0, listenerCalledCount.get());
+        looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeChangeListener() {
+        collection = prepareRealmListInLooperThread();
+        Realm realm = looperThread.realm;
+        final AtomicInteger listenerCalledCount = new AtomicInteger(0);
+        RealmChangeListener<RealmList<Dog>> listener1 = new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> element) {
+                fail();
+            }
+        };
+        OrderedRealmCollectionChangeListener<RealmList<Dog>> listener2 =
+                new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
+                    @Override
+                    public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
+                        assertEquals(0, listenerCalledCount.getAndIncrement());
+                    }
+                };
+
+        collection.addChangeListener(listener1);
+        collection.addChangeListener(listener2);
+        realm.beginTransaction();
+        collection.get(0).setAge(42);
+        realm.commitTransaction();
+
+        collection.removeChangeListener(listener1);
+
+        // This should trigger the listener if there is any.
+        realm.beginTransaction();
+        realm.cancelTransaction();
+        assertEquals(1, listenerCalledCount.get());
+        looperThread.testComplete();
+    }
 }

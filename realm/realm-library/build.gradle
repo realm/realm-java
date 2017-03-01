@@ -500,10 +500,8 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
     }
 }
 
-project.afterEvaluate {
-    publishToMavenLocal.dependsOn assembleRelease
-    preBuild.dependsOn deployCore
-}
+publishToMavenLocal.dependsOn assemble
+preBuild.dependsOn deployCore
 
 if (project.hasProperty('dontCleanJniFiles')) {
     project.afterEvaluate {
