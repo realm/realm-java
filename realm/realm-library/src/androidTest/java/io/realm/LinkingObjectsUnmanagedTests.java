@@ -20,7 +20,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,36 +63,38 @@ public class LinkingObjectsUnmanagedTests {
 
     // When managed, an object has the existing content of a backlinked field
     // replaced with actual backlinks
-    // !!! Should this generate a warning?
+    // !!!FIXME Should this generate a warning?
     @Test
-    @Ignore
     public void copyToRealm_ignoreLinkingObjects() {
+        realm.beginTransaction();
+        AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
+        realm.commitTransaction();
+        RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class).findAll();
+        assertEquals(1, result.size());
+
         AllJavaTypes child = new AllJavaTypes(1);
-        AllJavaTypes parent = new AllJavaTypes(2);
-        parent.setFieldObject(child);
-        child.setObjectParents(realm.where(AllJavaTypes.class).findAll());
-        assertEquals(0, child.getObjectParents().size());
+        child.setObjectParents(result);
+        assertEquals(1, child.getObjectParents().size());
 
-        AllJavaTypes managedParent = realm.copyToRealm(parent);
-
+        realm.beginTransaction();
+        AllJavaTypes managedChild = realm.copyToRealm(child);
+        realm.commitTransaction();
         assertEquals(2, realm.where(AllJavaTypes.class).count());
-        assertEquals(1, managedParent.getFieldObject().getObjectParents().size());
+        assertEquals(0, managedChild.getObjectParents().size());
     }
 
-    // When unmanaged, an object's backlinks fields a nulled
+    // When unmanaged, an object's backlinks fields are nulled
     @Test
-    @Ignore
     public void copyFromRealm_ignoreLinkingObjects() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
         AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
         parent.setFieldObject(child);
         realm.commitTransaction();
-        assertEquals(1, parent.getFieldObject().getObjectParents().size());
-        assertEquals(child, parent.getFieldObject().getObjectParents().first());
+        assertEquals(1, child.getObjectParents().size());
+        assertEquals(parent, child.getObjectParents().first());
 
-        AllJavaTypes unmanagedParent = realm.copyFromRealm(parent);
-
-        assertNull(unmanagedParent.getFieldObject().getObjectParents());
+        AllJavaTypes unmanagedChild = realm.copyFromRealm(child);
+        assertNull(unmanagedChild.getObjectParents());
     }
 }
