@@ -9,6 +9,12 @@ configurations.all {
 allprojects {
     def currentVersion = file("${rootDir}/../version.txt").text.trim()
 
+    def props = new Properties()
+    props.load(new FileInputStream("${rootDir}/../realm.properties"))
+    props.each { key, val ->
+        project.ext.set(key, val)
+    }
+
     buildscript {
         repositories {
             mavenLocal()
@@ -32,4 +38,8 @@ allprojects {
         mavenLocal()
         jcenter()
     }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = project.gradleVersion
 }
