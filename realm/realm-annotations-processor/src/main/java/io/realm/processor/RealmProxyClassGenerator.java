@@ -776,7 +776,7 @@ public class RealmProxyClassGenerator {
             writer.emitEmptyLine();
             writer.emitStatement("long blidx");
             writer.emitStatement("Table backlinkSourceTable");
-            writer.emitStatement("RealmFieldType backlinkSourceType");
+            writer.emitStatement("Table backlinkTargetTable");
             for (Backlink backlink : metadata.getBacklinkFields()) {
                 emitValidateBacklink(writer, backlink);
             }
@@ -943,10 +943,10 @@ public class RealmProxyClassGenerator {
         writer.endControlFlow();
 
         // verify that the source field type is target class
-        writer.emitStatement("backlinkSourceType = backlinkSourceTable.getColumnType(blidx)");
-        writer.beginControlFlow("if (!backlinkSourceType.equals(\"%s\"))", sourceClass);
-        writer.emitStatement("//" + // FIXME!!!
-            MIGRATION_NEEDED_EXCEPTION + "\"Source field '%s.%s' for @LinkingObjects field '%s.%s' has wrong type '\" + backlinkSourceType + \"'\")",
+        writer.emitStatement("backlinkTargetTable = backlinkSourceTable.getLinkTarget(blidx)");
+        writer.beginControlFlow("if (!table.hasSameSchema(backlinkTargetTable))");
+        writer.emitStatement(
+            MIGRATION_NEEDED_EXCEPTION + "\"Source field '%s.%s' for @LinkingObjects field '%s.%s' has wrong type '\" + backlinkTargetTable.getName() + \"'\")",
             fullyQualifiedSourceClass, sourceField, targetClass, targetField);
         writer.endControlFlow();
     }
