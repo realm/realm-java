@@ -171,6 +171,10 @@
 
 * ProGuard configuration introduced in 2.1.0 unexpectedly kept classes that did not have the @KeepMember annotation (#3689).
 
+### Credits
+
+* Thanks to @octarino for fixing typo.
+
 ## 2.1.0
 
 ### Breaking changes
