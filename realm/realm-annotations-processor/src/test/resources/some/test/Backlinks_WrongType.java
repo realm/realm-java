@@ -26,5 +26,5 @@ public class Backlinks_WrongType extends RealmObject {
     // The type of the field named in the @LinkingObjects annotation must match
     // the generic type of the annotated field
     @LinkingObjects("child")
-    private RealmResults<BacklinkTarget> parents;
+    private final RealmResults<BacklinkTarget> parents = null;
 }

@@ -383,10 +383,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return parentObjectsBacklinks;
     }
 
-    public void realmSet$parentObjects(RealmResults<some.test.AllTypes> value) {
-        throw new UnsupportedOperationException("Fields that are @LinkingObjects cannot be modified. They are managed by Realm.");
-    }
-
     public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
         if (!realmSchema.contains("AllTypes")) {
             RealmObjectSchema realmObjectSchema = realmSchema.create("AllTypes");

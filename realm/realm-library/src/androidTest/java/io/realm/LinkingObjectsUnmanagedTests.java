@@ -52,37 +52,6 @@ public class LinkingObjectsUnmanagedTests {
         }
     }
 
-    // In an unmanaged object, the backlinks field can be set
-    @Test
-    public void setUnmanagedLinkingObjects() {
-        AllJavaTypes obj = new AllJavaTypes(1);
-        obj.setObjectParents(realm.where(AllJavaTypes.class).findAll());
-        assertNotNull(obj.getObjectParents());
-        assertEquals(0, obj.getObjectParents().size());
-    }
-
-    // When managed, an object has the existing content of a backlinked field
-    // replaced with actual backlinks
-    // !!!FIXME Should this generate a warning?
-    @Test
-    public void copyToRealm_ignoreLinkingObjects() {
-        realm.beginTransaction();
-        AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
-        realm.commitTransaction();
-        RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class).findAll();
-        assertEquals(1, result.size());
-
-        AllJavaTypes child = new AllJavaTypes(1);
-        child.setObjectParents(result);
-        assertEquals(1, child.getObjectParents().size());
-
-        realm.beginTransaction();
-        AllJavaTypes managedChild = realm.copyToRealm(child);
-        realm.commitTransaction();
-        assertEquals(2, realm.where(AllJavaTypes.class).count());
-        assertEquals(0, managedChild.getObjectParents().size());
-    }
-
     // When unmanaged, an object's backlinks fields are nulled
     @Test
     public void copyFromRealm_ignoreLinkingObjects() {

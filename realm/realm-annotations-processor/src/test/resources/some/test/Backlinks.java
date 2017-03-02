@@ -9,8 +9,8 @@ public class Backlinks extends RealmObject {
     private int id;
 
     @LinkingObjects("child")
-    private RealmResults<BacklinkTarget> simpleParents;
+    private final RealmResults<BacklinkTarget> simpleParents = null;
 
     @LinkingObjects("children")
-    private RealmResults<BacklinkTarget> listParents;
+    private final RealmResults<BacklinkTarget> listParents = null;
 }

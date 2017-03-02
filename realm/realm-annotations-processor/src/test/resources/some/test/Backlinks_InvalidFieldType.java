@@ -9,5 +9,5 @@ public class Backlinks_InvalidFieldType extends RealmObject {
 
     // Backlinks must be RealmResults
     @LinkingObjects("child")
-    private BacklinkTarget parents;
+    private final BacklinkTarget parents = null;
 }

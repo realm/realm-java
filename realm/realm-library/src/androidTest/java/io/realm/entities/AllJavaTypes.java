@@ -64,10 +64,10 @@ public class AllJavaTypes extends RealmObject {
     private RealmList<AllJavaTypes> fieldList;
 
     @LinkingObjects("fieldObject")
-    private RealmResults<AllJavaTypes> objectParents;
+    private final RealmResults<AllJavaTypes> objectParents = null;
 
     @LinkingObjects("fieldList")
-    private RealmResults<AllJavaTypes> listParents;
+    private final RealmResults<AllJavaTypes> listParents = null;
 
     public AllJavaTypes() {
 
@@ -196,9 +196,5 @@ public class AllJavaTypes extends RealmObject {
 
     public RealmResults<AllJavaTypes> getListParents() {
         return listParents;
-    }
-
-    public void setObjectParents(RealmResults<AllJavaTypes> objectParents) {
-        this.objectParents = objectParents;
     }
 }

@@ -43,7 +43,7 @@ public class AllTypes extends RealmObject {
     private AllTypes columnObject;
     private RealmList<AllTypes> columnRealmList;
     @LinkingObjects(FIELD_PARENTS)
-    private RealmResults<AllTypes> parentObjects;
+    private final RealmResults<AllTypes> parentObjects = null;
 
     public String getColumnString() {
         return realmGet$columnString();

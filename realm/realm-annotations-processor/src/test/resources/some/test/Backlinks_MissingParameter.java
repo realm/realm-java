@@ -9,5 +9,5 @@ public class Backlinks_MissingParameter extends RealmObject {
 
     // Forgot to specify the backlinked field
     @LinkingObjects
-    private RealmResults<BacklinkTarget> parents;
+    private final RealmResults<BacklinkTarget> parents = null;
 }

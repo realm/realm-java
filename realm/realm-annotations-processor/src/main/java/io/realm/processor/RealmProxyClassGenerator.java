@@ -537,7 +537,7 @@ public class RealmProxyClassGenerator {
             String cacheFieldName = backlink.getTargetField() + BACKLINKS_FIELD_EXTENSION;
             String realmResultsType = "RealmResults<" + backlink.getSourceClass() + ">";
 
-            // Getter
+            // Getter, no setter
             writer.beginMethod(realmResultsType, metadata.getInternalGetter(backlink.getTargetField()), EnumSet.of(Modifier.PUBLIC))
                 .emitStatement("BaseRealm realm = proxyState.getRealm$realm()")
                 .emitStatement("realm.checkIfValid()")
@@ -546,12 +546,6 @@ public class RealmProxyClassGenerator {
                         backlink.getSourceClass(), backlink.getSourceField())
                 .endControlFlow()
                 .emitStatement("return " + cacheFieldName)
-                .endMethod()
-                .emitEmptyLine();
-
-            // Setter
-            writer.beginMethod("void", metadata.getInternalSetter(backlink.getTargetField()), EnumSet.of(Modifier.PUBLIC), realmResultsType, "value")
-                .emitStatement("throw new UnsupportedOperationException(\"Fields that are @LinkingObjects cannot be modified. They are managed by Realm.\")")
                 .endMethod()
                 .emitEmptyLine();
         }

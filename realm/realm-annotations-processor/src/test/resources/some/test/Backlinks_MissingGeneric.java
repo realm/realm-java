@@ -9,5 +9,5 @@ public class Backlinks_MissingGeneric extends RealmObject {
 
     // Forgot to specify the backlink generic param
     @LinkingObjects("child")
-    private RealmResults parents;
+    private final RealmResults parents = null;
 }

@@ -64,6 +64,7 @@ public class RealmProcessorTest {
     private JavaFileObject backlinksMissingGeneric = JavaFileObjects.forResource("some/test/Backlinks_MissingGeneric.java");
     private JavaFileObject backlinksRequired = JavaFileObjects.forResource("some/test/Backlinks_Required.java");
     private JavaFileObject backlinksNotFound = JavaFileObjects.forResource("some/test/Backlinks_NotFound.java");
+    private JavaFileObject backlinksNonFinalField = JavaFileObjects.forResource("some/test/Backlinks_NotFinal.java");
     private JavaFileObject backlinksWrongType = JavaFileObjects.forResource("some/test/Backlinks_WrongType.java");
 
     @Test
@@ -487,6 +488,15 @@ public class RealmProcessorTest {
             .processedWith(new RealmProcessor())
             .failsToCompile()
             .withErrorContaining("Fields annotated with @LinkingObjects must be RealmResults");
+    }
+
+    @Test
+    public void failOnLinkingObjectsWithNonFinalField() {
+        ASSERT.about(javaSources())
+            .that(Arrays.asList(backlinks, backlinksTarget, backlinksNonFinalField))
+            .processedWith(new RealmProcessor())
+            .failsToCompile()
+            .withErrorContaining("must be final");
     }
 
     @Test

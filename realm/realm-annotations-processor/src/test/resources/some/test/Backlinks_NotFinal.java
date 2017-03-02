@@ -20,10 +20,10 @@ import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.annotations.LinkingObjects;
 
-public class Backlinks_NotFound extends RealmObject {
+public class Backlinks_NotFinal extends RealmObject {
     private int id;
 
-    // The argument to the @LinkingObjects annotation must name a field in the target class
-    @LinkingObjects("xxx")
-    private final RealmResults<BacklinkTarget> parents = null;
+    // The field named in the @LinkingObjects annotation must be final
+    @LinkingObjects("child")
+    private RealmResults<BacklinkTarget> simpleParents = null;
 }

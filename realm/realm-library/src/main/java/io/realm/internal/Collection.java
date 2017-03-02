@@ -319,12 +319,12 @@ public class Collection implements NativeObject {
     }
 
     public static Collection createBacklinksCollection(SharedRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
-        long backlinks = nativeCreateResultsFromBacklinks(
+        long backlinksPtr = nativeCreateResultsFromBacklinks(
             realm.getNativePtr(),
             row.getNativePtr(),
             srcTable.getNativePtr(),
             srcTable.getColumnIndex(srcFieldName));
-        return new Collection(realm, row.getTable(), backlinks, true);
+        return new Collection(realm, row.getTable(), backlinksPtr, true);
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query,

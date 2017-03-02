@@ -16,6 +16,7 @@
 
 package io.realm.processor;
 
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 
 import io.realm.annotations.LinkingObjects;
@@ -157,6 +158,15 @@ final class Backlink {
         if (sourceClass == null) {
             Utils.error(String.format(
                 "\"The field \"%s.%s\", annotated with @LinkingObjects, must specify a generic type.",
+                targetClass,
+                targetField));
+            return false;
+        }
+
+        // A @LinkingObjects cannot be @Required
+        if (!backlink.getModifiers().contains(Modifier.FINAL)) {
+            Utils.error(String.format(
+                "A @LinkingObjects field \"%s.%s\" must be final.",
                 targetClass,
                 targetField));
             return false;

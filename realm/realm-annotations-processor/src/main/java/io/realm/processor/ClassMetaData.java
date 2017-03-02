@@ -255,7 +255,7 @@ public class ClassMetaData {
     }
 
     // Iterate through all class elements and add them to the appropriate internal data structures.
-    // Returns true if all elements could be false if elements could not be categorized,
+    // Returns true if all elements could be categorized and false otherwise.
     private boolean categorizeClassElements() {
         for (Element element : classType.getEnclosedElements()) {
             ElementKind elementKind = element.getKind();

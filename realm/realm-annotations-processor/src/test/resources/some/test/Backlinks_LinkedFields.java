@@ -10,5 +10,5 @@ public class Backlinks_LinkedFields extends RealmObject {
     // Defining a backlink more than one levels back is not supported.
     // It can be queried though: `equalTo("selectedFieldParents.selectedFieldParents")
     @LinkingObjects("child.id")
-    private RealmResults<BacklinkTarget> parents;
+    private final RealmResults<BacklinkTarget> parents = null;
 }

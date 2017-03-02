@@ -11,5 +11,5 @@ public class Backlinks_Required extends RealmObject {
     // A backlinked field may not be @Required
     @Required
     @LinkingObjects("child")
-    private RealmResults<BacklinkTarget> parents;
+    private final RealmResults<BacklinkTarget> parents = null;
 }

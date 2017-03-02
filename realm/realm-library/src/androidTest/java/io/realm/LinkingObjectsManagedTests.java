@@ -64,24 +64,6 @@ public class LinkingObjectsManagedTests {
         }
     }
 
-    // In a managed object, the backlinks field cannot be set
-    @Test
-    public void setManagedLinkingObjectsThrows() {
-        realm.beginTransaction();
-        AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
-        AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
-        parent.setFieldObject(child);
-
-        try {
-            // Trying to set @LinkingObjects on a managed object is illegal
-            parent.setObjectParents(realm.where(AllJavaTypes.class).findAll());
-            fail("Should not be able to set a backlinked field");
-        } catch (UnsupportedOperationException ignored) {
-        } finally {
-            realm.cancelTransaction();
-        }
-    }
-
     // Setting the linked object field creates the correct backlink
     @Test
     public void singleBacklink_link() {
@@ -219,6 +201,14 @@ public class LinkingObjectsManagedTests {
     }
 
     // Query on a field descriptor starting with a backlink
+    // The test objects are:
+    //             gen1
+    //             / \
+    //         gen2A gen2B
+    //           \\   //
+    //            gen3
+    //  /  = object ref
+    //  // = list ref
     @Test
     @Ignore
     public void queryStartingWithBacklink() {
@@ -246,6 +236,14 @@ public class LinkingObjectsManagedTests {
     }
 
     // Query on a field descriptor that ends with a backlink
+    // The test objects are:
+    //             gen1
+    //             / \
+    //         gen2A gen2B
+    //           \\   //
+    //            gen3
+    //  /  = object ref
+    //  // = list ref
     @Test
     @Ignore
     public void queryEndingWithBacklink() {
@@ -274,6 +272,14 @@ public class LinkingObjectsManagedTests {
     }
 
     // Query on a field descriptor that has a backlink in the middle
+    // The test objects are:
+    //             gen1
+    //             / \
+    //         gen2A gen2B
+    //           \\   //
+    //            gen3
+    //  /  = object ref
+    //  // = list ref
     @Test
     @Ignore
     public void queryBacklinkInMiddle() {
@@ -297,13 +303,6 @@ public class LinkingObjectsManagedTests {
             .lessThan("objectParents.listParents.fieldId", 4)
             .findAll();
         assertEquals(2, result.size());
-    }
-
-    // A newly added notification callback should be called immediately for an object
-    // that has acquired a backlink
-    // !!!FIXME What does this test?
-    @Test
-    public void notifcationSentInitially() {
     }
 
     // A notification callback should be called on a commit that adds a backlink
@@ -395,29 +394,29 @@ public class LinkingObjectsManagedTests {
         assertEquals(1, counter.get());
     }
 
-    // ???
+    // !!!FIXME: what is this test supposed to do?
     @Test
     public void notificationSentOnlyForRefresh() {
     }
 
     // Table validation should fail if the backinked column exists in the target table
     @Test
-    public void baclkinkedFieldInUse() {
+    public void backlinkedFieldInUse() {
     }
 
     // Table validation should fail if the backinked column points to a non-existent class
     @Test
-    public void baclkinkedSourceClassDoesntExist() {
+    public void backlinkedSourceClassDoesntExist() {
     }
 
     // Table validation should fail if the backinked column points to a non-existent field
     @Test
-    public void baclkinkedSourceFieldDoesntExist() {
+    public void backlinkedSourceFieldDoesntExist() {
     }
 
     // Table validation should fail if the backinked column points to a field of the wrong type
     @Test
-    public void baclkinkedSourceFieldWrongType() {
+    public void backlinkedSourceFieldWrongType() {
     }
 }
 

@@ -72,21 +72,13 @@ public class RealmProxyInterfaceGenerator {
             }
         }
 
+        // backlinks are final and have only a getter.
         for (Backlink backlink : metaData.getBacklinkFields()) {
-            String fieldName = backlink.getTargetField();
-            String fieldTypeCanonicalName = backlink.getTargetFieldType();
             writer
                 .beginMethod(
-                    fieldTypeCanonicalName,
-                    metaData.getInternalGetter(fieldName),
+                    backlink.getTargetFieldType(),
+                    metaData.getInternalGetter(backlink.getTargetField()),
                     EnumSet.of(Modifier.PUBLIC))
-                .endMethod()
-                .beginMethod(
-                    "void",
-                    metaData.getInternalSetter(fieldName),
-                    EnumSet.of(Modifier.PUBLIC),
-                    fieldTypeCanonicalName,
-                    "value")
                 .endMethod();
         }
 
