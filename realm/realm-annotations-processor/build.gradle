@@ -38,7 +38,7 @@ sourceSets {
 }
 
 compileJava.dependsOn generateVersionClass
-compileTestJava.dependsOn ':realm-library:assemble'
+compileTestJava.dependsOn ':realm-library:assembleBaseRelease'
 
 task ojoUpload() {
     dependsOn "artifactoryPublish"
