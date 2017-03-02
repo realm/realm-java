@@ -34,7 +34,7 @@ ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE
 
 android {
     compileSdkVersion 24
-    buildToolsVersion '24.0.0'
+    buildToolsVersion '25.0.2'
 
     defaultConfig {
         minSdkVersion 9
@@ -529,28 +529,30 @@ project.afterEvaluate {
     }
 }
 
-task checkNdk() << {
-    def ndkPathInEnvVariable = System.env.ANDROID_NDK_HOME
-    if (!ndkPathInEnvVariable) {
-        throw new GradleException("The environment variable 'ANDROID_NDK_HOME' must be set.")
-    }
-    checkNdk(ndkPathInEnvVariable)
-
-    def localPropFile = rootProject.file('local.properties')
-    if (!localPropFile.exists()) {
-        // we can skip the checks since 'ANDROID_NDK_HOME' will be used instead.
-    } else {
-        def String ndkPathInLocalProperties = getValueFromPropertiesFile(localPropFile, 'ndk.dir')
-        if (!ndkPathInLocalProperties) {
-            throw new GradleException("'ndk.dir' must be set in ${localPropFile.getAbsolutePath()}.")
+task checkNdk() {
+    doLast {
+        def ndkPathInEnvVariable = System.env.ANDROID_NDK_HOME
+        if (!ndkPathInEnvVariable) {
+            throw new GradleException("The environment variable 'ANDROID_NDK_HOME' must be set.")
         }
-        checkNdk(ndkPathInLocalProperties)
-        if (new File(ndkPathInLocalProperties).getCanonicalPath()
-                != new File(ndkPathInEnvVariable).getCanonicalPath()) {
-            throw new GradleException(
-                    "The value of environment variable 'ANDROID_NDK_HOME' (${ndkPathInEnvVariable}) and"
-                            + " 'ndk.dir' in 'local.properties' (${ndkPathInLocalProperties}) "
-                            + ' must point the same directory.')
+        checkNdk(ndkPathInEnvVariable)
+
+        def localPropFile = rootProject.file('local.properties')
+        if (!localPropFile.exists()) {
+            // we can skip the checks since 'ANDROID_NDK_HOME' will be used instead.
+        } else {
+            def String ndkPathInLocalProperties = getValueFromPropertiesFile(localPropFile, 'ndk.dir')
+            if (!ndkPathInLocalProperties) {
+                throw new GradleException("'ndk.dir' must be set in ${localPropFile.getAbsolutePath()}.")
+            }
+            checkNdk(ndkPathInLocalProperties)
+            if (new File(ndkPathInLocalProperties).getCanonicalPath()
+                    != new File(ndkPathInEnvVariable).getCanonicalPath()) {
+                throw new GradleException(
+                        "The value of environment variable 'ANDROID_NDK_HOME' (${ndkPathInEnvVariable}) and"
+                                + " 'ndk.dir' in 'local.properties' (${ndkPathInLocalProperties}) "
+                                + ' must point the same directory.')
+            }
         }
     }
 }
