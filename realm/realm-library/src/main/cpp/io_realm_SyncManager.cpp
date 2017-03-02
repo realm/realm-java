@@ -41,34 +41,35 @@ using namespace realm::jni_util;
 
 std::unique_ptr<Client> sync_client;
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
-    (JNIEnv *env, jclass)
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient(JNIEnv* env, jclass)
 {
     TR_ENTER()
-    if (sync_client) return;
+    if (sync_client)
+        return;
 
     try {
         sync::Client::Config config;
         config.logger = &CoreLoggerBridge::shared();
         sync_client = std::make_unique<Client>(std::move(config)); // Throws
-    } CATCH_STD()
+    }
+    CATCH_STD()
 }
 
 // Create the thread from java side to avoid some strange errors when native throws.
-JNIEXPORT void JNICALL
-Java_io_realm_SyncManager_nativeRunClient(JNIEnv *env, jclass)
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeRunClient(JNIEnv* env, jclass)
 {
     try {
         sync_client->run();
-    } CATCH_STD()
+    }
+    CATCH_STD()
 }
 
-JNIEXPORT void JNICALL
-Java_io_realm_SyncManager_nativeConfigureMetaDataSystem(JNIEnv *env, jclass,
-                                                        jstring baseFile) {
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeConfigureMetaDataSystem(JNIEnv* env, jclass, jstring baseFile)
+{
     TR_ENTER()
     try {
         JStringAccessor base_file_path(env, baseFile); // throws
         SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
-    } CATCH_STD()
+    }
+    CATCH_STD()
 }
