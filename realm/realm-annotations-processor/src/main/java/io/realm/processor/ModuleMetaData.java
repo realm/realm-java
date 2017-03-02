@@ -54,10 +54,10 @@ public class ModuleMetaData {
      *
      * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
-    public boolean generate(Set<? extends Element> klasses) {
+    public boolean generate(Set<? extends Element> clazzes) {
 
         // Check that modules are setup correctly
-        for (Element classElement : klasses) {
+        for (Element classElement : clazzes) {
             String classSimpleName = classElement.getSimpleName().toString();
 
             // Check that the annotation is only applied to a class

@@ -276,13 +276,13 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         for (Backlink backlink: backlinksToValidate) {
-            ClassMetaData klass = realmClasses.get(backlink.getSourceClass());
+            ClassMetaData clazz = realmClasses.get(backlink.getSourceClass());
 
             // If the class is not here it might be part of some other compilation unit.
-            if (klass == null) { continue; }
+            if (clazz == null) { continue; }
 
             // If the class is here, we can validate it.
-            if (!backlink.validateTarget(klass) && allValid) { allValid = false; }
+            if (!backlink.validateTarget(clazz) && allValid) { allValid = false; }
         }
 
         return allValid;

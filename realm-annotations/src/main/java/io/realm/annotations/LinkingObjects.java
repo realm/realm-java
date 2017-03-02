@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 /**
  * Annotation for defining a reverse relationship from one class to another. This annotation can
  * only be added to a field of the type {@code RealmResults}.
- *
+ * <p>
  * Example:
  * <pre>
  * {@code
@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
  * }
  *
  * public Class Dog extends RealmObject {
- *   // This hold all Person objects with a reference to this Dog object (= linking objects)
+ *   // This holds all Person objects with a reference to this Dog object (= linking objects)
  *   \@LinkingObjects("dog")
  *   private RealmResults&gt;Person&lt; owners;
  * }
@@ -59,8 +59,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface LinkingObjects {
     /**
-     * The field in the Class that is referencing this class. If not provided the annotation
-     * processor will crash with an {@code IllegalArgumentException}.
+     * The name of a field that contains a reference to an instance of the
+     * class containing this annotation.  If this argument is not provided
+     * the annotation processor will abort with an {@code IllegalArgumentException}.
      */
     String value() default "";
 }

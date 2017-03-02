@@ -10,6 +10,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -160,6 +161,39 @@ public class Utils {
 
     public static boolean isRealmResults(VariableElement field) {
         return typeUtils.isAssignable(field.asType(), realmResults);
+    }
+
+    // get the fully-qualified type name for the generic type of a RealmResults
+    public static String getRealmResultsType(VariableElement field) {
+        if (!Utils.isRealmResults(field)) { return null; }
+        DeclaredType type = getGenericTypeForContainer(field);
+        if (null == type) { return null; }
+        return type.toString();
+    }
+
+    // get the fully-qualified type name for the generic type of a RealmList
+    public static String getRealmListType(VariableElement field) {
+        if (!Utils.isRealmList(field)) { return null; }
+        DeclaredType type = getGenericTypeForContainer(field);
+        if (null == type) { return null; }
+        return type.toString();
+    }
+
+    // Note that, because subclassing subclasses of RealmObject is forbidden,
+    // there is no need to deal with constructs like:  <code>RealmResults&lt;? extends Foos&lt;</code>.
+    public static DeclaredType getGenericTypeForContainer(VariableElement field) {
+        TypeMirror fieldType = field.asType();
+        TypeKind kind = fieldType.getKind();
+        if (kind != TypeKind.DECLARED) { return null; }
+
+        List<? extends TypeMirror> args = ((DeclaredType) fieldType).getTypeArguments();
+        if (args.size() <= 0) { return null; }
+
+        fieldType = args.get(0);
+        kind = fieldType.getKind();
+        if (kind != TypeKind.DECLARED) { return null; }
+
+        return (DeclaredType) fieldType;
     }
 
     /**

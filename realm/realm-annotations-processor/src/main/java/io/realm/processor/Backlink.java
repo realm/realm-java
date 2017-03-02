@@ -16,12 +16,7 @@
 
 package io.realm.processor;
 
-import java.util.List;
-
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.Required;
@@ -31,22 +26,20 @@ import io.realm.annotations.Required;
  * <p>
  * <code>
  * class TargetClass {
- *     // ...
- *     {@literal @}LinkingObjects("sourceField")
- *     RealmResults&lt;SourceClass&gt; targetField;
+ * // ...
+ * {@literal @}LinkingObjects("sourceField")
+ * RealmResults&lt;SourceClass&gt; targetField;
  * }
  * </code>.
  * <p>
  * The targetField of a managed object cannot be assigned.  It can be queried normally.
- * When an instance X of a class with such a declaration is copied to Realm (`copyToRealm()`),
- * the result will contain in its targetField references to any instances of SourceClass
- * whose sourceField contains a reference to X.  Any previous contents of the targetField are lost.
+ * When an instance X of a class containing a field annotated with the <code>@LinkingObjects</code> annotation
+ * is managed (<code>copyToRealm()</code>), the newly managed object will contain, in the annotated field,
+ * references to any instances of <code>sourceClass</code> whose <code>sourceField</code> contains a reference to X.
+ * Any previous contents of the targetField are lost.
  * <p>
  * When an instance X is copied from Realm (`copyFromRealm()`) the targetField in the returned object
  * is just another field: it can be set normally. The field is initially set to be `null`.
- * <p>
- * Note that, because subclassing subclasses of RealmObject is forbidden, so are constructs like:
- * <code>RealmResults&lt;? extends Foos&lt;</code>
  * <p>
  * In the code link direction is from the perspective of the link, not the backlink: the source is the
  * instance to which the backlink points, the target is the instance holding the pointer.
@@ -56,20 +49,20 @@ final class Backlink {
     private final VariableElement backlink;
 
     /**
-     * The FQN of the class containing the field <code>targetField</code> that is
-     * annotated with the {@literal @}LinkingObjects annotation.
+     * The fully-qualified name of the class containing the <code>targetField</code>,
+     * the field annotated with the {@literal @}LinkingObjects annotation.
      */
     private final String targetClass;
 
     /**
-     * The name of the backlinked field, in <code>targetClass</code>.
+     * The name of the backlink field, in <code>targetClass</code>.
      * A <code>RealmResults&lt;&gt;</code> field annotated with a {@literal @}LinkingObjects annotation.
      */
     private final String targetField;
 
     /**
-     * The FQN of the class to which the backlinks, from <code>targetField</code>, point:
-     * The generic argument to the type of the <code>targetField</code> field.
+     * The fully-qualified name of the class to which the backlinks, from <code>targetField</code>,
+     * point: The generic argument to the type of the <code>targetField</code> field.
      */
     private final String sourceClass;
 
@@ -82,29 +75,41 @@ final class Backlink {
     private final String sourceField;
 
 
-    public Backlink(ClassMetaData klass, VariableElement backlink) {
-        if ((null == klass) || (null == backlink)) {
-            throw new NullPointerException(String.format("null parameter: %s, %s", klass, backlink));
+    public Backlink(ClassMetaData clazz, VariableElement backlink) {
+        if ((null == clazz) || (null == backlink)) {
+            throw new NullPointerException(String.format("null parameter: %s, %s", clazz, backlink));
         }
 
         this.backlink = backlink;
-        this.targetClass = klass.getFullyQualifiedClassName();
+        this.targetClass = clazz.getFullyQualifiedClassName();
         this.targetField = backlink.getSimpleName().toString();
-        this.sourceClass = getRealmResultsType(backlink);
+        this.sourceClass = Utils.getRealmResultsType(backlink);
         this.sourceField = backlink.getAnnotation(LinkingObjects.class).value();
     }
 
-    public String getTargetClass() { return targetClass; }
+    public String getTargetClass() {
+        return targetClass;
+    }
 
-    public String getTargetField() { return targetField; }
+    public String getTargetField() {
+        return targetField;
+    }
 
-    public String getSourceClass() { return sourceClass; }
+    public String getSourceClass() {
+        return sourceClass;
+    }
 
-    public String getSourceField() { return sourceField; }
+    public String getSourceField() {
+        return sourceField;
+    }
 
-    public String getTargetFieldType() { return backlink.asType().toString(); }
+    public String getTargetFieldType() {
+        return backlink.asType().toString();
+    }
 
-    public String getSimpleSourceClass() { return Utils.getFieldTypeSimpleName(getGenericTypeForContainer(backlink)); }
+    public String getSimpleSourceClass() {
+        return Utils.getFieldTypeSimpleName(Utils.getGenericTypeForContainer(backlink));
+    }
 
     /**
      * Validate the source side of the backlink.
@@ -118,6 +123,7 @@ final class Backlink {
                 "The @LinkingObjects field \"%s.%s\" cannot be @Required.",
                 targetClass,
                 targetField));
+            return false;
         }
 
         // The annotation must have an argument, identifying the linked field
@@ -159,8 +165,8 @@ final class Backlink {
         return true;
     }
 
-    public boolean validateTarget(ClassMetaData klass) {
-        VariableElement field = klass.getDeclaredField(sourceField);
+    public boolean validateTarget(ClassMetaData clazz) {
+        VariableElement field = clazz.getDeclaredField(sourceField);
 
         if (field == null) {
             Utils.error(String.format(
@@ -173,7 +179,7 @@ final class Backlink {
         }
 
         String fieldType = field.asType().toString();
-        if (!(targetClass.equals(fieldType) || targetClass.equals(getRealmListType(field)))) {
+        if (!(targetClass.equals(fieldType) || targetClass.equals(Utils.getRealmListType(field)))) {
             Utils.error(String.format(
                 "Field \"%s.%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", has type \"%s\" instead of \"%s\".",
                 sourceClass,
@@ -214,34 +220,5 @@ final class Backlink {
         result = 31 * result + sourceClass.hashCode();
         result = 31 * result + sourceField.hashCode();
         return result;
-    }
-
-    private String getRealmResultsType(VariableElement field) {
-        if (!Utils.isRealmResults(field)) { return null; }
-        DeclaredType type = getGenericTypeForContainer(field);
-        if (null == type) { return null; }
-        return type.toString();
-    }
-
-    private String getRealmListType(VariableElement field) {
-        if (!Utils.isRealmList(field)) { return null; }
-        DeclaredType type = getGenericTypeForContainer(field);
-        if (null == type) { return null; }
-        return type.toString();
-    }
-
-    private DeclaredType getGenericTypeForContainer(VariableElement field) {
-        TypeMirror fieldType = field.asType();
-        TypeKind kind = fieldType.getKind();
-        if (kind != TypeKind.DECLARED) { return null; }
-
-        List<? extends TypeMirror> args = ((DeclaredType) fieldType).getTypeArguments();
-        if (args.size() <= 0) { return null; }
-
-        fieldType = args.get(0);
-        kind = fieldType.getKind();
-        if (kind != TypeKind.DECLARED) { return null; }
-
-        return (DeclaredType) fieldType;
     }
 }

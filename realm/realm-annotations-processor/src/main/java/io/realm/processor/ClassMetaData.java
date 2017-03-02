@@ -85,11 +85,9 @@ public class ClassMetaData {
                 Name name = element.getSimpleName();
                 if (name.contentEquals("toString")) {
                     this.containsToString = true;
-                }
-                else if (name.contentEquals("equals")) {
+                } else if (name.contentEquals("equals")) {
                     this.containsEquals = true;
-                }
-                else if (name.contentEquals("hashCode")) {
+                } else if (name.contentEquals("hashCode")) {
                     this.containsHashCode = true;
                 }
             }
@@ -333,8 +331,7 @@ public class ClassMetaData {
                 "Class \"%s\" must declare a public constructor with no arguments if it contains custom constructors.",
                 className));
             return false;
-        }
-        else {
+        } else {
             return true;
         }
     }
@@ -390,8 +387,7 @@ public class ClassMetaData {
 
         if (variableElement.getAnnotation(Required.class) != null) {
             categorizeRequiredField(element, variableElement);
-        }
-        else {
+        } else {
             // The field doesn't have the @Required annotation.
             // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
             // nullableFields.
@@ -428,8 +424,7 @@ public class ClassMetaData {
                 columnType.equals("RealmFieldType.BOOLEAN")))
         {
             indexedFields.add(variableElement);
-        }
-        else {
+        } else {
             Utils.error(String.format("Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
             return false;
         }
@@ -442,12 +437,10 @@ public class ClassMetaData {
         if (Utils.isPrimitiveType(variableElement)) {
             Utils.error(String.format(
                 "@Required annotation is unnecessary for primitive field \"%s\".", element));
-        }
-        else if (Utils.isRealmList(variableElement) || Utils.isRealmModel(variableElement)) {
+        } else if (Utils.isRealmList(variableElement) || Utils.isRealmModel(variableElement)) {
             Utils.error(String.format(
                 "Field \"%s\" with type \"%s\" cannot be @Required.", element, element.asType()));
-        }
-        else {
+        } else {
             // Should never get here - user should remove @Required
             if (nullableFields.contains(variableElement)) {
                 Utils.error(String.format(
