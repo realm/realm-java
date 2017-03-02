@@ -37,26 +37,29 @@ using namespace realm;
 using namespace sync;
 
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeCreateSession
-  (JNIEnv *env, jobject obj, jstring localRealmPath)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeCreateSession(
+    JNIEnv* env, jobject obj, jstring localRealmPath)
 {
     TR_ENTER()
     try {
         JStringAccessor local_path(env, localRealmPath);
         JniSession* jni_session = new JniSession(env, local_path, obj);
         return reinterpret_cast<jlong>(jni_session);
-    } CATCH_STD()
+    }
+    CATCH_STD()
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeBind
-  (JNIEnv *env, jobject, jlong sessionPointer, jstring remoteUrl, jstring accessToken)
+JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeBind(JNIEnv* env, jobject,
+                                                                                          jlong sessionPointer,
+                                                                                          jstring remoteUrl,
+                                                                                          jstring accessToken)
 {
     TR_ENTER()
     try {
-        auto *session_wrapper = reinterpret_cast<JniSession*>(sessionPointer);
+        auto* session_wrapper = reinterpret_cast<JniSession*>(sessionPointer);
 
-        const char *token_tmp = env->GetStringUTFChars(accessToken, NULL);
+        const char* token_tmp = env->GetStringUTFChars(accessToken, NULL);
         std::string access_token(token_tmp);
         env->ReleaseStringUTFChars(accessToken, token_tmp);
 
@@ -65,20 +68,22 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_n
 
         // Bind the local Realm to the remote one
         session_wrapper->get_session()->bind(remote_url, access_token);
-    } CATCH_STD()
+    }
+    CATCH_STD()
 }
 
 
-JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeUnbind
-  (JNIEnv *, jobject, jlong sessionPointer)
+JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeUnbind(JNIEnv*, jobject,
+                                                                                            jlong sessionPointer)
 {
     TR_ENTER()
     JniSession* session = reinterpret_cast<JniSession*>(sessionPointer);
     delete session; // TODO Can we avoid killing the session here?
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeRefresh
-  (JNIEnv *env, jobject, jlong sessionPointer, jstring accessToken)
+JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeRefresh(JNIEnv* env, jobject,
+                                                                                             jlong sessionPointer,
+                                                                                             jstring accessToken)
 {
     TR_ENTER()
     try {
@@ -88,18 +93,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_n
         StringData access_token = StringData(token_tmp);
 
         session_wrapper->get_session()->refresh(access_token);
-    } CATCH_STD()
+    }
+    CATCH_STD()
 }
 
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectserver_ObjectServerSession_nativeNotifyCommitHappened
-  (JNIEnv *env, jobject, jlong sessionPointer, jlong version)
+JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeNotifyCommitHappened(
+    JNIEnv* env, jobject, jlong sessionPointer, jlong version)
 {
     TR_ENTER()
     try {
         JniSession* session_wrapper = reinterpret_cast<JniSession*>(sessionPointer);
         session_wrapper->get_session()->nonsync_transact_notify(version);
-    } CATCH_STD()
+    }
+    CATCH_STD()
 }
-
-

@@ -25,14 +25,15 @@ jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex
     if (!TBL_AND_INDEX_VALID(env, reinterpret_cast<T*>(nativeTablePtr), columnIndex, rowIndex))
         return NULL;
 
-    realm::BinaryData bin = reinterpret_cast<T*>(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
+    realm::BinaryData bin = reinterpret_cast<T*>(nativeTablePtr)->get_binary(S(columnIndex), S(rowIndex));
     if (bin.is_null()) {
         return NULL;
     }
     if (bin.size() <= MAX_JSIZE) {
         jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
         if (jresult)
-            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));  // throws
+            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()),
+                                    reinterpret_cast<const jbyte*>(bin.data())); // throws
         return jresult;
     }
     else {
