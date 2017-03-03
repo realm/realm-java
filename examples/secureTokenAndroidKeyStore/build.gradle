@@ -2,8 +2,8 @@ apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "24.0.0"
+    compileSdkVersion rootProject.sdkVersion
+    buildToolsVersion rootProject.buildTools
 
     defaultConfig {
         applicationId "io.realm.examples.securetokenandroidkeystore"

@@ -8,6 +8,14 @@ buildscript {
     }
 }
 
+allprojects {
+    def props = new Properties()
+    props.load(new FileInputStream("${rootDir}/../realm.properties"))
+    props.each { key, val ->
+        project.ext.set(key, val)
+    }
+}
+
 apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'maven'
@@ -153,3 +161,8 @@ artifactory {
         }
     }
 }
+
+task wrapper(type: Wrapper) {
+    gradleVersion = project.gradleVersion
+}
+
