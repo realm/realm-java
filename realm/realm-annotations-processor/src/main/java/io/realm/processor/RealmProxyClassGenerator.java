@@ -760,7 +760,7 @@ public class RealmProxyClassGenerator {
         Set<Backlink> backlinks = metadata.getBacklinkFields();
         if (backlinks.size() > 0) {
             writer.emitEmptyLine()
-                .emitStatement("long blidx")
+                .emitStatement("long backlinkFieldIndex")
                 .emitStatement("Table backlinkSourceTable")
                 .emitStatement("Table backlinkTargetTable");
             for (Backlink backlink : metadata.getBacklinkFields()) {
@@ -902,9 +902,9 @@ public class RealmProxyClassGenerator {
         // verify that the backlink field is not in the table
         String targetField = backlink.getTargetField();
         String targetClass = backlink.getTargetClass();
-        writer.emitStatement("blidx = table.getColumnIndex(\"%s\")", targetField);
-        writer.beginControlFlow("if (blidx != Table.NO_MATCH)");
-        emitMigrationNeededException(writer, "\"@LinkingObjects field '%s.%s' already exists with type '\" + table.getColumnType(blidx) + \"'\")",
+        writer.emitStatement("backlinkFieldIndex = table.getColumnIndex(\"%s\")", targetField);
+        writer.beginControlFlow("if (backlinkFieldIndex != Table.NO_MATCH)");
+        emitMigrationNeededException(writer, "\"@LinkingObjects field '%s.%s' already exists with type '\" + table.getColumnType(backlinkFieldIndex) + \"'\")",
             targetClass, targetField);
         writer.endControlFlow();
 
@@ -919,14 +919,14 @@ public class RealmProxyClassGenerator {
         // verify that the source class contains the source field
         String sourceField = backlink.getSourceField();
         writer.emitStatement("backlinkSourceTable = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, sourceClass);
-        writer.emitStatement("blidx = backlinkSourceTable.getColumnIndex(\"%s\")", sourceField);
-        writer.beginControlFlow("if (blidx == Table.NO_MATCH)");
+        writer.emitStatement("backlinkFieldIndex = backlinkSourceTable.getColumnIndex(\"%s\")", sourceField);
+        writer.beginControlFlow("if (backlinkFieldIndex == Table.NO_MATCH)");
         emitMigrationNeededException(writer, "\"Cannot find source field '%s.%s' for @LinkingObjects field '%s.%s'\")",
             fullyQualifiedSourceClass, sourceField, targetClass, targetField);
         writer.endControlFlow();
 
         // verify that the source field type is target class
-        writer.emitStatement("backlinkTargetTable = backlinkSourceTable.getLinkTarget(blidx)");
+        writer.emitStatement("backlinkTargetTable = backlinkSourceTable.getLinkTarget(backlinkFieldIndex)");
         writer.beginControlFlow("if (!table.hasSameSchema(backlinkTargetTable))");
         emitMigrationNeededException(writer, "\"Source field '%s.%s' for @LinkingObjects field '%s.%s' has wrong type '\" + backlinkTargetTable.getName() + \"'\")",
             fullyQualifiedSourceClass, sourceField, targetClass, targetField);

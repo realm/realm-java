@@ -66,7 +66,7 @@ public class LinkingObjectsManagedTests {
 
     // Setting the linked object field creates the correct backlink
     @Test
-    public void singleBacklink_link() {
+    public void basic_singleBacklinkObject() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
         AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
@@ -79,7 +79,7 @@ public class LinkingObjectsManagedTests {
 
     // Setting a linked list field creates the correct backlink
     @Test
-    public void singleBacklink_linkList() {
+    public void basic_singleBacklinkList() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
         AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
@@ -92,7 +92,7 @@ public class LinkingObjectsManagedTests {
 
     // Setting multiple object links creates multiple backlinks
     @Test
-    public void multipleBacklinks_link() {
+    public void basic_multipleBacklinksObject() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
         AllJavaTypes parent1 = realm.createObject(AllJavaTypes.class, 2);
@@ -100,13 +100,12 @@ public class LinkingObjectsManagedTests {
         parent1.setFieldObject(child);
         parent2.setFieldObject(child);
         realm.commitTransaction();
-
         assertEquals(2, child.getObjectParents().size());
     }
 
     // Setting multiple list links creates multiple backlinks
     @Test
-    public void multipleBacklinks_linkList() {
+    public void basic_multipleBacklinksList() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
         AllJavaTypes parent1 = realm.createObject(AllJavaTypes.class, 2);
@@ -114,7 +113,6 @@ public class LinkingObjectsManagedTests {
         parent1.getFieldList().add(child);
         parent2.getFieldList().add(child);
         realm.commitTransaction();
-
         assertEquals(2, child.getListParents().size());
     }
 
@@ -122,7 +120,7 @@ public class LinkingObjectsManagedTests {
     // even if the links are to a single object
     // !!!FIXME: DOCUMENT THIS
     @Test
-    public void multipleReferencesFromParentList() {
+    public void basic_multipleReferencesFromParentList() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
         AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
@@ -137,9 +135,100 @@ public class LinkingObjectsManagedTests {
         assertEquals(parent, child.getListParents().last());
     }
 
+    // A notification callback should be called on a commit that adds a backlink
+    @Test
+    @RunTestInLooperThread
+    public void notification_onCommit() {
+        Realm looperThreadRealm = looperThread.realm;
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
+        looperThreadRealm.commitTransaction();
+
+        final AtomicInteger counter = new AtomicInteger(0);
+        RealmChangeListener<AllJavaTypes> listener = new RealmChangeListener<AllJavaTypes>() {
+            @Override
+            public void onChange(AllJavaTypes object) {
+                counter.incrementAndGet();
+                looperThread.testComplete();
+            }
+        };
+        child.addChangeListener(listener);
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes parent = looperThreadRealm.createObject(AllJavaTypes.class, 1);
+        parent.setFieldObject(child);
+        looperThreadRealm.commitTransaction();
+
+        assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+        assertEquals(1, counter.get());
+    }
+
+    // A notification callback should not be called after the change listener is removed
+    @Test
+    @RunTestInLooperThread
+    public void notification_notSentAfterUnregisterListener() {
+        Realm looperThreadRealm = looperThread.realm;
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
+        looperThreadRealm.commitTransaction();
+
+        RealmChangeListener<AllJavaTypes> listener = new RealmChangeListener<AllJavaTypes>() {
+            @Override
+            public void onChange(AllJavaTypes object) {
+                fail("Not expecting notification after unregister");
+            }
+        };
+        child.addChangeListener(listener);
+        child.removeChangeListener(listener);
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes parent = looperThreadRealm.createObject(AllJavaTypes.class, 1);
+        parent.setFieldObject(child);
+        looperThreadRealm.commitTransaction();
+        try {
+            Thread.sleep(100);
+            looperThread.testComplete();
+        } catch (InterruptedException ignore) {
+
+        }
+        assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+    }
+
+    // A notification callback should be called when a backlinked object is deleted
+    @Test
+    @RunTestInLooperThread
+    public void notification_onDelete() {
+        Realm looperThreadRealm = looperThread.realm;
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
+        AllJavaTypes parent = looperThreadRealm.createObject(AllJavaTypes.class, 1);
+        parent.setFieldObject(child);
+        looperThreadRealm.commitTransaction();
+
+        final AtomicInteger counter = new AtomicInteger(0);
+        RealmChangeListener<AllJavaTypes> listener = new RealmChangeListener<AllJavaTypes>() {
+            @Override
+            public void onChange(AllJavaTypes object) {
+                counter.incrementAndGet();
+                looperThread.testComplete();
+            }
+        };
+        child.addChangeListener(listener);
+
+        looperThreadRealm.beginTransaction();
+        looperThreadRealm.where(AllJavaTypes.class).equalTo("fieldId", 1).findAll().deleteAllFromRealm();
+        looperThreadRealm.commitTransaction();
+
+        assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+        assertEquals(1, counter.get());
+    }
+
     // Fields annotated with @LinkingObjects should not be affected by JSON updates
     @Test
-    public void jsonUpdate_object() {
+    public void json_updateObject() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
         AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
@@ -162,7 +251,7 @@ public class LinkingObjectsManagedTests {
 
     // Fields annotated with @LinkingObjects should not be affected by JSON updates
     @Test
-    public void jsonUpdate_list() {
+    public void json_updateList() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
         AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
@@ -183,9 +272,74 @@ public class LinkingObjectsManagedTests {
         assertTrue(child.getListParents().contains(parent));
     }
 
+    // A JSON update should generate a notifcation
+    @Test
+    @RunTestInLooperThread
+    public void json_jsonUpdateCausesNotification() {
+        Realm looperThreadRealm = looperThread.realm;
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 1);
+        AllJavaTypes parent = looperThreadRealm.createObject(AllJavaTypes.class, 2);
+        parent.setFieldObject(child);
+        looperThreadRealm.commitTransaction();
+
+        final AtomicInteger counter = new AtomicInteger(0);
+        RealmChangeListener<AllJavaTypes> listener = new RealmChangeListener<AllJavaTypes>() {
+            @Override
+            public void onChange(AllJavaTypes object) {
+                counter.incrementAndGet();
+                looperThread.testComplete();
+            }
+        };
+        child.addChangeListener(listener);
+
+        looperThreadRealm.beginTransaction();
+        try {
+            looperThreadRealm.createOrUpdateAllFromJson(AllJavaTypes.class, "[{ \"fieldId\" : 2, \"fieldObject\" : null }]");
+        } catch (RealmException ignore) {
+            fail("Failed loading JSON");
+        }
+        looperThreadRealm.commitTransaction();
+
+        RealmResults<AllJavaTypes> parents = child.getObjectParents();
+        assertNotNull(parents);
+        assertEquals(0, parents.size());
+        assertEquals(1, counter.get());
+    }
+
+    // !!!FIXME: what is this test supposed to do?
+    @Test
+    public void notificationSentOnlyForRefresh() {
+    }
+
+    // Table validation should fail if the backinked column exists in the target table
+    // !!!FIXME: Implement
+    @Test
+    public void migration_backlinkedFieldInUse() {
+    }
+
+    // Table validation should fail if the backinked column points to a non-existent class
+    // !!!FIXME: Implement
+    @Test
+    public void migration_backlinkedSourceClassDoesntExist() {
+    }
+
+    // Table validation should fail if the backinked column points to a non-existent field
+    // !!!FIXME: Implement
+    @Test
+    public void migration_backlinkedSourceFieldDoesntExist() {
+    }
+
+    // Table validation should fail if the backinked column points to a field of the wrong type
+    // !!!FIXME: Implement
+    @Test
+    public void migration_backlinkedSourceFieldWrongType() {
+    }
+
     // Distinct works for backlinks
     @Test
-    public void multipleReferencesWithDistinct() {
+    public void query_multipleReferencesWithDistinct() {
         realm.beginTransaction();
         AllJavaTypes child = realm.createObject(AllJavaTypes.class, 1);
         AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
@@ -211,7 +365,7 @@ public class LinkingObjectsManagedTests {
     //  // = list ref
     @Test
     @Ignore
-    public void queryStartingWithBacklink() {
+    public void query_startWithBacklink() {
         realm.beginTransaction();
         AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);
 
@@ -246,7 +400,7 @@ public class LinkingObjectsManagedTests {
     //  // = list ref
     @Test
     @Ignore
-    public void queryEndingWithBacklink() {
+    public void query_endWithBacklink() {
         realm.beginTransaction();
         AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);
 
@@ -282,7 +436,7 @@ public class LinkingObjectsManagedTests {
     //  // = list ref
     @Test
     @Ignore
-    public void queryBacklinkInMiddle() {
+    public void query_backlinkInMiddle() {
         realm.beginTransaction();
         AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);
 
@@ -303,120 +457,6 @@ public class LinkingObjectsManagedTests {
             .lessThan("objectParents.listParents.fieldId", 4)
             .findAll();
         assertEquals(2, result.size());
-    }
-
-    // A notification callback should be called on a commit that adds a backlink
-    @Test
-    @RunTestInLooperThread
-    public void notificationOnCommit() {
-        Realm ltRealm = looperThread.realm;
-
-        ltRealm.beginTransaction();
-        AllJavaTypes gen1 = ltRealm.createObject(AllJavaTypes.class, 10);
-        ltRealm.commitTransaction();
-
-        final AtomicInteger counter = new AtomicInteger(0);
-        RealmChangeListener<AllJavaTypes> listener = new RealmChangeListener<AllJavaTypes>() {
-            @Override
-            public void onChange(AllJavaTypes object) {
-                counter.incrementAndGet();
-                looperThread.testComplete();
-            }
-        };
-        gen1.addChangeListener(listener);
-
-        ltRealm.beginTransaction();
-
-        AllJavaTypes gen2A = ltRealm.createObject(AllJavaTypes.class, 1);
-        gen2A.setFieldObject(gen1);
-        ltRealm.commitTransaction();
-
-        assertEquals(1, counter.get());
-        assertEquals(2, ltRealm.where(AllJavaTypes.class).findAll().size());
-    }
-
-    // A notification callback should be called when a backlinked object is deleted
-    @Test
-    @RunTestInLooperThread
-    public void notificationOnDelete() {
-        Realm ltRealm = looperThread.realm;
-
-        ltRealm.beginTransaction();
-        AllJavaTypes gen1 = ltRealm.createObject(AllJavaTypes.class, 10);
-        AllJavaTypes gen2A = ltRealm.createObject(AllJavaTypes.class, 1);
-        gen2A.setFieldObject(gen1);
-        ltRealm.commitTransaction();
-
-        final AtomicInteger counter = new AtomicInteger(0);
-        RealmChangeListener<AllJavaTypes> listener = new RealmChangeListener<AllJavaTypes>() {
-            @Override
-            public void onChange(AllJavaTypes object) {
-                counter.incrementAndGet();
-                looperThread.testComplete();
-            }
-        };
-        gen1.addChangeListener(listener);
-
-        ltRealm.beginTransaction();
-        ltRealm.where(AllJavaTypes.class).equalTo("fieldId", 1).findAll().deleteAllFromRealm();
-        ltRealm.commitTransaction();
-
-        assertEquals(1, ltRealm.where(AllJavaTypes.class).findAll().size());
-        assertEquals(1, counter.get());
-    }
-
-    // A notification callback should not be called for unrelated changes on the same object
-    @Test
-    @RunTestInLooperThread
-    public void notificationNotSentOnUnrelatedChange() {
-        Realm ltRealm = looperThread.realm;
-
-        ltRealm.beginTransaction();
-        AllJavaTypes gen1 = ltRealm.createObject(AllJavaTypes.class, 10);
-        AllJavaTypes gen2A = ltRealm.createObject(AllJavaTypes.class, 1);
-        ltRealm.commitTransaction();
-
-        final AtomicInteger counter = new AtomicInteger(0);
-        RealmChangeListener<AllJavaTypes> listener = new RealmChangeListener<AllJavaTypes>() {
-            @Override
-            public void onChange(AllJavaTypes object) {
-                counter.incrementAndGet();
-                looperThread.testComplete();
-            }
-        };
-        gen1.addChangeListener(listener);
-
-        ltRealm.beginTransaction();
-        ltRealm.where(AllJavaTypes.class).equalTo("fieldId", 1).findAll().deleteAllFromRealm();
-        ltRealm.commitTransaction();
-
-        assertEquals(1, ltRealm.where(AllJavaTypes.class).findAll().size());
-        assertEquals(1, counter.get());
-    }
-
-    // !!!FIXME: what is this test supposed to do?
-    @Test
-    public void notificationSentOnlyForRefresh() {
-    }
-
-    // Table validation should fail if the backinked column exists in the target table
-    @Test
-    public void backlinkedFieldInUse() {
-    }
-
-    // Table validation should fail if the backinked column points to a non-existent class
-    @Test
-    public void backlinkedSourceClassDoesntExist() {
-    }
-
-    // Table validation should fail if the backinked column points to a non-existent field
-    @Test
-    public void backlinkedSourceFieldDoesntExist() {
-    }
-
-    // Table validation should fail if the backinked column points to a field of the wrong type
-    @Test
-    public void backlinkedSourceFieldWrongType() {
     }
 }
 

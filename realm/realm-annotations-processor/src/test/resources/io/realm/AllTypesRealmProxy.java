@@ -555,22 +555,22 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid RealmList type for field 'columnRealmList': '" + table.getLinkTarget(columnInfo.columnRealmListIndex).getName() + "' expected - was '" + table_8.getName() + "'");
         }
 
-        long blidx;
+        long backlinkFieldIndex;
         Table backlinkSourceTable;
         Table backlinkTargetTable;
-        blidx = table.getColumnIndex("parentObjects");
-        if (blidx != Table.NO_MATCH) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "@LinkingObjects field 'some.test.AllTypes.parentObjects' already exists with type '" + table.getColumnType(blidx) + "'");
+        backlinkFieldIndex = table.getColumnIndex("parentObjects");
+        if (backlinkFieldIndex != Table.NO_MATCH) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "@LinkingObjects field 'some.test.AllTypes.parentObjects' already exists with type '" + table.getColumnType(backlinkFieldIndex) + "'");
         }
         if (!sharedRealm.hasTable("class_AllTypes")) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Cannot find source class 'some.test.AllTypes' for @LinkingObjects field 'some.test.AllTypes.parentObjects'");
         }
         backlinkSourceTable = sharedRealm.getTable("class_AllTypes");
-        blidx = backlinkSourceTable.getColumnIndex("columnObject");
-        if (blidx == Table.NO_MATCH) {
+        backlinkFieldIndex = backlinkSourceTable.getColumnIndex("columnObject");
+        if (backlinkFieldIndex == Table.NO_MATCH) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Cannot find source field 'some.test.AllTypes.columnObject' for @LinkingObjects field 'some.test.AllTypes.parentObjects'");
         }
-        backlinkTargetTable = backlinkSourceTable.getLinkTarget(blidx);
+        backlinkTargetTable = backlinkSourceTable.getLinkTarget(backlinkFieldIndex);
         if (!table.hasSameSchema(backlinkTargetTable)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Source field 'some.test.AllTypes.columnObject' for @LinkingObjects field 'some.test.AllTypes.parentObjects' has wrong type '" + backlinkTargetTable.getName() + "'");
         }

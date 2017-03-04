@@ -23,28 +23,36 @@ import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.Required;
 
 /**
- * A Backlink is:
+ * A <b>Backlink</b> is an implicit backwards reference.  If field <code>sourceField</code> in instance <code>I</code>
+ * of type <code>SourceClass</code> holds a reference to instance <code>J</code> of type <code>TargetClass</code>,
+ * then a "backlink" is the automatically created reference from <code>J</code> to <code>I</code>.
+ * Backlinks are automatically created and destroyed when the forward references to which they correspond are
+ * created and destroyed.  This can dramatically reduce the complexity of client code.
  * <p>
+ * To expose backinks for use, create a declaration as follows:
  * <code>
  * class TargetClass {
- * // ...
- * {@literal @}LinkingObjects("sourceField")
- * RealmResults&lt;SourceClass&gt; targetField;
+ *     // ...
+ *     {@literal @}LinkingObjects("sourceField")
+ *     final RealmResults&lt;SourceClass&gt; targetField = null;
  * }
  * </code>.
  * <p>
- * The targetField of a managed object cannot be assigned.  It can be queried normally.
- * When an instance X of a class containing a field annotated with the <code>@LinkingObjects</code> annotation
- * is managed (<code>copyToRealm()</code>), the newly managed object will contain, in the annotated field,
- * references to any instances of <code>sourceClass</code> whose <code>sourceField</code> contains a reference to X.
- * Any previous contents of the targetField are lost.
+ * The targetField, the field annotated with the {@literal @}LinkingObjects annotation must be final.
+ * Its type must be <code>RealmResults</code> whose generic argument is the <code>SourceClass</code>,
+ * the class with the <code>sourceField</code> that will hold the forward reference to an instance of
+ * <code>TargetClass</code>
  * <p>
- * When an instance X is copied from Realm (`copyFromRealm()`) the targetField in the returned object
- * is just another field: it can be set normally. The field is initially set to be `null`.
+ * The <code>sourceField</code> must be either of type <code>TargetClass</code>
+ * or <code>RealmList&lt;TargetClass&gt;</code>
  * <p>
  * In the code link direction is from the perspective of the link, not the backlink: the source is the
  * instance to which the backlink points, the target is the instance holding the pointer.
  * This is consistent with the use of terms in the Realm Core.
+ * <p>
+ * As should be obvious, from the declaration, backlinks are useful only on managed objects.
+ * An unmanaged Model object will have, as the value of its backlink field, the value with which
+ * the field is initialized (typically null).
  */
 final class Backlink {
     private final VariableElement backlink;
@@ -63,15 +71,15 @@ final class Backlink {
 
     /**
      * The fully-qualified name of the class to which the backlinks, from <code>targetField</code>,
-     * point: The generic argument to the type of the <code>targetField</code> field.
+     * point: The generic argument to the type of the <code>targetField</code>.
      */
     private final String sourceClass;
 
     /**
      * The name of the field, in <code>sourceClass</code> that creates the backlink.
-     * Making this field, in an instance X of <code>sourceClass</code>,
-     * a reference to an instance Y of <code>targetClass</code>
-     * will cause the <code>targetField</code> of Y to contain a backlink to X.
+     * Making this field, in an instance I of <code>sourceClass</code>,
+     * a reference to an instance J of <code>targetClass</code>
+     * will cause the <code>targetField</code> of J to contain a backlink to I.
      */
     private final String sourceField;
 
@@ -163,7 +171,7 @@ final class Backlink {
             return false;
         }
 
-        // A @LinkingObjects cannot be @Required
+        // A @LinkingObjects field must be final
         if (!backlink.getModifiers().contains(Modifier.FINAL)) {
             Utils.error(String.format(
                 "A @LinkingObjects field \"%s.%s\" must be final.",
