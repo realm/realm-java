@@ -18,6 +18,10 @@ package io.realm;
 
 import java.net.URI;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
@@ -29,6 +33,7 @@ import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectserver.ObjectServerUser;
+import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 
 /**
@@ -48,6 +53,13 @@ import io.realm.log.RealmLog;
 public class SyncSession {
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
+    private RealmAsyncTask networkRequest;
+    private NetworkStateReceiver.ConnectionListener networkListener;
+    private RealmAsyncTask refreshTokenTask;
+    private RealmAsyncTask refreshTokenNetworkRequest;
+    private final static ScheduledThreadPoolExecutor REFRESH_TOKENS_EXECUTOR = new ScheduledThreadPoolExecutor(1);
+    private final static long REFRESH_MARGIN_DELAY = TimeUnit.SECONDS.toMillis(10);
+    private AtomicBoolean onGoingAccessTokenQuery = new AtomicBoolean(false);
 
     SyncSession(SyncConfiguration configuration) {
         this.configuration = configuration;
@@ -108,51 +120,49 @@ public class SyncSession {
         void onError(SyncSession session, ObjectServerError error);
     }
 
-    private RealmAsyncTask networkRequest;
-    private NetworkStateReceiver.ConnectionListener networkListener;
+    String accessToken(final AuthenticationServer authServer) {
+        // check first if there's a valid access_token we can return immediately
+        if (getUser().getSyncUser().isAuthenticated(configuration)) {
+            Token accessToken = getUser().getSyncUser().getAccessToken(configuration.getServerUrl());
+            // start refreshing this token if a refresh is not going on
+            if (!onGoingAccessTokenQuery.getAndSet(true)) {
+                scheduleRefreshAccessToken(authServer, accessToken.expiresMs());
+            }
+            return accessToken.value();
 
-    void accessToken(final AuthenticationServer authServer) {
-        if (NetworkStateReceiver.isOnline(SyncObjectServerFacade.getApplicationContext())) {
-            authenticate(authServer);
         } else {
-            // Wait for connection to become available, before trying again.
-            // The Session might potentially stay in this state for the lifetime of the application.
-            // This is acceptable.
-            networkListener = new NetworkStateReceiver.ConnectionListener() {
-                @Override
-                public void onChange(boolean connectionAvailable) {
-                    if (connectionAvailable) {
-                        authenticate(authServer);
-                        NetworkStateReceiver.removeListener(this);
-                    }
+            if (!onGoingAccessTokenQuery.getAndSet(true)) {
+                if (NetworkStateReceiver.isOnline(SyncObjectServerFacade.getApplicationContext())) {
+                    authenticateRealm(authServer);
+                } else {
+                    // Wait for connection to become available, before trying again.
+                    // The Session might potentially stay in this state for the lifetime of the application.
+                    // This is acceptable.
+                    networkListener = new NetworkStateReceiver.ConnectionListener() {
+                        @Override
+                        public void onChange(boolean connectionAvailable) {
+                            if (connectionAvailable) {
+                                if (!onGoingAccessTokenQuery.getAndSet(true)) {
+                                    authenticateRealm(authServer);
+                                }
+                                NetworkStateReceiver.removeListener(this);
+                            }
+                        }
+                    };
+                    NetworkStateReceiver.addListener(networkListener);
                 }
-            };
-            NetworkStateReceiver.addListener(networkListener);
+            }
         }
-    }
-
-    private void authenticate(final AuthenticationServer authServer) {
-        authenticateRealm(authServer, new Runnable() {
-            @Override
-            public void run() {
-                RealmLog.debug("Session[%s]: Access token acquired", configuration.getPath());
-                //FIXME should update the correspondent user (work to be done when implementing refresh with timer)
-                nativeRefreshAccessToken(configuration.getPath(), getUser().getSyncUser().getAccessToken(configuration.getServerUrl()).value(), configuration.getServerUrl().toString());
-            }
-        }, new SyncSession.ErrorHandler() {
-            @Override
-            public void onError(SyncSession s, ObjectServerError error) {
-                RealmLog.debug("Session[%s]: Failed to get access token (%d)", configuration.getPath(), error.getErrorCode());
-                errorHandler.onError(SyncSession.this, error);
-            }
-        });
+        return null;
     }
 
     // Authenticate by getting access tokens for the specific Realm
-    private void authenticateRealm(final AuthenticationServer authServer, final Runnable onSuccess, final ErrorHandler errorHandler) {
+    private void authenticateRealm(final AuthenticationServer authServer/*, final Runnable onSuccess, final ErrorHandler errorHandler*/) {
         if (networkRequest != null) {
             networkRequest.cancel();
         }
+        clearScheduledAccessTokenRefresh();
+
         // Authenticate in a background thread. This allows incremental backoff and retries in a safe manner.
         Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
             @Override
@@ -166,23 +176,113 @@ public class SyncSession {
 
             @Override
             protected void onSuccess(AuthenticateResponse response) {
+                RealmLog.debug("Session[%s]: Access token acquired", configuration.getPath());
                 ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(
                         response.getAccessToken(),
                         configuration.getPath(),
                         configuration.shouldDeleteRealmOnLogout()
                 );
                 getUser().getSyncUser().addRealm(configuration.getServerUrl(), desc);
-                onSuccess.run();
+                // schedule a token refresh before it expires
+                if (nativeRefreshAccessToken(configuration.getPath(), getUser().getSyncUser().getAccessToken(configuration.getServerUrl()).value(), configuration.getServerUrl().toString())) {
+                    scheduleRefreshAccessToken(authServer, response.getAccessToken().expiresMs());
+
+                } else {
+                    // token not applied, no refresh will be scheduled
+                    setOnGoingAccessTokenQuery(false);
+                }
             }
 
             @Override
             protected void onError(AuthenticateResponse response) {
+                setOnGoingAccessTokenQuery(false);
+                RealmLog.debug("Session[%s]: Failed to get access token (%d)", configuration.getPath(), response.getError().getErrorCode());
                 errorHandler.onError(SyncSession.this, response.getError());
             }
         });
         networkRequest = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
     }
 
-    private native void nativeRefreshAccessToken(String path, String accessToken, String authURL);
+    private void scheduleRefreshAccessToken(final AuthenticationServer authServer, long expireDateInMs) {
+            // calculate the delay time before which we should refresh the access_token,
+            // we adjust to 10 second to proactively refresh the access_token before the session
+            // hit the expire date on the token
+            long refreshAfter =  expireDateInMs - System.currentTimeMillis() - REFRESH_MARGIN_DELAY;
+            if (refreshAfter < 0) {
+                // Token already expired
+                RealmLog.debug("Expires time already reached for the access token, refresh soon");
+                // we avoid refreshing directly to avoid an edge case where the client clock is ahead
+                // of the server, causing all access_token received from the server to be always
+                // expired, we will flood the server with refresh token requests then, so adding
+                // a bit of delay is the best effort in this case.
+                refreshAfter = REFRESH_MARGIN_DELAY;
+            }
+            RealmLog.debug("Scheduling an access_token refresh in " + (refreshAfter) + " milliseconds");
+            if (refreshTokenTask != null) {
+                refreshTokenTask.cancel();
+            }
+
+            ScheduledFuture<?> task = REFRESH_TOKENS_EXECUTOR.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    refreshAccessToken(authServer);
+                }
+            }, refreshAfter, TimeUnit.MILLISECONDS);
+            refreshTokenTask = new RealmAsyncTaskImpl(task, REFRESH_TOKENS_EXECUTOR);
+    }
+
+    // Authenticate by getting access tokens for the specific Realm
+    private void refreshAccessToken(final AuthenticationServer authServer) {
+        // Authenticate in a background thread. This allows incremental backoff and retries in a safe manner.
+        clearScheduledAccessTokenRefresh();
+
+        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
+            @Override
+            protected AuthenticateResponse execute() {
+                return authServer.refreshUser(getUser().getSyncUser().getUserToken(), configuration.getServerUrl(), getUser().getSyncUser().getAuthenticationUrl());
+            }
+
+            @Override
+            protected void onSuccess(AuthenticateResponse response) {
+                synchronized (SyncSession.this) {
+                    RealmLog.debug("Access Token refreshed successfully");
+                    if (nativeRefreshAccessToken(configuration.getPath(), response.getAccessToken().value(), configuration.getUser().getAuthURL())) {
+                        // replaced the user old access_token
+                        ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(
+                                response.getAccessToken(),
+                                configuration.getPath(),
+                                configuration.shouldDeleteRealmOnLogout()
+                        );
+                        getUser().getSyncUser().addRealm(configuration.getServerUrl(), desc);
+
+                        // schedule the next refresh
+                        scheduleRefreshAccessToken(authServer, response.getAccessToken().expiresMs());
+                    }
+                }
+            }
+
+            @Override
+            protected void onError(AuthenticateResponse response) {
+                setOnGoingAccessTokenQuery(false);
+                RealmLog.error("Unrecoverable error, while refreshing the access Token (" + response.getError().toString() + ") reschedule will not happen");
+            }
+        });
+        refreshTokenNetworkRequest = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
+    }
+
+    private void clearScheduledAccessTokenRefresh() {
+        if (refreshTokenTask != null) {
+            refreshTokenTask.cancel();
+        }
+        if (refreshTokenNetworkRequest != null) {
+            refreshTokenNetworkRequest.cancel();
+        }
+    }
+
+    private synchronized void setOnGoingAccessTokenQuery (boolean newValue) {
+        onGoingAccessTokenQuery.set(newValue);
+    }
+
+    private native boolean nativeRefreshAccessToken(String path, String accessToken, String authURL);
 }
 

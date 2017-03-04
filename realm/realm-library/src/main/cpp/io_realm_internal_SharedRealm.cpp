@@ -5,6 +5,7 @@
 #endif
 
 #include <realm/util/features.h>
+#include <realm/group_shared_options.hpp>
 
 #include "object_store.hpp"
 
@@ -33,7 +34,7 @@ Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring tempo
 
     try {
         JStringAccessor path(env, temporary_directory_path); // throws
-        realm::set_temporary_directory(std::string(path)); // throws
+        SharedGroupOptions::set_sys_tmp_dir(std::string(path)); // throws
     } CATCH_STD()
 }
 

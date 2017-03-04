@@ -239,15 +239,15 @@ public class SyncManager {
      *
      * @throws IllegalStateException if the wrapped Java session is not found.
      * @param sessionPath The path to the previously Java wraped session.
+     * @return a valid cached {@code access_token} if available or null.
      */
-    private static synchronized void bindSessionWithConfig(String sessionPath) {
-        // TODO schedule a refresh timer here
+    private synchronized static String bindSessionWithConfig(String sessionPath) {
         final SyncSession syncSession = sessions.get(sessionPath);
         if (syncSession == null) {
             throw new IllegalStateException("Matching Java SyncSession could not be found for: " + sessionPath);
 
         } else {
-            syncSession.accessToken(authServer);
+            return syncSession.accessToken(authServer);
         }
     }
 

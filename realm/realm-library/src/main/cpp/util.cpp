@@ -39,9 +39,11 @@ jmethodID java_lang_float_init;
 jclass java_lang_double;
 jclass java_lang_string;
 jmethodID java_lang_double_init;
-
-// Caching other class references
-jclass java_session_manager;
+#ifdef REALM_ENABLE_SYNC
+jclass java_syncmanager;
+jmethodID java_bind_session_method;
+jmethodID java_error_callback_method;
+#endif
 
 void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind);
 

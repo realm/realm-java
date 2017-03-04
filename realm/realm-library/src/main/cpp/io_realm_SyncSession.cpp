@@ -23,7 +23,7 @@ using namespace std;
 using namespace realm;
 using namespace sync;
 
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv *env, jobject, jstring localRealmPath,
                                                    jstring accessToken, jstring sync_realm_url) {
     TR_ENTER()
@@ -34,8 +34,11 @@ Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv *env, jobject, jstring
             JStringAccessor access_token(env, accessToken);
             JStringAccessor realm_url(env, sync_realm_url);
             session->refresh_access_token(access_token, realm::util::Optional<std::string>(realm_url));
+            return true;
+
         } else {
             realm::jni_util::Log::d("nativeRefreshAccessToken no active/inactive session found");
         }
     } CATCH_STD()
+    return false;
 }

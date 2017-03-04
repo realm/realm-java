@@ -18,11 +18,11 @@
 
 #include <realm/string_data.hpp>
 #include <realm/unicode.hpp>
+#include <thread>
+#include <jni_util/jni_utils.hpp>
 
 #include "mem_usage.hpp"
 #include "util.hpp"
-
-#include "jni_util/jni_utils.hpp"
 
 using std::string;
 using namespace realm::jni_util;
@@ -51,6 +51,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         java_lang_double      = GetClass(env, "java/lang/Double");
         java_lang_string      = GetClass(env, "java/lang/String");
         java_lang_double_init = env->GetMethodID(java_lang_double, "<init>", "(D)V");
+#ifdef REALM_ENABLE_SYNC
+        java_syncmanager = GetClass(env, "io/realm/SyncManager");
+        java_bind_session_method = env->GetStaticMethodID(java_syncmanager, "bindSessionWithConfig", "(Ljava/lang/String;)Ljava/lang/String;");
+        java_error_callback_method = env->GetStaticMethodID(java_syncmanager, "notifyErrorHandler", "(ILjava/lang/String;Ljava/lang/String;)V");
+#endif
     }
 
     return JNI_VERSION_1_6;
@@ -67,6 +72,9 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void*)
         env->DeleteGlobalRef(java_lang_float);
         env->DeleteGlobalRef(java_lang_double);
         env->DeleteGlobalRef(java_lang_string);
+#ifdef REALM_ENABLE_SYNC
+        env->DeleteGlobalRef(java_syncmanager);
+#endif
     }
 }
 
