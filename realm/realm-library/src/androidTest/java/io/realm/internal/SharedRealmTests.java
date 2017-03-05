@@ -163,7 +163,7 @@ public class SharedRealmTests {
         final AtomicLong schemaVersionFromListener = new AtomicLong(-1L);
 
         sharedRealm.close();
-        sharedRealm = SharedRealm.getInstance(config, null, new SharedRealm.SchemaVersionListener() {
+        sharedRealm = SharedRealm.getInstance(config, new SharedRealm.SchemaVersionListener() {
             @Override
             public void onSchemaVersionChanged(long currentVersion) {
                 listenerCalled.set(true);
@@ -175,16 +175,16 @@ public class SharedRealmTests {
 
         sharedRealm.beginTransaction();
         try {
-            // listener is not called if there was no schema change
+            // Listener is not called if there was no schema change.
             assertFalse(listenerCalled.get());
 
-            // change the schema version
+            // Changes the schema version.
             sharedRealm.setSchemaVersion(before + 1);
         } finally {
             sharedRealm.commitTransaction();
         }
 
-        // listener is not yet called
+        // Listener is not yet called.
         assertFalse(listenerCalled.get());
 
         sharedRealm.beginTransaction();
@@ -202,7 +202,7 @@ public class SharedRealmTests {
         final AtomicLong schemaVersionFromListener = new AtomicLong(-1L);
 
         sharedRealm.close();
-        sharedRealm = SharedRealm.getInstance(config, null, new SharedRealm.SchemaVersionListener() {
+        sharedRealm = SharedRealm.getInstance(config, new SharedRealm.SchemaVersionListener() {
             @Override
             public void onSchemaVersionChanged(long currentVersion) {
                 listenerCalled.set(true);
@@ -213,18 +213,18 @@ public class SharedRealmTests {
         final long before = sharedRealm.getSchemaVersion();
 
         sharedRealm.refresh();
-        // listener is not called if there was no schema change
+        // Listener is not called if there was no schema change.
         assertFalse(listenerCalled.get());
 
         sharedRealm.beginTransaction();
         try {
-            // change the schema version
+            // Changes the schema version.
             sharedRealm.setSchemaVersion(before + 1);
         } finally {
             sharedRealm.commitTransaction();
         }
 
-        // listener is not yet called
+        // Listener is not yet called.
         assertFalse(listenerCalled.get());
 
         sharedRealm.refresh();

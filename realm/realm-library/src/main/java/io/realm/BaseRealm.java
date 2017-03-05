@@ -17,7 +17,6 @@
 package io.realm;
 
 import android.content.Context;
-import android.os.Handler;
 import android.os.Looper;
 
 import java.io.Closeable;
@@ -29,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
@@ -58,8 +58,9 @@ abstract class BaseRealm implements Closeable {
             "This Realm instance has already been closed, making it unusable.";
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
+    static final String LISTENER_NOT_ALLOWED_MESSAGE = "Listeners cannot be used on current thread.";
 
-    
+
     volatile static Context applicationContext;
 
     // Thread pool for all async operations (Query & transaction)
@@ -70,14 +71,12 @@ abstract class BaseRealm implements Closeable {
     protected SharedRealm sharedRealm;
 
     RealmSchema schema;
-    HandlerController handlerController;
-
 
     protected BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
-        this.handlerController = new HandlerController(this);
-        this.sharedRealm = SharedRealm.getInstance(configuration, new AndroidNotifier(this.handlerController),
+
+        this.sharedRealm = SharedRealm.getInstance(configuration,
                 !(this instanceof Realm) ? null :
                 new SharedRealm.SchemaVersionListener() {
                     @Override
@@ -86,10 +85,6 @@ abstract class BaseRealm implements Closeable {
                     }
                 }, true);
         this.schema = new RealmSchema(this);
-
-        if (handlerController.isAutoRefreshAvailable()) {
-            setAutoRefresh(true);
-        }
     }
 
     /**
@@ -105,8 +100,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
-        handlerController.checkCanBeAutoRefreshed();
-        handlerController.setAutoRefresh(autoRefresh);
+        sharedRealm.setAutoRefresh(autoRefresh);
     }
 
     /**
@@ -115,7 +109,7 @@ abstract class BaseRealm implements Closeable {
      * @return the auto-refresh status.
      */
     public boolean isAutoRefresh() {
-        return handlerController.isAutoRefreshEnabled();
+        return sharedRealm.isAutoRefresh();
     }
 
     /**
@@ -128,15 +122,14 @@ abstract class BaseRealm implements Closeable {
         return sharedRealm.isInTransaction();
     }
 
-    protected void addListener(RealmChangeListener<? extends BaseRealm> listener) {
+    protected <T extends BaseRealm> void addListener(RealmChangeListener<T> listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
         checkIfValid();
-        if (!handlerController.isAutoRefreshEnabled()) {
-            throw new IllegalStateException("You can't register a listener from a non-Looper or IntentService thread.");
-        }
-        handlerController.addChangeListener(listener);
+        sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+        //noinspection unchecked
+        sharedRealm.realmNotifier.addChangeListener((T) this, listener);
     }
 
     /**
@@ -147,15 +140,14 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
      */
-    public void removeChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
+    protected <T extends BaseRealm> void removeListener(RealmChangeListener<T> listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
         checkIfValid();
-        if (!handlerController.isAutoRefreshEnabled()) {
-            throw new IllegalStateException("You can't remove a listener from a non-Looper thread ");
-        }
-        handlerController.removeChangeListener(listener);
+        sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+        //noinspection unchecked
+        sharedRealm.realmNotifier.removeChangeListener((T) this, listener);
     }
 
     /**
@@ -184,20 +176,11 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if you try to remove listeners from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
      */
-    public void removeAllChangeListeners() {
+    protected void removeAllListeners() {
         checkIfValid();
-        if (!handlerController.isAutoRefreshEnabled()) {
-            throw new IllegalStateException("You can't remove listeners from a non-Looper thread ");
-        }
-        handlerController.removeAllChangeListeners();
+        sharedRealm.capabilities.checkCanDeliverNotification("removeListener cannot be called on current thread.");
+        sharedRealm.realmNotifier.removeChangeListeners(this);
     }
-
-    // WARNING: If this method is used after calling any async method, the old handler will still be used.
-    //          package private, for test purpose only
-    void setHandler(Handler handler) {
-        ((AndroidNotifier)sharedRealm.realmNotifier).setHandler(handler);
-    }
-
 
     /**
      * Writes a compacted copy of the Realm to the given destination File.
@@ -261,7 +244,6 @@ abstract class BaseRealm implements Closeable {
         if (hasChanged) {
             // Since this Realm instance has been waiting for change, advance realm & refresh realm.
             sharedRealm.refresh();
-            handlerController.refreshSynchronousTableViews();
         }
         return hasChanged;
     }
@@ -279,7 +261,7 @@ abstract class BaseRealm implements Closeable {
         RealmCache.invokeWithLock(new RealmCache.Callback0() {
             @Override
             public void onCall() {
-                // Check if the Realm instance has been closed
+                // Checks if the Realm instance has been closed.
                 if (sharedRealm == null || sharedRealm.isClosed()) {
                     throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
                 }
@@ -333,23 +315,8 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
-        commitTransaction(true);
-    }
-
-    /**
-     * Commits transaction and sends notifications to local thread.
-     *
-     * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change
-     *                          listeners.
-     */
-    void commitTransaction(boolean notifyLocalThread) {
         checkIfValid();
         sharedRealm.commitTransaction();
-        // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
-        // file will make a commit in order to create the schema. Users should not be notified about that.
-        if (notifyLocalThread) {
-            sharedRealm.realmNotifier.notifyCommitByLocalThread();
-        }
     }
 
     /**
@@ -373,7 +340,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
         }
 
-        // Check if we are in the right thread
+        // Checks if we are in the right thread.
         if (threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(BaseRealm.INCORRECT_THREAD_MESSAGE);
         }
@@ -386,7 +353,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Check if the Realm is valid and in a transaction.
+     * Checks if the Realm is valid and in a transaction.
      */
     protected void checkIfValidAndInTransaction() {
         if (!isInTransaction()) {
@@ -395,7 +362,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Check if the Realm is not built with a SyncRealmConfiguration
+     * Checks if the Realm is not built with a SyncRealmConfiguration.
      */
     void checkNotInSync() {
         if (configuration.isSyncConfiguration()) {
@@ -500,6 +467,24 @@ abstract class BaseRealm implements Closeable {
         return schema;
     }
 
+    // Used by RealmList/RealmResults, to create RealmObject from a Collection.
+    // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
+    <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, UncheckedRow row) {
+        final boolean isDynamicRealmObject = dynamicClassName != null;
+
+        E result;
+        if (isDynamicRealmObject) {
+            //noinspection unchecked
+            result = (E) new DynamicRealmObject(this, CheckedRow.getFromRow(row));
+        } else {
+            result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
+                    false, Collections.<String> emptyList());
+        }
+        RealmObjectProxy proxy = (RealmObjectProxy) result;
+        proxy.realmGet$proxyState().setTableVersion$realm();
+        return result;
+    }
+
     <E extends RealmModel> E get(Class<E> clazz, long rowIndex, boolean acceptDefaultValue, List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
@@ -512,6 +497,7 @@ abstract class BaseRealm implements Closeable {
 
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
+    // TODO: Remove this after RealmList is backed by OS Results.
     <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
         final boolean isDynamicRealmObject = dynamicClassName != null;
         final Table table = isDynamicRealmObject ? schema.getTable(dynamicClassName) : schema.getTable(clazz);
@@ -586,7 +572,8 @@ abstract class BaseRealm implements Closeable {
     /**
      * Migrates the Realm file defined by the given configuration using the provided migration block.
      *
-     * @param configuration configuration for the Realm that should be migrated.
+     * @param configuration configuration for the Realm that should be migrated. If this is a SyncConfiguration this
+     *                      method does nothing.
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}.
      * @param callback callback for specific Realm type behaviors.
      * @param cause which triggers this migration.
@@ -595,8 +582,12 @@ abstract class BaseRealm implements Closeable {
     protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
                                        final MigrationCallback callback, final RealmMigrationNeededException cause)
             throws FileNotFoundException {
+
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
+        }
+        if (configuration.isSyncConfiguration()) {
+            return;
         }
         if (migration == null && configuration.getMigration() == null) {
             throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided", cause);
@@ -647,11 +638,6 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
-    // Return true if this Realm can receive notifications.
-    boolean hasValidNotifier() {
-        return sharedRealm.realmNotifier != null && sharedRealm.realmNotifier.isValid();
-    }
-
     @Override
     protected void finalize() throws Throwable {
         if (sharedRealm != null && !sharedRealm.isClosed()) {
@@ -663,7 +649,7 @@ abstract class BaseRealm implements Closeable {
         super.finalize();
     }
 
-    // Internal delegate for migrations
+    // Internal delegate for migrations.
     protected interface MigrationCallback {
         void migrationComplete();
     }

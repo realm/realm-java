@@ -61,7 +61,7 @@ public class ColumnInfoTests {
         sourceColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
         targetColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
 
-        // check precondition
+        // Checks precondition.
         assertNotSame(sourceColumnInfo, targetColumnInfo);
         assertNotSame(sourceColumnInfo.getIndicesMap(), targetColumnInfo.getIndicesMap());
 
@@ -94,7 +94,7 @@ public class ColumnInfoTests {
         assertEquals(7, targetColumnInfo.ownerIndex);
         assertEquals(8, targetColumnInfo.scaredOfDogIndex);
 
-        // current implementation shares the indices map.
+        // Current implementation shares the indices map.
         assertSame(sourceColumnInfo.getIndicesMap(), targetColumnInfo.getIndicesMap());
     }
 
@@ -115,7 +115,7 @@ public class ColumnInfoTests {
 
         CatRealmProxy.CatColumnInfo copy = columnInfo.clone();
 
-        // modify original object
+        // Modifies original object.
         columnInfo.nameIndex = 0;
         columnInfo.ageIndex = 0;
         columnInfo.heightIndex = 0;
@@ -136,7 +136,7 @@ public class ColumnInfoTests {
         assertEquals(7, copy.ownerIndex);
         assertEquals(8, copy.scaredOfDogIndex);
 
-        // current implementation shares the indices map between copies.
+        // Current implementation shares the indices map between copies.
         assertSame(columnInfo.getIndicesMap(), copy.getIndicesMap());
     }
 }

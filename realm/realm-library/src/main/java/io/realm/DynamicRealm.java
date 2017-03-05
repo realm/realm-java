@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.app.IntentService;
-
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Table;
@@ -123,8 +121,7 @@ public class DynamicRealm extends BaseRealm {
     /**
      * Adds a change listener to the Realm.
      * <p>
-     * The listeners will be executed on every loop of a Handler thread if changes are committed by
-     * this or another thread.
+     * The listeners will be executed when changes are committed by this or another thread.
      * <p>
      * Realm instances are cached per thread. For that reason it is important to
      * remember to remove listeners again either using {@link #removeChangeListener(RealmChangeListener)}
@@ -132,13 +129,35 @@ public class DynamicRealm extends BaseRealm {
      *
      * @param listener the change listener.
      * @throws IllegalArgumentException if the change listener is {@code null}.
-     * @throws IllegalStateException if you try to register a listener from a non-Looper or {@link IntentService} thread.
      * @see io.realm.RealmChangeListener
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
+     * @see #waitForChange()
      */
     public void addChangeListener(RealmChangeListener<DynamicRealm> listener) {
-        super.addListener(listener);
+        addListener(listener);
+    }
+
+    /**
+     * Removes the specified change listener.
+     *
+     * @param listener the change listener to be removed.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
+     */
+    public void removeChangeListener(RealmChangeListener<DynamicRealm> listener) {
+        removeListener(listener);
+    }
+
+    /**
+     * Removes all user-defined change listeners.
+     *
+     * @throws IllegalStateException if you try to remove listeners from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
+     */
+    public void removeAllChangeListeners() {
+        removeAllListeners();
     }
 
     /**

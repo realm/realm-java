@@ -23,7 +23,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
 import io.realm.internal.KeepMember;
 import io.realm.internal.SyncObjectServerFacade;
@@ -37,7 +36,6 @@ import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 
 /**
- * @Beta
  * This class represents the connection to the Realm Object Server for one {@link SyncConfiguration}.
  * <p>
  * A Session is created by opening a Realm instance using that configuration. Once a session has been created,
@@ -49,7 +47,6 @@ import io.realm.log.RealmLog;
  * This object is thread safe.
  */
 @Keep
-@Beta
 public class SyncSession {
     private final static ScheduledThreadPoolExecutor REFRESH_TOKENS_EXECUTOR = new ScheduledThreadPoolExecutor(1);
     private final static long REFRESH_MARGIN_DELAY = TimeUnit.SECONDS.toMillis(10);
@@ -123,7 +120,10 @@ public class SyncSession {
      */
     public interface ErrorHandler {
         /**
-         * Callback for errors on a session object.
+         * Callback for errors on a session object. It is not allowed to throw an exception inside an error handler.
+         * If the operations in an error handler can throw, it is safer to catch any exception in the error handler.
+         * When an exception is thrown in the error handler, the occurrence will be logged and the exception
+         * will be ignored.
          *
          * @param session {@link SyncSession} this error happened on.
          * @param error type of error.

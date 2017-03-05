@@ -29,7 +29,7 @@ import io.realm.internal.Keep;
  */
 @Keep
 public enum RealmFieldType {
-    // Make sure numbers match with <realm/column_type.hpp>
+    // Makes sure numbers match with <realm/column_type.hpp>.
     INTEGER(0),
     BOOLEAN(1),
     STRING(2),
@@ -42,7 +42,7 @@ public enum RealmFieldType {
     DOUBLE(10),
     OBJECT(12),
     LIST(13);
-    // BACKLINK(14); Not exposed until needed
+    // BACKLINK(14); Not exposed until needed.
 
     // Primitive array for fast mapping between between native values and their Realm type.
     private static RealmFieldType[] typeList = new RealmFieldType[15];
@@ -71,6 +71,7 @@ public enum RealmFieldType {
 
     /**
      * Checks if the given Java object can be converted to the underlying Realm type.
+     *
      * @param obj object to test compatibility on.
      * @return {@code true} if object can be converted to the Realm type, {@code false} otherwise.
      */
@@ -81,7 +82,7 @@ public enum RealmFieldType {
             case 2: return (obj instanceof String);
             case 4: return (obj instanceof byte[] || obj instanceof ByteBuffer);
             case 5: return (obj == null || obj instanceof Object[][]);
-            case 7: return (obj instanceof java.util.Date); // the unused DateTime
+            case 7: return (obj instanceof java.util.Date); // The unused DateTime.
             case 8: return (obj instanceof java.util.Date);
             case 9: return (obj instanceof Float);
             case 10: return (obj instanceof Double);

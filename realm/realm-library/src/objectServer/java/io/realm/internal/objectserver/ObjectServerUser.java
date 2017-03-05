@@ -28,8 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.realm.SyncSession;
 import io.realm.SyncConfiguration;
+import io.realm.SyncSession;
 
 /**
  * Internal representation of a user on the Realm Object Server.
@@ -50,11 +50,12 @@ public class ObjectServerUser {
     public ObjectServerUser(Token refreshToken, URL authenticationUrl) {
         this.identity = refreshToken.identity();
         this.authenticationUrl = authenticationUrl;
-        setRefreshToken(refreshToken);
+        this.refreshToken = refreshToken;
         this.loggedIn = true;
     }
 
-    public void setRefreshToken(final Token refreshToken) {
+    private void setRefreshToken(final Token refreshToken) {
+        // TODO Shouldn't we check if the identity of the new refreshToken is the same with previous identity?
         this.refreshToken = refreshToken; // Replace any existing token. TODO re-save the user with latest token.
     }
 
@@ -64,7 +65,7 @@ public class ObjectServerUser {
      *
      * Authenticating will happen automatically as part of opening a Realm.
      */
-    public boolean isAuthenticated(SyncConfiguration configuration) {
+    boolean isAuthenticated(SyncConfiguration configuration) {
         Token token = getAccessToken(configuration.getServerUrl());
         return token != null && token.expiresMs() > System.currentTimeMillis();
     }
@@ -92,9 +93,13 @@ public class ObjectServerUser {
         return identity;
     }
 
-    public Token getAccessToken(URI serverUrl) {
+    Token getAccessToken(URI serverUrl) {
         AccessDescription accessDescription = realms.get(serverUrl);
         return (accessDescription != null) ? accessDescription.accessToken : null;
+    }
+
+    void removeAccessToken(URI serverUrl) {
+        realms.remove(serverUrl);
     }
 
     public void addRealm(URI uri, AccessDescription description) {
@@ -141,6 +146,7 @@ public class ObjectServerUser {
         return sessions;
     }
 
+    // TODO merge this method into localLogout(). See https://github.com/realm/realm-java/pull/3642#discussion_r96818800
     public void clearTokens() {
         realms.clear();
         refreshToken = null;
@@ -164,16 +170,19 @@ public class ObjectServerUser {
         ObjectServerUser syncUser = (ObjectServerUser) o;
 
         if (!identity.equals(syncUser.identity)) return false;
-        if (!refreshToken.equals(syncUser.refreshToken)) return false;
+        if (refreshToken == null) {
+            if (syncUser.refreshToken != null) return false;
+        } else {
+            if (!refreshToken.equals(syncUser.refreshToken)) return false;
+        }
         if (!authenticationUrl.toString().equals(syncUser.authenticationUrl.toString())) return false;
         return realms.equals(syncUser.realms);
-
     }
 
     @Override
     public int hashCode() {
         int result = identity.hashCode();
-        result = 31 * result + refreshToken.hashCode();
+        result = 31 * result + (refreshToken == null ? 0 : refreshToken.hashCode());
         result = 31 * result + authenticationUrl.toString().hashCode();
         result = 31 * result + realms.hashCode();
         return result;

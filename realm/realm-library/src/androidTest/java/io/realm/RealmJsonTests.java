@@ -90,7 +90,7 @@ public class RealmJsonTests {
         return new ByteArrayInputStream(obj.toString().getBytes());
     }
 
-    // Assert that the list of AllTypesPrimaryKey objects where inserted and updated properly.
+    // Asserts that the list of AllTypesPrimaryKey objects where inserted and updated properly.
     private void assertAllTypesPrimaryKeyUpdated() {
         assertEquals(1, realm.where(AllTypesPrimaryKey.class).count());
         AllTypesPrimaryKey obj = realm.where(AllTypesPrimaryKey.class).findFirst();
@@ -105,7 +105,7 @@ public class RealmJsonTests {
         assertEquals("Dog5", obj.getColumnRealmList().get(0).getName());
     }
 
-    // Check the imported object from nulltyps.json[0].
+    // Checks the imported object from nulltyps.json[0].
     private void checkNullableValuesAreNull(NullTypes nullTypes1) {
         // 1 String
         assertNull(nullTypes1.getFieldStringNull());
@@ -141,7 +141,7 @@ public class RealmJsonTests {
         assertNull(nullTypes1.getFieldObjectNull());
     }
 
-    // Check the imported object from nulltyps.json[1].
+    // Checks the imported object from nulltyps.json[1].
     private void checkNullableValuesAreNotNull(NullTypes nullTypes2) {
         // 1 String
         assertEquals("", nullTypes2.getFieldStringNull());
@@ -205,7 +205,7 @@ public class RealmJsonTests {
         realm.commitTransaction();
         AllTypes obj = realm.where(AllTypes.class).findFirst();
 
-        // Check that all primitive types are imported correctly
+        // Checks that all primitive types are imported correctly.
         assertEquals("String", obj.getColumnString());
         assertEquals(1L, obj.getColumnLong());
         assertEquals(1.23F, obj.getColumnFloat(), 0F);
@@ -217,7 +217,7 @@ public class RealmJsonTests {
     @Test
     public void createObjectFromJson_dateAsLong() throws JSONException {
         JSONObject json = new JSONObject();
-        json.put("columnDate", 1000L); // Realm operates at seconds level granularity
+        json.put("columnDate", 1000L); // Realm operates at seconds level granularity.
 
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, json);
@@ -375,16 +375,16 @@ public class RealmJsonTests {
     public void createFromJson_respectDefaultValues() throws JSONException {
         final long fieldLongPrimaryKeyValue = DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE + 1;
 
-        // Step 1: Prepare almost empty JSON
+        // Step 1: Prepares almost empty JSON.
         final JSONObject json = new JSONObject();
         json.put(DefaultValueOfField.FIELD_LONG_PRIMARY_KEY, fieldLongPrimaryKeyValue);
 
-        // Step 2: Update with almost empty JSONObject
+        // Step 2: Updates with almost empty JSONObject.
         realm.beginTransaction();
         final DefaultValueOfField managedObj = realm.createOrUpdateObjectFromJson(DefaultValueOfField.class, json);
         realm.commitTransaction();
 
-        // Step 3: Check that default values are applied
+        // Step 3: Checks that default values are applied.
         assertEquals(DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE,
                 managedObj.getFieldIgnored());
         assertEquals(DefaultValueOfField.FIELD_STRING_DEFAULT_VALUE, managedObj.getFieldString());
@@ -403,7 +403,7 @@ public class RealmJsonTests {
         assertEquals(1, managedObj.getFieldList().size());
         assertEquals(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE, managedObj.getFieldList().first().getFieldInt());
 
-        // make sure that excess object by default value is not created.
+        // Makes sure that excess object by default value is not created.
         assertEquals(2, realm.where(RandomPrimaryKey.class).count());
     }
 
@@ -411,7 +411,7 @@ public class RealmJsonTests {
     public void createFromJson_defaultValuesAreIgnored() throws JSONException {
         final long fieldLongPrimaryKeyValue = DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE + 1;
 
-        // Step 1: Prepare JSON
+        // Step 1: Prepares JSON.
         final String fieldIgnoredValue = DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE + ".modified";
         final String fieldStringValue = DefaultValueOfField.FIELD_STRING_DEFAULT_VALUE + ".modified";
         final String fieldRandomStringValue = "non-random";
@@ -441,12 +441,12 @@ public class RealmJsonTests {
         json.put(DefaultValueOfField.FIELD_BOOLEAN, fieldBooleanValue);
         json.put(DefaultValueOfField.FIELD_DATE, ISO8601Utils.format(fieldDateValue, true));
         json.put(DefaultValueOfField.FIELD_BINARY, Base64.encodeToString(fieldBinaryValue, Base64.DEFAULT));
-        // value for 'fieldObject'
+        // Value for 'fieldObject'
         final JSONObject fieldObjectJson = new JSONObject();
         fieldObjectJson.put(RandomPrimaryKey.FIELD_RANDOM_PRIMARY_KEY, "pk of fieldObject");
         fieldObjectJson.put(RandomPrimaryKey.FIELD_INT, fieldObjectIntValue);
         json.put(DefaultValueOfField.FIELD_OBJECT, fieldObjectJson);
-        // value for 'fieldList'
+        // Value for 'fieldList'
         final JSONArray fieldListArrayJson = new JSONArray();
         final JSONObject fieldListItem0Json = new JSONObject();
         fieldListItem0Json.put(RandomPrimaryKey.FIELD_RANDOM_PRIMARY_KEY, "pk1 of fieldList");
@@ -458,13 +458,13 @@ public class RealmJsonTests {
         fieldListArrayJson.put(fieldListItem1Json);
         json.put(DefaultValueOfField.FIELD_LIST, fieldListArrayJson);
 
-        // Step 3: Update with JSONObject
+        // Step 3: Updates with JSONObject.
         realm.beginTransaction();
         final DefaultValueOfField managedObj = realm.createOrUpdateObjectFromJson(DefaultValueOfField.class, json);
         realm.commitTransaction();
 
-        // Step 4: Check that properly created
-        assertEquals(DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE/*not fieldIgnoredValue*/,
+        // Step 4: Checks that properly created.
+        assertEquals(DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE /* not fieldIgnoredValue */,
                 managedObj.getFieldIgnored());
         assertEquals(fieldStringValue, managedObj.getFieldString());
         assertEquals(fieldRandomStringValue, managedObj.getFieldRandomString());
@@ -489,7 +489,7 @@ public class RealmJsonTests {
                 managedObj.getFieldList().get(1).getFieldRandomPrimaryKey());
         assertEquals(fieldListIntValue + 1, managedObj.getFieldList().get(1).getFieldInt());
 
-        // make sure that excess object by default value is not created.
+        // Makes sure that excess object by default value is not created.
         assertEquals(3, realm.where(RandomPrimaryKey.class).count());
     }
 
@@ -497,14 +497,14 @@ public class RealmJsonTests {
     public void updateFromJson_defaultValuesAreIgnored() throws JSONException {
         final long fieldLongPrimaryKeyValue = DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE + 1;
 
-        // Step 1: Create an object with default values
+        // Step 1: Creates an object with default values.
         final DefaultValueOfField original;
         realm.beginTransaction(); {
             original = realm.createObject(DefaultValueOfField.class, fieldLongPrimaryKeyValue);
         }
         realm.commitTransaction();
 
-        // Step 2: Prepare JSON
+        // Step 2: Prepares JSON.
         final String fieldIgnoredValue = DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE + ".modified";
         final String fieldStringValue = DefaultValueOfField.FIELD_STRING_DEFAULT_VALUE + ".modified";
         final String fieldRandomStringValue = "non-random";
@@ -540,26 +540,26 @@ public class RealmJsonTests {
                 original.getFieldObject().getFieldRandomPrimaryKey());
         fieldObjectJson.put(RandomPrimaryKey.FIELD_INT, fieldObjectIntValue);
         json.put(DefaultValueOfField.FIELD_OBJECT, fieldObjectJson);
-        // value for 'fieldList'
+        // Value for 'fieldList'
         final JSONArray fieldListArrayJson = new JSONArray();
-        final JSONObject fieldListItem0Json = new JSONObject(); // to be added
+        final JSONObject fieldListItem0Json = new JSONObject(); // To be added.
         fieldListItem0Json.put(RandomPrimaryKey.FIELD_RANDOM_PRIMARY_KEY,  "unique value");
         fieldListItem0Json.put(RandomPrimaryKey.FIELD_INT, fieldListIntValue);
         fieldListArrayJson.put(fieldListItem0Json);
-        final JSONObject fieldListItem1Json = new JSONObject(); // to be updated
+        final JSONObject fieldListItem1Json = new JSONObject(); // To be updated.
         fieldListItem1Json.put(RandomPrimaryKey.FIELD_RANDOM_PRIMARY_KEY,
                 original.getFieldList().first().getFieldRandomPrimaryKey());
         fieldListItem1Json.put(RandomPrimaryKey.FIELD_INT, fieldListIntValue + 1);
         fieldListArrayJson.put(fieldListItem1Json);
         json.put(DefaultValueOfField.FIELD_LIST, fieldListArrayJson);
 
-        // Step 3: Update with JSONObject
+        // Step 3: Updates with JSONObject.
         realm.beginTransaction();
         final DefaultValueOfField managedObj = realm.createOrUpdateObjectFromJson(DefaultValueOfField.class, json);
         realm.commitTransaction();
 
-        // Step 4: Check that properly updated
-        assertEquals(DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE/*not fieldIgnoredValue*/,
+        // Step 4: Checks that properly updated.
+        assertEquals(DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE /* not fieldIgnoredValue */,
                 managedObj.getFieldIgnored());
         assertEquals(fieldStringValue, managedObj.getFieldString());
         assertEquals(fieldRandomStringValue, managedObj.getFieldRandomString());
@@ -581,11 +581,11 @@ public class RealmJsonTests {
                 managedObj.getFieldList().get(1).getFieldRandomPrimaryKey());
         assertEquals(fieldListIntValue + 1, managedObj.getFieldList().get(1).getFieldInt());
 
-        // make sure that excess object by default value is not created.
+        // Makes sure that excess object by default value is not created.
         assertEquals(3/* 2 updated + 1 added*/, realm.where(RandomPrimaryKey.class).count());
     }
 
-    // Test if Json object doesn't have the field, then the field should have default value.
+    // Tests if Json object doesn't have the field, then the field should have default value.
     @Test
     public void createObjectFromJson_noValues() throws JSONException {
         JSONObject json = new JSONObject();
@@ -595,7 +595,7 @@ public class RealmJsonTests {
         realm.createObjectFromJson(AllTypes.class, json);
         realm.commitTransaction();
 
-        // Check that all primitive types are imported correctly
+        // Checks that all primitive types are imported correctly.
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals("", obj.getColumnString());
         assertEquals(0L, obj.getColumnLong());
@@ -608,7 +608,7 @@ public class RealmJsonTests {
         assertEquals(0, obj.getColumnRealmList().size());
     }
 
-    // Test that given an exception everything up to the exception is saved
+    // Tests that given an exception everything up to the exception is saved.
     @Test
     public void createObjectFromJson_jsonException() throws JSONException {
         JSONObject json = new JSONObject();
@@ -712,7 +712,7 @@ public class RealmJsonTests {
         realm.commitTransaction();
         in.close();
 
-        // Check that all primitive types are imported correctly
+        // Checks that all primitive types are imported correctly.
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals("String", obj.getColumnString());
         assertEquals(1L, obj.getColumnLong());
@@ -732,7 +732,7 @@ public class RealmJsonTests {
         realm.commitTransaction();
         in.close();
 
-        // Check that all primitive types are imported correctly
+        // Checks that all primitive types are imported correctly.
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(new Date(1000), obj.getColumnDate());
     }
@@ -747,7 +747,7 @@ public class RealmJsonTests {
         realm.commitTransaction();
         in.close();
 
-        // Check that all primitive types are imported correctly
+        // Checks that all primitive types are imported correctly.
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(new Date(1000), obj.getColumnDate());
     }
@@ -767,7 +767,7 @@ public class RealmJsonTests {
         cal.set(Calendar.MILLISECOND, 789);
         Date date = cal.getTime();
 
-        // Check that all primitive types are imported correctly
+        // Checks that all primitive types are imported correctly.
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(date, obj.getColumnDate());
     }
@@ -828,7 +828,7 @@ public class RealmJsonTests {
     }
 
 
-    // Test if Json object doesn't have the field, then the field should have default value. Stream version.
+    // Tests if Json object doesn't have the field, then the field should have default value. Stream version.
     @Test
     public void createObjectFromJson_streamNoValues() throws IOException {
         assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
@@ -839,7 +839,7 @@ public class RealmJsonTests {
         realm.commitTransaction();
         in.close();
 
-        // Check that all primitive types are imported correctly
+        // Checks that all primitive types are imported correctly.
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals("", obj.getColumnString());
         assertEquals(0L, obj.getColumnLong());
@@ -889,7 +889,7 @@ public class RealmJsonTests {
     }
 
     /**
-     * Test update a existing object with JSON stream. Only primary key in JSON.
+     * Tests updating a existing object with JSON stream. Only primary key in JSON.
      * No value should be changed.
      */
     @Test
@@ -916,7 +916,7 @@ public class RealmJsonTests {
         realm.commitTransaction();
         in.close();
 
-        // Check that all primitive types are imported correctly
+        // Checks that all primitive types are imported correctly.
         obj = realm.where(AllTypesPrimaryKey.class).findFirst();
         assertEquals("1", obj.getColumnString());
         assertEquals(1L, obj.getColumnLong());
@@ -992,7 +992,7 @@ public class RealmJsonTests {
         realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, TestHelper.loadJsonFromAssets(context, "list_alltypes_primarykey.json"));
         realm.commitTransaction();
 
-        // No-op as no properties should be updated
+        // No-op as no properties should be updated.
         realm.beginTransaction();
         realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, TestHelper.stringToStream("{ \"columnLong\":1 }"));
         realm.commitTransaction();
@@ -1020,8 +1020,8 @@ public class RealmJsonTests {
     }
 
     /**
-     * Check that using createOrUpdateObject will set the primary key directly instead of first setting
-     * it to the default value (which can fail)
+     * Checks that using createOrUpdateObject will set the primary key directly instead of first setting
+     * it to the default value (which can fail).
      */
     @Test
     public void createOrUpdateObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromStream() throws JSONException, IOException {
@@ -1039,7 +1039,7 @@ public class RealmJsonTests {
         assertEquals("bar", owners.get(1).getName());
     }
 
-    // Test update a existing object with JSON object with only primary key.
+    // Tests updating a existing object with JSON object with only primary key.
     // No value should be changed.
     @Test
     public void createOrUpdateObjectFromJson_objectNullValues() throws IOException {
@@ -1062,7 +1062,7 @@ public class RealmJsonTests {
         realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
         realm.commitTransaction();
 
-        // Check that all primitive types are imported correctly
+        // Checks that all primitive types are imported correctly.
         obj = realm.where(AllTypesPrimaryKey.class).findFirst();
         assertEquals("1", obj.getColumnString());
         assertEquals(1L, obj.getColumnLong());
@@ -1220,8 +1220,8 @@ public class RealmJsonTests {
     }
 
     /**
-     * Check that using createOrUpdateObject will set the primary key directly instead of first setting
-     * it to the default value (which can fail)
+     * Checks that using createOrUpdateObject will set the primary key directly instead of first setting
+     * it to the default value (which can fail).
      */
     @Test
     public void createOrUpdateObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromJsonObject() throws JSONException {
@@ -1357,7 +1357,7 @@ public class RealmJsonTests {
         assertAllTypesPrimaryKeyUpdated();
     }
 
-    // Testing create objects from Json, all nullable fields with null values or non-null values
+    // Tests creating objects from Json, all nullable fields with null values or non-null values.
     @Test
     public void createAllFromJson_nullTypesJsonWithNulls() throws IOException, JSONException {
         String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(context, "nulltypes.json"));
@@ -1376,7 +1376,7 @@ public class RealmJsonTests {
         checkNullableValuesAreNotNull(nullTypes2);
     }
 
-    // Test creating objects form JSON stream, all nullable fields with null values or non-null values
+    // Tests creating objects form JSON stream, all nullable fields with null values or non-null values.
     @Test
     public void createAllFromJson_nullTypesStreamJSONWithNulls() throws IOException {
         assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
@@ -1396,7 +1396,7 @@ public class RealmJsonTests {
     }
 
     /**
-     * Test a nullable field already has a non-null value, update it through JSON with null value
+     * Tests a nullable field already has a non-null value, update it through JSON with null value
      * of the corresponding field.
      */
     @Test
@@ -1416,7 +1416,7 @@ public class RealmJsonTests {
         assertEquals(2, nullTypesRealmResults.size());
         checkNullableValuesAreNotNull(nullTypesRealmResults.where().equalTo("id", 1).findFirst());
 
-        // Update object with id 1, nullable fields should have null values
+        // Updates object with id 1, nullable fields should have null values.
         JSONArray array = new JSONArray(json);
         realm.beginTransaction();
         realm.createOrUpdateAllFromJson(NullTypes.class, array);
@@ -1636,8 +1636,8 @@ public class RealmJsonTests {
     }
 
     /**
-     * Check that using createOrUpdateObject will set the primary key directly instead of first setting
-     * it to the default value (which can fail)
+     * Checks that using createOrUpdateObject will set the primary key directly instead of first setting
+     * it to the default value (which can fail).
      */
     @Test
     public void createObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromJsonObject() throws JSONException {
@@ -1663,7 +1663,7 @@ public class RealmJsonTests {
 
     /**
      * createObject using primary keys doesn't work if the Check that using createOrUpdateObject
-     * will set the primary key directly instead of first setting it to the default value (which can fail)
+     * will set the primary key directly instead of first setting it to the default value (which can fail).
      */
     @Test
     public void createObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromStream() throws JSONException, IOException {

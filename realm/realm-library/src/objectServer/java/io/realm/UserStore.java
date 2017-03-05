@@ -18,10 +18,7 @@ package io.realm;
 
 import java.util.Collection;
 
-import io.realm.annotations.Beta;
-
 /**
- * @Beta
  * Interface for classes responsible for saving and retrieving Object Server users again.
  * <p>
  * Any implementation of a User Store is expected to not perform lengthy blocking operations as it might
@@ -30,7 +27,6 @@ import io.realm.annotations.Beta;
  * @see SyncManager#setUserStore(UserStore)
  * @see RealmFileUserStore
  */
-@Beta
 public interface UserStore {
 
     /**
@@ -43,22 +39,28 @@ public interface UserStore {
 
     /**
      * Retrieves the current {@link SyncUser}.
-     *
-     * For now, current User cannot be called if more that one valid, logged in user
-     * exists, it will throw an exception.
+     * <p>
+     * This method will throw an exception if more than one valid, logged in users exist.
+     * @return {@link SyncUser} object or {@code null} if not found.
      */
-    //TODO when ObjectStore integration of SyncManager is completed & multiple
-    //     users are allowed, consider passing the User identity to lookup apply
-    //     the operation to a particular user.
-    SyncUser get();
+    SyncUser getCurrent();
 
     /**
-     * Removes the current user from the store.
+     * Retrieves specified {@link SyncUser}.
+     *
+     * @param identity identity of the user.
+     * @return {@link SyncUser} object or {@code null} if not found.
      */
-    //TODO when ObjectStore integration of SyncManager is completed & multiple
-    //     users are allowed, consider passing the User identity to lookup apply
-    //     the operation to a particular user.
-    void remove();
+    SyncUser get(String identity);
+
+    /**
+     * Removes the user from the store.
+     * <p>
+     * If the user is not found, this method does nothing.
+     *
+     * @param identity identity of the user.
+     */
+    void remove(String identity);
 
     /**
      * Returns a collection of all users saved in the User store.

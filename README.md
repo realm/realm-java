@@ -60,47 +60,47 @@ In case you don't want to use the precompiled version, you can build Realm yours
 ### Prerequisites
 
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
- * Download & install the Android SDK **Build-Tools 24.0.0**, **Android N (API 24)** (for example through Android Studio’s **Android SDK Manager**).
- * Download the **Android NDK (= r10e)** for [OS X](http://dl.google.com/android/ndk/android-ndk-r10e-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin).
+ * Download & install the Android SDK **Build-Tools 25.0.2**, **Android N (API 25)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
- * Or you can use [Hombrew-versions](https://github.com/Homebrew/homebrew-versions) to install Android NDK for Mac:
+
+ * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
+You may unzip the file wherever you choose.  For OSX, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
+
+ * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/local.properties` and assign it the full path name of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
 
     ```
-    brew tap homebrew/versions
-    brew install android-ndk-r10e
+    ndk.dir=/Users/brian/Library/Android/android-ndk-r10e/r10e
+
     ```
 
- * Add two environment variables to your profile:
+ * Add two environment variables to your profile (presuming you installed the NDK in `~/Library/android-ndk-r10e`):
 
     ```
     export ANDROID_HOME=~/Library/Android/sdk
-    export ANDROID_NDK_HOME=/usr/local/Cellar/android-ndk-r10e/r10e
+    export ANDROID_NDK_HOME=~/Library/Android/android-ndk-r10e
     ```
 
- * If you want to build with Android Studio, `ndk.dir` has to be defined in the `realm/local.properties` as well.
-
-    ```
-    ndk.dir=/usr/local/Cellar/android-ndk-r10e/r10e
-    ```
-
- * If you are using OS X, you'd be better to add following lines to `~/.profile` (or `~/.zprofile` if the login shell is `zsh`) in order for Android Studio to see those environment variables.
+ * If you will be launching Android Studio from the OS X Finder, you should also run the following two commands:
 
     ```
     launchctl setenv ANDROID_HOME "$ANDROID_HOME"
     launchctl setenv ANDROID_NDK_HOME "$ANDROID_NDK_HOME"
     ```
 
- * And if you'd like to specify the location to store the archives of Realm's core, set `REALM_CORE_DOWNLOAD_DIR` environment variable. It enables you to keep core's archive when executing `git clean -xfd`.
+ * If you'd like to specify the location in which to store the archives of Realm Core, define the `REALM_CORE_DOWNLOAD_DIR` environment variable. It enables you to keep Core's archive when executing `git clean -xfd`.
 
    ```
    export REALM_CORE_DOWNLOAD_DIR=~/.realmCore
    ```
 
-   OS X users should also add following line to `~/.profile` (or `~/.zprofile` if the login shell is `zsh`) in order for Android Studio to see this environment variable..
+   OS X users must also run the following command in order for Android Studio to see this environment variable..
 
    ```
    launchctl setenv REALM_CORE_DOWNLOAD_DIR "$REALM_CORE_DOWNLOAD_DIR"
    ```
+
+It would be a good idea to add all of the symbol definitions (and their accompanying `launchctl` commands, if you are using OS X) to your `~/.profile` (or `~/.zprofile` if the login shell is `zsh`)
+
 
 ### Download sources
 
@@ -131,16 +131,18 @@ That command will generate:
  * a jar file for the annotations
  * a jar file for the annotations processor
 
+The full build may take an hour or more, to complete.
+
 ### Other Commands
 
  * `./gradlew tasks` will show all the available tasks
  * `./gradlew javadoc` will generate the Javadocs
  * `./gradlew monkeyExamples` will run the monkey tests on all the examples
  * `./gradlew installRealmJava` will install the Realm library and plugin to mavenLocal()
- * `./gradlew clean -PdontCleanJniFiles` will remove all generated files except for JNI related files. This saves recompilation time a lot.
- * `./gradlew connectedUnitTests -PbuildTargetABIs=$(adb shell getprop ro.product.cpu.abi)` will build JNI files only for the ABI which corresponds to the connected device.
+ * `./gradlew clean -PdontCleanJniFiles` will remove all generated files except for JNI related files. This reduces recompilation time a lot.
+ * `./gradlew connectedUnitTests -PbuildTargetABIs=$(adb shell getprop ro.product.cpu.abi)` will build JNI files only for the ABI which corresponds to the connected device.  These tests require a running Object Server (see below)
 
-Generating the Javadoc using the command above will report a large number of warnings. The Javadoc is generated, and we will fix the issue in the near future.
+Generating the Javadoc using the command above may generate warnings. The Javadoc is generated despite the warnings.
 
 ### Gotchas
 
@@ -151,17 +153,42 @@ The repository is organized in six Gradle projects:
  * `realm-transformer`: it contains the bytecode transformer.
  * `gradle-plugin`: it contains the Gradle plugin.
  * `examples`: it contains the example projects. This project directly depends on `gradle-plugin` which adds a dependency to the artifacts produced by `realm`.
- * The root folder is another Gradle project and all it does is orchestrating the other jobs
+ * The root folder is another Gradle project.  All it does is orchestrate the other jobs
 
 This means that `./gradlew clean` and `./gradlew cleanExamples` will fail if `assembleExamples` has not been executed first.
 Note that IntelliJ [does not support multiple projects in the same window](https://youtrack.jetbrains.com/issue/IDEABKL-6118#)
-so each sub-project must be opened in its own window.
+so each of the six Gradle projects must be imported as a separate IntelliJ project.
+
+Since the repository contains several completely independent Gradle projects, several independent builds are run to assemble it.
+Seeing a line like: `:realm:realm-library:compileBaseDebugAndroidTestSources UP-TO-DATE` in the build log does *not* imply
+that you can run `./gradlew :realm:realm-library:compileBaseDebugAndroidTestSources`.
 
 ## Examples
 
 The `./examples` folder contain a number of example projects showing how Realm can be used. If this is the first time you checkout or pull a new version of this repository to try the examples, you must call `./gradlew installRealmJava` from the top-level directory first. Otherwise the examples will not compile as they depend on all Realm artifacts being installed in `mavenLocal()`.
 
 Standalone examples can be [downloaded from website](https://realm.io/docs/java/latest/#getting-started).
+
+## Running Tests on a Device
+
+To run these tests you must have a device connected to the build computer and the `adb` command must be in your `PATH`
+
+1. Connect an Android device and verify that that the command `adb devices` shows a connected device:
+
+	```sh
+	adb devices
+	List of devices attached
+	004c03eb5615429f device
+	```
+   
+2. Run instrumentation tests:
+
+	```sh
+	cd realm
+	./gradlew connectedBaseDebugAndroidTest
+	```
+
+These tests may take as much as half an hour to complete.
 
 ## Running Tests Using The Realm Object Server
 
@@ -171,21 +198,30 @@ A docker image can be built from `tools/sync_test_server/Dockerfile` to run the 
 
 To run a testing server locally:
 
-1. Install docker.
+1. Install [docker](https://www.docker.com/products/overview).
 
 2. Run `tools/sync_test_server/start_server.sh`:
 
-```sh
-cd tools/sync_test_server
-./start_server.sh
-```
+    ```sh
+    cd tools/sync_test_server
+    ./start_server.sh
+    ```
 
-3. Run instrumentation tests:
+    This command will not complete until the server has stopped.
 
-```sh
-cd realm
-./gradlew connectedObjectServerDebugAndroidTest
-```
+3. Run instrumentation tests
+
+	In a new terminal window, run:
+
+	```sh
+	cd realm
+	./gradlew connectedObjectServerDebugAndroidTest
+	```
+
+Note that if using VirtualBox (Genymotion), the network needs to be bridged for the tests to work.
+This is done in `VirtualBox > Network`. Set "Adapter 2" to "Bridged Adapter".
+
+These tests may take as much as half an hour to complete.
 
 ## Contributing
 
@@ -194,6 +230,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!
 This project adheres to the [Contributor Covenant Code of Conduct](https://realm.io/conduct).
 By participating, you are expected to uphold this code. Please report
 unacceptable behavior to [info@realm.io](mailto:info@realm.io).
+
+The directory `realm/config/studio` contains lint and style files recommended for project code.
+Import them from Android Studio with Android Studio > Preferences... > Code Style > Manage... > Import,
+or Android Studio > Preferences... > Inspections > Manage... > Import.  Once imported select the
+style/lint in the drop-down to the left of the Manage... button.
 
 ## License
 

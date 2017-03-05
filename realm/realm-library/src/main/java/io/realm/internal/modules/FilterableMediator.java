@@ -178,7 +178,7 @@ public class FilterableMediator extends RealmProxyMediator {
         return originalMediator.transformerApplied();
     }
 
-    // Validate if a model class (not RealmProxy) is part of this Schema.
+    // Validates if a model class (not RealmProxy) is part of this Schema.
     private void checkSchemaHasClass(Class<? extends RealmModel> clazz) {
         if (!allowedClasses.contains(clazz)) {
             throw new IllegalArgumentException(clazz.getSimpleName() + " is not part of the schema for this Realm");

@@ -21,6 +21,23 @@
             android:exported="true"
             android:process=":remote">
         </service>
+
+         <!--
+          FIXME: Manifest merger doesn't seem to work correctly with test flavours.
+          Figure out why. For now place services here
+          -->
+        <service
+            android:name="io.realm.objectserver.service.SendOneCommit"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":remote">
+        </service>
+        <service
+            android:name="io.realm.objectserver.service.SendsALot"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":remote">
+        </service>
     </application>
 
 </manifest>

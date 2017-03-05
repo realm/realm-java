@@ -25,11 +25,13 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
@@ -112,6 +114,123 @@ public class DynamicRealmObjectTests {
         BOOLEAN, SHORT, INT, LONG, BYTE, FLOAT, DOUBLE, STRING, BINARY, DATE, OBJECT, LIST
     }
 
+    private enum ThreadConfinedMethods {
+        GET_BOOLEAN, GET_BYTE, GET_SHORT, GET_INT, GET_LONG, GET_FLOAT, GET_DOUBLE,
+        GET_BLOB, GET_STRING, GET_DATE, GET_OBJECT, GET_LIST, GET,
+
+        SET_BOOLEAN, SET_BYTE, SET_SHORT, SET_INT, SET_LONG, SET_FLOAT, SET_DOUBLE,
+        SET_BLOB, SET_STRING, SET_DATE, SET_OBJECT, SET_LIST, SET,
+
+        IS_NULL, SET_NULL,
+
+        HAS_FIELD, GET_FIELD_NAMES, GET_TYPE, GET_FIELD_TYPE,
+
+        HASH_CODE, EQUALS, TO_STRING,
+    }
+
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "EqualsWithItself"})
+    private static void callThreadConfinedMethod(DynamicRealmObject obj, ThreadConfinedMethods method) {
+        switch (method) {
+            case GET_BOOLEAN: obj.getBoolean(AllJavaTypes.FIELD_BOOLEAN); break;
+            case GET_BYTE:    obj.getByte(AllJavaTypes.FIELD_BYTE);       break;
+            case GET_SHORT:   obj.getShort(AllJavaTypes.FIELD_SHORT);     break;
+            case GET_INT:     obj.getInt(AllJavaTypes.FIELD_INT);         break;
+            case GET_LONG:    obj.getLong(AllJavaTypes.FIELD_LONG);       break;
+            case GET_FLOAT:   obj.getFloat(AllJavaTypes.FIELD_FLOAT);     break;
+            case GET_DOUBLE:  obj.getDouble(AllJavaTypes.FIELD_DOUBLE);   break;
+            case GET_BLOB:    obj.getBlob(AllJavaTypes.FIELD_BINARY);     break;
+            case GET_STRING:  obj.getString(AllJavaTypes.FIELD_STRING);   break;
+            case GET_DATE:    obj.getDate(AllJavaTypes.FIELD_DATE);       break;
+            case GET_OBJECT:  obj.getObject(AllJavaTypes.FIELD_OBJECT);   break;
+            case GET_LIST:    obj.getList(AllJavaTypes.FIELD_LIST);       break;
+            case GET:         obj.get(AllJavaTypes.FIELD_LONG);           break;
+
+            case SET_BOOLEAN: obj.setBoolean(AllJavaTypes.FIELD_BOOLEAN, true);                 break;
+            case SET_BYTE:    obj.setByte(AllJavaTypes.FIELD_BYTE,       (byte) 1);             break;
+            case SET_SHORT:   obj.setShort(AllJavaTypes.FIELD_SHORT,     (short) 1);            break;
+            case SET_INT:     obj.setInt(AllJavaTypes.FIELD_INT,         1);                    break;
+            case SET_LONG:    obj.setLong(AllJavaTypes.FIELD_LONG,       1L);                   break;
+            case SET_FLOAT:   obj.setFloat(AllJavaTypes.FIELD_FLOAT,     1F);                   break;
+            case SET_DOUBLE:  obj.setDouble(AllJavaTypes.FIELD_DOUBLE,   1D);                   break;
+            case SET_BLOB:    obj.setBlob(AllJavaTypes.FIELD_BINARY,     new byte[] {1, 2, 3}); break;
+            case SET_STRING:  obj.setString(AllJavaTypes.FIELD_STRING,   "12345");              break;
+            case SET_DATE:    obj.setDate(AllJavaTypes.FIELD_DATE,       new Date(1L));         break;
+            case SET_OBJECT:  obj.setObject(AllJavaTypes.FIELD_OBJECT,   obj);                  break;
+            case SET_LIST:    obj.setList(AllJavaTypes.FIELD_LIST,       new RealmList<>(obj)); break;
+            case SET:         obj.set(AllJavaTypes.FIELD_LONG,           1L);                   break;
+
+            case IS_NULL:     obj.isNull(AllJavaTypes.FIELD_OBJECT);           break;
+            case SET_NULL:    obj.setNull(AllJavaTypes.FIELD_OBJECT);          break;
+
+            case HAS_FIELD:       obj.hasField(AllJavaTypes.FIELD_OBJECT);     break;
+            case GET_FIELD_NAMES: obj.getFieldNames();                         break;
+            case GET_TYPE:        obj.getType();                               break;
+            case GET_FIELD_TYPE:  obj.getFieldType(AllJavaTypes.FIELD_OBJECT); break;
+
+            case HASH_CODE:   obj.hashCode();  break;
+            case EQUALS:      obj.equals(obj); break;
+            case TO_STRING:   obj.toString();  break;
+
+            default:
+                throw new AssertionError("missing case for " + method);
+        }
+    }
+
+    @Test
+    public void callThreadConfinedMethodsFromWrongThread() throws Throwable {
+
+        dynamicRealm.beginTransaction();
+        dynamicRealm.deleteAll();
+        final DynamicRealmObject obj = dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 100L);
+        dynamicRealm.commitTransaction();
+
+        final AtomicReference<Throwable> throwableFromThread = new AtomicReference<Throwable>();
+        final CountDownLatch testFinished = new CountDownLatch(1);
+
+        final String expectedMessage;
+        //noinspection TryWithIdenticalCatches
+        try {
+            final Field expectedMessageField = BaseRealm.class.getDeclaredField("INCORRECT_THREAD_MESSAGE");
+            expectedMessageField.setAccessible(true);
+            expectedMessage = (String) expectedMessageField.get(null);
+        } catch (NoSuchFieldException e) {
+            throw new AssertionError(e);
+        } catch (IllegalAccessException e) {
+            throw new AssertionError(e);
+        }
+
+        final Thread thread = new Thread("callThreadConfinedMethodsFromWrongThread") {
+            @Override
+            public void run() {
+                try {
+                    for (ThreadConfinedMethods method : ThreadConfinedMethods.values()) {
+                        try {
+                            callThreadConfinedMethod(obj, method);
+                            fail("IllegalStateException must be thrown.");
+                        } catch (Throwable e) {
+                            if (e instanceof IllegalStateException && expectedMessage.equals(e.getMessage())) {
+                                // expected exception
+                                continue;
+                            }
+                            throwableFromThread.set(e);
+                            return;
+                        }
+                    }
+                } finally {
+                    testFinished.countDown();
+                }
+            }
+        };
+        thread.start();
+
+        TestHelper.awaitOrFail(testFinished);
+        final Throwable throwable = throwableFromThread.get();
+        if (throwable != null) {
+            throw throwable;
+        }
+    }
+
+
     @Test (expected = IllegalArgumentException.class)
     public void constructor_nullThrows () {
         new DynamicRealmObject((RealmObject)null);
@@ -136,15 +255,15 @@ public class DynamicRealmObjectTests {
         new DynamicRealmObject(new AllTypes());
     }
 
-    // Test that all getters fail if given invalid field name
+    // Tests that all getters fail if given invalid field name.
     @Test
     public void typedGetter_illegalFieldNameThrows() {
-        // Set arguments
+        // Sets arguments.
         String linkedField = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING;
         List<String> arguments = Arrays.asList(null, "foo", AllJavaTypes.FIELD_STRING, linkedField);
         List<String> stringArguments = Arrays.asList(null, "foo", AllJavaTypes.FIELD_BOOLEAN, linkedField);
 
-        // Test all getters
+        // Tests all getters.
         for (SupportedType type : SupportedType.values()) {
 
             // We cannot modularize everything, so STRING is a special case with its own set
@@ -167,7 +286,7 @@ public class DynamicRealmObjectTests {
     public void typedGetter_wrongUnderlyingTypeThrows() {
         for (SupportedType type : SupportedType.values()) {
             try {
-                // Make sure we hit the wrong underlying type for all types.
+                // Makes sure we hit the wrong underlying type for all types.
                 if (type == SupportedType.DOUBLE) {
                     callGetter(dObjTyped, type, Arrays.asList(AllJavaTypes.FIELD_STRING));
                 } else {
@@ -177,7 +296,7 @@ public class DynamicRealmObjectTests {
             } catch (IllegalArgumentException ignored) {
             }
             try {
-                // Make sure we hit the wrong underlying type for all types.
+                // Makes sure we hit the wrong underlying type for all types.
                 if (type == SupportedType.DOUBLE) {
                     callGetter(dObjDynamic, type, Arrays.asList(AllJavaTypes.FIELD_STRING));
                 } else {
@@ -189,7 +308,7 @@ public class DynamicRealmObjectTests {
         }
     }
 
-    // Helper method for calling getters with different field names
+    // Helper method for calling getters with different field names.
     private static void callGetter(DynamicRealmObject target, SupportedType type, List<String> fieldNames) {
         for (String fieldName : fieldNames) {
             switch (type) {
@@ -211,16 +330,16 @@ public class DynamicRealmObjectTests {
         }
     }
 
-    // Test that all getters fail if given an invalid field name
+    // Tests that all getters fail if given an invalid field name.
     @Test
     public void typedSetter_illegalFieldNameThrows() {
 
-        // Set arguments
+        // Sets arguments.
         String linkedField = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING;
         List<String> arguments = Arrays.asList(null, "foo", AllJavaTypes.FIELD_STRING, linkedField);
         List<String> stringArguments = Arrays.asList(null, "foo", AllJavaTypes.FIELD_BOOLEAN, linkedField);
 
-        // Test all getters
+        // Tests all getters.
         for (SupportedType type : SupportedType.values()) {
             List<String> args = (type == SupportedType.STRING) ? stringArguments : arguments;
             try {
@@ -241,7 +360,7 @@ public class DynamicRealmObjectTests {
         for (SupportedType type : SupportedType.values()) {
             realm.beginTransaction();
             try {
-                // Make sure we hit the wrong underlying type for all types.
+                // Makes sure we hit the wrong underlying type for all types.
                 if (type == SupportedType.STRING) {
                     callSetter(dObjTyped, type, Arrays.asList(AllJavaTypes.FIELD_BOOLEAN));
                 } else {
@@ -254,7 +373,7 @@ public class DynamicRealmObjectTests {
             }
             dynamicRealm.beginTransaction();
             try {
-                // Make sure we hit the wrong underlying type for all types.
+                // Makes sure we hit the wrong underlying type for all types.
                 if (type == SupportedType.STRING) {
                     callSetter(dObjDynamic, type, Arrays.asList(AllJavaTypes.FIELD_BOOLEAN));
                 } else {
@@ -312,7 +431,7 @@ public class DynamicRealmObjectTests {
         }
     }
 
-    // Helper method for calling setters with different field names
+    // Helper method for calling setters with different field names.
     private static void callSetter(DynamicRealmObject target, SupportedType type, List<String> fieldNames) {
         for (String fieldName : fieldNames) {
             switch (type) {
@@ -334,7 +453,7 @@ public class DynamicRealmObjectTests {
         }
     }
 
-    // Test all typed setters/setters
+    // Tests all typed setters/setters.
     @Test
     public void typedGettersAndSetters() {
         realm.beginTransaction();
@@ -388,7 +507,7 @@ public class DynamicRealmObjectTests {
                         assertEquals(dObj, dObj.getObject(AllJavaTypes.FIELD_OBJECT));
                         break;
                     case LIST:
-                        // ignore, see testGetList/testSetList
+                        // Ignores. See testGetList/testSetList.
                         break;
                     default:
                         fail();
@@ -505,7 +624,7 @@ public class DynamicRealmObjectTests {
         }
     }
 
-    // Test types where you can set null using the typed setter instead of using setNull().
+    // Tests types where you can set null using the typed setter instead of using setNull().
     @Test
     public void typedSetter_null() {
         realm.beginTransaction();
@@ -614,6 +733,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void setObject_objectBelongToDiffThreadRealmThrows() {
         final CountDownLatch finishedLatch = new CountDownLatch(1);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -659,6 +779,51 @@ public class DynamicRealmObjectTests {
                 .findFirst();
         assertEquals("nibbler", allTypes.getList(AllTypes.FIELD_REALMLIST).first().get(Dog.FIELD_NAME));
         dynamicRealm.close();
+    }
+
+    @Test
+    public void setList_managedRealmList() {
+        dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                realm.deleteAll();
+
+                DynamicRealmObject allTypes = realm.createObject(AllTypes.CLASS_NAME);
+                allTypes.setString(AllTypes.FIELD_STRING, "bender");
+
+                DynamicRealmObject anotherAllTypes;
+                {
+                    anotherAllTypes = realm.createObject(AllTypes.CLASS_NAME);
+                    anotherAllTypes.setString(AllTypes.FIELD_STRING, "bender2");
+                    DynamicRealmObject dog = realm.createObject(Dog.CLASS_NAME);
+                    dog.setString(Dog.FIELD_NAME, "nibbler");
+                    anotherAllTypes.getList(AllTypes.FIELD_REALMLIST).add(dog);
+                }
+
+                // set managed RealmList
+                allTypes.setList(AllTypes.FIELD_REALMLIST, anotherAllTypes.getList(AllTypes.FIELD_REALMLIST));
+            }
+        });
+
+        DynamicRealmObject allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
+                .equalTo(AllTypes.FIELD_STRING, "bender")
+                .findFirst();
+        assertEquals(1, allTypes.getList(AllTypes.FIELD_REALMLIST).size());
+        assertEquals("nibbler", allTypes.getList(AllTypes.FIELD_REALMLIST).first().get(Dog.FIELD_NAME));
+
+        // Check if allTypes and anotherAllTypes share the same Dog object.
+        dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                DynamicRealmObject anotherAllTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
+                        .equalTo(AllTypes.FIELD_STRING, "bender2")
+                        .findFirst();
+                anotherAllTypes.getList(AllTypes.FIELD_REALMLIST).first()
+                        .setString(Dog.FIELD_NAME, "nibbler_modified");
+            }
+        });
+
+        assertEquals("nibbler_modified", allTypes.getList(AllTypes.FIELD_REALMLIST).first().get(Dog.FIELD_NAME));
     }
 
     @Test
@@ -735,7 +900,7 @@ public class DynamicRealmObjectTests {
         dObjTyped.set(AllJavaTypes.FIELD_LIST, list);
     }
 
-    // List is not a simple getter, test separately.
+    // List is not a simple getter, tests separately.
     @Test
     public void getList() {
         realm.beginTransaction();
@@ -921,7 +1086,7 @@ public class DynamicRealmObjectTests {
                 } catch (IllegalArgumentException ignored) {
                 } catch (RealmException e) {
                     if (!(e.getCause() instanceof ParseException)) {
-                        // providing "foo" to the date parser will blow up with a RealmException
+                        // Providing "foo" to the date parser will blow up with a RealmException
                         // and the cause will be a ParseException.
                         fail(type + " failed");
                     }
@@ -1048,7 +1213,7 @@ public class DynamicRealmObjectTests {
 
     @Test
     public void toString_test() {
-        // Check that toString() doesn't crash. And do simple formatting checks. We cannot compare to a set String as
+        // Checks that toString() doesn't crash, and does simple formatting checks. We cannot compare to a set String as
         // eg. the byte array will be allocated each time it is accessed.
         String str = dObjTyped.toString();
         assertTrue(str.startsWith("AllJavaTypes = ["));
@@ -1078,14 +1243,14 @@ public class DynamicRealmObjectTests {
 
 
     public void testExceptionMessage() {
-        // test for https://github.com/realm/realm-java/issues/2141
+        // Tests for https://github.com/realm/realm-java/issues/2141
         realm.beginTransaction();
         AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
         DynamicRealmObject o = new DynamicRealmObject(obj);
         try {
-            o.getFloat("nonExisting"); // Note that "o" does not have "nonExisting" field.
+            o.getFloat("nonExisting"); // Notes that "o" does not have "nonExisting" field.
             fail();
         } catch (IllegalArgumentException e) {
             assertEquals("Illegal Argument: Field not found: nonExisting", e.getMessage());

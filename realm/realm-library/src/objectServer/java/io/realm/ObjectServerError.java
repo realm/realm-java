@@ -16,11 +16,9 @@
 
 package io.realm;
 
-import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 
 /**
- * @Beta
  * This class is a wrapper for all errors happening when communicating with the Realm Object Server.
  * This include both exceptions and protocol errors.
  *
@@ -30,7 +28,6 @@ import io.realm.internal.Util;
  *
  * @see ErrorCode for a list of possible errors.
  */
-@Beta
 public class ObjectServerError extends RuntimeException {
 
     private final ErrorCode error;

@@ -22,13 +22,13 @@ package io.realm.migration;
  * there does not exist.
  */
 public interface MigrationPrimaryKey {
-    public static String CLASS_NAME    = "MigrationPrimaryKey";
+    String CLASS_NAME    = "MigrationPrimaryKey";
 
-    public static String FIELD_FIRST   = "fieldFirst";
-    public static String FIELD_SECOND  = "fieldSecond";
+    String FIELD_FIRST   = "fieldFirst";
+    String FIELD_SECOND  = "fieldSecond";
 
     // this is original primary key field name.
-    public static String FIELD_PRIMARY = "fieldPrimary";
-    public static String FIELD_FOURTH  = "fieldFourth";
-    public static String FIELD_FIFTH   = "fieldFifth";
+    String FIELD_PRIMARY = "fieldPrimary";
+    String FIELD_FOURTH  = "fieldFourth";
+    String FIELD_FIFTH   = "fieldFifth";
 }

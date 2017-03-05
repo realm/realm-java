@@ -48,11 +48,14 @@ RUN cd /opt && \
 
 # Grab what's needed in the SDK
 # ↓ updates tools to at least 25.1.7, but that prints 'Nothing was installed' (so I don't check the outputs).
+RUN mkdir "${ANDROID_HOME}/licenses" && \
+    echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "${ANDROID_HOME}/licenses/android-sdk-license" && \
+    echo -en "\nd23d63a1f23e25e2c7a316e29eb60396e7924281" > "${ANDROID_HOME}/licenses/android-sdk-preview-license"
 RUN echo y | android update sdk --no-ui --all --filter tools > /dev/null
 RUN echo y | android update sdk --no-ui --all --filter platform-tools | grep 'package installed'
-RUN echo y | android update sdk --no-ui --all --filter build-tools-24.0.0 | grep 'package installed'
+RUN echo y | android update sdk --no-ui --all --filter build-tools-25.0.2 | grep 'package installed'
 RUN echo y | android update sdk --no-ui --all --filter extra-android-m2repository | grep 'package installed'
-RUN echo y | android update sdk --no-ui --all --filter android-24 | grep 'package installed'
+RUN echo y | android update sdk --no-ui --all --filter android-25 | grep 'package installed'
 
 # Install the NDK
 RUN mkdir /opt/android-ndk-tmp && \
@@ -67,12 +70,13 @@ RUN mkdir /opt/android-ndk-tmp && \
 # Install cmake
 RUN mkdir /opt/cmake-tmp && \
     cd /opt/cmake-tmp && \
-    wget -q https://dl.google.com/android/repository/cmake-3.6.3133135-linux-x86_64.zip -O cmake-linux.zip && \
-    unzip cmake-linux.zip -d ${ANDROID_HOME}/cmake && \
+    wget -q https://dl.google.com/android/repository/cmake-3.6.3155560-linux-x86_64.zip -O cmake-linux.zip && \
+    mkdir -p ${ANDROID_HOME}/cmake/3.6.3155560 && \
+    unzip cmake-linux.zip -d ${ANDROID_HOME}/cmake/3.6.3155560 && \
     rm -rf /opt/cmake-tmp
 
-# Make the SDK universally readable
-RUN chmod -R a+rX ${ANDROID_HOME}
+# Make the SDK universally writable
+RUN chmod -R a+rwX ${ANDROID_HOME}
 
 # Install lcache
 RUN wget -q https://github.com/beeender/lcache/releases/download/v0.0.2/lcache-linux -O /usr/bin/lcache && \

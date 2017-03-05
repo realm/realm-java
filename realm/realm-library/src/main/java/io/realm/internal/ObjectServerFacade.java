@@ -44,7 +44,7 @@ public class ObjectServerFacade {
     }
 
     /**
-     * Initialize the Object Server library
+     * Initializes the Object Server library
      * @param context
      */
     public void init(Context context) {

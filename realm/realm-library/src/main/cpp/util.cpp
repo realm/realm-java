@@ -18,6 +18,7 @@
 #include <stdexcept>
 
 #include <realm/util/assert.hpp>
+#include <realm/util/file.hpp>
 #include <realm/unicode.hpp>
 #include "utf8.hpp"
 
@@ -25,6 +26,7 @@
 #include "io_realm_internal_Util.h"
 #include "io_realm_internal_SharedRealm.h"
 #include "shared_realm.hpp"
+#include "results.hpp"
 
 using namespace std;
 using namespace realm;
@@ -39,6 +41,8 @@ jmethodID java_lang_float_init;
 jclass java_lang_double;
 jclass java_lang_string;
 jmethodID java_lang_double_init;
+jclass java_util_date;
+jmethodID java_util_date_init;
 #ifdef REALM_ENABLE_SYNC
 jclass java_syncmanager;
 jmethodID java_bind_session_method;
@@ -70,8 +74,12 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ThrowException(env, IllegalArgument, ss.str());
     }
     catch (RealmFileException& e) {
-        ss << e.what() << " (" <<  e.underlying() <<  ") in " << file << " line " << line;
+        ss << e.what() << " (" <<  e.underlying() << ") (" << e.path() << ") in " << file << " line " << line;
         ThrowRealmFileException(env, ss.str(), e.kind());
+    }
+    catch (File::AccessError& e) {
+        ss << e.what() << " (" <<  e.get_path() <<  ") in " << file << " line " << line;
+        ThrowException(env, FatalError, ss.str());
     }
     catch (InvalidTransactionException& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -80,6 +88,29 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     catch (InvalidEncryptionKeyException& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (Results::OutOfBoundsIndexException& e) {
+        ss << "Out of range  in " << file << " line " << line
+           << "(requested: " << e.requested << " valid: " << e.valid_count << ")";
+        ThrowException(env, IndexOutOfBounds, ss.str());
+    }
+    catch (Results::IncorrectTableException& e) {
+        ss << "Incorrect class in " << file << " line " << line
+           << "(actual: " << e.actual << " expected: " << e.expected << ")";
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (Results::UnsupportedColumnTypeException& e) {
+        ss << "Unsupported type in " << file << " line " << line
+           << "(field name: " << e.column_name << ")";
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (Results::InvalidatedException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalState, ss.str());
+    }
+    catch (IncorrectThreadException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalState, ss.str());
     }
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
@@ -155,7 +186,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             break;
     }
     if (jExceptionClass != NULL) {
-        Log::e("Exception has been throw: %1", message.c_str());
+        Log::e("Exception has been thrown: %1", message.c_str());
         env->ThrowNew(jExceptionClass, message.c_str());
     }
     else {

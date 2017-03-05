@@ -16,15 +16,18 @@
 
 package io.realm.internal;
 
+import android.support.test.InstrumentationRegistry;
+
 import junit.framework.TestCase;
 
+import io.realm.Realm;
 import io.realm.RealmFieldType;
 
 public class JNISortedLongTest extends TestCase {
     Table table;
-    TableView view;
 
     void init() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         table = new Table();
         table.addColumn(RealmFieldType.INTEGER, "number");
         table.addColumn(RealmFieldType.STRING, "name");
@@ -39,33 +42,28 @@ public class JNISortedLongTest extends TestCase {
         table.add(60, "D");
 
         assertEquals(8, table.size());
-
-        view = table.where().findAll();
-
-        assertEquals(view.size(), table.size());
-
     }
 
     public void testShouldTestSortedIntTable() {
         init();
 
-        // before first entry
+        // Before first entry.
         assertEquals(0, table.lowerBoundLong(0, 0));
         assertEquals(0, table.upperBoundLong(0, 0));
 
-        // find middle match
+        // Finds middle match.
         assertEquals(4, table.lowerBoundLong(0, 40));
         assertEquals(5, table.upperBoundLong(0, 40));
 
-        // find middle (nonexisting)
+        // Finds middle (nonexisting).
         assertEquals(5, table.lowerBoundLong(0, 41));
         assertEquals(5, table.upperBoundLong(0, 41));
 
-        // beyond last entry
+        // Beyond last entry.
         assertEquals(8, table.lowerBoundLong(0, 100));
         assertEquals(8, table.upperBoundLong(0, 100));
 
-        // find last match (duplicated)
+        // Finds last match (duplicated).
         assertEquals(6, table.lowerBoundLong(0, 60));
         assertEquals(8, table.upperBoundLong(0, 60));
 

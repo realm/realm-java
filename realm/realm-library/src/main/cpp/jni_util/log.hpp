@@ -87,19 +87,19 @@ public:
     // Helper functions for logging with REALM_JNI tag.
     inline static void t(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, message);
+        shared().log(trace, REALM_JNI_TAG, nullptr, message);
     }
     inline static void d(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, message);
+        shared().log(debug, REALM_JNI_TAG, nullptr, message);
     }
     inline static void i(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, message);
+        shared().log(info, REALM_JNI_TAG, nullptr, message);
     }
     inline static void w(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, message);
+        shared().log(warn, REALM_JNI_TAG, nullptr, message);
     }
     inline static void e(const char* message)
     {
@@ -107,7 +107,7 @@ public:
     }
     inline static void f(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, message);
+        shared().log(fatal, REALM_JNI_TAG, nullptr, message);
     }
 
     template<typename... Args>

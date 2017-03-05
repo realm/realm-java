@@ -25,6 +25,7 @@ import android.net.NetworkInfo;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import io.realm.SyncManager;
 import io.realm.internal.Util;
 
 /**
@@ -67,6 +68,9 @@ public class NetworkStateReceiver extends BroadcastReceiver {
      * @return {@code true} if device is online, otherwise {@code false}.
      */
     public static boolean isOnline(Context context) {
+        if (SyncManager.Debug.skipOnlineChecking) {
+            return true;
+        }
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
         return ((networkInfo != null && networkInfo.isConnectedOrConnecting()) || Util.isEmulator());

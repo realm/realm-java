@@ -14,7 +14,6 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
 import java.io.IOException;
@@ -84,16 +83,17 @@ public class BooleansRealmProxy extends some.test.Booleans
     }
 
     BooleansRealmProxy() {
-        if (proxyState == null) {
-            injectObjectContext();
-        }
         proxyState.setConstructionFinished();
     }
 
-    private void injectObjectContext() {
+    @Override
+    public void realm$injectObjectContext() {
+        if (this.proxyState != null) {
+            return;
+        }
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (BooleansColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState<some.test.Booleans>(some.test.Booleans.class, this);
+        this.proxyState = new ProxyState<some.test.Booleans>(this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
@@ -102,21 +102,11 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     @SuppressWarnings("cast")
     public boolean realmGet$done() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.doneIndex);
     }
 
     public void realmSet$done(boolean value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -132,21 +122,11 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     @SuppressWarnings("cast")
     public boolean realmGet$isReady() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.isReadyIndex);
     }
 
     public void realmSet$isReady(boolean value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -162,21 +142,11 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     @SuppressWarnings("cast")
     public boolean realmGet$mCompleted() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.mCompletedIndex);
     }
 
     public void realmSet$mCompleted(boolean value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -192,21 +162,11 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     @SuppressWarnings("cast")
     public boolean realmGet$anotherBoolean() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.anotherBooleanIndex);
     }
 
     public void realmSet$anotherBoolean(boolean value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -265,6 +225,10 @@ public class BooleansRealmProxy extends some.test.Booleans
             }
 
             final BooleansColumnInfo columnInfo = new BooleansColumnInfo(sharedRealm.getPath(), table);
+
+            if (table.hasPrimaryKey()) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
+            }
 
             if (!columnTypes.containsKey("done")) {
                 throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'done' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");

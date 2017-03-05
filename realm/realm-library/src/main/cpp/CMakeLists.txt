@@ -33,11 +33,12 @@ endif()
 string(TOLOWER ${CMAKE_BUILD_TYPE} build_type_FOLDER)
 set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/${REALM_FLAVOR}/${build_type_FOLDER}/)
 set(classes_LIST
-    io.realm.internal.Table io.realm.internal.TableView io.realm.internal.CheckedRow
+    io.realm.internal.Table io.realm.internal.CheckedRow
     io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.RealmSchema
-    io.realm.RealmObjectSchema io.realm.internal.NativeObjectReference
+    io.realm.RealmObjectSchema io.realm.internal.Collection
+    io.realm.internal.NativeObjectReference io.realm.internal.CollectionChangeSet
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319
@@ -94,7 +95,7 @@ if (NOT EXISTS ${sync_lib_PATH})
     elseif (ARM64_V8A)
         set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm64.a)
     else()
-        message(FATAL_ERROR "Cannot find core lib file: ${core_lib_PATH}")
+        message(FATAL_ERROR "Cannot find core lib file: ${sync_lib_PATH}")
     endif()
 endif()
 add_library(lib_realm_sync STATIC IMPORTED)
@@ -169,18 +170,19 @@ file(GLOB objectstore_SRC
 # Sync needed Object Store files
 if (build_SYNC)
     file(GLOB objectstore_sync_SRC
+        "object-store/src/results.cpp"
+        "object-store/src/impl/results_notifier.cpp"
         "object-store/src/sync/*.cpp"
         "object-store/src/sync/impl/*.cpp")
 endif()
 
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SRC})
 add_dependencies(realm-jni jni_headers)
-# -latomic is not set by default for mips. See https://code.google.com/p/android/issues/detail?id=182094
+
 if (build_SYNC)
-# FIXME: The order matters! lib_realm_sync needs to be in front of lib_realm_core!! Find out why!!
-target_link_libraries(realm-jni log android atomic lib_realm_sync lib_realm_core)
+    target_link_libraries(realm-jni log android lib_realm_sync)
 else()
-target_link_libraries(realm-jni log android atomic lib_realm_core)
+    target_link_libraries(realm-jni log android lib_realm_core)
 endif()
 
 # Strip the release so files and backup the unstripped versions

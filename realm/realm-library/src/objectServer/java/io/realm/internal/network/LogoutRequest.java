@@ -16,17 +16,37 @@
 
 package io.realm.internal.network;
 
-import io.realm.SyncUser;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import io.realm.internal.objectserver.Token;
 
 /**
  * This class encapsulates a request to log out a user on the Realm Authentication Server. It is responsible for
  * constructing the JSON understood by the Realm Authentication Server.
  */
 public class LogoutRequest {
-    // TODO Endpoint not finished yet
 
-    LogoutRequest fromUser(SyncUser user) {
-        return new LogoutRequest();
+    private final String token;
+
+    public static LogoutRequest revoke(Token userToken) {
+        return new LogoutRequest(userToken.value());
     }
 
+    private LogoutRequest(String token) {
+        this.token = token;
+    }
+
+    /**
+     * Converts the request into a JSON payload.
+     */
+    public String toJson() {
+        try {
+            JSONObject request = new JSONObject();
+            request.put("token", token);
+            return request.toString();
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

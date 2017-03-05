@@ -71,7 +71,7 @@ public class UncheckedRow implements NativeObject, Row {
      * @return an instance of Row for the table and index specified.
      */
     static UncheckedRow getByRowIndex(Context context, Table table, long index) {
-        long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
+        long nativeRowPointer = table.nativeGetRowPtr(table.getNativePtr(), index);
         return new UncheckedRow(context, table, nativeRowPointer);
     }
 
@@ -225,7 +225,7 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     /**
-     * Set a string value to a row pointer.
+     * Sets a string value to a row pointer.
      *
      * @param columnIndex 0 based index value of the cell column.
      * @param value the value to to a row
@@ -266,7 +266,7 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     /**
-     * Set null to a row pointer.
+     * Sets null to a row pointer.
      *
      * @param columnIndex 0 based index value of the cell column.
      */

@@ -39,54 +39,13 @@ public class TableIndexAndDistinctTest extends TestCase {
         assertEquals(7, table.size());
     }
 
-    public void testShouldTestDistinct() {
-        init();
-
-        // Must set index before using distinct()
-        table.addSearchIndex(1);
-        assertEquals(true, table.hasSearchIndex(1));
-
-        TableView view = table.getDistinctView(1);
-        assertEquals(4, view.size());
-        assertEquals(0, view.getLong(0, 0));
-        assertEquals(1, view.getLong(0, 1));
-        assertEquals(2, view.getLong(0, 2));
-        assertEquals(4, view.getLong(0, 3));
-    }
-
-// TODO: parametric test
-/*    *//**
-     * Should throw exception if trying to get distinct on columns where index has not been set
-     * @param index
-     *//*
-
-    @Test(expectedExceptions = UnsupportedOperationException.class, dataProvider = "columnIndex")
-    public void shouldTestDistinctErrorWhenNoIndex(Long index) {
-
-        //Get a table with all available column types
-        Table t = TestHelper.getTableWithAllColumnTypes();
-
-        TableView view = table.getDistinctView(1);
-    }*/
-
-    public void testShouldTestDistinctErrorWhenIndexOutOfBounds() {
-        init();
-
-        try {
-            TableView view = table.getDistinctView(3);
-            fail();
-        } catch (ArrayIndexOutOfBoundsException e) {
-            assertNotNull(e);
-        }
-    }
-
     /**
-     * Check that Index can be set on multiple columns, with the String
+     * Checks that Index can be set on multiple columns, with the String.
      * @param
      */
     public void testShouldTestSettingIndexOnMultipleColumns() {
 
-        //Create a table only with String type columns
+        // Creates a table only with String type columns
         Table t = new Table();
         t.addColumn(RealmFieldType.STRING, "col1");
         t.addColumn(RealmFieldType.STRING, "col2");
@@ -115,10 +74,10 @@ public class TableIndexAndDistinctTest extends TestCase {
     @Test(expectedExceptions = IllegalArgumentException.class, dataProvider = "columnIndex")
     public void shouldTestIndexOnWrongColumnType(Long index) {
 
-        //Get a table with all available column types
+        // Gets a table with all available column types.
         Table t = TestHelper.getTableWithAllColumnTypes();
 
-        //If column type is String, then throw the excepted exception
+        // If column type is String, then throw the excepted exception.
         if (t.getColumnType(index).equals(RealmFieldType.STRING)){
             throw new IllegalArgumentException();
         }
@@ -129,17 +88,6 @@ public class TableIndexAndDistinctTest extends TestCase {
     public void testShouldCheckIndexIsOkOnColumn() {
         init();
         table.addSearchIndex(1);
-    }
-
-    public void testShouldThrowDistinctErrorWhenWrongColumnType() {
-        init();
-        table.addSearchIndex(1);
-        try {
-            TableView view = table.getDistinctView(0);
-            fail();
-        } catch (UnsupportedOperationException e) {
-            assertNotNull(e);
-        }
     }
 
     public void testRemoveSearchIndex() {
@@ -155,7 +103,7 @@ public class TableIndexAndDistinctTest extends TestCase {
         init();
         assertEquals(false, table.hasSearchIndex(1));
 
-        // remove index from non-indexed column is a no-op
+        // Removes index from non-indexed column is a no-op.
         table.removeSearchIndex(1);
         assertEquals(false, table.hasSearchIndex(1));
     }

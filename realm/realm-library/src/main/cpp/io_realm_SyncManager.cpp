@@ -76,3 +76,13 @@ Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass) {
         SyncManager::shared().reset_for_testing();
     } CATCH_STD()
 }
+
+JNIEXPORT void JNICALL
+Java_io_realm_SyncManager_nativeConfigureMetaDataSystem(JNIEnv *env, jclass,
+                                                        jstring baseFile) {
+    TR_ENTER()
+    try {
+        JStringAccessor base_file_path(env, baseFile); // throws
+        SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
+    } CATCH_STD()
+}

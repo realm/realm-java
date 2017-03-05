@@ -30,7 +30,6 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
-import io.realm.internal.TableView;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -108,21 +107,21 @@ public class SortTest {
     public void sortMultiFailures() {
         RealmResults<AllTypes> allTypes = realm.where(AllTypes.class).findAll();
 
-        // zero fields specified
+        // Zero fields specified.
         try {
             allTypes.sort(new String[]{}, new Sort[]{});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
-        // number of fields and sorting orders don't match
+        // Number of fields and sorting orders don't match.
         try {
             allTypes.sort(new String[]{FIELD_STRING}, ORDER_ASC_ASC);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
-        // null is not allowed
+        // Null is not allowed.
         try {
             allTypes.sort(null, (Sort[]) null);
             fail();
@@ -134,7 +133,7 @@ public class SortTest {
         } catch (IllegalArgumentException ignored) {
         }
 
-        // non-existing field name
+        // Non-existing field name.
         try {
             allTypes.sort(new String[]{FIELD_STRING, "dont-exist"}, ORDER_ASC_ASC);
             fail();
@@ -153,23 +152,23 @@ public class SortTest {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(2, ((TableView) results.getTableOrView()).getSourceRowIndex(0));
+        assertEquals(0, results.getCollection().indexOf(2));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(5, results.get(1).getColumnLong());
-        assertEquals(0, ((TableView) results.getTableOrView()).getSourceRowIndex(1));
+        assertEquals(1, results.getCollection().indexOf(0));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(3, ((TableView) results.getTableOrView()).getSourceRowIndex(2));
+        assertEquals(2, results.getCollection().indexOf(3));
 
         assertEquals("Brian", results.get(3).getColumnString());
         assertEquals(4, results.get(3).getColumnLong());
-        assertEquals(1, ((TableView) results.getTableOrView()).getSourceRowIndex(3));
+        assertEquals(3, results.getCollection().indexOf(1));
     }
 
     private void checkSortTwoFieldsIntString(RealmResults<AllTypes> results) {
-        // Sorted Long (ascending), String (descending)
+        // Sorted Long (ascending), String (descending).
         // Expected output:
         // (4, "Adam"), row index = 2
         // (4, "Brian"), row index = 1
@@ -179,23 +178,23 @@ public class SortTest {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(2, ((TableView) results.getTableOrView()).getSourceRowIndex(0));
+        assertEquals(0, results.getCollection().indexOf(2));
 
         assertEquals("Brian", results.get(1).getColumnString());
         assertEquals(4, results.get(1).getColumnLong());
-        assertEquals(1, ((TableView) results.getTableOrView()).getSourceRowIndex(1));
+        assertEquals(1, results.getCollection().indexOf(1));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(0, ((TableView) results.getTableOrView()).getSourceRowIndex(2));
+        assertEquals(2, results.getCollection().indexOf(0));
 
         assertEquals("Adam", results.get(3).getColumnString());
         assertEquals(5, results.get(3).getColumnLong());
-        assertEquals(3, ((TableView) results.getTableOrView()).getSourceRowIndex(3));
+        assertEquals(3, results.getCollection().indexOf(3));
     }
 
     private void checkSortTwoFieldsIntAscendingStringDescending(RealmResults<AllTypes> results) {
-        // Sorted Long (ascending), String (descending)
+        // Sorted Long (ascending), String (descending).
         // Expected output:
         // (4, "Brian"), row index = 1
         // (4, "Adam"), row index = 2
@@ -205,23 +204,23 @@ public class SortTest {
 
         assertEquals("Brian", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(1, ((TableView) results.getTableOrView()).getSourceRowIndex(0));
+        assertEquals(0, results.getCollection().indexOf(1));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(4, results.get(1).getColumnLong());
-        assertEquals(2, ((TableView) results.getTableOrView()).getSourceRowIndex(1));
+        assertEquals(1, results.getCollection().indexOf(2));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(0, ((TableView) results.getTableOrView()).getSourceRowIndex(2));
+        assertEquals(2, results.getCollection().indexOf(0));
 
         assertEquals("Adam", results.get(3).getColumnString());
         assertEquals(5, results.get(3).getColumnLong());
-        assertEquals(3, ((TableView) results.getTableOrView()).getSourceRowIndex(3));
+        assertEquals(3, results.getCollection().indexOf(3));
     }
 
     private void checkSortTwoFieldsStringAscendingIntDescending(RealmResults<AllTypes> results) {
-        // Sorted String (ascending), Long (descending)
+        // Sorted String (ascending), Long (descending).
         // Expected output:
         // (5, "Adam"), row index = 0 - stable sort!
         // (5, "Adam"), row index = 3
@@ -231,19 +230,19 @@ public class SortTest {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(5, results.get(0).getColumnLong());
-        assertEquals(0, ((TableView) results.getTableOrView()).getSourceRowIndex(0));
+        assertEquals(0, results.getCollection().indexOf(0));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(5, results.get(1).getColumnLong());
-        assertEquals(3, ((TableView) results.getTableOrView()).getSourceRowIndex(1));
+        assertEquals(1, results.getCollection().indexOf(3));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(4, results.get(2).getColumnLong());
-        assertEquals(2, ((TableView) results.getTableOrView()).getSourceRowIndex(2));
+        assertEquals(2, results.getCollection().indexOf(2));
 
         assertEquals("Brian", results.get(3).getColumnString());
         assertEquals(4, results.get(3).getColumnLong());
-        assertEquals(1, ((TableView) results.getTableOrView()).getSourceRowIndex(3));
+        assertEquals(3, results.getCollection().indexOf(1));
     }
 
     @Test
@@ -303,14 +302,14 @@ public class SortTest {
     public void realmSortMultiFailures() {
         RealmResults<AllTypes> allTypes = realm.where(AllTypes.class).findAll();
 
-        // zero fields specified
+        // Zero fields specified.
         try {
             realm.where(AllTypes.class).findAll().sort(new String[]{}, new Sort[]{});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
-        // number of fields and sorting orders don't match
+        // Number of fields and sorting orders don't match.
         try {
             realm.where(AllTypes.class).findAll().
                     sort(new String[]{FIELD_STRING}, ORDER_ASC_ASC);
@@ -318,7 +317,7 @@ public class SortTest {
         } catch (IllegalArgumentException ignored) {
         }
 
-        // null is not allowed
+        // Null is not allowed.
         try {
             realm.where(AllTypes.class).findAll().sort(null, (Sort[]) null);
             fail();
@@ -330,7 +329,7 @@ public class SortTest {
         } catch (IllegalArgumentException ignored) {
         }
 
-        // non-existing field name
+        // Non-existing field name.
         try {
             realm.where(AllTypes.class).findAll().
                     sort(new String[]{FIELD_STRING, "dont-exist"}, ORDER_ASC_ASC);
@@ -369,7 +368,7 @@ public class SortTest {
         rr0.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
-                // After commit: [0, 1, 2, 3, 4] - most likely as order isn't guaranteed
+                // After commit: [0, 1, 2, 3, 4] - most likely as order isn't guaranteed.
                 assertEquals(5, element.size());
                 endTest.run();
             }

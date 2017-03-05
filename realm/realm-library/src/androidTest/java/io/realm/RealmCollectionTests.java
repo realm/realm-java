@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.CustomMethods;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -113,42 +114,105 @@ public class RealmCollectionTests extends CollectionTests {
     }
     
     private RealmCollection<AllJavaTypes> createCollection(CollectionClass collectionClass) {
+        OrderedRealmCollection<AllJavaTypes> orderedCollection;
         switch (collectionClass) {
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 populateRealm(realm, TEST_SIZE);
-                return realm.where(AllJavaTypes.class)
+                orderedCollection = realm.where(AllJavaTypes.class)
                         .equalTo(AllJavaTypes.FIELD_LONG, 0)
                         .findFirst()
                         .getFieldList();
+                break;
 
             case UNMANAGED_REALMLIST:
                 return populateInMemoryList(TEST_SIZE);
 
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 populateRealm(realm, TEST_SIZE);
-                return realm.where(AllJavaTypes.class).findAll();
+                orderedCollection = realm.where(AllJavaTypes.class).findAll();
+                break;
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
         }
+        if (isSnapshot(collectionClass)) {
+            orderedCollection = orderedCollection.createSnapshot();
+        }
+        return orderedCollection;
+    }
+
+    private RealmCollection<CustomMethods> createCustomMethodsCollection(Realm realm, CollectionClass collectionClass) {
+        OrderedRealmCollection<CustomMethods> orderedCollection;
+
+        switch (collectionClass) {
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
+            case MANAGED_REALMLIST:
+                realm.beginTransaction();
+                CustomMethods top = realm.createObject(CustomMethods.class);
+                top.setName("Top");
+                for (int i = 0; i < TEST_SIZE; i++) {
+                    top.getMethods().add(new CustomMethods("Child" + i));
+                }
+                realm.commitTransaction();
+                orderedCollection = top.getMethods();
+                break;
+
+            case UNMANAGED_REALMLIST:
+                RealmList<CustomMethods> list = new RealmList<CustomMethods>();
+                for (int i = 0; i < TEST_SIZE; i++) {
+                    list.add(new CustomMethods("Child" + i));
+                }
+                return list;
+
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
+            case REALMRESULTS:
+                realm.beginTransaction();
+                for (int i = 0; i < TEST_SIZE; i++) {
+                    realm.copyToRealm(new CustomMethods("Child" + i));
+                }
+                realm.commitTransaction();
+                orderedCollection = realm.where(CustomMethods.class).findAll();
+                break;
+
+            default:
+                throw new AssertionError("Unsupported class: " + collectionClass);
+        }
+
+        if (isSnapshot(collectionClass)) {
+            orderedCollection = orderedCollection.createSnapshot();
+        }
+        return orderedCollection;
     }
 
     private OrderedRealmCollection<NullTypes> createEmptyCollection(Realm realm, CollectionClass collectionClass) {
+        OrderedRealmCollection<NullTypes> orderedCollection;
         switch (collectionClass) {
+            case REALMRESULTS_SNAPSHOT_LIST_BASE:
             case MANAGED_REALMLIST:
                 realm.beginTransaction();
                 NullTypes obj = realm.createObject(NullTypes.class, 0);
                 realm.commitTransaction();
-                return obj.getFieldListNull();
+                orderedCollection = obj.getFieldListNull();
+                break;
 
             case UNMANAGED_REALMLIST:
                 return new RealmList<NullTypes>();
 
+            case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
-                return realm.where(NullTypes.class).findAll();
+                orderedCollection = realm.where(NullTypes.class).findAll();
+                break;
+
+            default:
+                throw new AssertionError("Unknown collection: " + collectionClass);
         }
 
-        throw new AssertionError("Unknown collection: " + collectionClass);
+        if (isSnapshot(collectionClass)) {
+            orderedCollection = orderedCollection.createSnapshot();
+        }
+        return orderedCollection;
     }
 
     @Test
@@ -179,6 +243,19 @@ public class RealmCollectionTests extends CollectionTests {
     @Test
     public void contains_null() {
         assertFalse(collection.contains(null));
+    }
+
+    // Test that the custom equal methods is being used when testing if an object is part of the
+    // collection
+    @Test
+    public void contains_customEqualMethod() {
+        RealmCollection<CustomMethods> collection = createCustomMethodsCollection(realm, collectionClass);
+        // This custom equals method will only consider the field `name` when comparing objects.
+        // So this unmanaged version should be equal to any object with the same value, managed
+        // or not.
+        assertTrue(collection.contains(new CustomMethods("Child0")));
+        assertTrue(collection.contains(new CustomMethods("Child" + (TEST_SIZE - 1))));
+        assertFalse(collection.contains(new CustomMethods("Child" + TEST_SIZE)));
     }
 
     @Test

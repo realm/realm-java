@@ -25,11 +25,11 @@ import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
@@ -38,7 +38,6 @@ import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
 /**
- * @Beta
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
  * Object Server.
  * <p>
@@ -68,8 +67,8 @@ import io.realm.rx.RxObservableFactory;
  * Synchronized Realms are created by using {@link Realm#getInstance(RealmConfiguration)} and
  * {@link Realm#getDefaultInstance()} like ordinary unsynchronized Realms.
  */
-@Beta
 public class SyncConfiguration extends RealmConfiguration {
+
     // The FAT file system has limitations of length. Also, not all characters are permitted.
     // https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx
     static final int MAX_FULL_PATH_LENGTH = 256;
@@ -226,6 +225,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private String fileName;
         private boolean overrideDefaultLocalFileName = false;
         private byte[] key;
+        private long schemaVersion = 0;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
         private RxObservableFactory rxFactory;
@@ -261,7 +261,8 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param user the user for this Realm. An authenticated {@link SyncUser} is required to open any Realm managed
          *             by a Realm Object Server.
-         * @param uri URI identifying the Realm.
+         * @param uri URI identifying the Realm. If only a path like {@code /~/default} is given, the configuration will
+         *            assume the file is located on the same server returned by {@link SyncUser#getAuthenticationUrl()}.
          *
          * @see SyncUser#isValid()
          */
@@ -303,10 +304,44 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("Invalid URI: " + uri, e);
             }
 
-            // scheme must be realm or realms
-            String scheme = serverUrl.getScheme();
-            if (!scheme.equals("realm") && !scheme.equals("realms")) {
-                throw new IllegalArgumentException("Invalid scheme: " + scheme);
+            try {
+                // Automatically set scheme based on auth server if not set or wrongly set
+                String serverScheme = serverUrl.getScheme();
+                if (serverScheme == null) {
+                    String authProtocol = user.getAuthenticationUrl().getProtocol();
+                    if (authProtocol.equalsIgnoreCase("https")) {
+                        serverScheme = "realms";
+                    } else {
+                        serverScheme = "realm";
+                    }
+                } else if (serverScheme.equalsIgnoreCase("http")) {
+                    serverScheme = "realm";
+                } else if (serverScheme.equalsIgnoreCase("https")) {
+                    serverScheme = "realms";
+                }
+
+                // Automatically set host if one wasn't defined
+                String host = serverUrl.getHost();
+                if (host == null) {
+                    host = user.getAuthenticationUrl().getHost();
+                }
+
+                // Convert relative paths to absolute if required
+                String path = serverUrl.getPath();
+                if (path != null && !path.startsWith("/")) {
+                    path = "/" + path;
+                }
+
+                serverUrl = new URI(serverScheme,
+                        serverUrl.getUserInfo(),
+                        host,
+                        serverUrl.getPort(),
+                        (path != null) ? path.replace(host + "/", "") : null, // Remove host if it accidentially was interpreted as a path segment
+                        serverUrl.getQuery(),
+                        serverUrl.getRawFragment());
+
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("Invalid URI: " + uri, e);
             }
 
             // Detect last path segment as it is the default file name
@@ -406,6 +441,40 @@ public class SyncConfiguration extends RealmConfiguration {
                         KEY_LENGTH, key.length));
             }
             this.key = Arrays.copyOf(key, key.length);
+            return this;
+        }
+
+        /**
+         * DEBUG method. This restricts the Realm schema to only consist of the provided classes without having to
+         * create a module. These classes must be available in the default module. Calling this will remove any
+         * previously configured modules.
+         */
+        SyncConfiguration.Builder schema(Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
+            if (firstClass == null) {
+                throw new IllegalArgumentException("A non-null class must be provided");
+            }
+            modules.clear();
+            modules.add(DEFAULT_MODULE_MEDIATOR);
+            debugSchema.add(firstClass);
+            if (additionalClasses != null) {
+                Collections.addAll(debugSchema, additionalClasses);
+            }
+
+            return this;
+        }
+
+        /**
+         * Sets the schema version of the Realm. This must be equal to or higher than the schema version of the existing
+         * Realm file, if any. If the schema version is higher than the already existing Realm, a migration is needed.
+         *
+         * @param schemaVersion the schema version.
+         * @throws IllegalArgumentException if schema version is invalid.
+         */
+        public Builder schemaVersion(long schemaVersion) {
+            if (schemaVersion < 0) {
+                throw new IllegalArgumentException("Realm schema version numbers must be 0 (zero) or higher. Yours was: " + schemaVersion);
+            }
+            this.schemaVersion = schemaVersion;
             return this;
         }
 
@@ -542,10 +611,10 @@ public class SyncConfiguration extends RealmConfiguration {
 
             // Determine location on disk
             // Use the serverUrl + user to create a unique filepath unless it has been explicitly overridden.
-            // <rootDir>/<serverPath>/<serverFileNameOrOverriddenFileName>
+            // <rootDir>/<userIdentifier>/<serverPath>/<serverFileNameOrOverriddenFileName>
             URI resolvedServerUrl = resolveServerUrl(serverUrl, user.getIdentity());
             File rootDir = overrideDefaultFolder ? directory : defaultFolder;
-            String realmPathFromRootDir = getServerPath(resolvedServerUrl);
+            String realmPathFromRootDir = user.getIdentity() + "/" + getServerPath(resolvedServerUrl);
             File realmFileDirectory = new File(rootDir, realmPathFromRootDir);
 
             String realmFileName = overrideDefaultLocalFileName ? fileName : defaultLocalFileName;
@@ -588,7 +657,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     getCanonicalPath(new File(realmFileDirectory, realmFileName)),
                     null, // assetFile not supported by Sync. See https://github.com/realm/realm-sync/issues/241
                     key,
-                    0,
+                    schemaVersion,
                     null, // Custom migrations not supported
                     false, // MigrationNeededException is never thrown
                     durability,

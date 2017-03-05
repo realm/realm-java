@@ -85,6 +85,14 @@ class BytecodeModifier {
         clazz.addInterface(proxyInterface)
     }
 
+    public static void callInjectObjectContextFromConstructors(CtClass clazz) {
+        clazz.getConstructors().each {
+            it.insertBeforeBody('if ($0 instanceof io.realm.internal.RealmObjectProxy) {' +
+                    ' ((io.realm.internal.RealmObjectProxy) $0).realm$injectObjectContext();' +
+                    ' }')
+        }
+    }
+
     /**
      * This class goes through all the field access behaviours of a class and replaces field accesses with
      * the appropriate accessor.

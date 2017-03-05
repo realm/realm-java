@@ -67,6 +67,7 @@ import io.realm.entities.Cat;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.DefaultValueConstructor;
+import io.realm.entities.DefaultValueFromOtherConstructor;
 import io.realm.entities.DefaultValueOfField;
 import io.realm.entities.DefaultValueOverwriteNullLink;
 import io.realm.entities.DefaultValueSetter;
@@ -222,7 +223,7 @@ public class RealmTests {
 
     @Test
     public void getInstance_twiceWhenRxJavaUnavailable() {
-        // test for https://github.com/realm/realm-java/issues/2416
+        // Test for https://github.com/realm/realm-java/issues/2416
 
         // Though it's not a recommended way to create multiple configuration instance with the same parameter, it's legal.
         final RealmConfiguration configuration1 = configFactory.createConfiguration("no_RxJava.realm");
@@ -693,7 +694,7 @@ public class RealmTests {
                 }
             });
         } catch (RuntimeException ignored) {
-            // Ensure that we pass a valuable error message to the logger for developers.
+            // Ensures that we pass a valuable error message to the logger for developers.
             assertEquals(testLogger.message, "Could not cancel transaction, not currently in a transaction.");
         } finally {
             RealmLog.remove(testLogger);
@@ -703,30 +704,30 @@ public class RealmTests {
 
     @Test
     public void delete_type() {
-        // ** delete non existing table should succeed
+        // ** Deletes non existing table should succeed.
         realm.beginTransaction();
         realm.delete(AllTypes.class);
         realm.commitTransaction();
 
-        // ** delete existing class, but leave other classes classes
+        // ** Deletes existing class, but leaves other classes classes.
 
-        // Add two classes
+        // Adds two classes.
         populateTestRealm();
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
         dog.setName("Castro");
         realm.commitTransaction();
-        // Clear
+        // Clears.
         realm.beginTransaction();
         realm.delete(Dog.class);
         realm.commitTransaction();
-        // Check one class is cleared but other class is still there
+        // Checks one class is cleared but other class is still there.
         RealmResults<AllTypes> resultListTypes = realm.where(AllTypes.class).findAll();
         assertEquals(TEST_DATA_SIZE, resultListTypes.size());
         RealmResults<Dog> resultListDogs = realm.where(Dog.class).findAll();
         assertEquals(0, resultListDogs.size());
 
-        // ** delete() must throw outside a transaction
+        // ** delete() must throw outside a transaction.
         try {
             realm.delete(AllTypes.class);
             fail("Expected exception");
@@ -833,7 +834,6 @@ public class RealmTests {
 
         String test_char = "";
         String test_char_old = "";
-        String get_data = "";
 
         for (int i = 0; i < 1000; i++) {
             random_value = random.nextInt(25);
@@ -857,19 +857,19 @@ public class RealmTests {
 
     @Test
     public void getInstance_referenceCounting() {
-        // At this point reference count should be one because of the setUp method
+        // At this point reference count should be one because of the setUp method.
         try {
             realm.where(AllTypes.class).count();
         } catch (IllegalStateException e) {
             fail();
         }
 
-        // Make sure the reference counter is per realm file
+        // Makes sure the reference counter is per realm file.
         RealmConfiguration anotherConfig = configFactory.createConfiguration("anotherRealm.realm");
         Realm.deleteRealm(anotherConfig);
         Realm otherRealm = Realm.getInstance(anotherConfig);
 
-        // Raise the reference
+        // Raises the reference.
         Realm realm = null;
         try {
             realm = Realm.getInstance(configFactory.createConfiguration());
@@ -878,7 +878,7 @@ public class RealmTests {
         }
 
         try {
-            // This should not fail because the reference is now 1
+            // This should not fail because the reference is now 1.
             if (realm != null) {
                 realm.where(AllTypes.class).count();
             }
@@ -911,14 +911,14 @@ public class RealmTests {
     @Test
     public void getInstance_referenceCounting_doubleClose() {
         realm.close();
-        realm.close(); // Count down once too many. Counter is now potentially negative
+        realm.close(); // Counts down once too many. Counter is now potentially negative.
         realm = Realm.getInstance(configFactory.createConfiguration());
         realm.beginTransaction();
         AllTypes allTypes = realm.createObject(AllTypes.class);
         RealmResults<AllTypes> queryResult = realm.where(AllTypes.class).findAll();
         assertEquals(allTypes, queryResult.get(0));
         realm.commitTransaction();
-        realm.close(); // This might not close the Realm if the reference count is wrong
+        realm.close(); // This might not close the Realm if the reference count is wrong.
 
         // This should now fail due to the Realm being fully closed.
         thrown.expect(IllegalStateException.class);
@@ -947,14 +947,14 @@ public class RealmTests {
             }
         }
 
-        // Copy is compacted i.e. smaller than original
+        // Copy is compacted i.e. smaller than original.
         File file1 = new File(configA.getPath());
         File file2 = new File(configB.getPath());
         assertTrue(file1.length() >= file2.length());
 
         Realm realm2 = null;
         try {
-            // Contents is copied too
+            // Contents is copied too.
             realm2 = Realm.getInstance(configB);
             RealmResults<AllTypes> results = realm2.where(AllTypes.class).findAll();
             assertEquals(1, results.size());
@@ -1033,6 +1033,22 @@ public class RealmTests {
     }
 
     @Test
+    public void compactRealm_onExternalStorage() {
+        final File externalFilesDir = context.getExternalFilesDir(null);
+        final RealmConfiguration config = new RealmConfiguration.Builder()
+                .directory(externalFilesDir)
+                .name("external.realm")
+                .build();
+        Realm.deleteRealm(config);
+        Realm realm = Realm.getInstance(config);
+        realm.close();
+        assertTrue(Realm.compactRealm(config));
+        realm = Realm.getInstance(config);
+        realm.close();
+        Realm.deleteRealm(config);
+    }
+
+    @Test
     public void copyToRealm_null() {
         realm.beginTransaction();
         try {
@@ -1071,8 +1087,8 @@ public class RealmTests {
         AllTypes copiedAllTypes = otherRealm.copyToRealm(allTypes);
         otherRealm.commitTransaction();
 
-        assertNotSame(allTypes, copiedAllTypes); // Same object in different Realms is not the same
-        assertEquals(allTypes.getColumnString(), copiedAllTypes.getColumnString()); // But data is still the same
+        assertNotSame(allTypes, copiedAllTypes); // Same object in different Realms is not the same.
+        assertEquals(allTypes.getColumnString(), copiedAllTypes.getColumnString()); // But data is still the same.
         otherRealm.close();
     }
 
@@ -1099,8 +1115,8 @@ public class RealmTests {
         AllTypes realmTypes = realm.copyToRealm(allTypes);
         realm.commitTransaction();
 
-        assertNotSame(allTypes, realmTypes); // Objects should not be considered equal
-        assertEquals(allTypes.getColumnString(), realmTypes.getColumnString()); // But they contain the same data
+        assertNotSame(allTypes, realmTypes); // Objects should not be considered equal.
+        assertEquals(allTypes.getColumnString(), realmTypes.getColumnString()); // But they contain the same data.
         assertEquals(allTypes.getColumnLong(), realmTypes.getColumnLong());
         assertEquals(allTypes.getColumnFloat(), realmTypes.getColumnFloat(), 0);
         assertEquals(allTypes.getColumnDouble(), realmTypes.getColumnDouble(), 0);
@@ -1129,8 +1145,8 @@ public class RealmTests {
         assertEquals("Two", realmObject.getObject().getName());
         assertEquals(2, realm.where(CyclicType.class).count());
 
-        // testing copyToRealm overload that uses the Iterator
-        // making sure we reuse the same graph cache Map to avoid duplicates
+        // Tests copyToRealm overload that uses the Iterator.
+        // Makes sure we reuse the same graph cache Map to avoid duplicates.
         realm.beginTransaction();
         realm.deleteAll();
         realm.commitTransaction();
@@ -1161,8 +1177,8 @@ public class RealmTests {
         assertEquals("Two", realmObject.getObject().getName());
         assertEquals(2, realm.where(CyclicTypePrimaryKey.class).count());
 
-        // testing copyToRealm overload that uses the Iterator
-        // making sure we reuse the same graph cache Map to avoid duplicates
+        // Tests copyToRealm overload that uses the Iterator.
+        // Makes sure we reuse the same graph cache Map to avoid duplicates.
         realm.beginTransaction();
         realm.deleteAll();
         realm.commitTransaction();
@@ -1195,7 +1211,7 @@ public class RealmTests {
         assertEquals(2, realm.where(CyclicType.class).count());
     }
 
-    // Check that if a field has a null value it gets converted to the default value for that type
+    // Checks that if a field has a null value, it gets converted to the default value for that type.
     @Test
     public void copyToRealm_convertsNullToDefaultValue() {
         realm.beginTransaction();
@@ -1291,11 +1307,11 @@ public class RealmTests {
     public void copyToRealm_doNotCopyReferencedObjectIfManaged() {
         realm.beginTransaction();
 
-        // Child object is managed by Realm
+        // Child object is managed by Realm.
         CyclicTypePrimaryKey childObj = realm.createObject(CyclicTypePrimaryKey.class, 1);
         childObj.setName("Child");
 
-        // Parent object is an unmanaged object
+        // Parent object is an unmanaged object.
         CyclicTypePrimaryKey parentObj = new CyclicTypePrimaryKey(2);
         parentObj.setObject(childObj);
 
@@ -1371,7 +1387,7 @@ public class RealmTests {
         assertEquals(null, result.first().getName());
         assertEquals(SECONDARY_FIELD_VALUE, result.first().getId());
 
-        // update objects
+        // Updates objects.
         realm.beginTransaction();
         nullPrimaryKeyObj.setId(SECONDARY_FIELD_UPDATED);
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
@@ -1391,7 +1407,7 @@ public class RealmTests {
         assertEquals(SECONDARY_FIELD_VALUE, result.first().getName());
         assertEquals(null, result.first().getId());
 
-        // update objects
+        // Updates objects.
         realm.beginTransaction();
         nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
@@ -1411,7 +1427,7 @@ public class RealmTests {
         assertEquals(SECONDARY_FIELD_VALUE, result.first().getName());
         assertEquals(null, result.first().getId());
 
-        // update objects
+        // Updates objects.
         realm.beginTransaction();
         nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
@@ -1431,7 +1447,7 @@ public class RealmTests {
         assertEquals(SECONDARY_FIELD_VALUE, result.first().getName());
         assertEquals(null, result.first().getId());
 
-        // update objects
+        // Updates objects.
         realm.beginTransaction();
         nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
@@ -1451,7 +1467,7 @@ public class RealmTests {
         assertEquals(SECONDARY_FIELD_VALUE, result.first().getName());
         assertEquals(null, result.first().getId());
 
-        // update objects
+        // Updates objects.
         realm.beginTransaction();
         nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
@@ -1523,7 +1539,7 @@ public class RealmTests {
         assertEquals(1, realm.where(AllTypesPrimaryKey.class).count());
         AllTypesPrimaryKey obj = realm.where(AllTypesPrimaryKey.class).findFirst();
 
-        // Check that the the only element has all its properties updated
+        // Checks that the the only element has all its properties updated.
         assertEquals("Bar", obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
         assertEquals(2.23F, obj.getColumnFloat(), 0);
@@ -1561,7 +1577,7 @@ public class RealmTests {
     }
 
 
-    // Checks that an unmanaged object with only default values can override data
+    // Checks that an unmanaged object with only default values can override data.
     @Test
     public void copyToRealmOrUpdate_defaultValuesOverrideExistingData() {
         realm.executeTransaction(new Realm.Transaction() {
@@ -1600,7 +1616,7 @@ public class RealmTests {
     }
 
 
-    // Tests that if references to objects are removed, the objects are still in the Realm
+    // Tests that if references to objects are removed, the objects are still in the Realm.
     @Test
     public void copyToRealmOrUpdate_referencesNotDeleted() {
         realm.executeTransaction(new Realm.Transaction() {
@@ -1767,7 +1783,7 @@ public class RealmTests {
         byte[] key1 = TestHelper.getRandomKey(42);
         byte[] key2 = TestHelper.getRandomKey(42);
 
-        // Make sure the key is the same, but in two different instances
+        // Makes sure the key is the same, but in two different instances.
         assertArrayEquals(key1, key2);
         assertTrue(key1 != key2);
 
@@ -1798,7 +1814,7 @@ public class RealmTests {
         long before = realm.where(AllTypes.class).count();
         assertEquals(TEST_DATA_SIZE, before);
 
-        // Configure test realms
+        // Configures test realms.
         final String ENCRYPTED_REALM_FILE_NAME = "encryptedTestRealm.realm";
         final String RE_ENCRYPTED_REALM_FILE_NAME = "reEncryptedTestRealm.realm";
         final String DECRYPTED_REALM_FILE_NAME = "decryptedTestRealm.realm";
@@ -1811,21 +1827,21 @@ public class RealmTests {
 
         RealmConfiguration decryptedRealmConfig = configFactory.createConfiguration(DECRYPTED_REALM_FILE_NAME);
 
-        // Write encrypted copy from a unencrypted Realm
+        // Writes encrypted copy from a unencrypted Realm.
         File destination = new File(encryptedRealmConfig.getPath());
         realm.writeEncryptedCopyTo(destination, encryptedRealmConfig.getEncryptionKey());
 
         Realm encryptedRealm = null;
         try {
 
-            // Verify encrypted Realm and write new encrypted copy with a new key
+            // Verifies encrypted Realm and writes new encrypted copy with a new key.
             encryptedRealm = Realm.getInstance(encryptedRealmConfig);
             assertEquals(TEST_DATA_SIZE, encryptedRealm.where(AllTypes.class).count());
 
             destination = new File(reEncryptedRealmConfig.getPath());
             encryptedRealm.writeEncryptedCopyTo(destination, reEncryptedRealmConfig.getEncryptionKey());
 
-            // Verify re-encrypted copy
+            // Verifies re-encrypted copy.
             Realm reEncryptedRealm = null;
             try {
                 reEncryptedRealm = Realm.getInstance(reEncryptedRealmConfig);
@@ -1839,11 +1855,11 @@ public class RealmTests {
                 }
             }
 
-            // Write non-encrypted copy from the encrypted version
+            // Writes non-encrypted copy from the encrypted version.
             destination = new File(decryptedRealmConfig.getPath());
             encryptedRealm.writeEncryptedCopyTo(destination, null);
 
-            // Verify decrypted Realm and cleanup
+            // Verifies decrypted Realm and cleans up.
             Realm decryptedRealm = null;
             try {
                 decryptedRealm = Realm.getInstance(decryptedRealmConfig);
@@ -1881,24 +1897,24 @@ public class RealmTests {
         RealmConfiguration configA = configFactory.createConfiguration();
         RealmConfiguration configB = configFactory.createConfiguration(OTHER_REALM_NAME);
 
-        // This instance is already cached because of the setUp() method so this deletion should throw
+        // This instance is already cached because of the setUp() method so this deletion should throw.
         try {
             Realm.deleteRealm(configA);
             fail();
         } catch (IllegalStateException ignored) {
         }
 
-        // Create a new Realm file
+        // Creates a new Realm file.
         Realm yetAnotherRealm = Realm.getInstance(configB);
 
-        // Deleting it should fail
+        // Deleting it should fail.
         try {
             Realm.deleteRealm(configB);
             fail();
         } catch (IllegalStateException ignored) {
         }
 
-        // But now that we close it deletion should work
+        // But now that we close it deletion should work.
         yetAnotherRealm.close();
         try {
             Realm.deleteRealm(configB);
@@ -1912,7 +1928,7 @@ public class RealmTests {
     public void setter_updateField() throws Exception {
         realm.beginTransaction();
 
-        // Create an owner with two dogs
+        // Creates an owner with two dogs.
         OwnerPrimaryKey owner = realm.createObject(OwnerPrimaryKey.class, 1);
         owner.setName("Jack");
         Dog rex = realm.createObject(Dog.class);
@@ -1923,11 +1939,11 @@ public class RealmTests {
         owner.getDogs().add(fido);
         assertEquals(2, owner.getDogs().size());
 
-        // Changing the name of the owner should not affect the number of dogs
+        // Changing the name of the owner should not affect the number of dogs.
         owner.setName("Peter");
         assertEquals(2, owner.getDogs().size());
 
-        // Updating the user should not affect it either. This is actually a no-op since owner is a Realm backed object
+        // Updating the user should not affect it either. This is actually a no-op since owner is a Realm backed object.
         OwnerPrimaryKey owner2 = realm.copyToRealmOrUpdate(owner);
         assertEquals(2, owner.getDogs().size());
         assertEquals(2, owner2.getDogs().size());
@@ -1950,7 +1966,7 @@ public class RealmTests {
         final CountDownLatch closedLatch = new CountDownLatch(1);
 
         Realm realm = Realm.getInstance(configuration);
-        // Create another Realm to ensure the log files are generated
+        // Creates another Realm to ensure the log files are generated.
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -1969,7 +1985,7 @@ public class RealmTests {
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        // Wait for bg thread's opening the same Realm.
+        // Waits for bg thread's opening the same Realm.
         TestHelper.awaitOrFail(bgThreadReadyLatch);
 
         // A core upgrade might change the location of the files
@@ -1983,19 +1999,19 @@ public class RealmTests {
 
         assertTrue(Realm.deleteRealm(configuration));
 
-        // Directory should be empty now
+        // Directory should be empty now.
         assertEquals(0, tempDir.listFiles().length);
     }
 
-    // Test that all methods that require a transaction (ie. any function that mutates Realm data)
+    // Tests that all methods that require a transaction. (ie. any function that mutates Realm data)
     @Test
     public void callMutableMethodOutsideTransaction() throws JSONException, IOException {
 
-        // Prepare unmanaged object data
+        // Prepares unmanaged object data.
         AllTypesPrimaryKey t = new AllTypesPrimaryKey();
         List<AllTypesPrimaryKey> ts = Arrays.asList(t, t);
 
-        // Prepare JSON data
+        // Prepares JSON data.
         String jsonObjStr = "{ \"columnLong\" : 1 }";
         JSONObject jsonObj = new JSONObject(jsonObjStr);
         InputStream jsonObjStream = TestHelper.stringToStream(jsonObjStr);
@@ -2006,7 +2022,7 @@ public class RealmTests {
         InputStream jsonArrStream = TestHelper.stringToStream(jsonArrStr);
         InputStream jsonArrStream2 = TestHelper.stringToStream(jsonArrStr);
 
-        // Test all methods that should require a transaction
+        // Tests all methods that should require a transaction.
         try { realm.createObject(AllTypes.class);   fail(); } catch (IllegalStateException expected) {}
         try { realm.copyToRealm(t);                 fail(); } catch (IllegalStateException expected) {}
         try { realm.copyToRealm(ts);                fail(); } catch (IllegalStateException expected) {}
@@ -2225,7 +2241,7 @@ public class RealmTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                // create a DefaultValueOfField with non-default primary key value
+                // Creates a DefaultValueOfField with non-default primary key value.
                 realm.createObject(DefaultValueOfField.class,
                         DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3);
             }
@@ -2242,7 +2258,7 @@ public class RealmTests {
         testOneObjectFound(realm, DefaultValueOfField.class,
                 DefaultValueOfField.FIELD_INT,
                 DefaultValueOfField.FIELD_INT_DEFAULT_VALUE);
-        // default value for pk must be ignored
+        // Default value for pk must be ignored.
         testNoObjectFound(realm, DefaultValueOfField.class,
                 DefaultValueOfField.FIELD_LONG_PRIMARY_KEY,
                 DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE);
@@ -2293,7 +2309,7 @@ public class RealmTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                // create a DefaultValueConstructor with non-default primary key value
+                // Creates a DefaultValueConstructor with non-default primary key value.
                 realm.createObject(DefaultValueConstructor.class,
                         DefaultValueConstructor.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3);
             }
@@ -2312,7 +2328,7 @@ public class RealmTests {
         testOneObjectFound(realm, DefaultValueConstructor.class,
                 DefaultValueConstructor.FIELD_INT,
                 DefaultValueConstructor.FIELD_INT_DEFAULT_VALUE);;
-        // default value for pk must be ignored
+        // Default value for pk must be ignored.
         testNoObjectFound(realm, DefaultValueConstructor.class,
                 DefaultValueConstructor.FIELD_LONG_PRIMARY_KEY,
                         DefaultValueConstructor.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE);
@@ -2352,7 +2368,7 @@ public class RealmTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                // create a DefaultValueSetter with non-default primary key value
+                // Creates a DefaultValueSetter with non-default primary key value.
                 realm.createObject(DefaultValueSetter.class,
                         DefaultValueSetter.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3);
             }
@@ -2371,7 +2387,7 @@ public class RealmTests {
         testOneObjectFound(realm, DefaultValueSetter.class,
                 DefaultValueSetter.FIELD_INT,
                 DefaultValueSetter.FIELD_INT_DEFAULT_VALUE);
-        // default value for pk must be ignored
+        // Default value for pk must be ignored.
         testNoObjectFound(realm, DefaultValueSetter.class,
                 DefaultValueSetter.FIELD_LONG_PRIMARY_KEY,
                         DefaultValueSetter.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE);
@@ -2408,6 +2424,15 @@ public class RealmTests {
         testOneObjectFound(realm, DefaultValueSetter.class,
                 DefaultValueSetter.FIELD_LIST+ "." + RandomPrimaryKey.FIELD_INT,
                         RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 1);
+    }
+
+    @Test
+    public void createObject_defaultValueFromOtherConstructor() {
+        realm.beginTransaction();
+        DefaultValueFromOtherConstructor obj = realm.createObject(DefaultValueFromOtherConstructor.class);
+        realm.commitTransaction();
+
+        assertEquals(42, obj.getFieldLong());
     }
 
     @Test
@@ -2477,7 +2502,7 @@ public class RealmTests {
         assertEquals(1, managedObj.getFieldList().size());
         assertEquals(fieldListIntValue, managedObj.getFieldList().first().getFieldInt());
 
-        // make sure that excess object by default value is not created.
+        // Makes sure that excess object by default value is not created.
         assertEquals(2, realm.where(RandomPrimaryKey.class).count());
     }
 
@@ -2534,7 +2559,7 @@ public class RealmTests {
         assertEquals(managedObj.getFieldList().first().getFieldInt(), copy.getFieldList().first().getFieldInt());
     }
 
-    // Test close Realm in another thread different from where it is created.
+    // Tests close Realm in another thread different from where it is created.
     @Test
     public void close_differentThread() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -2554,7 +2579,7 @@ public class RealmTests {
         });
         thatThread.start();
 
-        // Timeout should never happen
+        // Timeout should never happen.
         latch.await();
         if (threadAssertionError[0] != null) {
             throw threadAssertionError[0];
@@ -2572,7 +2597,7 @@ public class RealmTests {
         assertTrue(realm.isClosed());
     }
 
-    // Test Realm#isClosed() in another thread different from where it is created.
+    // Tests Realm#isClosed() in another thread different from where it is created.
     @Test
     public void isClosed_differentThread() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -2592,7 +2617,7 @@ public class RealmTests {
         });
         thatThread.start();
 
-        // Timeout should never happen
+        // Timeout should never happen.
         latch.await();
         if (threadAssertionError[0] != null) {
             throw threadAssertionError[0];
@@ -2605,7 +2630,7 @@ public class RealmTests {
 
     // Realm validation & initialization is done once, still ColumnIndices
     // should be populated for the subsequent Realm sharing the same configuration
-    // even if we skip initialization & validation
+    // even if we skip initialization & validation.
     @Test
     public void columnIndicesIsPopulatedWhenSkippingInitialization() throws Throwable {
         final RealmConfiguration realmConfiguration = configFactory.createConfiguration("columnIndices");
@@ -2617,7 +2642,7 @@ public class RealmTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Realm realm = Realm.getInstance(realmConfiguration); // This will populate columnIndices
+                Realm realm = Realm.getInstance(realmConfiguration); // This will populate columnIndices.
                 try {
                     bgRealmOpened.countDown();
                     TestHelper.awaitOrFail(mainThreadRealmDone);
@@ -2635,7 +2660,7 @@ public class RealmTests {
 
         TestHelper.awaitOrFail(bgRealmOpened);
         Realm realm = Realm.getInstance(realmConfiguration);
-        realm.where(AllTypes.class).equalTo("columnString", "Foo").findAll(); // This would crash if columnIndices == null
+        realm.where(AllTypes.class).equalTo("columnString", "Foo").findAll(); // This would crash if columnIndices == null.
         realm.close();
         mainThreadRealmDone.countDown();
         TestHelper.awaitOrFail(bgRealmClosed);
@@ -2657,7 +2682,7 @@ public class RealmTests {
         assertFalse(realm.isInTransaction());
     }
 
-    // test for https://github.com/realm/realm-java/issues/1646
+    // Test for https://github.com/realm/realm-java/issues/1646
     @Test
     public void closingRealmWhileOtherThreadIsOpeningRealm() throws Exception {
         final CountDownLatch startLatch = new CountDownLatch(1);
@@ -2687,11 +2712,11 @@ public class RealmTests {
             }
         }.start();
 
-        // prevent for another thread to enter Realm.createAndValidate().
+        // Prevents for another thread to enter Realm.createAndValidate().
         synchronized (BaseRealm.class) {
             startLatch.countDown();
 
-            // wait for another thread's entering Realm.createAndValidate().
+            // Waits for another thread's entering Realm.createAndValidate().
             SystemClock.sleep(100L);
 
             realm.close();
@@ -2721,7 +2746,7 @@ public class RealmTests {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                // Step 2: Open realm in background thread.
+                // Step 2: Opens realm in background thread.
                 Realm realm = Realm.getInstance(realmConfig);
                 realmOpenedInBgLatch.countDown();
                 try {
@@ -2732,7 +2757,7 @@ public class RealmTests {
                     return;
                 }
 
-                // Step 4: Start transaction in background
+                // Step 4: Starts transaction in background.
                 realm.beginTransaction();
                 transBeganInBgLatch.countDown();
                 try {
@@ -2740,7 +2765,7 @@ public class RealmTests {
                 } catch (InterruptedException e) {
                     exception.add(e);
                 }
-                // Step 6: Cancel Transaction and close realm in background
+                // Step 6: Cancels Transaction and closes realm in background.
                 realm.cancelTransaction();
                 realm.close();
                 bgFinishedLatch.countDown();
@@ -2749,12 +2774,12 @@ public class RealmTests {
         thread.start();
 
         realmOpenedInBgLatch.await();
-        // Step 3: Close all realm instances in foreground thread.
+        // Step 3: Closes all realm instances in foreground thread.
         realm.close();
         realmClosedInFgLatch.countDown();
         transBeganInBgLatch.await();
 
-        // Step 5: Get a new Realm instance in foreground
+        // Step 5: Gets a new Realm instance in foreground.
         realm = Realm.getInstance(realmConfig);
         fgFinishedLatch.countDown();
         bgFinishedLatch.await();
@@ -2846,10 +2871,10 @@ public class RealmTests {
         assertNotSame(unmanagedObject1, unmanagedObject2);
     }
 
-    // Test that the object graph is copied as it is and no extra copies are made
+    // Tests that the object graph is copied as it is and no extra copies are made.
     // 1) (A -> B/[B,C])
     // 2) (C -> B/[B,A])
-    // A copy should result in only 3 distinct objects
+    // A copy should result in only 3 distinct objects.
     @Test
     public void copyFromRealm_cyclicObjectGraph() {
         realm.beginTransaction();
@@ -2875,14 +2900,14 @@ public class RealmTests {
         assertEquals("B", copyB.getName());
         assertEquals("C", copyC.getName());
 
-        // Assert object equality on the object graph
+        // Asserts object equality on the object graph.
         assertTrue(copyA.getObject() == copyC.getObject());
         assertTrue(copyA.getObjects().get(0) == copyC.getObjects().get(0));
         assertTrue(copyA == copyC.getObjects().get(1));
         assertTrue(copyC == copyA.getObjects().get(1));
     }
 
-    // Test that for (A -> B -> C) for maxDepth = 1, result is (A -> B -> null)
+    // Tests that for (A -> B -> C) for maxDepth = 1, result is (A -> B -> null).
     @Test
     public void copyFromRealm_checkMaxDepth() {
         realm.beginTransaction();
@@ -2903,7 +2928,7 @@ public class RealmTests {
         assertNull(copyA.getObject().getObject());
     }
 
-    // Test that depth restriction is calculated from the top-most encountered object, i.e. it is possible for some
+    // Tests that depth restriction is calculated from the top-most encountered object, i.e. it is possible for some
     // objects to exceed the depth limit.
     // A -> B -> C -> D -> E
     // A -> D -> E
@@ -2928,8 +2953,8 @@ public class RealmTests {
         objA.setOtherObject(objD);
         realm.commitTransaction();
 
-        // object is filled before otherObject (because of field order - WARNING: Not guaranteed)
-        // this means that the object will be encountered first time at max depth, so E will not be copied.
+        // Object is filled before otherObject. (because of field order - WARNING: Not guaranteed)
+        // This means that the object will be encountered first time at max depth, so E will not be copied.
         // If the object cache does not handle this, otherObject will be wrong.
         CyclicType copyA = realm.copyFromRealm(objA, 3);
         assertEquals("E", copyA.getOtherObject().getObject().getName());
@@ -2954,7 +2979,7 @@ public class RealmTests {
         realm.copyFromRealm(results, -1);
     }
 
-    // Test that the same Realm objects in a list result in the same Java in-memory copy.
+    // Tests that the same Realm objects in a list result in the same Java in-memory copy.
     // List: A -> [(B -> C), (B -> C)] should result in only 2 copied objects A and B and not A1, B1, A2, B2
     @Test
     public void copyFromRealm_list_sameElements() {
@@ -3007,7 +3032,7 @@ public class RealmTests {
         }
     }
 
-    // Test if close can be called from Realm change listener when there is no other listeners
+    // Tests if close can be called from Realm change listener when there is no other listeners.
     @Test
     public void closeRealmInChangeListener() {
         realm.close();
@@ -3043,7 +3068,7 @@ public class RealmTests {
         TestHelper.awaitOrFail(signalTestFinished);
     }
 
-    // Test if close can be called from Realm change listener when there is a listener on empty Realm Object
+    // Tests if close can be called from Realm change listener when there is a listener on empty Realm Object.
     @Test
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnEmptyObject() {
@@ -3084,7 +3109,7 @@ public class RealmTests {
         });
     }
 
-    // Test if close can be called from Realm change listener when there is an listener on non-empty Realm Object
+    // Tests if close can be called from Realm change listener when there is an listener on non-empty Realm Object.
     @Test
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnObject() {
@@ -3101,7 +3126,7 @@ public class RealmTests {
                     realm.removeChangeListener(this);
                     realm.close();
 
-                    // End test after next looper event to ensure that all listeners were called.
+                    // Ends test after next looper event to ensure that all listeners were called.
                     looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
@@ -3118,7 +3143,7 @@ public class RealmTests {
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        // Step 1: Change listener on Realm Object
+        // Change listener on Realm Object.
         final AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         allTypes.addChangeListener(dummyListener);
         realm.executeTransactionAsync(new Realm.Transaction() {
@@ -3129,7 +3154,7 @@ public class RealmTests {
         });
     }
 
-    // Test if close can be called from Realm change listener when there is an listener on RealmResults
+    // Tests if close can be called from Realm change listener when there is an listener on RealmResults.
     @Test
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnResults() {
@@ -3157,7 +3182,7 @@ public class RealmTests {
 
         realm.addChangeListener(listener);
 
-        // Step 1: Change listener on Realm results
+        // Change listener on Realm results.
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         results.addChangeListener(dummyListener);
 
@@ -3319,7 +3344,7 @@ public class RealmTests {
         final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(false);
         final AtomicLong bgRealmWaitForChangeResult = new AtomicLong(0);
 
-        // wait in background
+        // Waits in background.
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -3349,7 +3374,7 @@ public class RealmTests {
         final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(false);
         final AtomicLong bgRealmWaitForChangeResult = new AtomicLong(0);
 
-        // wait in background
+        // Waits in background.
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -3378,14 +3403,14 @@ public class RealmTests {
         final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(false);
         final AtomicLong bgRealmResultSize = new AtomicLong(0);
 
-        // wait in background
+        // Wait in background
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 Realm realm = Realm.getInstance(realmConfig);
                 RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
-                // first make sure the results is empty
+                // First makes sure the results is empty.
                 bgRealmResultSize.set(results.size());
                 bgRealmOpened.countDown();
                 bgRealmChangeResult.set(realm.waitForChange());
@@ -3397,12 +3422,12 @@ public class RealmTests {
         thread.start();
 
         TestHelper.awaitOrFail(bgRealmOpened);
-        // background result should be empty
+        // Background result should be empty.
         assertEquals(0, bgRealmResultSize.get());
         populateTestRealm();
         TestHelper.awaitOrFail(bgRealmClosed);
         assertTrue(bgRealmChangeResult.get());
-        // Once RealmResults are synchronized after waitForChange, the result size should be what we expect
+        // Once RealmResults are synchronized after waitForChange, the result size should be what we expect.
         assertEquals(TEST_DATA_SIZE, bgRealmResultSize.get());
     }
 
@@ -3413,7 +3438,7 @@ public class RealmTests {
         final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(true);
         final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
 
-        // wait in background
+        // Waits in background.
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -3433,7 +3458,7 @@ public class RealmTests {
         assertFalse(bgRealmChangeResult.get());
     }
 
-    // Test if waitForChange doesn't blocks once stopWaitForChange has been called before.
+    // Tests if waitForChange doesn't blocks once stopWaitForChange has been called before.
     @Test
     public void waitForChange_stopWaitForChangeDisablesWaiting() throws InterruptedException {
         final CountDownLatch bgRealmOpened = new CountDownLatch(1);
@@ -3443,7 +3468,7 @@ public class RealmTests {
         final AtomicBoolean bgRealmSecondWaitResult = new AtomicBoolean(false);
         final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
 
-        // wait in background
+        // Waits in background.
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -3466,7 +3491,7 @@ public class RealmTests {
         assertFalse(bgRealmSecondWaitResult.get());
     }
 
-    // Test if waitForChange still blocks if stopWaitForChange has been called for a realm in a different thread.
+    // Tests if waitForChange still blocks if stopWaitForChange has been called for a realm in a different thread.
     @Test
     public void waitForChange_blockSpecificThreadOnly() throws InterruptedException {
         final CountDownLatch bgRealmsOpened = new CountDownLatch(2);
@@ -3476,7 +3501,7 @@ public class RealmTests {
         final AtomicLong bgRealmWaitForChangeResult = new AtomicLong(0);
         final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
 
-        // wait in background
+        // Waits in background.
         Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -3505,7 +3530,7 @@ public class RealmTests {
 
         TestHelper.awaitOrFail(bgRealmsOpened);
         bgRealm.get().stopWaitForChange();
-        // wait for Thread 2 to wait
+        // Waits for Thread 2 to wait.
         Thread.sleep(500);
         populateTestRealm();
         TestHelper.awaitOrFail(bgRealmsClosed);
@@ -3514,7 +3539,7 @@ public class RealmTests {
         assertEquals(TEST_DATA_SIZE, bgRealmWaitForChangeResult.get());
     }
 
-    // Check if waitForChange() does not respond to Thread.interrupt().
+    // Checks if waitForChange() does not respond to Thread.interrupt().
     @Test
     public void waitForChange_interruptingThread() throws InterruptedException {
         final CountDownLatch bgRealmOpened = new CountDownLatch(1);
@@ -3522,7 +3547,7 @@ public class RealmTests {
         final AtomicReference<Boolean> bgRealmWaitResult = new AtomicReference<Boolean>();
         final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
 
-        // wait in background
+        // Waits in background.
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -3537,14 +3562,14 @@ public class RealmTests {
         thread.start();
 
         TestHelper.awaitOrFail(bgRealmOpened);
-        // make sure background thread goes to wait
+        // Makes sure background thread goes to wait.
         Thread.sleep(500);
-        // interrupting a thread should neither cause any side effect nor terminate the Background Realm from waiting.
+        // Interrupting a thread should neither cause any side effect nor terminate the Background Realm from waiting.
         thread.interrupt();
         assertTrue(thread.isInterrupted());
         assertEquals(null, bgRealmWaitResult.get());
 
-        // now we'll stop realm from waiting
+        // Now we'll stop realm from waiting.
         bgRealm.get().stopWaitForChange();
         TestHelper.awaitOrFail(bgRealmClosed);
         assertFalse(bgRealmWaitResult.get().booleanValue());
@@ -3580,7 +3605,7 @@ public class RealmTests {
         assertEquals(IllegalStateException.class, bgError.getException().getClass());
     }
 
-    // Cannot wait inside of a transaction
+    // Cannot wait inside of a transaction.
     @Test(expected= IllegalStateException.class)
     public void waitForChange_illegalWaitInsideTransaction() {
         realm.beginTransaction();
@@ -3669,7 +3694,7 @@ public class RealmTests {
         final long nameIndex = catColumnInfo.nameIndex;
         final AtomicLong nameIndexNew = new AtomicLong(-1L);
 
-        // change column index of "name"
+        // Changes column index of "name".
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -3684,17 +3709,17 @@ public class RealmTests {
                 nameIndexNew.set(newIndex);
             }
         });
-        // we need ↓ to update index cache if the schema version was changed in the same thread.
+        // We need to update index cache if the schema version was changed in the same thread.
         realm.sharedRealm.invokeSchemaChangeListenerIfSchemaChanged();
 
-        // check if the index was changed
+        // Checks if the index was changed.
         assertNotEquals(nameIndex, nameIndexNew);
 
-        // check if index in the ColumnInfo is updated
+        // Checks if index in the ColumnInfo is updated.
         assertEquals(nameIndexNew.get(), catColumnInfo.nameIndex);
         assertEquals(nameIndexNew.get(), (long) catColumnInfo.getIndicesMap().get(Cat.FIELD_NAME));
 
-        // check by actual get and set
+        // Checks by actual get and set.
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -3713,15 +3738,15 @@ public class RealmTests {
         final RealmConfiguration config = configFactory.createConfiguration("globalCountTest");
         assertEquals(0, Realm.getGlobalInstanceCount(config));
 
-        // Open thread local Realm
+        // Opens thread local Realm.
         Realm realm = Realm.getInstance(config);
         assertEquals(1, Realm.getGlobalInstanceCount(config));
 
-        // Open thread local DynamicRealm
+        // Opens thread local DynamicRealm.
         DynamicRealm dynRealm = DynamicRealm.getInstance(config);
         assertEquals(2, Realm.getGlobalInstanceCount(config));
 
-        // Open Realm in another thread
+        // Opens Realm in another thread.
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -3745,11 +3770,11 @@ public class RealmTests {
         final RealmConfiguration config = configFactory.createConfiguration("localInstanceCount");
         assertEquals(0, Realm.getLocalInstanceCount(config));
 
-        // Open thread local Realm
+        // Opens thread local Realm.
         Realm realm = Realm.getInstance(config);
         assertEquals(1, Realm.getLocalInstanceCount(config));
 
-        // Open thread local DynamicRealm
+        // Opens thread local DynamicRealm.
         DynamicRealm dynRealm = DynamicRealm.getInstance(config);
         assertEquals(2, Realm.getLocalInstanceCount(config));
 
@@ -3762,7 +3787,7 @@ public class RealmTests {
     @Test
     public void namedPipeDirForExternalStorage() {
 
-        // test for https://github.com/realm/realm-java/issues/3140
+        // Test for https://github.com/realm/realm-java/issues/3140
         realm.close();
         realm = null;
 
@@ -3779,7 +3804,7 @@ public class RealmTests {
                 .build();
         Realm.deleteRealm(config);
 
-        // test if it works when the namedPipeDir is empty.
+        // Test if it works when the namedPipeDir is empty.
         Realm realmOnExternalStorage = Realm.getInstance(config);
         realmOnExternalStorage.close();
 
@@ -3787,7 +3812,7 @@ public class RealmTests {
 
         Assume.assumeTrue("SELinux is not enforced on this device.", TestHelper.isSelinuxEnforcing());
 
-        // Only check the fifo file created by call, since all Realm instances share the same fifo created by
+        // Only checks the fifo file created by call, since all Realm instances share the same fifo created by
         // external_commit_helper which might not be created in the newly created dir if there are Realm instances
         // are not deleted when TestHelper.deleteRecursively(namedPipeDir) called.
         File[] files = namedPipeDir.listFiles(new FilenameFilter() {
@@ -3798,7 +3823,7 @@ public class RealmTests {
         });
         assertEquals(1, files.length);
 
-        // test if it works when the namedPipeDir and the named pipe files already exist.
+        // Tests if it works when the namedPipeDir and the named pipe files already exist.
         realmOnExternalStorage = Realm.getInstance(config);
         realmOnExternalStorage.close();
     }

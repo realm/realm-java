@@ -17,7 +17,6 @@
 package io.realm.rule;
 
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.support.test.InstrumentationRegistry;
 
 import org.junit.rules.TemporaryFolder;
@@ -76,7 +75,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
     @Override
     protected void after() {
-        // Wait all async tasks done to ensure successful deleteRealm call.
+        // Waits all async tasks done to ensure successful deleteRealm call.
         // This will throw when timeout. And the reason of timeout needs to be solved properly.
         TestHelper.waitRealmThreadExecutorFinish();
 
@@ -85,7 +84,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
                 Realm.deleteRealm(configuration);
             }
         } catch (IllegalStateException e) {
-            // Only throw the exception caused by deleting the opened Realm if the test case itself doesn't throw.
+            // Only throws the exception caused by deleting the opened Realm if the test case itself doesn't throw.
             if (!unitTestFailed) {
                 throw e;
             }
@@ -142,25 +141,39 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     }
 
     // Copies a Realm file from assets to temp dir
-    public void copyRealmFromAssets(Context context, String realmPath, String newName)
-            throws IOException {
-        // Delete the existing file before copy
-        RealmConfiguration configToDelete = new RealmConfiguration.Builder()
+    public void copyRealmFromAssets(Context context, String realmPath, String newName) throws IOException {
+        RealmConfiguration config = new RealmConfiguration.Builder()
                 .directory(getRoot())
                 .name(newName)
                 .build();
-        Realm.deleteRealm(configToDelete);
 
-        AssetManager assetManager = context.getAssets();
-        InputStream is = assetManager.open(realmPath);
-        File file = new File(getRoot(), newName);
-        FileOutputStream outputStream = new FileOutputStream(file);
-        byte[] buf = new byte[1024];
-        int bytesRead;
-        while ((bytesRead = is.read(buf)) > -1) {
-            outputStream.write(buf, 0, bytesRead);
+        copyRealmFromAssets(context, realmPath, config);
+    }
+
+    public void copyRealmFromAssets(Context context, String realmPath, RealmConfiguration config) throws IOException {
+        // Deletes the existing file before copy
+        Realm.deleteRealm(config);
+
+        File outFile = new File(config.getRealmDirectory(), config.getRealmFileName());
+
+        InputStream is = null;
+        FileOutputStream os = null;
+        try {
+            is = context.getAssets().open(realmPath);
+            os = new FileOutputStream(outFile);
+
+            byte[] buf = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = is.read(buf)) > -1) {
+                os.write(buf, 0, bytesRead);
+            }
+        } finally {
+            if (is != null) {
+                try { is.close(); } catch (IOException ignore) {}
+            }
+            if (os != null) {
+                try { os.close(); } catch (IOException ignore) {}
+            }
         }
-        outputStream.close();
-        is.close();
     }
 }

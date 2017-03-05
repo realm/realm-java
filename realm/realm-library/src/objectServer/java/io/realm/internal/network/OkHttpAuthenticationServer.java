@@ -16,15 +16,16 @@
 
 package io.realm.internal.network;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.SyncCredentials;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
-import io.realm.SyncUser;
+import io.realm.SyncCredentials;
 import io.realm.internal.objectserver.Token;
+import io.realm.log.RealmLog;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -76,8 +77,26 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     }
 
     @Override
-    public LogoutResponse logout(SyncUser user, URL authenticationUrl) {
-        throw new UnsupportedOperationException("Not yet implemented");
+    public LogoutResponse logout(Token userToken, URL authenticationUrl) {
+        try {
+            String requestBody = LogoutRequest.revoke(userToken).toJson();
+            return logout(buildLogoutUrl(authenticationUrl), requestBody);
+        } catch (Exception e) {
+            return LogoutResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
+        }
+    }
+
+    private static URL buildLogoutUrl(URL authenticationUrl) {
+        final String baseUrlString = authenticationUrl.toExternalForm();
+        try {
+            if (baseUrlString.endsWith("/")) {
+                return new URL(baseUrlString + "revoke");
+            } else {
+                return new URL(baseUrlString + "/revoke");
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private AuthenticateResponse authenticate(URL authenticationUrl, String requestBody) throws Exception {
@@ -85,11 +104,23 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
                 .url(authenticationUrl)
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Accept", "application/json")
-                .addHeader("Connection", "close") //  See https://github.com/square/okhttp/issues/2363
+                .post(RequestBody.create(JSON, requestBody))
+                .build();
+        RealmLog.debug("Authenticate: " + requestBody);
+        Call call = client.newCall(request);
+        Response response = call.execute();
+        return AuthenticateResponse.from(response);
+    }
+
+    private LogoutResponse logout(URL logoutUrl, String requestBody) throws Exception {
+        Request request = new Request.Builder()
+                .url(logoutUrl)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Accept", "application/json")
                 .post(RequestBody.create(JSON, requestBody))
                 .build();
         Call call = client.newCall(request);
         Response response = call.execute();
-        return AuthenticateResponse.from(response);
+        return LogoutResponse.from(response);
     }
 }

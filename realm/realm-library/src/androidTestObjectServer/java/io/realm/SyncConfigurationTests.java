@@ -33,12 +33,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.StringOnly;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.rule.TestSyncConfigurationFactory;
 
+import static io.realm.util.SyncTestUtils.createNamedTestUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -50,7 +52,7 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class SyncConfigurationTests {
     @Rule
-    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
@@ -74,13 +76,6 @@ public class SyncConfigurationTests {
     }
 
     @Test
-    public void user() {
-//        new SyncConfiguration.Builder(context);
-        // Check that user can be added
-        // That the default local path is correct
-    }
-
-    @Test
     public void user_invalidUserThrows() {
         try {
             new SyncConfiguration.Builder(null, "realm://ros.realm.io/default");
@@ -97,10 +92,11 @@ public class SyncConfigurationTests {
     @Test
     public void serverUrl_setsFolderAndFileName() {
         SyncUser user = createTestUser();
+        String identity = user.getIdentity();
         String[][] validUrls = {
                 // <URL>, <Folder>, <FileName>
-                { "realm://objectserver.realm.io/~/default", "realm-object-server/" + user.getIdentity(), "default" },
-                { "realm://objectserver.realm.io/~/sub/default", "realm-object-server/" + user.getIdentity() + "/sub", "default" }
+                { "realm://objectserver.realm.io/~/default", "realm-object-server/" + identity + "/" + identity, "default" },
+                { "realm://objectserver.realm.io/~/sub/default", "realm-object-server/" + identity + "/" + identity + "/sub", "default" }
         };
 
         for (String[] validUrl : validUrls) {
@@ -112,6 +108,47 @@ public class SyncConfigurationTests {
 
             assertEquals(new File(context.getFilesDir(), expectedFolder), config.getRealmDirectory());
             assertEquals(expectedFileName, config.getRealmFileName());
+        }
+    }
+
+    @Test
+    public void serverUrl_flexibleInput() {
+        // Check that the serverUrl accept a wide range of input
+        Object[][] fuzzyInput = {
+                // Only path -> Use auth server as basis for server url, but ignore port if set
+                { createTestUser("http://ros.realm.io/auth"),      "/~/default", "realm://ros.realm.io/~/default" },
+                { createTestUser("http://ros.realm.io:7777/auth"), "/~/default", "realm://ros.realm.io/~/default" },
+                { createTestUser("https://ros.realm.io/auth"),     "/~/default", "realms://ros.realm.io/~/default" },
+                { createTestUser("https://127.0.0.1/auth"),        "/~/default", "realms://127.0.0.1/~/default" },
+
+                { createTestUser("http://ros.realm.io/auth"),      "~/default",  "realm://ros.realm.io/~/default" },
+                { createTestUser("http://ros.realm.io:7777/auth"), "~/default",  "realm://ros.realm.io/~/default" },
+                { createTestUser("https://ros.realm.io/auth"),     "~/default",  "realms://ros.realm.io/~/default" },
+                { createTestUser("https://127.0.0.1/auth"),        "~/default",  "realms://127.0.0.1/~/default" },
+
+                // Check that the same name used for server and name doesn't crash
+                { createTestUser("http://ros.realm.io/auth"),      "~/ros.realm.io",  "realm://ros.realm.io/~/ros.realm.io" },
+
+                // Forgot schema -> Use the one from the auth url
+                { createTestUser("http://ros.realm.io/auth"), "ros.realm.io/~/default", "realm://ros.realm.io/~/default" },
+                { createTestUser("http://ros.realm.io/auth"), "//ros.realm.io/~/default", "realm://ros.realm.io/~/default" },
+                { createTestUser("https://ros.realm.io/auth"), "ros.realm.io/~/default", "realms://ros.realm.io/~/default" },
+                { createTestUser("https://ros.realm.io/auth"), "//ros.realm.io/~/default", "realms://ros.realm.io/~/default" },
+
+                // Automatically replace http|https with realm|realms
+                { createTestUser(), "http://ros.realm.io/~/default", "realm://ros.realm.io/~/default" },
+                { createTestUser(), "https://ros.realm.io/~/default", "realms://ros.realm.io/~/default" }
+        };
+
+        for (Object[] test : fuzzyInput) {
+            SyncUser user = (SyncUser) test[0];
+            String serverUrlInput = (String) test[1];
+            String resolvedServerUrl = ((String) test[2]).replace("~", user.getIdentity());
+
+            SyncConfiguration config = new SyncConfiguration.Builder(user, serverUrlInput).build();
+
+            assertEquals(String.format("Input '%s' did not resolve correctly.", serverUrlInput),
+                    resolvedServerUrl, config.getServerUrl().toString());
         }
     }
 
@@ -130,7 +167,6 @@ public class SyncConfigurationTests {
             "realm://objectserver.realm.io/~/Αθήνα", // Non-ascii
             "realm://objectserver.realm.io/~/foo/../bar", // .. is not allowed
             "realm://objectserver.realm.io/~/foo/./bar", // . is not allowed
-            "http://objectserver.realm.io/~/default", // wrong scheme
         };
 
         for (String invalidUrl : invalidUrls) {
@@ -363,7 +399,8 @@ public class SyncConfigurationTests {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
 
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .schema(StringOnly.class)
                 .initialData(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
@@ -416,4 +453,113 @@ public class SyncConfigurationTests {
 
         Realm.compactRealm(config);
     }
+
+    @Test
+    public void schemaVersion_throwsIfLessThanCurrentVersion() throws IOException {
+        SyncUser user = createTestUser();
+        String url = "realm://ros.realm.io/~/default";
+        @SuppressWarnings("unchecked")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .schema(AllJavaTypes.class, StringOnly.class)
+                .name("schemaversion_v1.realm")
+                .schemaVersion(0)
+                .build();
+
+        // Add v1 of the Realm to the filsystem
+        configFactory.copyRealmFromAssets(context, "schemaversion_v1.realm", config);
+
+        // Opening the Realm should throw an exception since the schema version is less than the one in the file.
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config);
+            fail();
+        } catch(IllegalArgumentException ignore) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
+    @Test
+    public void schemaVersion_bumpWhenUpgradingSchema() throws IOException {
+        SyncUser user = createTestUser();
+        String url = "realm://ros.realm.io/~/default";
+        @SuppressWarnings("unchecked")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .schema(AllJavaTypes.class, StringOnly.class)
+                .name("schemaversion_v1.realm")
+                .schemaVersion(2)
+                .build();
+
+        // Add v1 of the Realm to the file system. v1 is missing the class `StringOnly`
+        configFactory.copyRealmFromAssets(context, "schemaversion_v1.realm", config);
+
+        // Opening the Realm should automatically upgrade the schema and version
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config);
+            assertEquals(2, realm.getVersion());
+            assertTrue(realm.getSchema().contains(StringOnly.class.getSimpleName()));
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
+    @Test
+    public void schemaVersion_throwsIfNotUpdatedForSchemaUpgrade() throws IOException {
+        SyncUser user = createTestUser();
+        String url = "realm://ros.realm.io/~/default";
+        @SuppressWarnings("unchecked")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .schema(AllJavaTypes.class, StringOnly.class)
+                .name("schemaversion_v1.realm")
+                .schemaVersion(1)
+                .build();
+
+        // Add v1 of the Realm to the file system. v1 is missing the class `StringOnly`
+        configFactory.copyRealmFromAssets(context, "schemaversion_v1.realm", config);
+
+        // Opening the Realm should throw an exception since the schema changed, but the provided schema version is
+        // the same.
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config);
+            fail();
+        } catch(IllegalArgumentException ignore) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
+    // Check that it is possible for multiple users to reference the same Realm URL while each user still use their
+    // own copy on the filesystem. This is e.g. what happens if a Realm is shared using a PermissionOffer.
+    @Test
+    public void multipleUsersReferenceSameRealm() {
+        SyncUser user1 = createNamedTestUser("user1");
+        SyncUser user2 = createNamedTestUser("user2");
+        String sharedUrl = "realm://ros.realm.io/42/default";
+        SyncConfiguration config1 = new SyncConfiguration.Builder(user1, sharedUrl).build();
+        Realm realm1 = Realm.getInstance(config1);
+        SyncConfiguration config2 = new SyncConfiguration.Builder(user2, sharedUrl).build();
+        Realm realm2 = null;
+
+        // Verify that two different configurations can be used for the same URL
+        try {
+            realm2 = Realm.getInstance(config1);
+        } finally {
+            realm1.close();
+            if (realm2 != null) {
+                realm2.close();
+            }
+        }
+
+        // Verify that we actually save two different files
+        assertNotEquals(config1.getPath(), config2.getPath());
+    }
+
 }

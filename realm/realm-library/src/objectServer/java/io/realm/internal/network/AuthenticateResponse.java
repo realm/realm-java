@@ -53,7 +53,7 @@ public class AuthenticateResponse extends AuthServerResponse {
             ObjectServerError error = new ObjectServerError(ErrorCode.IO_EXCEPTION, e);
             return new AuthenticateResponse(error);
         }
-        if (response.code() != 200) {
+        if (!response.isSuccessful()) {
             return new AuthenticateResponse(AuthServerResponse.createError(serverResponse, response.code()));
         } else {
             return new AuthenticateResponse(serverResponse);
@@ -75,13 +75,30 @@ public class AuthenticateResponse extends AuthServerResponse {
     }
 
     /**
+     * Helper method for creating a valid user login response. The user returned will be assumed to have all permissions
+     * and doesn't expire.
+     *
+     * @param identifier user identifier.
+     * @param refreshToken user's refresh token.
+     */
+    public static AuthenticateResponse createValidResponseWithUser(String identifier, String refreshToken) {
+        try {
+            JSONObject response = new JSONObject();
+            response.put(JSON_FIELD_REFRESH_TOKEN, new Token(refreshToken, identifier, null, Long.MAX_VALUE, Token.Permission.ALL).toJson());
+            return new AuthenticateResponse(response.toString());
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Creates an unsuccessful authentication response. This should only happen in case of network or I/O related
      * issues.
      *
      * @param error the network or I/O error.
      */
     private AuthenticateResponse(ObjectServerError error) {
-        RealmLog.debug("AuthenticateResponse. Error " + error.getErrorMessage());
+        RealmLog.debug("AuthenticateResponse - Error: " + error);
         setError(error);
         this.accessToken = null;
         this.refreshToken = null;
