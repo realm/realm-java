@@ -180,7 +180,10 @@ public class SyncManager {
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
-        sessions.remove(syncConfiguration.getPath());
+        SyncSession syncSession = sessions.remove(syncConfiguration.getPath());
+        if (syncSession != null) {
+            syncSession.close();
+        }
     }
 
     static AuthenticationServer getAuthServer() {

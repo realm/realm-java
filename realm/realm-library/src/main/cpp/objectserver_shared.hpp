@@ -63,7 +63,7 @@ public:
         // error handler will be called form the sync client thread
         // we shouldn't capture jobjects (jclass, jmethodID) by reference or valie
         // since they're only valid for the caller thread
-        auto error_handler = [&](std::shared_ptr<SyncSession> session, SyncError error) {
+        auto error_handler = [=](std::shared_ptr<SyncSession> session, SyncError error) {
             realm::jni_util::Log::d("error_handler lambda invoked");
 
             JNIEnv *env = realm::jni_util::JniUtils::get_env(true);
@@ -77,7 +77,7 @@ public:
         // path on disk of the Realm file.
         // the sync configuration object.
         // the session which should be bound.
-        auto bind_handler = [&](const std::string& path, const SyncConfig& syncConfig, std::shared_ptr<SyncSession> session) {
+        auto bind_handler = [=](const std::string& path, const SyncConfig& syncConfig, std::shared_ptr<SyncSession> session) {
             realm::jni_util::Log::d("Callback to Java requesting token for path");
 
             JNIEnv *env = realm::jni_util::JniUtils::get_env(true);
