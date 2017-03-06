@@ -55,7 +55,7 @@ RUN echo y | android update sdk --no-ui --all --filter tools > /dev/null
 RUN echo y | android update sdk --no-ui --all --filter platform-tools | grep 'package installed'
 RUN echo y | android update sdk --no-ui --all --filter build-tools-25.0.2 | grep 'package installed'
 RUN echo y | android update sdk --no-ui --all --filter extra-android-m2repository | grep 'package installed'
-RUN echo y | android update sdk --no-ui --all --filter android-24 | grep 'package installed'
+RUN echo y | android update sdk --no-ui --all --filter android-25 | grep 'package installed'
 
 # Install the NDK
 RUN mkdir /opt/android-ndk-tmp && \

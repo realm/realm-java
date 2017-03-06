@@ -2,6 +2,8 @@
 
 ### Enhancements
 
+* Now `targetSdkVersion` is 25.
+
 ### Bug Fixes
 
 ### Deprecated
