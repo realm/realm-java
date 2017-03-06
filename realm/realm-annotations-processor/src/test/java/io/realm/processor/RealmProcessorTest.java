@@ -63,6 +63,7 @@ public class RealmProcessorTest {
     private JavaFileObject backlinksMissingParam = JavaFileObjects.forResource("some/test/Backlinks_MissingParameter.java");
     private JavaFileObject backlinksMissingGeneric = JavaFileObjects.forResource("some/test/Backlinks_MissingGeneric.java");
     private JavaFileObject backlinksRequired = JavaFileObjects.forResource("some/test/Backlinks_Required.java");
+    private JavaFileObject backlinksIgnored = JavaFileObjects.forResource("some/test/Backlinks_Ignored.java");
     private JavaFileObject backlinksNotFound = JavaFileObjects.forResource("some/test/Backlinks_NotFound.java");
     private JavaFileObject backlinksNonFinalField = JavaFileObjects.forResource("some/test/Backlinks_NotFinal.java");
     private JavaFileObject backlinksWrongType = JavaFileObjects.forResource("some/test/Backlinks_WrongType.java");
@@ -533,6 +534,14 @@ public class RealmProcessorTest {
             .processedWith(new RealmProcessor())
             .failsToCompile()
             .withErrorContaining("cannot be @Required");
+    }
+
+    @Test
+    public void failsOnLinkingObjectsWithIgnoreFields() {
+        ASSERT.about(javaSources())
+            .that(Arrays.asList(backlinks, backlinksTarget, backlinksIgnored))
+            .processedWith(new RealmProcessor())
+            .compilesWithoutError();
     }
 
     @Test

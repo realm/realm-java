@@ -1937,11 +1937,6 @@ public class RealmProxyClassGenerator {
             }
         }
 
-        // The setter would throw an Exception anyway
-        for (Backlink backlink : metadata.getBacklinkFields()) {
-            RealmJsonTypeHelper.emitIllegalJsonValueException("@LinkingObject", backlink.getTargetField(), writer);
-        }
-
         writer.emitStatement("return obj");
         writer.endMethod();
         writer.emitEmptyLine();
@@ -2013,13 +2008,6 @@ public class RealmProxyClassGenerator {
                         writer
                 );
             }
-        }
-
-        // The setter is going to throw an Exception anyway
-        for (Backlink backlink : metadata.getBacklinkFields()) {
-            String fieldName = backlink.getTargetField();
-            writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
-            writer.emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_JSON_LOAD, "@LinkingObject", fieldName);
         }
 
         writer.nextControlFlow("else");

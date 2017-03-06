@@ -694,9 +694,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
-        if (json.has("parentObjects")) {
-            throw new io.realm.exceptions.RealmException("\"@LinkingObject\" field \"parentObjects\" cannot be loaded from json");
-        }
         return obj;
     }
 
@@ -786,8 +783,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     }
                     reader.endArray();
                 }
-            } else if (name.equals("parentObjects")) {
-                throw new io.realm.exceptions.RealmException("\"@LinkingObject\" field \"parentObjects\" cannot be loaded from json");
             } else {
                 reader.skipValue();
             }

@@ -135,11 +135,11 @@ public class LinkingObjectsManagedTests {
         assertEquals(parent, child.getListParents().last());
     }
 
-    // A notification callback should be called on a commit that adds a backlink
+    // A listener registered on the backlinked object should be called when a commit adds a backlink
     @Test
     @RunTestInLooperThread
-    public void notification_onCommit() {
-        Realm looperThreadRealm = looperThread.realm;
+    public void notification_onCommitModelObject() {
+        final Realm looperThreadRealm = looperThread.realm;
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -150,7 +150,6 @@ public class LinkingObjectsManagedTests {
             @Override
             public void onChange(AllJavaTypes object) {
                 counter.incrementAndGet();
-                looperThread.testComplete();
             }
         };
         child.addChangeListener(listener);
@@ -160,15 +159,25 @@ public class LinkingObjectsManagedTests {
         parent.setFieldObject(child);
         looperThreadRealm.commitTransaction();
 
-        assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
-        assertEquals(1, counter.get());
+        // This should be on the Looper queue, behind the notification
+        looperThread.postRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+                    assertEquals(1, counter.get());
+
+                    looperThread.testComplete();
+                }
+            }
+        );
     }
 
-    // A notification callback should not be called after the change listener is removed
+    // A listener registered on the backlinked object should not be called after the listener is removed
     @Test
     @RunTestInLooperThread
-    public void notification_notSentAfterUnregisterListener() {
-        Realm looperThreadRealm = looperThread.realm;
+    public void notification_notSentAfterUnregisterListenerModelObject() {
+        final Realm looperThreadRealm = looperThread.realm;
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -187,20 +196,24 @@ public class LinkingObjectsManagedTests {
         AllJavaTypes parent = looperThreadRealm.createObject(AllJavaTypes.class, 1);
         parent.setFieldObject(child);
         looperThreadRealm.commitTransaction();
-        try {
-            Thread.sleep(100);
-            looperThread.testComplete();
-        } catch (InterruptedException ignore) {
 
-        }
-        assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+        // This should be on the Looper queue, behind the notification
+        looperThread.postRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+                    looperThread.testComplete();
+                }
+            }
+        );
     }
 
-    // A notification callback should be called when a backlinked object is deleted
+    // A listener registered on the backlinked object should be called when a backlinked object is deleted
     @Test
     @RunTestInLooperThread
-    public void notification_onDelete() {
-        Realm looperThreadRealm = looperThread.realm;
+    public void notification_onDeleteModelObject() {
+        final Realm looperThreadRealm = looperThread.realm;
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -213,7 +226,6 @@ public class LinkingObjectsManagedTests {
             @Override
             public void onChange(AllJavaTypes object) {
                 counter.incrementAndGet();
-                looperThread.testComplete();
             }
         };
         child.addChangeListener(listener);
@@ -222,8 +234,207 @@ public class LinkingObjectsManagedTests {
         looperThreadRealm.where(AllJavaTypes.class).equalTo("fieldId", 1).findAll().deleteAllFromRealm();
         looperThreadRealm.commitTransaction();
 
-        assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
-        assertEquals(1, counter.get());
+        // This should be on the Looper queue, behind the notification
+        looperThread.postRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+                    assertEquals(1, counter.get());
+
+                    looperThread.testComplete();
+                }
+            }
+        );
+    }
+
+    // A listener registered on the backlinked object is called for an unrelated change on the an object of the same type!!
+    // This test exists only to document existing (but odd) behavior.
+    @Test
+    @RunTestInLooperThread
+    public void notification_notSentOnUnrelatedChangeModelObject() {
+        final Realm looperThreadRealm = looperThread.realm;
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
+        looperThreadRealm.createObject(AllJavaTypes.class, 1);
+        looperThreadRealm.commitTransaction();
+
+        final AtomicInteger counter = new AtomicInteger(0);
+        RealmChangeListener<AllJavaTypes> listener = new RealmChangeListener<AllJavaTypes>() {
+            @Override
+            public void onChange(AllJavaTypes object) {
+                counter.incrementAndGet();
+            }
+        };
+        child.addChangeListener(listener);
+
+        looperThreadRealm.beginTransaction();
+        looperThreadRealm.where(AllJavaTypes.class).equalTo("fieldId", 1).findAll().deleteAllFromRealm();
+        looperThreadRealm.commitTransaction();
+
+        // This should be on the Looper queue, behind the notification
+        looperThread.postRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+                    assertEquals(1, counter.get());
+
+                    looperThread.testComplete();
+                }
+            }
+        );
+    }
+
+    // A listener registered on the backlinked field should be called when a commit adds a backlink
+    @Test
+    @RunTestInLooperThread
+    public void notification_onCommitRealmResults() {
+        final Realm looperThreadRealm = looperThread.realm;
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
+        looperThreadRealm.commitTransaction();
+
+        final AtomicInteger counter = new AtomicInteger(0);
+        RealmChangeListener<RealmResults<AllJavaTypes>> listener = new RealmChangeListener<RealmResults<AllJavaTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllJavaTypes> object) {
+                counter.incrementAndGet();
+            }
+        };
+        child.getObjectParents().addChangeListener(listener);
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes parent = looperThreadRealm.createObject(AllJavaTypes.class, 1);
+        parent.setFieldObject(child);
+        looperThreadRealm.commitTransaction();
+
+        // This should be on the Looper queue, behind the notification
+        looperThread.postRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+                    assertEquals(1, counter.get());
+
+                    looperThread.testComplete();
+                }
+            }
+        );
+    }
+
+    // A listener registered on the backlinked field should not be called after the listener is removed
+    @Test
+    @RunTestInLooperThread
+    public void notification_notSentAfterUnregisterListenerRealmResults() {
+        final Realm looperThreadRealm = looperThread.realm;
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
+        looperThreadRealm.commitTransaction();
+
+        RealmChangeListener<RealmResults<AllJavaTypes>> listener = new RealmChangeListener<RealmResults<AllJavaTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllJavaTypes> object) {
+                fail("Not expecting notification after unregister");
+            }
+        };
+        RealmResults<AllJavaTypes> objParents = child.getObjectParents();
+        objParents.addChangeListener(listener);
+        objParents.removeChangeListener(listener);
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes parent = looperThreadRealm.createObject(AllJavaTypes.class, 1);
+        parent.setFieldObject(child);
+        looperThreadRealm.commitTransaction();
+
+        // This should be on the Looper queue, behind the notification
+        looperThread.postRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+                    looperThread.testComplete();
+                }
+            }
+        );
+    }
+
+    // A listener registered on the backlinked object should be called when a backlinked object is deleted
+    @Test
+    @RunTestInLooperThread
+    public void notification_onDeleteRealmResults() {
+        final Realm looperThreadRealm = looperThread.realm;
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
+        AllJavaTypes parent = looperThreadRealm.createObject(AllJavaTypes.class, 1);
+        parent.setFieldObject(child);
+        looperThreadRealm.commitTransaction();
+
+        final AtomicInteger counter = new AtomicInteger(0);
+        RealmChangeListener<RealmResults<AllJavaTypes>> listener = new RealmChangeListener<RealmResults<AllJavaTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllJavaTypes> object) {
+                counter.incrementAndGet();
+            }
+        };
+        child.getObjectParents().addChangeListener(listener);
+
+        looperThreadRealm.beginTransaction();
+        looperThreadRealm.where(AllJavaTypes.class).equalTo("fieldId", 1).findAll().deleteAllFromRealm();
+        looperThreadRealm.commitTransaction();
+
+        // This should be on the Looper queue, behind the notification
+        looperThread.postRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+                    assertEquals(1, counter.get());
+
+                    looperThread.testComplete();
+                }
+            }
+        );
+    }
+
+    // A listener registered on the backlinked object should not called for an unrelated change
+    @Test
+    @RunTestInLooperThread
+    public void notification_notSentOnUnrelatedChangeRealmResults() {
+        final Realm looperThreadRealm = looperThread.realm;
+
+        looperThreadRealm.beginTransaction();
+        AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
+        looperThreadRealm.createObject(AllJavaTypes.class, 1);
+        looperThreadRealm.commitTransaction();
+
+        RealmChangeListener<RealmResults<AllJavaTypes>> listener = new RealmChangeListener<RealmResults<AllJavaTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllJavaTypes> object) {
+                fail("Not expecting notification after unregister");
+            }
+        };
+        child.getObjectParents().addChangeListener(listener);
+
+        looperThreadRealm.beginTransaction();
+        looperThreadRealm.where(AllJavaTypes.class).equalTo("fieldId", 1).findAll().deleteAllFromRealm();
+        looperThreadRealm.commitTransaction();
+
+        // This should be on the Looper queue, behind the notification
+        looperThread.postRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+
+                    looperThread.testComplete();
+                }
+            }
+        );
     }
 
     // Fields annotated with @LinkingObjects should not be affected by JSON updates
@@ -235,18 +446,23 @@ public class LinkingObjectsManagedTests {
         parent.setFieldObject(child);
         realm.commitTransaction();
 
+        RealmResults<AllJavaTypes> parents = child.getObjectParents();
+        assertNotNull(parents);
+        assertEquals(1, parents.size());
+        assertTrue(parents.contains(parent));
+
         realm.beginTransaction();
         try {
             realm.createOrUpdateAllFromJson(AllJavaTypes.class, "[{ \"fieldId\" : 1, \"objectParents\" : null }]");
-            fail("Expected attempt to load the @LinkingObjects 'objectParents' field to fail");
-        } catch (RealmException ignore) {
+        } catch (RealmException e) {
+            fail("Failed loading JSON" + e);
         }
         realm.commitTransaction();
 
-        RealmResults<AllJavaTypes> parents = child.getObjectParents();
+        parents = child.getObjectParents();
         assertNotNull(parents);
-        assertEquals(1, child.getObjectParents().size());
-        assertTrue(child.getObjectParents().contains(parent));
+        assertEquals(1, parents.size());
+        assertTrue(parents.contains(parent));
     }
 
     // Fields annotated with @LinkingObjects should not be affected by JSON updates
@@ -258,25 +474,30 @@ public class LinkingObjectsManagedTests {
         parent.getFieldList().add(child);
         realm.commitTransaction();
 
+        RealmResults<AllJavaTypes> parents = child.getListParents();
+        assertNotNull(parents);
+        assertEquals(1, parents.size());
+        assertTrue(parents.contains(parent));
+
         realm.beginTransaction();
         try {
             realm.createOrUpdateAllFromJson(AllJavaTypes.class, "[{ \"fieldId\" : 1, \"listParents\" : null }]");
-            fail("Expected attempt to load the @LinkingObjects 'listParents' field to fail");
-        } catch (RealmException ignore) {
+        } catch (RealmException e) {
+            fail("Failed loading JSON" + e);
         }
         realm.commitTransaction();
 
-        RealmResults<AllJavaTypes> parents = child.getListParents();
+        parents = child.getListParents();
         assertNotNull(parents);
-        assertEquals(1, child.getListParents().size());
-        assertTrue(child.getListParents().contains(parent));
+        assertEquals(1, parents.size());
+        assertTrue(parents.contains(parent));
     }
 
     // A JSON update should generate a notifcation
     @Test
     @RunTestInLooperThread
     public void json_jsonUpdateCausesNotification() {
-        Realm looperThreadRealm = looperThread.realm;
+        final Realm looperThreadRealm = looperThread.realm;
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 1);
@@ -284,12 +505,20 @@ public class LinkingObjectsManagedTests {
         parent.setFieldObject(child);
         looperThreadRealm.commitTransaction();
 
+        RealmResults<AllJavaTypes> results = looperThreadRealm.where(AllJavaTypes.class).equalTo("fieldId", 1).findAll();
+        assertNotNull(results);
+        assertEquals(results.size(), 1);
+        child = results.first();
+
+        RealmResults<AllJavaTypes> parents = child.getObjectParents();
+        assertNotNull(parents);
+        assertEquals(1, parents.size());
+
         final AtomicInteger counter = new AtomicInteger(0);
         RealmChangeListener<AllJavaTypes> listener = new RealmChangeListener<AllJavaTypes>() {
             @Override
             public void onChange(AllJavaTypes object) {
                 counter.incrementAndGet();
-                looperThread.testComplete();
             }
         };
         child.addChangeListener(listener);
@@ -297,20 +526,30 @@ public class LinkingObjectsManagedTests {
         looperThreadRealm.beginTransaction();
         try {
             looperThreadRealm.createOrUpdateAllFromJson(AllJavaTypes.class, "[{ \"fieldId\" : 2, \"fieldObject\" : null }]");
-        } catch (RealmException ignore) {
-            fail("Failed loading JSON");
+        } catch (RealmException e) {
+            fail("Failed loading JSON" + e);
         }
         looperThreadRealm.commitTransaction();
 
-        RealmResults<AllJavaTypes> parents = child.getObjectParents();
-        assertNotNull(parents);
-        assertEquals(0, parents.size());
-        assertEquals(1, counter.get());
-    }
+        // This should be on the Looper queue, behind the notification
+        looperThread.postRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    RealmResults<AllJavaTypes> results = looperThreadRealm.where(AllJavaTypes.class).equalTo("fieldId", 1).findAll();
+                    assertNotNull(results);
+                    assertEquals(results.size(), 1);
+                    AllJavaTypes child = results.first();
 
-    // !!!FIXME: what is this test supposed to do?
-    @Test
-    public void notificationSentOnlyForRefresh() {
+                    RealmResults<AllJavaTypes> parents = child.getObjectParents();
+                    assertNotNull(parents);
+                    assertEquals(0, parents.size());
+                    assertEquals(1, counter.get());
+
+                    looperThread.testComplete();
+                }
+            }
+        );
     }
 
     // Table validation should fail if the backinked column exists in the target table

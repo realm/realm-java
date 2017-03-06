@@ -22,10 +22,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for defining a reverse relationship from one class to another. This annotation can
- * only be added to a field of the type {@code RealmResults}.
+ * This annotation defines a <b>Backlink</b>, a reverse relationship from one class to another.
  * <p>
- * Example:
+ * A <b>backlink</b> is an implicit backwards reference.  If field <code>sourceField</code> in instance <code>I</code>
+ * of type <code>SourceClass</code> holds a reference to instance <code>J</code> of type <code>TargetClass</code>,
+ * then a "backlink" is the automatically created reference from <code>J</code> to <code>I</code>.
+ * Backlinks are automatically created and destroyed when the forward references to which they correspond are
+ * created and destroyed.  This can dramatically reduce the complexity of client code.
+ * <p>
+ * To expose backinks for use, create a declaration as follows:
  * <pre>
  * {@code
  *
@@ -37,7 +42,7 @@ import java.lang.annotation.Target;
  * public Class Dog extends RealmObject {
  *   // This holds all Person objects with a reference to this Dog object (= linking objects)
  *   \@LinkingObjects("dog")
- *   private RealmResults&gt;Person&lt; owners;
+ *   private final RealmResults&gt;Person&lt; owners = null;
  * }
  *
  * // Find all Dogs with at least one owner named John
@@ -50,9 +55,19 @@ import java.lang.annotation.Target;
  *     <li>The link is maintained by Realm and only works for managed objects.</li>
  *     <li>They can be queried just like normal references.</li>
  *     <li>They can be followed just like normal references.</li>
- *     <li>They will be ignored when doing a `copyToRealm()`</li>
- *     <li>They will be ignored when doing a `copyFromRealm()`</li>
- *     <li>They will be ignored when using the various a `creatObjectFromJson*` and `createAllFromJson*` methods</li>
+ *     <li>They are ignored when doing a `copyToRealm()`</li>
+ *     <li>They are ignored when doing a `copyFromRealm()`</li>
+ *     <li>They are ignored when using the various a `creatObjectFromJson*` and `createAllFromJson*` methods</li>
+ * </ul>
+ * <p>
+ * In addition, they have the following restrictions:
+ * <ul>
+ *     <li>{@literal @}Ignore takes precedence.  A {@literal @}LinkingObjects annotation on {@literal @}Ignore field will be ignored.</li>
+ *     <li>The annotated field cannot be {@literal @}Required.</li>
+ *     <li>The annotated field must be `final`.</li>
+ *     <li>The annotation argument (the name of the backlinked field) is required.</li>
+ *     <li>The annotation argument must be a simple field name.  It cannot containt periods ('.').</li>
+ *     <li>The annotation field must be of type `RealmResults&gt;T&lt;` where T is concrete class that extends `RealmModel`.</li>
  * </ul>
  */
 @Retention(RetentionPolicy.SOURCE)

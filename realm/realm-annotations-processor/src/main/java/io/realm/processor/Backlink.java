@@ -76,9 +76,9 @@ final class Backlink {
     private final String sourceClass;
 
     /**
-     * The name of the field, in <code>sourceClass</code> that creates the backlink.
-     * Making this field, in an instance I of <code>sourceClass</code>,
-     * a reference to an instance J of <code>targetClass</code>
+     * The name of the field, in <code>SourceClass</code> that creates the backlink.
+     * Making this field, in an instance I of <code>SourceClass</code>,
+     * a reference to an instance J of <code>TargetClass</code>
      * will cause the <code>targetField</code> of J to contain a backlink to I.
      */
     private final String sourceField;

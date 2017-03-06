@@ -173,6 +173,7 @@ public class RealmProcessor extends AbstractProcessor {
             // The class must either extend RealmObject or implement RealmModel
             if (!Utils.isImplementingMarkerInterface(classElement)) {
                 Utils.error("A RealmClass annotated object must implement RealmModel or derive from RealmObject.", classElement);
+                return false;
             }
 
             // Check the annotation was applied to a Class
