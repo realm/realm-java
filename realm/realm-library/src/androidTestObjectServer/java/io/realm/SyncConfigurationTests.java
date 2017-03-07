@@ -37,6 +37,7 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.entities.StringOnly;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
+import io.realm.util.SyncTestUtils;
 
 import static io.realm.util.SyncTestUtils.createNamedTestUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
@@ -213,6 +214,26 @@ public class SyncConfigurationTests {
         for (String url : urlPort.keySet()) {
             SyncConfiguration config = new SyncConfiguration.Builder(createTestUser(), url).build();
             assertEquals(urlPort.get(url).intValue(), config.getServerUrl().getPort());
+        }
+    }
+
+    // Checks that mixing 'http' and 'realms or 'https' and 'realm' throws.
+    @Test
+    public void serverUrl_mixedProtocolSecurity() {
+        SyncUser httpUser = SyncTestUtils.createTestUser("http://ros.realm.io/auth");
+        String realmsUrl = "realms://ros.realm.io/~/default";
+        try {
+            new SyncConfiguration.Builder(httpUser, realmsUrl);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        SyncUser httpsUser = SyncTestUtils.createTestUser("https://ros.realm.io/auth");
+        String realmUrl = "realm://ros.realm.io/~/default";
+        try {
+            new SyncConfiguration.Builder(httpsUser, realmUrl);
+            fail();
+        } catch (IllegalArgumentException ignored) {
         }
     }
 

@@ -3,6 +3,7 @@
 ### Enhancements
 
 * Now `targetSdkVersion` is 25.
+* [ObjectServer] An `IllegalArgumentException` is now thrown if authentication and Realm urls use a mix of TLS and non-TLS protocols (#3710).
 
 ### Bug Fixes
 
