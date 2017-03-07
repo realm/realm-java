@@ -68,8 +68,8 @@ public:
             env->CallStaticVoidMethod(java_syncmanager,
                                       java_error_callback_method,
                                       error.error_code.value(),
-                                      env->NewStringUTF(error.message.c_str()),
-                                      env->NewStringUTF(session.get()->path().c_str()));
+                                      to_jstring(env, error.message),
+                                      to_jstring(env, session.get()->path()));
         };
 
         // path on disk of the Realm file.
@@ -92,13 +92,12 @@ public:
         JStringAccessor user_identity(env, sync_user_identity);
         JStringAccessor realm_url(env, sync_realm_url);
         std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_identity);
-        if (!user)
-        {
+        if (!user) {
             JStringAccessor realm_auth_url(env, sync_realm_auth_url);
             JStringAccessor refresh_token(env, sync_refresh_token);
             user = SyncManager::shared().get_user(user_identity, refresh_token, realm::util::Optional<std::string>(realm_auth_url));
         }
-        SyncConfig sc = {user,realm_url,SyncSessionStopPolicy::Immediately,std::move(bind_handler),std::move(error_handler)};
+        SyncConfig sc = {user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler)};
         config->sync_config = std::make_shared<SyncConfig>(sc);
 #endif
     }
