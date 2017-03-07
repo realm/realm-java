@@ -537,6 +537,32 @@ public class LinkingObjectsManagedTests {
     // !!!FIXME: Implement
     @Test
     public void migration_backlinkedFieldInUse() {
+        final String source = BacklinksSource.class.getSimpleName();
+        final String target = BacklinksTarget.class.getSimpleName();
+
+        RealmConfiguration config = configFactory.createConfiguration("backlinkedFieldInUse");
+        Realm migrationRealm = Realm.getInstance(config);
+        migrationRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                RealmSchema schema = realm.getSchema();
+                // First, removes an existing schema.
+                schema.remove(target);
+                schema.remove(source);
+                // Then recreates the deleted schema or builds a base schema.
+                RealmObjectSchema targetSchema = schema.create(target);
+                targetSchema.addField("id", int.class);
+
+                schema.create(target).addRealmListField("parents", targetSchema);
+            }
+        });
+        migrationRealm.close();
+
+        migrationRealm = Realm.getInstance(configFactory.createConfigurationBuilder().build());
+        migrationRealm.where(BacklinksSource.class).findAll();
+
+        migrationRealm.close();
+        Realm.deleteRealm(config);
     }
 
     // Table validation should fail if the backinked column points to a non-existent class
