@@ -36,16 +36,16 @@ using namespace realm::jni_util;
 
 std::unique_ptr<Client> sync_client;
 
-struct AndroidClientListener : public realm::ClientThreadListener {
+struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
 
-    void on_client_thread_ready() override {
-        realm::jni_util::Log::d("on_client_thread_ready");
+    void did_create_thread() override {
+        realm::jni_util::Log::d("did_create_thread");
         // Attach the sync client thread to the JVM so errors can be returned properly
         realm::jni_util::JniUtils::get_env(true);
     }
 
-    void on_client_thread_closing() override {
-        realm::jni_util::Log::d("on_client_thread_closing");
+    void will_destroy_thread() override {
+        realm::jni_util::Log::d("will_destroy_thread");
         // Failing to detach the JVM before closing the thread will crash on ART
         realm::jni_util::JniUtils::detach_current_thread();
     }
@@ -59,7 +59,7 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
 
     try {
         // Setup SyncManager
-        SyncManager::shared().set_client_thread_listener(s_client_thread_listener);
+        g_binding_callback_thread_observer = &s_client_thread_listener;
 
         // Create SyncClient
         sync::Client::Config config;

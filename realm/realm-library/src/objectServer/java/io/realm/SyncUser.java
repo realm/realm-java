@@ -293,8 +293,6 @@ public class SyncUser {
                 }
             }
 
-            //TODO call Object Store logout (SyncUser::log_out())
-
             SyncManager.getUserStore().remove(syncUser.getIdentity());
 
             // Delete all Realms if needed.

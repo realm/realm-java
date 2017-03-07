@@ -61,8 +61,6 @@ public:
         m_config = config;
 
         // error handler will be called form the sync client thread
-        // we shouldn't capture jobjects (jclass, jmethodID) by reference or valie
-        // since they're only valid for the caller thread
         auto error_handler = [=](std::shared_ptr<SyncSession> session, SyncError error) {
             realm::jni_util::Log::d("error_handler lambda invoked");
 
@@ -90,7 +88,6 @@ public:
                 session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url));
             }
         };
-
         // Get logged in user
         JStringAccessor user_identity(env, sync_user_identity);
         JStringAccessor realm_url(env, sync_realm_url);
@@ -101,11 +98,8 @@ public:
             JStringAccessor refresh_token(env, sync_refresh_token);
             user = SyncManager::shared().get_user(user_identity, refresh_token, realm::util::Optional<std::string>(realm_auth_url));
         }
-        config->sync_config = std::make_shared<SyncConfig>(user,
-                                                           realm_url,
-                                                           SyncSessionStopPolicy::Immediately,
-                                                           bind_handler,
-                                                           error_handler);
+        SyncConfig sc = {user,realm_url,SyncSessionStopPolicy::Immediately,std::move(bind_handler),std::move(error_handler)};
+        config->sync_config = std::make_shared<SyncConfig>(sc);
 #endif
     }
 
