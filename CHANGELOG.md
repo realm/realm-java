@@ -6,6 +6,8 @@
 
 ### Bug Fixes
 
+* `Realm.migrateRealm(RealmConfiguration)` now fails correctly with an `IllegalArgumentException` if a `SyncConfiguration` is provided (#4075).
+
 ### Deprecated
 
 ### Internal
