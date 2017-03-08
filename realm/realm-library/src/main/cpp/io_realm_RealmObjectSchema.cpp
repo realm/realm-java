@@ -73,7 +73,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmObjectSchema_nativeGetClassName(JNI
     }
     CATCH_STD()
 
-    return NULL;
+    return nullptr;
 }
 
 JNIEXPORT jlongArray JNICALL Java_io_realm_RealmObjectSchema_nativeGetProperties(JNIEnv* env, jclass, jlong nativePtr)
@@ -98,5 +98,5 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_RealmObjectSchema_nativeGetProperties
     }
     CATCH_STD()
 
-    return NULL;
+    return nullptr;
 }

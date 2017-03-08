@@ -154,7 +154,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeSize(JNIEnv* env, 
     try {
         LinkViewRef* lv = LV(nativeLinkViewPtr);
         LinkViewRef lvr = *lv;
-        return lvr->size();
+        return static_cast<jlong>(lvr->size());
     }
     CATCH_STD()
     return 0;
@@ -168,7 +168,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_LinkView_nativeIsEmpty(JNIEnv*
     try {
         LinkViewRef* lv = LV(nativeLinkViewPtr);
         LinkViewRef lvr = *lv;
-        return lvr->is_empty();
+        return to_jbool(lvr->is_empty());
     }
     CATCH_STD()
     return 0;
@@ -194,7 +194,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_LinkView_nativeIsAttached(JNIE
     try {
         LinkViewRef* lv = LV(nativeLinkViewPtr);
         LinkViewRef lvr = *lv;
-        return lvr->is_attached();
+        return to_jbool(lvr->is_attached());
     }
     CATCH_STD()
     return 0;
@@ -210,7 +210,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeFind(JNIEnv* env, 
         if (!ROW_INDEX_VALID(env, &lvr->get_target_table(), targetRowIndex)) {
             return -1;
         }
-        size_t ndx = lvr->find(targetRowIndex);
+        size_t ndx = lvr->find(static_cast<size_t>(targetRowIndex));
         return to_jlong_or_not_found(ndx);
     }
     CATCH_STD()

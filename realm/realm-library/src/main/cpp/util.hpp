@@ -177,7 +177,7 @@ inline jlong to_jlong_or_not_found(size_t res)
 template <class T>
 inline bool TableIsValid(JNIEnv* env, T* objPtr)
 {
-    bool valid = (objPtr != NULL);
+    bool valid = (objPtr != nullptr);
     if (valid) {
         // Check if Table is valid
         if (std::is_same<realm::Table, T>::value) {
@@ -214,8 +214,9 @@ template <class T>
 bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, jlong range)
 {
     size_t maxIndex = pTable->size();
-    if (endIndex == -1)
+    if (endIndex == -1) {
         endIndex = maxIndex;
+    }
     if (startIndex < 0) {
         realm::jni_util::Log::e("startIndex %1 < 0 - invalid!", S64(startIndex));
         ThrowException(env, IndexOutOfBounds, "startIndex < 0.");
@@ -255,8 +256,9 @@ inline bool RowIndexValid(JNIEnv* env, T pTable, jlong rowIndex, bool offset = f
         return false;
     }
     size_t size = pTable->size();
-    if (size > 0 && offset)
+    if (size > 0 && offset) {
         size -= 1;
+    }
     bool rowErr = realm::util::int_greater_than_or_equal(rowIndex, size);
     if (rowErr) {
         realm::jni_util::Log::e("rowIndex %1 > %2 - invalid!", S64(rowIndex), S64(size));
@@ -270,8 +272,9 @@ template <class T>
 inline bool TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset = false)
 {
     if (std::is_same<realm::Table, T>::value) {
-        if (!TableIsValid(env, TBL(pTable)))
+        if (!TableIsValid(env, TBL(pTable))) {
             return false;
+        }
     }
     return RowIndexValid(env, pTable, rowIndex, offset);
 }
@@ -295,8 +298,9 @@ template <class T>
 inline bool TblColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     if (std::is_same<realm::Table, T>::value) {
-        if (!TableIsValid(env, TBL(pTable)))
+        if (!TableIsValid(env, TBL(pTable))) {
             return false;
+        }
     }
     return ColIndexValid(env, pTable, columnIndex);
 }
@@ -321,8 +325,9 @@ inline bool TblIndexValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIn
 template <class T>
 inline bool TblIndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
 {
-    if (!TblColIndexValid(env, pTable, columnIndex))
+    if (!TblColIndexValid(env, pTable, columnIndex)) {
         return false;
+    }
     bool rowErr = realm::util::int_greater_than(rowIndex, pTable->size() + 1);
     if (rowErr) {
         realm::jni_util::Log::e("rowIndex %1 > %2 - invalid!", S64(rowIndex), S64(pTable->size()));

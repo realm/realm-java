@@ -44,8 +44,9 @@ std::unique_ptr<Client> sync_client;
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient(JNIEnv* env, jclass)
 {
     TR_ENTER()
-    if (sync_client)
+    if (sync_client) {
         return;
+    }
 
     try {
         sync::Client::Config config;

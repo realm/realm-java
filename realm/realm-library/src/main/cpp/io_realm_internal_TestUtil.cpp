@@ -76,7 +76,7 @@ static jstring throwOrGetExpectedMessage(JNIEnv* env, jlong testcase, bool shoul
             break;
     }
     if (should_throw) {
-        return NULL;
+        return nullptr;
     }
     return to_jstring(env, expect);
 }

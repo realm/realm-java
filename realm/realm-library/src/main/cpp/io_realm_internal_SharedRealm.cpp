@@ -226,7 +226,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeIsEmpty(JNIE
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        return static_cast<jboolean>(ObjectStore::is_empty(shared_realm->read_group()));
+        return to_jbool(ObjectStore::is_empty(shared_realm->read_group()));
     }
     CATCH_STD()
     return JNI_FALSE;
@@ -408,7 +408,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeWaitForChang
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         using rf = realm::_impl::RealmFriend;
-        return static_cast<jboolean>(rf::get_shared_group(*shared_realm).wait_for_change());
+        return to_jbool(rf::get_shared_group(*shared_realm).wait_for_change());
     }
     CATCH_STD()
 
@@ -435,7 +435,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeCompact(JNIE
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        return static_cast<jboolean>(shared_realm->compact());
+        return to_jbool(shared_realm->compact());
     }
     CATCH_STD()
 
@@ -451,7 +451,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetSnapshotVers
     try {
         using rf = realm::_impl::RealmFriend;
         auto& shared_group = rf::get_shared_group(*shared_realm);
-        return LangBindHelper::get_version_of_latest_snapshot(shared_group);
+        return static_cast<jlong>(LangBindHelper::get_version_of_latest_snapshot(shared_group));
     }
     CATCH_STD()
     return 0;
@@ -480,7 +480,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeRequiresMigr
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(nativePtr));
         auto* schema = reinterpret_cast<Schema*>(nativeSchemaPtr);
         const std::vector<SchemaChange>& change_list = shared_realm->schema().compare(*schema);
-        return static_cast<jboolean>(!change_list.empty());
+        return to_jbool(!change_list.empty());
     }
     CATCH_STD()
     return JNI_FALSE;

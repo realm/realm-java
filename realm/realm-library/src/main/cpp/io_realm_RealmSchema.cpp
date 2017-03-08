@@ -71,5 +71,5 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_RealmSchema_nativeGetAll(JNIEnv* env,
         return native_ptr_array;
     }
     CATCH_STD()
-    return NULL;
+    return nullptr;
 }
