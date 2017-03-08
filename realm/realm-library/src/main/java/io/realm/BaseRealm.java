@@ -586,6 +586,7 @@ abstract class BaseRealm implements Closeable {
      * @param callback callback for specific Realm type behaviors.
      * @param cause which triggers this migration.
      * @throws FileNotFoundException if the Realm file doesn't exist.
+     * @throws IllegalArgumentException if the provided configuration is a {@link SyncConfiguration}.
      */
     protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
                                        final MigrationCallback callback, final RealmMigrationNeededException cause)
@@ -595,7 +596,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }
         if (configuration.isSyncConfiguration()) {
-            return;
+            throw new IllegalArgumentException("Manual migrations are not supported for synced Realms");
         }
         if (migration == null && configuration.getMigration() == null) {
             throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided", cause);
