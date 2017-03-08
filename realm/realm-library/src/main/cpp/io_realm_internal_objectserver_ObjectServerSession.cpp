@@ -103,7 +103,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_n
     TR_ENTER()
     try {
         JniSession* session_wrapper = reinterpret_cast<JniSession*>(sessionPointer);
-        session_wrapper->get_session()->nonsync_transact_notify(version);
+        session_wrapper->get_session()->nonsync_transact_notify(static_cast<Session::version_type>(version));
     }
     CATCH_STD()
 }

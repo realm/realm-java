@@ -353,8 +353,9 @@ static string string_to_hex(const string& message, const jchar* str, size_t size
 
     ret << message << "; ";
     ret << "error_code = " << error_code << "; ";
-    for (size_t i = 0; i < size; ++i)
-        ret << " 0x" << std::hex << std::setfill('0') << std::setw(4) << (int)str[i];
+    for (size_t i = 0; i < size; ++i) {
+        ret << " 0x" << std::hex << std::setfill('0') << std::setw(4) << (int) str[i];
+    }
     return ret.str();
 }
 
@@ -392,37 +393,43 @@ jstring to_jstring(JNIEnv* env, StringData str)
 
     if (str.size() <= stack_buf_size) {
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
-        if (retcode != 0)
+        if (retcode != 0) {
             throw runtime_error(string_to_hex("Failure when converting short string to UTF-16", str, in_begin, in_end,
                                               out_curr, out_end, size_t(0), retcode));
-        if (in_begin == in_end)
+        }
+        if (in_begin == in_end) {
             goto transcode_complete;
+        }
     }
 
     {
         const char* in_begin2 = in_begin;
         size_t error_code;
         size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end, error_code);
-        if (in_begin2 != in_end)
+        if (in_begin2 != in_end) {
             throw runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr,
                                               out_end, size, error_code));
-        if (int_add_with_overflow_detect(size, stack_buf_size))
+        }
+        if (int_add_with_overflow_detect(size, stack_buf_size)) {
             throw runtime_error("String size overflow");
+        }
         dyn_buf.reset(new jchar[size]);
         out_curr = copy(out_begin, out_curr, dyn_buf.get());
         out_begin = dyn_buf.get();
         out_end = dyn_buf.get() + size;
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
-        if (retcode != 0)
+        if (retcode != 0) {
             throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end,
                                               out_curr, out_end, size_t(0), retcode));
+        }
         REALM_ASSERT(in_begin == in_end);
     }
 
 transcode_complete : {
     jsize out_size;
-    if (int_cast_with_overflow_detect(out_curr - out_begin, out_size))
+    if (int_cast_with_overflow_detect(out_curr - out_begin, out_size)) {
         throw runtime_error("String size overflow");
+    }
 
     return env->NewString(out_begin, out_size);
 }

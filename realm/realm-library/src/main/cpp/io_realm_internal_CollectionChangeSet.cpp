@@ -101,7 +101,6 @@ JNIEXPORT jintArray JNICALL Java_io_realm_internal_CollectionChangeSet_nativeGet
             return index_set_to_jint_array(env, change_set.modifications_new);
         default:
             REALM_UNREACHABLE();
-            break;
     }
 }
 
@@ -120,6 +119,5 @@ JNIEXPORT jintArray JNICALL Java_io_realm_internal_CollectionChangeSet_nativeGet
             return index_set_to_indices_array(env, change_set.modifications_new);
         default:
             REALM_UNREACHABLE();
-            break;
     }
 }

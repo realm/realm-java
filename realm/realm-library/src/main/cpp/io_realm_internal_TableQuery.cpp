@@ -55,7 +55,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery(
         return to_jstring(env, sd);
     }
     CATCH_STD();
-    return NULL;
+    return nullptr;
 }
 
 
@@ -981,8 +981,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3J_3B
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGroup(JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    if (!QUERY_VALID(env, pQuery))
+    if (!QUERY_VALID(env, pQuery)) {
         return;
+    }
     try {
         pQuery->group();
     }
@@ -992,8 +993,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGroup(JNIEnv* env
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndGroup(JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    if (!QUERY_VALID(env, pQuery))
+    if (!QUERY_VALID(env, pQuery)) {
         return;
+    }
     try {
         pQuery->end_group();
     }
@@ -1004,8 +1006,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeOr(JNIEnv* env, j
 {
     // No verification of parameters needed?
     Query* pQuery = Q(nativeQueryPtr);
-    if (!QUERY_VALID(env, pQuery))
+    if (!QUERY_VALID(env, pQuery)) {
         return;
+    }
     try {
         pQuery->Or();
     }
@@ -1015,8 +1018,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeOr(JNIEnv* env, j
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNot(JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    if (!QUERY_VALID(env, pQuery))
+    if (!QUERY_VALID(env, pQuery)) {
         return;
+    }
     try {
         pQuery->Not();
     }
@@ -1031,8 +1035,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(JNIEnv* env
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
-    if (!QUERY_VALID(env, pQuery))
+    if (!QUERY_VALID(env, pQuery)) {
         return -1;
+    }
     // It's valid to go 1 past the end index
     if ((fromTableRow < 0) || (S(fromTableRow) > pTable->size())) {
         // below check will fail with appropriate exception
@@ -1054,8 +1059,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll(JNIEnv* 
     TR_ENTER()
     Query* query = Q(nativeQueryPtr);
     TableRef table = query->get_table();
-    if (!QUERY_VALID(env, query) || !ROW_INDEXES_VALID(env, table.get(), start, end, limit))
+    if (!QUERY_VALID(env, query) || !ROW_INDEXES_VALID(env, table.get(), start, end, limit)) {
         return -1;
+    }
     try {
         TableView* tableView = new TableView(query->find_all(S(start), S(end), S(limit)));
         return reinterpret_cast<jlong>(tableView);
@@ -1073,8 +1079,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeSumInt(JNIEnv* e
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Int) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
         return 0;
+    }
     try {
         return pQuery->sum_int(S(columnIndex), NULL, S(start), S(end), S(limit));
     }
@@ -1089,8 +1096,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt(JNI
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Int) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return NULL;
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
+        return nullptr;
+    }
     try {
         size_t return_ndx;
         int64_t result = pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
@@ -1099,7 +1107,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt(JNI
         }
     }
     CATCH_STD()
-    return NULL;
+    return nullptr;
 }
 
 JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(JNIEnv* env, jobject,
@@ -1109,8 +1117,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(JNI
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Int) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return NULL;
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
+        return nullptr;
+    }
     try {
         size_t return_ndx;
         int64_t result = pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
@@ -1119,7 +1128,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(JNI
         }
     }
     CATCH_STD()
-    return NULL;
+    return nullptr;
 }
 
 JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageInt(JNIEnv* env, jobject,
@@ -1129,8 +1138,9 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageInt(JNI
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Int) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
         return 0;
+    }
     try {
         size_t resultcount;
         // TODO: return resultcount?
@@ -1152,8 +1162,9 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumFloat(JNIEn
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Float) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
         return 0;
+    }
     try {
         return pQuery->sum_float(S(columnIndex), NULL, S(start), S(end), S(limit));
     }
@@ -1169,8 +1180,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat(J
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Float) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return NULL;
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
+        return nullptr;
+    }
     try {
         size_t return_ndx;
         float result = pQuery->maximum_float(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
@@ -1179,7 +1191,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat(J
         }
     }
     CATCH_STD()
-    return NULL;
+    return nullptr;
 }
 
 JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(JNIEnv* env, jobject,
@@ -1190,8 +1202,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(J
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Float) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return NULL;
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
+        return nullptr;
+    }
     try {
         size_t return_ndx;
         float result = pQuery->minimum_float(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
@@ -1200,7 +1213,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(J
         }
     }
     CATCH_STD()
-    return NULL;
+    return nullptr;
 }
 
 JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageFloat(JNIEnv* env, jobject,
@@ -1211,8 +1224,9 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageFloat(J
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Float) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
         return 0;
+    }
     try {
         size_t resultcount;
         double avg = pQuery->average_float(S(columnIndex), &resultcount, S(start), S(end), S(limit));
@@ -1231,8 +1245,9 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumDouble(JNIE
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Double) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
         return 0;
+    }
     try {
         return pQuery->sum_double(S(columnIndex), NULL, S(start), S(end), S(limit));
     }
@@ -1248,8 +1263,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Double) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return NULL;
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
+        return nullptr;
+    }
     try {
         size_t return_ndx;
         double result = pQuery->maximum_double(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
@@ -1258,7 +1274,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
         }
     }
     CATCH_STD()
-    return NULL;
+    return nullptr;
 }
 
 JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(JNIEnv* env, jobject,
@@ -1269,8 +1285,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Double) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return NULL;
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
+        return nullptr;
+    }
     try {
         size_t return_ndx;
         double result = pQuery->minimum_double(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
@@ -1279,7 +1296,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
         }
     }
     CATCH_STD()
-    return NULL;
+    return nullptr;
 }
 
 JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(JNIEnv* env, jobject,
@@ -1290,8 +1307,9 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Double) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
         return 0;
+    }
     try {
         // TODO: Return resultcount
         size_t resultcount;
@@ -1313,8 +1331,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimesta
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Timestamp) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return NULL;
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
+        return nullptr;
+    }
     try {
         size_t return_ndx;
         Timestamp result = pQuery->find_all().maximum_timestamp(S(columnIndex), &return_ndx);
@@ -1323,7 +1342,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimesta
         }
     }
     CATCH_STD()
-    return NULL;
+    return nullptr;
 }
 
 JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimestamp(JNIEnv* env, jobject,
@@ -1334,8 +1353,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimesta
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) || !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Timestamp) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return NULL;
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
+        return nullptr;
+    }
     try {
         size_t return_ndx;
         Timestamp result = pQuery->find_all().minimum_timestamp(S(columnIndex), &return_ndx);
@@ -1344,7 +1364,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimesta
         }
     }
     CATCH_STD()
-    return NULL;
+    return nullptr;
 }
 
 // Count, Remove
@@ -1354,10 +1374,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCount(JNIEnv* en
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
-    if (!QUERY_VALID(env, pQuery) || !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+    if (!QUERY_VALID(env, pQuery) || !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
         return 0;
+    }
     try {
-        return pQuery->count(S(start), S(end), S(limit));
+        return static_cast<jlong>(pQuery->count(S(start), S(end), S(limit)));
     }
     CATCH_STD()
     return 0;
@@ -1366,10 +1387,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCount(JNIEnv* en
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove(JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    if (!QUERY_VALID(env, pQuery))
+    if (!QUERY_VALID(env, pQuery)) {
         return 0;
+    }
     try {
-        return pQuery->remove();
+        return static_cast<jlong>(pQuery->remove());
     }
     CATCH_STD()
     return 0;
@@ -1414,9 +1436,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
                     Q(nativeQueryPtr)->equal(S(column_idx), realm::null());
                     break;
                 default:
-                    // this point is unreachable
-                    ThrowException(env, FatalError, "This is not reachable.");
-                    return;
+                    REALM_UNREACHABLE();
             }
         }
         else {
@@ -1450,9 +1470,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
                     pQuery->and_query(src_table_ref->column<Timestamp>(S(column_idx)) == realm::null());
                     break;
                 default:
-                    // this point is unreachable
-                    ThrowException(env, FatalError, "This is not reachable.");
-                    return;
+                    REALM_UNREACHABLE();
             }
         }
     }
@@ -1488,8 +1506,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery(JN
 {
     TR_ENTER_PTR(nativeQueryPtr)
     Query* pQuery = Q(nativeQueryPtr);
-    if (!QUERY_VALID(env, pQuery))
+    if (!QUERY_VALID(env, pQuery)) {
         return 0;
+    }
     try {
         auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
         using rf = realm::_impl::RealmFriend;
@@ -1538,9 +1557,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
                     pQuery->not_equal(S(column_idx), realm::null());
                     break;
                 default:
-                    // this point is unreachable
-                    ThrowException(env, FatalError, "This is not reachable.");
-                    return;
+                    REALM_UNREACHABLE();
             }
         }
         else {
@@ -1575,9 +1592,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
                     pQuery->and_query(src_table_ref->column<Timestamp>(S(column_idx)) != realm::null());
                     break;
                 default:
-                    // this point is unreachable
-                    ThrowException(env, FatalError, "This is not reachable.");
-                    return;
+                    REALM_UNREACHABLE();
             }
         }
     }

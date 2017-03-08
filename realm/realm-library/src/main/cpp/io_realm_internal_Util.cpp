@@ -76,7 +76,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void*)
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Util_nativeGetMemUsage(JNIEnv*, jclass)
 {
-    return GetMemUsage();
+    return static_cast<jlong>(GetMemUsage());
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeGetTablePrefix(JNIEnv* env, jclass)
