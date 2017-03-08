@@ -22,16 +22,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation defines a <b>Backlink</b>, a reverse relationship from one class to another.
- * <p>
- * A <b>backlink</b> is an implicit backwards reference.  If field <code>sourceField</code> in instance <code>I</code>
- * of type <code>SourceClass</code> holds a reference to instance <code>J</code> of type <code>TargetClass</code>,
- * then a "backlink" is the automatically created reference from <code>J</code> to <code>I</code>.
- * Backlinks are automatically created and destroyed when the forward references to which they correspond are
- * created and destroyed.  This can dramatically reduce the complexity of client code.
- * <p>
- * To expose backinks for use, create a declaration as follows:
- * <pre>
+ * Annotation for defining a reverse relationship from one class to another. This annotation can
+ * only be added to a field of the type {@code RealmResults}.
+ *<pre>
+ * To expose reverse relationships for use, create a declaration as follows:
  * {@code
  *
  * public Class Person extends RealmObject {
@@ -49,15 +43,20 @@ import java.lang.annotation.Target;
  * realm.where(Dog.class).equalTo("owners.name", "John").findAll();
  * }
  * </pre>
- *
+ * In the above example `Person` holds a reference to `Dog` through the field `dog`.
+ * This in turn means that an implict reverse relationship exists between the class `Dog`
+ * and the class `Person`. This inverse relationship is made public and queryable by the `RealmResults`
+ * field annotated with `@LinkingObject`. This makes it possible to query properties of the dogs owner
+ * without having to manually maintain a "owner" field in the `Dog` class.
+ * <p>
  * Linking objects have the following properties:
  * <ul>
  *     <li>The link is maintained by Realm and only works for managed objects.</li>
  *     <li>They can be queried just like normal references.</li>
  *     <li>They can be followed just like normal references.</li>
- *     <li>They are ignored when doing a `copyToRealm()`</li>
- *     <li>They are ignored when doing a `copyFromRealm()`</li>
- *     <li>They are ignored when using the various a `creatObjectFromJson*` and `createAllFromJson*` methods</li>
+ *     <li>They are ignored when doing a `copyToRealm().`</li>
+ *     <li>They are ignored when doing a `copyFromRealm().`</li>
+ *     <li>They are ignored when using the various `createObjectFromJson*` and `createAllFromJson*` methods.</li>
  * </ul>
  * <p>
  * In addition, they have the following restrictions:

@@ -437,8 +437,9 @@ JNIEXPORT jlong JNICALL
 Java_io_realm_internal_Collection_nativeCreateResultsFromBacklinks(JNIEnv *env, jclass, jlong shared_realm_ptr, jlong row_ptr, jlong src_table_ptr, jlong src_col_index) {
     TR_ENTER_PTR(row_ptr)
     Row* row = ROW(row_ptr);
-    if (!ROW_VALID(env, row))
-        return -1;
+    if (!ROW_VALID(env, row)) {
+        return reinterpret_cast<jlong>(nullptr);
+    }
     try {
         Table* src_table = TBL(src_table_ptr);
         TableView backlink_view = row->get_table()->get_backlink_view(row->get_index(), src_table, src_col_index);

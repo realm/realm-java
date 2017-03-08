@@ -18,8 +18,6 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import com.google.common.collect.Lists;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -691,6 +689,9 @@ public class LinkingObjectsManagedTests {
     // test method has been popped off the stack any objects referenced only from
     // the stack are subject to GC.  To hang on to them, until the test completes,
     // just pass them to the final vararg to this method.
+    // @zaki50 has some evidence that notifications are delivered on a commit.
+    // If that is the case, we may be able to eliminate the ugly begin-commit
+    // that is the prologue to this method.
     private void verifyPostConditions(final Realm realm, final PostConditions test, final Object... refs) {
         realm.beginTransaction();
         realm.commitTransaction();
