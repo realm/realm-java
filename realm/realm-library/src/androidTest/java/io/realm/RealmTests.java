@@ -1795,7 +1795,7 @@ public class RealmTests {
             try {
                 realm2 = Realm.getInstance(configFactory.createConfiguration(ENCRYPTED_REALM, key2));
             } catch (Exception e) {
-                fail();
+                fail("Unexpected exception: " + e);
             } finally {
                 if (realm2 != null) {
                     realm2.close();

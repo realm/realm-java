@@ -30,11 +30,11 @@ import java.lang.annotation.Target;
  *
  * public Class Person extends RealmObject {
  *   private String name;
- *   private Dog dog; // Normal reference
+ *   private Dog dog; // Normal relation
  * }
  *
  * public Class Dog extends RealmObject {
- *   // This holds all Person objects with a reference to this Dog object (= linking objects)
+ *   // This holds all Person objects with a relation to this Dog object (= linking objects)
  *   \@LinkingObjects("dog")
  *   private final RealmResults&gt;Person&lt; owners = null;
  * }
@@ -43,7 +43,7 @@ import java.lang.annotation.Target;
  * realm.where(Dog.class).equalTo("owners.name", "John").findAll();
  * }
  * </pre>
- * In the above example `Person` holds a reference to `Dog` through the field `dog`.
+ * In the above example `Person` is related to `Dog` through the field `dog`.
  * This in turn means that an implict reverse relationship exists between the class `Dog`
  * and the class `Person`. This inverse relationship is made public and queryable by the `RealmResults`
  * field annotated with `@LinkingObject`. This makes it possible to query properties of the dogs owner
@@ -52,8 +52,8 @@ import java.lang.annotation.Target;
  * Linking objects have the following properties:
  * <ul>
  *     <li>The link is maintained by Realm and only works for managed objects.</li>
- *     <li>They can be queried just like normal references.</li>
- *     <li>They can be followed just like normal references.</li>
+ *     <li>They can be queried just like normal relation.</li>
+ *     <li>They can be followed just like normal relation.</li>
  *     <li>They are ignored when doing a `copyToRealm().`</li>
  *     <li>They are ignored when doing a `copyFromRealm().`</li>
  *     <li>They are ignored when using the various `createObjectFromJson*` and `createAllFromJson*` methods.</li>
@@ -65,15 +65,15 @@ import java.lang.annotation.Target;
  *     <li>The annotated field cannot be {@literal @}Required.</li>
  *     <li>The annotated field must be `final`.</li>
  *     <li>The annotation argument (the name of the backlinked field) is required.</li>
- *     <li>The annotation argument must be a simple field name.  It cannot containt periods ('.').</li>
- *     <li>The annotation field must be of type `RealmResults&gt;T&lt;` where T is concrete class that extends `RealmModel`.</li>
+ *     <li>The annotation argument must be a simple field name.  It cannot contain periods ('.').</li>
+ *     <li>The annotated field must be of type `RealmResults&gt;T&lt;` where T is concrete class that extends `RealmModel`.</li>
  * </ul>
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.FIELD)
 public @interface LinkingObjects {
     /**
-     * The name of a field that contains a reference to an instance of the
+     * The name of a field that contains a relation to an instance of the
      * class containing this annotation.  If this argument is not provided
      * the annotation processor will abort with an {@code IllegalArgumentException}.
      */

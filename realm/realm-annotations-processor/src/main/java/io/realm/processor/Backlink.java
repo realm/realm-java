@@ -199,13 +199,12 @@ final class Backlink {
         String fieldType = field.asType().toString();
         if (!(targetClass.equals(fieldType) || targetClass.equals(Utils.getRealmListType(field)))) {
             Utils.error(String.format(
-                "Field \"%s.%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", has type \"%s\" instead of \"%s\".",
+                "Field \"%s.%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", has type \"%s\" instead of \"%3$s\".",
                 sourceClass,
                 sourceField,
                 targetClass,
                 targetField,
-                fieldType,
-                targetClass));
+                fieldType));
             return false;
         }
 
