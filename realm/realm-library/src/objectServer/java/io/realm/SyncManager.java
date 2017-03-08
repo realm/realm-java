@@ -84,6 +84,7 @@ public class SyncManager {
             }
         }
     };
+    // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
     private static Map<String, SyncSession> sessions = new HashMap<String, SyncSession>();
     private static CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
 
@@ -160,16 +161,16 @@ public class SyncManager {
      * Gets any cached {@link SyncSession} for the given {@link SyncConfiguration} or create a new one if
      * no one exists.
      *
-     * Note: This will not create a new native (Object Store) session, this will only associate a Realm's path
-     *       with a {@link SyncSession}. Object Store's SyncManager is responsible of the life cycle (including creation)
-     *       of the native session, the provided Java wrap, helps interact with the native session, when reporting error
-     *       or requesting an {@code access_token} for example.
-     *
      * @param syncConfiguration configuration object for the synchronized Realm.
      * @return the {@link SyncSession} for the specified Realm.
      * @throws IllegalArgumentException if syncConfiguration is {@code null}.
      */
     public static synchronized SyncSession getSession(SyncConfiguration syncConfiguration) {
+        // This will not create a new native (Object Store) session, this will only associate a Realm's path
+        // with a SyncSession. Object Store's SyncManager is responsible of the life cycle (including creation)
+        // of the native session, the provided Java wrap, helps interact with the native session, when reporting error
+        // or requesting an access_token for example.
+
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
@@ -239,7 +240,11 @@ public class SyncManager {
     private static synchronized void notifyErrorHandler(int errorCode, String errorMessage, String path) {
         for (SyncSession syncSession : sessions.values()) {
             if (path == null || path.equals(syncSession.getConfiguration().getPath())) {
-                syncSession.notifySessionError(errorCode, errorMessage);
+                try {
+                    syncSession.notifySessionError(errorCode, errorMessage);
+                } catch (Exception exception) {
+                    RealmLog.error(exception);
+                }
             }
         }
     }
@@ -258,18 +263,22 @@ public class SyncManager {
     private synchronized static String bindSessionWithConfig(String sessionPath) {
         final SyncSession syncSession = sessions.get(sessionPath);
         if (syncSession == null) {
-            throw new IllegalStateException("Matching Java SyncSession could not be found for: " + sessionPath);
-
+            RealmLog.error("Matching Java SyncSession could not be found for: " + sessionPath);
         } else {
-            return syncSession.accessToken(authServer);
+            try {
+                return syncSession.accessToken(authServer);
+            } catch (Exception exception) {
+                RealmLog.error(exception);
+            }
         }
+        return null;
     }
 
     /**
      * Resets the SyncManger and clear all existing users.
      * This will also terminate all sessions.
      *
-     * Only call this method when testing
+     * Only call this method when testing.
      */
     static synchronized void reset() {
         nativeReset();

@@ -33,7 +33,7 @@
 
 using namespace realm;
 
-// Wrapper class for SyncConfig. This is required as we need to keep track of both the Java session
+// Wrapper class for SyncConfig. This is required as we need to keep track of the Java session
 // object as part of the configuration.
 // NOTICE: It is an requirement that the Java `SyncSession` object is created before this and
 // is only GC'ed after this object has been destroyed.

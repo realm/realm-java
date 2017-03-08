@@ -34,11 +34,11 @@ Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv *env, jobject, jstring
             JStringAccessor access_token(env, accessToken);
             JStringAccessor realm_url(env, sync_realm_url);
             session->refresh_access_token(access_token, realm::util::Optional<std::string>(realm_url));
-            return true;
+            return JNI_TRUE;
         }
         else {
-            realm::jni_util::Log::d("nativeRefreshAccessToken no active/inactive session found");
+            realm::jni_util::Log::d("no active/inactive session found");
         }
     } CATCH_STD()
-    return false;
+    return JNI_FALSE;
 }

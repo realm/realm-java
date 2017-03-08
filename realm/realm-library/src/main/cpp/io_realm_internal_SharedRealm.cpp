@@ -83,7 +83,8 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
                                                                 sync_server_auth_url,
                                                                 sync_user_identity,
                                                                 sync_refresh_token));
-        } else {
+        }
+        else {
             return reinterpret_cast<jlong>(new JniConfigWrapper(env, config));
         }
     } CATCH_STD()

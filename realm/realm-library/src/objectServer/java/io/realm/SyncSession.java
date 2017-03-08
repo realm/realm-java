@@ -39,7 +39,7 @@ import io.realm.log.RealmLog;
  * This class represents the connection to the Realm Object Server for one {@link SyncConfiguration}.
  * <p>
  * A Session is created by opening a Realm instance using that configuration. Once a session has been created,
- * it will continue to exist until the app is closed or all Threads using this {@link SyncConfiguration} closes their respective {@link Realm}s.
+ * it will continue to exist until the app is closed or all threads using this {@link SyncConfiguration} closes their respective {@link Realm}s.
  * <p>
  * A session is fully controlled by Realm, but can provide additional information in case of errors.
  * It is passed along in all {@link SyncSession.ErrorHandler}s.
@@ -93,7 +93,6 @@ public class SyncSession {
         return configuration.getServerUrl();
     }
 
-    // Called from native code.
     // This callback will happen on the thread running the Sync Client.
     @KeepMember
     void notifySessionError(int errorCode, String errorMessage) {
@@ -104,7 +103,7 @@ public class SyncSession {
     }
 
     // This is called from a synchronized block
-    public void close() {
+    public synchronized void close() {
         isClosed = true;
         if (networkRequest != null) {
             networkRequest.cancel();
@@ -229,7 +228,7 @@ public class SyncSession {
             long refreshAfter =  expireDateInMs - System.currentTimeMillis() - REFRESH_MARGIN_DELAY;
             if (refreshAfter < 0) {
                 // Token already expired
-                RealmLog.debug("Expires time already reached for the access token, refresh soon");
+                RealmLog.debug("Expires time already reached for the access token, refresh as soon as possible");
                 // we avoid refreshing directly to avoid an edge case where the client clock is ahead
                 // of the server, causing all access_token received from the server to be always
                 // expired, we will flood the server with refresh token requests then, so adding
@@ -272,8 +271,8 @@ public class SyncSession {
             protected void onSuccess(AuthenticateResponse response) {
                 synchronized (SyncSession.this) {
                     if (!isClosed && !Thread.currentThread().isInterrupted()) {
-                        RealmLog.debug("Access Token refreshed successfully");
-                        if (nativeRefreshAccessToken(configuration.getPath(), response.getAccessToken().value(), configuration.getUser().getAuthURL())) {
+                        RealmLog.debug("Access Token refreshed successfully, Sync URL: " + configuration.getServerUrl());
+                        if (nativeRefreshAccessToken(configuration.getPath(), response.getAccessToken().value(), configuration.getUser().getAuthenticationUrl().toString())) {
                             // replaced the user old access_token
                             ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(
                                     response.getAccessToken(),

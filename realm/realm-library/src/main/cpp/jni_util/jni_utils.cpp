@@ -49,6 +49,3 @@ JNIEnv* JniUtils::get_env(bool attach_if_needed) {
 void JniUtils::detach_current_thread()  {
     s_instance->m_vm->DetachCurrentThread();
 }
-
-
-

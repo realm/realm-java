@@ -39,13 +39,13 @@ std::unique_ptr<Client> sync_client;
 struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
 
     void did_create_thread() override {
-        realm::jni_util::Log::d("did_create_thread");
+        realm::jni_util::Log::d("SyncClient thread created");
         // Attach the sync client thread to the JVM so errors can be returned properly
         realm::jni_util::JniUtils::get_env(true);
     }
 
     void will_destroy_thread() override {
-        realm::jni_util::Log::d("will_destroy_thread");
+        realm::jni_util::Log::d("SyncClient thread destroyed");
         // Failing to detach the JVM before closing the thread will crash on ART
         realm::jni_util::JniUtils::detach_current_thread();
     }

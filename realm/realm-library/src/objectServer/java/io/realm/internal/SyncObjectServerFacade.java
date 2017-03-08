@@ -85,7 +85,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             String rosServerUrl = syncConfig.getServerUrl().toString();
             String rosUserIdentity = syncConfig.getUser().getIdentity();
-            String syncRealmAuthUrl = syncConfig.getUser().getAuthURL();
+            String syncRealmAuthUrl = syncConfig.getUser().getAuthenticationUrl().toString();
             String rosRefreshToken = syncConfig.getUser().getAccessToken().value();
             return new String[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosRefreshToken};
         } else {

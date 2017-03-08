@@ -455,10 +455,6 @@ public class SyncUser {
         return syncUser;
     }
 
-    public String getAuthURL () {
-        return syncUser.getAuthenticationUrl().toString();
-    }
-
     public interface Callback {
         void onSuccess(SyncUser user);
         void onError(ObjectServerError error);
