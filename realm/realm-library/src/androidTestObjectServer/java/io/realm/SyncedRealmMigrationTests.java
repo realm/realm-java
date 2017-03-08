@@ -43,23 +43,6 @@ public class SyncedRealmMigrationTests {
 
     @Rule
     public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
-
-    private Realm realm;
-    private Context context;
-
-    @Before
-    public void setup() {
-        context = InstrumentationRegistry.getInstrumentation().getContext();
-    }
-
-    @After
-    public void tearDown() {
-        if (realm != null) {
-            realm.close();
-        }
-    }
 
     @Test
     public void migrateRealm_syncConfigurationThrows() {
