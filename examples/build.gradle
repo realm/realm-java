@@ -1,5 +1,5 @@
-project.ext.sdkVersion = 24
-project.ext.buildTools = '24.0.0'
+project.ext.sdkVersion = 25
+project.ext.buildTools = '25.0.2'
 
 // Don't cache SNAPSHOT (changing) dependencies.
 configurations.all {
@@ -9,6 +9,12 @@ configurations.all {
 allprojects {
     def currentVersion = file("${rootDir}/../version.txt").text.trim()
 
+    def props = new Properties()
+    props.load(new FileInputStream("${rootDir}/../realm.properties"))
+    props.each { key, val ->
+        project.ext.set(key, val)
+    }
+
     buildscript {
         repositories {
             mavenLocal()
@@ -16,7 +22,7 @@ allprojects {
             maven { url 'https://jitpack.io' }
         }
         dependencies {
-            classpath 'com.android.tools.build:gradle:2.2.0'
+            classpath 'com.android.tools.build:gradle:2.3.0'
             classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
             classpath 'com.github.JakeWharton:sdk-manager-plugin:0ce4cdf08009d79223850a59959d9d6e774d0f77'
             classpath 'com.novoda:gradle-android-command-plugin:1.5.0'
@@ -32,4 +38,8 @@ allprojects {
         mavenLocal()
         jcenter()
     }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = project.gradleVersion
 }
