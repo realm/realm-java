@@ -43,10 +43,8 @@ jclass java_lang_string;
 jmethodID java_lang_double_init;
 jclass java_util_date;
 jmethodID java_util_date_init;
-#ifdef REALM_ENABLE_SYNC
+#if REALM_ENABLE_SYNC
 jclass java_syncmanager;
-jmethodID java_bind_session_method;
-jmethodID java_error_callback_method;
 #endif
 
 void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind);

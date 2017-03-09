@@ -308,6 +308,6 @@ public class SyncSession {
         }
     }
 
-    private native boolean nativeRefreshAccessToken(String path, String accessToken, String authURL);
+    private static native boolean nativeRefreshAccessToken(String path, String accessToken, String authURL);
 }
 

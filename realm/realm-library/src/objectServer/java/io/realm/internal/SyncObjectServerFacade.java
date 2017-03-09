@@ -29,6 +29,7 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
+import io.realm.internal.objectserver.SyncSessionHolder;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -73,7 +74,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         // delete the wrapped Java session
         if (configuration instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            SyncManager.removeSession(syncConfig);
+            SyncSessionHolder.remove(syncConfig);
         } else {
             throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
         }
@@ -98,7 +99,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
-    public void createSessionIfRequired(RealmConfiguration config) {
+    public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncManager.getSession((SyncConfiguration) config);
         }

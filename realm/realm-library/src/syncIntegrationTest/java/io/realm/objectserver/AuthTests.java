@@ -104,6 +104,7 @@ public class AuthTests extends BaseIntegrationTest {
     public void loginAsync_errorHandlerThrows() {
         // set log level to info to make sure the IllegalArgumentException
         // thrown in the test is visible in Logcat
+        final int defaultLevel = RealmLog.getLevel();
         RealmLog.setLevel(LogLevel.INFO);
         SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
@@ -122,6 +123,7 @@ public class AuthTests extends BaseIntegrationTest {
         looperThread.postRunnableDelayed(new Runnable() {
             @Override
             public void run() {
+                RealmLog.setLevel(defaultLevel);
                 looperThread.testComplete();
             }
         }, 1000);

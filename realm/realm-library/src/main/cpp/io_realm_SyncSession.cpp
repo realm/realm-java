@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,25 @@
 #include <jni.h>
 
 #include "io_realm_SyncSession.h"
-#include "objectserver_shared.hpp"
+
+#include "object-store/src/sync/sync_manager.hpp"
+#include "object-store/src/sync/sync_session.hpp"
+
+#include "util.hpp"
 
 using namespace std;
 using namespace realm;
 using namespace sync;
 
-JNIEXPORT jboolean JNICALL
-Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv *env, jobject, jstring localRealmPath,
-                                                   jstring accessToken, jstring sync_realm_url) {
+JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv* env, jclass,
+                                                                              jstring localRealmPath,
+                                                                              jstring accessToken,
+                                                                              jstring sync_realm_url)
+{
     TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, localRealmPath);
-        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_session(local_realm_path);
+        auto session = SyncManager::shared().get_existing_session(local_realm_path);
         if (session) {
             JStringAccessor access_token(env, accessToken);
             JStringAccessor realm_url(env, sync_realm_url);
@@ -39,6 +45,7 @@ Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv *env, jobject, jstring
         else {
             realm::jni_util::Log::d("no active/inactive session found");
         }
-    } CATCH_STD()
+    }
+    CATCH_STD()
     return JNI_FALSE;
 }

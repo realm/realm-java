@@ -228,7 +228,7 @@ public final class SharedRealm implements Closeable, NativeObject {
                 syncRefreshToken);
 
         try {
-            ObjectServerFacade.getSyncFacadeIfPossible().createSessionIfRequired(config);
+            ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(config);
 
             return new SharedRealm(nativeConfigPtr, config, schemaVersionListener);
         } finally {
