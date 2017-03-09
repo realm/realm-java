@@ -3,6 +3,7 @@
 ### Enhancements
 
 * Now `targetSdkVersion` is 25.
+* [ObjectServer] Information about the location of the backed up Realm file is now reported in the `ObjectServerError` if a Client Reset is required (#4080).
 
 ### Bug Fixes
 
