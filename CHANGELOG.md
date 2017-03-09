@@ -3,6 +3,7 @@
 ### Enhancements
 
 * Now `targetSdkVersion` is 25.
+* The proper `RealmMigrationNeededException` is now thrown instead of `IllegalArgumentException` if no migration is provided for a Realm that requires it.
 
 ### Bug Fixes
 

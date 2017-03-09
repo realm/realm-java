@@ -269,7 +269,9 @@ public class Realm extends BaseRealm {
                 deleteRealm(configuration);
             } else {
                 try {
-                    migrateRealm(configuration, e);
+                    if (configuration.getMigration() != null) {
+                        migrateRealm(configuration, e);
+                    }
                 } catch (FileNotFoundException fileNotFoundException) {
                     // Should never happen.
                     throw new RealmFileException(RealmFileException.Kind.NOT_FOUND, fileNotFoundException);
