@@ -24,16 +24,11 @@
 #include <realm/group_shared.hpp>
 #include <realm/sync/history.hpp>
 #include <realm/sync/client.hpp>
+#include <object-store/src/sync/impl/sync_client.hpp>
 
 #include "objectserver_shared.hpp"
 
 #include "io_realm_SyncManager.h"
-
-#include "jni_util/log.hpp"
-#include "jni_util/jni_utils.hpp"
-#include "sync/sync_manager.hpp"
-#include "sync/sync_user.hpp"
-#include "util.hpp"
 
 using namespace realm;
 using namespace realm::sync;
@@ -41,25 +36,44 @@ using namespace realm::jni_util;
 
 std::unique_ptr<Client> sync_client;
 
+struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
+
+    void did_create_thread() override {
+        realm::jni_util::Log::d("SyncClient thread created");
+        // Attach the sync client thread to the JVM so errors can be returned properly
+        realm::jni_util::JniUtils::get_env(true);
+    }
+
+    void will_destroy_thread() override {
+        realm::jni_util::Log::d("SyncClient thread destroyed");
+        // Failing to detach the JVM before closing the thread will crash on ART
+        realm::jni_util::JniUtils::detach_current_thread();
+    }
+} s_client_thread_listener;
+
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
-    (JNIEnv *env, jclass)
+    (JNIEnv* env, jclass)
 {
     TR_ENTER()
     if (sync_client) return;
 
     try {
+        // Setup SyncManager
+        g_binding_callback_thread_observer = &s_client_thread_listener;
+
+        // Create SyncClient
         sync::Client::Config config;
         config.logger = &CoreLoggerBridge::shared();
         sync_client = std::make_unique<Client>(std::move(config)); // Throws
     } CATCH_STD()
 }
 
-// Create the thread from java side to avoid some strange errors when native throws.
 JNIEXPORT void JNICALL
-Java_io_realm_SyncManager_nativeRunClient(JNIEnv *env, jclass)
-{
+Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass) {
+
+    TR_ENTER()
     try {
-        sync_client->run();
+        SyncManager::shared().reset_for_testing();
     } CATCH_STD()
 }
 

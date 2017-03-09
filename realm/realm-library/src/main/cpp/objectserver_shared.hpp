@@ -19,123 +19,105 @@
 #include <jni.h>
 #include <string>
 #include <thread>
-#include <memory>
 
 #include <realm/sync/history.hpp>
 #include <realm/sync/client.hpp>
-#include <realm/sync/protocol.hpp>
 #include <realm/util/logger.hpp>
-
-#include <impl/realm_coordinator.hpp>
-#include <sync/sync_manager.hpp>
-#include <object-store/src/sync/impl/sync_metadata.hpp>
-#include <object-store/src/sync/impl/sync_file.hpp>
-
+#include <object-store/src/impl/realm_coordinator.hpp>
+#include <object-store/src/sync/sync_manager.hpp>
+#include <object-store/src/sync/sync_user.hpp>
+#include <object-store/src/sync/sync_config.hpp>
+#include <object-store/src/sync/sync_session.hpp>
 #include "util.hpp"
 #include "jni_util/jni_utils.hpp"
-#include "jni_util/java_global_weak_ref.hpp"
-#include "jni_util/java_method.hpp"
 
+using namespace realm;
 
-// Wrapper class for realm::Session. This allows us to manage the C++ session and callback lifecycle correctly.
-// TODO Use OS SyncSession instead
-class JniSession {
+// Wrapper class for SyncConfig. This is required as we need to keep track of the Java session
+// object as part of the configuration.
+// NOTICE: It is an requirement that the Java `SyncSession` object is created before this and
+// is only GC'ed after this object has been destroyed.
+class JniConfigWrapper {
 
 public:
-    JniSession(const JniSession&) = delete;
-    JniSession& operator=(const JniSession&) = delete;
-    JniSession(JniSession&&) = delete;
-    JniSession& operator=(JniSession&&) = delete;
+    JniConfigWrapper(const JniConfigWrapper&) = delete;
 
-    JniSession(JNIEnv* env, std::string local_realm_path, jobject java_session_obj)
-    : m_java_session_ref(std::make_shared<realm::jni_util::JavaGlobalWeakRef>(env, java_session_obj))
+    JniConfigWrapper& operator=(const JniConfigWrapper&) = delete;
+    JniConfigWrapper(JniConfigWrapper&&) = delete;
+    JniConfigWrapper& operator=(JniConfigWrapper&&) = delete;
+
+    // Non-sync constructor
+    JniConfigWrapper(JNIEnv*, Realm::Config* config) : m_config (config) {}
+
+    // Sync constructor
+    JniConfigWrapper(REALM_UNUSED JNIEnv* env,
+                     REALM_UNUSED Realm::Config* config,
+                     REALM_UNUSED jstring sync_realm_url,
+                     REALM_UNUSED jstring sync_realm_auth_url,
+                     REALM_UNUSED jstring sync_user_identity,
+                     REALM_UNUSED jstring sync_refresh_token)
     {
-        extern std::unique_ptr<realm::sync::Client> sync_client;
-        // Get the coordinator for the given path, or null if there is none
-        m_sync_session = new realm::sync::Session(*sync_client, local_realm_path);
-        // error_handler could be called after JniSession destructed. So we need to pass a weak ref to lambda to avoid
-        // the corrupted pointer.
-        std::weak_ptr<realm::jni_util::JavaGlobalWeakRef> weak_session_ref(m_java_session_ref);
-        auto sync_transact_callback = [local_realm_path](realm::VersionID, realm::VersionID) {
-            auto coordinator = realm::_impl::RealmCoordinator::get_existing_coordinator(
-                    realm::StringData(local_realm_path));
-            if (coordinator) {
-                coordinator->wake_up_notifier_worker();
+#ifdef REALM_ENABLE_SYNC
+        m_config = config;
+
+        // error handler will be called form the sync client thread
+        auto error_handler = [=](std::shared_ptr<SyncSession> session, SyncError error) {
+            realm::jni_util::Log::d("error_handler lambda invoked");
+
+            JNIEnv *env = realm::jni_util::JniUtils::get_env(true);
+            env->CallStaticVoidMethod(java_syncmanager,
+                                      java_error_callback_method,
+                                      error.error_code.value(),
+                                      to_jstring(env, error.message),
+                                      to_jstring(env, session.get()->path()));
+        };
+
+        // path on disk of the Realm file.
+        // the sync configuration object.
+        // the session which should be bound.
+        auto bind_handler = [=](const std::string& path, const SyncConfig& syncConfig, std::shared_ptr<SyncSession> session) {
+            realm::jni_util::Log::d("Callback to Java requesting token for path");
+
+            JNIEnv *env = realm::jni_util::JniUtils::get_env(true);
+            jstring access_token_string = (jstring) env->CallStaticObjectMethod(java_syncmanager,
+                                java_bind_session_method,
+                                to_jstring(env, path.c_str()));
+            if (access_token_string) {
+                // reusing cached valid token
+                JStringAccessor access_token(env, access_token_string);
+                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url));
             }
         };
-        auto error_handler = [weak_session_ref, local_realm_path](std::error_code error_code, bool is_fatal, const std::string message) {
-            if (error_code.category() != realm::sync::protocol_error_category() &&
-                    error_code.category() != realm::sync::client_error_category()) {
-                // FIXME: Consider below when moving to the OS sync manager.
-                // Ignore this error since it may cause exceptions in java ErrorCode.fromInt(). Throwing exception there
-                // will trigger "called with pending exception" later since the thread is created by java, and the
-                // endless loop is in native code. The java exception will never be thrown because of the endless loop
-                // will never quit to java land.
-                realm::jni_util::Log::e("Unhandled sync client error code %1, %2. is_fatal: %3.",
-                                        error_code.value(), error_code.message(), is_fatal);
-                return;
-            }
-
-            // Handle client reset, without returning to Java
-
-            // we don't have the original SyncError so we can't call SyncError#is_client_reset_requested
-            // we need to transform the error code to an enum, then do the check manually
-            using ProtocolError = realm::sync::ProtocolError;
-            auto protocol_error = static_cast<ProtocolError>(error_code.value());
-
-            // Documented here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup
-            if (protocol_error == ProtocolError::bad_server_file_ident
-                || protocol_error == ProtocolError::bad_client_file_ident
-                || protocol_error == ProtocolError::bad_server_version
-                || protocol_error == ProtocolError::diverging_histories) {
-
-                // Add a SyncFileActionMetadata marking the Realm as needing to be deleted.
-                auto recovery_path = realm::util::reserve_unique_file_name(
-                        realm::SyncManager::shared().recovery_directory_path(),
-                        realm::util::create_timestamped_template("recovered_realm"));
-                auto original_path = local_realm_path;
-
-                realm::jni_util::Log::d("A client reset is scheduled for the next app start");
-                realm::SyncManager::shared().perform_metadata_update([original_path = std::move(original_path),
-                        recovery_path = std::move(recovery_path)](const auto &manager) {
-                    realm::SyncFileActionMetadata(manager,
-                                                  realm::SyncFileActionMetadata::Action::HandleRealmForClientReset,
-                                                  original_path,
-                                                  "",
-                                                  "",
-                                                  realm::util::Optional<std::string>(
-                                                          std::move(recovery_path)));
-                });
-
-            } else {
-                auto session_ref = weak_session_ref.lock();
-                if (session_ref) {
-                        session_ref.get()->call_with_local_ref([&](JNIEnv* local_env, jobject obj) {
-                            static realm::jni_util::JavaMethod notify_error_handler(
-                                    local_env, obj, "notifySessionError", "(ILjava/lang/String;)V");
-                            local_env->CallVoidMethod(
-                                    obj, notify_error_handler, error_code.value(), local_env->NewStringUTF(message.c_str()));
-                        });
-                }
-            }
-        };
-        m_sync_session->set_sync_transact_callback(sync_transact_callback);
-        m_sync_session->set_error_handler(std::move(error_handler));
+        // Get logged in user
+        JStringAccessor user_identity(env, sync_user_identity);
+        JStringAccessor realm_url(env, sync_realm_url);
+        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_identity);
+        if (!user) {
+            JStringAccessor realm_auth_url(env, sync_realm_auth_url);
+            JStringAccessor refresh_token(env, sync_refresh_token);
+            user = SyncManager::shared().get_user(user_identity, refresh_token, realm::util::Optional<std::string>(realm_auth_url));
+        }
+        SyncConfig sc = {user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler)};
+        config->sync_config = std::make_shared<SyncConfig>(sc);
+#endif
     }
 
-    inline realm::sync::Session* get_session() const noexcept
-    {
-        return m_sync_session;
+    inline Realm::Config* get_config() {
+        return m_config;
     }
 
-    ~JniSession()
+
+    // Call this just before destroying the object to release JNI resources.
+    inline void close(JNIEnv*)
     {
-        delete m_sync_session;
+    }
+
+    ~JniConfigWrapper()
+    {
     }
 
 private:
-    realm::sync::Session* m_sync_session;
-    std::shared_ptr<realm::jni_util::JavaGlobalWeakRef> m_java_session_ref;
+    Realm::Config* m_config;
 };
 
 #endif // REALM_OBJECTSERVER_SHARED_HPP

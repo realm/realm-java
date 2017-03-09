@@ -109,7 +109,6 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
-    public final ObjectServerFacade objectServerFacade;
     public final List<WeakReference<Collection>> collections = new CopyOnWriteArrayList<WeakReference<Collection>>();
     public final Capabilities capabilities;
     public final List<WeakReference<Collection.Iterator>> iterators =
@@ -193,7 +192,6 @@ public final class SharedRealm implements Closeable, NativeObject {
         context = new Context();
         context.addReference(this);
         this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
-        objectServerFacade = null;
         nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
     }
 
@@ -207,25 +205,31 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     public static SharedRealm getInstance(RealmConfiguration config, SchemaVersionListener schemaVersionListener,
                                           boolean autoChangeNotifications) {
-        String[] userAndServer = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
-        String rosServerUrl = userAndServer[0];
-        String rosUserToken = userAndServer[1];
+        String[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
+        String syncUserIdentifier = syncUserConf[0];
+        String syncRealmUrl = syncUserConf[1];
+        String syncRealmAuthUrl = syncUserConf[2];
+        String syncRefreshToken = syncUserConf[3];
         boolean enable_caching = false; // Handled in Java currently
         boolean disableFormatUpgrade = false; // TODO Double negatives :/
 
         long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
-                rosServerUrl != null ? SchemaMode.SCHEMA_MODE_ADDITIVE.getNativeValue() : SchemaMode.SCHEMA_MODE_MANUAL.getNativeValue(),
+                syncRealmUrl != null ? SchemaMode.SCHEMA_MODE_ADDITIVE.getNativeValue() : SchemaMode.SCHEMA_MODE_MANUAL.getNativeValue(),
                 config.getDurability() == Durability.MEM_ONLY,
                 enable_caching,
                 config.getSchemaVersion(),
                 disableFormatUpgrade,
                 autoChangeNotifications,
-                rosServerUrl,
-                rosUserToken);
+                syncRealmUrl,
+                syncRealmAuthUrl,
+                syncUserIdentifier,
+                syncRefreshToken);
 
         try {
+            ObjectServerFacade.getSyncFacadeIfPossible().createSessionIfRequired(config);
+
             return new SharedRealm(nativeConfigPtr, config, schemaVersionListener);
         } finally {
             nativeCloseConfig(nativeConfigPtr);
@@ -422,10 +426,14 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     private static native void nativeInit(String temporaryDirectoryPath);
+    // Keep last session as an 'object' to avoid any reference to sync code
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
                                                   boolean cache, long schemaVersion, boolean disableFormatUpgrade,
                                                   boolean autoChangeNotification,
-                                                  String syncServerURL, String syncUserToken);
+                                                  String syncServerURL,
+                                                  String syncServerAuthURL,
+                                                  String syncUserIdentity,
+                                                  String syncRefreshToken);
     private static native void nativeCloseConfig(long nativeConfigPtr);
     private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
     private static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);

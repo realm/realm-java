@@ -24,13 +24,10 @@
 #include <realm/group_shared_options.hpp>
 
 #include "object_store.hpp"
-#include "shared_realm.hpp"
 
 #include "java_binding_context.hpp"
 #include "util.hpp"
-#if REALM_ENABLE_SYNC
-#include "sync/sync_manager.hpp"
-#endif
+#include "objectserver_shared.hpp"
 
 using namespace realm;
 using namespace realm::_impl;
@@ -62,7 +59,8 @@ Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring tempo
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstring realm_path, jbyteArray key,
         jbyte schema_mode, jboolean in_memory, jboolean cache, jlong /* schema_version */, jboolean disable_format_upgrade,
-        jboolean auto_change_notification, REALM_UNUSED jstring sync_server_url, jstring /*sync_user_token*/)
+        jboolean auto_change_notification, REALM_UNUSED jstring sync_server_url, REALM_UNUSED jstring sync_server_auth_url,
+                                                      REALM_UNUSED jstring sync_user_identity,REALM_UNUSED jstring sync_refresh_token)
 {
     TR_ENTER()
 
@@ -79,9 +77,16 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         config->disable_format_upgrade = disable_format_upgrade;
         config->automatic_change_notifications = auto_change_notification;
         if (sync_server_url) {
-            config->force_sync_history = true;
+            return reinterpret_cast<jlong>(new JniConfigWrapper(env,
+                                                                config,
+                                                                sync_server_url,
+                                                                sync_server_auth_url,
+                                                                sync_user_identity,
+                                                                sync_refresh_token));
         }
-        return reinterpret_cast<jlong>(config);
+        else {
+            return reinterpret_cast<jlong>(new JniConfigWrapper(env, config));
+        }
     } CATCH_STD()
 
     return static_cast<jlong>(NULL);
@@ -92,7 +97,7 @@ Java_io_realm_internal_SharedRealm_nativeCloseConfig(JNIEnv*, jclass, jlong conf
 {
     TR_ENTER_PTR(config_ptr)
 
-    auto config = reinterpret_cast<realm::Realm::Config*>(config_ptr);
+    auto config = reinterpret_cast<JniConfigWrapper*>(config_ptr);
     delete config;
 }
 
@@ -101,9 +106,9 @@ Java_io_realm_internal_SharedRealm_nativeGetSharedRealm(JNIEnv *env, jclass, jlo
 {
     TR_ENTER_PTR(config_ptr)
 
-    auto config = reinterpret_cast<realm::Realm::Config*>(config_ptr);
+    auto config = reinterpret_cast<JniConfigWrapper*>(config_ptr);
     try {
-        auto shared_realm = Realm::get_shared_realm(*config);
+        auto shared_realm = Realm::get_shared_realm(*config->get_config());
         shared_realm->m_binding_context = JavaBindingContext::create(env, realm_notifier);
         return reinterpret_cast<jlong>(new SharedRealm(std::move(shared_realm)));
     } CATCH_STD()
@@ -185,7 +190,6 @@ Java_io_realm_internal_SharedRealm_nativeGetVersion(JNIEnv *env, jclass, jlong s
     try {
         return static_cast<jlong>(ObjectStore::get_schema_version(shared_realm->read_group()));
     } CATCH_STD()
-
     return static_cast<jlong>(ObjectStore::NotVersioned);
 }
 
