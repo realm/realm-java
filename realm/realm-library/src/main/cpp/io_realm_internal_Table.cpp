@@ -1306,16 +1306,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull(JNIEnv*
 {
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex)) {
-        return to_jlong_or_not_found(-1);
+        return static_cast<jlong>(realm::not_found);
     }
     if (!TBL_AND_COL_NULLABLE(env, pTable, columnIndex)) {
-        return to_jlong_or_not_found(-1);
+        return static_cast<jlong>(realm::not_found);
     }
     try {
         return to_jlong_or_not_found(pTable->find_first_null(S(columnIndex)));
     }
     CATCH_STD()
-    return to_jlong_or_not_found(-1);
+    return static_cast<jlong>(realm::not_found);
 }
 
 // FindAll
