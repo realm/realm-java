@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -26,11 +28,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.BacklinksModule;
+import io.realm.entities.BacklinksTarget;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -49,14 +55,17 @@ public class LinkingObjectsManagedTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
-    public final ExpectedException thrown = ExpectedException.none();
-    @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     private Realm realm;
+    private Context context;
 
     @Before
     public void setUp() {
+        context = InstrumentationRegistry.getInstrumentation().getContext();
+
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
     }
@@ -534,15 +543,36 @@ public class LinkingObjectsManagedTests {
     }
 
     // Table validation should fail if the backinked column exists in the target table
-    // !!!FIXME: Implement
     @Test
-    public void migration_backlinkedFieldInUse() {
+    public void migration_backlinkedFieldInUse() throws IOException {
+        final String realmName = "backlinks-fieldInUse.realm";
+
+        RealmConfiguration realmConfig = configFactory.createConfiguration(realmName, new BacklinksModule());
+        configFactory.copyRealmFromAssets(context, realmName, realmName);
+        try {
+            Realm.getInstance(realmConfig);
+            fail("A migration should be triggered");
+        } catch (RealmMigrationNeededException expected) {
+        }
     }
 
     // Table validation should fail if the backinked column points to a non-existent class
-    // !!!FIXME: Implement
     @Test
-    public void migration_backlinkedSourceClassDoesntExist() {
+    public void migration_backlinkedSourceClassDoesntExist() throws IOException {
+        final String realmName = "backlinks-missingSourceClass.realm";
+
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+            .name(realmName)
+            .schema(BacklinksTarget.class)
+            .build();
+        configFactory.copyRealmFromAssets(context, realmName, realmName);
+        try {
+            Realm.getInstance(realmConfig);
+            fail("A migration should be triggered");
+        } catch (RealmMigrationNeededException expected) {
+        } finally {
+            Realm.deleteRealm(realmConfig);
+        }
     }
 
     // Table validation should fail if the backinked column points to a non-existent field

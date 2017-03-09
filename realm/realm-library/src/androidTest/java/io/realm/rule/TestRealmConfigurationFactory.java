@@ -36,7 +36,9 @@ import io.realm.DynamicRealm;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
+import io.realm.RealmObject;
 import io.realm.TestHelper;
+import io.realm.annotations.RealmModule;
 
 import static org.junit.Assert.assertTrue;
 
@@ -107,27 +109,23 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     }
 
     public RealmConfiguration createConfiguration(String name) {
-        return createConfiguration(name, (byte[]) null);
+        return createConfiguration(null, name);
     }
 
     public RealmConfiguration createConfiguration(String subDir, String name) {
-        return createConfiguration(subDir, name, null);
+        return createConfiguration(subDir, name, null, null);
     }
 
     public RealmConfiguration createConfiguration(String name, byte[] key) {
-        return createConfiguration(null, name, key);
+        return createConfiguration(null, name, null, key);
     }
 
-    public RealmConfiguration createConfiguration(String subDir, String name, byte[] key) {
+    public RealmConfiguration createConfiguration(String name, Object module) {
+        return createConfiguration(null, name, module, null);
+    }
+
+    public RealmConfiguration createConfiguration(String subDir, String name, Object module, byte[] key) {
         RealmConfiguration.Builder builder = createConfigurationBuilder();
-
-        if (name != null) {
-            builder.name(name);
-        }
-
-        if (key != null) {
-            builder.encryptionKey(key);
-        }
 
         File folder = getRoot();
         if (subDir != null) {
@@ -135,6 +133,18 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
             assertTrue(folder.mkdirs());
         }
         builder.directory(folder);
+
+        if (name != null) {
+            builder.name(name);
+        }
+
+        if (module != null) {
+            builder.modules(module);
+        }
+
+        if (key != null) {
+            builder.encryptionKey(key);
+        }
 
         RealmConfiguration configuration = builder.build();
         configurations.add(configuration);

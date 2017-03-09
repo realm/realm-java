@@ -899,14 +899,11 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitValidateBacklink(JavaWriter writer, Backlink backlink) throws IOException {
-        // verify that the backlink field is not in the table
         String targetField = backlink.getTargetField();
         String targetClass = backlink.getTargetClass();
-        writer.emitStatement("backlinkFieldIndex = table.getColumnIndex(\"%s\")", targetField);
-        writer.beginControlFlow("if (backlinkFieldIndex != Table.NO_MATCH)");
-        emitMigrationNeededException(writer, "\"@LinkingObjects field '%s.%s' already exists with type '\" + table.getColumnType(backlinkFieldIndex) + \"'\")",
-            targetClass, targetField);
-        writer.endControlFlow();
+
+        // Preceding code has already verified that the backlink field is not in the table.
+        // If it were, either the column count would be wrong, or some field would be missing.
 
         // verify that the source class exists
         String sourceClass = backlink.getSimpleSourceClass();
