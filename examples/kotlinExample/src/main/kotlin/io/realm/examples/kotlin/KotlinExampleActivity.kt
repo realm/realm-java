@@ -64,9 +64,8 @@ class KotlinExampleActivity : Activity() {
 
         // More complex operations can be executed on another thread, for example using
         // Anko's async extension method.
-        async() {
-            var info: String
-            info = complexReadWrite()
+        async {
+            var info = complexReadWrite()
             info += complexQuery()
 
             uiThread {
@@ -134,51 +133,53 @@ class KotlinExampleActivity : Activity() {
         // Open the default realm. All threads must use its own reference to the realm.
         // Those can not be transferred across threads.
         val realm = Realm.getDefaultInstance()
+        try {
+            // Add ten persons in one transaction
+            realm.executeTransaction {
+                val fido = realm.createObject(Dog::class.java)
+                fido.name = "fido"
+                for (i in 1..9) {
+                    val person = realm.createObject(Person::class.java, i.toLong())
+                    person.name = "Person no. $i"
+                    person.age = i
+                    person.dog = fido
 
-        // Add ten persons in one transaction
-        realm.executeTransaction {
-            val fido = realm.createObject(Dog::class.java)
-            fido.name = "fido"
-            for (i in 1..9) {
-                val person = realm.createObject(Person::class.java, i.toLong())
-                person.name = "Person no. $i"
-                person.age = i
-                person.dog = fido
+                    // The field tempReference is annotated with @Ignore.
+                    // This means setTempReference sets the Person tempReference
+                    // field directly. The tempReference is NOT saved as part of
+                    // the RealmObject:
+                    person.tempReference = 42
 
-                // The field tempReference is annotated with @Ignore.
-                // This means setTempReference sets the Person tempReference
-                // field directly. The tempReference is NOT saved as part of
-                // the RealmObject:
-                person.tempReference = 42
-
-                for (j in 0..i - 1) {
-                    val cat = realm.createObject(Cat::class.java)
-                    cat.name = "Cat_$j"
-                    person.cats.add(cat)
+                    for (j in 0..i - 1) {
+                        val cat = realm.createObject(Cat::class.java)
+                        cat.name = "Cat_$j"
+                        person.cats.add(cat)
+                    }
                 }
             }
+
+            // Implicit read transactions allow you to access your objects
+            status += "\nNumber of persons: ${realm.where(Person::class.java).count()}"
+
+            // Iterate over all objects
+            for (person in realm.where(Person::class.java).findAll()) {
+                val dogName: String = person?.dog?.name ?: "None"
+
+                status += "\n${person.name}: ${person.age} : $dogName : ${person.cats.size}"
+
+                // The field tempReference is annotated with @Ignore
+                // Though we initially set its value to 42, it has
+                // not been saved as part of the Person RealmObject:
+                check(person.tempReference == 0)
+            }
+
+            // Sorting
+            val sortedPersons = realm.where(Person::class.java).findAllSorted("age", Sort.DESCENDING)
+            status += "\nSorting ${sortedPersons.last().name} == ${realm.where(Person::class.java).findAll().first().name}"
+
+        } finally {
+            realm.close()
         }
-
-        // Implicit read transactions allow you to access your objects
-        status += "\nNumber of persons: ${realm.where(Person::class.java).count()}"
-
-        // Iterate over all objects
-        for (person in realm.where(Person::class.java).findAll()) {
-            val dogName: String = person?.dog?.name ?: "None"
-
-            status += "\n${person.name}: ${person.age} : $dogName : ${person.cats.size}"
-
-            // The field tempReference is annotated with @Ignore
-            // Though we initially set its value to 42, it has
-            // not been saved as part of the Person RealmObject:
-            check(person.tempReference == 0)
-        }
-
-        // Sorting
-        val sortedPersons = realm.where(Person::class.java).findAllSorted("age", Sort.DESCENDING)
-        status += "\nSorting ${sortedPersons.last().name} == ${realm.where(Person::class.java).findAll().first().name}"
-
-        realm.close()
         return status
     }
 

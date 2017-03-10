@@ -1,10 +1,12 @@
-## 3.0.1 (YYYY-MM-DD)
+## 3.1.0 (YYYY-MM-DD)
 
 ### Enhancements
 
 * Now `targetSdkVersion` is 25.
 
 ### Bug Fixes
+
+* `Realm.migrateRealm(RealmConfiguration)` now fails correctly with an `IllegalArgumentException` if a `SyncConfiguration` is provided (#4075).
 
 ### Deprecated
 
