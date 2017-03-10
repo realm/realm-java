@@ -16,17 +16,12 @@
 
 package io.realm.objectserver.utils;
 
-import android.support.test.InstrumentationRegistry;
-
 import java.io.IOException;
 
-import io.realm.Realm;
 import io.realm.log.RealmLog;
 import okhttp3.Headers;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**

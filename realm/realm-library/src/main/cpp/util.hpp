@@ -698,10 +698,9 @@ extern jclass java_lang_string;
 extern jmethodID java_lang_double_init;
 extern jclass java_util_date;
 extern jmethodID java_util_date_init;
-
-// FIXME Move to own library
-extern jclass session_class_ref;
-extern jmethodID session_error_handler;
+#if REALM_ENABLE_SYNC
+extern jclass java_syncmanager;
+#endif
 
 inline jobject NewLong(JNIEnv* env, int64_t value)
 {

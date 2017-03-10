@@ -32,6 +32,9 @@ public:
     // When attach_if_needed is false, returns the JNIEnv if there is one attached to this thread. Assert if there is
     // none. When attach_if_needed is true, try to attach and return a JNIEnv if necessary.
     static JNIEnv* get_env(bool attach_if_needed = false);
+    // Detach the current thread from the JVM. Only required for C++ threads that where attached in the first place.
+    // Failing to do so is a resource leak.
+    static void detach_current_thread();
 
 private:
     JniUtils(JavaVM* vm, jint vm_version) noexcept : m_vm(vm), m_vm_version(vm_version) {}

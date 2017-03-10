@@ -27,9 +27,9 @@ namespace jni_util {
 class JavaMethod {
 public:
     JavaMethod() : m_method_id(nullptr) {}
-    JavaMethod(JNIEnv *env, jclass cls, const char* method_name, const char* signature);
+    JavaMethod(JNIEnv *env, jclass cls, const char* method_name, const char* signature, bool static_method = false);
     JavaMethod(JNIEnv *env, jobject obj, const char* method_name, const char* signature);
-    JavaMethod(JNIEnv *env, const char* class_name, const char* method_name, const char* signature);
+    JavaMethod(JNIEnv *env, const char* class_name, const char* method_name, const char* signature, bool static_method = false);
 
     JavaMethod(const JavaMethod&) = default;
     JavaMethod& operator=(const JavaMethod&) = default;

@@ -70,6 +70,7 @@ public class SyncConfigurationTests {
 
     @After
     public void tearDown() throws Exception {
+        SyncManager.reset();
     }
 
     @Test
