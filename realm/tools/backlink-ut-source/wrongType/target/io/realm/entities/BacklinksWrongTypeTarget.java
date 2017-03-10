@@ -15,8 +15,25 @@
  */
 package io.realm.entities;
 
-import io.realm.annotations.RealmModule;
+import io.realm.RealmObject;
+import io.realm.RealmResults;
+import io.realm.annotations.LinkingObjects;
 
-@RealmModule(classes = {BacklinksWrongTypeSource.class, BacklinksWrongTypeStub.class})
-public class BacklinksWrongTypeSourceModule {
+public class BacklinksWrongTypeTarget extends RealmObject {
+    private int id;
+
+    @LinkingObjects("childId")
+    private final RealmResults<BacklinksWrongTypeSource> parents = null;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public RealmResults<BacklinksWrongTypeSource> getParents() {
+        return parents;
+    }
 }

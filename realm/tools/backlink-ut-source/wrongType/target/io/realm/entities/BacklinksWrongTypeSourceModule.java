@@ -15,16 +15,8 @@
  */
 package io.realm.entities;
 
-import io.realm.RealmObject;
+import io.realm.annotations.RealmModule;
 
-public class BacklinksWrongTypeStub extends RealmObject {
-    private BacklinksWrongTypeTarget child;
-
-    public BacklinksWrongTypeTarget getChild() {
-        return child;
-    }
-
-    public void setChild(BacklinksWrongTypeTarget child) {
-        this.child = child;
-    }
+@RealmModule(classes = {BacklinksWrongTypeSource.class})
+public class BacklinksWrongTypeSourceModule {
 }
