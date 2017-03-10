@@ -229,10 +229,6 @@ public class SyncManager {
         }
     }
 
-    // This is called from SyncManager.cpp from the worker thread the Sync Client is running on
-    // Right now Core doesn't send these errors to the proper session, so instead we need to notify all sessions
-    // from here. This can be removed once better error propagation is implemented in Sync Core.
-
     /**
      * All errors from native Sync is reported to this method. From the path we can determine which
      * session to contact. If {@code path == null} all sessions are effected.
