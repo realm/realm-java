@@ -86,7 +86,6 @@ JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeLogoutUser(JNIEnv*
     CATCH_STD()
 }
 
-
 JNIEXPORT jobjectArray JNICALL Java_io_realm_RealmFileUserStore_nativeGetAllUsers(JNIEnv* env, jclass)
 {
     TR_ENTER()
@@ -105,10 +104,4 @@ JNIEXPORT jobjectArray JNICALL Java_io_realm_RealmFileUserStore_nativeGetAllUser
         return users_token;
     }
     return nullptr;
-}
-
-JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeResetForTesting(JNIEnv*, jclass)
-{
-    TR_ENTER();
-    SyncManager::shared().reset_for_testing();
 }

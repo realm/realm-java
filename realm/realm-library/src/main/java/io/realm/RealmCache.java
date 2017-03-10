@@ -26,10 +26,10 @@ import java.util.Map;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
-import io.realm.internal.ObjectServerFacade;
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.
@@ -137,7 +137,6 @@ final class RealmCache {
             // Creates a new local Realm instance
             BaseRealm realm;
 
-
             if (realmClass == Realm.class) {
                 // RealmMigrationNeededException might be thrown here.
                 realm = Realm.createInstance(configuration, cache.typedColumnIndicesArray);
@@ -172,10 +171,6 @@ final class RealmCache {
         @SuppressWarnings("unchecked")
         E realm = (E) refAndCount.localRealm.get();
 
-        // Notifies SyncPolicy that the Realm has been opened for the first time
-        if (refAndCount.globalCount == 1) {
-            ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).realmOpened(configuration);
-        }
         return realm;
     }
 

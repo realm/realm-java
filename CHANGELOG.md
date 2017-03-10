@@ -1,4 +1,4 @@
-## 3.0.1 (YYYY-MM-DD)
+## 3.1.0 (YYYY-MM-DD)
 
 ### Enhancements
 
@@ -12,6 +12,7 @@
 
 ### Internal
 
+* Using the Object Store's Session and SyncManager.
 
 ## 3.0.0 (2017-02-28)
 
@@ -33,7 +34,7 @@
 
 * Added support for sorting by link's field (#672).
 * Added `OrderedRealmCollectionSnapshot` class and `OrderedRealmCollection.createSnapshot()` method. `OrderedRealmCollectionSnapshot` is useful when changing `RealmResults` or `RealmList` in simple loops.
-* Added `OrderedRealmCollectionChangeListener` interface for supporting fine-grained collection notifications. 
+* Added `OrderedRealmCollectionChangeListener` interface for supporting fine-grained collection notifications.
 * Added support for ChangeListeners on `RealmList`.
 * Added `RealmList.asObservable()`.
 

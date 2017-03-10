@@ -33,7 +33,7 @@ public class ObjectServerFacade {
     static {
         //noinspection TryWithIdenticalCatches
         try {
-            Class syncFacadeClass = Class.forName("io.realm.internal.objectserver.SyncObjectServerFacade");
+            Class syncFacadeClass = Class.forName("io.realm.internal.SyncObjectServerFacade");
             syncFacade = (ObjectServerFacade) syncFacadeClass.newInstance();
         } catch (ClassNotFoundException ignored) {
         } catch (InstantiationException e) {
@@ -51,25 +51,13 @@ public class ObjectServerFacade {
     }
 
     /**
-     * Notifies the session for this configuration that a local commit was made.
-     */
-    public void notifyCommit(RealmConfiguration configuration, long lastSnapshotVersion) {
-    }
-
-    /**
-     * The first instance of this Realm was opened.
+     * The last instance of this Realm was closed (across all Threads).
      */
     public void realmClosed(RealmConfiguration configuration) {
     }
 
-    /**
-     * The last instance of this Realm was closed.
-     */
-    public void realmOpened(RealmConfiguration configuration) {
-    }
-
     public String[] getUserAndServerUrl(RealmConfiguration config) {
-        return new String[2];
+        return new String[4];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {
@@ -85,5 +73,9 @@ public class ObjectServerFacade {
             return syncFacade;
         }
         return nonSyncFacade;
+    }
+
+    // If no session yet exists for this path. Wrap a new Java Session around an existing OS one.
+    public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
     }
 }
