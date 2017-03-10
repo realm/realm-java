@@ -16,32 +16,23 @@
 
 package io.realm;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.realm.internal.network.AuthenticationServer;
-import io.realm.internal.network.OkHttpAuthenticationServer;
-import io.realm.internal.objectserver.ObjectServerSession;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 @RunWith(AndroidJUnit4.class)
 public class SessionTests {
 
     private static String REALM_URI = "realm://objectserver.realm.io/~/default";
 
-    private Context context;
-    private AuthenticationServer authServer;
     private SyncConfiguration configuration;
     private SyncUser user;
 
@@ -50,30 +41,15 @@ public class SessionTests {
 
     @Before
     public void setUp() {
-        context = InstrumentationRegistry.getContext();
         user = createTestUser();
-        authServer = new OkHttpAuthenticationServer();
         configuration = new SyncConfiguration.Builder(user, REALM_URI).build();
-    }
-
-    @After
-    public void tearDown() throws Exception {
     }
 
     @Test
     public void get_syncValues() {
-        ObjectServerSession internalSession = new ObjectServerSession(
-                configuration,
-                authServer,
-                configuration.getUser().getSyncUser(),
-                configuration.getSyncPolicy(),
-                configuration.getErrorHandler()
-        );
-        SyncSession session = new SyncSession(internalSession);
-
+        SyncSession session = new SyncSession(configuration);
         assertEquals("realm://objectserver.realm.io/JohnDoe/default", session.getServerUrl().toString());
         assertEquals(user, session.getUser());
         assertEquals(configuration, session.getConfiguration());
-        assertNull(session.getState());
     }
 }

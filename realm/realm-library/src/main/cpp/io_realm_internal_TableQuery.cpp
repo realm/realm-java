@@ -1513,4 +1513,3 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr
     TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_table_query);
 }
-

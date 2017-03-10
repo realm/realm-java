@@ -9,18 +9,20 @@ import org.junit.runner.RunWith;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
-import io.realm.SessionState;
 import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -61,7 +63,7 @@ public class AuthTests extends BaseIntegrationTest {
     @RunTestInLooperThread
     public void login_withAccessToken() {
         SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
-        SyncCredentials credentials = SyncCredentials.accessToken(admin.getAccessToken(), "custom-admin-user");
+        SyncCredentials credentials = SyncCredentials.accessToken(admin.getAccessToken().value(), "custom-admin-user");
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
             public void onSuccess(SyncUser user) {
@@ -82,7 +84,7 @@ public class AuthTests extends BaseIntegrationTest {
                 looperThread.postRunnableDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        assertEquals(SessionState.BOUND, SyncManager.getSession(config).getState());
+                        assertTrue(SyncManager.getSession(config).getUser().isValid());
                         looperThread.testComplete();
                     }
                 }, 1000);
@@ -100,6 +102,10 @@ public class AuthTests extends BaseIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void loginAsync_errorHandlerThrows() {
+        // set log level to info to make sure the IllegalArgumentException
+        // thrown in the test is visible in Logcat
+        final int defaultLevel = RealmLog.getLevel();
+        RealmLog.setLevel(LogLevel.INFO);
         SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
@@ -114,12 +120,12 @@ public class AuthTests extends BaseIntegrationTest {
             }
         });
 
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            fail();
-        }
-        looperThread.testComplete();
+        looperThread.postRunnableDelayed(new Runnable() {
+            @Override
+            public void run() {
+                RealmLog.setLevel(defaultLevel);
+                looperThread.testComplete();
+            }
+        }, 1000);
     }
 }

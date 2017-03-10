@@ -105,11 +105,3 @@ Java_io_realm_RealmFileUserStore_nativeGetAllUsers (JNIEnv *env, jclass)
     }
     return nullptr;
 }
-
-JNIEXPORT void JNICALL
-Java_io_realm_RealmFileUserStore_nativeResetForTesting (JNIEnv *, jclass)
-{
-    TR_ENTER();
-    SyncManager::shared().reset_for_testing();
-}
-

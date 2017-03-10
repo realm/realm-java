@@ -20,13 +20,19 @@
 
 using namespace realm::jni_util;
 
-JavaMethod::JavaMethod(JNIEnv *env, jclass cls, const char* method_name, const char* signature)
+JavaMethod::JavaMethod(JNIEnv* env, jclass cls, const char* method_name, const char* signature, bool static_method)
 {
-    m_method_id = env->GetMethodID(cls, method_name, signature);
+    if (static_method) {
+        m_method_id = env->GetStaticMethodID(cls, method_name, signature);
+    }
+    else {
+        m_method_id = env->GetMethodID(cls, method_name, signature);
+    }
+
     REALM_ASSERT_DEBUG(m_method_id != nullptr);
 }
 
-JavaMethod::JavaMethod(JNIEnv *env, jobject obj, const char* method_name, const char* signature)
+JavaMethod::JavaMethod(JNIEnv* env, jobject obj, const char* method_name, const char* signature)
 {
     jclass cls = env->GetObjectClass(obj);
     m_method_id = env->GetMethodID(cls, method_name, signature);
@@ -34,10 +40,15 @@ JavaMethod::JavaMethod(JNIEnv *env, jobject obj, const char* method_name, const 
     env->DeleteLocalRef(cls);
 }
 
-JavaMethod::JavaMethod(JNIEnv *env, const char* class_name, const char* method_name, const char* signature)
+JavaMethod::JavaMethod(JNIEnv* env, const char* class_name, const char* method_name, const char* signature,
+                       bool static_method)
 {
     jclass cls = env->FindClass(class_name);
     REALM_ASSERT_DEBUG(cls != nullptr);
-    m_method_id = env->GetMethodID(cls, method_name, signature);
+    if (static_method) {
+        m_method_id = env->GetStaticMethodID(cls, method_name, signature);
+    }
+    else {
+        m_method_id = env->GetMethodID(cls, method_name, signature);
+    }
 }
-
