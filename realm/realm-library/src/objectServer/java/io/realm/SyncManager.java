@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -25,7 +27,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.OkHttpAuthenticationServer;
-import io.realm.internal.objectserver.SyncSessionHolder;
 import io.realm.log.RealmLog;
 
 /**
@@ -83,6 +84,8 @@ public class SyncManager {
             }
         }
     };
+    // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
+    private static Map<String, SyncSession> sessions = new HashMap<String, SyncSession>();
     private static CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
 
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
@@ -172,13 +175,28 @@ public class SyncManager {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
 
-        SyncSession session = SyncSessionHolder.get(syncConfiguration.getPath());
+        SyncSession session = sessions.get(syncConfiguration.getPath());
         if (session == null) {
             session = new SyncSession(syncConfiguration);
-            SyncSessionHolder.set(syncConfiguration.getPath(), session);
+            sessions.put(syncConfiguration.getPath(), session);
         }
 
         return session;
+    }
+
+    /**
+     * Remove the wrapped Java session.
+     * @param syncConfiguration configuration object for the synchronized Realm.
+     */
+    @SuppressWarnings("unused")
+    private static synchronized void removeSession(SyncConfiguration syncConfiguration) {
+        if (syncConfiguration == null) {
+            throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
+        }
+        SyncSession syncSession = sessions.remove(syncConfiguration.getPath());
+        if (syncSession != null) {
+            syncSession.close();
+        }
     }
 
     static AuthenticationServer getAuthServer() {
@@ -221,7 +239,7 @@ public class SyncManager {
      */
     @SuppressWarnings("unused")
     private static synchronized void notifyErrorHandler(int errorCode, String errorMessage, String path) {
-        for (SyncSession syncSession : SyncSessionHolder.getAll()) {
+        for (SyncSession syncSession : sessions.values()) {
             if (path == null || path.equals(syncSession.getConfiguration().getPath())) {
                 try {
                     syncSession.notifySessionError(errorCode, errorMessage);
@@ -245,7 +263,7 @@ public class SyncManager {
      */
     @SuppressWarnings("unused")
     private synchronized static String bindSessionWithConfig(String sessionPath) {
-        final SyncSession syncSession = SyncSessionHolder.get(sessionPath);
+        final SyncSession syncSession = sessions.get(sessionPath);
         if (syncSession == null) {
             RealmLog.error("Matching Java SyncSession could not be found for: " + sessionPath);
         } else {
@@ -266,7 +284,7 @@ public class SyncManager {
      */
     static synchronized void reset() {
         nativeReset();
-        SyncSessionHolder.clearAll();
+        sessions.clear();
     }
 
     private static native void nativeInitializeSyncClient();

@@ -118,9 +118,8 @@ public:
             user = SyncManager::shared().get_user(user_identity, refresh_token,
                                                   realm::util::Optional<std::string>(realm_auth_url));
         }
-        SyncConfig sc = {user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler),
-                         std::move(error_handler)};
-        m_config.sync_config = std::make_shared<SyncConfig>(sc);
+        m_config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
+            user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler)});
 #else
         REALM_UNREACHABLE();
 #endif

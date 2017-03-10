@@ -102,8 +102,7 @@ public class SyncSession {
         }
     }
 
-    // This is called from a synchronized block
-    public synchronized void close() {
+    void close() {
         isClosed = true;
         if (networkRequest != null) {
             networkRequest.cancel();

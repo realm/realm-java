@@ -29,7 +29,6 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
-import io.realm.internal.objectserver.SyncSessionHolder;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -39,6 +38,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             "'configuration' has to be an instance of 'SyncConfiguration'.";
     @SuppressLint("StaticFieldLeak") //
     private static Context applicationContext;
+    private static volatile Method removeSessionMethod;
 
     @Override
     public void init(Context context) {
@@ -74,7 +74,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         // delete the wrapped Java session
         if (configuration instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            SyncSessionHolder.remove(syncConfig);
+            invokeRemoveSession(syncConfig);
         } else {
             throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
         }
@@ -102,6 +102,26 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncManager.getSession((SyncConfiguration) config);
+        }
+    }
+
+    //FIXME remove this reflection call once we redesign the SyncManager to separate interface
+    //      from implementation to avoid issue like exposing internal method like SyncManager#removeSession
+    //      or SyncSession#close. This happens because SyncObjectServerFacade is internal, whereas
+    //      SyncManager#removeSession or SyncSession#close are package private & should not be public.
+    private void invokeRemoveSession(SyncConfiguration syncConfig) {
+        try {
+            if (removeSessionMethod == null) {
+                removeSessionMethod = SyncManager.class.getDeclaredMethod("removeSession", SyncConfiguration.class);
+                removeSessionMethod.setAccessible(true);
+            }
+            removeSessionMethod.invoke(null, syncConfig);
+        } catch (NoSuchMethodException e) {
+            throw new RealmException("Could not lookup method to remove session: " + syncConfig.toString(), e);
+        } catch (InvocationTargetException e) {
+            throw new RealmException("Could not invoke method to remove session: " + syncConfig.toString(), e);
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not remove session: " + syncConfig.toString(), e);
         }
     }
 }

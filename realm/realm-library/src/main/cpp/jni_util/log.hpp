@@ -181,6 +181,10 @@ public:
     void do_log(Logger::Level, std::string msg) override;
     static CoreLoggerBridge& shared();
 
+    // Only used by the sync client to create it's own copy. In most other cases use
+    // CoreLoggerBridge::shared()
+    CoreLoggerBridge() = default;
+
 private:
     // Log tag for Realm core & sync.
     static const char* TAG;
