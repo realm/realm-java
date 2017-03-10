@@ -1,4 +1,4 @@
-## 3.1.0 (YYYY-MM-DD)
+## 3.0.1 (YYYY-MM-DD)
 
 ### Enhancements
 
