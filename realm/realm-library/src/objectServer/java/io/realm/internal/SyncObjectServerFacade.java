@@ -114,8 +114,9 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             if (removeSessionMethod == null) {
                 synchronized (SyncObjectServerFacade.class) {
                     if (removeSessionMethod == null) {
-                        removeSessionMethod = SyncManager.class.getDeclaredMethod("removeSession", SyncConfiguration.class);
-                        removeSessionMethod.setAccessible(true);
+                        Method removeSession = SyncManager.class.getDeclaredMethod("removeSession", SyncConfiguration.class);
+                        removeSession.setAccessible(true);
+                        removeSessionMethod = removeSession;
                     }
                 }
             }
