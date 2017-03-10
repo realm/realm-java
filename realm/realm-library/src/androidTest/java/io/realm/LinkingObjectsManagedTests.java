@@ -19,6 +19,7 @@ package io.realm;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.After;
 import org.junit.Before;
@@ -33,7 +34,9 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllJavaTypes;
-import io.realm.entities.BacklinksModule;
+import io.realm.entities.BacklinksMissingFieldSourceModule;
+import io.realm.entities.BacklinksMissingFieldTargetModule;
+import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -542,21 +545,56 @@ public class LinkingObjectsManagedTests {
             child, parent);
     }
 
-    // Table validation should fail if the backinked column exists in the target table
+    // Table validation should fail if the backinked column already exists in the target table.
+    // The realm `backlinks-fieldInUse.realm` contains exactly the `BacklinksSourceModule` and
+    // `BacklinksSourceModule`, except that in the definition of `BacklinksTarget`, the field
+    // parent is defined as:
+    // <pre>
+    // {@code
+    //     private RealmList<BacklinksSource> parents;
+    // }
+    // </pre>
     @Test
-    public void migration_backlinkedFieldInUse() throws IOException {
+    public void migration_backlinkedFieldInUse() {
         final String realmName = "backlinks-fieldInUse.realm";
 
-        RealmConfiguration realmConfig = configFactory.createConfiguration(realmName, new BacklinksModule());
-        configFactory.copyRealmFromAssets(context, realmName, realmName);
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+            .name(realmName)
+            .schema(BacklinksSource.class, BacklinksTarget.class)
+            .build();
+
         try {
+            configFactory.copyRealmFromAssets(context, realmName, realmName);
+
             Realm.getInstance(realmConfig);
             fail("A migration should be triggered");
+        } catch (IOException e) {
+            fail("Failed copying realm");
         } catch (RealmMigrationNeededException expected) {
+            assertTrue(expected.getMessage().contains("RealmMigration must be provided"));
+            Throwable t = expected.getCause();
+            assertNotNull(t);
+            assertTrue(t.getMessage().contains("Field count is"));
+        } finally {
+            Realm.deleteRealm(realmConfig);
         }
     }
 
-    // Table validation should fail if the backinked column points to a non-existent class
+    // Table validation should fail if the backinked column points to a non-existent class.
+    // The realm `backlinks-missingSourceClass.realm` contains two tables very like those
+    // defined by `BacklinksSource` and `BacklinksTarget`.  In it, though, the source class
+    // is named XXXBacklinksSource, like so:
+    //<pre>
+    // {@code
+    //      @LinkingObjects("child")
+    //      private final RealmResults<XXXBacklinksSource> parents = null;
+    // }
+    // </pre>
+    //
+    // If the both classes were added to the configuration, the test would fail because of the
+    // missing class.  Since the configuration contains only the single class `BacklinksTarget`,
+    // basic validation passes.  Backlink validation, however, should fail, seeking the
+    // `BacklinksSource` table.
     @Test
     public void migration_backlinkedSourceClassDoesntExist() throws IOException {
         final String realmName = "backlinks-missingSourceClass.realm";
@@ -565,26 +603,91 @@ public class LinkingObjectsManagedTests {
             .name(realmName)
             .schema(BacklinksTarget.class)
             .build();
-        configFactory.copyRealmFromAssets(context, realmName, realmName);
+
         try {
+            configFactory.copyRealmFromAssets(context, realmName, realmName);
+
             Realm.getInstance(realmConfig);
             fail("A migration should be triggered");
+        } catch (IOException e) {
+            fail("Failed copying realm");
         } catch (RealmMigrationNeededException expected) {
+            assertTrue(expected.getMessage().contains("RealmMigration must be provided"));
+            Throwable t = expected.getCause();
+            assertNotNull(t);
+            assertTrue(t.getMessage().contains("Cannot find source class"));
         } finally {
             Realm.deleteRealm(realmConfig);
         }
     }
 
-    // Table validation should fail if the backinked column points to a non-existent field
-    // !!!FIXME: Implement
+    // Table validation should fail if the backlinked column points to a non-existent field in the source class.
+    // This test is quite a chore to construct!
+    // The realm `backlinks-missingSourceField.realm` was constructed with classes `BacklinksMissingFieldTarget`
+    // `BacklinksMissingFieldSource`, identical in their definitions to `BacklinkSource` and `BacklinkTarget`
+    // except for their names.  The library `backlinks-2.jar` contains the class `BacklinksMissingFieldSource`
+    // and all of its annotation generated code.  The library `backlinks-1.jar` however, contains a version
+    // of `BacklinksMissingFieldTarget` that was compiled with its backlink field referring to a field in
+    // `BacklinksMissingFieldSource`, called `xxxchild`.  Obviously, in order to compile successfully, the
+    // definition of `BacklinksMissingFieldSource` had to be changed accordingly.  The modified version,
+    // however, is *NOT* the version that is in `backlinks-2.jar`!
+    // So, now, the proxy in `backlinks-2.jar` will correctly validate the its table (it generated it!).
+    // Similarly, the proxy in `backlinks-1.jar` will successfully validate its table.
+    // If we have been living clean lives, though, the validator for `BacklinksMissingFieldTarget` should
+    // notice that there is no field named `BacklinksMissingFieldSource.xxxchild`.
     @Test
     public void migration_backlinkedSourceFieldDoesntExist() {
+        final String realmName = "backlinks-missingSourceField.realm";
+
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+            .name(realmName)
+            .modules(new BacklinksMissingFieldSourceModule(), new BacklinksMissingFieldTargetModule())
+            .build();
+
+        try {
+            configFactory.copyRealmFromAssets(context, realmName, realmName);
+
+            Realm.getInstance(realmConfig);
+            fail("A migration should be triggered");
+        } catch (IOException e) {
+            fail("Failed copying realm");
+        } catch (RealmMigrationNeededException expected) {
+            assertTrue(expected.getMessage().contains("RealmMigration must be provided"));
+            Throwable t = expected.getCause();
+            assertNotNull(t);
+            assertTrue(t.getMessage().contains("Cannot find source field"));
+        } finally {
+            Realm.deleteRealm(realmConfig);
+        }
     }
 
     // Table validation should fail if the backinked column points to a field of the wrong type
-    // !!!FIXME: Implement
+    // This test is constructed in a manner very similar to migration_backlinkedSourceFieldDoesntExist.
+    //
     @Test
     public void migration_backlinkedSourceFieldWrongType() {
+        final String realmName = "backlinks-sourceFieldWrongType.realm";
+
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+            .name(realmName)
+            .modules(new BacklinksMissingFieldSourceModule(), new BacklinksMissingFieldTargetModule())
+            .build();
+
+        try {
+            configFactory.copyRealmFromAssets(context, realmName, realmName);
+
+            Realm.getInstance(realmConfig);
+            fail("A migration should be triggered");
+        } catch (IOException e) {
+            fail("Failed copying realm");
+        } catch (RealmMigrationNeededException expected) {
+            assertTrue(expected.getMessage().contains("RealmMigration must be provided"));
+            Throwable t = expected.getCause();
+            assertNotNull(t);
+            assertTrue(t.getMessage().contains("has wrong type"));
+        } finally {
+            Realm.deleteRealm(realmConfig);
+        }
     }
 
     // Distinct works for backlinks
