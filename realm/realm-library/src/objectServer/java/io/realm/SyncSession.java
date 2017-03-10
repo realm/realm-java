@@ -96,7 +96,13 @@ public class SyncSession {
     // This callback will happen on the thread running the Sync Client.
     @KeepMember
     void notifySessionError(int errorCode, String errorMessage) {
-        ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
+        ObjectServerError error;
+        ErrorCode errCode = ErrorCode.fromInt(errorCode);
+        if (errCode == ErrorCode.CLIENT_RESET) {
+            error = new ClientResetError(errCode, errorMessage);
+        } else {
+            error = new ObjectServerError(errCode, errorMessage);
+        }
         if (errorHandler != null) {
             errorHandler.onError(this, error);
         }
