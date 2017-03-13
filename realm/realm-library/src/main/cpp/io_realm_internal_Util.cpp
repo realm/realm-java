@@ -56,7 +56,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
 #if REALM_ENABLE_SYNC
         java_syncmanager = GetClass(env, "io/realm/SyncManager");
 #endif
-
     }
 
     return JNI_VERSION_1_6;

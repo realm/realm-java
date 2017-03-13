@@ -85,10 +85,23 @@ public:
         auto error_handler = [=](std::shared_ptr<SyncSession> session, SyncError error) {
             realm::jni_util::Log::d("error_handler lambda invoked");
 
-            JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
+            auto error_message = error.message;
+            auto error_code = error.error_code.value();
+            if (error.is_client_reset_requested()) {
+                // Hack the error message to send information about the location of the backup.
+                // If more uses of the user_info map surfaces. Refactor this to send the full
+                // map instead.
+                error_message = error.user_info[SyncError::c_recovery_file_path_key];
+                error_code = 7; // See ErrorCode.java
+            }
 
-            env->CallStaticVoidMethod(java_syncmanager, java_error_callback_method, error.error_code.value(),
-                                      to_jstring(env, error.message), to_jstring(env, session.get()->path()));
+            JNIEnv *env = realm::jni_util::JniUtils::get_env(true);
+            env->CallStaticVoidMethod(java_syncmanager,
+                                      java_error_callback_method,
+                                      error_code,
+                                      to_jstring(env, error_message),
+                                      to_jstring(env, session.get()->path()));
+            };
         };
 
         // path on disk of the Realm file.
@@ -137,7 +150,6 @@ public:
 private:
     Realm::Config m_config;
 };
-
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv* env, jclass,
                                                                      jstring temporary_directory_path)
