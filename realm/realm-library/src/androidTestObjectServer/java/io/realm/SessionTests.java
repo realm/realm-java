@@ -40,14 +40,17 @@ public class SessionTests {
 
     private static String REALM_URI = "realm://objectserver.realm.io/~/default";
 
-    @Rule
-    public final RunInLooperThread looperThread = new RunInLooperThread();
+    private Context context;
+    private AuthenticationServer authServer;
 
     private SyncConfiguration configuration;
     private SyncUser user;
 
     @Rule
     public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
+
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
 
     @Before
     public void setUp() {

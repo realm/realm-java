@@ -1,28 +1,25 @@
 #include "io_realm_internal_TestUtil.h"
 #include "util.hpp"
 
-static jstring throwOrGetExpectedMessage(JNIEnv *env, jlong testcase, bool should_throw);
+static jstring throwOrGetExpectedMessage(JNIEnv* env, jlong testcase, bool should_throw);
 
-JNIEXPORT jlong JNICALL
-Java_io_realm_internal_TestUtil_getMaxExceptionNumber(JNIEnv*, jclass)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TestUtil_getMaxExceptionNumber(JNIEnv*, jclass)
 {
     return ExceptionKindMax;
 }
 
-JNIEXPORT jstring JNICALL
-Java_io_realm_internal_TestUtil_getExpectedMessage(JNIEnv *env, jclass, jlong exception_kind)
+JNIEXPORT jstring JNICALL Java_io_realm_internal_TestUtil_getExpectedMessage(JNIEnv* env, jclass,
+                                                                             jlong exception_kind)
 {
     return throwOrGetExpectedMessage(env, exception_kind, false);
 }
 
-JNIEXPORT void JNICALL
-Java_io_realm_internal_TestUtil_testThrowExceptions(JNIEnv *env, jclass, jlong exception_kind)
+JNIEXPORT void JNICALL Java_io_realm_internal_TestUtil_testThrowExceptions(JNIEnv* env, jclass, jlong exception_kind)
 {
     throwOrGetExpectedMessage(env, exception_kind, true);
 }
 
-static jstring
-throwOrGetExpectedMessage(JNIEnv *env, jlong testcase, bool should_throw)
+static jstring throwOrGetExpectedMessage(JNIEnv* env, jlong testcase, bool should_throw)
 {
     std::string expect;
 
@@ -79,7 +76,7 @@ throwOrGetExpectedMessage(JNIEnv *env, jlong testcase, bool should_throw)
             break;
     }
     if (should_throw) {
-        return NULL;
+        return nullptr;
     }
     return to_jstring(env, expect);
 }
