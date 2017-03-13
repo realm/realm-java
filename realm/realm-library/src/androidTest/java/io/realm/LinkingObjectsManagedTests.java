@@ -135,7 +135,6 @@ public class LinkingObjectsManagedTests {
 
     // Adding multiple list links creates multiple backlinks,
     // even if the links are to a single object
-    // !!!FIXME: DOCUMENT THIS
     @Test
     public void basic_multipleReferencesFromParentList() {
         realm.beginTransaction();
@@ -683,10 +682,7 @@ public class LinkingObjectsManagedTests {
      * All of the proxies in in the two jars should correctly validate their tables.  The backlink validation
      * for `BacklinksWrongTypeTarget` should notice, though, that its `parents` field points to an object
      * of the wrong type, `Integer`, instead of `BacklinksWrongTypeSource`.
-     *
-     * !!!FIXME This UT causes a native crash
      */
-    @Ignore
     @Test
     public void migration_backlinkedSourceFieldWrongType() {
         final String realmName = "backlinks-sourceFieldWrongType.realm";
@@ -708,7 +704,7 @@ public class LinkingObjectsManagedTests {
             assertTrue(expected.getMessage().contains("RealmMigration must be provided"));
             Throwable t = expected.getCause();
             assertNotNull(t);
-            assertTrue(t.getMessage().contains("has wrong type"));
+            assertTrue(t.getMessage().contains("is not a RealmObject type"));
         } finally {
             Realm.deleteRealm(realmConfig);
         }

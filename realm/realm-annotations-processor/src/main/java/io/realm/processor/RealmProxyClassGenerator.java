@@ -678,7 +678,7 @@ public class RealmProxyClassGenerator {
             "SharedRealm", "sharedRealm", // Argument type & argument name
             "boolean", "allowExtraColumns");
 
-        writer.beginControlFlow(
+            writer.beginControlFlow(
             "if (!sharedRealm.hasTable(\"" + Constants.TABLE_PREFIX + this.simpleClassName + "\"))");
         emitMigrationNeededException(writer, "\"The '%s' class is missing from the schema for this Realm.\")",
             metadata.getSimpleClassName());
@@ -762,7 +762,8 @@ public class RealmProxyClassGenerator {
             writer.emitEmptyLine()
                 .emitStatement("long backlinkFieldIndex")
                 .emitStatement("Table backlinkSourceTable")
-                .emitStatement("Table backlinkTargetTable");
+                .emitStatement("Table backlinkTargetTable")
+                .emitStatement("RealmFieldType backlinkFieldType");
             for (Backlink backlink : metadata.getBacklinkFields()) {
                 emitValidateBacklink(writer, backlink);
             }
@@ -923,6 +924,11 @@ public class RealmProxyClassGenerator {
         writer.endControlFlow();
 
         // verify that the source field type is target class
+        writer.emitStatement("backlinkFieldType = backlinkSourceTable.getColumnType(backlinkFieldIndex)");
+        writer.beginControlFlow("if ((backlinkFieldType != RealmFieldType.OBJECT) && (backlinkFieldType != RealmFieldType.LIST))");
+        emitMigrationNeededException(writer, "\"Source field '%s.%s' for @LinkingObjects field '%s.%s' is not a RealmObject type\")",
+            fullyQualifiedSourceClass, sourceField, targetClass, targetField);
+        writer.endControlFlow();
         writer.emitStatement("backlinkTargetTable = backlinkSourceTable.getLinkTarget(backlinkFieldIndex)");
         writer.beginControlFlow("if (!table.hasSameSchema(backlinkTargetTable))");
         emitMigrationNeededException(writer, "\"Source field '%s.%s' for @LinkingObjects field '%s.%s' has wrong type '\" + backlinkTargetTable.getName() + \"'\")",

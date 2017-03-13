@@ -28,15 +28,15 @@ import java.lang.annotation.Target;
  * To expose reverse relationships for use, create a declaration as follows:
  * {@code
  *
- * public Class Person extends RealmObject {
- *   private String name;
- *   private Dog dog; // Normal relation
+ * public class Person extends RealmObject {
+ *   String name;
+ *   Dog dog; // Normal relation
  * }
  *
- * public Class Dog extends RealmObject {
+ * public class Dog extends RealmObject {
  *   // This holds all Person objects with a relation to this Dog object (= linking objects)
  *   \@LinkingObjects("dog")
- *   private final RealmResults&gt;Person&lt; owners = null;
+ *   final RealmResults&gt;Person&lt; owners = null;
  * }
  *
  * // Find all Dogs with at least one owner named John
@@ -68,6 +68,27 @@ import java.lang.annotation.Target;
  *     <li>The annotation argument must be a simple field name.  It cannot contain periods ('.').</li>
  *     <li>The annotated field must be of type `RealmResults&gt;T&lt;` where T is concrete class that extends `RealmModel`.</li>
  * </ul>
+ *
+ * Note that when the source of the reverse reference (`dog` in the case above) is a `List`, there is a reverse
+ * reference for each forward reference, even if both forward references are to the same object.
+ * If the `Person` class above were defined as:
+ * {@code
+ *
+ * public class DogLover extends RealmObject {
+ *   String name;
+ *   List<Dog> dogs = new ArrayList<Dog>;
+ * }
+ * }
+ * then the following code executes without error
+ * {@code
+ *
+ * Dog fido = new Dog();
+ * DogLover john = new DogLover()
+ * john.dogs.add(fido);
+ * john.dogs.add(fido);
+ * assert john.dogs.size() == 2;
+ * assert fido.owners.size() == 2;
+ * }
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.FIELD)

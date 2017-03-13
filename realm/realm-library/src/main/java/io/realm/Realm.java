@@ -342,12 +342,15 @@ public class Realm extends BaseRealm {
             final RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
-            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
-            for (Class<? extends RealmModel> modelClass : modelClasses) {
-                // Creates and validates table.
-                if (unversioned) {
+            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
+            if (unversioned) {
+                // Create all of the tables.
+                for (Class<? extends RealmModel> modelClass : modelClasses) {
                     mediator.createTable(modelClass, realm.sharedRealm);
                 }
+            }
+            for (Class<? extends RealmModel> modelClass : modelClasses) {
+                // Now that they have all been created, validate them.
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
@@ -384,7 +387,7 @@ public class Realm extends BaseRealm {
             final RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
-            final ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<RealmObjectSchema>();
+            final ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<>();
             final RealmSchema realmSchemaCache = new RealmSchema();
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 RealmObjectSchema realmObjectSchema = mediator.createRealmObjectSchema(modelClass, realmSchemaCache);
@@ -406,7 +409,7 @@ public class Realm extends BaseRealm {
                 commitChanges = true;
             }
 
-            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
+            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
