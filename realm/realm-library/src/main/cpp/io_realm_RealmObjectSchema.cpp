@@ -23,12 +23,13 @@
 #include "util.hpp"
 using namespace realm;
 
-JNIEXPORT jlong JNICALL
-Java_io_realm_RealmObjectSchema_nativeCreateRealmObjectSchema(JNIEnv *env, jclass, jstring className_) {
+JNIEXPORT jlong JNICALL Java_io_realm_RealmObjectSchema_nativeCreateRealmObjectSchema(JNIEnv* env, jclass,
+                                                                                      jstring className_)
+{
     TR_ENTER()
     try {
         JStringAccessor name(env, className_);
-        ObjectSchema *object_schema = new ObjectSchema();
+        ObjectSchema* object_schema = new ObjectSchema();
         object_schema->name = name;
         return reinterpret_cast<jlong>(object_schema);
     }
@@ -36,8 +37,8 @@ Java_io_realm_RealmObjectSchema_nativeCreateRealmObjectSchema(JNIEnv *env, jclas
     return 0;
 }
 
-JNIEXPORT void JNICALL
-Java_io_realm_RealmObjectSchema_nativeClose(JNIEnv *env, jclass, jlong native_ptr) {
+JNIEXPORT void JNICALL Java_io_realm_RealmObjectSchema_nativeClose(JNIEnv* env, jclass, jlong native_ptr)
+{
     TR_ENTER_PTR(native_ptr)
     try {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
@@ -47,8 +48,9 @@ Java_io_realm_RealmObjectSchema_nativeClose(JNIEnv *env, jclass, jlong native_pt
 }
 
 
-JNIEXPORT void JNICALL
-Java_io_realm_RealmObjectSchema_nativeAddProperty(JNIEnv *env, jclass, jlong native_ptr, jlong property_ptr) {
+JNIEXPORT void JNICALL Java_io_realm_RealmObjectSchema_nativeAddProperty(JNIEnv* env, jclass, jlong native_ptr,
+                                                                         jlong property_ptr)
+{
     TR_ENTER_PTR(native_ptr)
     try {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
@@ -61,8 +63,8 @@ Java_io_realm_RealmObjectSchema_nativeAddProperty(JNIEnv *env, jclass, jlong nat
     CATCH_STD()
 }
 
-JNIEXPORT jstring JNICALL
-Java_io_realm_RealmObjectSchema_nativeGetClassName(JNIEnv *env, jclass, jlong nativePtr) {
+JNIEXPORT jstring JNICALL Java_io_realm_RealmObjectSchema_nativeGetClassName(JNIEnv* env, jclass, jlong nativePtr)
+{
     TR_ENTER_PTR(nativePtr)
     try {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(nativePtr);
@@ -71,11 +73,11 @@ Java_io_realm_RealmObjectSchema_nativeGetClassName(JNIEnv *env, jclass, jlong na
     }
     CATCH_STD()
 
-    return NULL;
+    return nullptr;
 }
 
-JNIEXPORT jlongArray JNICALL
-Java_io_realm_RealmObjectSchema_nativeGetProperties(JNIEnv *env, jclass, jlong nativePtr) {
+JNIEXPORT jlongArray JNICALL Java_io_realm_RealmObjectSchema_nativeGetProperties(JNIEnv* env, jclass, jlong nativePtr)
+{
     TR_ENTER_PTR(nativePtr)
     try {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(nativePtr);
@@ -96,6 +98,5 @@ Java_io_realm_RealmObjectSchema_nativeGetProperties(JNIEnv *env, jclass, jlong n
     }
     CATCH_STD()
 
-    return NULL;
+    return nullptr;
 }
-

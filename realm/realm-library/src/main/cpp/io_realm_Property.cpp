@@ -25,18 +25,18 @@
 
 using namespace realm;
 
-JNIEXPORT jlong JNICALL
-Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2IZZZ(JNIEnv *env, jclass, jstring name_,
-                                                                     jint type, jboolean is_primary, jboolean is_indexed,
-                                                                     jboolean is_nullable) {
+JNIEXPORT jlong JNICALL Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2IZZZ(
+    JNIEnv* env, jclass, jstring name_, jint type, jboolean is_primary, jboolean is_indexed, jboolean is_nullable)
+{
     TR_ENTER()
     try {
         JStringAccessor str(env, name_);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
-        std::unique_ptr<Property> property(new Property(str, p_type, "", "", to_bool(is_primary), to_bool(is_indexed), to_bool(is_nullable)));
+        std::unique_ptr<Property> property(
+            new Property(str, p_type, "", "", to_bool(is_primary), to_bool(is_indexed), to_bool(is_nullable)));
         if (to_bool(is_indexed) && !property->is_indexable()) {
             throw std::invalid_argument(
-                    "This field cannot be indexed - Only String/byte/short/int/long/boolean/Date fields are supported.");
+                "This field cannot be indexed - Only String/byte/short/int/long/boolean/Date fields are supported.");
         }
         if (to_bool(is_primary) && p_type != PropertyType::Int && p_type != PropertyType::String) {
             std::string typ = property->type_string();
@@ -48,10 +48,9 @@ Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2IZZZ(JNIEnv *env
     return 0;
 }
 
-JNIEXPORT jlong JNICALL
-Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_String_2(JNIEnv *env, jclass,
-                                                                                     jstring name_, jint type,
-                                                                                     jstring linkedToName_) {
+JNIEXPORT jlong JNICALL Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_String_2(
+    JNIEnv* env, jclass, jstring name_, jint type, jstring linkedToName_)
+{
     TR_ENTER()
     try {
         JStringAccessor name(env, name_);
@@ -65,11 +64,11 @@ Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_Stri
     return 0;
 }
 
-JNIEXPORT void JNICALL
-Java_io_realm_Property_nativeClose(JNIEnv *env, jclass, jlong property_ptr) {
+JNIEXPORT void JNICALL Java_io_realm_Property_nativeClose(JNIEnv* env, jclass, jlong property_ptr)
+{
     TR_ENTER_PTR(property_ptr)
     try {
-        Property *property = reinterpret_cast<Property *>(property_ptr);
+        Property* property = reinterpret_cast<Property*>(property_ptr);
         delete property;
     }
     CATCH_STD()

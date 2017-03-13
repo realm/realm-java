@@ -26,20 +26,32 @@ namespace jni_util {
 // safe to have a static JavaMethod object to avoid calling GetMethodID multiple times.
 class JavaMethod {
 public:
-    JavaMethod() : m_method_id(nullptr) {}
-    JavaMethod(JNIEnv *env, jclass cls, const char* method_name, const char* signature, bool static_method = false);
-    JavaMethod(JNIEnv *env, jobject obj, const char* method_name, const char* signature);
-    JavaMethod(JNIEnv *env, const char* class_name, const char* method_name, const char* signature, bool static_method = false);
+    JavaMethod()
+        : m_method_id(nullptr)
+    {
+    }
+    JavaMethod(JNIEnv* env, jclass cls, const char* method_name, const char* signature, bool static_method = false);
+    JavaMethod(JNIEnv* env, jobject obj, const char* method_name, const char* signature);
+    JavaMethod(JNIEnv* env, const char* class_name, const char* method_name, const char* signature,
+               bool static_method = false);
 
     JavaMethod(const JavaMethod&) = default;
     JavaMethod& operator=(const JavaMethod&) = default;
     JavaMethod(JavaMethod&& rhs) = delete;
     JavaMethod& operator=(JavaMethod&& rhs) = delete;
 
-    ~JavaMethod() { }
+    ~JavaMethod()
+    {
+    }
 
-    inline operator bool() const noexcept { return m_method_id != nullptr; }
-    inline operator const jmethodID&() const noexcept { return m_method_id; }
+    inline operator bool() const noexcept
+    {
+        return m_method_id != nullptr;
+    }
+    inline operator const jmethodID&() const noexcept
+    {
+        return m_method_id;
+    }
 
 private:
     jmethodID m_method_id;
@@ -48,4 +60,4 @@ private:
 } // namespace realm
 } // namespace jni_util
 
-#endif //REALM_JNI_UTIL_JAVA_METHOD_HPP
+#endif // REALM_JNI_UTIL_JAVA_METHOD_HPP

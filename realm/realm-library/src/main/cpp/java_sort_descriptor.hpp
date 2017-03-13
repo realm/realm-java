@@ -30,7 +30,11 @@ namespace _impl {
 // doesn't make too much sense and causes troubles with memory management.
 class JavaSortDescriptor {
 public:
-    JavaSortDescriptor(JNIEnv* env, jobject sort_desc_obj) : m_env(env), m_sort_desc_obj(sort_desc_obj) {}
+    JavaSortDescriptor(JNIEnv* env, jobject sort_desc_obj)
+        : m_env(env)
+        , m_sort_desc_obj(sort_desc_obj)
+    {
+    }
 
     JavaSortDescriptor(const JavaSortDescriptor&) = delete;
     JavaSortDescriptor& operator=(const JavaSortDescriptor&) = delete;
@@ -46,4 +50,4 @@ private:
 
 } // namespace _impl
 } // namespace realm
-#endif //JAVA_SORT_DESCRIPTOR_HPP
+#endif // JAVA_SORT_DESCRIPTOR_HPP

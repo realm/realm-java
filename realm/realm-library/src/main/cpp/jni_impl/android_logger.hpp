@@ -23,7 +23,7 @@
 namespace realm {
 namespace jni_impl {
 
-//Default logger implementation for Android.
+// Default logger implementation for Android.
 class AndroidLogger : public realm::jni_util::JniLogger {
 public:
     static std::shared_ptr<AndroidLogger> shared();
@@ -32,11 +32,10 @@ protected:
     void log(realm::jni_util::Log::Level level, const char* tag, jthrowable throwable, const char* message) override;
 
 private:
-    AndroidLogger() {};
+    AndroidLogger(){};
     static void print(android_LogPriority priority, const char* tag, const char* log_string);
     static const size_t LOG_ENTRY_MAX_LENGTH = 4000;
 };
-
 }
 }
 

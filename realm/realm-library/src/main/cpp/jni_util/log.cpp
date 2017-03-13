@@ -45,8 +45,8 @@ private:
 
     inline JNIEnv* get_current_env() noexcept
     {
-        JNIEnv *env;
-        if (m_jvm->GetEnv((void **)&env, JNI_VERSION_1_6) != JNI_OK) {
+        JNIEnv* env;
+        if (m_jvm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
             m_jvm->AttachCurrentThread(&env, nullptr); // Should never fail
         }
         return env;
@@ -54,17 +54,17 @@ private:
 };
 
 JniLogger::JniLogger()
-    :m_is_java_logger(false)
+    : m_is_java_logger(false)
 {
 }
 
 JniLogger::JniLogger(bool is_java_logger)
-    :m_is_java_logger(is_java_logger)
+    : m_is_java_logger(is_java_logger)
 {
 }
 
 JavaLogger::JavaLogger(JNIEnv* env, jobject java_logger)
-    :JniLogger(true)
+    : JniLogger(true)
 {
     jint ret = env->GetJavaVM(&m_jvm);
     if (ret != 0) {
@@ -82,13 +82,14 @@ JavaLogger::~JavaLogger()
 
 void JavaLogger::log(Log::Level level, const char* tag, jthrowable throwable, const char* message)
 {
-    JNIEnv *env = get_current_env();
+    JNIEnv* env = get_current_env();
 
     // NOTE: If a Java exception has been thrown in native code, the below call will trigger an JNI exception
-    // "JNI called with pending exception". This is something that should be avoided when printing log in JNI -- Always
+    // "JNI called with pending exception". This is something that should be avoided when printing log in JNI --
+    // Always
     // print log before calling env->ThrowNew. Doing env->ExceptionCheck() here creates overhead for normal cases.
-    env->CallVoidMethod(m_java_logger, m_log_method, level, env->NewStringUTF(tag),
-            throwable, env->NewStringUTF(message));
+    env->CallVoidMethod(m_java_logger, m_log_method, level, env->NewStringUTF(tag), throwable,
+                        env->NewStringUTF(message));
 }
 
 bool JavaLogger::is_same_object(JNIEnv* env, jobject java_logger)
@@ -117,9 +118,13 @@ void Log::add_java_logger(JNIEnv* env, const jobject java_logger)
 void Log::remove_java_logger(JNIEnv* env, const jobject java_logger)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_loggers.erase(std::remove_if(m_loggers.begin(), m_loggers.end(), [&](const auto& obj) {
-        return obj->m_is_java_logger && std::static_pointer_cast<JavaLogger>(obj)->is_same_object(env, java_logger);
-    }), m_loggers.end());
+    m_loggers.erase(std::remove_if(m_loggers.begin(), m_loggers.end(),
+                                   [&](const auto& obj) {
+                                       return obj->m_is_java_logger &&
+                                              std::static_pointer_cast<JavaLogger>(obj)->is_same_object(env,
+                                                                                                        java_logger);
+                                   }),
+                    m_loggers.end());
 }
 
 void Log::add_logger(std::shared_ptr<JniLogger> logger)
@@ -134,12 +139,13 @@ void Log::remove_logger(std::shared_ptr<JniLogger> logger)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    m_loggers.erase(std::remove_if(m_loggers.begin(), m_loggers.end(), [&](const auto& obj) {
-        return obj == logger;
-    }), m_loggers.end());
+    m_loggers.erase(
+        std::remove_if(m_loggers.begin(), m_loggers.end(), [&](const auto& obj) { return obj == logger; }),
+        m_loggers.end());
 }
 
-void Log::register_default_logger() {
+void Log::register_default_logger()
+{
     add_logger(get_default_logger());
 }
 
@@ -169,13 +175,25 @@ void CoreLoggerBridge::do_log(realm::util::Logger::Level level, std::string msg)
     // Ignore the level threshold from the root logger.
     Log::Level jni_level = Log::all; // Initial value to suppress the false positive compile warning.
     switch (level) {
-        case Level::trace: jni_level = Log::trace; break;
+        case Level::trace:
+            jni_level = Log::trace;
+            break;
         case Level::debug: // Fall through. Map to same level debug.
-        case Level::detail: jni_level = Log::debug; break;
-        case Level::info: jni_level = Log::info; break;
-        case Level::warn: jni_level = Log::warn; break;
-        case Level::error: jni_level = Log::error; break;
-        case Level::fatal: jni_level = Log::fatal; break;
+        case Level::detail:
+            jni_level = Log::debug;
+            break;
+        case Level::info:
+            jni_level = Log::info;
+            break;
+        case Level::warn:
+            jni_level = Log::warn;
+            break;
+        case Level::error:
+            jni_level = Log::error;
+            break;
+        case Level::fatal:
+            jni_level = Log::fatal;
+            break;
         case Level::all: // Fall through.
         case Level::off: // Fall through.
             throw std::invalid_argument(format("Invalid log level."));

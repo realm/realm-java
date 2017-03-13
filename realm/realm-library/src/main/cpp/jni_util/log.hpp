@@ -29,13 +29,13 @@
 #include "realm/util/logger.hpp"
 #include "util/format.hpp"
 
-#define TR_ENTER() \
-    if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) { \
-        realm::jni_util::Log::t(" --> %1", __FUNCTION__); \
+#define TR_ENTER()                                                                                                   \
+    if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) {                                              \
+        realm::jni_util::Log::t(" --> %1", __FUNCTION__);                                                            \
     }
-#define TR_ENTER_PTR(ptr) \
-    if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) { \
-        realm::jni_util::Log::t(" --> %1 %2", __FUNCTION__, static_cast<int64_t>(ptr)); \
+#define TR_ENTER_PTR(ptr)                                                                                            \
+    if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) {                                              \
+        realm::jni_util::Log::t(" --> %1 %2", __FUNCTION__, static_cast<int64_t>(ptr));                              \
     }
 
 namespace realm {
@@ -73,7 +73,8 @@ public:
     void register_default_logger();
 
     void set_level(Level level);
-    inline Level get_level() {
+    inline Level get_level()
+    {
         return s_level;
     };
 
@@ -110,33 +111,34 @@ public:
         shared().log(fatal, REALM_JNI_TAG, nullptr, message);
     }
 
-    template<typename... Args>
+    template <typename... Args>
     inline static void t(const char* fmt, Args&&... args)
     {
         shared().log(trace, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
-    template<typename... Args>
+    template <typename... Args>
     inline static void d(const char* fmt, Args&&... args)
     {
         shared().log(debug, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
-    template<typename... Args>
+    template <typename... Args>
     inline static void i(const char* fmt, Args&&... args)
     {
         shared().log(info, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
-    template<typename... Args>
+    template <typename... Args>
     inline static void w(const char* fmt, Args&&... args)
     {
         shared().log(warn, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
-    template<typename... Args>
+    template <typename... Args>
     inline static void e(const char* fmt, Args&&... args)
     {
         shared().log(error, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
-    template<typename... Args>
-    inline static void f(const char* fmt, Args&&... args) {
+    template <typename... Args>
+    inline static void f(const char* fmt, Args&&... args)
+    {
         shared().log(fatal, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
 
@@ -147,6 +149,7 @@ public:
     // Accessing to this var won't be thread safe and it is not necessary to be. Changing log level concurrently
     // won't be a critical issue for commons cases.
     static Level s_level;
+
 private:
     Log();
 
@@ -154,7 +157,6 @@ private:
     std::mutex m_mutex;
     // Log tag for generic Realm JNI.
     static const char* REALM_JNI_TAG;
-
 };
 
 // Base Logger class.
@@ -182,7 +184,7 @@ public:
     static CoreLoggerBridge& shared();
 
 private:
-    CoreLoggerBridge() {};
+    CoreLoggerBridge(){};
     // Log tag for Realm core & sync.
     static const char* TAG;
 };

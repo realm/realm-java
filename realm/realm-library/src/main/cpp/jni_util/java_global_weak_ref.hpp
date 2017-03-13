@@ -28,8 +28,14 @@ namespace jni_util {
 // RAII wrapper for weak global ref.
 class JavaGlobalWeakRef {
 public:
-    JavaGlobalWeakRef() : m_weak(nullptr) {}
-    JavaGlobalWeakRef(JNIEnv* env, jobject obj) : m_weak(obj ? env->NewWeakGlobalRef(obj) : nullptr) { }
+    JavaGlobalWeakRef()
+        : m_weak(nullptr)
+    {
+    }
+    JavaGlobalWeakRef(JNIEnv* env, jobject obj)
+        : m_weak(obj ? env->NewWeakGlobalRef(obj) : nullptr)
+    {
+    }
     ~JavaGlobalWeakRef()
     {
         if (m_weak) {
@@ -37,10 +43,15 @@ public:
         }
     }
 
-    JavaGlobalWeakRef(JavaGlobalWeakRef&& rhs) : m_weak(rhs.m_weak) { rhs.m_weak = nullptr; }
-    JavaGlobalWeakRef& operator=(JavaGlobalWeakRef&& rhs) {
+    JavaGlobalWeakRef(JavaGlobalWeakRef&& rhs)
+        : m_weak(rhs.m_weak)
+    {
+        rhs.m_weak = nullptr;
+    }
+    JavaGlobalWeakRef& operator=(JavaGlobalWeakRef&& rhs)
+    {
         this->~JavaGlobalWeakRef();
-        new(this) JavaGlobalWeakRef(std::move(rhs));
+        new (this) JavaGlobalWeakRef(std::move(rhs));
         return *this;
     }
 
@@ -68,4 +79,3 @@ private:
 } // namespace realm
 
 #endif // REALM_JNI_UTIL_JAVA_GLOBAL_WEAK_REF_HPP
-

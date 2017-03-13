@@ -38,4 +38,3 @@ bool JavaGlobalWeakRef::call_with_local_ref(std::function<Callback> callback)
 {
     return call_with_local_ref(JniUtils::get_env(), callback);
 }
-
