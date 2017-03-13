@@ -231,4 +231,8 @@ public class Utils {
     public static String getProxyInterfaceName(String className) {
         return className + Constants.INTERFACE_SUFFIX;
     }
+
+    public static String getFieldsClassName(String className) {
+        return className + Constants.FIELDS_SUFFIX;
+    }
 }
