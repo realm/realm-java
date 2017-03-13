@@ -193,7 +193,8 @@ public class SyncManager {
      * Remove the wrapped Java session.
      * @param syncConfiguration configuration object for the synchronized Realm.
      */
-    public static synchronized void removeSession(SyncConfiguration syncConfiguration) {
+    @SuppressWarnings("unused")
+    private static synchronized void removeSession(SyncConfiguration syncConfiguration) {
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
@@ -233,10 +234,6 @@ public class SyncManager {
         }
     }
 
-    // This is called from SyncManager.cpp from the worker thread the Sync Client is running on
-    // Right now Core doesn't send these errors to the proper session, so instead we need to notify all sessions
-    // from here. This can be removed once better error propagation is implemented in Sync Core.
-
     /**
      * All errors from native Sync is reported to this method. From the path we can determine which
      * session to contact. If {@code path == null} all sessions are effected.
@@ -265,6 +262,7 @@ public class SyncManager {
      * @param sessionPath The path to the previously Java wraped session.
      * @return a valid cached {@code access_token} if available or null.
      */
+    @SuppressWarnings("unused")
     private synchronized static String bindSessionWithConfig(String sessionPath) {
         final SyncSession syncSession = sessions.get(sessionPath);
         if (syncSession == null) {

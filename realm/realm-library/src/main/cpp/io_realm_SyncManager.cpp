@@ -24,11 +24,16 @@
 #include <realm/group_shared.hpp>
 #include <realm/sync/history.hpp>
 #include <realm/sync/client.hpp>
-#include <object-store/src/sync/impl/sync_client.hpp>
-
-#include "objectserver_shared.hpp"
 
 #include "io_realm_SyncManager.h"
+
+#include "object-store/src/sync/sync_manager.hpp"
+
+#include "binding_callback_thread_observer.hpp"
+#include "util.hpp"
+
+#include "jni_util/jni_utils.hpp"
+#include "jni_util/java_method.hpp"
 
 using namespace realm;
 using namespace realm::sync;
@@ -39,15 +44,15 @@ std::unique_ptr<Client> sync_client;
 struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
 
     void did_create_thread() override {
-        realm::jni_util::Log::d("SyncClient thread created");
+        Log::d("SyncClient thread created");
         // Attach the sync client thread to the JVM so errors can be returned properly
-        realm::jni_util::JniUtils::get_env(true);
+        JniUtils::get_env(true);
     }
 
     void will_destroy_thread() override {
-        realm::jni_util::Log::d("SyncClient thread destroyed");
+        Log::d("SyncClient thread destroyed");
         // Failing to detach the JVM before closing the thread will crash on ART
-        realm::jni_util::JniUtils::detach_current_thread();
+        JniUtils::detach_current_thread();
     }
 } s_client_thread_listener;
 

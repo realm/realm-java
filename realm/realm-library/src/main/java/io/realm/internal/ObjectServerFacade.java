@@ -75,7 +75,7 @@ public class ObjectServerFacade {
         return nonSyncFacade;
     }
 
-    // If no session yet exists for this path. Create it now.
-    public void createSessionIfRequired(RealmConfiguration config) {
+    // If no session yet exists for this path. Wrap a new Java Session around an existing OS one.
+    public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
     }
 }

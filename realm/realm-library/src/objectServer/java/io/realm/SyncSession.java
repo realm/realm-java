@@ -110,8 +110,7 @@ public class SyncSession {
         }
     }
 
-    // This is called from a synchronized block
-    public synchronized void close() {
+    void close() {
         isClosed = true;
         if (networkRequest != null) {
             networkRequest.cancel();
@@ -353,6 +352,6 @@ public class SyncSession {
         }
     }
 
-    private native boolean nativeRefreshAccessToken(String path, String accessToken, String authURL);
+    private static native boolean nativeRefreshAccessToken(String path, String accessToken, String authURL);
 }
 

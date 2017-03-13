@@ -698,10 +698,8 @@ extern jclass java_lang_string;
 extern jmethodID java_lang_double_init;
 extern jclass java_util_date;
 extern jmethodID java_util_date_init;
-#ifdef REALM_ENABLE_SYNC
+#if REALM_ENABLE_SYNC
 extern jclass java_syncmanager;
-extern jmethodID java_bind_session_method;
-extern jmethodID java_error_callback_method;
 #endif
 
 inline jobject NewLong(JNIEnv* env, int64_t value)
