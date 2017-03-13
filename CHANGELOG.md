@@ -1,9 +1,13 @@
 ## 3.1.0 (YYYY-MM-DD)
 
+### Breaking Changes
+
+* [ObjectServer] Added `onClientReset(ClientResetError)` method to the `ErrorHandler` interface.
+
 ### Enhancements
 
 * Now `targetSdkVersion` is 25.
-* [ObjectServer] Information about the location of the backed up Realm file is now reported in the `ObjectServerError` if a Client Reset is required (#4080).
+* [ObjectServer] Information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface.
 
 ### Bug Fixes
 

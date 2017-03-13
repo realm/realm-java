@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.ClientResetError;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -77,6 +78,11 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                                 @Override
                                 public void onError(SyncSession session, ObjectServerError error) {
                                     fail("Sync failure: " + error);
+                                }
+
+                                @Override
+                                public void onClientReset(SyncSession session, ClientResetError error) {
+                                    fail("Client Reset");
                                 }
                             })
                             .build();
@@ -137,6 +143,11 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                                 @Override
                                 public void onError(SyncSession session, ObjectServerError error) {
                                     fail("Sync failure: " + error);
+                                }
+
+                                @Override
+                                public void onClientReset(SyncSession session, ClientResetError error) {
+                                    fail("Client Reset");
                                 }
                             })
                             .build();

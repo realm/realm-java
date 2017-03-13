@@ -18,47 +18,15 @@ package io.realm;
 
 import java.io.File;
 
-/**
- * An error that indicates the Realm needs to be reset.
- *
- * A synced Realm may need to be reset because the Realm Object Server encountered an error and had
- * to be restored from a backup. If the backup copy of the remote Realm is of an earlier version
- * than the local copy of the Realm, the server will ask the client to reset the Realm.
- *
- * The reset process is as follows: the local copy of the Realm is copied into a recovery directory
- * for safekeeping, and then deleted from the original location. The next time the Realm for that
- * URL is opened, the Realm will automatically be re-downloaded from the Realm Object Server, and
- * can be used as normal.
- *
- * Data written to the Realm after the local copy of the Realm diverged from the backup remote copy
- * will be present in the local recovery copy of the Realm file. The re-downloaded Realm will
- * initially contain only the data present at the time the Realm was backed up on the server.
- *
- * The client reset process can be initiated in one of two ways.
- *
- * <ol>
- *     <li>Call </li>
- *
- *
- * </ol>
- *
- * The block provided in the
- * `userInfo` dictionary under `kRLMSyncInitiateClientResetBlockKey` can be called to
- * initiate the reset process. This block can be called any time after the error is
- * received, but should only be called if and when your app closes and invalidates every
- * instance of the offending Realm on all threads (note that autorelease pools may make this
- * difficult to guarantee).
- *
- * If the block is not called, the client reset process will be automatically carried out
- * the next time the app is launched and the `RLMSyncManager` singleton is accessed.
- * The value for the `kRLMSyncPathOfRealmBackupCopyKey` key in the `userInfo` dictionary
- * describes the path of the recovered copy of the Realm. This copy will not actually be
- * created until the client reset process is initiated.
- */
 public class ClientResetError extends ObjectServerError {
 
-    public ClientResetError(ErrorCode errorCode, String errorMessage) {
+    private final File backupFile;
+    private final File originalFile;
+
+    public ClientResetError(ErrorCode errorCode, String errorMessage, String backupFilePath, String originalFilePath) {
         super(errorCode, errorMessage);
+        this.backupFile = new File(backupFilePath);
+        this.originalFile = new File(originalFilePath);
     }
 
     /**
@@ -67,15 +35,14 @@ public class ClientResetError extends ObjectServerError {
      * otherwise a {@link IllegalStateException} will be thrown.
      *
      * After the backup is complete, the file can be found in the location returned by
-     * {@link #getBackupFile()}.
+     * {@link #getBackupFileLocation()}.
      *
      * This method can be called from any thread.
      *
      * @throws IllegalStateException if not all instances have been closed.
      */
     public void executeClientReset()  {
-        // TODO Should we make this method Async?
-        // TODO
+        nativeExecuteClientReset(originalFile.getAbsolutePath());
     }
 
     /**
@@ -86,8 +53,21 @@ public class ClientResetError extends ObjectServerError {
      *         Use {@code file.exists()}
      *
      */
-    public File getBackupFile() {
-        // TODO
-        return null;
+    public File getBackupFileLocation() {
+        return backupFile;
     }
+
+    /**
+     * Returns the location of the original file. After the Client Reset has completed, the file at this location
+     * will be deleted.
+     *
+     * @return a reference to the location of the original Realm file. After Client Reset has been executed this file
+     *         will no longer exists. Use {@code file.exists()} to check this.
+     */
+    public File getOriginalFileLocation() {
+        return originalFile;
+    }
+
+
+    private native void nativeExecuteClientReset(String originalPath);
 }

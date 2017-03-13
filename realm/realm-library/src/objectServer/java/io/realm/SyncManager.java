@@ -83,6 +83,11 @@ public class SyncManager {
                     throw new IllegalArgumentException("Unsupported error category: " + error.getErrorCode().getCategory());
             }
         }
+
+        @Override
+        public void onClientReset(SyncSession session, ClientResetError error) {
+            RealmLog.error("Client Reset required for: " + session.getConfiguration().getPath());
+        }
     };
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
     private static Map<String, SyncSession> sessions = new HashMap<String, SyncSession>();

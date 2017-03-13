@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
+import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
@@ -111,4 +112,19 @@ public class SyncTestUtils {
     public static AuthenticateResponse createErrorResponse(ErrorCode code) {
         return AuthenticateResponse.from(new ObjectServerError(code, "dummy"));
     }
+
+    /**
+     * Simulate a Client Reset by triggering the the Object Store error handler with Sync Error Code that will be
+     * converted to a Client Reset (211 - Diverging Histories).
+     *
+     * @param session Session to trigger Client Reset for.
+     */
+
+    public static void simulateClientReset(SyncSession session) {
+        nativeSimulateSyncError(session.getConfiguration().getPath(),
+                ErrorCode.DIVERGING_HISTORIES.intValue(),
+                "Simulate Client Reset");
+    }
+
+    private native static void nativeSimulateSyncError(String path, int errorCode, String errroMessage);
 }
