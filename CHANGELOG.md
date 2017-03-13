@@ -13,7 +13,7 @@
 
 ### Internal
 
-* Upgraded to Realm Sync 1.3.1.
+* Upgraded to Realm Sync 1.3.2.
 * Upgraded to Realm Core 2.3.3.
 
 
