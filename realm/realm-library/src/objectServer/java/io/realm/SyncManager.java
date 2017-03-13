@@ -288,8 +288,24 @@ public class SyncManager {
         sessions.clear();
     }
 
+    /**
+     * Simulate a Client Reset by triggering the the Object Store error handler with Sync Error Code that will be
+     * converted to a Client Reset (211 - Diverging Histories).
+     *
+     * Only call this method when testing
+     *
+     * @param session Session to trigger Client Reset for.
+     */
+    static void simulateClientReset(SyncSession session) {
+        nativeSimulateSyncError(session.getConfiguration().getPath(),
+                ErrorCode.DIVERGING_HISTORIES.intValue(),
+                "Simulate Client Reset",
+                true);
+    }
+
     private static native void nativeInitializeSyncClient();
     // init and load the Metadata Realm containing SyncUsers
     protected static native void nativeConfigureMetaDataSystem(String baseFile);
     private static native void nativeReset();
+    private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
 }

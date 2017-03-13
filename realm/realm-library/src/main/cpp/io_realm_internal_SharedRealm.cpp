@@ -101,7 +101,6 @@ public:
                                       error_code,
                                       to_jstring(env, error_message),
                                       to_jstring(env, session.get()->path()));
-            };
         };
 
         // path on disk of the Realm file.
@@ -121,6 +120,7 @@ public:
                 session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url));
             }
         };
+
         // Get logged in user
         JStringAccessor user_identity(env, sync_user_identity);
         JStringAccessor realm_url(env, sync_realm_url);

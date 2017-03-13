@@ -40,9 +40,6 @@ public class SessionTests {
 
     private static String REALM_URI = "realm://objectserver.realm.io/~/default";
 
-    private Context context;
-    private AuthenticationServer authServer;
-
     private SyncConfiguration configuration;
     private SyncUser user;
 
@@ -81,7 +78,7 @@ public class SessionTests {
 
                     @Override
                     public void onClientReset(SyncSession session, ClientResetError error) {
-                        File filePathFromError = error.getOriginalFileLocation().getAbsoluteFile();
+                        String filePathFromError = error.getOriginalFileLocation().getAbsolutePath();
                         String filePathFromConfig = session.getConfiguration().getPath();
                         assertEquals(filePathFromError, filePathFromConfig);
                         looperThread.testComplete();
@@ -93,13 +90,13 @@ public class SessionTests {
         looperThread.testRealms.add(realm);
 
         // Trigger error
-        SyncTestUtils.simulateClientReset(SyncManager.getSession(config));
+        SyncManager.simulateClientReset(SyncManager.getSession(config));
     }
 
     // Check that we can manually execute the Client Reset.
     @Test
     public void errorHandler_manualExecuteClientReset() {
-
+        // TODO
     }
 
 }
