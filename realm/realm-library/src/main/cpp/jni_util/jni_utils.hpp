@@ -25,7 +25,9 @@ namespace jni_util {
 // Util functions for JNI.
 class JniUtils {
 public:
-    ~JniUtils() {}
+    ~JniUtils()
+    {
+    }
 
     // Call this only once in JNI_OnLoad.
     static void initialize(JavaVM* vm, jint vm_version) noexcept;
@@ -37,7 +39,11 @@ public:
     static void detach_current_thread();
 
 private:
-    JniUtils(JavaVM* vm, jint vm_version) noexcept : m_vm(vm), m_vm_version(vm_version) {}
+    JniUtils(JavaVM* vm, jint vm_version) noexcept
+        : m_vm(vm)
+        , m_vm_version(vm_version)
+    {
+    }
 
     JavaVM* m_vm;
     jint m_vm_version;
@@ -46,4 +52,4 @@ private:
 } // namespace realm
 } // namespace jni_util
 
-#endif //REALM_JNI_UTIL_JNI_UTILS_HPP
+#endif // REALM_JNI_UTIL_JNI_UTILS_HPP

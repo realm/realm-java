@@ -43,24 +43,27 @@ std::unique_ptr<Client> sync_client;
 
 struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
 
-    void did_create_thread() override {
+    void did_create_thread() override
+    {
         Log::d("SyncClient thread created");
         // Attach the sync client thread to the JVM so errors can be returned properly
         JniUtils::get_env(true);
     }
 
-    void will_destroy_thread() override {
+    void will_destroy_thread() override
+    {
         Log::d("SyncClient thread destroyed");
         // Failing to detach the JVM before closing the thread will crash on ART
         JniUtils::detach_current_thread();
     }
 } s_client_thread_listener;
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
-    (JNIEnv* env, jclass)
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient(JNIEnv* env, jclass)
 {
     TR_ENTER()
-    if (sync_client) return;
+    if (sync_client) {
+        return;
+    }
 
     try {
         // Setup SyncManager
@@ -70,24 +73,26 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
         sync::Client::Config config;
         config.logger = &CoreLoggerBridge::shared();
         sync_client = std::make_unique<Client>(std::move(config)); // Throws
-    } CATCH_STD()
+    }
+    CATCH_STD()
 }
 
-JNIEXPORT void JNICALL
-Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass) {
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass)
+{
 
     TR_ENTER()
     try {
         SyncManager::shared().reset_for_testing();
-    } CATCH_STD()
+    }
+    CATCH_STD()
 }
 
-JNIEXPORT void JNICALL
-Java_io_realm_SyncManager_nativeConfigureMetaDataSystem(JNIEnv *env, jclass,
-                                                        jstring baseFile) {
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeConfigureMetaDataSystem(JNIEnv* env, jclass, jstring baseFile)
+{
     TR_ENTER()
     try {
         JStringAccessor base_file_path(env, baseFile); // throws
         SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
-    } CATCH_STD()
+    }
+    CATCH_STD()
 }

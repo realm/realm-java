@@ -35,9 +35,8 @@ JavaSortDescriptor::operator realm::SortDescriptor() const noexcept
     static JavaMethod getTablePtr(m_env, m_sort_desc_obj, "getTablePtr", "()J");
 
     jobjectArray column_indices =
-            static_cast<jobjectArray>(m_env->CallObjectMethod(m_sort_desc_obj, getColumnIndices));
-    jbooleanArray ascendings =
-            static_cast<jbooleanArray >(m_env->CallObjectMethod(m_sort_desc_obj, getAscendings));
+        static_cast<jobjectArray>(m_env->CallObjectMethod(m_sort_desc_obj, getColumnIndices));
+    jbooleanArray ascendings = static_cast<jbooleanArray>(m_env->CallObjectMethod(m_sort_desc_obj, getAscendings));
     jlong table_ptr = m_env->CallLongMethod(m_sort_desc_obj, getTablePtr);
 
     JniArrayOfArrays<JniLongArray, jlongArray> arrays(m_env, column_indices);
@@ -51,7 +50,7 @@ JavaSortDescriptor::operator realm::SortDescriptor() const noexcept
         JniLongArray& jni_long_array = arrays[i];
         std::vector<size_t> col_indices;
         for (int j = 0; j < jni_long_array.len(); ++j) {
-            col_indices.push_back(static_cast<size_t >(jni_long_array[j]));
+            col_indices.push_back(static_cast<size_t>(jni_long_array[j]));
         }
         indices.push_back(std::move(col_indices));
         if (ascendings) {
@@ -59,9 +58,7 @@ JavaSortDescriptor::operator realm::SortDescriptor() const noexcept
         }
     }
 
-    return ascendings ?
-           SortDescriptor(*reinterpret_cast<Table*>(table_ptr), std::move(indices), std::move(ascending_list))
-                      : SortDescriptor(*reinterpret_cast<Table*>(table_ptr), std::move(indices));
+    return ascendings
+               ? SortDescriptor(*reinterpret_cast<Table*>(table_ptr), std::move(indices), std::move(ascending_list))
+               : SortDescriptor(*reinterpret_cast<Table*>(table_ptr), std::move(indices));
 }
-
-

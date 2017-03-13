@@ -41,14 +41,15 @@ private:
     jni_util::JavaGlobalWeakRef m_java_notifier;
 
 public:
-    virtual ~JavaBindingContext() { };
+    virtual ~JavaBindingContext(){};
     virtual void before_notify();
-    virtual void did_change(std::vector<ObserverState> const& observers,
-                            std::vector<void*> const& invalidated,
-                            bool version_changed=true);
+    virtual void did_change(std::vector<ObserverState> const& observers, std::vector<void*> const& invalidated,
+                            bool version_changed = true);
 
     explicit JavaBindingContext(const ConcreteJavaBindContext& concrete_context)
-            : m_java_notifier(concrete_context.jni_env, concrete_context.java_notifier) { }
+        : m_java_notifier(concrete_context.jni_env, concrete_context.java_notifier)
+    {
+    }
     JavaBindingContext(const JavaBindingContext&) = delete;
     JavaBindingContext& operator=(const JavaBindingContext&) = delete;
     JavaBindingContext(JavaBindingContext&&) = delete;
@@ -65,4 +66,3 @@ public:
 } // namespace realm
 
 #endif
-

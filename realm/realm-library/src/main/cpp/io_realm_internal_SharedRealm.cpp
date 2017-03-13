@@ -138,7 +138,6 @@ private:
     Realm::Config m_config;
 };
 
-
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv* env, jclass,
                                                                      jstring temporary_directory_path)
 {
