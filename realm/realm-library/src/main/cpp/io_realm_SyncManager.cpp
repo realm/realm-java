@@ -22,8 +22,6 @@
 #include <vector>
 
 #include <realm/group_shared.hpp>
-#include <realm/sync/history.hpp>
-#include <realm/sync/client.hpp>
 
 #include "io_realm_SyncManager.h"
 
@@ -36,10 +34,7 @@
 #include "jni_util/java_method.hpp"
 
 using namespace realm;
-using namespace realm::sync;
 using namespace realm::jni_util;
-
-std::unique_ptr<Client> sync_client;
 
 struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
 
@@ -58,24 +53,14 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
     }
 } s_client_thread_listener;
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient(JNIEnv* env, jclass)
-{
-    TR_ENTER()
-    if (sync_client) {
-        return;
+struct AndroidSyncLoggerFactory : public realm::SyncLoggerFactory {
+    virtual std::unique_ptr<util::Logger> make_logger(Logger::Level level) override
+    {
+        auto logger = std::make_unique<CoreLoggerBridge>();
+        logger->set_level_threshold(level);
+        return std::move(logger);
     }
-
-    try {
-        // Setup SyncManager
-        g_binding_callback_thread_observer = &s_client_thread_listener;
-
-        // Create SyncClient
-        sync::Client::Config config;
-        config.logger = &CoreLoggerBridge::shared();
-        sync_client = std::make_unique<Client>(std::move(config)); // Throws
-    }
-    CATCH_STD()
-}
+} s_sync_logger_factory;
 
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass)
 {
@@ -93,6 +78,12 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeConfigureMetaDataSystem(J
     try {
         JStringAccessor base_file_path(env, baseFile); // throws
         SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
+
+        // Register Sync Client thread start/stop callback
+        g_binding_callback_thread_observer = &s_client_thread_listener;
+
+        // init logger
+        SyncManager::shared().set_logger_factory(s_sync_logger_factory);
     }
     CATCH_STD()
 }

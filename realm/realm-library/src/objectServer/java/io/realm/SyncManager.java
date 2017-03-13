@@ -99,9 +99,6 @@ public class SyncManager {
     static void init(String appId, UserStore userStore) {
         SyncManager.APP_ID = appId;
         SyncManager.userStore = userStore;
-
-        // Initialize underlying Sync Network Client
-        nativeInitializeSyncClient();
     }
 
     /**
@@ -283,8 +280,6 @@ public class SyncManager {
         sessions.clear();
     }
 
-    private static native void nativeInitializeSyncClient();
-    // init and load the Metadata Realm containing SyncUsers
     protected static native void nativeConfigureMetaDataSystem(String baseFile);
     private static native void nativeReset();
 }
