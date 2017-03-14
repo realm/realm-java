@@ -2,12 +2,13 @@
 
 ### Breaking Changes
 
-* [ObjectServer] Added `onClientReset(ClientResetError)` method to the `ErrorHandler` interface.
+* [ObjectServer] Added `onClientReset(ClientResetRequiredError)` method to the `ErrorHandler` interface.
 
 ### Enhancements
 
 * Now `targetSdkVersion` is 25.
 * [ObjectServer] Information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface.
+* The real `RealmMigrationNeededException` is now thrown instead of `IllegalArgumentException` if no migration is provided for a Realm that requires it.
 
 ### Bug Fixes
 

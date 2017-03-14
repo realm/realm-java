@@ -391,7 +391,7 @@ public class RealmConfigurationTests {
             fail();
         } catch (RealmMigrationNeededException expected) {
             // And it should come with a cause.
-            assertNotNull(expected.getCause());
+            assertEquals("Realm on disk need to migrate from v0 to v42", expected.getMessage());
         }
     }
 
