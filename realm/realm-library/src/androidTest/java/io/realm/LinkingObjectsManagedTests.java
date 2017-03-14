@@ -258,7 +258,8 @@ public class LinkingObjectsManagedTests {
             child, parent);
     }
 
-    // A listener registered on the backlinked object is called for an unrelated change on the an object of the same type!!
+    // A listener registered on the backlinked object is called
+    // for an unrelated change on the an object of the same type!!
     // This test exists only to document existing (but odd) behavior.
     @Test
     @RunTestInLooperThread
@@ -573,10 +574,7 @@ public class LinkingObjectsManagedTests {
         } catch (IOException e) {
             fail("Failed copying realm");
         } catch (RealmMigrationNeededException expected) {
-            assertTrue(expected.getMessage().contains("RealmMigration must be provided"));
-            Throwable t = expected.getCause();
-            assertNotNull(t);
-            assertTrue(t.getMessage().contains("Field count is"));
+            assertTrue(expected.getMessage().contains("Field count is"));
         } finally {
             Realm.deleteRealm(realmConfig);
         }
@@ -616,10 +614,7 @@ public class LinkingObjectsManagedTests {
         } catch (IOException e) {
             fail("Failed copying realm");
         } catch (RealmMigrationNeededException expected) {
-            assertTrue(expected.getMessage().contains("RealmMigration must be provided"));
-            Throwable t = expected.getCause();
-            assertNotNull(t);
-            assertTrue(t.getMessage().contains("Cannot find source class"));
+            assertTrue(expected.getMessage().contains("Cannot find source class"));
         } finally {
             Realm.deleteRealm(realmConfig);
         }
@@ -660,10 +655,7 @@ public class LinkingObjectsManagedTests {
         } catch (IOException e) {
             fail("Failed copying realm");
         } catch (RealmMigrationNeededException expected) {
-            assertTrue(expected.getMessage().contains("RealmMigration must be provided"));
-            Throwable t = expected.getCause();
-            assertNotNull(t);
-            assertTrue(t.getMessage().contains("Cannot find source field"));
+            assertTrue(expected.getMessage().contains("Cannot find source field"));
         } finally {
             Realm.deleteRealm(realmConfig);
         }
@@ -701,10 +693,7 @@ public class LinkingObjectsManagedTests {
         } catch (IOException e) {
             fail("Failed copying realm");
         } catch (RealmMigrationNeededException expected) {
-            assertTrue(expected.getMessage().contains("RealmMigration must be provided"));
-            Throwable t = expected.getCause();
-            assertNotNull(t);
-            assertTrue(t.getMessage().contains("is not a RealmObject type"));
+            assertTrue(expected.getMessage().contains("is not a RealmObject type"));
         } finally {
             Realm.deleteRealm(realmConfig);
         }

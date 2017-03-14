@@ -123,7 +123,7 @@ final class Backlink {
     /**
      * Validate the source side of the backlink.
      *
-     * @return true iff the backlink source looks good.
+     * @return true if the backlink source looks good.
      */
     public boolean validateSource() {
         // A @LinkingObjects cannot be @Required
