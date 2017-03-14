@@ -273,7 +273,7 @@ public class RealmObjectSchema {
     private Set<Property> getProperties() {
         if (realm == null) {
             long[] ptrs = nativeGetProperties(nativePtr);
-            Set<Property> properties = new LinkedHashSet<>(ptrs.length);
+            Set<Property> properties = new LinkedHashSet<Property>(ptrs.length);
             for (int i = 0; i < ptrs.length; i++) {
                 properties.add(new Property(ptrs[i]));
             }
@@ -556,7 +556,7 @@ public class RealmObjectSchema {
      */
     public Set<String> getFieldNames() {
         int columnCount = (int) table.getColumnCount();
-        Set<String> columnNames = new LinkedHashSet<>(columnCount);
+        Set<String> columnNames = new LinkedHashSet<String>(columnCount);
         for (int i = 0; i < columnCount; i++) {
             columnNames.add(table.getColumnName(i));
         }
@@ -604,7 +604,7 @@ public class RealmObjectSchema {
             if (indexAdded) {
                 table.removeSearchIndex(columnIndex);
             }
-            throw e;
+            throw (RuntimeException) e;
         }
     }
 

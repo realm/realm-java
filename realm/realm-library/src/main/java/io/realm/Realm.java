@@ -343,11 +343,14 @@ public class Realm extends BaseRealm {
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
             final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
-            for (Class<? extends RealmModel> modelClass : modelClasses) {
-                // Creates and validates table.
-                if (unversioned) {
+            if (unversioned) {
+                // Create all of the tables.
+                for (Class<? extends RealmModel> modelClass : modelClasses) {
                     mediator.createTable(modelClass, realm.sharedRealm);
                 }
+            }
+            for (Class<? extends RealmModel> modelClass : modelClasses) {
+                // Now that they have all been created, validate them.
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 

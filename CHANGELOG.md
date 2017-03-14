@@ -3,7 +3,13 @@
 ### Enhancements
 
 * Now `targetSdkVersion` is 25.
+* Now using Gradle 3.4.1
 * The real `RealmMigrationNeededException` is now thrown instead of `IllegalArgumentException` if no migration is provided for a Realm that requires it.
+* Partial implementation of `LinkingObjects`.  There is documentation in `io.realm.annotations.LinkingObjects`.  Internal docs are in `io.realm.processor.Backlink`.
+  * Queries on linking objects do not work.  Queries like `were(...).equalTo("field.linkingObjects.id", 7).findAll()` are not yet supported.
+  * Linking objects are not yet supported on dynamic objects
+  * Migration for linking objects is not yet supported.
+  * Backlink verification is incomplete.  Evil code can cause native crashes.
 
 ### Bug Fixes
 
