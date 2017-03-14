@@ -85,7 +85,7 @@ public class SyncManager {
         }
 
         @Override
-        public void onClientReset(SyncSession session, ClientResetError error) {
+        public void onClientReset(SyncSession session, ClientResetRequiredError error) {
             RealmLog.error("Client Reset required for: " + session.getConfiguration().getPath());
         }
     };

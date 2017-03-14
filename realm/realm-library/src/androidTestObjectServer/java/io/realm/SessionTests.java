@@ -23,13 +23,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.rule.TestSyncConfigurationFactory;
-import io.realm.util.SyncTestUtils;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
@@ -79,12 +75,12 @@ public class SessionTests {
                     }
 
                     @Override
-                    public void onClientReset(SyncSession session, ClientResetError error) {
-                        String filePathFromError = error.getOriginalFileLocation().getAbsolutePath();
+                    public void onClientReset(SyncSession session, ClientResetRequiredError error) {
+                        String filePathFromError = error.getOriginalFile().getAbsolutePath();
                         String filePathFromConfig = session.getConfiguration().getPath();
                         assertEquals(filePathFromError, filePathFromConfig);
                         assertFalse(error.getBackupFileLocation().exists());
-                        assertTrue(error.getOriginalFileLocation().exists());
+                        assertTrue(error.getOriginalFile().exists());
                         looperThread.testComplete();
                     }
                 })
@@ -110,7 +106,7 @@ public class SessionTests {
                     }
 
                     @Override
-                    public void onClientReset(SyncSession session, ClientResetError error) {
+                    public void onClientReset(SyncSession session, ClientResetRequiredError error) {
                         try {
                             error.executeClientReset();
                             fail("All Realms should be closed before executing Client Reset can be allowed");
@@ -122,7 +118,7 @@ public class SessionTests {
                         error.executeClientReset();
 
                         // Validate that files have been moved
-                        assertFalse(error.getOriginalFileLocation().exists());
+                        assertFalse(error.getOriginalFile().exists());
                         assertTrue(error.getBackupFileLocation().exists());
                         looperThread.testComplete();
                     }

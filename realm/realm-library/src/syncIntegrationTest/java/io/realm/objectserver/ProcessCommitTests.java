@@ -22,8 +22,6 @@ import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.ClientResetError;
+import io.realm.ClientResetRequiredError;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -46,7 +44,6 @@ import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.service.SendOneCommit;
 import io.realm.objectserver.service.SendsALot;
 import io.realm.objectserver.utils.Constants;
-import io.realm.objectserver.utils.HttpUtils;
 import io.realm.objectserver.utils.UserFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -81,7 +78,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                                 }
 
                                 @Override
-                                public void onClientReset(SyncSession session, ClientResetError error) {
+                                public void onClientReset(SyncSession session, ClientResetRequiredError error) {
                                     fail("Client Reset");
                                 }
                             })
@@ -146,7 +143,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                                 }
 
                                 @Override
-                                public void onClientReset(SyncSession session, ClientResetError error) {
+                                public void onClientReset(SyncSession session, ClientResetRequiredError error) {
                                     fail("Client Reset");
                                 }
                             })

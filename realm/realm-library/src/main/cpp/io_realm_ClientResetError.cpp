@@ -15,11 +15,11 @@
  */
 
 #include <jni.h>
-#include "io_realm_ClientResetError.h"
 
 #include "object-store/src/sync/sync_manager.hpp"
 
 #include "util.hpp"
+#include "io_realm_ClientResetError.h"
 
 using namespace realm;
 
@@ -29,7 +29,8 @@ JNIEXPORT void JNICALL Java_io_realm_ClientResetError_nativeExecuteClientReset(J
     try {
         JStringAccessor local_realm_path(env, localRealmPath);
         if (!SyncManager::shared().immediately_run_file_actions(std::string(local_realm_path))) {
-            ThrowException(env, IllegalState, concat_stringdata("Realm hasn't been closed. Client Reset cannot run for Realm at: ", local_realm_path));
+            ThrowException(env, IllegalState, concat_stringdata("Realm was not configured correctly. Client Reset could not be run for Realm at: ", local_realm_path));
+            return;
         }
     }
     CATCH_STD()

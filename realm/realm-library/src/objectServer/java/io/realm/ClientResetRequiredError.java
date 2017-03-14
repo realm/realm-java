@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,23 @@ package io.realm;
 
 import java.io.File;
 
-public class ClientResetError extends ObjectServerError {
+/**
+ * Class encapsulating information needed for handling a Client Reset event.
+ *
+ * @see io.realm.SyncSession.ErrorHandler#onClientReset(SyncSession, ClientResetRequiredError) for more information
+ *      about when a Client Reset might occur and how to deal with it.
+ */
+public class ClientResetRequiredError extends ObjectServerError {
 
+    private final RealmConfiguration configuration;
     private final File backupFile;
     private final File originalFile;
 
-    public ClientResetError(ErrorCode errorCode, String errorMessage, String backupFilePath, String originalFilePath) {
+    public ClientResetRequiredError(ErrorCode errorCode, String errorMessage, String backupFilePath, RealmConfiguration configuration) {
         super(errorCode, errorMessage);
+        this.configuration = configuration;
         this.backupFile = new File(backupFilePath);
-        this.originalFile = new File(originalFilePath);
+        this.originalFile = new File(configuration.getPath());
     }
 
     /**
@@ -42,7 +50,12 @@ public class ClientResetError extends ObjectServerError {
      * @throws IllegalStateException if not all instances have been closed.
      */
     public void executeClientReset()  {
-        nativeExecuteClientReset(originalFile.getAbsolutePath());
+        synchronized (Realm.class) {
+            if (Realm.getGlobalInstanceCount(configuration) > 0) {
+                throw new IllegalStateException("Realm has not been fully closed. Client Reset cannot run before all instances have been closed.");
+            }
+            nativeExecuteClientReset(configuration.getPath());
+        }
     }
 
     /**
@@ -64,10 +77,11 @@ public class ClientResetError extends ObjectServerError {
      * @return a reference to the location of the original Realm file. After Client Reset has been executed this file
      *         will no longer exists. Use {@code file.exists()} to check this.
      */
-    public File getOriginalFileLocation() {
+    public File getOriginalFile() {
         return originalFile;
     }
 
 
+    // PRECONDITION: All Realm instances for this path must have been closed.
     private native void nativeExecuteClientReset(String originalPath);
 }
