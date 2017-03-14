@@ -269,7 +269,9 @@ public class Realm extends BaseRealm {
                 deleteRealm(configuration);
             } else {
                 try {
-                    migrateRealm(configuration, e);
+                    if (configuration.getMigration() != null) {
+                        migrateRealm(configuration, e);
+                    }
                 } catch (FileNotFoundException fileNotFoundException) {
                     // Should never happen.
                     throw new RealmFileException(RealmFileException.Kind.NOT_FOUND, fileNotFoundException);
@@ -280,7 +282,7 @@ public class Realm extends BaseRealm {
         }
     }
 
-    static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
+    private static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
         Realm realm = new Realm(configuration);
 
         final long currentVersion = realm.getVersion();

@@ -1,8 +1,9 @@
-## 3.0.1 (YYYY-MM-DD)
+## 3.1.0 (YYYY-MM-DD)
 
 ### Enhancements
 
 * Now `targetSdkVersion` is 25.
+* The real `RealmMigrationNeededException` is now thrown instead of `IllegalArgumentException` if no migration is provided for a Realm that requires it.
 
 ### Bug Fixes
 
@@ -13,9 +14,9 @@
 
 ### Internal
 
+* Using the Object Store's Session and SyncManager.
 * Upgraded to Realm Sync 1.3.2.
 * Upgraded to Realm Core 2.4.0.
-
 
 ## 3.0.0 (2017-02-28)
 
@@ -37,7 +38,7 @@
 
 * Added support for sorting by link's field (#672).
 * Added `OrderedRealmCollectionSnapshot` class and `OrderedRealmCollection.createSnapshot()` method. `OrderedRealmCollectionSnapshot` is useful when changing `RealmResults` or `RealmList` in simple loops.
-* Added `OrderedRealmCollectionChangeListener` interface for supporting fine-grained collection notifications. 
+* Added `OrderedRealmCollectionChangeListener` interface for supporting fine-grained collection notifications.
 * Added support for ChangeListeners on `RealmList`.
 * Added `RealmList.asObservable()`.
 

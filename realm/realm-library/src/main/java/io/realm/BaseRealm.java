@@ -31,7 +31,6 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
@@ -318,13 +317,6 @@ abstract class BaseRealm implements Closeable {
     public void commitTransaction() {
         checkIfValid();
         sharedRealm.commitTransaction();
-        if (!isClosed()) {
-            // FIXME: The checking is because the global listener is being called in commitTransaction from object
-            // store. The Realm could be closed inside the listener. In this case, we have no way to handle it. Moving
-            // SyncManger to Object Store will solve this.
-            ObjectServerFacade.getFacade(configuration.isSyncConfiguration())
-                    .notifyCommit(configuration, sharedRealm.getLastSnapshotVersion());
-        }
     }
 
     /**

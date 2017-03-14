@@ -15,25 +15,23 @@
  */
 
 #include "io_realm_internal_SharedRealm.h"
-#ifdef REALM_ENABLE_SYNC
+#if REALM_ENABLE_SYNC
 #include "object-store/src/sync/sync_manager.hpp"
 #include "object-store/src/sync/sync_config.hpp"
+#include "object-store/src/sync/sync_session.hpp"
 #endif
 
-#include <realm/util/features.h>
-#include <realm/group_shared_options.hpp>
+#include <shared_realm.hpp>
 
 #include "object_store.hpp"
-#include "shared_realm.hpp"
-
 #include "java_binding_context.hpp"
 #include "util.hpp"
-#if REALM_ENABLE_SYNC
-#include "sync/sync_manager.hpp"
-#endif
+
+#include "jni_util/java_method.hpp"
 
 using namespace realm;
 using namespace realm::_impl;
+using namespace realm::jni_util;
 
 static_assert(SchemaMode::Automatic ==
                   static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_AUTOMATIC),
@@ -52,6 +50,94 @@ static_assert(SchemaMode::Manual == static_cast<SchemaMode>(io_realm_internal_Sh
 
 static void finalize_shared_realm(jlong ptr);
 
+// Wrapper class for SyncConfig. This is required as we need to keep track of the Java session
+// object as part of the configuration.
+class JniConfigWrapper {
+
+public:
+    JniConfigWrapper(const JniConfigWrapper&) = delete;
+
+    JniConfigWrapper& operator=(const JniConfigWrapper&) = delete;
+    JniConfigWrapper(JniConfigWrapper&&) = delete;
+    JniConfigWrapper& operator=(JniConfigWrapper&&) = delete;
+
+    // Non-sync constructor
+    JniConfigWrapper(JNIEnv*, Realm::Config& config)
+        : m_config(std::move(config))
+    {
+    }
+
+    // Sync constructor
+    JniConfigWrapper(REALM_UNUSED JNIEnv* env, REALM_UNUSED Realm::Config& config,
+                     REALM_UNUSED jstring sync_realm_url, REALM_UNUSED jstring sync_realm_auth_url,
+                     REALM_UNUSED jstring sync_user_identity, REALM_UNUSED jstring sync_refresh_token)
+        : m_config(std::move(config))
+    {
+#if REALM_ENABLE_SYNC
+        // Doing the methods lookup from the thread that loaded the lib, to avoid
+        // https://developer.android.com/training/articles/perf-jni.html#faq_FindClass
+        static JavaMethod java_error_callback_method(env, java_syncmanager, "notifyErrorHandler",
+                                                     "(ILjava/lang/String;Ljava/lang/String;)V", true);
+        static JavaMethod java_bind_session_method(env, java_syncmanager, "bindSessionWithConfig",
+                                                   "(Ljava/lang/String;)Ljava/lang/String;", true);
+
+        // error handler will be called form the sync client thread
+        auto error_handler = [=](std::shared_ptr<SyncSession> session, SyncError error) {
+            realm::jni_util::Log::d("error_handler lambda invoked");
+
+            JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
+
+            env->CallStaticVoidMethod(java_syncmanager, java_error_callback_method, error.error_code.value(),
+                                      to_jstring(env, error.message), to_jstring(env, session.get()->path()));
+        };
+
+        // path on disk of the Realm file.
+        // the sync configuration object.
+        // the session which should be bound.
+        auto bind_handler = [=](const std::string& path, const SyncConfig& syncConfig,
+                                std::shared_ptr<SyncSession> session) {
+            realm::jni_util::Log::d("Callback to Java requesting token for path");
+
+            JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
+
+            jstring access_token_string = (jstring)env->CallStaticObjectMethod(
+                java_syncmanager, java_bind_session_method, to_jstring(env, path.c_str()));
+            if (access_token_string) {
+                // reusing cached valid token
+                JStringAccessor access_token(env, access_token_string);
+                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url));
+            }
+        };
+        // Get logged in user
+        JStringAccessor user_identity(env, sync_user_identity);
+        JStringAccessor realm_url(env, sync_realm_url);
+        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_identity);
+        if (!user) {
+            JStringAccessor realm_auth_url(env, sync_realm_auth_url);
+            JStringAccessor refresh_token(env, sync_refresh_token);
+            user = SyncManager::shared().get_user(user_identity, refresh_token,
+                                                  realm::util::Optional<std::string>(realm_auth_url));
+        }
+        m_config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
+            user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler)});
+#else
+        REALM_UNREACHABLE();
+#endif
+    }
+
+    inline Realm::Config& get_config()
+    {
+        return m_config;
+    }
+
+    ~JniConfigWrapper()
+    {
+    }
+
+private:
+    Realm::Config m_config;
+};
+
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv* env, jclass,
                                                                      jstring temporary_directory_path)
 {
@@ -67,26 +153,30 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv* env
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
     JNIEnv* env, jclass, jstring realm_path, jbyteArray key, jbyte schema_mode, jboolean in_memory, jboolean cache,
     jlong /* schema_version */, jboolean disable_format_upgrade, jboolean auto_change_notification,
-    REALM_UNUSED jstring sync_server_url, jstring /*sync_user_token*/)
+    REALM_UNUSED jstring sync_server_url, REALM_UNUSED jstring sync_server_auth_url,
+    REALM_UNUSED jstring sync_user_identity, REALM_UNUSED jstring sync_refresh_token)
 {
     TR_ENTER()
 
     try {
         JStringAccessor path(env, realm_path); // throws
         JniByteArray key_array(env, key);
-        Realm::Config* config = new Realm::Config();
-        config->path = path;
+        Realm::Config config;
+        config.path = path;
         // config->schema_version = schema_version; TODO: Disabled until we remove version handling from Java
-        config->encryption_key = key_array;
-        config->schema_mode = static_cast<SchemaMode>(schema_mode);
-        config->in_memory = in_memory;
-        config->cache = cache;
-        config->disable_format_upgrade = disable_format_upgrade;
-        config->automatic_change_notifications = auto_change_notification;
+        config.encryption_key = key_array;
+        config.schema_mode = static_cast<SchemaMode>(schema_mode);
+        config.in_memory = in_memory;
+        config.cache = cache;
+        config.disable_format_upgrade = disable_format_upgrade;
+        config.automatic_change_notifications = auto_change_notification;
         if (sync_server_url) {
-            config->force_sync_history = true;
+            return reinterpret_cast<jlong>(new JniConfigWrapper(env, config, sync_server_url, sync_server_auth_url,
+                                                                sync_user_identity, sync_refresh_token));
         }
-        return reinterpret_cast<jlong>(config);
+        else {
+            return reinterpret_cast<jlong>(new JniConfigWrapper(env, config));
+        }
     }
     CATCH_STD()
 
@@ -97,7 +187,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeCloseConfig(JNIE
 {
     TR_ENTER_PTR(config_ptr)
 
-    auto config = reinterpret_cast<realm::Realm::Config*>(config_ptr);
+    auto config = reinterpret_cast<JniConfigWrapper*>(config_ptr);
     delete config;
 }
 
@@ -106,9 +196,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetSharedRealm(
 {
     TR_ENTER_PTR(config_ptr)
 
-    auto config = reinterpret_cast<realm::Realm::Config*>(config_ptr);
+    auto config = reinterpret_cast<JniConfigWrapper*>(config_ptr);
     try {
-        auto shared_realm = Realm::get_shared_realm(*config);
+        auto shared_realm = Realm::get_shared_realm(config->get_config());
         shared_realm->m_binding_context = JavaBindingContext::create(env, realm_notifier);
         return reinterpret_cast<jlong>(new SharedRealm(std::move(shared_realm)));
     }
@@ -196,7 +286,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetVersion(JNIE
         return static_cast<jlong>(ObjectStore::get_schema_version(shared_realm->read_group()));
     }
     CATCH_STD()
-
     return static_cast<jlong>(ObjectStore::NotVersioned);
 }
 
@@ -226,7 +315,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeIsEmpty(JNIE
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        return to_jbool(ObjectStore::is_empty(shared_realm->read_group()));
+        return static_cast<jboolean>(ObjectStore::is_empty(shared_realm->read_group()));
     }
     CATCH_STD()
     return JNI_FALSE;
@@ -408,7 +497,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeWaitForChang
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         using rf = realm::_impl::RealmFriend;
-        return to_jbool(rf::get_shared_group(*shared_realm).wait_for_change());
+        return static_cast<jboolean>(rf::get_shared_group(*shared_realm).wait_for_change());
     }
     CATCH_STD()
 
@@ -435,7 +524,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeCompact(JNIE
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        return to_jbool(shared_realm->compact());
+        return static_cast<jboolean>(shared_realm->compact());
     }
     CATCH_STD()
 
@@ -451,7 +540,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetSnapshotVers
     try {
         using rf = realm::_impl::RealmFriend;
         auto& shared_group = rf::get_shared_group(*shared_realm);
-        return static_cast<jlong>(LangBindHelper::get_version_of_latest_snapshot(shared_group));
+        return LangBindHelper::get_version_of_latest_snapshot(shared_group);
     }
     CATCH_STD()
     return 0;
@@ -480,7 +569,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeRequiresMigr
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(nativePtr));
         auto* schema = reinterpret_cast<Schema*>(nativeSchemaPtr);
         const std::vector<SchemaChange>& change_list = shared_realm->schema().compare(*schema);
-        return to_jbool(!change_list.empty());
+        return static_cast<jboolean>(!change_list.empty());
     }
     CATCH_STD()
     return JNI_FALSE;
