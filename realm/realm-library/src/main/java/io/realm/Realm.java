@@ -1440,8 +1440,13 @@ public class Realm extends BaseRealm {
                 } catch (final Throwable e) {
                     exception[0] = e;
                 } finally {
-                    // SharedGroup::close() will cancel the transaction if needed.
-                    bgRealm.close();
+                    try {
+                        if (isInTransaction()) {
+                            bgRealm.cancelTransaction();
+                        }
+                    } finally {
+                        bgRealm.close();
+                    }
                 }
 
                 final Throwable backgroundException = exception[0];
