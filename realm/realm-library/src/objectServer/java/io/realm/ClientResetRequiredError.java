@@ -42,8 +42,9 @@ public class ClientResetRequiredError extends ObjectServerError {
      * only be possible if all instances of that Realm has been closed, otherwise a {@link IllegalStateException} will
      * be thrown.
      *
-     * After the backup is complete, the file can be found in the location returned by
-     * {@link #getBackupFileLocation()}.
+     * After this method returns, the backup file can be found in the location returned by {@link #getBackupFile()}.
+     * The file at {@link #getOriginalFile()} have been deleted, but will be recreated from scratch next time a
+     * Realm instance is opened.
      *
      * @throws IllegalStateException if not all instances have been closed.
      */
@@ -58,20 +59,20 @@ public class ClientResetRequiredError extends ObjectServerError {
     }
 
     /**
-     * Returns the location of the backed up file. The file will not be present until the Client Reset has been
-     * executed.
+     * Returns the location of the backed up Realm file. The file will not be present until the Client Reset has been
+     * fully executed.
      *
      * @return a reference to the location of the backup file once Client Reset has been executed.
-     *         Use {@code file.exists()} to check this.
+     *         Use {@code file.exists()} to check if the file exists or not.
      *
      */
-    public File getBackupFileLocation() {
+    public File getBackupFile() {
         return backupFile;
     }
 
     /**
-     * Returns the location of the original file. After the Client Reset has completed, the file at this location will
-     * be deleted.
+     * Returns the location of the original Realm file. After the Client Reset has completed, the file at this location
+     * will be deleted.
      *
      * @return a reference to the location of the original Realm file. After Client Reset has been executed this file
      *         will no longer exists. Use {@code file.exists()} to check this.

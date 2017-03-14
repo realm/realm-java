@@ -79,7 +79,7 @@ public class SessionTests {
                         String filePathFromError = error.getOriginalFile().getAbsolutePath();
                         String filePathFromConfig = session.getConfiguration().getPath();
                         assertEquals(filePathFromError, filePathFromConfig);
-                        assertFalse(error.getBackupFileLocation().exists());
+                        assertFalse(error.getBackupFile().exists());
                         assertTrue(error.getOriginalFile().exists());
                         looperThread.testComplete();
                     }
@@ -119,7 +119,7 @@ public class SessionTests {
 
                         // Validate that files have been moved
                         assertFalse(error.getOriginalFile().exists());
-                        assertTrue(error.getBackupFileLocation().exists());
+                        assertTrue(error.getBackupFile().exists());
                         looperThread.testComplete();
                     }
                 })
