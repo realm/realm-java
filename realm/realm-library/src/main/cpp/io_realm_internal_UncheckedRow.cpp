@@ -169,7 +169,7 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetByteAr
         jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
         if (jresult) {
             env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()),
-                                    reinterpret_cast<const jbyte *>(bin.data())); // throws
+                                    reinterpret_cast<const jbyte*>(bin.data())); // throws
         }
         return jresult;
     }
@@ -414,7 +414,7 @@ static void finalize_unchecked_row(jlong ptr)
     delete ROW(ptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetFinalizerPtr(JNIEnv *, jclass)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
     TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_unchecked_row);

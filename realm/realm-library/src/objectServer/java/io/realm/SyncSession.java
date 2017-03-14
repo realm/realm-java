@@ -166,9 +166,9 @@ public class SyncSession {
          * </ol>
          *
          * <b>WARNING:</b>
-         * Any writes to the Realm file between this callback have been triggered and Client Reset has
-         * been executed, will not be synchronized to the Object Server. Those changes will only be present in the
-         * backed up file. It is therefor recommended to close all open Realm instances as soon as possible.
+         * Any writes to the Realm file between this callback and Client Reset has been executed, will not be
+         * synchronized to the Object Server. Those changes will only be present in the backed up file. It is therefor
+         * recommended to close all open Realm instances as soon as possible.
          *
          * @param session {@link SyncSession} this error happened on.
          * @param error reference to the specific Client Reset error.

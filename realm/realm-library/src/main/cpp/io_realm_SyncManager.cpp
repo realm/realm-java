@@ -97,7 +97,9 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeConfigureMetaDataSystem(J
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv* env, jclass, jstring localRealmPath, jint errorCode, jstring errorMessage, jboolean isFatal)
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv* env, jclass, jstring localRealmPath,
+                                                                         jint errorCode, jstring errorMessage,
+                                                                         jboolean isFatal)
 {
     TR_ENTER()
     try {
@@ -109,11 +111,8 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv*
             ThrowException(env, IllegalArgument, concat_stringdata("Session not found: ", local_realm_path));
             return;
         }
-        std::error_code code = std::error_code{
-            static_cast<int>(errorCode),
-            realm::sync::protocol_error_category()
-        };
-        SyncSession::OnlyForTesting::handle_error(*session, { code, std::string(error_message), isFatal == JNI_TRUE });
+        std::error_code code = std::error_code{static_cast<int>(errorCode), realm::sync::protocol_error_category()};
+        SyncSession::OnlyForTesting::handle_error(*session, {code, std::string(error_message), isFatal == JNI_TRUE});
     }
     CATCH_STD()
 }

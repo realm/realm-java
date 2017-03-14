@@ -22,7 +22,7 @@ import java.io.File;
  * Class encapsulating information needed for handling a Client Reset event.
  *
  * @see io.realm.SyncSession.ErrorHandler#onClientReset(SyncSession, ClientResetRequiredError) for more information
- *      about when a Client Reset might occur and how to deal with it.
+ *      about when and why Client Reset occur and how to deal with it.
  */
 public class ClientResetRequiredError extends ObjectServerError {
 
@@ -38,32 +38,31 @@ public class ClientResetRequiredError extends ObjectServerError {
     }
 
     /**
-     * Calling this method will execute the Client Reset manually instead of waiting until next
-     * app restart. This will only be possible if all instances of that Realm has been closed,
-     * otherwise a {@link IllegalStateException} will be thrown.
+     * Calling this method will execute the Client Reset manually instead of waiting until next app restart. This will
+     * only be possible if all instances of that Realm has been closed, otherwise a {@link IllegalStateException} will
+     * be thrown.
      *
      * After the backup is complete, the file can be found in the location returned by
      * {@link #getBackupFileLocation()}.
-     *
-     * This method can be called from any thread.
      *
      * @throws IllegalStateException if not all instances have been closed.
      */
     public void executeClientReset()  {
         synchronized (Realm.class) {
             if (Realm.getGlobalInstanceCount(configuration) > 0) {
-                throw new IllegalStateException("Realm has not been fully closed. Client Reset cannot run before all instances have been closed.");
+                throw new IllegalStateException("Realm has not been fully closed. Client Reset cannot run before all " +
+                        "instances have been closed.");
             }
             nativeExecuteClientReset(configuration.getPath());
         }
     }
 
     /**
-     * Returns the location of the backed up file. The file will not be present until the Client
-     * Reset has been executed.
+     * Returns the location of the backed up file. The file will not be present until the Client Reset has been
+     * executed.
      *
      * @return a reference to the location of the backup file once Client Reset has been executed.
-     *         Use {@code file.exists()}
+     *         Use {@code file.exists()} to check this.
      *
      */
     public File getBackupFileLocation() {
@@ -71,8 +70,8 @@ public class ClientResetRequiredError extends ObjectServerError {
     }
 
     /**
-     * Returns the location of the original file. After the Client Reset has completed, the file at this location
-     * will be deleted.
+     * Returns the location of the original file. After the Client Reset has completed, the file at this location will
+     * be deleted.
      *
      * @return a reference to the location of the original Realm file. After Client Reset has been executed this file
      *         will no longer exists. Use {@code file.exists()} to check this.

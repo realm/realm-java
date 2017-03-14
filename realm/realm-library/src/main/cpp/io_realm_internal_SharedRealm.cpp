@@ -95,12 +95,9 @@ public:
                 error_code = 7; // See ErrorCode.java
             }
 
-            JNIEnv *env = realm::jni_util::JniUtils::get_env(true);
-            env->CallStaticVoidMethod(java_syncmanager,
-                                      java_error_callback_method,
-                                      error_code,
-                                      to_jstring(env, error_message),
-                                      to_jstring(env, session.get()->path()));
+            JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
+            env->CallStaticVoidMethod(java_syncmanager, java_error_callback_method, error_code,
+                                      to_jstring(env, error_message), to_jstring(env, session.get()->path()));
         };
 
         // path on disk of the Realm file.

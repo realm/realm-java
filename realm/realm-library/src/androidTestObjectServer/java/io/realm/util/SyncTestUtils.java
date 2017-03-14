@@ -112,5 +112,4 @@ public class SyncTestUtils {
     public static AuthenticateResponse createErrorResponse(ErrorCode code) {
         return AuthenticateResponse.from(new ObjectServerError(code, "dummy"));
     }
-
 }
