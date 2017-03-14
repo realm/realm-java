@@ -3821,7 +3821,7 @@ public class RealmTests {
                 return name.matches("realm_.*cv");
             }
         });
-        assertEquals(1, files.length);
+        assertEquals(2, files.length);
 
         // Tests if it works when the namedPipeDir and the named pipe files already exist.
         realmOnExternalStorage = Realm.getInstance(config);
