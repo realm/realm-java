@@ -19,11 +19,11 @@
 #include "object-store/src/sync/sync_manager.hpp"
 
 #include "util.hpp"
-#include "io_realm_ClientResetError.h"
+#include "io_realm_ClientResetRequiredError.h"
 
 using namespace realm;
 
-JNIEXPORT void JNICALL Java_io_realm_ClientResetError_nativeExecuteClientReset(JNIEnv* env, jobject,
+JNIEXPORT void JNICALL Java_io_realm_ClientResetRequiredError_nativeExecuteClientReset(JNIEnv* env, jobject,
                                                                                jstring localRealmPath)
 {
     TR_ENTER()
