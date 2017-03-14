@@ -1421,8 +1421,8 @@ public class Realm extends BaseRealm {
                     return;
                 }
 
-                final SharedRealm.VersionID[] versionID = new SharedRealm.VersionID[1];
-                final Throwable[] exception = new Throwable[1];
+                SharedRealm.VersionID versionID = null;
+                Throwable exception = null;
 
                 final Realm bgRealm = Realm.getInstance(realmConfiguration);
                 bgRealm.beginTransaction();
@@ -1436,18 +1436,19 @@ public class Realm extends BaseRealm {
                     bgRealm.commitTransaction();
                     // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency
                     // problem. This is currently guaranteed by posting callbacks later below.
-                    versionID[0] = bgRealm.sharedRealm.getVersionID();
+                    versionID = bgRealm.sharedRealm.getVersionID();
                 } catch (final Throwable e) {
-                    exception[0] = e;
+                    exception = e;
                 } finally {
                     // SharedGroup::close() will cancel the transaction if needed.
                     bgRealm.close();
                 }
 
-                final Throwable backgroundException = exception[0];
+                final Throwable backgroundException = exception;
+                final SharedRealm.VersionID backgroundVersionID = versionID;
                 // Cannot be interrupted anymore.
                 if (canDeliverNotification ) {
-                    if (versionID[0] != null && onSuccess != null) {
+                    if (backgroundVersionID != null && onSuccess != null) {
                         realmNotifier.post(new Runnable() {
                             @Override
                             public void run() {
@@ -1458,7 +1459,7 @@ public class Realm extends BaseRealm {
                                     return;
                                 }
 
-                                if (sharedRealm.getVersionID().compareTo(versionID[0]) < 0) {
+                                if (sharedRealm.getVersionID().compareTo(backgroundVersionID) < 0) {
                                     sharedRealm.realmNotifier.addTransactionCallback(new Runnable() {
                                         @Override
                                         public void run() {
