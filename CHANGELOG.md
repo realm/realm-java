@@ -7,10 +7,14 @@
 ### Bug Fixes
 
 * `Realm.migrateRealm(RealmConfiguration)` now fails correctly with an `IllegalArgumentException` if a `SyncConfiguration` is provided (#4075).
+* Fixed a potential cause for Realm file corruptions (never reported).
 
 ### Deprecated
 
 ### Internal
+
+* Upgraded to Realm Sync 1.3.2.
+* Upgraded to Realm Core 2.4.0.
 
 
 ## 3.0.0 (2017-02-28)
