@@ -35,7 +35,8 @@ namespace util {
 ///
 /// \tparam Traits16 Must define to_int_type() and to_char_type() for
 /// \a Char16.
-template<class Char16, class Traits16 = std::char_traits<Char16> > struct Utf8x16 {
+template <class Char16, class Traits16 = std::char_traits<Char16>>
+struct Utf8x16 {
     /// Transcode as much as possible of the specified UTF-8 input, to
     /// UTF-16. Returns true if all input characters were transcoded, or
     /// transcoding stopped because the next character did not fit into the
@@ -46,14 +47,13 @@ template<class Char16, class Traits16 = std::char_traits<Char16> > struct Utf8x1
     /// advanced to the position where transcoding stopped.
     ///
     /// Throws only if Traits16::to_char_type() throws.
-    static size_t to_utf16(const char*& in_begin, const char* in_end,
-                           Char16*& out_begin, Char16* out_end);
+    static size_t to_utf16(const char*& in_begin, const char* in_end, Char16*& out_begin, Char16* out_end);
 
     /// Same as to_utf16(), but in reverse.
     ///
     /// Throws only if Traits16::to_int_type() throws.
-    static size_t to_utf8(const Char16*& in_begin, const Char16* in_end,
-                        char*& out_begin, char* out_end, size_t& error_code);
+    static size_t to_utf8(const Char16*& in_begin, const Char16* in_end, char*& out_begin, char* out_end,
+                          size_t& error_code);
 
     /// Summarize the number of UTF-16 elements needed to hold the result of
     /// transcoding the specified UTF-8 string. Upon return, if \a in_begin !=
@@ -76,17 +76,14 @@ template<class Char16, class Traits16 = std::char_traits<Char16> > struct Utf8x1
 };
 
 
-
-
-
 // Implementation:
 
 // Adapted from reference implementation.
 // http://www.unicode.org/resources/utf8.html
 // http://www.bsdua.org/files/unicode.tar.gz
-template<class Char16, class Traits16>
-inline size_t Utf8x16<Char16, Traits16>::to_utf16(const char*& in_begin, const char* in_end,
-                                                  Char16*& out_begin, Char16* out_end)
+template <class Char16, class Traits16>
+inline size_t Utf8x16<Char16, Traits16>::to_utf16(const char*& in_begin, const char* in_end, Char16*& out_begin,
+                                                  Char16* out_end)
 {
     using namespace std;
     typedef char_traits<char> traits8;
@@ -119,8 +116,7 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf16(const char*& in_begin, const c
                 invalid = 2;
                 break; // Invalid continuation byte
             }
-            uint_fast16_t v = uint_fast16_t(((v1 & 0x1F) << 6) |
-                                            ((v2 & 0x3F) << 0));
+            uint_fast16_t v = uint_fast16_t(((v1 & 0x1F) << 6) | ((v2 & 0x3F) << 0));
             if (REALM_UNLIKELY(v < 0x80)) {
                 invalid = 3;
                 break; // Overlong encoding is invalid
@@ -141,9 +137,7 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf16(const char*& in_begin, const c
                 invalid = true;
                 break; // Invalid continuation byte
             }
-            uint_fast16_t v = uint_fast16_t(((v1 & 0x0F) << 12) |
-                                            ((v2 & 0x3F) <<  6) |
-                                            ((v3 & 0x3F) <<  0));
+            uint_fast16_t v = uint_fast16_t(((v1 & 0x0F) << 12) | ((v2 & 0x3F) << 6) | ((v3 & 0x3F) << 0));
             if (REALM_UNLIKELY(v < 0x800)) {
                 invalid = 5;
                 break; // Overlong encoding is invalid
@@ -164,21 +158,19 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf16(const char*& in_begin, const c
                 invalid = 7;
                 break; // Incomplete UTF-8 sequence
             }
-            uint_fast32_t w1 = uint_fast32_t(v1); // 16 bit -> 32 bit
+            uint_fast32_t w1 = uint_fast32_t(v1);                          // 16 bit -> 32 bit
             uint_fast32_t v2 = uint_fast32_t(traits8::to_int_type(in[1])); // 32 bit intended
             uint_fast16_t v3 = uint_fast16_t(traits8::to_int_type(in[2])); // 16 bit intended
             uint_fast16_t v4 = uint_fast16_t(traits8::to_int_type(in[3])); // 16 bit intended
             // UTF-8 layout: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-            if (REALM_UNLIKELY((v2 & 0xC0) != 0x80 || (v3 & 0xC0) != 0x80 ||
-                                 (v4 & 0xC0) != 0x80)) {
+            if (REALM_UNLIKELY((v2 & 0xC0) != 0x80 || (v3 & 0xC0) != 0x80 || (v4 & 0xC0) != 0x80)) {
                 invalid = 8;
                 break; // Invalid continuation byte
             }
-            uint_fast32_t v =
-                uint_fast32_t(((w1 & 0x07) << 18) | // Parenthesis is 32 bit partial result
-                              ((v2 & 0x3F) << 12) | // Parenthesis is 32 bit partial result
-                              ((v3 & 0x3F) <<  6) | // Parenthesis is 16 bit partial result
-                              ((v4 & 0x3F) <<  0)); // Parenthesis is 16 bit partial result
+            uint_fast32_t v = uint_fast32_t(((w1 & 0x07) << 18) | // Parenthesis is 32 bit partial result
+                                            ((v2 & 0x3F) << 12) | // Parenthesis is 32 bit partial result
+                                            ((v3 & 0x3F) << 6) |  // Parenthesis is 16 bit partial result
+                                            ((v4 & 0x3F) << 0));  // Parenthesis is 16 bit partial result
             if (REALM_UNLIKELY(v < 0x10000)) {
                 invalid = 9;
                 break; // Overlong encoding is invalid
@@ -198,15 +190,14 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf16(const char*& in_begin, const c
         break;
     }
 
-    in_begin  = in;
+    in_begin = in;
     out_begin = out;
     return invalid;
 }
 
 
-template<class Char16, class Traits16>
-inline std::size_t Utf8x16<Char16, Traits16>::find_utf16_buf_size(const char*& in_begin,
-                                                                  const char*  in_end,
+template <class Char16, class Traits16>
+inline std::size_t Utf8x16<Char16, Traits16>::find_utf16_buf_size(const char*& in_begin, const char* in_end,
                                                                   size_t& error_code)
 {
     using namespace std;
@@ -257,18 +248,17 @@ inline std::size_t Utf8x16<Char16, Traits16>::find_utf16_buf_size(const char*& i
         break;
     }
 
-    in_begin  = in;
+    in_begin = in;
     return num_out;
 }
-
 
 
 // Adapted from reference implementation.
 // http://www.unicode.org/resources/utf8.html
 // http://www.bsdua.org/files/unicode.tar.gz
-template<class Char16, class Traits16>
-inline size_t Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const Char16* in_end,
-                                               char*& out_begin, char* out_end, size_t& error_code)
+template <class Char16, class Traits16>
+inline size_t Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const Char16* in_end, char*& out_begin,
+                                                 char* out_end, size_t& error_code)
 {
     using namespace std;
     typedef char_traits<char> traits8;
@@ -343,15 +333,14 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const 
         in += 2;
     }
 
-    in_begin  = in;
+    in_begin = in;
     out_begin = out;
     return !invalid;
 }
 
 
-template<class Char16, class Traits16>
-inline std::size_t Utf8x16<Char16, Traits16>::find_utf8_buf_size(const Char16*& in_begin,
-                                                                 const Char16*  in_end,
+template <class Char16, class Traits16>
+inline std::size_t Utf8x16<Char16, Traits16>::find_utf8_buf_size(const Char16*& in_begin, const Char16* in_end,
                                                                  size_t& error_code)
 {
     using namespace std;
@@ -394,7 +383,7 @@ inline std::size_t Utf8x16<Char16, Traits16>::find_utf8_buf_size(const Char16*& 
         }
     }
 
-    in_begin  = in;
+    in_begin = in;
     return num_out;
 }
 } // namespace util

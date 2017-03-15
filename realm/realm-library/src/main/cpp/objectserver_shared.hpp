@@ -48,7 +48,7 @@ public:
     JniSession& operator=(JniSession&&) = delete;
 
     JniSession(JNIEnv* env, std::string local_realm_path, jobject java_session_obj)
-    : m_java_session_ref(std::make_shared<realm::jni_util::JavaGlobalWeakRef>(env, java_session_obj))
+        : m_java_session_ref(std::make_shared<realm::jni_util::JavaGlobalWeakRef>(env, java_session_obj))
     {
         extern std::unique_ptr<realm::sync::Client> sync_client;
         // Get the coordinator for the given path, or null if there is none
@@ -57,22 +57,24 @@ public:
         // the corrupted pointer.
         std::weak_ptr<realm::jni_util::JavaGlobalWeakRef> weak_session_ref(m_java_session_ref);
         auto sync_transact_callback = [local_realm_path](realm::VersionID, realm::VersionID) {
-            auto coordinator = realm::_impl::RealmCoordinator::get_existing_coordinator(
-                    realm::StringData(local_realm_path));
+            auto coordinator =
+                realm::_impl::RealmCoordinator::get_existing_coordinator(realm::StringData(local_realm_path));
             if (coordinator) {
                 coordinator->wake_up_notifier_worker();
             }
         };
-        auto error_handler = [weak_session_ref, local_realm_path](std::error_code error_code, bool is_fatal, const std::string message) {
+        auto error_handler = [weak_session_ref, local_realm_path](std::error_code error_code, bool is_fatal,
+                                                                  const std::string message) {
             if (error_code.category() != realm::sync::protocol_error_category() &&
-                    error_code.category() != realm::sync::client_error_category()) {
+                error_code.category() != realm::sync::client_error_category()) {
                 // FIXME: Consider below when moving to the OS sync manager.
-                // Ignore this error since it may cause exceptions in java ErrorCode.fromInt(). Throwing exception there
+                // Ignore this error since it may cause exceptions in java ErrorCode.fromInt(). Throwing exception
+                // there
                 // will trigger "called with pending exception" later since the thread is created by java, and the
                 // endless loop is in native code. The java exception will never be thrown because of the endless loop
                 // will never quit to java land.
-                realm::jni_util::Log::e("Unhandled sync client error code %1, %2. is_fatal: %3.",
-                                        error_code.value(), error_code.message(), is_fatal);
+                realm::jni_util::Log::e("Unhandled sync client error code %1, %2. is_fatal: %3.", error_code.value(),
+                                        error_code.message(), is_fatal);
                 return;
             }
 
@@ -84,38 +86,35 @@ public:
             auto protocol_error = static_cast<ProtocolError>(error_code.value());
 
             // Documented here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup
-            if (protocol_error == ProtocolError::bad_server_file_ident
-                || protocol_error == ProtocolError::bad_client_file_ident
-                || protocol_error == ProtocolError::bad_server_version
-                || protocol_error == ProtocolError::diverging_histories) {
+            if (protocol_error == ProtocolError::bad_server_file_ident ||
+                protocol_error == ProtocolError::bad_client_file_ident ||
+                protocol_error == ProtocolError::bad_server_version ||
+                protocol_error == ProtocolError::diverging_histories) {
 
                 // Add a SyncFileActionMetadata marking the Realm as needing to be deleted.
                 auto recovery_path = realm::util::reserve_unique_file_name(
-                        realm::SyncManager::shared().recovery_directory_path(),
-                        realm::util::create_timestamped_template("recovered_realm"));
+                    realm::SyncManager::shared().recovery_directory_path(),
+                    realm::util::create_timestamped_template("recovered_realm"));
                 auto original_path = local_realm_path;
 
                 realm::jni_util::Log::d("A client reset is scheduled for the next app start");
-                realm::SyncManager::shared().perform_metadata_update([original_path = std::move(original_path),
-                        recovery_path = std::move(recovery_path)](const auto &manager) {
-                    realm::SyncFileActionMetadata(manager,
-                                                  realm::SyncFileActionMetadata::Action::HandleRealmForClientReset,
-                                                  original_path,
-                                                  "",
-                                                  "",
-                                                  realm::util::Optional<std::string>(
-                                                          std::move(recovery_path)));
-                });
-
-            } else {
+                realm::SyncManager::shared().perform_metadata_update(
+                    [ original_path = std::move(original_path),
+                      recovery_path = std::move(recovery_path) ](const auto& manager) {
+                        realm::SyncFileActionMetadata(
+                            manager, realm::SyncFileActionMetadata::Action::HandleRealmForClientReset, original_path,
+                            "", "", realm::util::Optional<std::string>(std::move(recovery_path)));
+                    });
+            }
+            else {
                 auto session_ref = weak_session_ref.lock();
                 if (session_ref) {
-                        session_ref.get()->call_with_local_ref([&](JNIEnv* local_env, jobject obj) {
-                            static realm::jni_util::JavaMethod notify_error_handler(
-                                    local_env, obj, "notifySessionError", "(ILjava/lang/String;)V");
-                            local_env->CallVoidMethod(
-                                    obj, notify_error_handler, error_code.value(), local_env->NewStringUTF(message.c_str()));
-                        });
+                    session_ref.get()->call_with_local_ref([&](JNIEnv* local_env, jobject obj) {
+                        static realm::jni_util::JavaMethod notify_error_handler(local_env, obj, "notifySessionError",
+                                                                                "(ILjava/lang/String;)V");
+                        local_env->CallVoidMethod(obj, notify_error_handler, error_code.value(),
+                                                  local_env->NewStringUTF(message.c_str()));
+                    });
                 }
             }
         };

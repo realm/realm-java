@@ -31,6 +31,8 @@ Realm welcomes all contributions! The only requirement we have is that, like man
 
 While we havn't described our code style yet, please just follow the existing style you see in the files you change.
 
+For source code written in C++, we format it using `clang-format`. You can use the [plugin](https://plugins.jetbrains.com/plugin/8396-clangformatij): mark the entire file and right-click to execute `clang-format` before committing any changes. Of course, if you don't use Android Studio to edit C++ code, run `clang-format` on the command-line.
+
 ### Unit Tests
 
 All PR's must be accompanied by related unit tests. All bug fixes must have a unit test proving that the bug is fixed.
