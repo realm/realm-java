@@ -76,7 +76,7 @@ public class SyncUser {
                             }
 
                             @Override
-                            public void onClientResetRequired(SyncSession session, ClientResetHandler error) {
+                            public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
                                 RealmLog.error("Client Reset required for users management Realm: " + user.toString());
                             }
                         })

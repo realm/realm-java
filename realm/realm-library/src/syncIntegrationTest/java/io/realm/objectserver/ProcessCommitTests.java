@@ -78,7 +78,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                                 }
 
                                 @Override
-                                public void onClientResetRequired(SyncSession session, ClientResetHandler error) {
+                                public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
                                     fail("Client Reset");
                                 }
                             })
@@ -143,7 +143,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                                 }
 
                                 @Override
-                                public void onClientResetRequired(SyncSession session, ClientResetHandler error) {
+                                public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
                                     fail("Client Reset");
                                 }
                             })

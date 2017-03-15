@@ -2,7 +2,7 @@
 
 ### Breaking Changes
 
-* [ObjectServer] Added `onClientReset(ClientResetRequiredError)` method to the `ErrorHandler` interface.
+* [ObjectServer] Added `onClientResetRequired(SyncSession, ClientResetHandler)` method to the `ErrorHandler` interface (#4080).
 
 ### Enhancements
 
@@ -14,7 +14,7 @@
   * Linking objects are not yet supported on dynamic objects
   * Migration for linking objects is not yet supported.
   * Backlink verification is incomplete.  Evil code can cause native crashes.
-* [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface.
+* [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface (#4080).
 
 ### Bug Fixes
 

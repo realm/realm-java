@@ -171,10 +171,10 @@ public class SyncSession {
          * recommended to close all open Realm instances as soon as possible.
          *
          * @param session {@link SyncSession} this error happened on.
-         * @param error reference to the specific Client Reset error.
+         * @param handler reference to the specific Client Reset error.
          * @see <a href="https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup">Client Recovery From A Backup</a>
          */
-        void onClientResetRequired(SyncSession session, ClientResetHandler error);
+        void onClientResetRequired(SyncSession session, ClientResetHandler handler);
     }
 
     String accessToken(final AuthenticationServer authServer) {

@@ -75,12 +75,12 @@ public class SessionTests {
                     }
 
                     @Override
-                    public void onClientResetRequired(SyncSession session, ClientResetHandler error) {
-                        String filePathFromError = error.getOriginalFile().getAbsolutePath();
+                    public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
+                        String filePathFromError = handler.getOriginalFile().getAbsolutePath();
                         String filePathFromConfig = session.getConfiguration().getPath();
                         assertEquals(filePathFromError, filePathFromConfig);
-                        assertFalse(error.getBackupFile().exists());
-                        assertTrue(error.getOriginalFile().exists());
+                        assertFalse(handler.getBackupFile().exists());
+                        assertTrue(handler.getOriginalFile().exists());
                         looperThread.testComplete();
                     }
                 })
@@ -107,20 +107,20 @@ public class SessionTests {
                     }
 
                     @Override
-                    public void onClientResetRequired(SyncSession session, ClientResetHandler error) {
+                    public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
                         try {
-                            error.executeClientReset();
+                            handler.executeClientReset();
                             fail("All Realms should be closed before executing Client Reset can be allowed");
                         } catch(IllegalStateException ignored) {
                         }
 
                         // Execute Client Reset
                         looperThread.testRealms.get(0).close();
-                        error.executeClientReset();
+                        handler.executeClientReset();
 
                         // Validate that files have been moved
-                        assertFalse(error.getOriginalFile().exists());
-                        assertTrue(error.getBackupFile().exists());
+                        assertFalse(handler.getOriginalFile().exists());
+                        assertTrue(handler.getBackupFile().exists());
                         looperThread.testComplete();
                     }
                 })
