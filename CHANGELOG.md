@@ -1,5 +1,9 @@
 ## 3.1.0 (YYYY-MM-DD)
 
+### Breaking Changes
+
+* [ObjectServer] Added `onClientResetRequired(SyncSession, ClientResetHandler)` method to the `ErrorHandler` interface (#4080).
+
 ### Enhancements
 
 * Now `targetSdkVersion` is 25.
@@ -10,6 +14,7 @@
   * Linking objects are not yet supported on dynamic objects
   * Migration for linking objects is not yet supported.
   * Backlink verification is incomplete.  Evil code can cause native crashes.
+* [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface (#4080).
 
 ### Bug Fixes
 

@@ -28,6 +28,7 @@
 #include "io_realm_SyncManager.h"
 
 #include "object-store/src/sync/sync_manager.hpp"
+#include "object-store/src/sync/sync_session.hpp"
 
 #include "binding_callback_thread_observer.hpp"
 #include "util.hpp"
@@ -79,7 +80,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient(JNIE
 
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass)
 {
-
     TR_ENTER()
     try {
         SyncManager::shared().reset_for_testing();
@@ -93,6 +93,26 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeConfigureMetaDataSystem(J
     try {
         JStringAccessor base_file_path(env, baseFile); // throws
         SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv* env, jclass, jstring localRealmPath,
+                                                                         jint errorCode, jstring errorMessage,
+                                                                         jboolean isFatal)
+{
+    TR_ENTER()
+    try {
+        JStringAccessor local_realm_path(env, localRealmPath);
+        JStringAccessor error_message(env, errorMessage);
+
+        auto session = SyncManager::shared().get_existing_active_session(local_realm_path);
+        if (!session) {
+            ThrowException(env, IllegalArgument, concat_stringdata("Session not found: ", local_realm_path));
+            return;
+        }
+        std::error_code code = std::error_code{static_cast<int>(errorCode), realm::sync::protocol_error_category()};
+        SyncSession::OnlyForTesting::handle_error(*session, {code, std::string(error_message), to_bool(isFatal)});
     }
     CATCH_STD()
 }

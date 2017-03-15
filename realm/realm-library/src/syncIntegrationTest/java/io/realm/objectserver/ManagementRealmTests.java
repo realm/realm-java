@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.ClientResetHandler;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -34,7 +35,6 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.entities.Dog;
-import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
@@ -66,6 +66,11 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
                         fail("Realm 1 unexpected error: " + error);
+                    }
+
+                    @Override
+                    public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
+                        fail("Client Reset");
                     }
                 })
                 .build();
