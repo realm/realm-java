@@ -17,7 +17,6 @@
 #include <jni.h>
 
 #include <sync/sync_manager.hpp>
-#include <util/format.hpp>
 
 #include "util.hpp"
 #include "io_realm_ClientResetHandler.h"
@@ -25,7 +24,7 @@
 using namespace realm;
 
 JNIEXPORT void JNICALL Java_io_realm_ClientResetHandler_nativeExecuteClientReset(JNIEnv* env, jobject,
-                                                                                 jstring localRealmPath)
+                                                                               jstring localRealmPath)
 {
     TR_ENTER()
     try {
@@ -33,8 +32,8 @@ JNIEXPORT void JNICALL Java_io_realm_ClientResetHandler_nativeExecuteClientReset
         if (!SyncManager::shared().immediately_run_file_actions(std::string(local_realm_path))) {
             ThrowException(
                 env, IllegalState,
-                util::format("Realm was not configured correctly. Client Reset could not be run for Realm at: %1",
-                             local_realm_path));
+                concat_stringdata("Realm was not configured correctly. Client Reset could not be run for Realm at: ",
+                                  local_realm_path));
             return;
         }
     }
