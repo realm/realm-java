@@ -21,16 +21,16 @@ import java.io.File;
 /**
  * Class encapsulating information needed for handling a Client Reset event.
  *
- * @see io.realm.SyncSession.ErrorHandler#onClientReset(SyncSession, ClientResetRequiredError) for more information
- *      about when and why Client Reset occur and how to deal with it.
+ * @see io.realm.SyncSession.ErrorHandler#onClientResetRequired(SyncSession, ClientResetHandler) for more information
+ *      about when and why Client Reset occurs and how to deal with it.
  */
-public class ClientResetRequiredError extends ObjectServerError {
+public class ClientResetHandler extends ObjectServerError {
 
     private final RealmConfiguration configuration;
     private final File backupFile;
     private final File originalFile;
 
-    public ClientResetRequiredError(ErrorCode errorCode, String errorMessage, String backupFilePath, RealmConfiguration configuration) {
+    public ClientResetHandler(ErrorCode errorCode, String errorMessage, String backupFilePath, RealmConfiguration configuration) {
         super(errorCode, errorMessage);
         this.configuration = configuration;
         this.backupFile = new File(backupFilePath);
@@ -39,9 +39,9 @@ public class ClientResetRequiredError extends ObjectServerError {
 
     /**
      * Calling this method will execute the Client Reset manually instead of waiting until next app restart. This will
-     * only be possible if all instances of that Realm has been closed, otherwise a {@link IllegalStateException} will
+     * only be possible if all instances of that Realm have been closed, otherwise a {@link IllegalStateException} will
      * be thrown.
-     *
+     * <p>
      * After this method returns, the backup file can be found in the location returned by {@link #getBackupFile()}.
      * The file at {@link #getOriginalFile()} have been deleted, but will be recreated from scratch next time a
      * Realm instance is opened.
@@ -80,7 +80,6 @@ public class ClientResetRequiredError extends ObjectServerError {
     public File getOriginalFile() {
         return originalFile;
     }
-
 
     // PRECONDITION: All Realm instances for this path must have been closed.
     private native void nativeExecuteClientReset(String originalPath);

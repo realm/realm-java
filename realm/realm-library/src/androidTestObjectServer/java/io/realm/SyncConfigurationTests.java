@@ -227,7 +227,7 @@ public class SyncConfigurationTests {
             }
 
             @Override
-            public void onClientReset(SyncSession session, ClientResetRequiredError error) {
+            public void onClientResetRequired(SyncSession session, ClientResetHandler error) {
 
             }
         };
@@ -245,7 +245,7 @@ public class SyncConfigurationTests {
             }
 
             @Override
-            public void onClientReset(SyncSession session, ClientResetRequiredError error) {
+            public void onClientResetRequired(SyncSession session, ClientResetHandler error) {
 
             }
         };

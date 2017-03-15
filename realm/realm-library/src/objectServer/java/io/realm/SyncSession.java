@@ -102,7 +102,7 @@ public class SyncSession {
         ErrorCode errCode = ErrorCode.fromInt(errorCode);
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
-            errorHandler.onClientReset(this, new ClientResetRequiredError(errCode, "A Client Reset is required. " +
+            errorHandler.onClientResetRequired(this, new ClientResetHandler(errCode, "A Client Reset is required. " +
                     "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
                     errorMessage, getConfiguration()));
         } else {
@@ -155,7 +155,7 @@ public class SyncSession {
          * The client reset process can be initiated in one of two ways:
          * <ol>
          *     <li>
-         *         Run {@link ClientResetRequiredError#executeClientReset()} manually. All Realm instances must be
+         *         Run {@link ClientResetHandler#executeClientReset()} manually. All Realm instances must be
          *         closed before this method is called.
          *     </li>
          *     <li>
@@ -167,14 +167,14 @@ public class SyncSession {
          *
          * <b>WARNING:</b>
          * Any writes to the Realm file between this callback and Client Reset has been executed, will not be
-         * synchronized to the Object Server. Those changes will only be present in the backed up file. It is therefor
+         * synchronized to the Object Server. Those changes will only be present in the backed up file. It is therefore
          * recommended to close all open Realm instances as soon as possible.
          *
          * @param session {@link SyncSession} this error happened on.
          * @param error reference to the specific Client Reset error.
          * @see <a href="https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup">Client Recovery From A Backup</a>
          */
-        void onClientReset(SyncSession session, ClientResetRequiredError error);
+        void onClientResetRequired(SyncSession session, ClientResetHandler error);
     }
 
     String accessToken(final AuthenticationServer authServer) {

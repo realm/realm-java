@@ -75,7 +75,7 @@ public class SessionTests {
                     }
 
                     @Override
-                    public void onClientReset(SyncSession session, ClientResetRequiredError error) {
+                    public void onClientResetRequired(SyncSession session, ClientResetHandler error) {
                         String filePathFromError = error.getOriginalFile().getAbsolutePath();
                         String filePathFromConfig = session.getConfiguration().getPath();
                         assertEquals(filePathFromError, filePathFromConfig);
@@ -95,6 +95,7 @@ public class SessionTests {
 
     // Check that we can manually execute the Client Reset.
     @Test
+    @RunTestInLooperThread
     public void errorHandler_manualExecuteClientReset() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
@@ -106,7 +107,7 @@ public class SessionTests {
                     }
 
                     @Override
-                    public void onClientReset(SyncSession session, ClientResetRequiredError error) {
+                    public void onClientResetRequired(SyncSession session, ClientResetHandler error) {
                         try {
                             error.executeClientReset();
                             fail("All Realms should be closed before executing Client Reset can be allowed");

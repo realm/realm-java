@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.ClientResetRequiredError;
+import io.realm.ClientResetHandler;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -69,7 +69,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                     }
 
                     @Override
-                    public void onClientReset(SyncSession session, ClientResetRequiredError error) {
+                    public void onClientResetRequired(SyncSession session, ClientResetHandler error) {
                         fail("Client Reset");
                     }
                 })

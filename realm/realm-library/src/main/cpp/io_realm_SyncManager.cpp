@@ -106,13 +106,13 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv*
         JStringAccessor local_realm_path(env, localRealmPath);
         JStringAccessor error_message(env, errorMessage);
 
-        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_active_session(local_realm_path);
+        auto session = SyncManager::shared().get_existing_active_session(local_realm_path);
         if (!session) {
             ThrowException(env, IllegalArgument, concat_stringdata("Session not found: ", local_realm_path));
             return;
         }
         std::error_code code = std::error_code{static_cast<int>(errorCode), realm::sync::protocol_error_category()};
-        SyncSession::OnlyForTesting::handle_error(*session, {code, std::string(error_message), isFatal == JNI_TRUE});
+        SyncSession::OnlyForTesting::handle_error(*session, {code, std::string(error_message), to_bool(isFatal)});
     }
     CATCH_STD()
 }

@@ -6,7 +6,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.realm.ClientResetRequiredError;
+import io.realm.ClientResetHandler;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
@@ -76,7 +76,7 @@ public class AuthTests extends BaseIntegrationTest {
                             }
 
                             @Override
-                            public void onClientReset(SyncSession session, ClientResetRequiredError error) {
+                            public void onClientResetRequired(SyncSession session, ClientResetHandler error) {
                                 fail("Client Reset");
                             }
                         })
