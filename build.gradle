@@ -94,9 +94,7 @@ task connectedUnitTests(type:GradleBuild) {
     description = 'Run the Android unit tests of the Realm project'
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
-    // Only run the unit tests for ObjectServer variant. ObjectServer variant contains all the tests
-    // in BaseDebug.
-    tasks = ['connectedObjectServerDebugAndroidTest']
+    tasks = ['connectedUnitTests']
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
     }

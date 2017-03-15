@@ -70,10 +70,16 @@ android {
     }
 
     buildTypes {
-        debug {
+        // CI is running tests with release build to avoid timeout.
+        // Thus the release apk needs to be signed with debug key.
+        release {
             testCoverageEnabled = true
+            signingConfig signingConfigs.debug
         }
     }
+
+    // For CI. The debug build is linking with debug version of core which takes too much time to run.
+    testBuildType "release"
 
     sourceSets {
         androidTest {
