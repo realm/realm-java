@@ -22,6 +22,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.PendingRow;
 import io.realm.internal.Row;
+import io.realm.internal.RowObject;
 import io.realm.internal.UncheckedRow;
 
 /**
@@ -29,17 +30,44 @@ import io.realm.internal.UncheckedRow;
  * {@link RealmObject} and {@link DynamicRealmObject}.
  */
 public final class ProxyState<E extends RealmModel> implements PendingRow.FrontEnd {
+
+    static class RealmChangeListenerWrapper<T> implements RealmObjectChangeListener<T> {
+        private final RealmChangeListener<T> listener;
+
+        RealmChangeListenerWrapper(RealmChangeListener<T> listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void onChange(T object, ObjectChangeSet changes) {
+            listener.onChange(object);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof RealmChangeListenerWrapper &&
+                    listener == ((RealmChangeListenerWrapper) obj).listener;
+        }
+
+        @Override
+        public int hashCode() {
+            return listener.hashCode();
+        }
+    }
+
     private E model;
 
     // true only while executing the constructor of the enclosing proxy object
     private boolean underConstruction = true;
 
     private Row row;
+    private RowObject rowObject;
     private BaseRealm realm;
     private boolean acceptDefaultValue;
     private List<String> excludeFields;
 
-    private final List<RealmChangeListener<E>> listeners = new CopyOnWriteArrayList<RealmChangeListener<E>>();
+    private final List<RealmObjectChangeListener<E>> listeners =
+            new CopyOnWriteArrayList<RealmObjectChangeListener<E>>();
     protected long currentTableVersion = -1;
 
     public ProxyState() {}
@@ -83,18 +111,18 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     /**
      * Notifies all registered listeners.
      */
-    private void notifyChangeListeners() {
+    private void notifyChangeListeners(ObjectChangeSet changeSet) {
         if (!listeners.isEmpty()) {
-            for (RealmChangeListener<E> listener : listeners) {
+            for (RealmObjectChangeListener<E> listener : listeners) {
                 if (realm.sharedRealm == null || realm.sharedRealm.isClosed()) {
                     return;
                 }
-                listener.onChange(model);
+                listener.onChange(model, changeSet);
             }
         }
     }
 
-    public void addChangeListener(RealmChangeListener<E> listener) {
+    public void addChangeListener(RealmObjectChangeListener<E> listener) {
         if (!listeners.contains(listener)) {
             listeners.add(listener);
         }
@@ -104,17 +132,19 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         }
     }
 
-    public void removeChangeListener(RealmChangeListener<E> listener) {
+    public void removeChangeListener(RealmObjectChangeListener<E> listener) {
         listeners.remove(listener);
-        if (listeners.isEmpty() && row instanceof UncheckedRow) {
-            realm.sharedRealm.realmNotifier.removeChangeListeners(this);
+        if (listeners.isEmpty() && rowObject != null) {
+            rowObject.removeListener(this);
+            rowObject = null;
         }
     }
 
     public void removeAllChangeListeners() {
         listeners.clear();
-        if (row instanceof UncheckedRow) {
-            realm.sharedRealm.realmNotifier.removeChangeListeners(this);
+        if (rowObject != null) {
+            rowObject.removeListener(this);
+            rowObject = null;
         }
     }
 
@@ -139,20 +169,15 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
             return;
         }
 
-        realm.sharedRealm.realmNotifier.addChangeListener(this, new RealmChangeListener<ProxyState<E>>() {
-            @Override
-            public void onChange(ProxyState<E> element) {
-                long tableVersion = -1;
-                if (row.isAttached()) {
-                    // If the Row gets detached, table version will be -1 and it is different from current value.
-                    tableVersion = row.getTable().getVersion();
+        if (rowObject == null) {
+            rowObject = new RowObject(realm.sharedRealm, (UncheckedRow) row);
+            rowObject.addListener(this, new RealmObjectChangeListener<ProxyState<E>>() {
+                @Override
+                public void onChange(ProxyState<E> object, ObjectChangeSet changeSet) {
+                    notifyChangeListeners(changeSet);
                 }
-                if (currentTableVersion != tableVersion)  {
-                    currentTableVersion = tableVersion;
-                    notifyChangeListeners();
-                }
-            }
-        });
+            });
+        }
     }
 
     public boolean isLoaded() {
@@ -165,7 +190,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
             if (!(row instanceof InvalidRow)) {
                 registerToRealmNotifier();
             }
-            notifyChangeListeners();
+            notifyChangeListeners(null);
         }
     }
 
@@ -174,7 +199,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         this.row = row;
         // getTable should return a non-null table since the row should always be valid here.
         currentTableVersion = row.getTable().getVersion();
-        notifyChangeListeners();
+        notifyChangeListeners(null);
         registerToRealmNotifier();
     }
 }

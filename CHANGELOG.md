@@ -15,6 +15,8 @@
   * Migration for linking objects is not yet supported.
   * Backlink verification is incomplete.  Evil code can cause native crashes.
 * [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface (#4080).
+* The listener on `RealmObject` will only be triggered if the object changes (#3894).
+* Added `RealmObjectChangeListener` to get detailed information about `RealmObejct` changes.
 
 ### Bug Fixes
 

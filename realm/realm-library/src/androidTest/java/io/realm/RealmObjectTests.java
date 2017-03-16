@@ -16,13 +16,11 @@
 
 package io.realm;
 
-import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -32,7 +30,6 @@ import java.io.FileNotFoundException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -1575,7 +1572,7 @@ public class RealmObjectTests {
         Dog dog = createManagedDogObjectFromRealmInstance(realm);
 
         try {
-            dog.addChangeListener(null);
+            dog.addChangeListener((RealmChangeListener) null);
             fail("adding null change listener must throw an exception.");
         } catch (IllegalArgumentException ignore) {
         } finally {
@@ -1593,7 +1590,7 @@ public class RealmObjectTests {
 
                 //noinspection TryFinallyCanBeTryWithResources
                 try {
-                    dog.addChangeListener(null);
+                    dog.addChangeListener((RealmChangeListener)null);
                     fail("adding null change listener must throw an exception.");
                 } catch (IllegalArgumentException ignore) {
                 } finally {
@@ -1649,7 +1646,7 @@ public class RealmObjectTests {
         Dog dog = createManagedDogObjectFromRealmInstance(realm);
 
         try {
-            dog.removeChangeListener(null);
+            dog.removeChangeListener((RealmChangeListener) null);
             fail("removing null change listener must throw an exception.");
         } catch (IllegalArgumentException ignore) {
         } finally {
@@ -1667,7 +1664,7 @@ public class RealmObjectTests {
 
                 //noinspection TryFinallyCanBeTryWithResources
                 try {
-                    dog.removeChangeListener(null);
+                    dog.removeChangeListener((RealmChangeListener) null);
                     fail("removing null change listener must throw an exception.");
                 } catch (IllegalArgumentException ignore) {
                 } finally {
