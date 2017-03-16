@@ -10,6 +10,7 @@
   * Linking objects are not yet supported on dynamic objects
   * Migration for linking objects is not yet supported.
   * Backlink verification is incomplete.  Evil code can cause native crashes.
+* [ObjectServer] Added support for Sync Progress Notifications through `SyncSession.addDownloadProgressListener(ProgressMode, ProgressListener)` and `SyncSession.addUploadProgressListener(ProgressMode, ProgressListener)` (#4104).
 
 ### Bug Fixes
 

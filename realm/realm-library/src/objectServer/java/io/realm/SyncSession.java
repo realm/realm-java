@@ -17,6 +17,9 @@
 package io.realm;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -50,6 +53,8 @@ import io.realm.log.RealmLog;
 public class SyncSession {
     private final static ScheduledThreadPoolExecutor REFRESH_TOKENS_EXECUTOR = new ScheduledThreadPoolExecutor(1);
     private final static long REFRESH_MARGIN_DELAY = TimeUnit.SECONDS.toMillis(10);
+    private final static int DIRECTION_DOWNLOAD = 1;
+    private final static int DIRECTION_UPLOAD = 2;
 
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
@@ -59,6 +64,7 @@ public class SyncSession {
     private RealmAsyncTask refreshTokenNetworkRequest;
     private AtomicBoolean onGoingAccessTokenQuery = new AtomicBoolean(false);
     private volatile boolean isClosed = false;
+    private Map<ProgressListener, ProgressListenerWrapper> progressListeners = new HashMap<>();
 
     SyncSession(SyncConfiguration configuration) {
         this.configuration = configuration;
@@ -102,6 +108,39 @@ public class SyncSession {
         }
     }
 
+    public synchronized void addDownloadProgressListener(ProgressMode mode, ProgressListener listener) {
+        addProgressListener(mode, DIRECTION_DOWNLOAD, listener);
+    }
+
+    public synchronized void addUploadProgressListener(ProgressMode mode, ProgressListener listener) {
+        addProgressListener(mode, DIRECTION_UPLOAD, listener);
+    }
+
+    public synchronized void removeProgressListener(ProgressListener listener) {
+        ProgressListenerWrapper wrapper = progressListeners.remove(listener);
+        if (wrapper != null) {
+            nativeRemoveProgressListener(configuration.getPath(), wrapper.getToken());
+        }
+    }
+
+    private void addProgressListener(ProgressMode mode, int direction, ProgressListener listener) {
+        checkProgressListenerArguments(mode, listener);
+        ProgressListenerWrapper wrapper = new ProgressListenerWrapper(listener);
+        boolean isStreaming = (mode == ProgressMode.INDEFINETELY);
+        long listenerToken = nativeAddProgressListener(configuration.getPath(), wrapper, direction, isStreaming);
+        wrapper.setToken(listenerToken);
+        progressListeners.put(listener, wrapper);
+    }
+
+    private void checkProgressListenerArguments(ProgressMode mode, ProgressListener listener) {
+        if (listener != null) {
+            throw new IllegalArgumentException("Non-null 'listener' required.");
+        }
+        if (mode == null) {
+            throw new IllegalArgumentException("Non-null 'mode' required.");
+        }
+    }
+
     void close() {
         isClosed = true;
         if (networkRequest != null) {
@@ -127,6 +166,59 @@ public class SyncSession {
          * @param error type of error.
          */
         void onError(SyncSession session, ObjectServerError error);
+    }
+
+    /**
+     * ProgressListener wrapper. Used so we can expose {@link ProgressListener} as an interface instead of an abstract
+     * class.
+     */
+    private class ProgressListenerWrapper {
+        private final ProgressListener listener;
+        private long token;
+
+        public ProgressListenerWrapper(ProgressListener listener) {
+            this.listener = listener;
+        }
+
+        // Called from JNI
+        @KeepMember
+        public void notifyProgressChange(long transferredBytes, long transferableBytes) {
+            listener.onChange(new Progress(transferredBytes, transferableBytes));
+        }
+
+        public void setToken(long token) {
+            this.token = token;
+        }
+
+        public long getToken() {
+            return token;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            ProgressListenerWrapper that = (ProgressListenerWrapper) o;
+
+            if (token != that.token) return false;
+            return listener != null ? listener.equals(that.listener) : that.listener == null;
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = listener != null ? listener.hashCode() : 0;
+            result = 31 * result + (int) (token ^ (token >>> 32));
+            return result;
+        }
+    }
+
+    // Called from native code
+    @SuppressWarnings("unused")
+    @KeepMember
+    private synchronized void notifyProgressListener(ProgressListener listener, long transferredBytes, long transferableBytes) {
+        listener.onChange(new Progress(transferredBytes, transferableBytes));
     }
 
     String accessToken(final AuthenticationServer authServer) {
@@ -308,5 +400,7 @@ public class SyncSession {
     }
 
     private static native boolean nativeRefreshAccessToken(String path, String accessToken, String authURL);
+    private static native long nativeAddProgressListener(String localRealmPath, ProgressListenerWrapper listener, int direction, boolean isStreaming);
+    private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
 }
 
