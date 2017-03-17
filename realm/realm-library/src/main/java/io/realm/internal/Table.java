@@ -1101,6 +1101,7 @@ public class Table implements TableSchema, NativeObject {
         return nativeToJson(nativePtr);
     }
 
+    @Override
     public String toString() {
         long columnCount = getColumnCount();
         String name = getName();
