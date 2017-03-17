@@ -1441,7 +1441,7 @@ public class Realm extends BaseRealm {
                     exception[0] = e;
                 } finally {
                     try {
-                        if (isInTransaction()) {
+                        if (bgRealm.isInTransaction()) {
                             bgRealm.cancelTransaction();
                         }
                     } finally {
