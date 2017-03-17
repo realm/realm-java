@@ -1241,7 +1241,7 @@ public class DynamicRealmObjectTests {
         assertTrue(str.contains(NullTypes.FIELD_LIST_NULL + ":RealmList<NullTypes>[0]"));
     }
 
-
+    @Test
     public void testExceptionMessage() {
         // Tests for https://github.com/realm/realm-java/issues/2141
         realm.beginTransaction();

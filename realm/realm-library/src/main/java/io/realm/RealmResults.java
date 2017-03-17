@@ -99,6 +99,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @return {@code true} if the query has completed and the data is available, {@code false} if the query is still
      * running in the background.
      */
+    @Override
     public boolean isLoaded() {
         realm.checkIfValid();
         return collection.isLoaded();
@@ -110,6 +111,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
+    @Override
     public boolean load() {
         // The Collection doesn't have to be loaded before accessing it if the query has not returned.
         // Instead, accessing the Collection will just trigger the execution of query if needed. We add this flag is

@@ -31,7 +31,7 @@ import io.realm.RealmChangeListener;
 @Keep
 public class Collection implements NativeObject {
 
-    private class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
+    private static class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
         public CollectionObserverPair(T observer, Object listener) {
             super(observer, listener);
         }
@@ -135,6 +135,7 @@ public class Collection implements NativeObject {
          *
          * @throws UnsupportedOperationException
          */
+        @Override
         @Deprecated
         public void remove() {
             throw new UnsupportedOperationException("remove() is not supported by RealmResults iterators.");

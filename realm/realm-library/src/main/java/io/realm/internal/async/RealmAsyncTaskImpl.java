@@ -34,6 +34,7 @@ public final class RealmAsyncTaskImpl implements RealmAsyncTask {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void cancel() {
         pendingTask.cancel(true);
         isCancelled = true;
@@ -53,6 +54,7 @@ public final class RealmAsyncTaskImpl implements RealmAsyncTask {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isCancelled() {
         return isCancelled;
     }
