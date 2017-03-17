@@ -45,6 +45,7 @@ public class ExtraTests {
     }
 
     private static class ExactComparisonCriteria extends ComparisonCriteria {
+        @Override
         protected void assertElementsEqual(Object expected, Object actual)
         {
             assertEquals(expected, actual);

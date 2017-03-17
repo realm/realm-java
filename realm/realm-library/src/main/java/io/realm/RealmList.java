@@ -119,6 +119,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isValid() {
         if (realm == null) {
             return true;
@@ -133,6 +134,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isManaged() {
         return realm != null;
     }
@@ -459,6 +461,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public E first() {
         return firstImpl(true, null);
     }
@@ -466,6 +469,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     /**
     * {@inheritDoc}
     */
+    @Override
     public E first(E defaultValue) {
         return firstImpl(false, defaultValue);
     }
@@ -490,6 +494,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public E last() {
         return lastImpl(true, null);
     }
@@ -497,6 +502,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public E last(E defaultValue) {
         return lastImpl(false, defaultValue);
     }
@@ -596,6 +602,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @see io.realm.RealmQuery
      */
+    @Override
     public RealmQuery<E> where() {
         if (isManaged()) {
             checkValidView();
@@ -977,6 +984,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public boolean hasNext() {
             realm.checkIfValid();
             checkConcurrentModification();
@@ -986,6 +994,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public E next() {
             realm.checkIfValid();
             checkConcurrentModification();
@@ -1004,6 +1013,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public void remove() {
             realm.checkIfValid();
             if (lastRet < 0) {
@@ -1049,6 +1059,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public boolean hasPrevious() {
             return cursor != 0;
         }
@@ -1056,6 +1067,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public E previous() {
             checkConcurrentModification();
             int i = cursor - 1;
@@ -1072,6 +1084,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public int nextIndex() {
             return cursor;
         }
@@ -1079,6 +1092,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public int previousIndex() {
             return cursor - 1;
         }
@@ -1086,6 +1100,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public void set(E e) {
             realm.checkIfValid();
             if (lastRet < 0) {
@@ -1107,6 +1122,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
          *
          * @see #add(RealmModel)
          */
+        @Override
         public void add(E e) {
             realm.checkIfValid();
             checkConcurrentModification();
@@ -1121,5 +1137,4 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             }
         }
     }
-
 }

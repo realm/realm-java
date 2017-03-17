@@ -68,6 +68,8 @@ import static junit.framework.Assert.fail;
 
 public class TestHelper {
 
+    private static final Charset UTF_8 = Charset.forName("UTF-8");
+
     public static class ExpectedCountCallback implements RealmCache.Callback {
 
         private int expectedCount;
@@ -124,7 +126,7 @@ public class TestHelper {
         StringBuilder sb = new StringBuilder();
         String line;
         try {
-            br = new BufferedReader(new InputStreamReader(in));
+            br = new BufferedReader(new InputStreamReader(in, UTF_8));
             while ((line = br.readLine()) != null) {
                 sb.append(line);
             }
@@ -138,7 +140,7 @@ public class TestHelper {
     }
 
     public static InputStream stringToStream(String str) {
-        return new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
+        return new ByteArrayInputStream(str.getBytes(UTF_8));
     }
 
     // Creates a simple migration step in order to support null.
@@ -256,11 +258,9 @@ public class TestHelper {
     public static byte[] SHA512(String str) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-512");
-            md.update(str.getBytes("UTF-8"), 0, str.length());
+            md.update(str.getBytes(UTF_8), 0, str.length());
             return md.digest();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
@@ -368,10 +368,10 @@ public class TestHelper {
         userObj.setId(primaryFieldValue);
         userObj.setName(secondaryFieldValue);
         testRealm.copyToRealm(userObj);
-        byte idValue = (byte)iteratorBeginValue;
+        byte idValue = (byte) iteratorBeginValue;
         for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedByte obj = new PrimaryKeyAsBoxedByte();
-            obj.setId(new Byte(idValue));
+            obj.setId(idValue);
             obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
@@ -404,7 +404,7 @@ public class TestHelper {
         short idValue = (short)iteratorBeginValue;
         for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedShort obj = new PrimaryKeyAsBoxedShort();
-            obj.setId(new Short(idValue));
+            obj.setId(idValue);
             obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
@@ -437,7 +437,7 @@ public class TestHelper {
         int idValue = iteratorBeginValue;
         for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedInteger obj = new PrimaryKeyAsBoxedInteger();
-            obj.setId(new Integer(idValue));
+            obj.setId(idValue);
             obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
@@ -470,7 +470,7 @@ public class TestHelper {
         long idValue = iteratorBeginValue;
         for (long i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong();
-            obj.setId(new Long(idValue));
+            obj.setId(idValue);
             obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
@@ -1047,7 +1047,7 @@ public class TestHelper {
         try {
             final Process process = new ProcessBuilder("/system/bin/getenforce").start();
             try {
-                final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), UTF_8));
                 //noinspection TryFinallyCanBeTryWithResources
                 try {
                     return reader.readLine().toLowerCase(Locale.ENGLISH).equals("enforcing");
