@@ -185,12 +185,14 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.setExcludeFields$realm(context.getExcludeFields());
     }
 
+    @Override
     @SuppressWarnings("cast")
     public String realmGet$fieldStringNotNull() {
         proxyState.getRealm$realm().checkIfValid();
         return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.fieldStringNotNullIndex);
     }
 
+    @Override
     public void realmSet$fieldStringNotNull(String value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -211,12 +213,14 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setString(columnInfo.fieldStringNotNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public String realmGet$fieldStringNull() {
         proxyState.getRealm$realm().checkIfValid();
         return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.fieldStringNullIndex);
     }
 
+    @Override
     public void realmSet$fieldStringNull(String value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -239,12 +243,14 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setString(columnInfo.fieldStringNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Boolean realmGet$fieldBooleanNotNull() {
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.fieldBooleanNotNullIndex);
     }
 
+    @Override
     public void realmSet$fieldBooleanNotNull(Boolean value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -265,6 +271,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setBoolean(columnInfo.fieldBooleanNotNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Boolean realmGet$fieldBooleanNull() {
         proxyState.getRealm$realm().checkIfValid();
@@ -274,6 +281,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.fieldBooleanNullIndex);
     }
 
+    @Override
     public void realmSet$fieldBooleanNull(Boolean value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -296,12 +304,14 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setBoolean(columnInfo.fieldBooleanNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public byte[] realmGet$fieldBytesNotNull() {
         proxyState.getRealm$realm().checkIfValid();
         return (byte[]) proxyState.getRow$realm().getBinaryByteArray(columnInfo.fieldBytesNotNullIndex);
     }
 
+    @Override
     public void realmSet$fieldBytesNotNull(byte[] value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -322,12 +332,14 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setBinaryByteArray(columnInfo.fieldBytesNotNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public byte[] realmGet$fieldBytesNull() {
         proxyState.getRealm$realm().checkIfValid();
         return (byte[]) proxyState.getRow$realm().getBinaryByteArray(columnInfo.fieldBytesNullIndex);
     }
 
+    @Override
     public void realmSet$fieldBytesNull(byte[] value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -350,12 +362,14 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setBinaryByteArray(columnInfo.fieldBytesNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Byte realmGet$fieldByteNotNull() {
         proxyState.getRealm$realm().checkIfValid();
         return (byte) proxyState.getRow$realm().getLong(columnInfo.fieldByteNotNullIndex);
     }
 
+    @Override
     public void realmSet$fieldByteNotNull(Byte value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -376,6 +390,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setLong(columnInfo.fieldByteNotNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Byte realmGet$fieldByteNull() {
         proxyState.getRealm$realm().checkIfValid();
@@ -385,6 +400,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return (byte) proxyState.getRow$realm().getLong(columnInfo.fieldByteNullIndex);
     }
 
+    @Override
     public void realmSet$fieldByteNull(Byte value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -407,12 +423,14 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setLong(columnInfo.fieldByteNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Short realmGet$fieldShortNotNull() {
         proxyState.getRealm$realm().checkIfValid();
         return (short) proxyState.getRow$realm().getLong(columnInfo.fieldShortNotNullIndex);
     }
 
+    @Override
     public void realmSet$fieldShortNotNull(Short value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -433,6 +451,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setLong(columnInfo.fieldShortNotNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Short realmGet$fieldShortNull() {
         proxyState.getRealm$realm().checkIfValid();
@@ -442,6 +461,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return (short) proxyState.getRow$realm().getLong(columnInfo.fieldShortNullIndex);
     }
 
+    @Override
     public void realmSet$fieldShortNull(Short value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -464,12 +484,14 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setLong(columnInfo.fieldShortNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Integer realmGet$fieldIntegerNotNull() {
         proxyState.getRealm$realm().checkIfValid();
         return (int) proxyState.getRow$realm().getLong(columnInfo.fieldIntegerNotNullIndex);
     }
 
+    @Override
     public void realmSet$fieldIntegerNotNull(Integer value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -490,6 +512,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setLong(columnInfo.fieldIntegerNotNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Integer realmGet$fieldIntegerNull() {
         proxyState.getRealm$realm().checkIfValid();
@@ -499,6 +522,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return (int) proxyState.getRow$realm().getLong(columnInfo.fieldIntegerNullIndex);
     }
 
+    @Override
     public void realmSet$fieldIntegerNull(Integer value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -521,12 +545,14 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setLong(columnInfo.fieldIntegerNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Long realmGet$fieldLongNotNull() {
         proxyState.getRealm$realm().checkIfValid();
         return (long) proxyState.getRow$realm().getLong(columnInfo.fieldLongNotNullIndex);
     }
 
+    @Override
     public void realmSet$fieldLongNotNull(Long value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -547,6 +573,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setLong(columnInfo.fieldLongNotNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Long realmGet$fieldLongNull() {
         proxyState.getRealm$realm().checkIfValid();
@@ -556,6 +583,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return (long) proxyState.getRow$realm().getLong(columnInfo.fieldLongNullIndex);
     }
 
+    @Override
     public void realmSet$fieldLongNull(Long value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -578,12 +606,14 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setLong(columnInfo.fieldLongNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Float realmGet$fieldFloatNotNull() {
         proxyState.getRealm$realm().checkIfValid();
         return (float) proxyState.getRow$realm().getFloat(columnInfo.fieldFloatNotNullIndex);
     }
 
+    @Override
     public void realmSet$fieldFloatNotNull(Float value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -604,6 +634,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setFloat(columnInfo.fieldFloatNotNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Float realmGet$fieldFloatNull() {
         proxyState.getRealm$realm().checkIfValid();
@@ -613,6 +644,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return (float) proxyState.getRow$realm().getFloat(columnInfo.fieldFloatNullIndex);
     }
 
+    @Override
     public void realmSet$fieldFloatNull(Float value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -635,12 +667,14 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setFloat(columnInfo.fieldFloatNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Double realmGet$fieldDoubleNotNull() {
         proxyState.getRealm$realm().checkIfValid();
         return (double) proxyState.getRow$realm().getDouble(columnInfo.fieldDoubleNotNullIndex);
     }
 
+    @Override
     public void realmSet$fieldDoubleNotNull(Double value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -661,6 +695,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setDouble(columnInfo.fieldDoubleNotNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Double realmGet$fieldDoubleNull() {
         proxyState.getRealm$realm().checkIfValid();
@@ -670,6 +705,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return (double) proxyState.getRow$realm().getDouble(columnInfo.fieldDoubleNullIndex);
     }
 
+    @Override
     public void realmSet$fieldDoubleNull(Double value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -692,12 +728,14 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setDouble(columnInfo.fieldDoubleNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Date realmGet$fieldDateNotNull() {
         proxyState.getRealm$realm().checkIfValid();
         return (java.util.Date) proxyState.getRow$realm().getDate(columnInfo.fieldDateNotNullIndex);
     }
 
+    @Override
     public void realmSet$fieldDateNotNull(Date value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -718,6 +756,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setDate(columnInfo.fieldDateNotNullIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Date realmGet$fieldDateNull() {
         proxyState.getRealm$realm().checkIfValid();
@@ -727,6 +766,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return (java.util.Date) proxyState.getRow$realm().getDate(columnInfo.fieldDateNullIndex);
     }
 
+    @Override
     public void realmSet$fieldDateNull(Date value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -749,6 +789,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setDate(columnInfo.fieldDateNullIndex, value);
     }
 
+    @Override
     public some.test.NullTypes realmGet$fieldObjectNull() {
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNullLink(columnInfo.fieldObjectNullIndex)) {
@@ -757,6 +798,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return proxyState.getRealm$realm().get(some.test.NullTypes.class, proxyState.getRow$realm().getLink(columnInfo.fieldObjectNullIndex), false, Collections.<String>emptyList());
     }
 
+    @Override
     public void realmSet$fieldObjectNull(some.test.NullTypes value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -2137,7 +2179,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     @Override
-    public ProxyState realmGet$proxyState() {
+    public ProxyState<?> realmGet$proxyState() {
         return proxyState;
     }
 

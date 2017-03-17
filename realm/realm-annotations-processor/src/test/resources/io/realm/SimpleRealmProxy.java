@@ -90,12 +90,14 @@ public class SimpleRealmProxy extends some.test.Simple
         proxyState.setExcludeFields$realm(context.getExcludeFields());
     }
 
+    @Override
     @SuppressWarnings("cast")
     public String realmGet$name() {
         proxyState.getRealm$realm().checkIfValid();
         return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.nameIndex);
     }
 
+    @Override
     public void realmSet$name(String value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -118,12 +120,14 @@ public class SimpleRealmProxy extends some.test.Simple
         proxyState.getRow$realm().setString(columnInfo.nameIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public int realmGet$age() {
         proxyState.getRealm$realm().checkIfValid();
         return (int) proxyState.getRow$realm().getLong(columnInfo.ageIndex);
     }
 
+    @Override
     public void realmSet$age(int value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -407,7 +411,7 @@ public class SimpleRealmProxy extends some.test.Simple
     }
 
     @Override
-    public ProxyState realmGet$proxyState() {
+    public ProxyState<?> realmGet$proxyState() {
         return proxyState;
     }
 

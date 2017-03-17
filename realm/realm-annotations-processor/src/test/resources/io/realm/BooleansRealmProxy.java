@@ -100,12 +100,14 @@ public class BooleansRealmProxy extends some.test.Booleans
         proxyState.setExcludeFields$realm(context.getExcludeFields());
     }
 
+    @Override
     @SuppressWarnings("cast")
     public boolean realmGet$done() {
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.doneIndex);
     }
 
+    @Override
     public void realmSet$done(boolean value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -120,12 +122,14 @@ public class BooleansRealmProxy extends some.test.Booleans
         proxyState.getRow$realm().setBoolean(columnInfo.doneIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public boolean realmGet$isReady() {
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.isReadyIndex);
     }
 
+    @Override
     public void realmSet$isReady(boolean value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -140,12 +144,14 @@ public class BooleansRealmProxy extends some.test.Booleans
         proxyState.getRow$realm().setBoolean(columnInfo.isReadyIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public boolean realmGet$mCompleted() {
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.mCompletedIndex);
     }
 
+    @Override
     public void realmSet$mCompleted(boolean value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -160,12 +166,14 @@ public class BooleansRealmProxy extends some.test.Booleans
         proxyState.getRow$realm().setBoolean(columnInfo.mCompletedIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public boolean realmGet$anotherBoolean() {
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.anotherBooleanIndex);
     }
 
+    @Override
     public void realmSet$anotherBoolean(boolean value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -520,7 +528,7 @@ public class BooleansRealmProxy extends some.test.Booleans
     }
 
     @Override
-    public ProxyState realmGet$proxyState() {
+    public ProxyState<?> realmGet$proxyState() {
         return proxyState;
     }
 
