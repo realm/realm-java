@@ -300,7 +300,7 @@ public class SyncManager {
                 true);
     }
 
-    protected static native void nativeInitializeSyncManager(String baseFile);
+    protected static native void nativeInitializeSyncManager(String syncBaseDir);
     private static native void nativeReset();
     private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
 }

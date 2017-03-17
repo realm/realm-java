@@ -65,11 +65,11 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNIEnv* env, jclass, jstring baseFile)
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNIEnv* env, jclass, jstring sync_base_dir)
 {
     TR_ENTER()
     try {
-        JStringAccessor base_file_path(env, baseFile); // throws
+        JStringAccessor base_file_path(env, sync_base_dir); // throws
         SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
 
         // Register Sync Client thread start/stop callback
@@ -81,22 +81,22 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNI
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv* env, jclass, jstring localRealmPath,
-                                                                         jint errorCode, jstring errorMessage,
-                                                                         jboolean isFatal)
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv* env, jclass, jstring local_realm_path,
+                                                                         jint err_code, jstring err_message,
+                                                                         jboolean is_fatal)
 {
     TR_ENTER()
     try {
-        JStringAccessor local_realm_path(env, localRealmPath);
-        JStringAccessor error_message(env, errorMessage);
+        JStringAccessor path(env, local_realm_path);
+        JStringAccessor message(env, err_message);
 
-        auto session = SyncManager::shared().get_existing_active_session(local_realm_path);
+        auto session = SyncManager::shared().get_existing_active_session(path);
         if (!session) {
-            ThrowException(env, IllegalArgument, concat_stringdata("Session not found: ", local_realm_path));
+            ThrowException(env, IllegalArgument, concat_stringdata("Session not found: ", path));
             return;
         }
-        std::error_code code = std::error_code{static_cast<int>(errorCode), realm::sync::protocol_error_category()};
-        SyncSession::OnlyForTesting::handle_error(*session, {code, std::string(error_message), to_bool(isFatal)});
+        std::error_code code = std::error_code{static_cast<int>(err_code), realm::sync::protocol_error_category()};
+        SyncSession::OnlyForTesting::handle_error(*session, {code, std::string(message), to_bool(is_fatal)});
     }
     CATCH_STD()
 }
