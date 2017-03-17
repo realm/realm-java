@@ -20,7 +20,10 @@ package io.realm;
 import android.os.Looper;
 
 import io.realm.internal.Collection;
+import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
+import io.realm.internal.Table;
+import io.realm.internal.UncheckedRow;
 import rx.Observable;
 
 /**
@@ -51,6 +54,18 @@ import rx.Observable;
  * @see Realm#executeTransaction(Realm.Transaction)
  */
 public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionImpl<E> {
+    static <T extends RealmModel> RealmResults<T> createBacklinkResults(BaseRealm realm, Row row, Class<T> srcTableType, String srcFieldName) {
+        if (!(row instanceof UncheckedRow)) {
+            throw new IllegalArgumentException("Row is " + row.getClass());
+        }
+        UncheckedRow uncheckedRow = (UncheckedRow) row;
+        Table srcTable = realm.getSchema().getTable(srcTableType);
+        return new RealmResults<T>(
+            realm,
+            Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
+            srcTableType);
+    }
+
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
         super(realm, collection, clazz);

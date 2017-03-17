@@ -295,7 +295,7 @@ public class DynamicRealmTests {
 
     @Test
     public void executeTransaction_cancelled() {
-        final AtomicReference<RuntimeException> thrownException = new AtomicReference<>(null);
+        final AtomicReference<RuntimeException> thrownException = new AtomicReference<RuntimeException>(null);
 
         assertEquals(0, realm.where(Owner.CLASS_NAME).count());
         try {

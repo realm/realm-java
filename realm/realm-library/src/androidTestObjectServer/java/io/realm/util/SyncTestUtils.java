@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
+import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.objectserver.ObjectServerUser;

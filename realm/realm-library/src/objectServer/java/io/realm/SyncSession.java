@@ -96,9 +96,17 @@ public class SyncSession {
     // This callback will happen on the thread running the Sync Client.
     @KeepMember
     void notifySessionError(int errorCode, String errorMessage) {
-        ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
-        if (errorHandler != null) {
-            errorHandler.onError(this, error);
+        if (errorHandler == null) {
+            return;
+        }
+        ErrorCode errCode = ErrorCode.fromInt(errorCode);
+        if (errCode == ErrorCode.CLIENT_RESET) {
+            // errorMessage contains the path to the backed up file
+            errorHandler.onClientResetRequired(this, new ClientResetHandler(errCode, "A Client Reset is required. " +
+                    "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
+                    errorMessage, getConfiguration()));
+        } else {
+            errorHandler.onError(this, new ObjectServerError(errCode, errorMessage));
         }
     }
 
@@ -127,6 +135,46 @@ public class SyncSession {
          * @param error type of error.
          */
         void onError(SyncSession session, ObjectServerError error);
+
+        /**
+         * An error that indicates the Realm needs to be reset.
+         * <p>
+         * A synced Realm may need to be reset because the Realm Object Server encountered an error and had
+         * to be restored from a backup. If the backup copy of the remote Realm is of an earlier version
+         * than the local copy of the Realm, the server will ask the client to reset the Realm.
+         * <p>
+         * The reset process is as follows: the local copy of the Realm is copied into a recovery directory
+         * for safekeeping, and then deleted from the original location. The next time the Realm for that
+         * URL is opened, the Realm will automatically be re-downloaded from the Realm Object Server, and
+         * can be used as normal.
+         * <p>
+         * Data written to the Realm after the local copy of the Realm diverged from the backup remote copy
+         * will be present in the local recovery copy of the Realm file. The re-downloaded Realm will
+         * initially contain only the data present at the time the Realm was backed up on the server.
+         * <p>
+         * The client reset process can be initiated in one of two ways:
+         * <ol>
+         *     <li>
+         *         Run {@link ClientResetHandler#executeClientReset()} manually. All Realm instances must be
+         *         closed before this method is called.
+         *     </li>
+         *     <li>
+         *         If Client Reset isn't executed manually, it will automatically be carried out the next time all
+         *         Realm instances have been closed and re-opened. This will most likely be
+         *         when the app is restarted.
+         *     </li>
+         * </ol>
+         *
+         * <b>WARNING:</b>
+         * Any writes to the Realm file between this callback and Client Reset has been executed, will not be
+         * synchronized to the Object Server. Those changes will only be present in the backed up file. It is therefore
+         * recommended to close all open Realm instances as soon as possible.
+         *
+         * @param session {@link SyncSession} this error happened on.
+         * @param handler reference to the specific Client Reset error.
+         * @see <a href="https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup">Client Recovery From A Backup</a>
+         */
+        void onClientResetRequired(SyncSession session, ClientResetHandler handler);
     }
 
     String accessToken(final AuthenticationServer authServer) {
