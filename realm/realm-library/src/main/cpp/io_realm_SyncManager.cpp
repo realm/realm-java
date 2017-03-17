@@ -14,23 +14,15 @@
  * limitations under the License.
  */
 
-#include <jni.h>
-
-#include <chrono>
-#include <functional>
-#include <mutex>
-#include <vector>
+#include "io_realm_SyncManager.h"
 
 #include <realm/group_shared.hpp>
 
-#include "io_realm_SyncManager.h"
+#include <sync/sync_manager.hpp>
+#include <sync/sync_session.hpp>
+#include <binding_callback_thread_observer.hpp>
 
-#include "object-store/src/sync/sync_manager.hpp"
-#include "object-store/src/sync/sync_session.hpp"
-
-#include "binding_callback_thread_observer.hpp"
 #include "util.hpp"
-
 #include "jni_util/jni_utils.hpp"
 #include "jni_util/java_method.hpp"
 
@@ -55,10 +47,11 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
 } s_client_thread_listener;
 
 struct AndroidSyncLoggerFactory : public realm::SyncLoggerFactory {
-    virtual std::unique_ptr<util::Logger> make_logger(Logger::Level level) override
+    std::unique_ptr<util::Logger> make_logger(Logger::Level level) override
     {
-        auto logger = std::make_unique<CoreLoggerBridge>();
+        auto logger = std::make_unique<CoreLoggerBridge>(std::string("REALM_SYNC"));
         logger->set_level_threshold(level);
+        // Cast to std::unique_ptr<util::Logger>
         return std::move(logger);
     }
 } s_sync_logger_factory;
@@ -72,7 +65,7 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeConfigureMetaDataSystem(JNIEnv* env, jclass, jstring baseFile)
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNIEnv* env, jclass, jstring baseFile)
 {
     TR_ENTER()
     try {
