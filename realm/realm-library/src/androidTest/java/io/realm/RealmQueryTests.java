@@ -99,14 +99,14 @@ public class RealmQueryTests {
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date(DECADE_MILLIS * (i - (dataSize / 2))));
             allTypes.setColumnDouble(3.1415);
-            allTypes.setColumnFloat(1.234567f + i);
+            allTypes.setColumnFloat(1.2345f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
             nonLatinFieldNames.setΔέλτα(i);
-            nonLatinFieldNames.set베타(1.234567f + i);
-            nonLatinFieldNames.setΒήτα(1.234567f + i);
+            nonLatinFieldNames.set베타(1.2345f + i);
+            nonLatinFieldNames.setΒήτα(1.2345f + i);
 
             Dog dog = testRealm.createObject(Dog.class);
             dog.setAge(i);
@@ -137,8 +137,8 @@ public class RealmQueryTests {
             noPrimaryKeyNullTypes.setFieldIntegerNotNull(i);
             noPrimaryKeyNullTypes.setFieldLongNull((i % 3) == 0 ? null : (long) i);
             noPrimaryKeyNullTypes.setFieldLongNotNull((long) i);
-            noPrimaryKeyNullTypes.setFieldFloatNull((i % 3) == 0 ? null : 1.234567f + i);
-            noPrimaryKeyNullTypes.setFieldFloatNotNull(1.234567f + i);
+            noPrimaryKeyNullTypes.setFieldFloatNull((i % 3) == 0 ? null : 1.2345f + i);
+            noPrimaryKeyNullTypes.setFieldFloatNotNull(1.2345f + i);
             noPrimaryKeyNullTypes.setFieldDoubleNull((i % 3) == 0 ? null : 3.1415 + i);
             noPrimaryKeyNullTypes.setFieldDoubleNotNull(3.1415 + i);
             noPrimaryKeyNullTypes.setFieldDateNull((i % 3) == 0 ? null : new Date(DECADE_MILLIS * (i - (dataSize / 2))));
@@ -467,14 +467,14 @@ public class RealmQueryTests {
         populateTestRealm(realm, TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = realm.where(AllTypes.class)
-                .greaterThan(AllTypes.FIELD_FLOAT, 10.234567f).findAll();
+                .greaterThan(AllTypes.FIELD_FLOAT, 10.2345f).findAll();
         assertEquals(TEST_OBJECTS_COUNT - 10, resultList.size());
 
         resultList = realm.where(AllTypes.class).beginsWith(AllTypes.FIELD_STRING, "test data 1")
-                .greaterThan(AllTypes.FIELD_FLOAT, 50.234567f).findAll();
-        assertEquals(TEST_OBJECTS_COUNT - 100, resultList.size());
+                .greaterThan(AllTypes.FIELD_FLOAT, 150.2345f).findAll();
+        assertEquals(TEST_OBJECTS_COUNT - 150, resultList.size());
 
-        RealmQuery<AllTypes> query = realm.where(AllTypes.class).greaterThan(AllTypes.FIELD_FLOAT, 11.234567f);
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class).greaterThan(AllTypes.FIELD_FLOAT, 11.2345f);
         resultList = query.between(AllTypes.FIELD_LONG, 1, 20).findAll();
         assertEquals(10, resultList.size());
     }
@@ -504,15 +504,15 @@ public class RealmQueryTests {
         populateTestRealm(realm, TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = realm.where(AllTypes.class)
-                .greaterThanOrEqualTo(AllTypes.FIELD_FLOAT, 10.234567f).findAll();
+                .greaterThanOrEqualTo(AllTypes.FIELD_FLOAT, 10.2345f).findAll();
         assertEquals(TEST_OBJECTS_COUNT - 9, resultList.size());
 
         resultList = realm.where(AllTypes.class).beginsWith(AllTypes.FIELD_STRING, "test data 1")
-                .greaterThanOrEqualTo(AllTypes.FIELD_FLOAT, 50.234567f).findAll();
+                .greaterThanOrEqualTo(AllTypes.FIELD_FLOAT, 50.2345f).findAll();
         assertEquals(TEST_OBJECTS_COUNT - 100, resultList.size());
 
         RealmQuery<AllTypes> query = realm.where(AllTypes.class)
-                .greaterThanOrEqualTo(AllTypes.FIELD_FLOAT, 11.234567f);
+                .greaterThanOrEqualTo(AllTypes.FIELD_FLOAT, 11.2345f);
         query = query.between(AllTypes.FIELD_LONG, 1, 20);
 
         resultList = query.beginsWith(AllTypes.FIELD_STRING, "test data 15").findAll();
@@ -541,7 +541,7 @@ public class RealmQueryTests {
     public void or() {
         populateTestRealm(realm, 200);
 
-        RealmQuery<AllTypes> query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 31.234567f);
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 31.2345f);
         RealmResults<AllTypes> resultList = query.or().between(AllTypes.FIELD_LONG, 1, 20).findAll();
         assertEquals(21, resultList.size());
 
@@ -559,12 +559,12 @@ public class RealmQueryTests {
 
     @Test(expected = UnsupportedOperationException.class)
     public void or_missingFilterBefore() {
-        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
+        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.2345f).findAll();
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void or_missingFilterAfter() {
-        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
+        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.2345f).findAll();
     }
 
     @Test
@@ -608,11 +608,11 @@ public class RealmQueryTests {
     public void and_implicit() {
         populateTestRealm(realm, 200);
 
-        RealmQuery<AllTypes> query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 31.234567f);
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 31.2345f);
         RealmResults<AllTypes> resultList = query.between(AllTypes.FIELD_LONG, 1, 10).findAll();
         assertEquals(0, resultList.size());
 
-        query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 81.234567f);
+        query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 81.2345f);
         resultList = query.between(AllTypes.FIELD_LONG, 1, 100).findAll();
         assertEquals(1, resultList.size());
     }
@@ -623,9 +623,9 @@ public class RealmQueryTests {
         populateTestRealm(realm, TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = realm.where(AllTypes.class).
-                lessThan(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
+                lessThan(AllTypes.FIELD_FLOAT, 31.2345f).findAll();
         assertEquals(30, resultList.size());
-        RealmQuery<AllTypes> query = realm.where(AllTypes.class).lessThan(AllTypes.FIELD_FLOAT, 31.234567f);
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class).lessThan(AllTypes.FIELD_FLOAT, 31.2345f);
         resultList = query.between(AllTypes.FIELD_LONG, 1, 10).findAll();
         assertEquals(10, resultList.size());
     }
@@ -654,9 +654,9 @@ public class RealmQueryTests {
         populateTestRealm(realm, TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = realm.where(AllTypes.class)
-                .lessThanOrEqualTo(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
+                .lessThanOrEqualTo(AllTypes.FIELD_FLOAT, 31.2345f).findAll();
         assertEquals(31, resultList.size());
-        resultList = realm.where(AllTypes.class).lessThanOrEqualTo(AllTypes.FIELD_FLOAT, 31.234567f)
+        resultList = realm.where(AllTypes.class).lessThanOrEqualTo(AllTypes.FIELD_FLOAT, 31.2345f)
                 .between(AllTypes.FIELD_LONG, 11, 20).findAll();
         assertEquals(10, resultList.size());
     }
@@ -684,7 +684,7 @@ public class RealmQueryTests {
         populateTestRealm(realm, 200);
 
         RealmResults<AllTypes> resultList = realm.where(AllTypes.class)
-                .equalTo(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
+                .equalTo(AllTypes.FIELD_FLOAT, 31.2345f).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(AllTypes.class).greaterThan(AllTypes.FIELD_FLOAT, 11.0f)
                 .equalTo(AllTypes.FIELD_LONG, 10).findAll();
@@ -843,13 +843,13 @@ public class RealmQueryTests {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{1.234567f + 1}).findAll();
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{1.2345f + 1}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{1.234567f + 2}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{1.2345f + 2}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{1.234567f + 1, 1.234567f + 2}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{1.2345f + 1, 1.2345f + 2}).findAll();
         assertEquals(2, resultList.size());
-        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Float[]{1.234567f + 1, 1.234567f + 2}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Float[]{1.2345f + 1, 1.2345f + 2}).findAll();
         assertEquals(198, resultList.size());
     }
 
@@ -1013,7 +1013,7 @@ public class RealmQueryTests {
     public void in_floatNotNull() {
         doTestForInFloat(NoPrimaryKeyNullTypes.FIELD_FLOAT_NOT_NULL);
         try {
-            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NOT_NULL, new Float[]{1.234567f + 1, null, 1.234567f + 2}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NOT_NULL, new Float[]{1.2345f + 1, null, 1.2345f + 2}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -1022,7 +1022,7 @@ public class RealmQueryTests {
     @Test
     public void in_floatNull() {
         doTestForInFloat(NoPrimaryKeyNullTypes.FIELD_FLOAT_NULL);
-        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NULL, new Float[]{1.234567f + 1, null, 1.234567f + 2}).findAll();
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NULL, new Float[]{1.2345f + 1, null, 1.2345f + 2}).findAll();
         assertEquals(131, resultList.size());
     }
 
@@ -1103,11 +1103,11 @@ public class RealmQueryTests {
                 .notEqualTo(AllTypes.FIELD_LONG, 31).findAll();
         assertEquals(TEST_OBJECTS_COUNT - 1, resultList.size());
 
-        resultList = realm.where(AllTypes.class).notEqualTo(AllTypes.FIELD_FLOAT, 11.234567f)
+        resultList = realm.where(AllTypes.class).notEqualTo(AllTypes.FIELD_FLOAT, 11.2345f)
                 .equalTo(AllTypes.FIELD_LONG, 10).findAll();
         assertEquals(0, resultList.size());
 
-        resultList = realm.where(AllTypes.class).notEqualTo(AllTypes.FIELD_FLOAT, 11.234567f)
+        resultList = realm.where(AllTypes.class).notEqualTo(AllTypes.FIELD_FLOAT, 11.2345f)
                 .equalTo(AllTypes.FIELD_LONG, 1).findAll();
         assertEquals(1, resultList.size());
     }
