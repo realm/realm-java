@@ -69,7 +69,7 @@ public final class ColumnIndices implements Cloneable {
     }
 
     private Map<Class<? extends RealmModel>, ColumnInfo> duplicateColumnInfoMap() {
-        final Map<Class<? extends RealmModel>, ColumnInfo> copy = new HashMap<>();
+        final Map<Class<? extends RealmModel>, ColumnInfo> copy = new HashMap<Class<? extends RealmModel>, ColumnInfo>();
         for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
             copy.put(entry.getKey(), entry.getValue().clone());
         }

@@ -319,6 +319,15 @@ public class Collection implements NativeObject {
         }
     }
 
+    public static Collection createBacklinksCollection(SharedRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
+        long backlinksPtr = nativeCreateResultsFromBacklinks(
+            realm.getNativePtr(),
+            row.getNativePtr(),
+            srcTable.getNativePtr(),
+            srcTable.getColumnIndex(srcFieldName));
+        return new Collection(realm, row.getTable(), backlinksPtr, true);
+    }
+
     public Collection(SharedRealm sharedRealm, TableQuery query,
                       SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
         query.validateQuery();
@@ -356,12 +365,16 @@ public class Collection implements NativeObject {
     }
 
     private Collection(SharedRealm sharedRealm, Table table, long nativePtr) {
+        this(sharedRealm, table, nativePtr, false);
+    }
+
+    private Collection(SharedRealm sharedRealm, Table table, long nativePtr, boolean loaded) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.table = table;
         this.nativePtr = nativePtr;
         this.context.addReference(this);
-        this.loaded = false;
+        this.loaded = loaded;
     }
 
     public Collection createSnapshot() {
@@ -561,4 +574,5 @@ public class Collection implements NativeObject {
     private static native long nativeIndexOfBySourceRowIndex(long nativePtr, long sourceRowIndex);
     private static native boolean nativeIsValid(long nativePtr);
     private static native byte nativeGetMode(long nativePtr);
+    private static native long nativeCreateResultsFromBacklinks(long sharedRealmNativePtr, long rowNativePtr, long srcTableNativePtr, long srColIndex);
 }

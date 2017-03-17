@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Customize as necessary
+REALM_JAVA=~/Working/java
+GRADLE_CACHE=~/.gradle
+ANDROID_SDK=~/Library/Android/sdk
+
+if [ $# -lt 2 ] ; then
+  echo "Usage: $0 <destination folder> <java file>..."
+  exit 1
+fi
+
+TARGET_DIR="$1"
+shift
+
+if [ ! -d "$TARGET_DIR" ] ; then
+  echo "$TARGET_DIR is not a directory"
+  exit 1
+fi
+
+REALM_ANNOTATIONS=`find "$REALM_JAVA/realm-annotations/build" -name 'realm-annotations-*.jar'`
+if [ ! -f "$REALM_ANNOTATIONS" ] ; then
+  echo "Cannot find the Realm Annotations jar in $REALM_JAVA"
+  exit 1
+fi
+
+REALM_ANNOTATION_PROCESSOR=`find "$REALM_JAVA/realm/realm-annotations-processor" -name 'realm-annotations-processor-*.jar'`
+if [ ! -f "$REALM_ANNOTATION_PROCESSOR" ] ; then
+  echo "Cannot find the Realm Annotation Processor jar in $REALM_JAVA"
+  exit 1
+fi
+
+REALM_CLASSES="$REALM_JAVA/realm/realm-library/build/intermediates/classes/base/release"
+if [ ! -d "$REALM_CLASSES" ] ; then
+  echo "Cannot find the Realm classes in $REALM_JAVA"
+  exit 1
+fi
+
+JAVAWRITER=`find "$GRADLE_CACHE/caches/jars"* -name 'javawriter-2.5*.jar' | head -1`
+if [ ! -f "$JAVAWRITER" ] ; then
+  echo "Cannot find JavaWriter jar in $GRADLE_CACHE"
+  exit 1
+fi
+
+CLASSPATH="$REALM_ANNOTATION_PROCESSOR":"$JAVAWRITER":"$REALM_ANNOTATIONS":"$REALM_CLASSES"
+
+javac \
+  -d "$TARGET_DIR" \
+  -bootclasspath "$ANDROID_SDK/platforms/android-24/android.jar" \
+  -source 7 \
+  -target 7 \
+  -cp "$CLASSPATH" \
+  -processor io.realm.processor.RealmProcessor \
+  $*
+

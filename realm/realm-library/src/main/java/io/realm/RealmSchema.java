@@ -131,14 +131,14 @@ public class RealmSchema {
     public Set<RealmObjectSchema> getAll() {
         if (realm == null) {
             long[] ptrs = nativeGetAll(nativePtr);
-            Set<RealmObjectSchema> schemas = new LinkedHashSet<>(ptrs.length);
+            Set<RealmObjectSchema> schemas = new LinkedHashSet<RealmObjectSchema>(ptrs.length);
             for (int i = 0; i < ptrs.length; i++) {
                 schemas.add(new RealmObjectSchema(ptrs[i]));
             }
             return schemas;
         } else {
             int tableCount = (int) realm.sharedRealm.size();
-            Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
+            Set<RealmObjectSchema> schemas = new LinkedHashSet<RealmObjectSchema>(tableCount);
             for (int i = 0; i < tableCount; i++) {
                 String tableName = realm.sharedRealm.getTableName(i);
                 if (!Table.isModelTable(tableName)) {

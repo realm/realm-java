@@ -237,7 +237,7 @@ public class Table implements TableSchema, NativeObject {
                 // We failed to rename the pk meta table. roll back the column name, not pk meta table
                 // then rethrow.
                 nativeRenameColumn(nativePtr, columnIndex, oldName);
-                throw e;
+                throw new RuntimeException(e);
             }
         }
     }

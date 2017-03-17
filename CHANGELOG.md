@@ -1,8 +1,20 @@
-## 3.0.1 (YYYY-MM-DD)
+## 3.1.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+* [ObjectServer] Added `onClientResetRequired(SyncSession, ClientResetHandler)` method to the `ErrorHandler` interface (#4080).
 
 ### Enhancements
 
 * Now `targetSdkVersion` is 25.
+* Now using Gradle 3.4.1
+* The real `RealmMigrationNeededException` is now thrown instead of `IllegalArgumentException` if no migration is provided for a Realm that requires it.
+* Partial implementation of `LinkingObjects`.  There is documentation in `io.realm.annotations.LinkingObjects`.  Internal docs are in `io.realm.processor.Backlink`.
+  * Queries on linking objects do not work.  Queries like `were(...).equalTo("field.linkingObjects.id", 7).findAll()` are not yet supported.
+  * Linking objects are not yet supported on dynamic objects
+  * Migration for linking objects is not yet supported.
+  * Backlink verification is incomplete.  Evil code can cause native crashes.
+* [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface (#4080).
 
 ### Bug Fixes
 
@@ -13,9 +25,9 @@
 
 ### Internal
 
+* Using the Object Store's Session and SyncManager.
 * Upgraded to Realm Sync 1.3.2.
 * Upgraded to Realm Core 2.4.0.
-
 
 ## 3.0.0 (2017-02-28)
 
@@ -37,7 +49,7 @@
 
 * Added support for sorting by link's field (#672).
 * Added `OrderedRealmCollectionSnapshot` class and `OrderedRealmCollection.createSnapshot()` method. `OrderedRealmCollectionSnapshot` is useful when changing `RealmResults` or `RealmList` in simple loops.
-* Added `OrderedRealmCollectionChangeListener` interface for supporting fine-grained collection notifications. 
+* Added `OrderedRealmCollectionChangeListener` interface for supporting fine-grained collection notifications.
 * Added support for ChangeListeners on `RealmList`.
 * Added `RealmList.asObservable()`.
 

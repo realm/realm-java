@@ -32,9 +32,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.realm.DynamicRealm;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmMigration;
+import io.realm.RealmObject;
 import io.realm.TestHelper;
+import io.realm.annotations.RealmModule;
 
 import static org.junit.Assert.assertTrue;
 
@@ -45,8 +49,8 @@ import static org.junit.Assert.assertTrue;
  * The temp directory will be deleted regardless if the {@link Realm#deleteRealm(RealmConfiguration)} fails or not.
  */
 public class TestRealmConfigurationFactory extends TemporaryFolder {
-    private Map<RealmConfiguration, Boolean> map = new ConcurrentHashMap<RealmConfiguration, Boolean>();
-    private Set<RealmConfiguration> configurations = Collections.newSetFromMap(map);
+    private final Map<RealmConfiguration, Boolean> map = new ConcurrentHashMap<RealmConfiguration, Boolean>();
+    private final Set<RealmConfiguration> configurations = Collections.newSetFromMap(map);
     protected boolean unitTestFailed = false;
 
     @Override
@@ -94,50 +98,58 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
         }
     }
 
-    public RealmConfiguration createConfiguration() {
-        RealmConfiguration configuration = new RealmConfiguration.Builder()
-                .directory(getRoot())
-                .build();
-
-        configurations.add(configuration);
-        return configuration;
+    // This builder creates a configuration that is *NOT* managed.
+    // You have to delete it yourself.
+    public RealmConfiguration.Builder createConfigurationBuilder() {
+        return new RealmConfiguration.Builder().directory(getRoot());
     }
 
-    public RealmConfiguration createConfiguration(String subDir, String name) {
-        final File folder = new File(getRoot(), subDir);
-        assertTrue(folder.mkdirs());
-        RealmConfiguration configuration = new RealmConfiguration.Builder()
-                .directory(folder)
-                .name(name)
-                .build();
-
-        configurations.add(configuration);
-        return configuration;
+    public RealmConfiguration createConfiguration() {
+        return createConfiguration(null);
     }
 
     public RealmConfiguration createConfiguration(String name) {
-        RealmConfiguration configuration = new RealmConfiguration.Builder()
-                .directory(getRoot())
-                .name(name)
-                .build();
+        return createConfiguration(null, name);
+    }
 
-        configurations.add(configuration);
-        return configuration;
+    public RealmConfiguration createConfiguration(String subDir, String name) {
+        return createConfiguration(subDir, name, null, null);
     }
 
     public RealmConfiguration createConfiguration(String name, byte[] key) {
-        RealmConfiguration configuration = new RealmConfiguration.Builder()
-                .directory(getRoot())
-                .name(name)
-                .encryptionKey(key)
-                .build();
-
-        configurations.add(configuration);
-        return configuration;
+        return createConfiguration(null, name, null, key);
     }
 
-    public RealmConfiguration.Builder createConfigurationBuilder() {
-        return new RealmConfiguration.Builder().directory(getRoot());
+    public RealmConfiguration createConfiguration(String name, Object module) {
+        return createConfiguration(null, name, module, null);
+    }
+
+    public RealmConfiguration createConfiguration(String subDir, String name, Object module, byte[] key) {
+        RealmConfiguration.Builder builder = createConfigurationBuilder();
+
+        File folder = getRoot();
+        if (subDir != null) {
+            folder = new File(folder, subDir);
+            assertTrue(folder.mkdirs());
+        }
+        builder.directory(folder);
+
+        if (name != null) {
+            builder.name(name);
+        }
+
+        if (module != null) {
+            builder.modules(module);
+        }
+
+        if (key != null) {
+            builder.encryptionKey(key);
+        }
+
+        RealmConfiguration configuration = builder.build();
+        configurations.add(configuration);
+
+        return configuration;
     }
 
     // Copies a Realm file from assets to temp dir

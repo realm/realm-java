@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.0.6'
+    ext.kotlin_version = '1.1.0'
     repositories {
         jcenter()
         mavenCentral()
@@ -37,11 +37,6 @@ android {
 
     command {
         events 2000
-    }
-
-    // Incremental builds currently doesn't work with Kotlin
-    dexOptions {
-        incremental false
     }
 
     sourceSets {

@@ -16,64 +16,121 @@
 
 package io.realm;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.realm.internal.network.AuthenticationServer;
-import io.realm.internal.network.OkHttpAuthenticationServer;
-import io.realm.internal.objectserver.ObjectServerSession;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
+import io.realm.rule.TestSyncConfigurationFactory;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class SessionTests {
 
     private static String REALM_URI = "realm://objectserver.realm.io/~/default";
 
-    private Context context;
-    private AuthenticationServer authServer;
     private SyncConfiguration configuration;
     private SyncUser user;
 
     @Rule
-    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
+
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
 
     @Before
     public void setUp() {
-        context = InstrumentationRegistry.getContext();
         user = createTestUser();
-        authServer = new OkHttpAuthenticationServer();
         configuration = new SyncConfiguration.Builder(user, REALM_URI).build();
-    }
-
-    @After
-    public void tearDown() throws Exception {
     }
 
     @Test
     public void get_syncValues() {
-        ObjectServerSession internalSession = new ObjectServerSession(
-                configuration,
-                authServer,
-                configuration.getUser().getSyncUser(),
-                configuration.getSyncPolicy(),
-                configuration.getErrorHandler()
-        );
-        SyncSession session = new SyncSession(internalSession);
-
+        SyncSession session = new SyncSession(configuration);
         assertEquals("realm://objectserver.realm.io/JohnDoe/default", session.getServerUrl().toString());
         assertEquals(user, session.getUser());
         assertEquals(configuration, session.getConfiguration());
-        assertNull(session.getState());
     }
+
+    // Check that a Client Reset is correctly reported.
+    @Test
+    @RunTestInLooperThread
+    public void errorHandler_clientResetReported() {
+        SyncUser user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user , url)
+                .errorHandler(new SyncSession.ErrorHandler() {
+                    @Override
+                    public void onError(SyncSession session, ObjectServerError error) {
+                        fail("Wrong error " + error.toString());
+                    }
+
+                    @Override
+                    public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
+                        String filePathFromError = handler.getOriginalFile().getAbsolutePath();
+                        String filePathFromConfig = session.getConfiguration().getPath();
+                        assertEquals(filePathFromError, filePathFromConfig);
+                        assertFalse(handler.getBackupFile().exists());
+                        assertTrue(handler.getOriginalFile().exists());
+                        looperThread.testComplete();
+                    }
+                })
+                .build();
+
+        Realm realm = Realm.getInstance(config);
+        looperThread.testRealms.add(realm);
+
+        // Trigger error
+        SyncManager.simulateClientReset(SyncManager.getSession(config));
+    }
+
+    // Check that we can manually execute the Client Reset.
+    @Test
+    @RunTestInLooperThread
+    public void errorHandler_manualExecuteClientReset() {
+        SyncUser user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user , url)
+                .errorHandler(new SyncSession.ErrorHandler() {
+                    @Override
+                    public void onError(SyncSession session, ObjectServerError error) {
+                        fail("Wrong error " + error.toString());
+                    }
+
+                    @Override
+                    public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
+                        try {
+                            handler.executeClientReset();
+                            fail("All Realms should be closed before executing Client Reset can be allowed");
+                        } catch(IllegalStateException ignored) {
+                        }
+
+                        // Execute Client Reset
+                        looperThread.testRealms.get(0).close();
+                        handler.executeClientReset();
+
+                        // Validate that files have been moved
+                        assertFalse(handler.getOriginalFile().exists());
+                        assertTrue(handler.getBackupFile().exists());
+                        looperThread.testComplete();
+                    }
+                })
+                .build();
+
+        Realm realm = Realm.getInstance(config);
+        looperThread.testRealms.add(realm);
+
+        // Trigger error
+        SyncManager.simulateClientReset(SyncManager.getSession(config));
+    }
+
 }
