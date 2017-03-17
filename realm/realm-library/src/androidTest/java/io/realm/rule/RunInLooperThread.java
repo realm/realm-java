@@ -91,6 +91,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             private Throwable testException;
 
             @Override
+            @SuppressWarnings({"ClassNewInstance", "Finally"})
             public void evaluate() throws Throwable {
                 before();
                 final String threadName = annotation.threadName();

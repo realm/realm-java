@@ -2044,6 +2044,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     @Override
+    @SuppressWarnings("ArrayToString")
     public String toString() {
         if (!RealmObject.isValid(this)) {
             return "Invalid object";

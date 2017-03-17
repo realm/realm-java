@@ -229,6 +229,7 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
+    @SuppressWarnings("ReferenceEquality")
     public void distinct_restrictedByPreviousDistinct() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;

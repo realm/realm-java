@@ -2606,6 +2606,7 @@ public class RealmQueryTests {
             Thread thread = new Thread(
                     new Runnable() {
                         @Override
+                        @SuppressWarnings("ElementsCountedInLoop")
                         public void run() {
                             RealmConfiguration realmConfig = configFactory.createConfiguration();
                             Realm realm = Realm.getInstance(realmConfig);
