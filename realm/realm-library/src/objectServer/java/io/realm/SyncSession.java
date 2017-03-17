@@ -108,6 +108,12 @@ public class SyncSession {
         }
     }
 
+    /**
+     * Add a download progress listener.
+     *
+     * @param mode m
+     * @param listener listener to register.
+     */
     public synchronized void addDownloadProgressListener(ProgressMode mode, ProgressListener listener) {
         addProgressListener(mode, DIRECTION_DOWNLOAD, listener);
     }

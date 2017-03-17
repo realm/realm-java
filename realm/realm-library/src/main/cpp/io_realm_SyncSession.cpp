@@ -52,7 +52,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JN
 
 JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIEnv* env, jclass,
                                                                             jstring localRealmPath,
-                                                                            jobject listenerWrapper, jint direction,
+                                                                            jobject, jint direction,
                                                                             jboolean isStreaming)
 {
     try {
@@ -64,25 +64,27 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
             return static_cast<jlong>(0);
         }
 
-        SyncSession::NotifierType type =
-            direction == (jint == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
+        SyncSession::NotifierType type = (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
 
-        std::function<SyncProgressNotifierCallback> callback = [=](uint64_t transferred, uint64_t transferrable) {
-            // Callback to Java
-        }
+        std::function<SyncProgressNotifierCallback> callback = [=](uint64_t, uint64_t) {
+        };
         uint64_t token = session->register_progress_notifier(callback, type, to_bool(isStreaming));
         return static_cast<jlong>(token);
     }
     CATCH_STD()
+    return static_cast<jlong>(0);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveProgressListener(JNIEnv* env, jclass,
                                                                               jstring localRealmPath,
                                                                               jlong listenerToken)
 {
-    JStringAccessor local_realm_path(env, localRealmPath);
-    std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_active_session(local_realm_path);
-    if (session) {
-        session->unregister_progress_notifier(static_cast<uint64_t>(listenerToken));
+    try {
+        JStringAccessor local_realm_path(env, localRealmPath);
+        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_active_session(local_realm_path);
+        if (session) {
+            session->unregister_progress_notifier(static_cast<uint64_t>(listenerToken));
+        }
     }
+    CATCH_STD()
 }

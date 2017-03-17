@@ -27,6 +27,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class SessionTests {
@@ -51,5 +52,51 @@ public class SessionTests {
         assertEquals("realm://objectserver.realm.io/JohnDoe/default", session.getServerUrl().toString());
         assertEquals(user, session.getUser());
         assertEquals(configuration, session.getConfiguration());
+    }
+
+    @Test
+    public void addDownloadProgressListener_nullThrows() {
+        SyncSession session = SyncManager.getSession(configuration);
+        try {
+            session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void addUploadProgressListener_nullThrows() {
+        SyncSession session = SyncManager.getSession(configuration);
+        try {
+            session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void removeProgressListener() {
+        SyncSession session = SyncManager.getSession(configuration);
+        ProgressListener[] listeners = new ProgressListener[] {
+                null,
+                new ProgressListener() {
+                    @Override
+                    public void onChange(Progress progress) {
+                        // Listener 1, not present
+                    }
+                },
+                new ProgressListener() {
+                    @Override
+                    public void onChange(Progress progress) {
+                        // Listener 2, present
+                    }
+                }
+        };
+        session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, listeners[2]);
+
+        // Check that remove works unconditionally for all input
+        for (ProgressListener listener : listeners) {
+            session.removeProgressListener(listener);
+        }
     }
 }
