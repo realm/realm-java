@@ -503,6 +503,7 @@ public class BooleansRealmProxy extends some.test.Booleans
     }
 
     @Override
+    @SuppressWarnings("ArrayToString")
     public String toString() {
         if (!RealmObject.isValid(this)) {
             return "Invalid object";

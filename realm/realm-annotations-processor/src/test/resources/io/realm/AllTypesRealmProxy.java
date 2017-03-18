@@ -1209,6 +1209,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     @Override
+    @SuppressWarnings("ArrayToString")
     public String toString() {
         if (!RealmObject.isValid(this)) {
             return "Invalid object";
