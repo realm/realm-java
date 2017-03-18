@@ -18,6 +18,7 @@ package io.realm.exceptions;
 import io.realm.internal.Keep;
 import io.realm.internal.SharedRealm;
 
+
 /**
  * Class for reporting problems when accessing the Realm related files.
  */

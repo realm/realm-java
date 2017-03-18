@@ -24,6 +24,7 @@ import io.realm.internal.PendingRow;
 import io.realm.internal.Row;
 import io.realm.internal.UncheckedRow;
 
+
 /**
  * This implements {@code RealmObjectProxy} interface, to eliminate copying logic between
  * {@link RealmObject} and {@link DynamicRealmObject}.
@@ -147,7 +148,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
                     // If the Row gets detached, table version will be -1 and it is different from current value.
                     tableVersion = row.getTable().getVersion();
                 }
-                if (currentTableVersion != tableVersion)  {
+                if (currentTableVersion != tableVersion) {
                     currentTableVersion = tableVersion;
                     notifyChangeListeners();
                 }

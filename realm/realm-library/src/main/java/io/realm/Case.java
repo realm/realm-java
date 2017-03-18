@@ -36,6 +36,7 @@ public enum Case {
 
     /**
      * Returns the value for this setting that is used by the underlying query engine.
+     *
      * @return The value used by the underlying query engine to indicate this value.
      */
     public boolean getValue() {

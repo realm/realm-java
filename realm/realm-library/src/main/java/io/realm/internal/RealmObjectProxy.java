@@ -19,14 +19,17 @@ package io.realm.internal;
 import io.realm.ProxyState;
 import io.realm.RealmModel;
 
+
 /**
  * Interface making it easy to determine if an object is the generated RealmProxy class or the original class.
- *
+ * <p>
  * Ideally all the static methods was also present here, but that is not supported before Java 8.
  */
- public interface RealmObjectProxy extends RealmModel {
+public interface RealmObjectProxy extends RealmModel {
     void realm$injectObjectContext();
+
     ProxyState realmGet$proxyState();
+
     /**
      * Tuple class for saving meta data about a cached RealmObject.
      */

@@ -30,6 +30,7 @@ import javax.tools.JavaFileObject;
 
 import io.realm.annotations.RealmModule;
 
+
 /**
  * This class is responsible for creating the DefaultRealmModule that contains all known
  * {@link io.realm.annotations.RealmClass}' known at compile time.

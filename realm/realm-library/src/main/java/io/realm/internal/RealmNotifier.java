@@ -22,6 +22,7 @@ import java.util.List;
 
 import io.realm.RealmChangeListener;
 
+
 /**
  * This interface needs to be implemented by Java and pass to Realm Object Store in order to get notifications when
  * other thread/process changes the Realm file.
@@ -92,7 +93,8 @@ public abstract class RealmNotifier implements Closeable {
     // - A committed local transaction, called directly from commitTransaction instead of next event.
     //   loop.
     // Package protected to avoid finding class by name in JNI.
-    @SuppressWarnings("unused") // called from java_binding_context.cpp
+    @SuppressWarnings("unused")
+    // called from java_binding_context.cpp
     void didChange() {
         realmObserverPairs.foreach(onChangeCallBack);
         for (Runnable runnable : transactionCallbacks) {
@@ -131,7 +133,7 @@ public abstract class RealmNotifier implements Closeable {
     }
 
     public <E> void removeChangeListeners(E observer) {
-       realmObserverPairs.removeByObserver(observer);
+        realmObserverPairs.removeByObserver(observer);
     }
 
     // Since RealmObject is using this notifier as well, use removeChangeListeners to remove all listeners by the given

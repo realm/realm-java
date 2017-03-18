@@ -8,6 +8,7 @@ import io.realm.internal.Keep;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.SharedRealm;
 
+
 /**
  * {@link RealmNotifier} implementation for Android.
  */
