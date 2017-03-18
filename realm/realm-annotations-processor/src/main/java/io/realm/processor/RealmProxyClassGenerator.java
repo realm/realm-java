@@ -1602,7 +1602,6 @@ public class RealmProxyClassGenerator {
             return;
         }
         writer.emitAnnotation("Override");
-        writer.emitAnnotation("SuppressWarnings", "\"ArrayToString\"");
         writer.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
         writer.beginControlFlow("if (!RealmObject.isValid(this))");
         writer.emitStatement("return \"Invalid object\"");
