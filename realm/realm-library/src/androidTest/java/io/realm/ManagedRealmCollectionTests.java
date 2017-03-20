@@ -760,13 +760,16 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                     case REMOVE_ALL:
                     case RETAIN_ALL:
                         expected = UnsupportedOperationException.class;
+                        break;
+                    default:
+                        // use default exception
                 }
             }
 
             try {
                 switch (method) {
                     case DELETE_ALL: collection.deleteAllFromRealm(); break;
-                    case ADD_OBJECT: collection.add(new AllJavaTypes());
+                    case ADD_OBJECT: collection.add(new AllJavaTypes()); break;
                     case ADD_ALL_OBJECTS: collection.addAll(Collections.singletonList(new AllJavaTypes())); break;
                     case CLEAR: collection.clear(); break;
                     case REMOVE_OBJECT: collection.remove(new AllJavaTypes()); break;
@@ -847,6 +850,9 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         case REMOVE_ALL:
                         case RETAIN_ALL:
                             expected = UnsupportedOperationException.class;
+                            break;
+                        default:
+                            // use default exception
                     }
                 }
 
@@ -854,8 +860,8 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                     switch (method) {
                         case ADD_OBJECT: collection.add(new AllJavaTypes()); break;
                         case ADD_ALL_OBJECTS: collection.addAll(Collections.singletonList(new AllJavaTypes())); break;
-                        case CLEAR: collection.clear();
-                        case CONTAINS:
+                        case CLEAR: collection.clear(); break;
+                        case CONTAINS: collection.contains(tempObject); break;
                         case CONTAINS_ALL: collection.containsAll(Collections.singletonList(tempObject)); break;
                         case EQUALS:
                             //noinspection ResultOfMethodCallIgnored

@@ -564,7 +564,8 @@ public class NotificationsTest {
 
         // Starts background looper and let it hang.
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        //noinspection unused
+        final Future<?> future = executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare(); // Fake background thread with a looper, eg. a IntentService.

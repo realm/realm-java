@@ -37,6 +37,7 @@ import org.junit.runner.RunWith;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -66,6 +67,8 @@ import static org.junit.Assume.assumeThat;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmJsonTests {
+    private static final Charset UTF_8 = Charset.forName("UTF-8");
+
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
@@ -87,7 +90,7 @@ public class RealmJsonTests {
     }
 
     private InputStream convertJsonObjectToStream(JSONObject obj) {
-        return new ByteArrayInputStream(obj.toString().getBytes());
+        return new ByteArrayInputStream(obj.toString().getBytes(UTF_8));
     }
 
     // Asserts that the list of AllTypesPrimaryKey objects where inserted and updated properly.
@@ -198,7 +201,7 @@ public class RealmJsonTests {
         json.put("columnFloat", 1.23F);
         json.put("columnDouble", 1.23D);
         json.put("columnBoolean", true);
-        json.put("columnBinary", new String(Base64.encode(new byte[] {1,2,3}, Base64.DEFAULT)));
+        json.put("columnBinary", new String(Base64.encode(new byte[] {1,2,3}, Base64.DEFAULT), UTF_8));
 
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, json);
