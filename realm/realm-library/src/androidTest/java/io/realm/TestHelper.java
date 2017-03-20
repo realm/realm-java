@@ -796,6 +796,7 @@ public class TestHelper {
     }
 
     // Cleans resource, shutdowns the executor service and throws any background exception.
+    @SuppressWarnings("Finally")
     public static void exitOrThrow(final ExecutorService executorService,
                                    final CountDownLatch signalTestFinished,
                                    final CountDownLatch signalClosedRealm,

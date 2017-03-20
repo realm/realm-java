@@ -123,7 +123,7 @@ public class ObserverPairListTests {
         assertTrue(foreachCalled.get());
     }
 
-    @SuppressLint("UseValueOf")
+    @SuppressLint({"UseValueOf", "BoxedPrimitiveConstructor"})
     @Test
     public void remove() {
         TestObserverPair pair = new TestObserverPair(ONE, testListener);
