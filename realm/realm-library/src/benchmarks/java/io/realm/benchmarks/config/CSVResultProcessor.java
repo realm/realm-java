@@ -22,6 +22,7 @@ import com.opencsv.CSVWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 
 import dk.ilios.spanner.model.Trial;
@@ -46,7 +47,7 @@ public class CSVResultProcessor implements ResultProcessor {
         this.resultFile = resultFile;
         this.workFile = new File(resultFile.getPath() + ".tmp");
         try {
-            writer = new CSVWriter(new FileWriter(resultFile));
+            writer = new CSVWriter(Files.newWriter(resultFile, Charset.forName("UTF-8")));
             addLabels();
         } catch (IOException e) {
             throw new RuntimeException(e);
