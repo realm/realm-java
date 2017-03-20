@@ -111,7 +111,7 @@ public class RealmObjectSchemaTests {
         BOOLEAN(Boolean.class), PRIMITIVE_BOOLEAN(boolean.class),
         DATE(Date.class);
 
-        Class<?> clazz;
+        private final Class<?> clazz;
 
         public Class<?> getType() {
             return clazz;
@@ -129,7 +129,7 @@ public class RealmObjectSchemaTests {
         OBJECT(RealmObject.class),
         LIST(RealmList.class);
 
-        Class<?> clazz;
+        private final Class<?> clazz;
 
         public Class<?> getType() {
             return clazz;
@@ -148,7 +148,7 @@ public class RealmObjectSchemaTests {
         LONG(Long.class), PRIMITIVE_LONG(long.class),
         BYTE(Byte.class), PRIMITIVE_BYTE(byte.class);
 
-        Class<?> clazz;
+        private final Class<?> clazz;
 
         public Class<?> getType() {
             return clazz;
@@ -168,7 +168,7 @@ public class RealmObjectSchemaTests {
         OBJECT(RealmObject.class),
         LIST(RealmList.class);
 
-        Class<?> clazz;
+        private final Class<?> clazz;
 
         public Class<?> getType() {
             return clazz;

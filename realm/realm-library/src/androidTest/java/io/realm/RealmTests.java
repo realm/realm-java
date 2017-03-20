@@ -200,6 +200,7 @@ public class RealmTests {
                     .directory(folder)
                     .name(REALM_FILE)
                     .build());
+            fail();
         } catch (RealmFileException expected) {
             assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
         }
@@ -216,6 +217,7 @@ public class RealmTests {
 
         try {
             Realm.getInstance(new RealmConfiguration.Builder(context).directory(folder).name(REALM_FILE).build());
+            fail();
         } catch (RealmFileException expected) {
             assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
         }
@@ -3554,7 +3556,7 @@ public class RealmTests {
                 Realm realm = Realm.getInstance(realmConfig);
                 bgRealm.set(realm);
                 bgRealmOpened.countDown();
-                bgRealmWaitResult.set(new Boolean(realm.waitForChange()));
+                bgRealmWaitResult.set(realm.waitForChange());
                 realm.close();
                 bgRealmClosed.countDown();
             }
@@ -3572,7 +3574,7 @@ public class RealmTests {
         // Now we'll stop realm from waiting.
         bgRealm.get().stopWaitForChange();
         TestHelper.awaitOrFail(bgRealmClosed);
-        assertFalse(bgRealmWaitResult.get().booleanValue());
+        assertFalse(bgRealmWaitResult.get());
     }
 
     @Test

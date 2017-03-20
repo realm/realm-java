@@ -746,8 +746,8 @@ public class RealmListTests extends CollectionTests {
                     case SORT: results.sort(CyclicType.FIELD_NAME); break;
                     case SORT_FIELD: results.sort(CyclicType.FIELD_NAME, Sort.ASCENDING); break;
                     case SORT_2FIELDS: results.sort(CyclicType.FIELD_NAME, Sort.ASCENDING, CyclicType.FIELD_DATE, Sort.DESCENDING); break;
-                    case SORT_MULTI: results.sort(new String[] { CyclicType.FIELD_NAME, CyclicType.FIELD_DATE }, new Sort[] { Sort.ASCENDING, Sort.DESCENDING});
-                    case CREATE_SNAPSHOT: results.createSnapshot();
+                    case SORT_MULTI: results.sort(new String[] { CyclicType.FIELD_NAME, CyclicType.FIELD_DATE }, new Sort[] { Sort.ASCENDING, Sort.DESCENDING}); break;
+                    case CREATE_SNAPSHOT: results.createSnapshot(); break;
                 }
                 fail(method + " should have thrown an Exception");
             } catch (IllegalStateException ignored) {

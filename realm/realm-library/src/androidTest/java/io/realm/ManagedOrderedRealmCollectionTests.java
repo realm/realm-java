@@ -796,6 +796,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                         case SORT_2FIELDS:
                         case SORT_MULTI:
                             expected = UnsupportedOperationException.class;
+                            break;
                         default:
                             break;
                     }
