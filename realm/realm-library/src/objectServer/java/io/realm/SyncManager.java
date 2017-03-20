@@ -83,6 +83,11 @@ public class SyncManager {
                     throw new IllegalArgumentException("Unsupported error category: " + error.getErrorCode().getCategory());
             }
         }
+
+        @Override
+        public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
+            RealmLog.error("Client Reset required for: " + session.getConfiguration().getPath());
+        }
     };
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
     private static Map<String, SyncSession> sessions = new HashMap<String, SyncSession>();
@@ -99,9 +104,6 @@ public class SyncManager {
     static void init(String appId, UserStore userStore) {
         SyncManager.APP_ID = appId;
         SyncManager.userStore = userStore;
-
-        // Initialize underlying Sync Network Client
-        nativeInitializeSyncClient();
     }
 
     /**
@@ -283,8 +285,22 @@ public class SyncManager {
         sessions.clear();
     }
 
-    private static native void nativeInitializeSyncClient();
-    // init and load the Metadata Realm containing SyncUsers
-    protected static native void nativeConfigureMetaDataSystem(String baseFile);
+    /**
+     * Simulate a Client Reset by triggering the Object Store error handler with Sync Error Code that will be
+     * converted to a Client Reset (211 - Diverging Histories).
+     *
+     * Only call this method when testing.
+     *
+     * @param session Session to trigger Client Reset for.
+     */
+    static void simulateClientReset(SyncSession session) {
+        nativeSimulateSyncError(session.getConfiguration().getPath(),
+                ErrorCode.DIVERGING_HISTORIES.intValue(),
+                "Simulate Client Reset",
+                true);
+    }
+
+    protected static native void nativeInitializeSyncManager(String syncBaseDir);
     private static native void nativeReset();
+    private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
 }

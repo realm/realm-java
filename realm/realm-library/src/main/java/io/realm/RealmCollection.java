@@ -172,5 +172,6 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws NullPointerException if the object to look for is {@code null} and this {@code Collection} doesn't
      *                              support {@code null} elements.
      */
+    @Override
     boolean contains(Object object);
 }

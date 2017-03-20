@@ -22,8 +22,6 @@ import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,8 +29,10 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.ClientResetHandler;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -45,7 +45,6 @@ import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.service.SendOneCommit;
 import io.realm.objectserver.service.SendsALot;
 import io.realm.objectserver.utils.Constants;
-import io.realm.objectserver.utils.HttpUtils;
 import io.realm.objectserver.utils.UserFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -62,7 +61,8 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         final Throwable[] exception = new Throwable[1];
         final CountDownLatch testFinished = new CountDownLatch(1);
         ExecutorService service = Executors.newSingleThreadExecutor();
-        service.submit(new Runnable() {
+        //noinspection unused
+        final Future<?> future = service.submit(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -77,6 +77,11 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                                 @Override
                                 public void onError(SyncSession session, ObjectServerError error) {
                                     fail("Sync failure: " + error);
+                                }
+
+                                @Override
+                                public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
+                                    fail("Client Reset");
                                 }
                             })
                             .build();
@@ -122,7 +127,8 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         final Throwable[] exception = new Throwable[1];
         final CountDownLatch testFinished = new CountDownLatch(1);
         ExecutorService service = Executors.newSingleThreadExecutor();
-        service.submit(new Runnable() {
+        //noinspection unused
+        final Future<?> future = service.submit(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -137,6 +143,11 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                                 @Override
                                 public void onError(SyncSession session, ObjectServerError error) {
                                     fail("Sync failure: " + error);
+                                }
+
+                                @Override
+                                public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
+                                    fail("Client Reset");
                                 }
                             })
                             .build();

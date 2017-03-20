@@ -27,6 +27,7 @@ public enum ErrorCode {
     UNKNOWN(-1),                                // Catch-all
     IO_EXCEPTION(0, Category.RECOVERABLE),      // Some IO error while either contacting the server or reading the response
     JSON_EXCEPTION(1),                          // JSON input could not be parsed correctly
+    CLIENT_RESET(7),                            // Client Reset required. Don't change this value without modifying io_realm_internal_SharedRealm.cpp
 
     // Realm Object Server errors (100 - 199)
     // Connection level and protocol errors.

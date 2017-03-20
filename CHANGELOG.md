@@ -1,5 +1,9 @@
 ## 3.1.0 (YYYY-MM-DD)
 
+### Breaking Changes
+
+* [ObjectServer] Added `onClientResetRequired(SyncSession, ClientResetHandler)` method to the `ErrorHandler` interface (#4080).
+
 ### Enhancements
 
 * Now `targetSdkVersion` is 25.
@@ -11,11 +15,13 @@
   * Migration for linking objects is not yet supported.
   * Backlink verification is incomplete.  Evil code can cause native crashes.
 * [ObjectServer] Added support for Sync Progress Notifications through `SyncSession.addDownloadProgressListener(ProgressMode, ProgressListener)` and `SyncSession.addUploadProgressListener(ProgressMode, ProgressListener)` (#4104).
+* [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface (#4080).
 
 ### Bug Fixes
 
 * `Realm.migrateRealm(RealmConfiguration)` now fails correctly with an `IllegalArgumentException` if a `SyncConfiguration` is provided (#4075).
 * Fixed a potential cause for Realm file corruptions (never reported).
+* Add `@Override` annotation to proxy class accessors and stop using raw type in proxy classes in order to remove warnings from javac (#4329).
 
 ### Deprecated
 

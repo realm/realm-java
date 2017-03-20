@@ -275,6 +275,7 @@ public class RealmProxyClassGenerator {
         final String realmType = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
 
         // Getter
+        writer.emitAnnotation("Override");
         writer.emitAnnotation("SuppressWarnings", "\"cast\"")
             .beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
             .emitStatement("proxyState.getRealm$realm().checkIfValid()");
@@ -301,6 +302,7 @@ public class RealmProxyClassGenerator {
             .emitEmptyLine();
 
         // Setter
+        writer.emitAnnotation("Override");
         writer.beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
         emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field), new CodeEmitter() {
             @Override
@@ -362,6 +364,7 @@ public class RealmProxyClassGenerator {
     {
 
         // Getter
+        writer.emitAnnotation("Override");
         writer.beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
             .emitStatement("proxyState.getRealm$realm().checkIfValid()")
             .beginControlFlow("if (proxyState.getRow$realm().isNullLink(%s))", fieldIndexVariableReference(field))
@@ -373,6 +376,7 @@ public class RealmProxyClassGenerator {
             .emitEmptyLine();
 
         // Setter
+        writer.emitAnnotation("Override");
         writer.beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
         emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field), new CodeEmitter() {
             @Override
@@ -431,6 +435,7 @@ public class RealmProxyClassGenerator {
         String genericType = Utils.getGenericTypeQualifiedName(field);
 
         // Getter
+        writer.emitAnnotation("Override");
         writer.beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
             .emitStatement("proxyState.getRealm$realm().checkIfValid()")
             .emitSingleLineComment("use the cached value if available")
@@ -446,6 +451,7 @@ public class RealmProxyClassGenerator {
             .emitEmptyLine();
 
         // Setter
+        writer.emitAnnotation("Override");
         writer.beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
         emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field), new CodeEmitter() {
             @Override
@@ -511,6 +517,7 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitInjectContextMethod(JavaWriter writer) throws IOException {
+        writer.emitAnnotation("Override");
         writer.beginMethod(
                 "void", // Return type
                 "realm$injectObjectContext", // Method name
@@ -553,7 +560,7 @@ public class RealmProxyClassGenerator {
 
     private void emitRealmObjectProxyImplementation(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override")
-            .beginMethod("ProxyState", "realmGet$proxyState", EnumSet.of(Modifier.PUBLIC))
+            .beginMethod("ProxyState<?>", "realmGet$proxyState", EnumSet.of(Modifier.PUBLIC))
                 .emitStatement("return proxyState")
             .endMethod()
             .emitEmptyLine();
@@ -1737,7 +1744,8 @@ public class RealmProxyClassGenerator {
         if (metadata.containsToString()) {
             return;
         }
-        writer.emitAnnotation("Override")
+        writer.emitAnnotation("Override");
+        writer.emitAnnotation("SuppressWarnings", "\"ArrayToString\"")
             .beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC))
             .beginControlFlow("if (!RealmObject.isValid(this))")
                 .emitStatement("return \"Invalid object\"")

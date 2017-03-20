@@ -528,6 +528,11 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void listIterator_deleteManagedObjectIndirectly() {
+        if (skipTest(CollectionClass.REALMRESULTS_SNAPSHOT_LIST_BASE,
+                CollectionClass.REALMRESULTS_SNAPSHOT_RESULTS_BASE)) {
+            return;
+        }
+
         realm.beginTransaction();
         ListIterator<AllJavaTypes> it = collection.listIterator();
         it.next();
@@ -542,6 +547,9 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             case UNMANAGED_REALMLIST:
                 assertEquals(TEST_SIZE, collection.size());
                 break;
+            default:
+                fail();
+                return;
         }
         it.previous();
         AllJavaTypes types = it.next(); // Iterator can still access the deleted object
