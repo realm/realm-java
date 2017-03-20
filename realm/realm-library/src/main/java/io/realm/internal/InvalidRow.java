@@ -20,6 +20,7 @@ import java.util.Date;
 
 import io.realm.RealmFieldType;
 
+
 /**
  * Row wrapper that stubs all access with IllegalStateExceptions except for isAttached. This can be used instead of
  * adding null checks everywhere when the underlying Row accessor in Realm's underlying storage engine is no longer

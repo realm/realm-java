@@ -28,6 +28,7 @@ import javax.tools.JavaFileObject;
 
 import io.realm.annotations.Ignore;
 
+
 public class RealmProxyInterfaceGenerator {
     private ProcessingEnvironment processingEnvironment;
     private ClassMetaData metaData;
@@ -75,11 +76,11 @@ public class RealmProxyInterfaceGenerator {
         // backlinks are final and have only a getter.
         for (Backlink backlink : metaData.getBacklinkFields()) {
             writer
-                .beginMethod(
-                    backlink.getTargetFieldType(),
-                    metaData.getInternalGetter(backlink.getTargetField()),
-                    EnumSet.of(Modifier.PUBLIC))
-                .endMethod();
+                    .beginMethod(
+                            backlink.getTargetFieldType(),
+                            metaData.getInternalGetter(backlink.getTargetField()),
+                            EnumSet.of(Modifier.PUBLIC))
+                    .endMethod();
         }
 
         writer.endType();

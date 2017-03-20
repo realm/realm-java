@@ -21,6 +21,7 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+
 /**
  * An ObserverPairList holds a list of ObserverPairs. An {@link ObserverPair} is pair containing an observer and a
  * listener. The observer is the object to react to the changes through the listener. The observer is saved as a weak

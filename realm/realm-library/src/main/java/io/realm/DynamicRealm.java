@@ -22,6 +22,7 @@ import io.realm.internal.Table;
 import io.realm.log.RealmLog;
 import rx.Observable;
 
+
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
  * done using string based class names instead of class type references.
@@ -54,9 +55,9 @@ public class DynamicRealm extends BaseRealm {
      * DynamicRealm will never trigger a migration.
      *
      * @return the DynamicRealm defined by the configuration.
-     * @see RealmConfiguration for details on how to configure a Realm.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if {@code configuration} argument is {@code null}.
+     * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static DynamicRealm getInstance(RealmConfiguration configuration) {
         if (configuration == null) {
@@ -93,7 +94,7 @@ public class DynamicRealm extends BaseRealm {
      * @throws RealmException if object could not be created due to the primary key being invalid.
      * @throws IllegalStateException if the model clazz does not have an primary key defined.
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
-     *                                  expected value.
+     * expected value.
      */
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
         Table table = schema.getTable(className);
@@ -106,8 +107,8 @@ public class DynamicRealm extends BaseRealm {
      *
      * @param className the class of the object which is to be queried.
      * @return a RealmQuery, which can be used to query for specific objects of provided type.
-     * @see io.realm.RealmQuery
      * @throws IllegalArgumentException if the class doesn't exist.
+     * @see io.realm.RealmQuery
      */
     public RealmQuery<DynamicRealmObject> where(String className) {
         checkIfValid();

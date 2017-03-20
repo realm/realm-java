@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
 
+
 /**
  * Class acting as an mediator between the basic Realm APIs and the Object Server APIs.
  * This breaks the cyclic dependency between ObjectServer and Realm code.
@@ -52,6 +53,7 @@ public class ObjectServerFacade {
 
     /**
      * Initializes the Object Server library
+     *
      * @param context
      */
     public void init(Context context) {

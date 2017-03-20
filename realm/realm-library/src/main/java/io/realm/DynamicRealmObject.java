@@ -28,6 +28,7 @@ import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
 
+
 /**
  * Class that wraps a normal RealmObject in order to allow dynamic access instead of a typed interface.
  * Using a DynamicRealmObject is slower than using the regular RealmObject class.
@@ -89,15 +90,24 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         RealmFieldType type = proxyState.getRow$realm().getColumnType(columnIndex);
         switch (type) {
-            case BOOLEAN: return (E) Boolean.valueOf(proxyState.getRow$realm().getBoolean(columnIndex));
-            case INTEGER: return (E) Long.valueOf(proxyState.getRow$realm().getLong(columnIndex));
-            case FLOAT: return (E) Float.valueOf(proxyState.getRow$realm().getFloat(columnIndex));
-            case DOUBLE: return (E) Double.valueOf(proxyState.getRow$realm().getDouble(columnIndex));
-            case STRING: return (E) proxyState.getRow$realm().getString(columnIndex);
-            case BINARY: return (E) proxyState.getRow$realm().getBinaryByteArray(columnIndex);
-            case DATE: return (E) proxyState.getRow$realm().getDate(columnIndex);
-            case OBJECT: return (E) getObject(fieldName);
-            case LIST: return (E) getList(fieldName);
+            case BOOLEAN:
+                return (E) Boolean.valueOf(proxyState.getRow$realm().getBoolean(columnIndex));
+            case INTEGER:
+                return (E) Long.valueOf(proxyState.getRow$realm().getLong(columnIndex));
+            case FLOAT:
+                return (E) Float.valueOf(proxyState.getRow$realm().getFloat(columnIndex));
+            case DOUBLE:
+                return (E) Double.valueOf(proxyState.getRow$realm().getDouble(columnIndex));
+            case STRING:
+                return (E) proxyState.getRow$realm().getString(columnIndex);
+            case BINARY:
+                return (E) proxyState.getRow$realm().getBinaryByteArray(columnIndex);
+            case DATE:
+                return (E) proxyState.getRow$realm().getDate(columnIndex);
+            case OBJECT:
+                return (E) getObject(fieldName);
+            case LIST:
+                return (E) getList(fieldName);
             case UNSUPPORTED_TABLE:
             case UNSUPPORTED_MIXED:
             default:
@@ -405,11 +415,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
     /**
      * Sets the value for the given field. This method will automatically try to convert numbers and
-     * booleans that are given as {@code String} to their appropriate type. For example {@code "10"} 
+     * booleans that are given as {@code String} to their appropriate type. For example {@code "10"}
      * will be converted to {@code 10} if the field type is {@code int}.
      * <p>
      * Using the typed setters will be faster than using this method.
-     * 
+     *
      * @throws IllegalArgumentException if field name doesn't exist or if the input value cannot be converted
      * to the appropriate input type.
      * @throws NumberFormatException if a String based number cannot be converted properly.
@@ -426,12 +436,22 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         RealmFieldType type = proxyState.getRow$realm().getColumnType(columnIndex);
         if (isString && type != RealmFieldType.STRING) {
-            switch(type) {
-                case BOOLEAN: value = Boolean.parseBoolean(strValue); break;
-                case INTEGER: value = Long.parseLong(strValue); break;
-                case FLOAT: value = Float.parseFloat(strValue); break;
-                case DOUBLE: value = Double.parseDouble(strValue); break;
-                case DATE: value = JsonUtils.stringToDate(strValue); break;
+            switch (type) {
+                case BOOLEAN:
+                    value = Boolean.parseBoolean(strValue);
+                    break;
+                case INTEGER:
+                    value = Long.parseLong(strValue);
+                    break;
+                case FLOAT:
+                    value = Float.parseFloat(strValue);
+                    break;
+                case DOUBLE:
+                    value = Double.parseDouble(strValue);
+                    break;
+                case DATE:
+                    value = JsonUtils.stringToDate(strValue);
+                    break;
                 default:
                     throw new IllegalArgumentException(String.format("Field %s is not a String field, " +
                             "and the provide value could not be automatically converted: %s. Use a typed" +
@@ -697,7 +717,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             if (!linkTargetTableName.equals(listType)) {
                 throw new IllegalArgumentException(String.format(Locale.ENGLISH,
                         "The elements in the list are not the proper type. " +
-                        "Was %s expected %s.", listType, linkTargetTableName));
+                                "Was %s expected %s.", listType, linkTargetTableName));
             }
             typeValidated = true;
         }
@@ -797,8 +817,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * other threads. This means that a hash code value of the object is not stable, and the value
      * should be neither used as a key in HashMap nor saved in HashSet.
      *
-     * @return  a hash code value for the object.
-     * @see     #equals
+     * @return a hash code value for the object.
+     * @see #equals
      */
     @Override
     public int hashCode() {

@@ -25,6 +25,7 @@ import java.net.URL;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.Diagnostic;
 
+
 public class RealmVersionChecker {
     public static final String REALM_ANDROID_DOWNLOAD_URL = "http://static.realm.io/downloads/java/latest";
 
@@ -61,8 +62,7 @@ public class RealmVersionChecker {
 
         try {
             backgroundThread.join(CONNECT_TIMEOUT + READ_TIMEOUT);
-        }
-        catch (InterruptedException ignore) {
+        } catch (InterruptedException ignore) {
             // We ignore this exception on purpose not to break the build system if this class fails
         }
     }
@@ -79,7 +79,7 @@ public class RealmVersionChecker {
         String result = REALM_VERSION;
         try {
             URL url = new URL(VERSION_URL + REALM_VERSION);
-            HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(CONNECT_TIMEOUT);
             conn.setReadTimeout(READ_TIMEOUT);
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));

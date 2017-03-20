@@ -17,14 +17,15 @@ package io.realm.internal;
 
 import java.util.IdentityHashMap;
 
+
 /**
  * Identity based Set, that guarantees store & retrieve in O(1)
  * without a huge overhead in space complexity.
  */
-public class IdentitySet<K> extends IdentityHashMap<K,Integer> {
+public class IdentitySet<K> extends IdentityHashMap<K, Integer> {
     private final static Integer PLACE_HOLDER = 0;
 
-    public void add(K key)  {
+    public void add(K key) {
         put(key, PLACE_HOLDER);
     }
 }

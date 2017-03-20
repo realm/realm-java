@@ -20,13 +20,14 @@ import java.util.Date;
 
 import io.realm.RealmFieldType;
 
+
 /**
  * Wrapper around a Row in Realm Core.
- *
+ * <p>
  * IMPORTANT: All access to methods using this class are non-checking. Safety guarantees are given by the
  * annotation processor and {@link RealmProxyMediator#validateTable(Class, SharedRealm, boolean)}
  * which is called before the typed API can be used.
- *
+ * <p>
  * For low-level access to Row data where error checking is required, use {@link CheckedRow}.
  */
 public class UncheckedRow implements NativeObject, Row {
@@ -297,32 +298,60 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     protected native long nativeGetColumnCount(long nativeTablePtr);
+
     protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
+
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
+
     protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
+
     protected native long nativeGetIndex(long nativeRowPtr);
+
     protected native long nativeGetLong(long nativeRowPtr, long columnIndex);
+
     protected native boolean nativeGetBoolean(long nativeRowPtr, long columnIndex);
+
     protected native float nativeGetFloat(long nativeRowPtr, long columnIndex);
+
     protected native double nativeGetDouble(long nativeRowPtr, long columnIndex);
+
     protected native long nativeGetTimestamp(long nativeRowPtr, long columnIndex);
+
     protected native String nativeGetString(long nativePtr, long columnIndex);
+
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
+
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
+
     protected native long nativeGetLinkView(long nativePtr, long columnIndex);
+
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
+
     protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
+
     protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);
+
     protected native long nativeGetLink(long nativeRowPtr, long columnIndex);
+
     protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
+
     protected native void nativeSetTimestamp(long nativeRowPtr, long columnIndex, long dateTimeValue);
+
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
+
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
+
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
+
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
+
     protected native boolean nativeIsAttached(long nativeRowPtr);
+
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
+
     protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
+
     protected native void nativeSetNull(long nativeRowPtr, long columnIndex);
+
     private static native long nativeGetFinalizerPtr();
 }

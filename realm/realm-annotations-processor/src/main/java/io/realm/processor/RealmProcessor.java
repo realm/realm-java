@@ -33,80 +33,81 @@ import javax.lang.model.element.TypeElement;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.RealmModule;
 
+
 /**
  * The RealmProcessor is responsible for creating the plumbing that connects the RealmObjects to a Realm. The process
  * for doing so is summarized below and then described in more detail.
  * <p>
- *
+ * <p>
  * <h1>DESIGN GOALS</h1>
- *
+ * <p>
  * The processor should support the following design goals:
  * <ul>
- *  <li>Minimize reflection.</li>
- *  <li>Realm code can be obfuscated as much as possible.</li>
- *  <li>Library projects must be able to use Realm without interfering with app code.</li>
- *  <li>App code must be able to use RealmObject classes provided by library code.</li>
- *  <li>It should work for app developers out of the box (ie. put the burden on the library developer)</li>
+ * <li>Minimize reflection.</li>
+ * <li>Realm code can be obfuscated as much as possible.</li>
+ * <li>Library projects must be able to use Realm without interfering with app code.</li>
+ * <li>App code must be able to use RealmObject classes provided by library code.</li>
+ * <li>It should work for app developers out of the box (ie. put the burden on the library developer)</li>
  * </ul>
- *
+ * <p>
  * <h1>SUMMARY</h1>
- *
+ * <p>
  * <ol>
- *  <li>Create proxy classes for all classes marked with @RealmClass. They are named &lt;className&gt;RealmProxy.java</li>
- *  <li>Create a DefaultRealmModule containing all RealmObject classes (if needed).</li>
- *  <li>Create a RealmProxyMediator class for all classes marked with {@code @RealmModule}. They are named {@code <moduleName>Mediator.java}</li>
+ * <li>Create proxy classes for all classes marked with @RealmClass. They are named &lt;className&gt;RealmProxy.java</li>
+ * <li>Create a DefaultRealmModule containing all RealmObject classes (if needed).</li>
+ * <li>Create a RealmProxyMediator class for all classes marked with {@code @RealmModule}. They are named {@code <moduleName>Mediator.java}</li>
  * </ol>
- *
+ * <p>
  * <h1>WHY</h1>
- *
+ * <p>
  * <ol>
  * <li>A RealmObjectProxy object is created for each class annotated with {@link io.realm.annotations.RealmClass}. This
  * proxy extends the original RealmObject class and rewires all field access to point to the native Realm memory instead of
  * Java memory. It also adds some static helper methods to the class.</li>
- *
+ * <p>
  * <li>The annotation processor is either in "library" mode or in "app" mode. This is defined by having a class
  * annotated with @RealmModule(library = true). It is not allowed to have both a class with library = true and
  * library = false in the same IntelliJ module and it will cause the annotation processor to throw an exception. If no
  * library modules are defined, we will create a DefaultRealmModule containing all known RealmObjects and with the
  * {@code @RealmModule} annotation. Realm automatically knows about this module, but it is still possible for users to create
  * their own modules with a subset of model classes.</li>
- *
+ * <p>
  * <li>For each class annotated with @RealmModule a matching Mediator class is created (including the default one). This
  * class has an interface that matches the static helper methods for the proxy classes. All access to these static
  * helper methods should be done through this Mediator.</li>
  * </ol>
- *
+ * <p>
  * This allows ProGuard to obfuscate all RealmObject and proxy classes as all access to the static methods now happens through
  * the Mediator, and the only requirement is now that only RealmModule and Mediator class names cannot be obfuscated.
- *
- *
+ * <p>
+ * <p>
  * <h1>CREATING A REALM</h1>
- *
+ * <p>
  * This means the workflow when instantiating a Realm on runtime is the following:
- *
+ * <p>
  * <ol>
- *  <li>Open a Realm.</li>
- *  <li>Assign one or more modules (that are allowed to overlap). If no module is assigned, the default module is used.</li>
- *  <li>The Realm schema is now defined as all RealmObject classes known by these modules.</li>
- *  <li>Each time a static helper method is needed, Realm can now delegate these method calls to the appropriate
- *    Mediator which in turn will delegate the method call to the appropriate RealmObjectProxy class.</li>
+ * <li>Open a Realm.</li>
+ * <li>Assign one or more modules (that are allowed to overlap). If no module is assigned, the default module is used.</li>
+ * <li>The Realm schema is now defined as all RealmObject classes known by these modules.</li>
+ * <li>Each time a static helper method is needed, Realm can now delegate these method calls to the appropriate
+ * Mediator which in turn will delegate the method call to the appropriate RealmObjectProxy class.</li>
  * </ol>
- *
+ * <p>
  * <h1>CREATING A MANAGED RealmObject</h1>
- *
+ * <p>
  * To allow to specify default values by model's constructor or direct field assignment,
  * the flow of creating the proxy object is a bit complicated. This section illustrates
  * how proxy object should be created.
- *
+ * <p>
  * <ol>
- *  <li>Get the thread local {@code io.realm.BaseRealm.RealmObjectContext} instance by {@code BaseRealm.objectContext.get()} </li>
- *  <li>Set the object context information to the {@code RealmObjectContext} those should be set to the creating proxy object.</li>
- *  <li>Create proxy object ({@code new io.realm.FooRealmProxy()}).</li>
- *  <li>Set the object context information to the created proxy when the first access of its accessors (or in its constructor if accessors are not used in the model's constructor).</li>
- *  <li>Clear the object context information in the thread local {@code io.realm.BaseRealm.RealmObjectContext} instance by calling {@code
- *  #clear()} method.</li>
+ * <li>Get the thread local {@code io.realm.BaseRealm.RealmObjectContext} instance by {@code BaseRealm.objectContext.get()} </li>
+ * <li>Set the object context information to the {@code RealmObjectContext} those should be set to the creating proxy object.</li>
+ * <li>Create proxy object ({@code new io.realm.FooRealmProxy()}).</li>
+ * <li>Set the object context information to the created proxy when the first access of its accessors (or in its constructor if accessors are not used in the model's constructor).</li>
+ * <li>Clear the object context information in the thread local {@code io.realm.BaseRealm.RealmObjectContext} instance by calling {@code
+ * #clear()} method.</li>
  * </ol>
- *
+ * <p>
  * The reason of this complicated step is that we can't pass these context information
  * via the constructor of the proxy. It's because the constructor of the proxy is executed
  * <b>after</b> the constructor of the model class. The access to the fields in the model's
@@ -135,7 +136,8 @@ public class RealmProcessor extends AbstractProcessor {
     private boolean hasProcessedModules = false;
     private int round;
 
-    @Override public SourceVersion getSupportedSourceVersion() {
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latestSupported();
     }
 
@@ -272,11 +274,11 @@ public class RealmProcessor extends AbstractProcessor {
         boolean allValid = true;
 
         Map<String, ClassMetaData> realmClasses = new HashMap<String, ClassMetaData>(classesToValidate.size());
-        for (ClassMetaData classData: classesToValidate) {
+        for (ClassMetaData classData : classesToValidate) {
             realmClasses.put(classData.getFullyQualifiedClassName(), classData);
         }
 
-        for (Backlink backlink: backlinksToValidate) {
+        for (Backlink backlink : backlinksToValidate) {
             ClassMetaData clazz = realmClasses.get(backlink.getSourceClass());
 
             // If the class is not here it might be part of some other compilation unit.

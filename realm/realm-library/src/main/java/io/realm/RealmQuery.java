@@ -30,6 +30,7 @@ import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 
+
 /**
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults} using the Builder
  * pattern. The query is executed using either {@link #findAll()} or {@link #findFirst()}.
@@ -64,8 +65,8 @@ public class RealmQuery<E extends RealmModel> {
     /**
      * Creates a query for objects of a given class from a {@link Realm}.
      *
-     * @param realm  the realm to query within.
-     * @param clazz  the class to query.
+     * @param realm the realm to query within.
+     * @param clazz the class to query.
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
@@ -76,8 +77,8 @@ public class RealmQuery<E extends RealmModel> {
     /**
      * Creates a query for dynamic objects of a given type from a {@link DynamicRealm}.
      *
-     * @param realm  the realm to query within.
-     * @param className  the type to query.
+     * @param realm the realm to query within.
+     * @param className the type to query.
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
@@ -88,7 +89,7 @@ public class RealmQuery<E extends RealmModel> {
     /**
      * Creates a query from an existing {@link RealmResults}.
      *
-     * @param queryResults   an existing @{link io.realm.RealmResults} to query against.
+     * @param queryResults an existing @{link io.realm.RealmResults} to query against.
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
@@ -105,7 +106,7 @@ public class RealmQuery<E extends RealmModel> {
     /**
      * Creates a query from an existing {@link RealmList}.
      *
-     * @param list   an existing @{link io.realm.RealmList} to query against.
+     * @param list an existing @{link io.realm.RealmList} to query against.
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
@@ -244,7 +245,7 @@ public class RealmQuery<E extends RealmModel> {
      *
      * @param fieldName the field to compare.
      * @param value the value to compare with.
-     * @param casing     how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -697,7 +698,7 @@ public class RealmQuery<E extends RealmModel> {
      *
      * @param fieldName the field to compare.
      * @param value the value to compare with.
-     * @param casing     how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
+     * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1315,7 +1316,7 @@ public class RealmQuery<E extends RealmModel> {
      *
      * @param fieldName the field to compare.
      * @param value the substring.
-     * @param casing     how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return The query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1344,7 +1345,7 @@ public class RealmQuery<E extends RealmModel> {
      *
      * @param fieldName the field to compare.
      * @param value the substring.
-     * @param casing     how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1388,8 +1389,8 @@ public class RealmQuery<E extends RealmModel> {
     /**
      * Condition that the value of field matches with the specified substring, with wildcards:
      * <ul>
-     *   <li>'*' matches [0, n] unicode chars</li>
-     *   <li>'?' matches a single unicode char.</li>
+     * <li>'*' matches [0, n] unicode chars</li>
+     * <li>'?' matches a single unicode char.</li>
      * </ul>
      *
      * @param fieldName the field to compare.
@@ -1404,8 +1405,8 @@ public class RealmQuery<E extends RealmModel> {
     /**
      * Condition that the value of field matches with the specified substring, with wildcards:
      * <ul>
-     *   <li>'*' matches [0, n] unicode chars</li>
-     *   <li>'?' matches a single unicode char.</li>
+     * <li>'*' matches [0, n] unicode chars</li>
+     * <li>'?' matches a single unicode char.</li>
      * </ul>
      *
      * @param fieldName the field to compare.
@@ -1582,8 +1583,8 @@ public class RealmQuery<E extends RealmModel> {
      *
      * @param fieldName the field to sum. Only number fields are supported.
      * @return the sum of fields of the matching objects. If no objects exist or they all have {@code null} as the value
-     *         for the given field, {@code 0} will be returned. When computing the sum, objects with {@code null} values
-     *         are ignored.
+     * for the given field, {@code 0} will be returned. When computing the sum, objects with {@code null} values
+     * are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number sum(String fieldName) {
@@ -1672,7 +1673,7 @@ public class RealmQuery<E extends RealmModel> {
      * Finds the maximum value of a field.
      *
      * @param fieldName the field to look for a maximum on. Only number fields are supported.
-     * @return  if no objects exist or they all have {@code null} as the value for the given field, {@code null} will be
+     * @return if no objects exist or they all have {@code null} as the value for the given field, {@code null} will be
      * returned. Otherwise the maximum value is returned. When determining the maximum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
@@ -1776,7 +1777,7 @@ public class RealmQuery<E extends RealmModel> {
      * (need a Realm opened from a looper thread to work).
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     *         {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.
      */
@@ -1791,7 +1792,7 @@ public class RealmQuery<E extends RealmModel> {
 
     /**
      * Finds all objects that fulfill the query conditions and sorted by specific field name in ascending order.
-     *
+     * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
@@ -1827,7 +1828,7 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldNames an array of field names to sort by.
      * @param sortOrders how to sort the field names.
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     *         objects is returned.
+     * objects is returned.
      * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.
      */
@@ -1849,9 +1850,9 @@ public class RealmQuery<E extends RealmModel> {
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @see io.realm.RealmResults
      * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.
+     * @see io.realm.RealmResults
      */
     public RealmResults<E> findAllSortedAsync(String fieldNames[], final Sort[] sortOrders) {
         realm.checkIfValid();
@@ -1863,7 +1864,7 @@ public class RealmQuery<E extends RealmModel> {
 
     /**
      * Finds all objects that fulfill the query conditions and sorted by specific field names in ascending order.
-     *
+     * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
@@ -1877,8 +1878,8 @@ public class RealmQuery<E extends RealmModel> {
      * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
-                                         String fieldName2, Sort sortOrder2) {
-        return findAllSorted(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
+            String fieldName2, Sort sortOrder2) {
+        return findAllSorted(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
     /**
@@ -1891,8 +1892,8 @@ public class RealmQuery<E extends RealmModel> {
      * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
-                                              String fieldName2, Sort sortOrder2) {
-        return findAllSortedAsync(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
+            String fieldName2, Sort sortOrder2) {
+        return findAllSortedAsync(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
     /**
@@ -1961,9 +1962,9 @@ public class RealmQuery<E extends RealmModel> {
     }
 
     private RealmResults<E> createRealmResults(TableQuery query,
-                                               SortDescriptor sortDescriptor,
-                                               SortDescriptor distinctDescriptor,
-                                               boolean loadResults) {
+            SortDescriptor sortDescriptor,
+            SortDescriptor distinctDescriptor,
+            boolean loadResults) {
         RealmResults<E> results;
         Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
         if (isDynamicQuery()) {
