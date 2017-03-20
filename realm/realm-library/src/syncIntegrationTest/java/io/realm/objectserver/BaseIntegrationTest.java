@@ -21,10 +21,20 @@ import android.support.test.InstrumentationRegistry;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import io.realm.ObjectServerError;
 import io.realm.Realm;
+import io.realm.SyncConfiguration;
+import io.realm.SyncCredentials;
 import io.realm.SyncManager;
+import io.realm.SyncSession;
+import io.realm.SyncUser;
 import io.realm.log.RealmLog;
+import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.HttpUtils;
+import io.realm.objectserver.utils.UserFactory;
+
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 class BaseIntegrationTest {
 
@@ -48,5 +58,14 @@ class BaseIntegrationTest {
         } catch (Exception e) {
             RealmLog.error("Failed to stop Sync Server", e);
         }
+    }
+
+    /**
+     * Login the admin user synchronously.
+     */
+    public SyncUser loginAdminUser() {
+        SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
+        SyncCredentials credentials = SyncCredentials.accessToken(admin.getAccessToken().value(), "custom-admin-user");
+        return SyncUser.login(credentials, Constants.AUTH_URL);
     }
 }

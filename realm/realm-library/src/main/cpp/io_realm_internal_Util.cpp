@@ -55,6 +55,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         java_util_date_init = env->GetMethodID(java_util_date, "<init>", "(J)V");
 #if REALM_ENABLE_SYNC
         java_syncmanager = GetClass(env, "io/realm/SyncManager");
+        java_progress_listener_wrapper = GetClass(env, "io/realm/SyncSession$ProgressListenerWrapper");
 #endif
     }
 

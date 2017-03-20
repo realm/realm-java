@@ -139,7 +139,7 @@ public class SyncSession {
     }
 
     private void checkProgressListenerArguments(ProgressMode mode, ProgressListener listener) {
-        if (listener != null) {
+        if (listener == null) {
             throw new IllegalArgumentException("Non-null 'listener' required.");
         }
         if (mode == null) {
@@ -178,7 +178,7 @@ public class SyncSession {
      * ProgressListener wrapper. Used so we can expose {@link ProgressListener} as an interface instead of an abstract
      * class.
      */
-    private class ProgressListenerWrapper {
+    private static class ProgressListenerWrapper {
         private final ProgressListener listener;
         private long token;
 
@@ -187,6 +187,7 @@ public class SyncSession {
         }
 
         // Called from JNI
+        @SuppressWarnings("unused")
         @KeepMember
         public void notifyProgressChange(long transferredBytes, long transferableBytes) {
             listener.onChange(new Progress(transferredBytes, transferableBytes));

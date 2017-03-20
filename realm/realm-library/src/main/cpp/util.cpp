@@ -45,6 +45,7 @@ jclass java_util_date;
 jmethodID java_util_date_init;
 #if REALM_ENABLE_SYNC
 jclass java_syncmanager;
+jclass java_progress_listener_wrapper;
 #endif
 
 void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind);

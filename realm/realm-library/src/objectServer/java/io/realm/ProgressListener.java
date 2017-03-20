@@ -21,9 +21,34 @@ package io.realm;
  */
 public interface ProgressListener {
     /**
-     * Called
+     * This method will be called periodically from the underlying Object Server Client responsible
+     * for uploading and downloading changes from the remote Object Server.
      *
-     * @param progress
+     * This callback will <i>not</i> happen on the UI thread, but on the worker thread controlling
+     * the Object Server Client. Use {@code Activity.runOnUiThread(Runnable)} or similar to update
+     * any UI elements.
+     *
+     * <pre>
+     * {@code
+     * // Adding a download progress listener w
+     * session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
+     *   \@Override
+     *    public void onChange(Progress progress) {
+     *      activity.runOnUiThread(new Runnable() {
+     *        \@Override
+     *         public void run() {
+     *           updateProgressBar(progres);
+     *         }
+     *      });
+     *      if (progress.isTransferComplete() {
+     *        session.removeProgressListener(this);
+     *      }
+     *    }
+     * });
+     * }
+     * </pre>
+     *
+     * @param progress an immutable progress change event. This object is thread safe.
      */
     void onChange(Progress progress);
 }

@@ -24,7 +24,7 @@ public enum ProgressMode {
     /**
      * When registering the {@link ProgressListener}, it will record the current number of changes, and will only
      * continue to report progress changes until those changes have been either downloaded or uploaded. After that
-     * the progress listener will remove itself and not report any further changes.
+     * the progress listener will not report any further changes.
      *
      * This is useful when e.g. reporting progress when downloading a Realm for the first time.
      * TODO more info

@@ -52,7 +52,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JN
 
 JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIEnv* env, jclass,
                                                                             jstring localRealmPath,
-                                                                            jobject, jint direction,
+                                                                            jobject listenerWrapper, jint direction,
                                                                             jboolean isStreaming)
 {
     try {
@@ -64,9 +64,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
             return static_cast<jlong>(0);
         }
 
-        SyncSession::NotifierType type = (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
+        SyncSession::NotifierType type =
+            (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
 
-        std::function<SyncProgressNotifierCallback> callback = [=](uint64_t, uint64_t) {
+        std::function<SyncProgressNotifierCallback> callback = [=](uint64_t transferred, uint64_t transferrable) {
+            jmethodID notify_method = env->GetMethodID(java_progress_listener_wrapper, "notifyProgressChange", "(JJ)V");
+            env->CallVoidMethod(listenerWrapper, notify_method, transferred, transferrable);
         };
         uint64_t token = session->register_progress_notifier(callback, type, to_bool(isStreaming));
         return static_cast<jlong>(token);
