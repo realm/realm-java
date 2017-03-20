@@ -8,6 +8,7 @@
 
 * `Realm.migrateRealm(RealmConfiguration)` now fails correctly with an `IllegalArgumentException` if a `SyncConfiguration` is provided (#4075).
 * Fixed a potential cause for Realm file corruptions (never reported).
+* Add `@Override` annotation to proxy class accessors and stop using raw type in proxy classes in order to remove warnings from javac (#4329).
 
 ### Deprecated
 
