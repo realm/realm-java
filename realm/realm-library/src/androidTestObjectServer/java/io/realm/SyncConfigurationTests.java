@@ -70,6 +70,7 @@ public class SyncConfigurationTests {
 
     @After
     public void tearDown() throws Exception {
+        SyncManager.reset();
     }
 
     @Test
@@ -224,6 +225,11 @@ public class SyncConfigurationTests {
             public void onError(SyncSession session, ObjectServerError error) {
 
             }
+
+            @Override
+            public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
+
+            }
         };
         SyncConfiguration config = builder.errorHandler(errorHandler).build();
         assertEquals(errorHandler, config.getErrorHandler());
@@ -235,6 +241,11 @@ public class SyncConfigurationTests {
         SyncSession.ErrorHandler errorHandler = new SyncSession.ErrorHandler() {
             @Override
             public void onError(SyncSession session, ObjectServerError error) {
+
+            }
+
+            @Override
+            public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
 
             }
         };

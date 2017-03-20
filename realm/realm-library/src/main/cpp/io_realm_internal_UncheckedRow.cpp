@@ -169,7 +169,7 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetByteAr
         jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
         if (jresult) {
             env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()),
-                                    reinterpret_cast<const jbyte *>(bin.data())); // throws
+                                    reinterpret_cast<const jbyte*>(bin.data())); // throws
         }
         return jresult;
     }

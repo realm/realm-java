@@ -49,7 +49,7 @@ public class CompositeMediator extends RealmProxyMediator {
     private final Map<Class<? extends RealmModel>, RealmProxyMediator> mediators;
 
     public CompositeMediator(RealmProxyMediator... mediators) {
-        final HashMap<Class<? extends RealmModel>, RealmProxyMediator> tempMediators = new HashMap<>();
+        final HashMap<Class<? extends RealmModel>, RealmProxyMediator> tempMediators = new HashMap<Class<? extends RealmModel>, RealmProxyMediator>();
         if (mediators != null) {
             for (RealmProxyMediator mediator : mediators) {
                 for (Class<? extends RealmModel> realmClass : mediator.getModelClasses()) {

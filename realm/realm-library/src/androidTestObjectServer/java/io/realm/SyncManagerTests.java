@@ -24,8 +24,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.Collection;
-import java.util.Set;
 
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -69,20 +69,6 @@ public class SyncManagerTests {
             }
 
         };
-    }
-
-    @Test
-    public void init() {
-        // Realm.init() calls SyncManager.init() which will start a thread for the sync client
-        boolean found = false;
-        Set<Thread> threads = Thread.getAllStackTraces().keySet();
-        for (Thread thread : threads) {
-            if (thread.getName().equals("RealmSyncClient")) {
-                found = true;
-                break;
-            }
-        }
-        assertTrue(found);
     }
 
     @Test
@@ -153,14 +139,14 @@ public class SyncManagerTests {
         assertEquals(0, counter[0]);
         assertEquals(0, counter[1]);
     }
-
     @Test
-    public void session() {
+    public void session() throws IOException {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         SyncConfiguration config = new SyncConfiguration.Builder(user, url)
                 .build();
-
+        // This will trigger the creation of the session
+        Realm.getInstance(config);
         SyncSession session = SyncManager.getSession(config);
         assertEquals(user, session.getUser()); // see also SessionTests
     }
