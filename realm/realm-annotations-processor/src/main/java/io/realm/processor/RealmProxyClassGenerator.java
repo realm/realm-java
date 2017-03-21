@@ -566,6 +566,7 @@ public class RealmProxyClassGenerator {
             String realmResultsType = "RealmResults<" + backlink.getSourceClass() + ">";
 
             // Getter, no setter
+            writer.emitAnnotation("Override");
             writer.beginMethod(realmResultsType, metadata.getInternalGetter(backlink.getTargetField()), EnumSet.of(Modifier.PUBLIC))
                 .emitStatement("BaseRealm realm = proxyState.getRealm$realm()")
                 .emitStatement("realm.checkIfValid()")
