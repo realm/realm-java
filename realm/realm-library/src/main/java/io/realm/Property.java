@@ -23,8 +23,8 @@ package io.realm;
 
 class Property {
     public static final boolean PRIMARY_KEY = true;
-    public static final boolean REQUIRED    = true;
-    public static final boolean INDEXED     = true;
+    public static final boolean REQUIRED = true;
+    public static final boolean INDEXED = true;
 
     private final long nativePtr;
 
@@ -52,6 +52,8 @@ class Property {
     }
 
     private static native long nativeCreateProperty(String name, int type, boolean isPrimary, boolean isIndexed, boolean isNullable);
+
     private static native long nativeCreateProperty(String name, int type, String linkedToName);
+
     private static native void nativeClose(long nativePtr);
 }

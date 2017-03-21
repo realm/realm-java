@@ -24,6 +24,7 @@ import io.realm.internal.PendingRow;
 import io.realm.internal.Row;
 import io.realm.internal.UncheckedRow;
 
+
 /**
  * This implements {@code RealmObjectProxy} interface, to eliminate copying logic between
  * {@link RealmObject} and {@link DynamicRealmObject}.
@@ -135,7 +136,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     }
 
     private void registerToRealmNotifier() {
-        if (realm.sharedRealm == null || realm.sharedRealm.isClosed()) {
+        if (realm.sharedRealm == null || realm.sharedRealm.isClosed() || !row.isAttached()) {
             return;
         }
 
@@ -147,7 +148,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
                     // If the Row gets detached, table version will be -1 and it is different from current value.
                     tableVersion = row.getTable().getVersion();
                 }
-                if (currentTableVersion != tableVersion)  {
+                if (currentTableVersion != tableVersion) {
                     currentTableVersion = tableVersion;
                     notifyChangeListeners();
                 }
@@ -172,9 +173,11 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     @Override
     public void onQueryFinished(Row row) {
         this.row = row;
-        // getTable should return a non-null table since the row should always be valid here.
-        currentTableVersion = row.getTable().getVersion();
         notifyChangeListeners();
-        registerToRealmNotifier();
+        if (row.isAttached()) {
+            // getTable should return a non-null table since the row should always be valid here.
+            currentTableVersion = row.getTable().getVersion();
+            registerToRealmNotifier();
+        }
     }
 }

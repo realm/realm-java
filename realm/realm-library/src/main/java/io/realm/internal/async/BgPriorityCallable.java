@@ -18,6 +18,7 @@ package io.realm.internal.async;
 
 import java.util.concurrent.Callable;
 
+
 /**
  * Decorator to set the thread priority according to
  * <a href="https://developer.android.com/training/multiple-threads/define-runnable.html"> Androids recommendation</a>.

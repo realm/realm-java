@@ -128,7 +128,7 @@ public class DynamicRealmObjectTests {
         HASH_CODE, EQUALS, TO_STRING,
     }
 
-    @SuppressWarnings({"ResultOfMethodCallIgnored", "EqualsWithItself"})
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "EqualsWithItself", "SelfEquals"})
     private static void callThreadConfinedMethod(DynamicRealmObject obj, ThreadConfinedMethods method) {
         switch (method) {
             case GET_BOOLEAN: obj.getBoolean(AllJavaTypes.FIELD_BOOLEAN); break;

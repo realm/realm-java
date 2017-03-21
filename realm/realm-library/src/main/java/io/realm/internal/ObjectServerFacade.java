@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
 
+
 /**
  * Class acting as an mediator between the basic Realm APIs and the Object Server APIs.
  * This breaks the cyclic dependency between ObjectServer and Realm code.
@@ -35,6 +36,7 @@ public class ObjectServerFacade {
     static {
         //noinspection TryWithIdenticalCatches
         try {
+            @SuppressWarnings("LiteralClassName")
             Class syncFacadeClass = Class.forName("io.realm.internal.SyncObjectServerFacade");
             //noinspection unchecked
             syncFacade = (ObjectServerFacade) syncFacadeClass.getDeclaredConstructor().newInstance();
@@ -52,6 +54,7 @@ public class ObjectServerFacade {
 
     /**
      * Initializes the Object Server library
+     *
      * @param context
      */
     public void init(Context context) {

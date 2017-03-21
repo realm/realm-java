@@ -24,10 +24,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+
 /**
  * Utilities methods for manipulating dates in iso8601 format. This is much much faster and GC friendly than using SimpleDateFormat so
  * highly suitable if you (un)serialize lots of date objects.
- *
+ * <p>
  * Supported parse format: [yyyy-MM-dd|yyyyMMdd][T(hh:mm[:ss[.sss]]|hhmm[ss[.sss]])]?[Z|[+-]hh[:]mm]]
  *
  * @see <a href="http://www.w3.org/TR/NOTE-datetime">this specification</a>
@@ -117,7 +118,9 @@ public class ISO8601Utils {
                     char c = date.charAt(offset);
                     if (c != 'Z' && c != '+' && c != '-') {
                         seconds = parseInt(date, offset, offset += 2);
-                        if (seconds > 59 && seconds < 63) seconds = 59; // Truncates up to 3 leap seconds.
+                        if (seconds > 59 && seconds < 63) {
+                            seconds = 59; // Truncates up to 3 leap seconds.
+                        }
                         // Milliseconds can be optional in the format.
                         if (checkOffset(date, offset, '.')) {
                             offset += 1;
@@ -176,13 +179,13 @@ public class ISO8601Utils {
                          */
                         String cleaned = act.replace(":", "");
                         if (!cleaned.equals(timezoneId)) {
-                            throw new IndexOutOfBoundsException("Mismatching time zone indicator: "+timezoneId+" given, resolves to "
-                                    +timezone.getID());
+                            throw new IndexOutOfBoundsException("Mismatching time zone indicator: " + timezoneId + " given, resolves to "
+                                    + timezone.getID());
                         }
                     }
                 }
             } else {
-                throw new IndexOutOfBoundsException("Invalid time zone indicator '" + timezoneIndicator+"'");
+                throw new IndexOutOfBoundsException("Invalid time zone indicator '" + timezoneIndicator + "'");
             }
 
             Calendar calendar = new GregorianCalendar(timezone);
@@ -209,7 +212,7 @@ public class ISO8601Utils {
         String input = (date == null) ? null : ('"' + date + "'");
         String msg = fail.getMessage();
         if (msg == null || msg.isEmpty()) {
-            msg = "("+fail.getClass().getName()+")";
+            msg = "(" + fail.getClass().getName() + ")";
         }
         ParseException ex = new ParseException("Failed to parse date [" + input + "]: " + msg, pos.getIndex());
         ex.initCause(fail);
@@ -270,7 +273,7 @@ public class ISO8601Utils {
     private static int indexOfNonDigit(String string, int offset) {
         for (int i = offset; i < string.length(); i++) {
             char c = string.charAt(i);
-            if (c < '0' || c > '9') return i;
+            if (c < '0' || c > '9') { return i; }
         }
         return string.length();
     }

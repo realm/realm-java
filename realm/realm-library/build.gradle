@@ -9,6 +9,7 @@ apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
+apply plugin: 'net.ltgt.errorprone'
 
 def properties = new Properties()
 properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
@@ -110,6 +111,12 @@ android {
             }
             consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-objectServer.pro'
         }
+    }
+}
+
+project.afterEvaluate {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << '-Werror'
     }
 }
 

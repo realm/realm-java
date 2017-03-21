@@ -26,6 +26,7 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import rx.Observable;
 
+
 /**
  * Factory interface for creating Rx Observables for Realm classes.
  */
@@ -34,7 +35,7 @@ public interface RxObservableFactory {
     /**
      * Creates an Observable for a {@link Realm}. It should emit the initial state of the Realm when subscribed to and
      * on each subsequent update of the Realm.
-     *
+     * <p>
      * Realm observables are hot observables as Realms are automatically kept up to date.
      *
      * @param realm {@link Realm} to listen to changes for.
@@ -45,7 +46,7 @@ public interface RxObservableFactory {
     /**
      * Creates an Observable for a {@link DynamicRealm}. It should emit the initial state of the Realm when subscribed
      * to and on each subsequent update of the Realm.
-     *
+     * <p>
      * DynamicRealm observables are hot observables as DynamicRealms are automatically kept up to date.
      *
      * @param realm {@link DynamicRealm} to listen to changes for.
@@ -56,7 +57,7 @@ public interface RxObservableFactory {
     /**
      * Creates an Observable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
      * on each subsequent update of the RealmResults.
-     *
+     * <p>
      * RealmResults observables are hot observables as RealmResults are automatically kept up to date.
      *
      * @param results {@link RealmResults} to listen to changes for.
@@ -69,7 +70,7 @@ public interface RxObservableFactory {
     /**
      * Creates an Observable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
      * on each subsequent update of the RealmResults.
-     *
+     * <p>
      * Realm observables are hot observables as RealmResults are automatically kept up to date.
      *
      * @param results {@link RealmResults} to listen to changes for.
@@ -81,9 +82,9 @@ public interface RxObservableFactory {
     /**
      * Creates an Observable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
      * subsequent update of the RealmList.
-     *
+     * <p>
      * RealmList observables are hot observables as RealmLists are automatically kept up to date.
-     *
+     * <p>
      * Note: {@link io.realm.RealmChangeListener} is currently not supported on RealmLists.
      *
      * @param list RealmObject to listen to changes for.
@@ -95,9 +96,9 @@ public interface RxObservableFactory {
     /**
      * Creates an Observable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
      * subsequent update of the RealmList.
-     *
+     * <p>
      * RealmList observables are hot observables as RealmLists are automatically kept up to date.
-     *
+     * <p>
      * Note: {@link io.realm.RealmChangeListener} is currently not supported on RealmLists.
      *
      * @param list RealmList to listen to changes for.
@@ -108,7 +109,7 @@ public interface RxObservableFactory {
     /**
      * Creates an Observable for a {@link RealmObject}. It should emit the initial object when subscribed to and on each
      * subsequent update of the object.
-     *
+     * <p>
      * RealmObject observables are hot observables as RealmObjects are automatically kept up to date.
      *
      * @param object RealmObject to listen to changes for.
@@ -120,7 +121,7 @@ public interface RxObservableFactory {
     /**
      * Creates an Observable for a {@link DynamicRealmObject}. It should emit the initial object when subscribed to and
      * on each subsequent update of the object.
-     *
+     * <p>
      * DynamicRealmObject observables are hot observables as DynamicRealmObjects automatically are kept up to date.
      *
      * @param object DynamicRealmObject to listen to changes for.
@@ -130,7 +131,7 @@ public interface RxObservableFactory {
 
     /**
      * Creates an Observable from a {@link RealmQuery}. It should emit the query and then complete.
-     *
+     * <p>
      * A RealmQuery observable is cold.
      *
      * @param query RealmQuery to emit.
@@ -141,7 +142,7 @@ public interface RxObservableFactory {
 
     /**
      * Creates an Observable from a {@link RealmQuery}. It should emit the query and then complete.
-     *
+     * <p>
      * A RealmQuery observable is cold.
      *
      * @param query RealmObject to listen to changes for.

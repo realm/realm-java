@@ -28,6 +28,7 @@ import io.realm.RealmSchema;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
+
 public final class SharedRealm implements Closeable, NativeObject {
 
     // Const value for RealmFileException conversion
@@ -89,6 +90,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     public static final byte SCHEMA_MODE_VALUE_ADDITIVE = 3;
     @SuppressWarnings("WeakerAccess")
     public static final byte SCHEMA_MODE_VALUE_MANUAL = 4;
+
     @SuppressWarnings("WeakerAccess")
     public enum SchemaMode {
         SCHEMA_MODE_AUTOMATIC(SCHEMA_MODE_VALUE_AUTOMATIC),
@@ -98,8 +100,9 @@ public final class SharedRealm implements Closeable, NativeObject {
         SCHEMA_MODE_MANUAL(SCHEMA_MODE_VALUE_MANUAL);
 
         final byte value;
+
         SchemaMode(byte value) {
-            this .value = value;
+            this.value = value;
         }
 
         public byte getNativeValue() {
@@ -178,8 +181,8 @@ public final class SharedRealm implements Closeable, NativeObject {
     private final SchemaVersionListener schemaChangeListener;
 
     private SharedRealm(long nativeConfigPtr,
-                        RealmConfiguration configuration,
-                        SchemaVersionListener schemaVersionListener) {
+            RealmConfiguration configuration,
+            SchemaVersionListener schemaVersionListener) {
         Capabilities capabilities = new AndroidCapabilities();
         RealmNotifier realmNotifier = new AndroidRealmNotifier(this, capabilities);
 
@@ -204,7 +207,7 @@ public final class SharedRealm implements Closeable, NativeObject {
 
 
     public static SharedRealm getInstance(RealmConfiguration config, SchemaVersionListener schemaVersionListener,
-                                          boolean autoChangeNotifications) {
+            boolean autoChangeNotifications) {
         String[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
         String syncUserIdentifier = syncUserConf[0];
         String syncRealmUrl = syncUserConf[1];
@@ -305,7 +308,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     public SharedRealm.VersionID getVersionID() {
-        long[] versionId = nativeGetVersionID (nativePtr);
+        long[] versionId = nativeGetVersionID(nativePtr);
         return new SharedRealm.VersionID(versionId[0], versionId[1]);
     }
 
@@ -426,42 +429,73 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     private static native void nativeInit(String temporaryDirectoryPath);
+
     // Keep last session as an 'object' to avoid any reference to sync code
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
-                                                  boolean cache, long schemaVersion, boolean disableFormatUpgrade,
-                                                  boolean autoChangeNotification,
-                                                  String syncServerURL,
-                                                  String syncServerAuthURL,
-                                                  String syncUserIdentity,
-                                                  String syncRefreshToken);
+            boolean cache, long schemaVersion, boolean disableFormatUpgrade,
+            boolean autoChangeNotification,
+            String syncServerURL,
+            String syncServerAuthURL,
+            String syncUserIdentity,
+            String syncRefreshToken);
+
     private static native void nativeCloseConfig(long nativeConfigPtr);
+
     private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
+
     private static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);
+
     private static native boolean nativeIsClosed(long nativeSharedRealmPtr);
+
     private static native void nativeBeginTransaction(long nativeSharedRealmPtr);
+
     private static native void nativeCommitTransaction(long nativeSharedRealmPtr);
+
     private static native void nativeCancelTransaction(long nativeSharedRealmPtr);
+
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
+
     private static native long nativeGetVersion(long nativeSharedRealmPtr);
+
     private static native long nativeGetSnapshotVersion(long nativeSharedRealmPtr);
+
     private static native void nativeSetVersion(long nativeSharedRealmPtr, long version);
+
     private static native long nativeReadGroup(long nativeSharedRealmPtr);
+
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
+
     private static native void nativeRefresh(long nativeSharedRealmPtr);
-    private static native long[]  nativeGetVersionID(long nativeSharedRealmPtr);
+
+    private static native long[] nativeGetVersionID(long nativeSharedRealmPtr);
+
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
+
     private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);
+
     private static native boolean nativeHasTable(long nativeSharedRealmPtr, String tableName);
+
     private static native void nativeRenameTable(long nativeSharedRealmPtr, String oldTableName, String newTableName);
+
     private static native void nativeRemoveTable(long nativeSharedRealmPtr, String tableName);
+
     private static native long nativeSize(long nativeSharedRealmPtr);
+
     private static native void nativeWriteCopy(long nativeSharedRealmPtr, String path, byte[] key);
+
     private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
+
     private static native void nativeStopWaitForChange(long nativeSharedRealmPtr);
+
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
+
     private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version);
+
     private static native void nativeSetAutoRefresh(long nativePtr, boolean enabled);
+
     private static native boolean nativeIsAutoRefresh(long nativePtr);
+
     private static native boolean nativeRequiresMigration(long nativePtr, long nativeSchemaPtr);
+
     private static native long nativeGetFinalizerPtr();
 }

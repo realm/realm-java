@@ -40,6 +40,7 @@ import io.realm.internal.modules.FilterableMediator;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
+
 /**
  * A RealmConfiguration is used to setup a specific Realm instance.
  * <p>
@@ -100,17 +101,17 @@ public class RealmConfiguration {
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
     protected RealmConfiguration(File realmDirectory,
-                              String realmFileName,
-                              String canonicalPath,
-                              String assetFilePath,
-                              byte[] key,
-                              long schemaVersion,
-                              RealmMigration migration,
-                              boolean deleteRealmIfMigrationNeeded,
-                              SharedRealm.Durability durability,
-                              RealmProxyMediator schemaMediator,
-                              RxObservableFactory rxObservableFactory,
-                              Realm.Transaction initialDataTransaction) {
+            String realmFileName,
+            String canonicalPath,
+            String assetFilePath,
+            byte[] key,
+            long schemaVersion,
+            RealmMigration migration,
+            boolean deleteRealmIfMigrationNeeded,
+            SharedRealm.Durability durability,
+            RealmProxyMediator schemaMediator,
+            RxObservableFactory rxObservableFactory,
+            Realm.Transaction initialDataTransaction) {
         this.realmDirectory = realmDirectory;
         this.realmFileName = realmFileName;
         this.canonicalPath = canonicalPath;
@@ -206,8 +207,8 @@ public class RealmConfiguration {
     /**
      * Returns the {@link RxObservableFactory} that is used to create Rx Observables from Realm objects.
      *
-     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @return the factory instance used to create Rx Observables.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      */
     public RxObservableFactory getRxFactory() {
         // Since RxJava doesn't exist, rxObservableFactory is not initialized.
@@ -221,26 +222,29 @@ public class RealmConfiguration {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj) { return true; }
+        if (obj == null || getClass() != obj.getClass()) { return false; }
 
         RealmConfiguration that = (RealmConfiguration) obj;
 
-        if (schemaVersion != that.schemaVersion) return false;
-        if (deleteRealmIfMigrationNeeded != that.deleteRealmIfMigrationNeeded) return false;
-        if (!realmDirectory.equals(that.realmDirectory)) return false;
-        if (!realmFileName.equals(that.realmFileName)) return false;
-        if (!canonicalPath.equals(that.canonicalPath)) return false;
-        if (!Arrays.equals(key, that.key)) return false;
-        if (!durability.equals(that.durability)) return false;
-        if (migration != null ? !migration.equals(that.migration) : that.migration != null) return false;
+        if (schemaVersion != that.schemaVersion) { return false; }
+        if (deleteRealmIfMigrationNeeded != that.deleteRealmIfMigrationNeeded) { return false; }
+        if (!realmDirectory.equals(that.realmDirectory)) { return false; }
+        if (!realmFileName.equals(that.realmFileName)) { return false; }
+        if (!canonicalPath.equals(that.canonicalPath)) { return false; }
+        if (!Arrays.equals(key, that.key)) { return false; }
+        if (!durability.equals(that.durability)) { return false; }
+        if (migration != null ? !migration.equals(that.migration) : that.migration != null) { return false; }
         //noinspection SimplifiableIfStatement
-        if (rxObservableFactory != null ? !rxObservableFactory.equals(that.rxObservableFactory) : that.rxObservableFactory != null) return false;
-        if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) return false;
+        if (rxObservableFactory != null ? !rxObservableFactory.equals(that.rxObservableFactory) : that.rxObservableFactory != null) {
+            return false;
+        }
+        if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) {
+            return false;
+        }
 
         return schemaMediator.equals(that.schemaMediator);
     }
-
 
 
     @Override
@@ -249,7 +253,7 @@ public class RealmConfiguration {
         result = 31 * result + realmFileName.hashCode();
         result = 31 * result + canonicalPath.hashCode();
         result = 31 * result + (key != null ? Arrays.hashCode(key) : 0);
-        result = 31 * result + (int)schemaVersion;
+        result = 31 * result + (int) schemaVersion;
         result = 31 * result + (migration != null ? migration.hashCode() : 0);
         result = 31 * result + (deleteRealmIfMigrationNeeded ? 1 : 0);
         result = 31 * result + schemaMediator.hashCode();
@@ -262,7 +266,7 @@ public class RealmConfiguration {
 
     // Creates the mediator that defines the current schema.
     protected static RealmProxyMediator createSchemaMediator(Set<Object> modules,
-                                                             Set<Class<? extends RealmModel>> debugSchema) {
+            Set<Class<? extends RealmModel>> debugSchema) {
 
         // If using debug schema, uses special mediator.
         if (debugSchema.size() > 0) {
@@ -337,6 +341,7 @@ public class RealmConfiguration {
      *
      * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
      */
+    @SuppressWarnings("LiteralClassName")
     static synchronized boolean isRxJavaAvailable() {
         if (rxJavaAvailable == null) {
             try {
@@ -502,10 +507,10 @@ public class RealmConfiguration {
          * Setting this will change the behavior of how migration exceptions are handled. Instead of throwing a
          * {@link io.realm.exceptions.RealmMigrationNeededException} the on-disc Realm will be cleared and recreated
          * with the new Realm schema.
-         *
+         * <p>
          * <p>This cannot be configured to have an asset file at the same time by calling
          * {@link #assetFile(String)} as the provided asset file will be deleted in migrations.
-         *
+         * <p>
          * <p><b>WARNING!</b> This will result in loss of data.
          *
          * @throws IllegalStateException if configured to use an asset file by calling {@link #assetFile(String)} previously.
@@ -547,6 +552,7 @@ public class RealmConfiguration {
          * <p>
          * {@code builder.modules(Realm.getDefaultMode(), new MyLibraryModule()); }
          * <p>
+         *
          * @param baseModule the first Realm module (required).
          * @param additionalModules the additional Realm modules
          * @throws IllegalArgumentException if any of the modules doesn't have the {@link RealmModule} annotation.
@@ -591,10 +597,10 @@ public class RealmConfiguration {
          * <p>
          * When opening the Realm for the first time, instead of creating an empty file,
          * the Realm file will be copied from the provided asset file and used instead.
-         *
+         * <p>
          * <p>This cannot be configured to clear and recreate schema by calling {@link #deleteRealmIfMigrationNeeded()}
          * at the same time as doing so will delete the copied asset schema.
-         *
+         * <p>
          * <p>
          * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
          *

@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+
 /**
  * Custom thread pool settings, instances of this executor can be paused, and resumed, this will also set
  * appropriate number of Threads & wrap submitted tasks to set the thread priority according to
@@ -153,7 +154,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
         super.beforeExecute(t, r);
         pauseLock.lock();
         try {
-            while (isPaused) unpaused.await();
+            while (isPaused) { unpaused.await(); }
         } catch (InterruptedException ie) {
             t.interrupt();
         } finally {

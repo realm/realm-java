@@ -6,6 +6,7 @@ import java.util.Date;
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
 
+
 /**
  * A PendingRow is a row relies on a pending async query.
  * Before the query returns, calling any accessors will immediately throw. In this case run {@link #executeQuery()} to
@@ -34,7 +35,7 @@ public class PendingRow implements Row {
     private boolean returnCheckedRow;
 
     public PendingRow(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor,
-                      final boolean returnCheckedRow) {
+            final boolean returnCheckedRow) {
         pendingCollection = new Collection(sharedRealm, query, sortDescriptor, null);
 
         listener = new RealmChangeListener<PendingRow>() {
@@ -53,17 +54,17 @@ public class PendingRow implements Row {
                 if (pendingCollection.isValid()) {
                     // PendingRow will always get the first Row of the query since we only support findFirst.
                     UncheckedRow uncheckedRow = pendingCollection.firstUncheckedRow();
-                    // If no rows returned by the query, just wait for the query updates until it returns a valid row.
+                    // If no rows returned by the query, notify the frontend with an invalid row.
                     if (uncheckedRow != null) {
                         Row row = returnCheckedRow ? CheckedRow.getFromRow(uncheckedRow) : uncheckedRow;
                         // Ask the front end to reset the row and stop async query.
                         frontEnd.onQueryFinished(row);
-                        clearPendingCollection();
+                    } else {
+                        frontEnd.onQueryFinished(InvalidRow.INSTANCE);
                     }
-                } else {
-                    // The Realm is closed. Do nothing then.
-                    clearPendingCollection();
                 }
+
+                clearPendingCollection();
             }
         };
         pendingCollection.addListener(this, listener);

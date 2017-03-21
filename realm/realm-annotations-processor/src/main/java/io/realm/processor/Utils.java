@@ -15,6 +15,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
+
 /**
  * Utility methods working with the Realm processor.
  */
@@ -207,7 +208,7 @@ public class Utils {
      * @return the simple type name for a field.
      */
     public static String getFieldTypeSimpleName(VariableElement field) {
-        return  (null == field) ? null : getFieldTypeSimpleName(getFieldTypeQualifiedName(field));
+        return (null == field) ? null : getFieldTypeSimpleName(getFieldTypeQualifiedName(field));
     }
 
     /**

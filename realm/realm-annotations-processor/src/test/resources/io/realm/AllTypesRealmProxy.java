@@ -393,6 +393,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
     }
 
+    @Override
     public RealmResults<some.test.AllTypes> realmGet$parentObjects() {
         BaseRealm realm = proxyState.getRealm$realm();
         realm.checkIfValid();

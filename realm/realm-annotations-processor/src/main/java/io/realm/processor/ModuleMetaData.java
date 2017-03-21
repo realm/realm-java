@@ -31,6 +31,7 @@ import javax.lang.model.element.TypeElement;
 
 import io.realm.annotations.RealmModule;
 
+
 /**
  * Utility class for holding metadata for the Realm modules.
  */

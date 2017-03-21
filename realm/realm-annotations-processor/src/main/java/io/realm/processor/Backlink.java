@@ -22,6 +22,7 @@ import javax.lang.model.element.VariableElement;
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.Required;
 
+
 /**
  * A <b>Backlink</b> is an implicit backwards reference.  If field <code>sourceField</code> in instance <code>I</code>
  * of type <code>SourceClass</code> holds a reference to instance <code>J</code> of type <code>TargetClass</code>,
@@ -32,9 +33,9 @@ import io.realm.annotations.Required;
  * To expose backinks for use, create a declaration as follows:
  * <code>
  * class TargetClass {
- *     // ...
- *     {@literal @}LinkingObjects("sourceField")
- *     final RealmResults&lt;SourceClass&gt; targetField = null;
+ * // ...
+ * {@literal @}LinkingObjects("sourceField")
+ * final RealmResults&lt;SourceClass&gt; targetField = null;
  * }
  * </code>.
  * <p>
@@ -129,54 +130,54 @@ final class Backlink {
         // A @LinkingObjects cannot be @Required
         if (backlink.getAnnotation(Required.class) != null) {
             Utils.error(String.format(
-                "The @LinkingObjects field \"%s.%s\" cannot be @Required.",
-                targetClass,
-                targetField));
+                    "The @LinkingObjects field \"%s.%s\" cannot be @Required.",
+                    targetClass,
+                    targetField));
             return false;
         }
 
         // The annotation must have an argument, identifying the linked field
         if ((sourceField == null) || sourceField.equals("")) {
             Utils.error(String.format(
-                "The @LinkingObjects annotation for the field \"%s.%s\" must have a parameter identifying the link target.",
-                targetClass,
-                targetField));
+                    "The @LinkingObjects annotation for the field \"%s.%s\" must have a parameter identifying the link target.",
+                    targetClass,
+                    targetField));
             return false;
         }
 
         // Using link syntax to try to reference a linked field is not possible.
         if (sourceField.contains(".")) {
             Utils.error(String.format(
-                "The parameter to the @LinkingObjects annotation for the field \"%s.%s\" contains a '.'.  The use of '.' to specify fields in referenced classes is not supported.",
-                targetClass,
-                targetField));
+                    "The parameter to the @LinkingObjects annotation for the field \"%s.%s\" contains a '.'.  The use of '.' to specify fields in referenced classes is not supported.",
+                    targetClass,
+                    targetField));
             return false;
         }
 
         // The annotated element must be a RealmResult
         if (!Utils.isRealmResults(backlink)) {
             Utils.error(String.format(
-                "The field \"%s.%s\" is a \"%s\". Fields annotated with @LinkingObjects must be RealmResults.",
-                targetClass,
-                targetField,
-                backlink.asType()));
+                    "The field \"%s.%s\" is a \"%s\". Fields annotated with @LinkingObjects must be RealmResults.",
+                    targetClass,
+                    targetField,
+                    backlink.asType()));
             return false;
         }
 
         if (sourceClass == null) {
             Utils.error(String.format(
-                "\"The field \"%s.%s\", annotated with @LinkingObjects, must specify a generic type.",
-                targetClass,
-                targetField));
+                    "\"The field \"%s.%s\", annotated with @LinkingObjects, must specify a generic type.",
+                    targetClass,
+                    targetField));
             return false;
         }
 
         // A @LinkingObjects field must be final
         if (!backlink.getModifiers().contains(Modifier.FINAL)) {
             Utils.error(String.format(
-                "A @LinkingObjects field \"%s.%s\" must be final.",
-                targetClass,
-                targetField));
+                    "A @LinkingObjects field \"%s.%s\" must be final.",
+                    targetClass,
+                    targetField));
             return false;
         }
 
@@ -188,23 +189,23 @@ final class Backlink {
 
         if (field == null) {
             Utils.error(String.format(
-                "Field \"%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", does not exist in class \"%s\".",
-                sourceField,
-                targetClass,
-                targetField,
-                sourceClass));
+                    "Field \"%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", does not exist in class \"%s\".",
+                    sourceField,
+                    targetClass,
+                    targetField,
+                    sourceClass));
             return false;
         }
 
         String fieldType = field.asType().toString();
         if (!(targetClass.equals(fieldType) || targetClass.equals(Utils.getRealmListType(field)))) {
             Utils.error(String.format(
-                "Field \"%s.%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", has type \"%s\" instead of \"%3$s\".",
-                sourceClass,
-                sourceField,
-                targetClass,
-                targetField,
-                fieldType));
+                    "Field \"%s.%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", has type \"%s\" instead of \"%3$s\".",
+                    sourceClass,
+                    sourceField,
+                    targetClass,
+                    targetField,
+                    fieldType));
             return false;
         }
 
@@ -225,9 +226,9 @@ final class Backlink {
         Backlink backlink = (Backlink) o;
 
         return targetClass.equals(backlink.targetClass)
-            && targetField.equals(backlink.targetField)
-            && sourceClass.equals(backlink.sourceClass)
-            && sourceField.equals(backlink.sourceField);
+                && targetField.equals(backlink.targetField)
+                && sourceClass.equals(backlink.sourceClass)
+                && sourceField.equals(backlink.sourceField);
     }
 
     @Override

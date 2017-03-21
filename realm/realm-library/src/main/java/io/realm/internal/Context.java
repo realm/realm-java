@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import java.lang.ref.ReferenceQueue;
 
+
 // Currently we free native objects in two threads, the SharedGroup is freed in the caller thread, others are freed in
 // RealmFinalizingDaemon thread. And the destruction in both threads are locked by the corresponding context.
 // The purpose of locking on Context is:

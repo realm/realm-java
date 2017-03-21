@@ -21,6 +21,7 @@ import java.util.Map;
 
 import io.realm.RealmModel;
 
+
 /**
  * Utility class used to cache the mapping between object field names and their column indices.
  */

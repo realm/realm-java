@@ -18,6 +18,7 @@ package io.realm.exceptions;
 
 import io.realm.internal.Keep;
 
+
 /**
  * Class for reporting problems when the primary key constraint is being broken.
  *
