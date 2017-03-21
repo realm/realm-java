@@ -1,12 +1,29 @@
+/*
+ * Copyright 2017 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm.internal;
 
 import io.realm.ObjectChangeSet;
 import io.realm.RealmObjectChangeListener;
 
+
 /**
  * Java wrapper for Object Store's {@code Object} class. Currently it is only used for object notifications.
  */
-public class RowObject implements NativeObject {
+public class OsObject implements NativeObject {
 
     private static class RowObjectChangeSet implements ObjectChangeSet {
         final FieldChange[] fieldChanges;
@@ -74,7 +91,7 @@ public class RowObject implements NativeObject {
 
     private ObserverPairList<ObjectObserverPair> observerPairs = new ObserverPairList<ObjectObserverPair>();
 
-    public RowObject(SharedRealm sharedRealm, UncheckedRow row) {
+    public OsObject(SharedRealm sharedRealm, UncheckedRow row) {
         nativePtr = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr());
         sharedRealm.context.addReference(this);
     }
@@ -111,7 +128,10 @@ public class RowObject implements NativeObject {
     }
 
     private static native long nativeGetFinalizerPtr();
+
     private static native long nativeCreate(long shared_realm_ptr, long rowPtr);
+
     private native void nativeStartListening(long nativePtr);
+
     private native void nativeStopListening(long nativePtr);
 }

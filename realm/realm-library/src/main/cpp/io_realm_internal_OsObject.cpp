@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_internal_RowObject.h"
+#include "io_realm_internal_OsObject.h"
 
 #include <realm/row.hpp>
 #include <object_schema.hpp>
@@ -28,7 +28,7 @@
 using namespace realm;
 using namespace realm::jni_util;
 
-// We need to control the life cycle of Object, weak ref of Java RowObject and the NotificationToken.
+// We need to control the life cycle of Object, weak ref of Java OsObject and the NotificationToken.
 // Wrap all three together, so when the Java object gets GCed, all three of them will be invalidated.
 struct ObjectWrapper {
     JavaGlobalWeakRef m_row_object_weak_ref;
@@ -151,18 +151,18 @@ static void finalize_object(jlong ptr)
     delete reinterpret_cast<ObjectWrapper*>(ptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_RowObject_nativeGetFinalizerPtr(JNIEnv*, jclass)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
     TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_object);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_RowObject_nativeCreate(JNIEnv*, jclass, jlong shared_realm_ptr,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreate(JNIEnv*, jclass, jlong shared_realm_ptr,
                                                                       jlong row_ptr)
 {
     TR_ENTER_PTR(row_ptr)
 
-    // FIXME: Currently RowObject is only used for object notifications. Since the Object Store's schema has not been
+    // FIXME: Currently OsObject is only used for object notifications. Since the Object Store's schema has not been
     // fully integrated with realm-java, we pass a dummy ObjectSchema to create Object.
     static const ObjectSchema dummy_object_schema;
 
@@ -174,7 +174,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_RowObject_nativeCreate(JNIEnv*, j
     return reinterpret_cast<jlong>(wrapper);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_RowObject_nativeStartListening(JNIEnv* env, jobject instance,
+JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStartListening(JNIEnv* env, jobject instance,
                                                                              jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
@@ -193,7 +193,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_RowObject_nativeStartListening(JNI
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_RowObject_nativeStopListening(JNIEnv* env, jobject, jlong native_ptr)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStopListening(JNIEnv* env, jobject, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
 

@@ -22,7 +22,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.PendingRow;
 import io.realm.internal.Row;
-import io.realm.internal.RowObject;
+import io.realm.internal.OsObject;
 import io.realm.internal.UncheckedRow;
 
 
@@ -62,7 +62,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     private boolean underConstruction = true;
 
     private Row row;
-    private RowObject rowObject;
+    private OsObject osObject;
     private BaseRealm realm;
     private boolean acceptDefaultValue;
     private List<String> excludeFields;
@@ -135,17 +135,17 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
 
     public void removeChangeListener(RealmObjectChangeListener<E> listener) {
         listeners.remove(listener);
-        if (listeners.isEmpty() && rowObject != null) {
-            rowObject.removeListener(this);
-            rowObject = null;
+        if (listeners.isEmpty() && osObject != null) {
+            osObject.removeListener(this);
+            osObject = null;
         }
     }
 
     public void removeAllChangeListeners() {
         listeners.clear();
-        if (rowObject != null) {
-            rowObject.removeListener(this);
-            rowObject = null;
+        if (osObject != null) {
+            osObject.removeListener(this);
+            osObject = null;
         }
     }
 
@@ -170,9 +170,9 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
             return;
         }
 
-        if (rowObject == null) {
-            rowObject = new RowObject(realm.sharedRealm, (UncheckedRow) row);
-            rowObject.addListener(this, new RealmObjectChangeListener<ProxyState<E>>() {
+        if (osObject == null) {
+            osObject = new OsObject(realm.sharedRealm, (UncheckedRow) row);
+            osObject.addListener(this, new RealmObjectChangeListener<ProxyState<E>>() {
                 @Override
                 public void onChange(ProxyState<E> object, ObjectChangeSet changeSet) {
                     notifyChangeListeners(changeSet);
