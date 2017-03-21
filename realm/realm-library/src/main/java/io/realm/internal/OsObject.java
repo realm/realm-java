@@ -25,28 +25,23 @@ import io.realm.RealmObjectChangeListener;
  */
 public class OsObject implements NativeObject {
 
-    private static class RowObjectChangeSet implements ObjectChangeSet {
-        final FieldChange[] fieldChanges;
+    private static class OsObjectChangeSet implements ObjectChangeSet {
+        final String[] changedFields;
         final boolean deleted;
 
-        RowObjectChangeSet() {
-            this.fieldChanges = null;
-            this.deleted = true;
-        }
-
-        RowObjectChangeSet(FieldChange[] fieldChanges) {
-            this.fieldChanges = fieldChanges;
-            this.deleted = false;
-        }
-
-        @Override
-        public FieldChange[] getFieldChanges() {
-            return fieldChanges;
+        OsObjectChangeSet(String[] changedFields) {
+            this.changedFields = changedFields;
+            this.deleted = changedFields == null;
         }
 
         @Override
         public boolean isDeleted() {
             return deleted;
+        }
+
+        @Override
+        public String[] getChangedFields() {
+            return changedFields;
         }
     }
 
@@ -68,15 +63,7 @@ public class OsObject implements NativeObject {
         }
 
         private ObjectChangeSet createChangeSet() {
-            if (changedFields == null) {
-                return new RowObjectChangeSet();
-            }
-
-            ObjectChangeSet.FieldChange[] fieldChanges = new ObjectChangeSet.FieldChange[changedFields.length];
-            for (int i = 0; i < changedFields.length; i++) {
-                fieldChanges[i] = new ObjectChangeSet.FieldChange(changedFields[i]);
-            }
-            return new RowObjectChangeSet(fieldChanges);
+            return new OsObjectChangeSet(changedFields);
         }
 
         @Override

@@ -36,6 +36,7 @@ import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+
 // Tests for detailed change notification on RealmObject.
 @RunWith(AndroidJUnit4.class)
 public class ObjectChangeSetTests {
@@ -72,7 +73,7 @@ public class ObjectChangeSetTests {
         allTypes.addChangeListener(new RealmObjectChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object, ObjectChangeSet changeSet) {
-                assertNull(changeSet.getFieldChanges());
+                assertNull(changeSet.getChangedFields());
                 assertFalse(object.isValid());
                 assertTrue(changeSet.isDeleted());
                 looperThread.testComplete();
@@ -86,10 +87,10 @@ public class ObjectChangeSetTests {
         allTypes.addChangeListener(new RealmObjectChangeListener<RealmModel>() {
             @Override
             public void onChange(RealmModel object, ObjectChangeSet changeSet) {
-                assertEquals(fieldNames.length, changeSet.getFieldChanges().length);
+                assertEquals(fieldNames.length, changeSet.getChangedFields().length);
                 for (String name : fieldNames) {
-                    for (ObjectChangeSet.FieldChange fieldChange : changeSet.getFieldChanges()) {
-                        if (fieldChange.fieldName.equals(name)) {
+                    for (String field : changeSet.getChangedFields()) {
+                        if (field.equals(name)) {
                             break;
                         }
                         fail("Cannot find field " + name + " in field changes.");

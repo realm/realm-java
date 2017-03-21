@@ -18,32 +18,19 @@ package io.realm;
 
 /**
  * Information about the changes made to an object.
+ *
  * @see RealmObject#addChangeListener(RealmObjectChangeListener) .
  */
 public interface ObjectChangeSet {
 
     /**
-     * Information about a specific field which changed in an {@link RealmObject} change notification.
-     */
-    class FieldChange {
-        /**
-         * The name of the field which changed.
-         */
-        final String fieldName;
-
-        public FieldChange(String fieldName) {
-            this.fieldName = fieldName;
-        }
-    }
-
-    /**
-     * @return {@code null} if the object has been deleted. Otherwise returns the information about changed fields.
-     */
-    FieldChange[] getFieldChanges();
-
-
-    /**
      * @return true if the object has been deleted from the Realm.
      */
     boolean isDeleted();
+
+    /**
+     * @return the names of changed fields if the object still exists and there are field changes. Returns {@code null}
+     * if the object has been deleted.
+     */
+    String[] getChangedFields();
 }
