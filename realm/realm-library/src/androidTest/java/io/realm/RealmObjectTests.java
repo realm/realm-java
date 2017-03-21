@@ -64,6 +64,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+
 @RunWith(AndroidJUnit4.class)
 public class RealmObjectTests {
 
@@ -1016,9 +1017,9 @@ public class RealmObjectTests {
         // 3 Boolean
         nullTypes.setFieldBooleanNull(true);
         // 4 Byte
-        nullTypes.setFieldByteNull((byte)42);
+        nullTypes.setFieldByteNull((byte) 42);
         // 5 Short
-        nullTypes.setFieldShortNull((short)42);
+        nullTypes.setFieldShortNull((short) 42);
         // 6 Integer
         nullTypes.setFieldIntegerNull(42);
         // 7 Long
@@ -1039,9 +1040,9 @@ public class RealmObjectTests {
         // 3 Boolean
         assertTrue(nullTypes.getFieldBooleanNull());
         // 4 Byte
-        assertEquals((byte)42, (byte)nullTypes.getFieldByteNull().intValue());
+        assertEquals((byte) 42, (byte) nullTypes.getFieldByteNull().intValue());
         // 5 Short
-        assertEquals((short)42, (short)nullTypes.getFieldShortNull().intValue());
+        assertEquals((short) 42, (short) nullTypes.getFieldShortNull().intValue());
         // 6 Integer
         assertEquals(42, nullTypes.getFieldIntegerNull().intValue());
         // 7 Long
@@ -1590,7 +1591,7 @@ public class RealmObjectTests {
 
                 //noinspection TryFinallyCanBeTryWithResources
                 try {
-                    dog.addChangeListener((RealmChangeListener)null);
+                    dog.addChangeListener((RealmChangeListener) null);
                     fail("adding null change listener must throw an exception.");
                 } catch (IllegalArgumentException ignore) {
                 } finally {
