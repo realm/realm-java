@@ -136,7 +136,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     }
 
     private void registerToRealmNotifier() {
-        if (realm.sharedRealm == null || realm.sharedRealm.isClosed()) {
+        if (realm.sharedRealm == null || realm.sharedRealm.isClosed() || !row.isAttached()) {
             return;
         }
 
@@ -173,9 +173,11 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     @Override
     public void onQueryFinished(Row row) {
         this.row = row;
-        // getTable should return a non-null table since the row should always be valid here.
-        currentTableVersion = row.getTable().getVersion();
         notifyChangeListeners();
-        registerToRealmNotifier();
+        if (row.isAttached()) {
+            // getTable should return a non-null table since the row should always be valid here.
+            currentTableVersion = row.getTable().getVersion();
+            registerToRealmNotifier();
+        }
     }
 }
