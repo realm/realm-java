@@ -69,7 +69,6 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
 
     private final List<RealmObjectChangeListener<E>> listeners =
             new CopyOnWriteArrayList<RealmObjectChangeListener<E>>();
-    protected long currentTableVersion = -1;
 
     public ProxyState() {}
 
@@ -129,7 +128,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         }
         // this might be called after query returns. So it is still necessary to register.
         if (row instanceof UncheckedRow) {
-            registerToRealmNotifier();
+            registerToObjectNotifier();
         }
     }
 
@@ -149,12 +148,6 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         }
     }
 
-    public void setTableVersion$realm() {
-        if (row.getTable() != null) {
-            currentTableVersion = row.getTable().getVersion();
-        }
-    }
-
     public boolean isUnderConstruction() {
         return underConstruction;
     }
@@ -165,7 +158,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         excludeFields = null;
     }
 
-    private void registerToRealmNotifier() {
+    private void registerToObjectNotifier() {
         if (realm.sharedRealm == null || realm.sharedRealm.isClosed()) {
             return;
         }
@@ -189,7 +182,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         if (row instanceof PendingRow) {
             row = ((PendingRow) row).executeQuery();
             if (!(row instanceof InvalidRow)) {
-                registerToRealmNotifier();
+                registerToObjectNotifier();
             }
             notifyChangeListeners(null);
         }
@@ -199,8 +192,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     public void onQueryFinished(Row row) {
         this.row = row;
         // getTable should return a non-null table since the row should always be valid here.
-        currentTableVersion = row.getTable().getVersion();
         notifyChangeListeners(null);
-        registerToRealmNotifier();
+        registerToObjectNotifier();
     }
 }
