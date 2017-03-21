@@ -58,12 +58,12 @@ public class PendingRow implements Row {
                         Row row = returnCheckedRow ? CheckedRow.getFromRow(uncheckedRow) : uncheckedRow;
                         // Ask the front end to reset the row and stop async query.
                         frontEnd.onQueryFinished(row);
-                        clearPendingCollection();
+                    } else {
+                        frontEnd.onQueryFinished(InvalidRow.INSTANCE);
                     }
-                } else {
-                    // The Realm is closed. Do nothing then.
-                    clearPendingCollection();
                 }
+
+                clearPendingCollection();
             }
         };
         pendingCollection.addListener(this, listener);
