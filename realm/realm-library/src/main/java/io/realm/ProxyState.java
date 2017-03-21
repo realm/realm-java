@@ -18,7 +18,6 @@ package io.realm;
 
 import java.util.List;
 
-import io.realm.internal.InvalidRow;
 import io.realm.internal.ObserverPairList;
 import io.realm.internal.PendingRow;
 import io.realm.internal.Row;
@@ -173,6 +172,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         if (osObject == null) {
             osObject = new OsObject(realm.sharedRealm, (UncheckedRow) row);
             osObject.setObserverPairs(observerPairs);
+            // We should never need observerPairs after pending row returns.
             observerPairs = null;
         }
     }

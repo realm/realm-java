@@ -115,6 +115,8 @@ public class OsObject implements NativeObject {
         }
     }
 
+    // Set the ObserverPairList. This is useful for the findAllAsync. When the pendingRow returns the results, the whole
+    // listener list has to be moved from ProxyState to here.
     public void setObserverPairs(ObserverPairList<ObjectObserverPair> pairs) {
         if (!observerPairs.isEmpty()) {
             throw new IllegalStateException("'observerPairs' is not empty. Listeners have been added before.");

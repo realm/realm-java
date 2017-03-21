@@ -228,6 +228,7 @@ public class PendingRow implements Row {
                 // Ask the front end to reset the row and stop async query.
                 frontEnd.onQueryFinished(row);
             } else {
+                // No row matches the query, return a invalid row.
                 frontEnd.onQueryFinished(InvalidRow.INSTANCE);
             }
         }
@@ -235,6 +236,7 @@ public class PendingRow implements Row {
         clearPendingCollection();
     }
 
+    // Execute the query immediately and call frontend's onQueryFinished().
     public void executeQuery() {
         if (pendingCollection == null) {
             throw new IllegalStateException(QUERY_EXECUTED_MESSAGE);

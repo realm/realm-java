@@ -115,8 +115,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     public final Capabilities capabilities;
     public final List<WeakReference<Collection.Iterator>> iterators =
             new ArrayList<WeakReference<Collection.Iterator>>();
-    private final List<WeakReference<PendingRow>> pendingRows =
-            new CopyOnWriteArrayList<WeakReference<PendingRow>>();
+    private final List<WeakReference<PendingRow>> pendingRows = new CopyOnWriteArrayList<WeakReference<PendingRow>>();
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -242,7 +241,7 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     public void beginTransaction() {
         detachIterators();
-        executePendingRows();
+        executePendingRowQueries();
         nativeBeginTransaction(nativePtr);
         invokeSchemaChangeListenerIfSchemaChanged();
     }
@@ -430,10 +429,18 @@ public final class SharedRealm implements Closeable, NativeObject {
         iterators.clear();
     }
 
+    // addPendingRow, removePendingRow and executePendingRow queries is to solve that the listener cannot be added
+    // inside a transaction. For the findFirstAsync(), listener is registered on a Object Store Results first, then move
+    // the listeners to the Object when the query for Results returns. When beginTransaction() called, all listeners'
+    // on the results will be triggered first, that leads to the registration of listeners on the Object which will
+    // will throw because of the transaction has began already. So here we execute all PendingRow queries first before
+    // calling the Object Store begin_transaction to avoid the problem.
+    // Add pending row to the list when it is created. It should be called in the PendingRow constructor.
     void addPendingRow(PendingRow pendingRow) {
        pendingRows.add(new WeakReference<PendingRow>(pendingRow));
     }
 
+    // Remove pending row from the list. It should be called when pending row's query finished.
     void removePendingRow(PendingRow pendingRow) {
         for (WeakReference<PendingRow> ref : pendingRows) {
             PendingRow row = ref.get();
@@ -443,7 +450,8 @@ public final class SharedRealm implements Closeable, NativeObject {
         }
     }
 
-    private void executePendingRows() {
+    // Execute all pending row queries.
+    private void executePendingRowQueries() {
         for (WeakReference<PendingRow> ref : pendingRows) {
             PendingRow row = ref.get();
             if (row != null) {
