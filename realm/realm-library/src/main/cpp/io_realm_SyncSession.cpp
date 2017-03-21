@@ -15,6 +15,7 @@
  */
 
 #include <jni.h>
+#include <string>
 
 #include "io_realm_SyncSession.h"
 
@@ -22,6 +23,7 @@
 #include "object-store/src/sync/sync_session.hpp"
 
 #include "util.hpp"
+#include "jni_util/jni_utils.hpp"
 
 using namespace realm;
 using namespace sync;
@@ -51,9 +53,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JN
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIEnv* env, jclass,
-                                                                            jstring localRealmPath,
-                                                                            jobject listenerWrapper, jint direction,
-                                                                            jboolean isStreaming)
+                                                                            jstring localRealmPath, jlong listenerId,
+                                                                            jint direction, jboolean isStreaming)
 {
     try {
         JStringAccessor local_realm_path(env, localRealmPath);
@@ -67,9 +68,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
         SyncSession::NotifierType type =
             (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
 
-        std::function<SyncProgressNotifierCallback> callback = [=](uint64_t transferred, uint64_t transferrable) {
-            jmethodID notify_method = env->GetMethodID(java_progress_listener_wrapper, "notifyProgressChange", "(JJ)V");
-            env->CallVoidMethod(listenerWrapper, notify_method, transferred, transferrable);
+        std::function<SyncProgressNotifierCallback> callback = [localRealmPath, listenerId](uint64_t transferred,
+                                                                                            uint64_t transferrable) {
+            JNIEnv* env = jni_util::JniUtils::get_env(true);
+            env->CallStaticVoidMethod(java_syncmanager, java_notify_progress_listener, localRealmPath, listenerId,
+                                      static_cast<jlong>(transferred), static_cast<jlong>(transferrable));
         };
         uint64_t token = session->register_progress_notifier(callback, type, to_bool(isStreaming));
         return static_cast<jlong>(token);

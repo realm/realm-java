@@ -19,7 +19,6 @@ package io.realm;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -64,7 +63,18 @@ public class SyncSession {
     private RealmAsyncTask refreshTokenNetworkRequest;
     private AtomicBoolean onGoingAccessTokenQuery = new AtomicBoolean(false);
     private volatile boolean isClosed = false;
-    private Map<ProgressListener, ProgressListenerWrapper> progressListeners = new HashMap<>();
+
+    // We need JavaId -> Listener so C++ can trigger callbacks without keeping a reference to the
+    // jobject, which would require a similar map on the C++ side.
+    // We need Listener -> Token map in order to remove the progress listener in C++ from Java.
+    private Map<Long, ProgressListener> listenerIdToProgressListenerMap = new HashMap<>();
+    private Map<ProgressListener, Long> progressListenerToOsTokenMap = new HashMap<>();
+
+    // Counter used to assign all ProgressListeners on this session with a unique id.
+    // ListenerId is created by Java to enable C++ to reference the java listener without holding
+    // a reference to the actual object.
+    // ListenerToken is created by OS and represents the listener. We need
+    volatile long progressListenerId = -1;
 
     SyncSession(SyncConfiguration configuration) {
         this.configuration = configuration;
@@ -116,6 +126,18 @@ public class SyncSession {
         }
     }
 
+    // Called from native code
+    @SuppressWarnings("unused")
+    @KeepMember
+    synchronized void notifyProgressListener(long listenerId, long transferredBytes, long transferableBytes) {
+        ProgressListener listener = listenerIdToProgressListenerMap.get(listenerId);
+        if (listener != null) {
+            listener.onChange(new Progress(transferredBytes, transferableBytes));
+        } else {
+            RealmLog.debug("Trying unknown listener failed: " + listenerId);
+        }
+    }
+    
     /**
      * Add a download progress listener.
      *
@@ -131,19 +153,21 @@ public class SyncSession {
     }
 
     public synchronized void removeProgressListener(ProgressListener listener) {
-        ProgressListenerWrapper wrapper = progressListeners.remove(listener);
-        if (wrapper != null) {
-            nativeRemoveProgressListener(configuration.getPath(), wrapper.getToken());
-        }
+//        ProgressListenerWrapper wrapper = progressListeners.remove(listener);
+//        if (wrapper != null) {
+//            nativeRemoveProgressListener(configuration.getPath(), wrapper.getToken());
+//        }
     }
 
     private void addProgressListener(ProgressMode mode, int direction, ProgressListener listener) {
         checkProgressListenerArguments(mode, listener);
-        ProgressListenerWrapper wrapper = new ProgressListenerWrapper(listener);
         boolean isStreaming = (mode == ProgressMode.INDEFINETELY);
-        long listenerToken = nativeAddProgressListener(configuration.getPath(), wrapper, direction, isStreaming);
-        wrapper.setToken(listenerToken);
-        progressListeners.put(listener, wrapper);
+
+        long listenerId = progressListenerId++;
+        long listenerToken = nativeAddProgressListener(configuration.getPath(), listenerId , direction, isStreaming);
+
+        listenerIdToProgressListenerMap.put(listenerId, listener);
+        progressListenerToOsTokenMap.put(listener, listenerToken);
     }
 
     private void checkProgressListenerArguments(ProgressMode mode, ProgressListener listener) {
@@ -220,60 +244,6 @@ public class SyncSession {
          * @see <a href="https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup">Client Recovery From A Backup</a>
          */
         void onClientResetRequired(SyncSession session, ClientResetHandler handler);
-    }
-
-    /**
-     * ProgressListener wrapper. Used so we can expose {@link ProgressListener} as an interface instead of an abstract
-     * class.
-     */
-    private static class ProgressListenerWrapper {
-        private final ProgressListener listener;
-        private long token;
-
-        public ProgressListenerWrapper(ProgressListener listener) {
-            this.listener = listener;
-        }
-
-        // Called from JNI
-        @SuppressWarnings("unused")
-        @KeepMember
-        public void notifyProgressChange(long transferredBytes, long transferableBytes) {
-            listener.onChange(new Progress(transferredBytes, transferableBytes));
-        }
-
-        public void setToken(long token) {
-            this.token = token;
-        }
-
-        public long getToken() {
-            return token;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            ProgressListenerWrapper that = (ProgressListenerWrapper) o;
-
-            if (token != that.token) return false;
-            return listener != null ? listener.equals(that.listener) : that.listener == null;
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = listener != null ? listener.hashCode() : 0;
-            result = 31 * result + (int) (token ^ (token >>> 32));
-            return result;
-        }
-    }
-
-    // Called from native code
-    @SuppressWarnings("unused")
-    @KeepMember
-    private synchronized void notifyProgressListener(ProgressListener listener, long transferredBytes, long transferableBytes) {
-        listener.onChange(new Progress(transferredBytes, transferableBytes));
     }
 
     String accessToken(final AuthenticationServer authServer) {
@@ -455,7 +425,7 @@ public class SyncSession {
     }
 
     private static native boolean nativeRefreshAccessToken(String path, String accessToken, String authURL);
-    private static native long nativeAddProgressListener(String localRealmPath, ProgressListenerWrapper listener, int direction, boolean isStreaming);
+    private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
 }
 

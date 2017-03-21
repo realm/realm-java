@@ -705,7 +705,7 @@ extern jclass java_util_date;
 extern jmethodID java_util_date_init;
 #if REALM_ENABLE_SYNC
 extern jclass java_syncmanager;
-extern jclass java_progress_listener_wrapper;
+extern jmethodID java_notify_progress_listener;
 #endif
 
 inline jobject NewLong(JNIEnv* env, int64_t value)

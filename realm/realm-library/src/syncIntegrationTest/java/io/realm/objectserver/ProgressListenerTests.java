@@ -32,13 +32,13 @@ import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.entities.AllTypes;
 import io.realm.objectserver.utils.Constants;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.rule.TestSyncConfigurationFactory;
 
 public class ProgressListenerTests extends BaseIntegrationTest {
 
     @Rule
-    public RunInLooperThread looperThread = new RunInLooperThread();
+    public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
     @Test
     @RunTestInLooperThread
@@ -56,7 +56,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         final CountDownLatch allChangeUploaded = new CountDownLatch(1);
 
         SyncUser user = loginAdminUser();
-        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL).build();
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL).build();
 
         Realm realm = Realm.getInstance(config);
 

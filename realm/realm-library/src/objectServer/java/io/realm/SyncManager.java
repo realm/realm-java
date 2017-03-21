@@ -249,6 +249,23 @@ public class SyncManager {
     }
 
     /**
+     * All progress listener events from native Sync is reported to this method.
+     * It costs 2 HashMap lookups for each listener triggered (one to find the session, one to
+     * find the progress listener), but it means we don't have to cache anything on the C++ side which
+     * can leak since we don't have control over the session lifecycle.
+     */
+    private static synchronized void notifyProgressListener(String localRealmPath, long listenerId, long transferedBytes, long transferableBytes) {
+        SyncSession session = sessions.get(localRealmPath);
+        if (session != null) {
+            try {
+                session.notifyProgressListener(listenerId, transferedBytes, transferableBytes);
+            } catch (Exception exception) {
+                RealmLog.error(exception);
+            }
+        }
+    }
+
+    /**
      * This is called from the Object Store (through JNI) to request an {@code access_token} for
      * the session specified by sessionPath.
      *
