@@ -83,7 +83,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @return the field value.
      * @throws ClassCastException if the field doesn't contain a field of the defined return type.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
     public <E> E get(String fieldName) {
         proxyState.getRealm$realm().checkIfValid();
 

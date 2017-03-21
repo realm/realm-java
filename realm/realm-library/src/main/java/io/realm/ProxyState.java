@@ -166,7 +166,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     }
 
     private void registerToObjectNotifier() {
-        if (realm.sharedRealm == null || realm.sharedRealm.isClosed()) {
+        if (realm.sharedRealm == null || realm.sharedRealm.isClosed() || !row.isAttached()) {
             return;
         }
 
@@ -192,7 +192,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         this.row = row;
         // getTable should return a non-null table since the row should always be valid here.
         notifyQueryFinished();
-        if (!(row instanceof InvalidRow)) {
+        if (row.isAttached()) {
             registerToObjectNotifier();
         }
     }

@@ -591,6 +591,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
+    @SuppressWarnings("CollectionIncompatibleType")
     public void removeAll_managedMode_wrongClass() {
         realm.beginTransaction();
         //noinspection SuspiciousMethodCalls
@@ -598,6 +599,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
+    @SuppressWarnings("CollectionIncompatibleType")
     public void removeAll_unmanaged_wrongClass() {
         RealmList<Dog> list = createUnmanagedDogList();
         //noinspection SuspiciousMethodCalls

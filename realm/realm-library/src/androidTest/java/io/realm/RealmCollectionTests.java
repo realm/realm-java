@@ -235,6 +235,7 @@ public class RealmCollectionTests extends CollectionTests {
     }
 
     @Test
+    @SuppressWarnings("CollectionIncompatibleType")
     public void contains_wrongType() {
         //noinspection SuspiciousMethodCalls
         assertFalse(collection.contains(new Dog()));

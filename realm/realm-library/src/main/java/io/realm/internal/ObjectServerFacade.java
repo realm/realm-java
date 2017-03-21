@@ -36,6 +36,7 @@ public class ObjectServerFacade {
     static {
         //noinspection TryWithIdenticalCatches
         try {
+            @SuppressWarnings("LiteralClassName")
             Class syncFacadeClass = Class.forName("io.realm.internal.SyncObjectServerFacade");
             //noinspection unchecked
             syncFacade = (ObjectServerFacade) syncFacadeClass.getDeclaredConstructor().newInstance();
