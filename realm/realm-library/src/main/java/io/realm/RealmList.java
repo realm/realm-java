@@ -152,7 +152,6 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * <li><b>Unmanaged RealmLists</b>: It is possible to add both managed and unmanaged objects. If adding managed
      * objects to an unmanaged RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
-     * <p>
      * <li><b>Managed RealmLists</b>: It is possible to add unmanaged objects to a RealmList that is already managed. In
      * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
      * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
@@ -185,7 +184,6 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * <li><b>Unmanaged RealmLists</b>: It is possible to add both managed and unmanaged objects. If adding managed
      * objects to an unmanaged RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
-     * <p>
      * <li><b>Managed RealmLists</b>: It is possible to add unmanaged objects to a RealmList that is already managed. In
      * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
      * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
@@ -215,7 +213,6 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * <li><b>Unmanaged RealmLists</b>: It is possible to add both managed and unmanaged objects. If adding managed
      * objects to an unmanaged RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
-     * <p>
      * <li><b>Managed RealmLists</b>: It is possible to add unmanaged objects to a RealmList that is already managed.
      * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)} or
      * {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
