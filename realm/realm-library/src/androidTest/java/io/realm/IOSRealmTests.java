@@ -146,6 +146,7 @@ public class IOSRealmTests {
     }
 
     @Test
+    @SuppressWarnings("ConstantOverflow")
     public void iOSDataTypesMinimumValues() throws IOException {
         for (String iosVersion : IOS_VERSIONS) {
             configFactory.copyRealmFromAssets(context,
@@ -167,6 +168,7 @@ public class IOSRealmTests {
     }
 
     @Test
+    @SuppressWarnings("ConstantOverflow")
     public void iOSDataTypesMaximumValues() throws IOException {
         for (String iosVersion : IOS_VERSIONS) {
             configFactory.copyRealmFromAssets(context,

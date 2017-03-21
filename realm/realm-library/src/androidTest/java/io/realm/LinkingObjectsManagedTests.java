@@ -178,6 +178,7 @@ public class LinkingObjectsManagedTests {
         verifyPostConditions(
             looperThreadRealm,
             new PostConditions() {
+                @Override
                 public void run(Realm realm) {
                     assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
                     assertEquals(1, counter.get());
@@ -215,6 +216,7 @@ public class LinkingObjectsManagedTests {
         verifyPostConditions(
             looperThreadRealm,
             new PostConditions() {
+                @Override
                 public void run(Realm realm) {
                     assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
                 }
@@ -250,6 +252,7 @@ public class LinkingObjectsManagedTests {
         verifyPostConditions(
             looperThreadRealm,
             new PostConditions() {
+                @Override
                 public void run(Realm realm) {
                     assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
                     assertEquals(1, counter.get());
@@ -287,6 +290,7 @@ public class LinkingObjectsManagedTests {
         verifyPostConditions(
             looperThreadRealm,
             new PostConditions() {
+                @Override
                 public void run(Realm realm) {
                     assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
                     assertEquals(1, counter.get());
@@ -322,6 +326,7 @@ public class LinkingObjectsManagedTests {
         verifyPostConditions(
             looperThreadRealm,
             new PostConditions() {
+                @Override
                 public void run(Realm realm) {
                     assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
                     assertEquals(1, counter.get());
@@ -358,6 +363,7 @@ public class LinkingObjectsManagedTests {
         verifyPostConditions(
             looperThreadRealm,
             new PostConditions() {
+                @Override
                 public void run(Realm realm) {
                     assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
                 }
@@ -393,6 +399,7 @@ public class LinkingObjectsManagedTests {
         verifyPostConditions(
             looperThreadRealm,
             new PostConditions() {
+                @Override
                 public void run(Realm realm) {
                     assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
                     assertEquals(1, counter.get());
@@ -427,6 +434,7 @@ public class LinkingObjectsManagedTests {
         verifyPostConditions(
             looperThreadRealm,
             new PostConditions() {
+                @Override
                 public void run(Realm realm) {
                     assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
                 }
@@ -531,6 +539,7 @@ public class LinkingObjectsManagedTests {
         verifyPostConditions(
             looperThreadRealm,
             new PostConditions() {
+                @Override
                 public void run(Realm realm) {
                     RealmResults<AllJavaTypes> results = looperThreadRealm.where(AllJavaTypes.class).equalTo("fieldId", 1).findAll();
                     assertNotNull(results);

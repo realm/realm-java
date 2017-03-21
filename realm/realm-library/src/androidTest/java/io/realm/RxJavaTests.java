@@ -230,6 +230,7 @@ public class RxJavaTests {
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         subscription = results.asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
             @Override
+            @SuppressWarnings("ReferenceEquality")
             public void call(RealmResults<AllTypes> rxResults) {
                 assertTrue(rxResults == results);
                 subscribedNotified.set(true);
@@ -248,6 +249,7 @@ public class RxJavaTests {
         realm.commitTransaction();
         subscription = list.asObservable().subscribe(new Action1<RealmList<Dog>>() {
             @Override
+            @SuppressWarnings("ReferenceEquality")
             public void call(RealmList<Dog> rxList) {
                 assertTrue(rxList == list);
                 subscribedNotified.set(true);
@@ -265,6 +267,7 @@ public class RxJavaTests {
         final RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
         subscription = results.asObservable().subscribe(new Action1<RealmResults<DynamicRealmObject>>() {
             @Override
+            @SuppressWarnings("ReferenceEquality")
             public void call(RealmResults<DynamicRealmObject> rxResults) {
                 assertTrue(rxResults == results);
                 subscribedNotified.set(true);
@@ -353,6 +356,7 @@ public class RxJavaTests {
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         subscription = results.asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
             @Override
+            @SuppressWarnings("ReferenceEquality")
             public void call(RealmResults<AllTypes> rxResults) {
                 assertTrue(rxResults == results);
                 subscribedNotified.set(true);

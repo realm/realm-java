@@ -341,6 +341,7 @@ public class RealmConfiguration {
      *
      * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
      */
+    @SuppressWarnings("LiteralClassName")
     static synchronized boolean isRxJavaAvailable() {
         if (rxJavaAvailable == null) {
             try {
