@@ -112,10 +112,11 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
-    public final List<WeakReference<Collection>> collections = new CopyOnWriteArrayList<WeakReference<Collection>>();
     public final Capabilities capabilities;
     public final List<WeakReference<Collection.Iterator>> iterators =
             new ArrayList<WeakReference<Collection.Iterator>>();
+    private final List<WeakReference<PendingRow>> pendingRows =
+            new CopyOnWriteArrayList<WeakReference<PendingRow>>();
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -241,6 +242,7 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     public void beginTransaction() {
         detachIterators();
+        executePendingRows();
         nativeBeginTransaction(nativePtr);
         invokeSchemaChangeListenerIfSchemaChanged();
     }
@@ -426,6 +428,29 @@ public final class SharedRealm implements Closeable, NativeObject {
             }
         }
         iterators.clear();
+    }
+
+    void addPendingRow(PendingRow pendingRow) {
+       pendingRows.add(new WeakReference<PendingRow>(pendingRow));
+    }
+
+    void removePendingRow(PendingRow pendingRow) {
+        for (WeakReference<PendingRow> ref : pendingRows) {
+            PendingRow row = ref.get();
+            if (row == null || row == pendingRow) {
+                pendingRows.remove(ref);
+            }
+        }
+    }
+
+    private void executePendingRows() {
+        for (WeakReference<PendingRow> ref : pendingRows) {
+            PendingRow row = ref.get();
+            if (row != null) {
+                row.executeQuery();
+            }
+        }
+        pendingRows.clear();
     }
 
     private static native void nativeInit(String temporaryDirectoryPath);

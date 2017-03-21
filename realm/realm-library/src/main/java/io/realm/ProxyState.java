@@ -17,9 +17,9 @@
 package io.realm;
 
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.realm.internal.InvalidRow;
+import io.realm.internal.ObserverPairList;
 import io.realm.internal.PendingRow;
 import io.realm.internal.Row;
 import io.realm.internal.OsObject;
@@ -36,6 +36,9 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         private final RealmChangeListener<T> listener;
 
         RealmChangeListenerWrapper(RealmChangeListener<T> listener) {
+            if (listener == null) {
+                throw new IllegalArgumentException("Listener should not be null");
+            }
             this.listener = listener;
         }
 
@@ -56,6 +59,15 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         }
     }
 
+    private static class QueryCallback implements ObserverPairList.Callback<OsObject.ObjectObserverPair> {
+
+        @Override
+        public void onCalled(OsObject.ObjectObserverPair pair, Object observer) {
+            //noinspection unchecked
+            pair.onChange(observer, null);
+        }
+    }
+
     private E model;
 
     // true only while executing the constructor of the enclosing proxy object
@@ -67,8 +79,9 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     private boolean acceptDefaultValue;
     private List<String> excludeFields;
 
-    private final List<RealmObjectChangeListener<E>> listeners =
-            new CopyOnWriteArrayList<RealmObjectChangeListener<E>>();
+    private ObserverPairList<OsObject.ObjectObserverPair> observerPairs =
+            new ObserverPairList<OsObject.ObjectObserverPair>();
+    private static QueryCallback queryCallback = new QueryCallback();
 
     public ProxyState() {}
 
@@ -111,40 +124,34 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     /**
      * Notifies all registered listeners.
      */
-    private void notifyChangeListeners(ObjectChangeSet changeSet) {
-        if (!listeners.isEmpty()) {
-            for (RealmObjectChangeListener<E> listener : listeners) {
-                if (realm.sharedRealm == null || realm.sharedRealm.isClosed()) {
-                    return;
-                }
-                listener.onChange(model, changeSet);
+    private void notifyQueryFinished() {
+        observerPairs.foreach(queryCallback);
+    }
+
+    public void addChangeListener(RealmObjectChangeListener<E> listener) {
+        if (row instanceof PendingRow) {
+            observerPairs.add(new OsObject.ObjectObserverPair<E>(model, listener));
+        } else if (row instanceof UncheckedRow) {
+            registerToObjectNotifier();
+            if (osObject != null) {
+                osObject.addListener(model, listener);
             }
         }
     }
 
-    public void addChangeListener(RealmObjectChangeListener<E> listener) {
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
-        }
-        // this might be called after query returns. So it is still necessary to register.
-        if (row instanceof UncheckedRow) {
-            registerToObjectNotifier();
-        }
-    }
-
     public void removeChangeListener(RealmObjectChangeListener<E> listener) {
-        listeners.remove(listener);
-        if (listeners.isEmpty() && osObject != null) {
-            osObject.removeListener(this);
-            osObject = null;
+        if (osObject != null) {
+            osObject.removeListener(model, listener);
+        } else {
+            observerPairs.remove(model, listener);
         }
     }
 
     public void removeAllChangeListeners() {
-        listeners.clear();
         if (osObject != null) {
-            osObject.removeListener(this);
-            osObject = null;
+            osObject.removeListener(model);
+        } else {
+            observerPairs.clear();
         }
     }
 
@@ -165,12 +172,8 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
 
         if (osObject == null) {
             osObject = new OsObject(realm.sharedRealm, (UncheckedRow) row);
-            osObject.addListener(this, new RealmObjectChangeListener<ProxyState<E>>() {
-                @Override
-                public void onChange(ProxyState<E> object, ObjectChangeSet changeSet) {
-                    notifyChangeListeners(changeSet);
-                }
-            });
+            osObject.setObserverPairs(observerPairs);
+            observerPairs = null;
         }
     }
 
@@ -180,11 +183,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
 
     public void load() {
         if (row instanceof PendingRow) {
-            row = ((PendingRow) row).executeQuery();
-            if (!(row instanceof InvalidRow)) {
-                registerToObjectNotifier();
-            }
-            notifyChangeListeners(null);
+            ((PendingRow) row).executeQuery();
         }
     }
 
@@ -192,7 +191,9 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     public void onQueryFinished(Row row) {
         this.row = row;
         // getTable should return a non-null table since the row should always be valid here.
-        notifyChangeListeners(null);
-        registerToObjectNotifier();
+        notifyQueryFinished();
+        if (!(row instanceof InvalidRow)) {
+            registerToObjectNotifier();
+        }
     }
 }

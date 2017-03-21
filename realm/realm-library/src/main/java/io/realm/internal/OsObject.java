@@ -45,12 +45,12 @@ public class OsObject implements NativeObject {
         }
     }
 
-    private class ObjectObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmObjectChangeListener<T>> {
-        ObjectObserverPair(T observer, RealmObjectChangeListener<T> listener) {
+    public static class ObjectObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmObjectChangeListener<T>> {
+        public ObjectObserverPair(T observer, RealmObjectChangeListener<T> listener) {
             super(observer, listener);
         }
 
-        void onChange(T observer, ObjectChangeSet changeSet) {
+        public void onChange(T observer, ObjectChangeSet changeSet) {
             listener.onChange(observer, changeSet);
         }
     }
@@ -105,6 +105,24 @@ public class OsObject implements NativeObject {
         observerPairs.removeByObserver(observer);
         if (observerPairs.isEmpty()) {
             nativeStopListening(nativePtr);
+        }
+    }
+
+    public <T> void removeListener(T observer, RealmObjectChangeListener<T> listener) {
+        observerPairs.remove(observer, listener);
+        if (observerPairs.isEmpty()) {
+            nativeStopListening(nativePtr);
+        }
+    }
+
+    public void setObserverPairs(ObserverPairList<ObjectObserverPair> pairs) {
+        if (!observerPairs.isEmpty()) {
+            throw new IllegalStateException("'observerPairs' is not empty. Listeners have been added before.");
+        }
+
+        observerPairs = pairs;
+        if (!pairs.isEmpty()) {
+            nativeStartListening(nativePtr);
         }
     }
 

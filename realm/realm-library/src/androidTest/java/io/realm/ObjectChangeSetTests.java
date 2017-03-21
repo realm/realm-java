@@ -19,10 +19,13 @@ package io.realm;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
@@ -249,13 +252,26 @@ public class ObjectChangeSetTests {
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void findFirstAsync_queryExecutedByLocalCommit() {
         Realm realm = looperThread.realm;
-        AllTypes allTypes = realm.where(AllTypes.class).findFirstAsync();
+        final AtomicInteger listenerCounter = new AtomicInteger(0);
+        final AllTypes allTypes = realm.where(AllTypes.class).findFirstAsync();
         allTypes.addChangeListener(new RealmObjectChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object, ObjectChangeSet changeSet) {
-                assertTrue(object.isValid());
-                assertNull(changeSet);
-                looperThread.testComplete();
+                int counter = listenerCounter.getAndIncrement();
+                switch (counter) {
+                    case 0:
+                        assertTrue(object.isValid());
+                        assertNull(changeSet);
+                        break;
+                    case 1:
+                        assertFalse(object.isValid());
+                        assertTrue(changeSet.isDeleted());
+                        assertNull(changeSet.getChangedFields());
+                        looperThread.testComplete();
+                        break;
+                    default:
+                        fail();
+                }
             }
         });
         realm.beginTransaction();
