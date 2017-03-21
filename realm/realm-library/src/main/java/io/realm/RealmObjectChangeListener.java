@@ -24,9 +24,8 @@ package io.realm;
  * <p>
  *
  * @param <T> The <a href="https://realm.io/docs/java/latest/#auto-updating-objects">live object</a> being returned
- *         ({@link Realm}, {@link DynamicRealm}, {@link RealmObject}, {@link RealmResults}, {@link DynamicRealmObject}
- *          or your model implementing {@link RealmModel})
- *
+ * ({@link Realm}, {@link DynamicRealm}, {@link RealmObject}, {@link RealmResults}, {@link DynamicRealmObject}
+ * or your model implementing {@link RealmModel})
  * @see Realm#addChangeListener(RealmChangeListener)
  * @see Realm#removeAllChangeListeners()
  * @see Realm#removeChangeListener(RealmChangeListener)
@@ -37,14 +36,17 @@ public interface RealmObjectChangeListener<T> {
      * When this gets called to return the results of an asynchronous query made by {@link RealmQuery#findFirstAsync()},
      * {@code changeSet} will be {@code null}.
      * <p>
-     * When this gets called when the object is deleted, {@code changeSet.isDeleted()} will return {@code true} and
-     * {@code changeSet.getFieldChanges()} will return {@code null}.
+     * When this gets called because of the object is deleted, {@code changeSet.isDeleted()} will return {@code true}
+     * and {@code changeSet.getFieldChanges()} will return {@code null}.
      * <p>
-     * When this gets called when the object is modified, {@code changeSet.isDeleted()} will return {@code false} and
-     * {@code changeSet.getFieldChanges()} will return the detailed information about the fields' changes.
+     * When this gets called because of the object is modified, {@code changeSet.isDeleted()} will return {@code false}
+     * and {@code changeSet.getFieldChanges()} will return the detailed information about the fields' changes.
      * <p>
-     * This will be called if the {@link RealmObject} field gets set or removed, but it won't be called if the
-     * {@link RealmObject} itself changes.
+     * If a field points to another RealmObject this listener will only be triggered if the field is set to a new object
+     * or null. Updating the referenced RealmObject will not trigger this listener.
+     * <p>
+     * If a field points to a RealmList, this listener will only be triggered if a objects are inserted, removed or
+     * moved within the List. Updating the objects in the RealmList will no trigger this listener.
      *
      * @param object the {@code RealmObject} this listener is registered to.
      * @param changeSet the detailed information about the changes.
