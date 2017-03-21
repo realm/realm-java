@@ -551,34 +551,26 @@ public class RealmAsyncQueryTests {
         });
     }
 
+    // When there is no object match the query condition, findFirstAsync should return with an invalid row.
     @Test
     @RunTestInLooperThread
-    public void findFirstAsync_initalEmptyRow() throws Throwable {
+    public void findFirstAsync_initialEmptyRow() throws Throwable {
         Realm realm = looperThread.realm;
         final AllTypes firstAsync = realm.where(AllTypes.class).findFirstAsync();
         looperThread.keepStrongReference.add(firstAsync);
         firstAsync.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object) {
-                assertTrue(firstAsync.load());
                 assertTrue(firstAsync.isLoaded());
-                assertTrue(firstAsync.isValid());
-                assertEquals(0, firstAsync.getColumnLong());
+                assertFalse(firstAsync.isValid());
                 looperThread.testComplete();
             }
         });
-
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class).setColumnLong(0);
-        realm.commitTransaction();
-
-        assertTrue(firstAsync.load());
-        assertTrue(firstAsync.isLoaded());
     }
 
     @Test
     @RunTestInLooperThread
-    public void findFirstAsync_updatedIfsyncRealmObjectIsUpdated() throws Throwable {
+    public void findFirstAsync_updatedIfSyncRealmObjectIsUpdated() throws Throwable {
         populateTestRealm(looperThread.realm, 1);
         AllTypes firstSync = looperThread.realm.where(AllTypes.class).findFirst();
         assertEquals(0, firstSync.getColumnLong());
