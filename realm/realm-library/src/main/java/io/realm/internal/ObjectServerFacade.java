@@ -18,8 +18,11 @@ package io.realm.internal;
 
 import android.content.Context;
 
+import java.lang.reflect.InvocationTargetException;
+
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
+
 
 /**
  * Class acting as an mediator between the basic Realm APIs and the Object Server APIs.
@@ -34,17 +37,23 @@ public class ObjectServerFacade {
         //noinspection TryWithIdenticalCatches
         try {
             Class syncFacadeClass = Class.forName("io.realm.internal.SyncObjectServerFacade");
-            syncFacade = (ObjectServerFacade) syncFacadeClass.newInstance();
+            //noinspection unchecked
+            syncFacade = (ObjectServerFacade) syncFacadeClass.getDeclaredConstructor().newInstance();
         } catch (ClassNotFoundException ignored) {
         } catch (InstantiationException e) {
             throw new RealmException("Failed to init SyncObjectServerFacade", e);
         } catch (IllegalAccessException e) {
             throw new RealmException("Failed to init SyncObjectServerFacade", e);
+        } catch (NoSuchMethodException e) {
+            throw new RealmException("Failed to init SyncObjectServerFacade", e);
+        } catch (InvocationTargetException e) {
+            throw new RealmException("Failed to init SyncObjectServerFacade", e.getTargetException());
         }
     }
 
     /**
      * Initializes the Object Server library
+     *
      * @param context
      */
     public void init(Context context) {

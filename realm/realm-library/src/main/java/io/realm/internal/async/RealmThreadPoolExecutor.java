@@ -27,7 +27,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 
 /**
  * Custom thread pool settings, instances of this executor can be paused, and resumed, this will also set
@@ -66,7 +67,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
      *
      * @return the number of threads to be allocated for the executor pool
      */
-    @SuppressWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
+    @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private static int calculateCorePoolSize() {
         int cpus = countFilesInDir(SYS_CPU_DIR, "cpu[0-9]+");
         if (cpus <= 0) {
@@ -153,7 +154,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
         super.beforeExecute(t, r);
         pauseLock.lock();
         try {
-            while (isPaused) unpaused.await();
+            while (isPaused) { unpaused.await(); }
         } catch (InterruptedException ie) {
             t.interrupt();
         } finally {

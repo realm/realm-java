@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import io.realm.RealmFieldType;
 
+
 /**
  * The LinkView class represents a core {@link RealmFieldType#LIST}.
  */
@@ -64,7 +65,7 @@ public class LinkView implements NativeObject {
     /**
      * Returns a wrapper for {@link Row} access. All access will be error checked at the JNI layer and will throw an
      * appropriate {@link RuntimeException} if used incorrectly.
-     *
+     * <p>
      * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
      *
      * @param index the index of row to fetch.
@@ -169,20 +170,36 @@ public class LinkView implements NativeObject {
     }
 
     native long nativeGetRow(long nativeLinkViewPtr, long pos);
+
     private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long linkViewIndex);
+
     public static native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
+
     private native void nativeInsert(long nativeLinkViewPtr, long pos, long rowIndex);
+
     private native void nativeSet(long nativeLinkViewPtr, long pos, long rowIndex);
+
     private native void nativeMove(long nativeLinkViewPtr, long oldPos, long newPos);
+
     private native void nativeRemove(long nativeLinkViewPtr, long pos);
+
     public static native void nativeClear(long nativeLinkViewPtr);
+
     private native long nativeSize(long nativeLinkViewPtr);
+
     private native boolean nativeIsEmpty(long nativeLinkViewPtr);
+
     protected native long nativeWhere(long nativeLinkViewPtr);
+
     private native boolean nativeIsAttached(long nativeLinkViewPtr);
+
     private native long nativeFind(long nativeLinkViewPtr, long targetRowIndex);
+
     private native void nativeRemoveTargetRow(long nativeLinkViewPtr, long rowIndex);
+
     private native void nativeRemoveAllTargetRows(long nativeLinkViewPtr);
+
     private native long nativeGetTargetTable(long nativeLinkViewPtr);
+
     private static native long nativeGetFinalizerPtr();
 }

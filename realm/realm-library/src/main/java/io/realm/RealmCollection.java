@@ -17,9 +17,9 @@
 package io.realm;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 
-import java.util.Collections;
 
 /**
  * {@code RealmCollection} is the root of the collection hierarchy that Realm supports. It defines operations on data
@@ -93,7 +93,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * Finds the maximum date.
      *
      * @param fieldName the field to look for the maximum date. If fieldName is not of Date type, an exception is
-     *                  thrown.
+     * thrown.
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
      * will be returned. Otherwise the maximum date is returned. When determining the maximum date, objects with
      * {@code null} values are ignored.
@@ -106,7 +106,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * Finds the minimum date.
      *
      * @param fieldName the field to look for the minimum date. If fieldName is not of Date type, an exception is
-     *                  thrown.
+     * thrown.
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
      * will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
      * {@code null} values are ignored.
@@ -118,8 +118,8 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
     /**
      * This deletes all objects in the collection from the underlying Realm as well as from the collection.
      *
-     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @return {@code true} if objects was deleted, {@code false} otherwise.
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
     boolean deleteAllFromRealm();
@@ -152,7 +152,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * latest data. Managed collections are thread confined so that they cannot be accessed from other threads than the
      * one that created them.
      * <p>
-     *
+     * <p>
      * If this method returns {@code false}, the collection is unmanaged. An unmanaged collection is just a normal java
      * collection, so it will not be live updated.
      * <p>
@@ -170,7 +170,8 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @param object the object to search for.
      * @return {@code true} if object is an element of this {@code Collection}, {@code false} otherwise.
      * @throws NullPointerException if the object to look for is {@code null} and this {@code Collection} doesn't
-     *                              support {@code null} elements.
+     * support {@code null} elements.
      */
+    @Override
     boolean contains(Object object);
 }

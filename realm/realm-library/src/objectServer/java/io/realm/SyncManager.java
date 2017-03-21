@@ -104,9 +104,6 @@ public class SyncManager {
     static void init(String appId, UserStore userStore) {
         SyncManager.APP_ID = appId;
         SyncManager.userStore = userStore;
-
-        // Initialize underlying Sync Network Client
-        nativeInitializeSyncClient();
     }
 
     /**
@@ -303,9 +300,7 @@ public class SyncManager {
                 true);
     }
 
-    private static native void nativeInitializeSyncClient();
-    // init and load the Metadata Realm containing SyncUsers
-    protected static native void nativeConfigureMetaDataSystem(String baseFile);
+    protected static native void nativeInitializeSyncManager(String syncBaseDir);
     private static native void nativeReset();
     private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
 }

@@ -320,7 +320,8 @@ public class SyncUser {
             // Finally revoke server token. The local user is logged out in any case.
             final AuthenticationServer server = SyncManager.getAuthServer();
             ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
-            networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
+            //noinspection unused
+            final Future<?> future = networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
 
                 @Override
                 protected LogoutResponse execute() {

@@ -32,6 +32,7 @@ import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
 import rx.Observable;
 
+
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
  * RealmList has two modes: A managed and unmanaged mode. In managed mode all objects are persisted inside a Realm, in
@@ -99,7 +100,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * Creates a RealmList from a LinkView, so its elements are managed by Realm.
      *
      * @param clazz type of elements in the Array.
-     * @param linkView  backing LinkView.
+     * @param linkView backing LinkView.
      * @param realm reference to Realm containing the data.
      */
     RealmList(Class<E> clazz, LinkView linkView, BaseRealm realm) {
@@ -119,6 +120,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isValid() {
         if (realm == null) {
             return true;
@@ -133,6 +135,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isManaged() {
         return realm != null;
     }
@@ -149,7 +152,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * <li><b>Unmanaged RealmLists</b>: It is possible to add both managed and unmanaged objects. If adding managed
      * objects to an unmanaged RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
-     *
+     * <p>
      * <li><b>Managed RealmLists</b>: It is possible to add unmanaged objects to a RealmList that is already managed. In
      * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
      * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
@@ -182,7 +185,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * <li><b>Unmanaged RealmLists</b>: It is possible to add both managed and unmanaged objects. If adding managed
      * objects to an unmanaged RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
-     *
+     * <p>
      * <li><b>Managed RealmLists</b>: It is possible to add unmanaged objects to a RealmList that is already managed. In
      * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
      * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
@@ -212,7 +215,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * <li><b>Unmanaged RealmLists</b>: It is possible to add both managed and unmanaged objects. If adding managed
      * objects to an unmanaged RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
-     *
+     * <p>
      * <li><b>Managed RealmLists</b>: It is possible to add unmanaged objects to a RealmList that is already managed.
      * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)} or
      * {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
@@ -291,7 +294,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      *
      * @param oldPos index of RealmObject to move.
      * @param newPos target position. If newPos &lt; oldPos the object at the location will be shifted to the right. If
-     *               oldPos &lt; newPos, indexes &gt; oldPos will be shifted once to the left.
+     * oldPos &lt; newPos, indexes &gt; oldPos will be shifted once to the left.
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @throws java.lang.IndexOutOfBoundsException if any position is outside [0, size()].
      */
@@ -367,7 +370,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @param object the object to remove.
      * @return {@code true} if this {@code Collection} is modified, {@code false} otherwise.
      * @throws ClassCastException if the object passed is not of the correct type.
-     * @throws NullPointerException  if {@code object} is {@code null}.
+     * @throws NullPointerException if {@code object} is {@code null}.
      */
     @Override
     public boolean remove(Object object) {
@@ -459,13 +462,15 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public E first() {
         return firstImpl(true, null);
     }
 
     /**
-    * {@inheritDoc}
-    */
+     * {@inheritDoc}
+     */
+    @Override
     public E first(E defaultValue) {
         return firstImpl(false, defaultValue);
     }
@@ -479,7 +484,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         } else if (unmanagedList != null && !unmanagedList.isEmpty()) {
             return unmanagedList.get(0);
         }
-        
+
         if (shouldThrow) {
             throw new IndexOutOfBoundsException("The list is empty.");
         } else {
@@ -490,6 +495,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public E last() {
         return lastImpl(true, null);
     }
@@ -497,6 +503,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public E last(E defaultValue) {
         return lastImpl(false, defaultValue);
     }
@@ -543,7 +550,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     @Override
     public RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
-        return sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
+        return sort(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
     /**
@@ -596,6 +603,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @see io.realm.RealmQuery
      */
+    @Override
     public RealmQuery<E> where() {
         if (isManaged()) {
             checkValidView();
@@ -846,18 +854,18 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * Returns an Rx Observable that monitors changes to this RealmList. It will emit the current RealmList when
      * subscribed to. RealmList will continually be emitted as the RealmList is updated -
      * {@code onComplete} will never be called.
-     *
+     * <p>
      * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
-     *
-     *<pre>
+     * <p>
+     * <pre>
      * {@code
      * list.asObservable()
      *      .first()
      *      .subscribe( ... ) // You only get the results once
      * }
      * </pre>
-     *
+     * <p>
      * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
      * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
      * with {@code subscribeOn()} and {@code observeOn()}.
@@ -977,6 +985,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public boolean hasNext() {
             realm.checkIfValid();
             checkConcurrentModification();
@@ -986,6 +995,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public E next() {
             realm.checkIfValid();
             checkConcurrentModification();
@@ -997,13 +1007,14 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
                 return next;
             } catch (IndexOutOfBoundsException e) {
                 checkConcurrentModification();
-                throw new NoSuchElementException("Cannot access index " + i + " when size is " + size() +  ". Remember to check hasNext() before using next().");
+                throw new NoSuchElementException("Cannot access index " + i + " when size is " + size() + ". Remember to check hasNext() before using next().");
             }
         }
 
         /**
          * {@inheritDoc}
          */
+        @Override
         public void remove() {
             realm.checkIfValid();
             if (lastRet < 0) {
@@ -1049,6 +1060,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public boolean hasPrevious() {
             return cursor != 0;
         }
@@ -1056,6 +1068,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public E previous() {
             checkConcurrentModification();
             int i = cursor - 1;
@@ -1072,6 +1085,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public int nextIndex() {
             return cursor;
         }
@@ -1079,6 +1093,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public int previousIndex() {
             return cursor - 1;
         }
@@ -1086,6 +1101,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         /**
          * {@inheritDoc}
          */
+        @Override
         public void set(E e) {
             realm.checkIfValid();
             if (lastRet < 0) {
@@ -1107,6 +1123,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
          *
          * @see #add(RealmModel)
          */
+        @Override
         public void add(E e) {
             realm.checkIfValid();
             checkConcurrentModification();
@@ -1121,5 +1138,4 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             }
         }
     }
-
 }

@@ -80,6 +80,7 @@ public class LogoutResponse extends AuthServerResponse {
      *
      * @return {@code true} if valid.
      */
+    @Override
     public boolean isValid() {
         return (error == null) || (error.getErrorCode() == ErrorCode.EXPIRED_REFRESH_TOKEN);
     }

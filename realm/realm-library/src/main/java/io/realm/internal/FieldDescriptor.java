@@ -55,7 +55,7 @@ public class FieldDescriptor {
                     throw new IllegalArgumentException(
                             String.format("'RealmList' field '%s' is not a supported link field here.", names[i]));
                 } else if (type == RealmFieldType.OBJECT || type == RealmFieldType.LIST) {
-                     table = table.getLinkTarget(index);
+                    table = table.getLinkTarget(index);
                     columnIndices[i] = index;
                 } else {
                     throw new IllegalArgumentException(

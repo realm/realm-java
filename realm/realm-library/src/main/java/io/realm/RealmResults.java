@@ -26,6 +26,7 @@ import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import rx.Observable;
 
+
 /**
  * This class holds all the matches of a {@link RealmQuery} for a given Realm. The objects are not copied from
  * the Realm to the RealmResults list, but are just referenced from the RealmResult instead. This saves memory and
@@ -61,9 +62,9 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
         UncheckedRow uncheckedRow = (UncheckedRow) row;
         Table srcTable = realm.getSchema().getTable(srcTableType);
         return new RealmResults<T>(
-            realm,
-            Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
-            srcTableType);
+                realm,
+                Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
+                srcTableType);
     }
 
 
@@ -90,7 +91,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @Override
     public RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
-        return sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
+        return sort(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
     /**
@@ -99,6 +100,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @return {@code true} if the query has completed and the data is available, {@code false} if the query is still
      * running in the background.
      */
+    @Override
     public boolean isLoaded() {
         realm.checkIfValid();
         return collection.isLoaded();
@@ -110,6 +112,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
+    @Override
     public boolean load() {
         // The Collection doesn't have to be loaded before accessing it if the query has not returned.
         // Instead, accessing the Collection will just trigger the execution of query if needed. We add this flag is
@@ -204,11 +207,11 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
      * subscribed to. RealmResults will continually be emitted as the RealmResults are updated -
      * {@code onComplete} will never be called.
-     *
+     * <p>
      * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
-     *
-     *<pre>
+     * <p>
+     * <pre>
      * {@code
      * realm.where(Foo.class).findAllAsync().asObservable()
      *      .filter(results -> results.isLoaded())
@@ -216,7 +219,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      *      .subscribe( ... ) // You only get the results once
      * }
      * </pre>
-     *
+     * <p>
      * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
      * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
      * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}

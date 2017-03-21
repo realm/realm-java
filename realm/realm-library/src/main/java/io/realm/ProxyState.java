@@ -25,6 +25,7 @@ import io.realm.internal.Row;
 import io.realm.internal.RowObject;
 import io.realm.internal.UncheckedRow;
 
+
 /**
  * This implements {@code RealmObjectProxy} interface, to eliminate copying logic between
  * {@link RealmObject} and {@link DynamicRealmObject}.

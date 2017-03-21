@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,6 +53,8 @@ import static org.junit.Assume.assumeThat;
 
 @RunWith(AndroidJUnit4.class)
 public class TypeBasedNotificationsTests {
+
+    private static final Charset UTF_8 = Charset.forName("UTF-8");
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
@@ -291,7 +294,7 @@ public class TypeBasedNotificationsTests {
             json.put("columnFloat", 1.23f);
             json.put("columnDouble", 1.23d);
             json.put("columnBoolean", true);
-            json.put("columnBinary", new String(Base64.encode(new byte[]{1, 2, 3}, Base64.DEFAULT)));
+            json.put("columnBinary", new String(Base64.encode(new byte[]{1, 2, 3}, Base64.DEFAULT), UTF_8));
 
             realm.beginTransaction();
             final AllTypes objectFromJson = realm.createObjectFromJson(AllTypes.class, json);

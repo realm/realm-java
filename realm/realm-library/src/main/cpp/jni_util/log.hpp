@@ -180,13 +180,11 @@ extern std::shared_ptr<JniLogger> get_default_logger();
 
 class CoreLoggerBridge : public realm::util::RootLogger {
 public:
+    CoreLoggerBridge(std::string tag) : m_tag(std::move(tag)) {}
     void do_log(Logger::Level, std::string msg) override;
-    static CoreLoggerBridge& shared();
 
 private:
-    CoreLoggerBridge(){};
-    // Log tag for Realm core & sync.
-    static const char* TAG;
+    const std::string m_tag;
 };
 
 } // namespace jni_util

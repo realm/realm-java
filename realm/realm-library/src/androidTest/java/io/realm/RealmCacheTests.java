@@ -106,6 +106,7 @@ public class RealmCacheTests {
         realm.close();
         try {
             Realm.getInstance(configB); // Tries to open with key 2.
+            fail();
         } catch (RealmFileException expected) {
             assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
             // Deletes Realm so key 2 works. This should work as a Realm shouldn't be cached

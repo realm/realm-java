@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.ClientResetHandler;
@@ -60,7 +61,8 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         final Throwable[] exception = new Throwable[1];
         final CountDownLatch testFinished = new CountDownLatch(1);
         ExecutorService service = Executors.newSingleThreadExecutor();
-        service.submit(new Runnable() {
+        //noinspection unused
+        final Future<?> future = service.submit(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -125,7 +127,8 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         final Throwable[] exception = new Throwable[1];
         final CountDownLatch testFinished = new CountDownLatch(1);
         ExecutorService service = Executors.newSingleThreadExecutor();
-        service.submit(new Runnable() {
+        //noinspection unused
+        final Future<?> future = service.submit(new Runnable() {
             @Override
             public void run() {
                 try {

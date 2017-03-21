@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import io.realm.RealmFieldType;
 
+
 /**
  * Checked wrapper for Row data in Realm Core. All methods called through this will check that input parameters are
  * valid or throw an appropriate exception.
@@ -107,27 +108,72 @@ public class CheckedRow extends UncheckedRow {
         }
     }
 
+    @Override
     protected native long nativeGetColumnCount(long nativeTablePtr);
+
+    @Override
     protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
+
+    @Override
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
+
+    @Override
     protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
+
+    @Override
     protected native long nativeGetLong(long nativeRowPtr, long columnIndex);
+
+    @Override
     protected native boolean nativeGetBoolean(long nativeRowPtr, long columnIndex);
+
+    @Override
     protected native float nativeGetFloat(long nativeRowPtr, long columnIndex);
+
+    @Override
     protected native double nativeGetDouble(long nativeRowPtr, long columnIndex);
+
+    @Override
     protected native long nativeGetTimestamp(long nativeRowPtr, long columnIndex);
+
+    @Override
     protected native String nativeGetString(long nativePtr, long columnIndex);
+
+    @Override
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
+
+    @Override
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
+
+    @Override
     protected native long nativeGetLinkView(long nativePtr, long columnIndex);
+
+    @Override
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
+
+    @Override
     protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
+
+    @Override
     protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);
+
+    @Override
     protected native long nativeGetLink(long nativeRowPtr, long columnIndex);
+
+    @Override
     protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
+
+    @Override
     protected native void nativeSetTimestamp(long nativeRowPtr, long columnIndex, long dateTimeValue);
+
+    @Override
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
+
+    @Override
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
+
+    @Override
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
+
+    @Override
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
 }

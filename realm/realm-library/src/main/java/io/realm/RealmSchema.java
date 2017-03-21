@@ -27,6 +27,7 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 
+
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
  * to add, delete and change the classes in the Realm.
@@ -325,7 +326,7 @@ public class RealmSchema {
     }
 
     private static boolean isProxyClass(Class<? extends RealmModel> modelClass,
-                                        Class<? extends RealmModel> testee) {
+            Class<? extends RealmModel> testee) {
         return modelClass != testee;
     }
 
@@ -349,6 +350,8 @@ public class RealmSchema {
     }
 
     static native long nativeCreateFromList(long[] objectSchemaPtrs);
+
     static native void nativeClose(long nativePtr);
+
     static native long[] nativeGetAll(long nativePtr);
 }

@@ -29,10 +29,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class AllTypesRealmProxy extends some.test.AllTypes
-    implements RealmObjectProxy, AllTypesRealmProxyInterface {
+        implements RealmObjectProxy, AllTypesRealmProxyInterface {
 
     static final class AllTypesColumnInfo extends ColumnInfo
-        implements Cloneable {
+            implements Cloneable {
 
         public long columnStringIndex;
         public long columnLongIndex;
@@ -113,6 +113,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.setConstructionFinished();
     }
 
+    @Override
     public void realm$injectObjectContext() {
         if (this.proxyState != null) {
             return;
@@ -126,12 +127,14 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.setExcludeFields$realm(context.getExcludeFields());
     }
 
+    @Override
     @SuppressWarnings("cast")
     public String realmGet$columnString() {
         proxyState.getRealm$realm().checkIfValid();
         return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.columnStringIndex);
     }
 
+    @Override
     public void realmSet$columnString(String value) {
         if (proxyState.isUnderConstruction()) {
             // default value of the primary key is always ignored.
@@ -142,12 +145,14 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         throw new io.realm.exceptions.RealmException("Primary key field 'columnString' cannot be changed after object was created.");
     }
 
+    @Override
     @SuppressWarnings("cast")
     public long realmGet$columnLong() {
         proxyState.getRealm$realm().checkIfValid();
         return (long) proxyState.getRow$realm().getLong(columnInfo.columnLongIndex);
     }
 
+    @Override
     public void realmSet$columnLong(long value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -162,12 +167,14 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setLong(columnInfo.columnLongIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public float realmGet$columnFloat() {
         proxyState.getRealm$realm().checkIfValid();
         return (float) proxyState.getRow$realm().getFloat(columnInfo.columnFloatIndex);
     }
 
+    @Override
     public void realmSet$columnFloat(float value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -182,12 +189,14 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setFloat(columnInfo.columnFloatIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public double realmGet$columnDouble() {
         proxyState.getRealm$realm().checkIfValid();
         return (double) proxyState.getRow$realm().getDouble(columnInfo.columnDoubleIndex);
     }
 
+    @Override
     public void realmSet$columnDouble(double value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -202,12 +211,14 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setDouble(columnInfo.columnDoubleIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public boolean realmGet$columnBoolean() {
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.columnBooleanIndex);
     }
 
+    @Override
     public void realmSet$columnBoolean(boolean value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -222,12 +233,14 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setBoolean(columnInfo.columnBooleanIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Date realmGet$columnDate() {
         proxyState.getRealm$realm().checkIfValid();
         return (java.util.Date) proxyState.getRow$realm().getDate(columnInfo.columnDateIndex);
     }
 
+    @Override
     public void realmSet$columnDate(Date value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -248,12 +261,14 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setDate(columnInfo.columnDateIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public byte[] realmGet$columnBinary() {
         proxyState.getRealm$realm().checkIfValid();
         return (byte[]) proxyState.getRow$realm().getBinaryByteArray(columnInfo.columnBinaryIndex);
     }
 
+    @Override
     public void realmSet$columnBinary(byte[] value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -274,6 +289,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setBinaryByteArray(columnInfo.columnBinaryIndex, value);
     }
 
+    @Override
     public some.test.AllTypes realmGet$columnObject() {
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNullLink(columnInfo.columnObjectIndex)) {
@@ -282,6 +298,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return proxyState.getRealm$realm().get(some.test.AllTypes.class, proxyState.getRow$realm().getLink(columnInfo.columnObjectIndex), false, Collections.<String>emptyList());
     }
 
+    @Override
     public void realmSet$columnObject(some.test.AllTypes value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -323,6 +340,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setLink(columnInfo.columnObjectIndex, ((RealmObjectProxy)value).realmGet$proxyState().getRow$realm().getIndex());
     }
 
+    @Override
     public RealmList<some.test.AllTypes> realmGet$columnRealmList() {
         proxyState.getRealm$realm().checkIfValid();
         // use the cached value if available
@@ -335,6 +353,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
     }
 
+    @Override
     public void realmSet$columnRealmList(RealmList<some.test.AllTypes> value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
@@ -589,7 +608,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     @SuppressWarnings("cast")
     public static some.test.AllTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-        throws JSONException {
+            throws JSONException {
         final List<String> excludeFields = new ArrayList<String>(2);
         some.test.AllTypes obj = null;
         if (update) {
@@ -701,7 +720,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     @SuppressWarnings("cast")
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.AllTypes createUsingJsonStream(Realm realm, JsonReader reader)
-        throws IOException {
+            throws IOException {
         boolean jsonHasPrimaryKey = false;
         some.test.AllTypes obj = new some.test.AllTypes();
         reader.beginObject();
@@ -1222,6 +1241,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     @Override
+    @SuppressWarnings("ArrayToString")
     public String toString() {
         if (!RealmObject.isValid(this)) {
             return "Invalid object";
@@ -1267,7 +1287,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     @Override
-    public ProxyState realmGet$proxyState() {
+    public ProxyState<?> realmGet$proxyState() {
         return proxyState;
     }
 

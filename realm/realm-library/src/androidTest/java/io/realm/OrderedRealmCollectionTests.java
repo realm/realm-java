@@ -369,9 +369,9 @@ public class OrderedRealmCollectionTests extends CollectionTests {
                     case ADD_ALL_INDEX: collection.addAll(1, Collections.singleton(new AllJavaTypes())); break;
                     case GET_INDEX: collection.get(1); break;
                     case LIST_ITERATOR_INDEX: collection.listIterator(1); break;
-                    case REMOVE_INDEX: collection.remove(1);
-                    case SET: collection.set(1, new AllJavaTypes());
-                    case SUBLIST: collection.subList(1, 2);
+                    case REMOVE_INDEX: collection.remove(1); break;
+                    case SET: collection.set(1, new AllJavaTypes()); break;
+                    case SUBLIST: collection.subList(1, 2); break;
 
                     // Cannot fail with IndexOutOfBounds
                     case FIRST:
