@@ -22,6 +22,6 @@ import io.realm.annotations.RealmClass;
 
 // Invalid POJO, you can't extends from another class besides RealmObject
 @RealmClass
-public class ValidModelPojo_3 extends Booleans implements RealmModel {
+public class InvalidModelRealmModel_3 extends Booleans implements RealmModel {
     public String id;
 }

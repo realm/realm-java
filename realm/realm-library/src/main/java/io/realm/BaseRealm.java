@@ -31,7 +31,6 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
@@ -41,6 +40,7 @@ import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
 import rx.Observable;
+
 
 /**
  * Base class for all Realm instances.
@@ -79,12 +79,12 @@ abstract class BaseRealm implements Closeable {
 
         this.sharedRealm = SharedRealm.getInstance(configuration,
                 !(this instanceof Realm) ? null :
-                new SharedRealm.SchemaVersionListener() {
-                    @Override
-                    public void onSchemaVersionChanged(long currentVersion) {
-                        RealmCache.updateSchemaCache((Realm) BaseRealm.this);
-                    }
-                }, true);
+                        new SharedRealm.SchemaVersionListener() {
+                            @Override
+                            public void onSchemaVersionChanged(long currentVersion) {
+                                RealmCache.updateSchemaCache((Realm) BaseRealm.this);
+                            }
+                        }, true);
         this.schema = new RealmSchema(this);
     }
 
@@ -158,7 +158,7 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * If you would like the {@code asObservable()} to stop emitting items, you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
-     *
+     * <p>
      * <pre>
      * {@code
      * realm.asObservable().first().subscribe( ... ) // You only get the results once
@@ -318,13 +318,6 @@ abstract class BaseRealm implements Closeable {
     public void commitTransaction() {
         checkIfValid();
         sharedRealm.commitTransaction();
-        if (!isClosed()) {
-            // FIXME: The checking is because the global listener is being called in commitTransaction from object
-            // store. The Realm could be closed inside the listener. In this case, we have no way to handle it. Moving
-            // SyncManger to Object Store will solve this.
-            ObjectServerFacade.getFacade(configuration.isSyncConfiguration())
-                    .notifyCommit(configuration, sharedRealm.getLastSnapshotVersion());
-        }
     }
 
     /**
@@ -486,7 +479,7 @@ abstract class BaseRealm implements Closeable {
             result = (E) new DynamicRealmObject(this, CheckedRow.getFromRow(row));
         } else {
             result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
-                    false, Collections.<String> emptyList());
+                    false, Collections.<String>emptyList());
         }
         RealmObjectProxy proxy = (RealmObjectProxy) result;
         proxy.realmGet$proxyState().setTableVersion$realm();
@@ -519,7 +512,7 @@ abstract class BaseRealm implements Closeable {
         } else {
             result = configuration.getSchemaMediator().newInstance(clazz, this,
                     (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE,
-                    schema.getColumnInfo(clazz), false, Collections.<String> emptyList());
+                    schema.getColumnInfo(clazz), false, Collections.<String>emptyList());
         }
 
         RealmObjectProxy proxy = (RealmObjectProxy) result;
@@ -581,7 +574,7 @@ abstract class BaseRealm implements Closeable {
      * Migrates the Realm file defined by the given configuration using the provided migration block.
      *
      * @param configuration configuration for the Realm that should be migrated. If this is a SyncConfiguration this
-     *                      method does nothing.
+     * method does nothing.
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}.
      * @param callback callback for specific Realm type behaviors.
      * @param cause which triggers this migration.
@@ -589,7 +582,7 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalArgumentException if the provided configuration is a {@link SyncConfiguration}.
      */
     protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
-                                       final MigrationCallback callback, final RealmMigrationNeededException cause)
+            final MigrationCallback callback, final RealmMigrationNeededException cause)
             throws FileNotFoundException {
 
         if (configuration == null) {
@@ -671,7 +664,7 @@ abstract class BaseRealm implements Closeable {
         private List<String> excludeFields;
 
         public void set(BaseRealm realm, Row row, ColumnInfo columnInfo,
-                        boolean acceptDefaultValue, List<String> excludeFields) {
+                boolean acceptDefaultValue, List<String> excludeFields) {
             this.realm = realm;
             this.row = row;
             this.columnInfo = columnInfo;
@@ -707,6 +700,7 @@ abstract class BaseRealm implements Closeable {
             excludeFields = null;
         }
     }
+
     static final class ThreadLocalRealmObjectContext extends ThreadLocal<RealmObjectContext> {
         @Override
         protected RealmObjectContext initialValue() {

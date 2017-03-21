@@ -13,6 +13,7 @@ import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 
+
 /**
  * General implementation for {@link OrderedRealmCollection} which is based on the {@code Collection}.
  */
@@ -71,7 +72,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      *
      * @param object the object to search for.
      * @return {@code true} if {@code object} is an element of this {@code OrderedRealmCollection},
-     *         {@code false} otherwise.
+     * {@code false} otherwise.
      */
     @Override
     public boolean contains(Object object) {
@@ -288,7 +289,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      */
     @Override
     public RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
-        return sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
+        return sort(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
     // Aggregates
@@ -341,7 +342,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      * Finds the maximum date.
      *
      * @param fieldName the field to look for the maximum date. If fieldName is not of Date type, an exception is
-     *                  thrown.
+     * thrown.
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
      * will be returned. Otherwise the maximum date is returned. When determining the maximum date, objects with
      * {@code null} values are ignored.
@@ -499,7 +500,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     @Deprecated
     public boolean addAll(int location,
-                          @SuppressWarnings("NullableProblems") java.util.Collection<? extends E> collection) {
+            @SuppressWarnings("NullableProblems") java.util.Collection<? extends E> collection) {
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 

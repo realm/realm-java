@@ -41,6 +41,7 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 
+
 /**
  * This class is able to merge different RealmProxyMediators, so they look like one.
  */
@@ -49,7 +50,7 @@ public class CompositeMediator extends RealmProxyMediator {
     private final Map<Class<? extends RealmModel>, RealmProxyMediator> mediators;
 
     public CompositeMediator(RealmProxyMediator... mediators) {
-        final HashMap<Class<? extends RealmModel>, RealmProxyMediator> tempMediators = new HashMap<>();
+        final HashMap<Class<? extends RealmModel>, RealmProxyMediator> tempMediators = new HashMap<Class<? extends RealmModel>, RealmProxyMediator>();
         if (mediators != null) {
             for (RealmProxyMediator mediator : mediators) {
                 for (Class<? extends RealmModel> realmClass : mediator.getModelClasses()) {
@@ -74,7 +75,7 @@ public class CompositeMediator extends RealmProxyMediator {
 
     @Override
     public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm,
-                                    boolean allowExtraColumns) {
+            boolean allowExtraColumns) {
         RealmProxyMediator mediator = getMediator(clazz);
         return mediator.validateTable(clazz, sharedRealm, allowExtraColumns);
     }
@@ -93,11 +94,11 @@ public class CompositeMediator extends RealmProxyMediator {
 
     @Override
     public <E extends RealmModel> E newInstance(Class<E> clazz,
-                                                Object baseRealm,
-                                                Row row,
-                                                ColumnInfo columnInfo,
-                                                boolean acceptDefaultValue,
-                                                List<String> excludeFields) {
+            Object baseRealm,
+            Row row,
+            ColumnInfo columnInfo,
+            boolean acceptDefaultValue,
+            List<String> excludeFields) {
         RealmProxyMediator mediator = getMediator(clazz);
         return mediator.newInstance(clazz, baseRealm, row, columnInfo, acceptDefaultValue, excludeFields);
     }

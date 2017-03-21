@@ -65,7 +65,7 @@ public class ObjectServerUser {
      *
      * Authenticating will happen automatically as part of opening a Realm.
      */
-    boolean isAuthenticated(SyncConfiguration configuration) {
+    public boolean isAuthenticated(SyncConfiguration configuration) {
         Token token = getAccessToken(configuration.getServerUrl());
         return token != null && token.expiresMs() > System.currentTimeMillis();
     }
@@ -93,7 +93,7 @@ public class ObjectServerUser {
         return identity;
     }
 
-    Token getAccessToken(URI serverUrl) {
+    public Token getAccessToken(URI serverUrl) {
         AccessDescription accessDescription = realms.get(serverUrl);
         return (accessDescription != null) ? accessDescription.accessToken : null;
     }

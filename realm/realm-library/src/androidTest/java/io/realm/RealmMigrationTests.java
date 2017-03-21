@@ -1280,6 +1280,27 @@ public class RealmMigrationTests {
         realm.close();
     }
 
+    // Tests that if a migration is required and no migration block was provided, then the
+    // original RealmMigrationNeededException is thrown instead of IllegalArgumentException
+    @Test
+    public void migrationRequired_throwsOriginalException() {
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                // .migration() No migration block provided, but one is required
+                .assetFile("default0.realm") // This Realm does not have the correct schema
+                .build();
+
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config);
+            fail();
+        } catch (RealmMigrationNeededException ignored) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+    
     // TODO Add unit tests for default nullability
     // TODO Add unit tests for default Indexing for Primary keys
 }

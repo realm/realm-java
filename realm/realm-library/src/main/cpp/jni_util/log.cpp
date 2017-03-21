@@ -17,13 +17,11 @@
 #include <algorithm>
 
 #include "jni_util/log.hpp"
-#include "util/format.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
 using namespace realm::util;
 
-const char* CoreLoggerBridge::TAG = "REALM_CORE";
 const char* Log::REALM_JNI_TAG = "REALM_JNI";
 Log::Level Log::s_level = Log::Level::warn;
 
@@ -199,11 +197,5 @@ void CoreLoggerBridge::do_log(realm::util::Logger::Level level, std::string msg)
         case Level::off: // Fall through.
             throw std::invalid_argument(format("Invalid log level."));
     }
-    Log::shared().log(jni_level, TAG, msg.c_str());
-}
-
-CoreLoggerBridge& CoreLoggerBridge::shared()
-{
-    static CoreLoggerBridge log_bridge;
-    return log_bridge;
+    Log::shared().log(jni_level, m_tag.c_str(), msg.c_str());
 }

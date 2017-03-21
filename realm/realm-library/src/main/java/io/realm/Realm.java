@@ -60,6 +60,7 @@ import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
 import rx.Observable;
 
+
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
  * instances of your RealmObjects. Objects within a Realm can be queried and read at any time. Creating, modifying, and
@@ -200,7 +201,7 @@ public class Realm extends BaseRealm {
      * @return an instance of the Realm class.
      * @throws java.lang.NullPointerException if no default configuration has been defined.
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
-     *         RealmObject classes or version has has changed so a migration is required.
+     * RealmObject classes or version has has changed so a migration is required.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      */
     public static Realm getDefaultInstance() {
@@ -216,7 +217,7 @@ public class Realm extends BaseRealm {
      * @param configuration {@link RealmConfiguration} used to open the Realm
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException if no migration has been provided by the configuration and the RealmObject
-     *         classes or version has has changed so a migration is required.
+     * classes or version has has changed so a migration is required.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
      * @see RealmConfiguration for details on how to configure a Realm.
@@ -255,9 +256,9 @@ public class Realm extends BaseRealm {
      *
      * @param configuration {@link RealmConfiguration} used to create the Realm.
      * @param globalCacheArray if this is not {@code null} and contains an entry for current schema version,
-     *                         the {@link BaseRealm#schema#columnIndices} will be initialized with the copy of
-     *                         the entry. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated
-     *                         from the Realm file.
+     * the {@link BaseRealm#schema#columnIndices} will be initialized with the copy of
+     * the entry. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated
+     * from the Realm file.
      * @return a {@link Realm} instance.
      */
     static Realm createInstance(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
@@ -269,7 +270,9 @@ public class Realm extends BaseRealm {
                 deleteRealm(configuration);
             } else {
                 try {
-                    migrateRealm(configuration, e);
+                    if (configuration.getMigration() != null) {
+                        migrateRealm(configuration, e);
+                    }
                 } catch (FileNotFoundException fileNotFoundException) {
                     // Should never happen.
                     throw new RealmFileException(RealmFileException.Kind.NOT_FOUND, fileNotFoundException);
@@ -280,7 +283,7 @@ public class Realm extends BaseRealm {
         }
     }
 
-    static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
+    private static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
         Realm realm = new Realm(configuration);
 
         final long currentVersion = realm.getVersion();
@@ -341,11 +344,14 @@ public class Realm extends BaseRealm {
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
             final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
-            for (Class<? extends RealmModel> modelClass : modelClasses) {
-                // Creates and validates table.
-                if (unversioned) {
+            if (unversioned) {
+                // Create all of the tables.
+                for (Class<? extends RealmModel> modelClass : modelClasses) {
                     mediator.createTable(modelClass, realm.sharedRealm);
                 }
+            }
+            for (Class<? extends RealmModel> modelClass : modelClasses) {
+                // Now that they have all been created, validate them.
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
@@ -852,7 +858,7 @@ public class Realm extends BaseRealm {
      *
      * @param clazz the Class of the object to create.
      * @param acceptDefaultValue if {@code true}, default value of the object will be applied and
-     *                           if {@code false}, it will be ignored.
+     * if {@code false}, it will be ignored.
      * @return the new object.
      * @throws RealmException if the primary key is defined in the model class or an object cannot be created.
      */
@@ -897,7 +903,7 @@ public class Realm extends BaseRealm {
      * @param clazz the Class of the object to create.
      * @param primaryKeyValue value for the primary key field.
      * @param acceptDefaultValue if {@code true}, default value of the object will be applied and
-     *                           if {@code false}, it will be ignored.
+     * if {@code false}, it will be ignored.
      * @return the new object.
      * @throws RealmException if object could not be created due to the primary key being invalid.
      * @throws IllegalStateException if the model class does not have an primary key defined.
@@ -988,8 +994,8 @@ public class Realm extends BaseRealm {
      * Please note:
      * <ul>
      * <li>
-     *     We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it.
-     *     Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
+     * We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it.
+     * Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
      * </li>
      * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
@@ -1022,8 +1028,8 @@ public class Realm extends BaseRealm {
      * Please note:
      * <ul>
      * <li>
-     *     We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it.
-     *     Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
+     * We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it.
+     * Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
      * </li>
      * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
@@ -1034,7 +1040,7 @@ public class Realm extends BaseRealm {
      *
      * @param object RealmObjects to insert.
      * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
-     *                                transaction.
+     * transaction.
      * @throws io.realm.exceptions.RealmPrimaryKeyConstraintException if two objects with the same primary key is
      * inserted or if a primary key value already exists in the Realm.
      * @see #copyToRealm(RealmModel)
@@ -1057,8 +1063,8 @@ public class Realm extends BaseRealm {
      * Please note:
      * <ul>
      * <li>
-     *     We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it.
-     *     Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
+     * We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it.
+     * Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
      * </li>
      * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
@@ -1094,8 +1100,8 @@ public class Realm extends BaseRealm {
      * Please note:
      * <ul>
      * <li>
-     *     We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it.
-     *     Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
+     * We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it.
+     * Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
      * </li>
      * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
@@ -1181,7 +1187,7 @@ public class Realm extends BaseRealm {
      *
      * @param realmObjects RealmObjects to copy.
      * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is
-     *                 {@code 0}.
+     * {@code 0}.
      * @param <E> type of object.
      * @return an in-memory detached copy of the RealmObjects.
      * @throws IllegalArgumentException if {@code maxDepth < 0}, the RealmObject is no longer accessible or it is a
@@ -1340,7 +1346,7 @@ public class Realm extends BaseRealm {
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the Realm is opened from
-     *                                  another thread.
+     * another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction) {
         return executeTransactionAsync(transaction, null, null);
@@ -1353,7 +1359,7 @@ public class Realm extends BaseRealm {
      * @param onSuccess callback invoked when the transaction succeeds.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
-     *                                  another thread.
+     * another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Realm.Transaction.OnSuccess onSuccess) {
         if (onSuccess == null) {
@@ -1370,7 +1376,7 @@ public class Realm extends BaseRealm {
      * @param onError callback invoked when the transaction fails.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
-     *                                  another thread.
+     * another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Realm.Transaction.OnError onError) {
         if (onError == null) {
@@ -1388,11 +1394,11 @@ public class Realm extends BaseRealm {
      * @param onError callback invoked when the transaction fails.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
-     *                                  another thread.
+     * another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction,
-                                                  final Realm.Transaction.OnSuccess onSuccess,
-                                                  final Realm.Transaction.OnError onError) {
+            final Realm.Transaction.OnSuccess onSuccess,
+            final Realm.Transaction.OnError onError) {
         checkIfValid();
 
         if (transaction == null) {
@@ -1452,7 +1458,7 @@ public class Realm extends BaseRealm {
                 final Throwable backgroundException = exception;
                 final SharedRealm.VersionID backgroundVersionID = versionID;
                 // Cannot be interrupted anymore.
-                if (canDeliverNotification ) {
+                if (canDeliverNotification) {
                     if (backgroundVersionID != null && onSuccess != null) {
                         realmNotifier.post(new Runnable() {
                             @Override
@@ -1588,7 +1594,7 @@ public class Realm extends BaseRealm {
      *
      * @param configuration the{@link RealmConfiguration}.
      * @param migration the {@link RealmMigration} to run on the Realm. This will override any migration set on the
-     *                  configuration.
+     * configuration.
      * @throws FileNotFoundException if the Realm file doesn't exist.
      */
     public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration)
@@ -1641,7 +1647,7 @@ public class Realm extends BaseRealm {
      * Updates own schema cache.
      *
      * @param globalCacheArray global cache of column indices. If it contains an entry for current
-     *                         schema version, this method only copies the indices information in the entry.
+     * schema version, this method only copies the indices information in the entry.
      * @return newly created indices information for current schema version. Or {@code null} if {@code globalCacheArray}
      * already contains the entry for current schema version.
      */

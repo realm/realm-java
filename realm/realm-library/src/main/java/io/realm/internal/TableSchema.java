@@ -19,6 +19,7 @@ package io.realm.internal;
 
 import io.realm.RealmFieldType;
 
+
 public interface TableSchema {
 
     long addColumn(RealmFieldType type, String name);
