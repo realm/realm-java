@@ -19,12 +19,12 @@ package io.realm;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
@@ -172,6 +172,39 @@ public class ObjectChangeSetTests {
         checkChangedField(allTypes, AllTypes.FIELD_DOUBLE);
         realm.beginTransaction();
         allTypes.setColumnDouble(42.0d);
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread(before = PopulateOneAllTypes.class)
+    public void changeBooleanField() {
+        Realm realm = looperThread.realm;
+        AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+        checkChangedField(allTypes, AllTypes.FIELD_BOOLEAN);
+        realm.beginTransaction();
+        allTypes.setColumnBoolean(true);
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread(before = PopulateOneAllTypes.class)
+    public void changeDateField() {
+        Realm realm = looperThread.realm;
+        AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+        checkChangedField(allTypes, AllTypes.FIELD_DATE);
+        realm.beginTransaction();
+        allTypes.setColumnDate(new Date());
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread(before = PopulateOneAllTypes.class)
+    public void changeBinaryField() {
+        Realm realm = looperThread.realm;
+        AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+        checkChangedField(allTypes, AllTypes.FIELD_BINARY);
+        realm.beginTransaction();
+        allTypes.setColumnBinary(new byte[] { 42 });
         realm.commitTransaction();
     }
 
