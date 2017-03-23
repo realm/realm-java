@@ -57,7 +57,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
                                                                             jint direction, jboolean isStreaming)
 {
     try {
-        // Make deep copy as we need to capture it in the lambda and JNI is _shrugh_
+        // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda
         std::string local_realm_path(JStringAccessor(env, localRealmPath));
         std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_active_session(local_realm_path);
         if (!session) {
@@ -72,6 +72,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
         std::function<SyncProgressNotifierCallback> callback = [local_realm_path, listenerId](
             uint64_t transferred, uint64_t transferrable) {
             JNIEnv* env = jni_util::JniUtils::get_env(true);
+
+            // All exceptions will be caught on the Java side of handlers, but errors will still end
+            // up here. In that case the app is in the process of crashing, so normally we don't
+            // care, but assertions from JUnit are also reported as Errors, so we need to try to
+            // something sensible with them.
+            // Throwing a C++ exception will terminate the sync thread and cause the pending Java
+            // exception to become visible. For some (unknown) reason Logcat will not see the C++
+            // exception, only the Java one.
+            if (env->ExceptionCheck()) {
+                throw std::runtime_error("An unexpected Error was thrown from Java");
+            }
             auto path = env->NewStringUTF(local_realm_path.c_str());
             env->CallStaticVoidMethod(java_syncmanager, java_notify_progress_listener, path, listenerId,
                                       static_cast<jlong>(transferred), static_cast<jlong>(transferrable));
