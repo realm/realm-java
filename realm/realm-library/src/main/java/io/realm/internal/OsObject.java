@@ -29,9 +29,9 @@ public class OsObject implements NativeObject {
         final String[] changedFields;
         final boolean deleted;
 
-        OsObjectChangeSet(String[] changedFields) {
+        OsObjectChangeSet(String[] changedFields, boolean deleted) {
             this.changedFields = changedFields;
-            this.deleted = changedFields == null;
+            this.deleted = deleted;
         }
 
         @Override
@@ -63,7 +63,8 @@ public class OsObject implements NativeObject {
         }
 
         private ObjectChangeSet createChangeSet() {
-            return new OsObjectChangeSet(changedFields);
+            boolean isDeleted = changedFields == null;
+            return new OsObjectChangeSet(isDeleted ? new String[0] : changedFields, isDeleted);
         }
 
         @Override

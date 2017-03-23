@@ -76,7 +76,7 @@ public class ObjectChangeSetTests {
         allTypes.addChangeListener(new RealmObjectChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object, ObjectChangeSet changeSet) {
-                assertNull(changeSet.getChangedFields());
+                assertEquals(0, changeSet.getChangedFields().length);
                 assertFalse(object.isValid());
                 assertTrue(changeSet.isDeleted());
                 looperThread.testComplete();
@@ -299,7 +299,7 @@ public class ObjectChangeSetTests {
                     case 1:
                         assertFalse(object.isValid());
                         assertTrue(changeSet.isDeleted());
-                        assertNull(changeSet.getChangedFields());
+                        assertEquals(0, changeSet.getChangedFields().length);
                         looperThread.testComplete();
                         break;
                     default:

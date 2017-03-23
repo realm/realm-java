@@ -29,8 +29,8 @@ public interface ObjectChangeSet {
     boolean isDeleted();
 
     /**
-     * @return the names of changed fields if the object still exists and there are field changes. Returns {@code null}
-     * if the object has been deleted.
+     * @return the names of changed fields if the object still exists and there are field changes. Returns an empty
+     * {@code String[]} if the object has been deleted.
      */
     String[] getChangedFields();
 }
