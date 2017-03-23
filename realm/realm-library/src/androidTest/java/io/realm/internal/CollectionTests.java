@@ -378,13 +378,15 @@ public class CollectionTests {
         addRowAsync();
     }
 
-    // Local commit will trigger the listener first when beginTransaction gets called then again in the next event loop.
+    // Local commit will trigger the listener first when beginTransaction gets called then again when transaction
+    // committed.
     @Test
     @RunTestInLooperThread
     public void addListener_triggeredByLocalCommit() {
         final SharedRealm sharedRealm = getSharedRealm();
         Table table = sharedRealm.getTable("test_table");
         final AtomicInteger listenerCounter = new AtomicInteger(0);
+        final AtomicBoolean transactionCommitted = new AtomicBoolean(false);
 
         final Collection collection = new Collection(sharedRealm, table.where());
         looperThread.keepStrongReference.add(collection);
@@ -396,15 +398,16 @@ public class CollectionTests {
                         assertEquals(collection1.size(), 4);
                         break;
                     case 1:
+                        assertFalse(transactionCommitted.get());
                         assertEquals(collection1.size(), 5);
                         sharedRealm.close();
-                        looperThread.testComplete();
                         break;
                 }
             }
         });
         addRow(sharedRealm);
-        assertEquals(collection.size(), 5);
+        transactionCommitted.set(true);
+        looperThread.testComplete();
     }
 
     private static class TestIterator extends Collection.Iterator<Integer> {
