@@ -36,10 +36,10 @@ public interface RealmObjectChangeListener<T> {
      * When this gets called to return the results of an asynchronous query made by {@link RealmQuery#findFirstAsync()},
      * {@code changeSet} will be {@code null}.
      * <p>
-     * When this gets called because of the object is deleted, {@code changeSet.isDeleted()} will return {@code true}
+     * When this gets called because of the object was deleted, {@code changeSet.isDeleted()} will return {@code true}
      * and {@code changeSet.getFieldChanges()} will return {@code null}.
      * <p>
-     * When this gets called because of the object is modified, {@code changeSet.isDeleted()} will return {@code false}
+     * When this gets called because of the object was modified, {@code changeSet.isDeleted()} will return {@code false}
      * and {@code changeSet.getFieldChanges()} will return the detailed information about the fields' changes.
      * <p>
      * If a field points to another RealmObject this listener will only be triggered if the field is set to a new object
