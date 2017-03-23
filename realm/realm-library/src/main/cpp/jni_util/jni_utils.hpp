@@ -43,7 +43,7 @@ public:
     // Detach the current thread from the JVM. Only required for C++ threads that where attached in the first place.
     // Failing to do so is a resource leak.
     static void detach_current_thread();
-    // Keep the given global reference until the JNI_OnUnload called.
+    // Keep the given global reference until JNI_OnUnload is called.
     static void keep_global_ref(JavaGlobalRef& ref);
 
 private:
