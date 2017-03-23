@@ -57,7 +57,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
                                                                             jint direction, jboolean isStreaming)
 {
     try {
-        JStringAccessor local_realm_path(env, localRealmPath);
+        // Make deep copy as we need to capture it in the lambda and JNI is _shrugh_
+        std::string local_realm_path(JStringAccessor(env, localRealmPath));
         std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_active_session(local_realm_path);
         if (!session) {
             ThrowException(env, IllegalState, "FIXME: Cannot register a progress listener before a session is "
@@ -68,11 +69,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
         SyncSession::NotifierType type =
             (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
 
-        std::function<SyncProgressNotifierCallback> callback = [localRealmPath, listenerId](uint64_t transferred,
-                                                                                            uint64_t transferrable) {
+        std::function<SyncProgressNotifierCallback> callback = [local_realm_path, listenerId](
+            uint64_t transferred, uint64_t transferrable) {
             JNIEnv* env = jni_util::JniUtils::get_env(true);
-            env->CallStaticVoidMethod(java_syncmanager, java_notify_progress_listener, localRealmPath, listenerId,
+            auto path = env->NewStringUTF(local_realm_path.c_str());
+            env->CallStaticVoidMethod(java_syncmanager, java_notify_progress_listener, path, listenerId,
                                       static_cast<jlong>(transferred), static_cast<jlong>(transferrable));
+            // Callback might happen on a thread not controlled by the JVM. So manual cleanup is
+            // required.
+            env->DeleteLocalRef(path);
         };
         uint64_t token = session->register_progress_notifier(callback, type, to_bool(isStreaming));
         return static_cast<jlong>(token);

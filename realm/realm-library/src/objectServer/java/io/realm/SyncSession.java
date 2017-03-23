@@ -24,6 +24,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import io.realm.internal.Keep;
 import io.realm.internal.KeepMember;
@@ -74,7 +75,7 @@ public class SyncSession {
     // ListenerId is created by Java to enable C++ to reference the java listener without holding
     // a reference to the actual object.
     // ListenerToken is created by OS and represents the listener. We need
-    volatile long progressListenerId = -1;
+    AtomicLong progressListenerId = new AtomicLong(-1);
 
     SyncSession(SyncConfiguration configuration) {
         this.configuration = configuration;
@@ -163,7 +164,7 @@ public class SyncSession {
         checkProgressListenerArguments(mode, listener);
         boolean isStreaming = (mode == ProgressMode.INDEFINETELY);
 
-        long listenerId = progressListenerId++;
+        long listenerId = progressListenerId.incrementAndGet();
         long listenerToken = nativeAddProgressListener(configuration.getPath(), listenerId , direction, isStreaming);
 
         listenerIdToProgressListenerMap.put(listenerId, listener);
