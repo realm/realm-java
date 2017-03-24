@@ -1764,9 +1764,9 @@ public class RealmObjectTests {
             public void onChange(Dog object) {
             }
         };
-        RealmObjectChangeListener objectChangeListener = new RealmObjectChangeListener() {
+        RealmObjectChangeListener objectChangeListener = new RealmObjectChangeListener<Dog>() {
             @Override
-            public void onChange(Object object, ObjectChangeSet changeSet) {
+            public void onChange(Dog object, ObjectChangeSet changeSet) {
             }
         };
 

@@ -31,7 +31,7 @@ import io.realm.internal.UncheckedRow;
  */
 public final class ProxyState<E extends RealmModel> implements PendingRow.FrontEnd {
 
-    static class RealmChangeListenerWrapper<T> implements RealmObjectChangeListener<T> {
+    static class RealmChangeListenerWrapper<T extends RealmModel> implements RealmObjectChangeListener<T> {
         private final RealmChangeListener<T> listener;
 
         RealmChangeListenerWrapper(RealmChangeListener<T> listener) {
@@ -63,7 +63,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         @Override
         public void onCalled(OsObject.ObjectObserverPair pair, Object observer) {
             //noinspection unchecked
-            pair.onChange(observer, null);
+            pair.onChange((RealmModel) observer, null);
         }
     }
 

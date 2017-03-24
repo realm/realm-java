@@ -17,6 +17,7 @@
 package io.realm.internal;
 
 import io.realm.ObjectChangeSet;
+import io.realm.RealmModel;
 import io.realm.RealmObjectChangeListener;
 
 
@@ -45,7 +46,8 @@ public class OsObject implements NativeObject {
         }
     }
 
-    public static class ObjectObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmObjectChangeListener<T>> {
+    public static class ObjectObserverPair<T extends RealmModel>
+            extends ObserverPairList.ObserverPair<T, RealmObjectChangeListener<T>> {
         public ObjectObserverPair(T observer, RealmObjectChangeListener<T> listener) {
             super(observer, listener);
         }
@@ -70,7 +72,7 @@ public class OsObject implements NativeObject {
         @Override
         public void onCalled(ObjectObserverPair pair, Object observer) {
             //noinspection unchecked
-            pair.onChange(observer, createChangeSet());
+            pair.onChange((RealmModel) observer, createChangeSet());
         }
     }
 
@@ -94,7 +96,7 @@ public class OsObject implements NativeObject {
         return nativeFinalizerPtr;
     }
 
-    public <T> void addListener(T observer, RealmObjectChangeListener<T> listener) {
+    public <T extends RealmModel> void addListener(T observer, RealmObjectChangeListener<T> listener) {
         if (observerPairs.isEmpty()) {
             nativeStartListening(nativePtr);
         }
@@ -102,14 +104,14 @@ public class OsObject implements NativeObject {
         observerPairs.add(pair);
     }
 
-    public <T> void removeListener(T observer) {
+    public <T extends RealmModel> void removeListener(T observer) {
         observerPairs.removeByObserver(observer);
         if (observerPairs.isEmpty()) {
             nativeStopListening(nativePtr);
         }
     }
 
-    public <T> void removeListener(T observer, RealmObjectChangeListener<T> listener) {
+    public <T extends RealmModel> void removeListener(T observer, RealmObjectChangeListener<T> listener) {
         observerPairs.remove(observer, listener);
         if (observerPairs.isEmpty()) {
             nativeStopListening(nativePtr);

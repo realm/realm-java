@@ -25,14 +25,12 @@ import io.realm.annotations.LinkingObjects;
  * Realm instances on a thread without an {@link android.os.Looper} cannot register a {@code RealmObjectChangeListener}.
  * <p>
  *
- * @param <T> The <a href="https://realm.io/docs/java/latest/#auto-updating-objects">live object</a> being returned
- * ({@link Realm}, {@link DynamicRealm}, {@link RealmObject}, {@link RealmResults}, {@link DynamicRealmObject}
- * or your model implementing {@link RealmModel})
+ * @param <T> The type of {@link RealmModel} where your listener will be registered on.
  * @see Realm#addChangeListener(RealmChangeListener)
  * @see Realm#removeAllChangeListeners()
  * @see Realm#removeChangeListener(RealmChangeListener)
  */
-public interface RealmObjectChangeListener<T> {
+public interface RealmObjectChangeListener<T extends RealmModel> {
 
     /**
      * When this gets called to return the results of an asynchronous query made by {@link RealmQuery#findFirstAsync()},
