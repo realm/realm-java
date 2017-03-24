@@ -79,7 +79,7 @@ public class Progress {
      *         transferred yet, and {@code 1.0} that all data has been transferred.
      */
     public double getFractionTransferred() {
-        double percentage = transferredBytes / transferableBytes;
+        double percentage = (double) transferredBytes / (double) transferableBytes;
         return percentage > 1.0D ? 1.0D : percentage;
     }
 
