@@ -18,6 +18,7 @@ package io.realm;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
@@ -154,10 +155,23 @@ public class SyncSession {
     }
 
     public synchronized void removeProgressListener(ProgressListener listener) {
-//        ProgressListenerWrapper wrapper = progressListeners.remove(listener);
-//        if (wrapper != null) {
-//            nativeRemoveProgressListener(configuration.getPath(), wrapper.getToken());
-//        }
+        if (listener != null) {
+            return;
+        }
+        // If an exception is thrown somewhere in here, we will most likely leave the various
+        // maps in an inconsistent manner. Not much we can do about it.
+        Long token = progressListenerToOsTokenMap.remove(listener);
+        if (token != null) {
+            Iterator<Map.Entry<Long, ProgressListener>> it = listenerIdToProgressListenerMap.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<Long, ProgressListener> entry = it.next();
+                if (entry.getValue().equals(listener)) {
+                    it.remove();
+                    break;
+                }
+            }
+            nativeRemoveProgressListener(configuration.getPath(), token);
+        }
     }
 
     private void addProgressListener(ProgressMode mode, int direction, ProgressListener listener) {
@@ -166,7 +180,9 @@ public class SyncSession {
 
         long listenerId = progressListenerId.incrementAndGet();
         long listenerToken = nativeAddProgressListener(configuration.getPath(), listenerId , direction, isStreaming);
-
+        if (listenerToken == 0) {
+            throw new IllegalStateException("Could not register a progress listener");
+        }
         listenerIdToProgressListenerMap.put(listenerId, listener);
         progressListenerToOsTokenMap.put(listener, listenerToken);
     }

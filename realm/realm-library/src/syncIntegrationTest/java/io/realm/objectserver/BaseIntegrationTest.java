@@ -68,4 +68,13 @@ class BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.accessToken(admin.getAccessToken().value(), "custom-admin-user");
         return SyncUser.login(credentials, Constants.AUTH_URL);
     }
+
+    /**
+     * Create new user and log in.
+     */
+    public SyncUser loginUser(String identifier) {
+        SyncCredentials credentials = SyncCredentials.usernamePassword(identifier, "password", true);
+        return SyncUser.login(credentials, Constants.AUTH_URL);
+    }
+
 }

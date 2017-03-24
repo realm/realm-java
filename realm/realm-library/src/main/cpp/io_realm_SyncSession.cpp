@@ -73,20 +73,20 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
             uint64_t transferred, uint64_t transferrable) {
             JNIEnv* env = jni_util::JniUtils::get_env(true);
 
+            auto path = env->NewStringUTF(local_realm_path.c_str());
+            env->CallStaticVoidMethod(java_syncmanager, java_notify_progress_listener, path, listenerId,
+                                      static_cast<jlong>(transferred), static_cast<jlong>(transferrable));
+
             // All exceptions will be caught on the Java side of handlers, but errors will still end
-            // up here. In that case the app is in the process of crashing, so normally we don't
-            // care, but assertions from JUnit are also reported as Errors, so we need to try to
-            // something sensible with them.
+            // up here, so we need to do something sensible with them.
             // Throwing a C++ exception will terminate the sync thread and cause the pending Java
             // exception to become visible. For some (unknown) reason Logcat will not see the C++
             // exception, only the Java one.
             if (env->ExceptionCheck()) {
                 throw std::runtime_error("An unexpected Error was thrown from Java");
             }
-            auto path = env->NewStringUTF(local_realm_path.c_str());
-            env->CallStaticVoidMethod(java_syncmanager, java_notify_progress_listener, path, listenerId,
-                                      static_cast<jlong>(transferred), static_cast<jlong>(transferrable));
-            // Callback might happen on a thread not controlled by the JVM. So manual cleanup is
+
+            // Callback happens on a thread not controlled by the JVM. So manual cleanup is
             // required.
             env->DeleteLocalRef(path);
         };

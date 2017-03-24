@@ -21,8 +21,8 @@ import android.support.annotation.NonNull;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.Progress;
@@ -36,7 +36,6 @@ import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.entities.AllTypes;
 import io.realm.objectserver.utils.Constants;
-import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -45,17 +44,9 @@ import static org.junit.Assert.fail;
 
 public class ProgressListenerTests extends BaseIntegrationTest {
 
+    private static final long TEST_SIZE = 10;
     @Rule
     public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
-
-    @Test
-    public void testDownloadProgressChangesOnly() {
-    }
-
-    @Test
-    public void testDownloadProgressIndefinetely() {
-
-    }
 
     @NonNull
     private SyncConfiguration createSyncConfig() {
@@ -65,7 +56,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
 
     private void writeSampleData(Realm realm) {
         realm.beginTransaction();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < TEST_SIZE; i++) {
             AllTypes obj = realm.createObject(AllTypes.class);
             obj.setColumnString("Object " + i);
         }
@@ -76,6 +67,103 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         assertTrue(progress.isTransferComplete());
         assertEquals(1.0D, progress.getFractionTransferred(), 0.0D);
         assertEquals(progress.getTransferableBytes(), progress.getTransferredBytes());
+    }
+
+    // Create remote data for a given user. This will block until changes have been uploaded.
+    private URI createRemoteData(SyncUser user) {
+        final CountDownLatch changesUploaded = new CountDownLatch(1);
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, Constants.SYNC_USER_REALM).build();
+        final Realm realm = Realm.getInstance(config);
+        writeSampleData(realm);
+        final SyncSession session = SyncManager.getSession(config);
+        session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
+            @Override
+            public void onChange(Progress progress) {
+                if (progress.isTransferComplete()) {
+                    session.removeProgressListener(this);
+                    changesUploaded.countDown();
+                }
+            }
+        });
+        TestHelper.awaitOrFail(changesUploaded);
+        realm.close();
+        return config.getServerUrl();
+    }
+
+    @Test
+    public void testDownloadProgressChangesOnly() {
+        final CountDownLatch allChangesDownloaded = new CountDownLatch(1);
+        SyncUser userWithData = loginUser("myUser");
+        URI serverUrl = createRemoteData(userWithData);
+        SyncUser adminUser = loginAdminUser();
+
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString()).build();
+        Realm realm = Realm.getInstance(config);
+        SyncSession session = SyncManager.getSession(config);
+        session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
+            @Override
+            public void onChange(Progress progress) {
+                if (progress.isTransferComplete()) {
+                    assertTransferComplete(progress);
+                    Realm realm = Realm.getInstance(config);
+                    assertEquals(TEST_SIZE, realm.where(AllTypes.class).count());
+                    realm.close();
+                    allChangesDownloaded.countDown();
+                }
+            }
+        });
+        TestHelper.awaitOrFail(allChangesDownloaded);
+        realm.close();
+    }
+
+    @Test
+    public void testDownloadProgressIndefinetely() {
+        final AtomicInteger transferCompleted = new AtomicInteger(0);
+        final CountDownLatch allChangesDownloaded = new CountDownLatch(1);
+        final SyncUser userWithData = loginUser("myUser");
+        URI serverUrl = createRemoteData(userWithData);
+        SyncUser adminUser = loginAdminUser();
+
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString()).build();
+        Realm realm = Realm.getInstance(config);
+        SyncSession session = SyncManager.getSession(config);
+        session.addDownloadProgressListener(ProgressMode.INDEFINETELY, new ProgressListener() {
+            @Override
+            public void onChange(Progress progress) {
+                if (progress.isTransferComplete()) {
+                    assertTransferComplete(progress);
+                    switch (transferCompleted.incrementAndGet()) {
+                        case 1:
+                            // FIXME: Object Store should have re-entrant locks
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    createRemoteData(userWithData);
+                                    Realm adminRealm = Realm.getInstance(config);
+                                    assertEquals(TEST_SIZE, adminRealm.where(AllTypes.class).count());
+                                    adminRealm.close();
+                                }
+                            }).start();
+                            break;
+                        case 2:
+                            // Ignore. ObjectStore seems to trigger this for some reason.
+                            // A guess is when adding the UPLOAD listener for the sample
+                            // data.
+                            break;
+                        case 3:
+                            Realm adminRealm = Realm.getInstance(config);
+                            assertEquals(TEST_SIZE*2, adminRealm.where(AllTypes.class).count());
+                            adminRealm.close();
+                            allChangesDownloaded.countDown();
+                            break;
+                        default:
+                            fail();
+                    }
+                }
+            }
+        });
+        TestHelper.awaitOrFail(allChangesDownloaded);
+        realm.close();
     }
 
     @Test
@@ -97,6 +185,41 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         });
 
         TestHelper.awaitOrFail(allChangeUploaded);
+        realm.close();
+    }
+
+    @Test
+    public void testUploadProgressChangesTwoListeners() {
+        final CountDownLatch allChangeUploaded = new CountDownLatch(2);
+        final SyncConfiguration config = createSyncConfig();
+        Realm realm = Realm.getInstance(config);
+        writeSampleData(realm);
+
+        final SyncSession session = SyncManager.getSession(config);
+        session.addUploadProgressListener(ProgressMode.INDEFINETELY, new ProgressListener() {
+            @Override
+            public void onChange(Progress progress) {
+                if (progress.isTransferComplete()) {
+                    assertTransferComplete(progress);
+                    Realm realm = Realm.getInstance(config);
+                    writeSampleData(realm);
+                    realm.close();
+                    session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
+                        @Override
+                        public void onChange(Progress progress) {
+                            if (progress.isTransferComplete()) {
+                                assertTransferComplete(progress);
+                                allChangeUploaded.countDown();
+                            }
+                        }
+                    });
+                    allChangeUploaded.countDown();
+                }
+            }
+        });
+
+        TestHelper.awaitOrFail(allChangeUploaded);
+        realm.close();
     }
 
     @Test
@@ -115,9 +238,16 @@ public class ProgressListenerTests extends BaseIntegrationTest {
                     switch(transferCompleted.incrementAndGet()) {
                         case 1:
                             // Write more sample data
-                            Realm realm = Realm.getInstance(config);
-                            writeSampleData(realm);
-                            realm.close();
+                            // Adding listeners inside another listener seems to deadlock
+                            // sync, but nothing gets reported.
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Realm realm = Realm.getInstance(config);
+                                    writeSampleData(realm);
+                                    realm.close();
+                                }
+                            }).start();
                             break;
                         case 2:
                             assertTransferComplete(progress);
@@ -131,5 +261,6 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         });
 
         TestHelper.awaitOrFail(testDone);
+        realm.close();
     }
 }
