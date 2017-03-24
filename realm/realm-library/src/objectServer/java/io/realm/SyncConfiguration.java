@@ -297,6 +297,20 @@ public class SyncConfiguration extends RealmConfiguration {
 
             validateAndSet(user);
             validateAndSet(url);
+            checkMixedProtocolSecurity();
+        }
+
+        // Check that either TLS is used for both Auth and Sync protocol or not at all.
+        private void checkMixedProtocolSecurity() {
+            String authProtocol = user.getAuthenticationUrl().getProtocol();
+            String syncProtocol = serverUrl.getScheme();
+
+            if ((authProtocol.equalsIgnoreCase("http") && syncProtocol.equalsIgnoreCase("realms"))
+                    || (authProtocol.equalsIgnoreCase("https") && syncProtocol.equalsIgnoreCase("realm"))) {
+                throw new IllegalArgumentException(String.format("Mixing TLS with non-TLS " +
+                        "connections are not allowed: %s vs. %s", user.getAuthenticationUrl(),
+                        serverUrl.toString()));
+            }
         }
 
         private void validateAndSet(SyncUser user) {
