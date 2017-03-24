@@ -1171,4 +1171,28 @@ public class RealmResultsTests extends CollectionTests {
         assertEquals(1, obj.getFieldList().size());
         assertEquals(fieldListIntValue, obj.getFieldList().first().getFieldInt());
     }
+
+    @Test
+    public void issue4379() {
+        populateTestRealm(TEST_DATA_SIZE);
+
+        final RealmResults<AllTypes> allTypesResult = realm.where(AllTypes.class)
+                .greaterThan(AllTypes.FIELD_LONG, TEST_DATA_SIZE / 2)
+                .findAll();
+        final RealmResults<Dog> dogResult = realm.where(Dog.class)
+                .beginsWith(Dog.FIELD_NAME, "Foo 5")
+                .findAll();
+        final RealmResults<NonLatinFieldNames> nonLatinFieldNamesResult = realm.where(NonLatinFieldNames.class)
+                .greaterThan(NonLatinFieldNames.FIELD_LONG_GREEK_CHAR, TEST_DATA_SIZE / 2)
+                .findAll();
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                dogResult.deleteAllFromRealm();
+                allTypesResult.deleteAllFromRealm();
+                nonLatinFieldNamesResult.deleteAllFromRealm();
+            }
+        });
+    }
 }
