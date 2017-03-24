@@ -31,6 +31,12 @@ void JniUtils::initialize(JavaVM* vm, jint vm_version) noexcept
     s_instance = std::unique_ptr<JniUtils>(new JniUtils(vm, vm_version));
 }
 
+void JniUtils::release()
+{
+    REALM_ASSERT_DEBUG(s_instance);
+    s_instance.release();
+}
+
 JNIEnv* JniUtils::get_env(bool attach_if_needed)
 {
     REALM_ASSERT_DEBUG(s_instance);
@@ -53,3 +59,9 @@ void JniUtils::detach_current_thread()
 {
     s_instance->m_vm->DetachCurrentThread();
 }
+
+void JniUtils::keep_global_ref(JavaGlobalRef& ref)
+{
+    s_instance->m_global_refs.push_back(std::move(ref));
+}
+

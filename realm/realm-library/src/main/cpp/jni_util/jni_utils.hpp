@@ -19,6 +19,10 @@
 
 #include <jni.h>
 
+#include <vector>
+
+#include "java_global_ref.hpp"
+
 namespace realm {
 namespace jni_util {
 
@@ -31,12 +35,16 @@ public:
 
     // Call this only once in JNI_OnLoad.
     static void initialize(JavaVM* vm, jint vm_version) noexcept;
+    // Call this in JNI_OnUnload.
+    static void release();
     // When attach_if_needed is false, returns the JNIEnv if there is one attached to this thread. Assert if there is
     // none. When attach_if_needed is true, try to attach and return a JNIEnv if necessary.
     static JNIEnv* get_env(bool attach_if_needed = false);
     // Detach the current thread from the JVM. Only required for C++ threads that where attached in the first place.
     // Failing to do so is a resource leak.
     static void detach_current_thread();
+    // Keep the given global reference until JNI_OnUnload is called.
+    static void keep_global_ref(JavaGlobalRef& ref);
 
 private:
     JniUtils(JavaVM* vm, jint vm_version) noexcept
@@ -47,6 +55,7 @@ private:
 
     JavaVM* m_vm;
     jint m_vm_version;
+    std::vector<JavaGlobalRef> m_global_refs;
 };
 
 } // namespace realm
