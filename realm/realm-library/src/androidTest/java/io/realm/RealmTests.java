@@ -3691,7 +3691,7 @@ public class RealmTests {
     @Test
     public void schemaIndexCacheIsUpdatedAfterSchemaChange() {
         final CatRealmProxy.CatColumnInfo catColumnInfo;
-        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.columnIndices.getColumnInfo(Cat.class);
+        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnIndices().getColumnInfo(Cat.class);
 
         final long nameIndex = catColumnInfo.nameIndex;
         final AtomicLong nameIndexNew = new AtomicLong(-1L);

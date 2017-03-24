@@ -33,6 +33,7 @@ import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.RealmObjectSchema;
 import io.realm.RealmSchema;
+import io.realm.StandardRealmSchema;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;

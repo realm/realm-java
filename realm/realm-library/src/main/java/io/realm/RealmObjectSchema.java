@@ -151,7 +151,7 @@ public class RealmObjectSchema {
      * @param className the new name for this class.
      * @throws IllegalArgumentException if className is {@code null} or an empty string, or its length exceeds 56
      * characters.
-     * @see RealmSchema#rename(String, String)
+     * @see StandardRealmSchema#rename(String, String)
      */
     public RealmObjectSchema setClassName(String className) {
         realm.checkNotInSync(); // renaming a table is not permitted

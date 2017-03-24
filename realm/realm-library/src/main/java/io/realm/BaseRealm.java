@@ -71,7 +71,7 @@ abstract class BaseRealm implements Closeable {
     protected RealmConfiguration configuration;
     protected SharedRealm sharedRealm;
 
-    RealmSchema schema;
+    StandardRealmSchema schema;
 
     protected BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();
@@ -85,7 +85,7 @@ abstract class BaseRealm implements Closeable {
                                 RealmCache.updateSchemaCache((Realm) BaseRealm.this);
                             }
                         }, true);
-        this.schema = new RealmSchema(this);
+        this.schema = new StandardRealmSchema(this);
     }
 
     /**
@@ -464,7 +464,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @return The {@link RealmSchema} for this Realm.
      */
-    public RealmSchema getSchema() {
+    public StandardRealmSchema getSchema() {
         return schema;
     }
 
@@ -649,6 +649,10 @@ abstract class BaseRealm implements Closeable {
             );
         }
         super.finalize();
+    }
+
+    public SharedRealm getSharedRealm() {
+        return sharedRealm;
     }
 
     // Internal delegate for migrations.

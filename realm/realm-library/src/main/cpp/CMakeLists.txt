@@ -36,7 +36,7 @@ set(classes_LIST
     io.realm.internal.Table io.realm.internal.CheckedRow
     io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
-    io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.RealmSchema
+    io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.OsRealmSchema
     io.realm.RealmObjectSchema io.realm.internal.Collection
     io.realm.internal.NativeObjectReference io.realm.internal.CollectionChangeSet
 )

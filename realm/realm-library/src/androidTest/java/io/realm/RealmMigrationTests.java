@@ -131,7 +131,7 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                RealmSchema schema = realm.getSchema();
+                StandardRealmSchema schema = realm.getSchema();
                 schema.create("FieldOrder")
                         .addField("field2", int.class)
                         .addField("field1", boolean.class);
@@ -174,7 +174,7 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                RealmSchema schema = realm.getSchema();
+                StandardRealmSchema schema = realm.getSchema();
                 schema.create("AnnotationTypes")
                         .addField("id", long.class, FieldAttribute.PRIMARY_KEY)
                         .addField("indexString", String.class) // Forgets to set @Index.
@@ -210,7 +210,7 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                RealmSchema schema = realm.getSchema();
+                StandardRealmSchema schema = realm.getSchema();
                 schema.create("AnnotationTypes")
                         .addField("id", long.class) // Forgets to set @PrimaryKey.
                         .addField("indexString", String.class, FieldAttribute.INDEXED)
@@ -250,7 +250,7 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                RealmSchema schema = realm.getSchema();
+                StandardRealmSchema schema = realm.getSchema();
                 schema.create("StringOnly")
                         .addField("chars", String.class, FieldAttribute.PRIMARY_KEY);
             }
@@ -288,7 +288,7 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                RealmSchema schema = realm.getSchema();
+                StandardRealmSchema schema = realm.getSchema();
                 schema.create("PrimaryKeyAsString")
                         .addField("id", long.class, FieldAttribute.PRIMARY_KEY) // Initial @PrimaryKey is on the int.
                         .addField("name", String.class);
@@ -725,7 +725,7 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                RealmSchema schema = realm.getSchema();
+                StandardRealmSchema schema = realm.getSchema();
                 schema.create("AnnotationTypes")
                         .addField("id", long.class)
                         .addPrimaryKey("id")    // Uses addPrimaryKey() instead of adding FieldAttribute.PrimaryKey.
@@ -796,7 +796,7 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                RealmSchema schema = realm.getSchema();
+                StandardRealmSchema schema = realm.getSchema();
                 schema.create("AnnotationTypes")
                         .addField("id", long.class, FieldAttribute.PRIMARY_KEY)
                         .addField("indexString", String.class, FieldAttribute.INDEXED)
@@ -1300,7 +1300,7 @@ public class RealmMigrationTests {
             }
         }
     }
-    
+
     // TODO Add unit tests for default nullability
     // TODO Add unit tests for default Indexing for Primary keys
 }

@@ -293,7 +293,7 @@ public class Realm extends BaseRealm {
 
         if (columnIndices != null) {
             // Copies global cache as a Realm local indices cache.
-            realm.schema.columnIndices = columnIndices.clone();
+            realm.schema.setColumnIndices(columnIndices);
         } else {
             final boolean syncingConfig = configuration.isSyncConfiguration();
 
@@ -355,8 +355,9 @@ public class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
-            realm.schema.columnIndices = new ColumnIndices(
-                    (unversioned) ? realm.configuration.getSchemaVersion() : currentVersion, columnInfoMap);
+            realm.schema.setColumnIndices(
+                    (unversioned) ? realm.configuration.getSchemaVersion() : currentVersion,
+                    columnInfoMap);
 
             if (unversioned) {
                 final Transaction transaction = realm.configuration.getInitialDataTransaction();
@@ -389,14 +390,13 @@ public class Realm extends BaseRealm {
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
             final ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<>();
-            final RealmSchema realmSchemaCache = new RealmSchema();
             for (Class<? extends RealmModel> modelClass : modelClasses) {
-                RealmObjectSchema realmObjectSchema = mediator.createRealmObjectSchema(modelClass, realmSchemaCache);
+                RealmObjectSchema realmObjectSchema = mediator.createRealmObjectSchema(modelClass, null);
                 realmObjectSchemas.add(realmObjectSchema);
             }
 
             // Assumption: When SyncConfiguration then additive schema update mode.
-            final RealmSchema schema = new RealmSchema(realmObjectSchemas);
+            final OsRealmSchema schema = new OsRealmSchema(realmObjectSchemas);
             long newVersion = realm.configuration.getSchemaVersion();
             if (realm.sharedRealm.requiresMigration(schema)) {
                 if (currentVersion >= newVersion) {
@@ -415,7 +415,7 @@ public class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
-            realm.schema.columnIndices = new ColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
+            realm.schema.setColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
 
             if (unversioned) {
                 final Transaction transaction = realm.configuration.getInitialDataTransaction();
@@ -1653,7 +1653,7 @@ public class Realm extends BaseRealm {
      */
     ColumnIndices updateSchemaCache(ColumnIndices[] globalCacheArray) {
         final long currentSchemaVersion = sharedRealm.getSchemaVersion();
-        final long cacheSchemaVersion = schema.columnIndices.getSchemaVersion();
+        final long cacheSchemaVersion = schema.getSchemaVersion();
         if (currentSchemaVersion == cacheSchemaVersion) {
             return null;
         }
@@ -1678,7 +1678,7 @@ public class Realm extends BaseRealm {
 
             cacheForCurrentVersion = createdGlobalCache = new ColumnIndices(currentSchemaVersion, map);
         }
-        schema.columnIndices.copyFrom(cacheForCurrentVersion, mediator);
+        schema.setColumnIndices(cacheForCurrentVersion, mediator);
         return createdGlobalCache;
     }
 
