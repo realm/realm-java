@@ -109,6 +109,9 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
     }
+    catch (realm::LogicError e) {
+        ThrowException(env, IllegalState, e.what());
+    }
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
     }

@@ -1653,6 +1653,36 @@ public class RealmObjectTests {
         looperThread.testComplete();
     }
 
+    // Object Store will throw when adding change listener inside a transaction.
+    @Test
+    @RunTestInLooperThread
+    public void addChangeListener_throwInsiderTransaction() {
+        Realm realm = looperThread.realm;
+
+        realm.beginTransaction();
+        Dog dog =realm.createObject(Dog.class);
+        try {
+            dog.addChangeListener(new RealmChangeListener<Dog>() {
+                @Override
+                public void onChange(Dog element) {
+                }
+            });
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            dog.addChangeListener(new RealmObjectChangeListener<Dog>() {
+                @Override
+                public void onChange(Dog object, ObjectChangeSet changeSet) {
+                }
+            });
+        } catch (IllegalStateException ignored) {
+        }
+        realm.cancelTransaction();
+
+        looperThread.testComplete();
+    }
+
     @Test
     @RunTestInLooperThread
     public void removeChangeListener_throwOnRemovingNullListenerFromLooperThread() {
