@@ -16,9 +16,11 @@
 
 package io.realm;
 
+import io.realm.annotations.LinkingObjects;
+
 /**
- * {@code RealmObjectChangeListener} can be registered with a {@link RealmModel} or {@link RealmObject} to receive
- * detailed notification about object changes.
+ * {@code RealmObjectChangeListener} can be registered on a {@link RealmModel} or {@link RealmObject} to receive
+ * detailed notification when a object changes.
  * <p>
  * Realm instances on a thread without an {@link android.os.Looper} cannot register a {@code RealmObjectChangeListener}.
  * <p>
@@ -36,10 +38,10 @@ public interface RealmObjectChangeListener<T> {
      * When this gets called to return the results of an asynchronous query made by {@link RealmQuery#findFirstAsync()},
      * {@code changeSet} will be {@code null}.
      * <p>
-     * When this gets called because of the object was deleted, {@code changeSet.isDeleted()} will return {@code true}
+     * When this gets called because the object was deleted, {@code changeSet.isDeleted()} will return {@code true}
      * and {@code changeSet.getFieldChanges()} will return {@code null}.
      * <p>
-     * When this gets called because of the object was modified, {@code changeSet.isDeleted()} will return {@code false}
+     * When this gets called because the object was modified, {@code changeSet.isDeleted()} will return {@code false}
      * and {@code changeSet.getFieldChanges()} will return the detailed information about the fields' changes.
      * <p>
      * If a field points to another RealmObject this listener will only be triggered if the field is set to a new object
@@ -47,7 +49,9 @@ public interface RealmObjectChangeListener<T> {
      * <p>
      * If a field points to a RealmList, this listener will only be triggered if a objects are inserted, removed or
      * moved within the List. Updating the objects in the RealmList will no trigger this listener.
-     *
+     * <p>
+     * Changes to {@link LinkingObjects} annotated {@link RealmResults} fields will not be monitored, nor reported
+     * through this change listener.
      * @param object the {@code RealmObject} this listener is registered to.
      * @param changeSet the detailed information about the changes.
      */

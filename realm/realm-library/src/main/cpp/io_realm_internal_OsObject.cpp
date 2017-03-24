@@ -143,8 +143,6 @@ private:
     jobjectArray m_field_names_array = nullptr;
 };
 
-static void finalize_object(jlong ptr);
-
 static void finalize_object(jlong ptr)
 {
     TR_ENTER_PTR(ptr);
