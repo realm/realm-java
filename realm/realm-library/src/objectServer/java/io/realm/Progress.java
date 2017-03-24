@@ -90,11 +90,9 @@ public class Progress {
      * {@code false} for subsequent events after returning {@code true}.
      * <p>
      * If the {@link ProgressListener} was registered with {@link ProgressMode#CURRENT_CHANGES}, when this method
-     * returns {@code true}.
-     * can return
-     * {@code false} for subsequent events after returning {@code true}.
+     * returns {@code true}, no more progress events will be sent.
      *
-     * @return
+     * @return {@code true} if all changes have been transferred, {@code false} otherwise.
      */
     public boolean isTransferComplete() {
         return transferredBytes >= transferableBytes;

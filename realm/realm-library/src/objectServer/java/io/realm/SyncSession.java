@@ -75,7 +75,9 @@ public class SyncSession {
     // Counter used to assign all ProgressListeners on this session with a unique id.
     // ListenerId is created by Java to enable C++ to reference the java listener without holding
     // a reference to the actual object.
-    // ListenerToken is created by OS and represents the listener. We need
+    // ListenerToken is the same concept, but created by OS and represents the listener.
+    // We can unfortunately not just use the ListenerToken, since we need it to be available before
+    // we register the listener.
     AtomicLong progressListenerId = new AtomicLong(-1);
 
     SyncSession(SyncConfiguration configuration) {
@@ -141,21 +143,34 @@ public class SyncSession {
     }
     
     /**
-     * Add a download progress listener.
+     * Add a progress listener tracking changes that needs to be downloaded from the Realm Object
+     * Server.
      *
-     * @param mode m
+     * @param mode type of mode used. See {@link ProgressMode} for more information.
      * @param listener listener to register.
      */
     public synchronized void addDownloadProgressListener(ProgressMode mode, ProgressListener listener) {
         addProgressListener(mode, DIRECTION_DOWNLOAD, listener);
     }
 
+    /**
+     * Add a progress listener tracking changes that needs to be uploaded from the device to the
+     * Realm Object Server.
+     *
+     * @param mode type of mode used. See {@link ProgressMode} for more information.
+     * @param listener listener to register.
+     */
     public synchronized void addUploadProgressListener(ProgressMode mode, ProgressListener listener) {
         addProgressListener(mode, DIRECTION_UPLOAD, listener);
     }
 
+    /**
+     * Remove a progress listener. If the listener wasn't registered, this method will do nothing.
+
+     * @param listener listener to remove.
+     */
     public synchronized void removeProgressListener(ProgressListener listener) {
-        if (listener != null) {
+        if (listener == null) {
             return;
         }
         // If an exception is thrown somewhere in here, we will most likely leave the various
@@ -177,7 +192,6 @@ public class SyncSession {
     private void addProgressListener(ProgressMode mode, int direction, ProgressListener listener) {
         checkProgressListenerArguments(mode, listener);
         boolean isStreaming = (mode == ProgressMode.INDEFINETELY);
-
         long listenerId = progressListenerId.incrementAndGet();
         long listenerToken = nativeAddProgressListener(configuration.getPath(), listenerId , direction, isStreaming);
         if (listenerToken == 0) {

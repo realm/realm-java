@@ -17,7 +17,8 @@
 package io.realm;
 
 /**
- * Interface usedb
+ * Interface used when interesting in updates on data being either being uploaded or downloaded from
+ * a Realm Object Server.
  */
 public interface ProgressListener {
     /**
@@ -30,7 +31,8 @@ public interface ProgressListener {
      *
      * <pre>
      * {@code
-     * // Adding a download progress listener w
+     * // Adding a download progress listener that completes when all known changes have been
+     * // uploaded.
      * session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
      *   \@Override
      *    public void onChange(Progress progress) {
@@ -48,7 +50,7 @@ public interface ProgressListener {
      * }
      * </pre>
      *
-     * @param progress an immutable progress change event. This object is thread safe.
+     * @param progress an immutable progress change event with information about current progress. This object is thread safe.
      */
     void onChange(Progress progress);
 }
