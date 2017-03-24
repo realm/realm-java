@@ -44,6 +44,16 @@ public class OsObject implements NativeObject {
         public String[] getChangedFields() {
             return changedFields;
         }
+
+        @Override
+        public boolean isFieldChanged(String fieldName) {
+            for (String name : changedFields) {
+                if (name.equals(fieldName)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     public static class ObjectObserverPair<T extends RealmModel>

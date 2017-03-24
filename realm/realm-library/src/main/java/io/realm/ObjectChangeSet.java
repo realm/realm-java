@@ -33,4 +33,13 @@ public interface ObjectChangeSet {
      * {@code String[]} if the object has been deleted.
      */
     String[] getChangedFields();
+
+    /**
+     * Checks if a given field has been changed.
+     *
+     * @param fieldName to be checked if its value has been changed.
+     * @return {@code true} if the field has been changed. It returns {@code false} if the object is deleted, the field
+     * cannot be found or the field hasn't been changed.
+     */
+    boolean isFieldChanged(String fieldName);
 }

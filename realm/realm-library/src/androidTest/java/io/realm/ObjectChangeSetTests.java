@@ -92,6 +92,8 @@ public class ObjectChangeSetTests {
             public void onChange(RealmModel object, ObjectChangeSet changeSet) {
                 assertEquals(fieldNames.length, changeSet.getChangedFields().length);
                 for (String name : fieldNames) {
+                    assertTrue(changeSet.isFieldChanged(name));
+                    assertFalse(changeSet.isFieldChanged(name + "NotThere"));
                     for (String field : changeSet.getChangedFields()) {
                         if (field.equals(name)) {
                             break;
