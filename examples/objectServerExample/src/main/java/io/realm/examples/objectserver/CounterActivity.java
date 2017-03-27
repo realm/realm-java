@@ -17,32 +17,72 @@
 package io.realm.examples.objectserver;
 
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
 import java.util.Locale;
+import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.realm.Progress;
+import io.realm.ProgressListener;
+import io.realm.ProgressMode;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.SyncConfiguration;
+import io.realm.SyncManager;
+import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.examples.objectserver.model.CRDTCounter;
+import io.realm.log.RealmLog;
+import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
 public class CounterActivity extends AppCompatActivity {
 
     private static final String REALM_URL = "realm://" + BuildConfig.OBJECT_SERVER_IP + ":9080/~/default";
 
     private Realm realm;
+    private SyncSession session;
     private CRDTCounter counter;
     private SyncUser user;
+    private AtomicBoolean downloadingChanges = new AtomicBoolean(false);
+    private AtomicBoolean uploadingChanges = new AtomicBoolean(false);
+    private ProgressListener downloadListener = new ProgressListener() {
+        @Override
+        public void onChange(Progress progress) {
+            RealmLog.error(progress.toString());
+            downloadingChanges.set(!progress.isTransferComplete());
+            runOnUiThread(updateProgressBar);
+        }
+    };
+    private ProgressListener uploadListener = new ProgressListener() {
+        @Override
+        public void onChange(Progress progress) {
+            RealmLog.error(progress.toString());
+            uploadingChanges.set(!progress.isTransferComplete());
+            runOnUiThread(updateProgressBar);
+        }
+    };
+    private Runnable updateProgressBar = new Runnable() {
+        @Override
+        public void run() {
+            updateProgressBar(downloadingChanges.get(), uploadingChanges.get());
+        }
+    };
+
 
     @BindView(R.id.text_counter) TextView counterView;
+    @BindView(R.id.progressbar) MaterialProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,12 +126,21 @@ public class CounterActivity extends AppCompatActivity {
                 }
             });
             counterView.setText("0");
+
+            // Setup progress listeners for indeterminate progress bars
+            session = SyncManager.getSession(config);
+            session.addDownloadProgressListener(ProgressMode.INDEFINETELY, downloadListener);
+            session.addUploadProgressListener(ProgressMode.INDEFINETELY, uploadListener);
         }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        if (session != null) {
+            session.removeProgressListener(downloadListener);
+            session.removeProgressListener(uploadListener);
+        }
         closeRealm();
         user = null;
     }
@@ -130,6 +179,24 @@ public class CounterActivity extends AppCompatActivity {
     @OnClick(R.id.lower)
     public void decrementCounter() {
         adjustCounter(-1);
+    }
+
+    private void updateProgressBar(boolean downloading, boolean uploading) {
+        RealmLog.error("Download: %s, Upload: %s", downloading , uploading);
+        @ColorRes int color = android.R.color.black;
+        int visibility = View.VISIBLE;
+        if (downloading && uploading) {
+            color = R.color.progress_both;
+            progressBar.setVisibility(View.VISIBLE);
+        } else if (downloading) {
+            color = R.color.progress_download;
+        } else if (uploading) {
+            color = R.color.progress_upload;
+        } else {
+            visibility = View.GONE;
+        }
+        progressBar.getIndeterminateDrawable().setColorFilter(getResources().getColor(color), PorterDuff.Mode.SRC_IN);
+        progressBar.setVisibility(visibility);
     }
 
     private void adjustCounter(final int adjustment) {
