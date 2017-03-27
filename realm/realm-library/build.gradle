@@ -236,23 +236,32 @@ task pmd(type: Pmd) {
     }
 }
 
+// Configure Checkstyle
+// Android sourceSets are not sourceSets, so we can't confgure this with the DSL.
 task checkstyle(type: Checkstyle) {
-    group = 'Test'
+    group = 'Verification'
 
     source 'src'
-    include '**/*.java'
-    exclude '**/gen/**'
-    exclude '**/R.java'
-    exclude '**/BuildConfig.java'
-
-    def configProps = ['proj.module.dir': projectDir.absolutePath]
-    configProperties configProps
-
-    configFile = file("${projectDir}/../config/checkstyle/checkstyle.xml")
+    include '*/java/**/*.java'
+    exclude 'benchmarks/**'
+    // Ingore tests for now.
+    exclude '*Test*/**'
 
     // empty classpath
     classpath = files()
 }
+
+checkstyle {
+    toolVersion ="7.6"
+
+    configFile = file("${projectDir}/../config/checkstyle/checkstyle.xml")
+
+    def configProps = ['proj.module.dir': projectDir.absolutePath]
+    configProperties configProps
+
+    ignoreFailures = true
+}
+check.dependsOn tasks.checkstyle
 
 // Configuration options can be found here:
 // http://developer.android.com/reference/android/support/test/runner/AndroidJUnitRunner.html
