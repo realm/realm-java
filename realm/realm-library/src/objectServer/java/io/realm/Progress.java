@@ -39,7 +39,7 @@ public class Progress {
     /**
      * Create a snapshot of the current progress when downloading or uploading changes.
      *
-     * @param transferredBytes number of bytes transfered.
+     * @param transferredBytes number of bytes transferred.
      * @param transferableBytes total number of bytes that needs to be transferred (including those already transferred).
      */
     Progress(long transferredBytes, long transferableBytes) {
@@ -79,8 +79,12 @@ public class Progress {
      *         transferred yet, and {@code 1.0} that all data has been transferred.
      */
     public double getFractionTransferred() {
-        double percentage = (double) transferredBytes / (double) transferableBytes;
-        return percentage > 1.0D ? 1.0D : percentage;
+        if (transferableBytes == 0) {
+            return (transferredBytes == 0) ? 1.0D : 0.0D;
+        } else {
+            double percentage = (double) transferredBytes / (double) transferableBytes;
+            return percentage > 1.0D ? 1.0D : percentage;
+        }
     }
 
     /**

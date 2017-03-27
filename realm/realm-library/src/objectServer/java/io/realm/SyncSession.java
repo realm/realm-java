@@ -194,11 +194,14 @@ public class SyncSession {
         boolean isStreaming = (mode == ProgressMode.INDEFINETELY);
         long listenerId = progressListenerId.incrementAndGet();
         long listenerToken = nativeAddProgressListener(configuration.getPath(), listenerId , direction, isStreaming);
-        if (listenerToken == 0) {
-            throw new IllegalStateException("Could not register a progress listener");
+        if (listenerToken != 0) {
+            // If token == 0, ObjectStore did not register the listener. This can happen if a
+            // listener is registered with ProgressMode.CURRENT_CHANGES and no changes actually
+            // exists. In that case the listener will be triggered once and then exit, but it will
+            // not be receive a token.
+            listenerIdToProgressListenerMap.put(listenerId, listener);
+            progressListenerToOsTokenMap.put(listener, listenerToken);
         }
-        listenerIdToProgressListenerMap.put(listenerId, listener);
-        progressListenerToOsTokenMap.put(listener, listenerToken);
     }
 
     private void checkProgressListenerArguments(ProgressMode mode, ProgressListener listener) {

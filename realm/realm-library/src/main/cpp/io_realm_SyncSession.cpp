@@ -74,7 +74,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
             JNIEnv* env = jni_util::JniUtils::get_env(true);
 
             auto path = env->NewStringUTF(local_realm_path.c_str());
-            env->CallStaticVoidMethod(java_syncmanager, java_notify_progress_listener, path, listenerId,
+            env->CallStaticVoidMethod(java_syncmanager_class, java_notify_progress_listener, path, listenerId,
                                       static_cast<jlong>(transferred), static_cast<jlong>(transferrable));
 
             // All exceptions will be caught on the Java side of handlers, but errors will still end

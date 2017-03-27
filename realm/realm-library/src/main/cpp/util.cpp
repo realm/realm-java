@@ -44,7 +44,7 @@ jmethodID java_lang_double_init;
 jclass java_util_date;
 jmethodID java_util_date_init;
 #if REALM_ENABLE_SYNC
-jclass java_syncmanager;
+jclass java_syncmanager_class;
 jmethodID java_notify_progress_listener;
 #endif
 

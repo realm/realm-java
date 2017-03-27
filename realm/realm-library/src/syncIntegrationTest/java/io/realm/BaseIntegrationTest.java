@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm;
 
 import android.support.test.InstrumentationRegistry;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+
+import java.util.UUID;
 
 import io.realm.ObjectServerError;
 import io.realm.Realm;
@@ -36,7 +38,7 @@ import io.realm.objectserver.utils.UserFactory;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
-class BaseIntegrationTest {
+public class BaseIntegrationTest {
 
     @BeforeClass
     public static void setUp () throws Exception {
@@ -55,6 +57,7 @@ class BaseIntegrationTest {
     public static void tearDown () throws Exception {
         try {
             HttpUtils.stopSyncServer();
+            SyncManager.reset();
         } catch (Exception e) {
             RealmLog.error("Failed to stop Sync Server", e);
         }
@@ -70,10 +73,11 @@ class BaseIntegrationTest {
     }
 
     /**
-     * Create new user and log in.
+     * Create new random user and log in.
      */
-    public SyncUser loginUser(String identifier) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(identifier, "password", true);
+    public SyncUser loginUser() {
+        String id = UUID.randomUUID().toString();
+        SyncCredentials credentials = SyncCredentials.usernamePassword(id, "password", true);
         return SyncUser.login(credentials, Constants.AUTH_URL);
     }
 

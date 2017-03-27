@@ -704,7 +704,7 @@ extern jmethodID java_lang_double_init;
 extern jclass java_util_date;
 extern jmethodID java_util_date_init;
 #if REALM_ENABLE_SYNC
-extern jclass java_syncmanager;
+extern jclass java_syncmanager_class;
 extern jmethodID java_notify_progress_listener;
 #endif
 
