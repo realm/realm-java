@@ -19,6 +19,7 @@ package io.realm;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -90,7 +91,7 @@ public class SyncManager {
         }
     };
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
-    private static Map<String, SyncSession> sessions = new HashMap<String, SyncSession>();
+    private static Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
     private static CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
 
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
