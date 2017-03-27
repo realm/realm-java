@@ -90,7 +90,7 @@ struct ChangeCallback {
     {
         JNIEnv* env = JniUtils::get_env(false);
         if (!env || env->ExceptionCheck()) {
-            // JVM dettached or java exception has been thrown before.
+            // JVM detached or java exception has been thrown before.
             return nullptr;
         }
         return env;

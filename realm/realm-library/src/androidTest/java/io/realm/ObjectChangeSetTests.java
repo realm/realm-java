@@ -49,14 +49,6 @@ public class ObjectChangeSetTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     public static class PopulateOneAllTypes implements RunInLooperThread.RunnableBefore {
 
         @Override
@@ -135,7 +127,7 @@ public class ObjectChangeSetTests {
 
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
-    public void changeIntField() {
+    public void changeLongField() {
         Realm realm = looperThread.realm;
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_LONG);
@@ -218,6 +210,17 @@ public class ObjectChangeSetTests {
         checkChangedField(allTypes, AllTypes.FIELD_REALMOBJECT);
         realm.beginTransaction();
         allTypes.setColumnRealmObject(realm.createObject(Dog.class));
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread(before = PopulateOneAllTypes.class)
+    public void changeLinkFieldSetNull() {
+        Realm realm = looperThread.realm;
+        AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+        checkChangedField(allTypes, AllTypes.FIELD_REALMOBJECT);
+        realm.beginTransaction();
+        allTypes.setColumnRealmObject(null);
         realm.commitTransaction();
     }
 

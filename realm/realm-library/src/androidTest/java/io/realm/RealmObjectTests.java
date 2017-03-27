@@ -1660,11 +1660,12 @@ public class RealmObjectTests {
         Realm realm = looperThread.realm;
 
         realm.beginTransaction();
-        Dog dog =realm.createObject(Dog.class);
+        Dog dog = realm.createObject(Dog.class);
         try {
             dog.addChangeListener(new RealmChangeListener<Dog>() {
                 @Override
                 public void onChange(Dog element) {
+                    fail();
                 }
             });
         } catch (IllegalStateException ignored) {
@@ -1674,6 +1675,7 @@ public class RealmObjectTests {
             dog.addChangeListener(new RealmObjectChangeListener<Dog>() {
                 @Override
                 public void onChange(Dog object, ObjectChangeSet changeSet) {
+                    fail();
                 }
             });
         } catch (IllegalStateException ignored) {

@@ -833,7 +833,7 @@ public class TypeBasedNotificationsTests {
         final Realm realm = looperThread.realm;
 
         realm.beginTransaction();
-        realm.createObject(Dog.class).setAge(0);
+        realm.createObject(Dog.class).setAge(1);
         realm.commitTransaction();
 
         Dog dog = realm.where(Dog.class).findFirstAsync();
@@ -841,11 +841,9 @@ public class TypeBasedNotificationsTests {
         dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
             public void onChange(Dog object) {
-                typebasedCommitInvocations.incrementAndGet();
-
-                switch (typebasedCommitInvocations.get()) {
+                switch (typebasedCommitInvocations.incrementAndGet()) {
                     case 1:
-                        assertEquals(0, object.getAge());
+                        assertEquals(1, object.getAge());
                         realm.executeTransactionAsync(new Realm.Transaction() {
                             @Override
                             public void execute(Realm realm) {

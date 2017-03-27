@@ -313,7 +313,7 @@ public abstract class RealmObject implements RealmModel {
     }
 
     /**
-     * Adds a change listener to this RealmObject to get detailed information about the changes.
+     * Adds a change listener to this RealmObject to get detailed information about changes.
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.

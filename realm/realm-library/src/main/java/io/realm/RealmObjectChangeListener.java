@@ -20,12 +20,12 @@ import io.realm.annotations.LinkingObjects;
 
 /**
  * {@code RealmObjectChangeListener} can be registered on a {@link RealmModel} or {@link RealmObject} to receive
- * detailed notification when a object changes.
+ * detailed notifications when an object changes.
  * <p>
  * Realm instances on a thread without an {@link android.os.Looper} cannot register a {@code RealmObjectChangeListener}.
  * <p>
  *
- * @param <T> The type of {@link RealmModel} where your listener will be registered on.
+ * @param <T> The type of {@link RealmModel} on which your listener will be registered.
  * @see Realm#addChangeListener(RealmChangeListener)
  * @see Realm#removeAllChangeListeners()
  * @see Realm#removeChangeListener(RealmChangeListener)
@@ -45,8 +45,8 @@ public interface RealmObjectChangeListener<T extends RealmModel> {
      * If a field points to another RealmObject this listener will only be triggered if the field is set to a new object
      * or null. Updating the referenced RealmObject will not trigger this listener.
      * <p>
-     * If a field points to a RealmList, this listener will only be triggered if a objects are inserted, removed or
-     * moved within the List. Updating the objects in the RealmList will no trigger this listener.
+     * If a field points to a RealmList, this listener will only be triggered if one or multiple objects are inserted,
+     * removed or moved within the List. Updating the objects in the RealmList will not trigger this listener.
      * <p>
      * Changes to {@link LinkingObjects} annotated {@link RealmResults} fields will not be monitored, nor reported
      * through this change listener.
