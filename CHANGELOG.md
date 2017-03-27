@@ -124,7 +124,7 @@
 * Updated to Realm Sync v1.0.0.
 * Added a Realm backup when receiving a Sync client reset message from the server.
 
-## 2.2.2 (2016-01-16)
+## 2.2.2 (2017-01-16)
 
 ### Object Server API Changes (In Beta)
 
