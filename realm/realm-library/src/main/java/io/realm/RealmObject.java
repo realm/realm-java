@@ -313,7 +313,9 @@ public abstract class RealmObject implements RealmModel {
     }
 
     /**
-     * Adds a change listener to this RealmObject to get detailed information about changes.
+     * Adds a change listener to this RealmObject to get detailed information about changes. The listener will be
+     * triggered if any value field or referenced RealmObject field is changed, or the RealmList field itself is
+     * changed.
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
@@ -326,7 +328,8 @@ public abstract class RealmObject implements RealmModel {
     }
 
     /**
-     * Adds a change listener to this RealmObject.
+     * Adds a change listener to this RealmObject that will be triggered if any value field or referenced RealmObject
+     * field is changed, or the RealmList field itself is changed.
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
@@ -339,7 +342,9 @@ public abstract class RealmObject implements RealmModel {
     }
 
     /**
-     * Adds a change listener to a RealmObject to get detailed information about the changes.
+     * Adds a change listener to a RealmObject to get detailed information about the changes. The listener will be
+     * triggered if any value field or referenced RealmObject field is changed, or the RealmList field itself is
+     * changed.
      *
      * @param object RealmObject to add listener to.
      * @param listener the change listener to be notified.
@@ -368,7 +373,8 @@ public abstract class RealmObject implements RealmModel {
     }
 
     /**
-     * Adds a change listener to a RealmObject.
+     * Adds a change listener to a RealmObject that will be triggered if any value field or referenced RealmObject field
+     * is changed, or the RealmList field itself is changed.
      *
      * @param object RealmObject to add listener to.
      * @param listener the change listener to be notified.

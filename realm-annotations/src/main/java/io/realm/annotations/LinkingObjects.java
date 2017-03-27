@@ -58,6 +58,8 @@ import java.lang.annotation.Target;
  *     <li>They are ignored when doing a `copyFromRealm().`</li>
  *     <li>They are ignored when using the various `createObjectFromJson*` and `createAllFromJson*` methods.</li>
  *     <li>The listeners on parent object won't be triggered when the linking objects changes.</li>
+ *     <li>Listeners on an object with a `@LinkingObject` field will not be triggered if the linking objects change,
+ *     e.g: if another object drops a reference to this object.</li>
  * </ul>
  * <p>
  * In addition, they have the following restrictions:
