@@ -24,6 +24,7 @@ import io.realm.annotations.LinkingObjects;
  * <p>
  * Realm instances on a thread without an {@link android.os.Looper} cannot register a {@code RealmObjectChangeListener}.
  * <p>
+ * Listener cannot be registered inside a transaction.
  *
  * @param <T> The type of {@link RealmModel} on which your listener will be registered.
  * @see Realm#addChangeListener(RealmChangeListener)

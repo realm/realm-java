@@ -318,6 +318,7 @@ public abstract class RealmObject implements RealmModel {
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
      * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
+     * @throws IllegalStateException if you try to add a listener inside a transaction.
      */
     public final <E extends RealmModel> void addChangeListener(RealmObjectChangeListener<E> listener) {
         //noinspection unchecked
@@ -330,6 +331,7 @@ public abstract class RealmObject implements RealmModel {
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
      * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
+     * @throws IllegalStateException if you try to add a listener inside a transaction.
      */
     public final <E extends RealmModel> void addChangeListener(RealmChangeListener<E> listener) {
         //noinspection unchecked
@@ -344,6 +346,7 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalArgumentException if the {@code object} is {@code null} or an unmanaged object, or the change
      * listener is {@code null}.
      * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
+     * @throws IllegalStateException if you try to add a listener inside a transaction.
      */
     public static <E extends RealmModel> void addChangeListener(E object, RealmObjectChangeListener<E> listener) {
         if (object == null) {
@@ -372,6 +375,7 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalArgumentException if the {@code object} is {@code null} or an unmanaged object, or the change
      * listener is {@code null}.
      * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
+     * @throws IllegalStateException if you try to add a listener inside a transaction.
      */
     public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener<E> listener) {
         addChangeListener(object, new ProxyState.RealmChangeListenerWrapper<E>(listener));

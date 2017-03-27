@@ -1723,6 +1723,32 @@ public class RealmObjectTests {
         }
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void removeChangeListener_insideTransaction() {
+        Realm realm = looperThread.realm;
+        final Dog dog = createManagedDogObjectFromRealmInstance(realm);
+        RealmChangeListener<Dog> realmChangeListener = new RealmChangeListener<Dog>() {
+            @Override
+            public void onChange(Dog element) {
+            }
+        };
+        RealmObjectChangeListener<Dog> realmObjectChangeListener = new RealmObjectChangeListener<Dog>() {
+            @Override
+            public void onChange(Dog object, ObjectChangeSet changeSet) {
+            }
+        };
+
+        dog.addChangeListener(realmChangeListener);
+        dog.addChangeListener(realmObjectChangeListener);
+
+        realm.beginTransaction();
+        dog.removeChangeListener(realmChangeListener);
+        dog.removeChangeListener(realmObjectChangeListener);
+        realm.cancelTransaction();
+        looperThread.testComplete();
+    }
+
     /**
      * This test is to see if RealmObject.removeChangeListeners() works as it is intended.
      */
