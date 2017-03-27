@@ -1053,17 +1053,24 @@ public class RealmListTests extends CollectionTests {
                 fail();
             }
         });
+
+        collection.removeAllChangeListeners();
+
+        // This one is added after removal, so it should be triggered.
+        collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> element) {
+                listenerCalledCount.incrementAndGet();
+                looperThread.testComplete();
+            }
+        });
+
+        // This should trigger the listener if there is any.
         realm.beginTransaction();
         collection.get(0).setAge(42);
         realm.commitTransaction();
 
-        collection.removeAllChangeListeners();
-
-        // This should trigger the listener if there is any.
-        realm.beginTransaction();
-        realm.cancelTransaction();
-        assertEquals(0, listenerCalledCount.get());
-        looperThread.testComplete();
+        assertEquals(1, listenerCalledCount.get());
     }
 
     @Test
@@ -1083,21 +1090,19 @@ public class RealmListTests extends CollectionTests {
                     @Override
                     public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
                         assertEquals(0, listenerCalledCount.getAndIncrement());
+                        looperThread.testComplete();
                     }
                 };
 
         collection.addChangeListener(listener1);
         collection.addChangeListener(listener2);
-        realm.beginTransaction();
-        collection.get(0).setAge(42);
-        realm.commitTransaction();
 
         collection.removeChangeListener(listener1);
 
         // This should trigger the listener if there is any.
         realm.beginTransaction();
-        realm.cancelTransaction();
+        collection.get(0).setAge(42);
+        realm.commitTransaction();
         assertEquals(1, listenerCalledCount.get());
-        looperThread.testComplete();
     }
 }
