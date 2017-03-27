@@ -3114,12 +3114,13 @@ public class RealmQueryTests {
         final long numberOfObjects = 10;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
-            try {
-                realm.where(AnnotationIndexTypes.class).distinct(field);
-                fail(field);
-            } catch (IllegalArgumentException ignored) {
-            }
+        RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class)
+                .distinct(AnnotationIndexTypes.FIELD_NOT_INDEX_BOOL);
+        assertEquals(2, distinctBool.size());
+        for (String field : new String[]{AnnotationIndexTypes.FIELD_NOT_INDEX_LONG,
+                AnnotationIndexTypes.FIELD_NOT_INDEX_DATE, AnnotationIndexTypes.FIELD_NOT_INDEX_STRING}) {
+            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).distinct(field);
+            assertEquals(field, numberOfBlocks, distinct.size());
         }
     }
 
