@@ -6,6 +6,7 @@ import java.util.Date;
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
 
+
 /**
  * A PendingRow is a row relies on a pending async query.
  * Before the query returns, calling any accessors will immediately throw. In this case run {@link #executeQuery()} to
@@ -34,7 +35,7 @@ public class PendingRow implements Row {
     private boolean returnCheckedRow;
 
     public PendingRow(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor,
-                      final boolean returnCheckedRow) {
+            final boolean returnCheckedRow) {
         pendingCollection = new Collection(sharedRealm, query, sortDescriptor, null);
 
         listener = new RealmChangeListener<PendingRow>() {

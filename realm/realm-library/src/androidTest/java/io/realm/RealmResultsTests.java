@@ -1137,7 +1137,7 @@ public class RealmResultsTests extends CollectionTests {
                 fieldObjectValue.setFieldInt(fieldObjectIntValue);
                 obj.setFieldObject(fieldObjectValue);
 
-                final RealmList<RandomPrimaryKey> list = new RealmList<>();
+                final RealmList<RandomPrimaryKey> list = new RealmList<RandomPrimaryKey>();
                 final RandomPrimaryKey listItem = new RandomPrimaryKey();
                 listItem.setFieldInt(fieldListIntValue);
                 list.add(listItem);

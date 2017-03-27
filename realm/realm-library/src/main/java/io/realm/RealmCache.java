@@ -26,10 +26,11 @@ import java.util.Map;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
-import io.realm.internal.ObjectServerFacade;
+
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.
@@ -56,6 +57,7 @@ final class RealmCache {
         // How many threads have instances refer to this configuration.
         private int globalCount = 0;
     }
+
     private enum RealmCacheType {
         TYPED_REALM,
         DYNAMIC_REALM;
@@ -70,6 +72,7 @@ final class RealmCache {
             throw new IllegalArgumentException(WRONG_REALM_CLASS_MESSAGE);
         }
     }
+
     // Separated references and counters for typed Realm and dynamic Realm.
     private final EnumMap<RealmCacheType, RefAndCount> refAndCountMap;
 
@@ -103,7 +106,7 @@ final class RealmCache {
      * @return the {@link Realm} or {@link DynamicRealm} instance.
      */
     static synchronized <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration,
-                                                        Class<E> realmClass) {
+            Class<E> realmClass) {
         boolean isCacheInMap = true;
         RealmCache cache = cachesMap.get(configuration.getPath());
         if (cache == null) {
@@ -136,7 +139,6 @@ final class RealmCache {
         if (refAndCount.localRealm.get() == null) {
             // Creates a new local Realm instance
             BaseRealm realm;
-
 
             if (realmClass == Realm.class) {
                 // RealmMigrationNeededException might be thrown here.
@@ -172,10 +174,6 @@ final class RealmCache {
         @SuppressWarnings("unchecked")
         E realm = (E) refAndCount.localRealm.get();
 
-        // Notifies SyncPolicy that the Realm has been opened for the first time
-        if (refAndCount.globalCount == 1) {
-            ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).realmOpened(configuration);
-        }
         return realm;
     }
 
@@ -267,10 +265,10 @@ final class RealmCache {
             // Tries to detect this problem specifically so we can throw a better error message.
             RealmMigration newMigration = newConfiguration.getMigration();
             RealmMigration oldMigration = configuration.getMigration();
-            if (oldMigration != null 
-                && newMigration != null 
-                && oldMigration.getClass().equals(newMigration.getClass())
-                && !newMigration.equals(oldMigration)) {
+            if (oldMigration != null
+                    && newMigration != null
+                    && oldMigration.getClass().equals(newMigration.getClass())
+                    && !newMigration.equals(oldMigration)) {
                 throw new IllegalArgumentException("Configurations cannot be different if used to open the same file. " +
                         "The most likely cause is that equals() and hashCode() are not overridden in the " +
                         "migration class: " + newConfiguration.getMigration().getClass().getCanonicalName());
@@ -326,7 +324,7 @@ final class RealmCache {
         }
     }
 
-   /**
+    /**
      * Runs the callback function with synchronization on {@link RealmCache}.
      *
      * @param callback the callback will be executed.

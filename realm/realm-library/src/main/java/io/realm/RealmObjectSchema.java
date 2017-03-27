@@ -27,6 +27,7 @@ import java.util.Set;
 import io.realm.annotations.Required;
 import io.realm.internal.Table;
 
+
 /**
  * Class for interacting with the schema for a given RealmObject class. This makes it possible to
  * add, delete or change the fields for given class.
@@ -36,6 +37,7 @@ import io.realm.internal.Table;
 public class RealmObjectSchema {
 
     private static final Map<Class<?>, FieldMetaData> SUPPORTED_SIMPLE_FIELDS;
+
     static {
         SUPPORTED_SIMPLE_FIELDS = new HashMap<Class<?>, FieldMetaData>();
         SUPPORTED_SIMPLE_FIELDS.put(String.class, new FieldMetaData(RealmFieldType.STRING, true));
@@ -58,6 +60,7 @@ public class RealmObjectSchema {
     }
 
     private static final Map<Class<?>, FieldMetaData> SUPPORTED_LINKED_FIELDS;
+
     static {
         SUPPORTED_LINKED_FIELDS = new HashMap<Class<?>, FieldMetaData>();
         SUPPORTED_LINKED_FIELDS.put(RealmObject.class, new FieldMetaData(RealmFieldType.OBJECT, false));
@@ -228,7 +231,7 @@ public class RealmObjectSchema {
     /**
      * Adds a new field that references another {@link RealmObject}.
      *
-     * @param fieldName  name of the field to add.
+     * @param fieldName name of the field to add.
      * @param objectSchema schema for the Realm type being referenced.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
@@ -243,7 +246,7 @@ public class RealmObjectSchema {
     /**
      * Adds a new field that references a {@link RealmList}.
      *
-     * @param fieldName  name of the field to add.
+     * @param fieldName name of the field to add.
      * @param objectSchema schema for the Realm type being referenced.
      * @return the updated schema.
      * @throws IllegalArgumentException if the field name is illegal or a field with that name already exists.
@@ -273,7 +276,7 @@ public class RealmObjectSchema {
     private Set<Property> getProperties() {
         if (realm == null) {
             long[] ptrs = nativeGetProperties(nativePtr);
-            Set<Property> properties = new LinkedHashSet<>(ptrs.length);
+            Set<Property> properties = new LinkedHashSet<Property>(ptrs.length);
             for (int i = 0; i < ptrs.length; i++) {
                 properties.add(new Property(ptrs[i]));
             }
@@ -441,10 +444,10 @@ public class RealmObjectSchema {
      * between boxed types and their primitive variant e.g., {@code Integer} to {@code int}.
      *
      * @param fieldName name of field in the class.
-     * @param required  {@code true} if field should be required, {@code false} otherwise.
+     * @param required {@code true} if field should be required, {@code false} otherwise.
      * @return the updated schema.
      * @throws IllegalArgumentException if the field name doesn't exist, cannot have the {@link Required} annotation or
-     *                                  the field already have been set as required.
+     * the field already have been set as required.
      * @see Required
      */
     public RealmObjectSchema setRequired(String fieldName, boolean required) {
@@ -478,7 +481,7 @@ public class RealmObjectSchema {
      * between primitive types and their boxed variant e.g., {@code int} to {@code Integer}.
      *
      * @param fieldName name of field in the class.
-     * @param nullable  {@code true} if field should be nullable, {@code false} otherwise.
+     * @param nullable {@code true} if field should be nullable, {@code false} otherwise.
      * @return the updated schema.
      * @throws IllegalArgumentException if the field name doesn't exist, or cannot be set as nullable.
      */
@@ -556,7 +559,7 @@ public class RealmObjectSchema {
      */
     public Set<String> getFieldNames() {
         int columnCount = (int) table.getColumnCount();
-        Set<String> columnNames = new LinkedHashSet<>(columnCount);
+        Set<String> columnNames = new LinkedHashSet<String>(columnCount);
         for (int i = 0; i < columnCount; i++) {
             columnNames.add(table.getColumnName(i));
         }
@@ -604,7 +607,7 @@ public class RealmObjectSchema {
             if (indexAdded) {
                 table.removeSearchIndex(columnIndex);
             }
-            throw e;
+            throw (RuntimeException) e;
         }
     }
 
@@ -858,8 +861,12 @@ public class RealmObjectSchema {
     }
 
     static native long nativeCreateRealmObjectSchema(String className);
+
     static native void nativeAddProperty(long nativePtr, long nativePropertyPtr);
+
     static native long[] nativeGetProperties(long nativePtr);
+
     static native void nativeClose(long nativePtr);
+
     static native String nativeGetClassName(long nativePtr);
 }

@@ -20,6 +20,7 @@ import java.io.File;
 
 import io.realm.internal.Keep;
 
+
 @Keep
 public final class RealmMigrationNeededException extends RuntimeException {
 
@@ -37,7 +38,7 @@ public final class RealmMigrationNeededException extends RuntimeException {
 
     /**
      * Returns the canonical path to the Realm file that needs to be migrated.
-     *
+     * <p>
      * This can be used for easy reference during a migration:
      *
      * @return Canonical path to the Realm file.

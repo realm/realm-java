@@ -27,6 +27,7 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 
+
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
  * to add, delete and change the classes in the Realm.
@@ -131,14 +132,14 @@ public class RealmSchema {
     public Set<RealmObjectSchema> getAll() {
         if (realm == null) {
             long[] ptrs = nativeGetAll(nativePtr);
-            Set<RealmObjectSchema> schemas = new LinkedHashSet<>(ptrs.length);
+            Set<RealmObjectSchema> schemas = new LinkedHashSet<RealmObjectSchema>(ptrs.length);
             for (int i = 0; i < ptrs.length; i++) {
                 schemas.add(new RealmObjectSchema(ptrs[i]));
             }
             return schemas;
         } else {
             int tableCount = (int) realm.sharedRealm.size();
-            Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
+            Set<RealmObjectSchema> schemas = new LinkedHashSet<RealmObjectSchema>(tableCount);
             for (int i = 0; i < tableCount; i++) {
                 String tableName = realm.sharedRealm.getTableName(i);
                 if (!Table.isModelTable(tableName)) {
@@ -325,7 +326,7 @@ public class RealmSchema {
     }
 
     private static boolean isProxyClass(Class<? extends RealmModel> modelClass,
-                                        Class<? extends RealmModel> testee) {
+            Class<? extends RealmModel> testee) {
         return modelClass != testee;
     }
 
@@ -349,6 +350,8 @@ public class RealmSchema {
     }
 
     static native long nativeCreateFromList(long[] objectSchemaPtrs);
+
     static native void nativeClose(long nativePtr);
+
     static native long[] nativeGetAll(long nativePtr);
 }

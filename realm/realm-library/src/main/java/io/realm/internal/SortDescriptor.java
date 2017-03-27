@@ -22,6 +22,7 @@ import java.util.List;
 import io.realm.RealmFieldType;
 import io.realm.Sort;
 
+
 /**
  * Java class to present the same name core class in Java. This can be converted to a cpp realm::SortDescriptor object
  * through realm::_impl::JavaSortDescriptor.
@@ -143,6 +144,6 @@ public class SortDescriptor {
     @KeepMember
     @SuppressWarnings("unused")
     private long getTablePtr() {
-       return table.getNativePtr();
+        return table.getNativePtr();
     }
 }

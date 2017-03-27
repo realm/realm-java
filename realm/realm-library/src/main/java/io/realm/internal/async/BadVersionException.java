@@ -18,6 +18,7 @@ package io.realm.internal.async;
 
 import io.realm.internal.Keep;
 
+
 /**
  * Triggered from JNI level when the result of a query (from a different thread) could not be used against the current
  * state of the Realm which might be more up-to-date than the provided results or vice versa.

@@ -138,7 +138,7 @@ public class CredentialsTests {
 
     @Test
     public void custom_invalidUserName() {
-        Map<String, Object> userInfo = new HashMap<>();
+        Map<String, Object> userInfo = new HashMap<String, Object>();
 
         String[] invalidInput = {null, ""};
         for (String username : invalidInput) {
@@ -152,7 +152,7 @@ public class CredentialsTests {
 
     @Test
     public void custom_invalidProvider() {
-        Map<String, Object> userInfo = new HashMap<>();
+        Map<String, Object> userInfo = new HashMap<String, Object>();
 
         try {
             SyncCredentials.custom("foo", null, userInfo);

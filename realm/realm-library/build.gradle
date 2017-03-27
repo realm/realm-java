@@ -131,12 +131,18 @@ repositories {
 }
 
 dependencies {
-    objectServerAnnotationProcessor project(':realm-annotations-processor')
+
     provided 'io.reactivex:rxjava:1.1.0'
     provided 'com.google.code.findbugs:findbugs-annotations:3.0.1'
+
     compile "io.realm:realm-annotations:${version}"
     compile 'com.getkeepsafe.relinker:relinker:1.2.2'
+
+    objectServerAnnotationProcessor project(':realm-annotations-processor')
     objectServerCompile 'com.squareup.okhttp3:okhttp:3.4.1'
+
+    androidTestAnnotationProcessor project(':realm-annotations-processor')
+    androidTestCompile fileTree(dir: 'testLibs', include: ['*.jar'])
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
     androidTestCompile 'com.android.support:support-annotations:25.2.0'
     androidTestCompile 'com.android.support.test:runner:0.5'
@@ -146,7 +152,6 @@ dependencies {
     androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
     androidTestCompile 'com.opencsv:opencsv:3.4'
     androidTestCompile 'dk.ilios:spanner:0.6.0'
-    androidTestAnnotationProcessor project(':realm-annotations-processor')
 }
 
 task sourcesJar(type: Jar) {
@@ -231,23 +236,32 @@ task pmd(type: Pmd) {
     }
 }
 
+// Configure Checkstyle
+// Android sourceSets are not sourceSets, so we can't confgure this with the DSL.
 task checkstyle(type: Checkstyle) {
-    group = 'Test'
+    group = 'Verification'
 
     source 'src'
-    include '**/*.java'
-    exclude '**/gen/**'
-    exclude '**/R.java'
-    exclude '**/BuildConfig.java'
-
-    def configProps = ['proj.module.dir': projectDir.absolutePath]
-    configProperties configProps
-
-    configFile = file("${projectDir}/../config/checkstyle/checkstyle.xml")
+    include '*/java/**/*.java'
+    exclude 'benchmarks/**'
+    // Ingore tests for now.
+    exclude '*Test*/**'
 
     // empty classpath
     classpath = files()
 }
+
+checkstyle {
+    toolVersion ="7.6"
+
+    configFile = file("${projectDir}/../config/checkstyle/checkstyle.xml")
+
+    def configProps = ['proj.module.dir': projectDir.absolutePath]
+    configProperties configProps
+
+    ignoreFailures = true
+}
+check.dependsOn tasks.checkstyle
 
 // Configuration options can be found here:
 // http://developer.android.com/reference/android/support/test/runner/AndroidJUnitRunner.html

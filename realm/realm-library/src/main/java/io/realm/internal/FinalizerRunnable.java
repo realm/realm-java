@@ -21,9 +21,10 @@ import java.lang.ref.ReferenceQueue;
 
 import io.realm.log.RealmLog;
 
+
 // Running in the FinalizingDaemon thread to free native objects.
 class FinalizerRunnable implements Runnable {
-    private final ReferenceQueue<NativeObject>  referenceQueue;
+    private final ReferenceQueue<NativeObject> referenceQueue;
 
     FinalizerRunnable(ReferenceQueue<NativeObject> referenceQueue) {
         this.referenceQueue = referenceQueue;
