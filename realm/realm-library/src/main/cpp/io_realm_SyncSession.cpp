@@ -61,8 +61,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
         std::string local_realm_path(JStringAccessor(env, localRealmPath));
         std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_active_session(local_realm_path);
         if (!session) {
-            ThrowException(env, IllegalState, "FIXME: Cannot register a progress listener before a session is "
-                                              "created. Only happens during Realm.getInstance() right now.");
+            // FIXME: We should lift this restriction
+            ThrowException(env, IllegalState, "Cannot register a progress listener before a session is "
+                                              "created. A session will be created after the first call to Realm.getInstance().");
             return static_cast<jlong>(0);
         }
 

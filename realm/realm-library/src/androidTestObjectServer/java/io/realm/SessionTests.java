@@ -83,6 +83,7 @@ public class SessionTests {
 
     @Test
     public void removeProgressListener() {
+        Realm realm = Realm.getInstance(configuration);
         SyncSession session = SyncManager.getSession(configuration);
         ProgressListener[] listeners = new ProgressListener[] {
                 null,
@@ -105,6 +106,7 @@ public class SessionTests {
         for (ProgressListener listener : listeners) {
             session.removeProgressListener(listener);
         }
+        realm.close();
     }
 
     // Check that a Client Reset is correctly reported.
