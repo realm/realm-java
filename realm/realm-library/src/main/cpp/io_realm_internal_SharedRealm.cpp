@@ -248,6 +248,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeCommitTransactio
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         shared_realm->commit_transaction();
+        // Realm could be closed in the RealmNotifier.didChange().
+        if (!shared_realm->is_closed()) {
+            // To trigger async queries, so the UI can be refreshed immediately to avoid inconsistency.
+            // See more discussion on https://github.com/realm/realm-java/issues/4245
+            shared_realm->refresh();
+        }
     }
     CATCH_STD()
 }

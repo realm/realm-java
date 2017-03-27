@@ -6,8 +6,6 @@
 
 ### Enhancements
 
-* Now `targetSdkVersion` is 25.
-* Now using Gradle 3.4.1
 * The real `RealmMigrationNeededException` is now thrown instead of `IllegalArgumentException` if no migration is provided for a Realm that requires it.
 * Partial implementation of `LinkingObjects`.  There is documentation in `io.realm.annotations.LinkingObjects`.  Internal docs are in `io.realm.processor.Backlink`.
   * Queries on linking objects do not work.  Queries like `were(...).equalTo("field.linkingObjects.id", 7).findAll()` are not yet supported.
@@ -15,6 +13,23 @@
   * Migration for linking objects is not yet supported.
   * Backlink verification is incomplete.  Evil code can cause native crashes.
 * [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface (#4080).
+
+### Bug Fixes
+
+### Deprecated
+
+### Internal
+
+* Using the Object Store's Session and SyncManager.
+
+
+## 3.0.1 (YYYY-MM-DD)
+
+### Enhancements
+
+* Now using Gradle 3.4.1
+* Now `targetSdkVersion` is 25.
+* Listeners on `RealmList` and `RealmResults` will be triggered immediately when the transaction is committed on the same thread (#4245).
 
 ### Bug Fixes
 
@@ -27,9 +42,9 @@
 
 ### Internal
 
-* Using the Object Store's Session and SyncManager.
 * Upgraded to Realm Sync 1.3.2.
 * Upgraded to Realm Core 2.4.0.
+
 
 ## 3.0.0 (2017-02-28)
 
