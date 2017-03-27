@@ -24,7 +24,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
@@ -91,13 +93,11 @@ public class ObjectChangeSetTests {
             @Override
             public void onChange(RealmModel object, ObjectChangeSet changeSet) {
                 assertEquals(fieldNames.length, changeSet.getChangedFields().length);
+                List<String> changedFields = Arrays.asList(changeSet.getChangedFields());
                 for (String name : fieldNames) {
                     assertTrue(changeSet.isFieldChanged(name));
                     assertFalse(changeSet.isFieldChanged(name + "NotThere"));
-                    for (String field : changeSet.getChangedFields()) {
-                        if (field.equals(name)) {
-                            break;
-                        }
+                    if (!changedFields.contains(name)) {
                         fail("Cannot find field " + name + " in field changes.");
                     }
                 }
@@ -262,6 +262,27 @@ public class ObjectChangeSetTests {
         checkChangedField(allTypes, AllTypes.FIELD_REALMLIST);
         realm.beginTransaction();
         allTypes.getColumnRealmList().clear();
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread(before = PopulateOneAllTypes.class)
+    public void changeAllFields() {
+        Realm realm = looperThread.realm;
+        AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+        checkChangedField(allTypes, AllTypes.FIELD_LONG, AllTypes.FIELD_REALMLIST, AllTypes.FIELD_REALMOBJECT,
+                AllTypes.FIELD_DOUBLE, AllTypes.FIELD_FLOAT, AllTypes.FIELD_STRING, AllTypes.FIELD_BOOLEAN,
+                AllTypes.FIELD_BINARY, AllTypes.FIELD_DATE);
+        realm.beginTransaction();
+        allTypes.setColumnLong(42);
+        allTypes.getColumnRealmList().add(realm.createObject(Dog.class));
+        allTypes.setColumnRealmObject(realm.createObject(Dog.class));
+        allTypes.setColumnDouble(42.0d);
+        allTypes.setColumnFloat(42.0f);
+        allTypes.setColumnString("42");
+        allTypes.setColumnBoolean(true);
+        allTypes.setColumnBinary(new byte[] { 42 });
+        allTypes.setColumnDate(new Date());
         realm.commitTransaction();
     }
 
