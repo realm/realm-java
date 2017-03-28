@@ -37,6 +37,7 @@ import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
+import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 
 /**
@@ -69,9 +70,8 @@ public class SyncSession {
     // We need JavaId -> Listener so C++ can trigger callbacks without keeping a reference to the
     // jobject, which would require a similar map on the C++ side.
     // We need Listener -> Token map in order to remove the progress listener in C++ from Java.
-    private Map<Long, ProgressListener> listenerIdToProgressListenerMap = new HashMap<>();
+    private Map<Long, Pair<ProgressListener, Progress>> listenerIdToProgressListenerMap = new HashMap<>();
     private Map<ProgressListener, Long> progressListenerToOsTokenMap = new HashMap<>();
-
     // Counter used to assign all ProgressListeners on this session with a unique id.
     // ListenerId is created by Java to enable C++ to reference the java listener without holding
     // a reference to the actual object.
@@ -134,9 +134,13 @@ public class SyncSession {
     @SuppressWarnings("unused")
     @KeepMember
     synchronized void notifyProgressListener(long listenerId, long transferredBytes, long transferableBytes) {
-        ProgressListener listener = listenerIdToProgressListenerMap.get(listenerId);
+        Pair<ProgressListener, Progress> listener = listenerIdToProgressListenerMap.get(listenerId);
         if (listener != null) {
-            listener.onChange(new Progress(transferredBytes, transferableBytes));
+            Progress newProgressNotification = new Progress(transferredBytes, transferableBytes);
+            if (!newProgressNotification.equals(listener.second)) {
+                listener.first.onChange(newProgressNotification);
+                listener.second = newProgressNotification;
+            }
         } else {
             RealmLog.debug("Trying unknown listener failed: " + listenerId);
         }
@@ -177,10 +181,10 @@ public class SyncSession {
         // maps in an inconsistent manner. Not much we can do about it.
         Long token = progressListenerToOsTokenMap.remove(listener);
         if (token != null) {
-            Iterator<Map.Entry<Long, ProgressListener>> it = listenerIdToProgressListenerMap.entrySet().iterator();
+            Iterator<Map.Entry<Long, Pair<ProgressListener, Progress>>> it = listenerIdToProgressListenerMap.entrySet().iterator();
             while (it.hasNext()) {
-                Map.Entry<Long, ProgressListener> entry = it.next();
-                if (entry.getValue().equals(listener)) {
+                Map.Entry<Long, Pair<ProgressListener, Progress>> entry = it.next();
+                if (entry.getValue().first.equals(listener)) {
                     it.remove();
                     break;
                 }
@@ -193,13 +197,19 @@ public class SyncSession {
         checkProgressListenerArguments(mode, listener);
         boolean isStreaming = (mode == ProgressMode.INDEFINETELY);
         long listenerId = progressListenerId.incrementAndGet();
+
+        // A listener might be triggered immediately as part of `nativeAddProgressListener`, so
+        // we need to make sure it can be found by SyncManager.notifyProgressListener()
+        listenerIdToProgressListenerMap.put(listenerId, new Pair<ProgressListener, Progress>(listener, null));
         long listenerToken = nativeAddProgressListener(configuration.getPath(), listenerId , direction, isStreaming);
-        if (listenerToken != 0) {
-            // If token == 0, ObjectStore did not register the listener. This can happen if a
+        if (listenerToken == 0) {
+            // ObjectStore did not register the listener. This can happen if a
             // listener is registered with ProgressMode.CURRENT_CHANGES and no changes actually
-            // exists. In that case the listener will be triggered once and then exit, but it will
-            // not be receive a token.
-            listenerIdToProgressListenerMap.put(listenerId, listener);
+            // exists. In that case the listener was triggered immediately and we just need
+            // to clean it up, since it will never be called again.
+            listenerIdToProgressListenerMap.remove(listenerId);
+        } else {
+            // Listener was properly registered.
             progressListenerToOsTokenMap.put(listener, listenerToken);
         }
     }
