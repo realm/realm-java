@@ -103,6 +103,7 @@ public class RealmLogTests {
 
         RealmLog.setLevel(LogLevel.FATAL);
         RealmLog.nativeLogToCoreLoggerBridge(ptr, LogLevel.INFO, "44");
+        assertTrue(testLogger.message.equals("42"));
         assertFalse(testLogger.message.equals("44"));
         RealmLog.nativeLogToCoreLoggerBridge(ptr, LogLevel.FATAL, "45");
         assertTrue(testLogger.message.equals("45"));
