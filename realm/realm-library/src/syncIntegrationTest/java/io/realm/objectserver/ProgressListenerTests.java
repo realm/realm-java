@@ -152,9 +152,10 @@ public class ProgressListenerTests extends BaseIntegrationTest {
                             }).start();
                             break;
                         case 2:
-                            // Ignore. ObjectStore seems to trigger this for some reason.
-                            // A guess is when adding the UPLOAD listener for the sample
-                            // data.
+                            /**
+                             * Some interaction between multiple threads creating Progress Listeners
+                             * I don't fully understand.
+                             */
                             break;
                         case 3:
                             Realm adminRealm = Realm.getInstance(config);
@@ -229,7 +230,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
                             testDone.countDown();
                             break;
                         default:
-                            fail();
+                            fail("Unsupported number of transfers completed: " + transferCompleted.get());
                     }
                 }
             }
