@@ -51,9 +51,9 @@ final class RealmCache {
 
     private static class RefAndCount {
         // The Realm instance in this thread.
-        private final ThreadLocal<BaseRealm> localRealm = new ThreadLocal<BaseRealm>();
+        private final ThreadLocal<BaseRealm> localRealm = new ThreadLocal<>();
         // How many references to this Realm instance in this thread.
-        private final ThreadLocal<Integer> localCount = new ThreadLocal<Integer>();
+        private final ThreadLocal<Integer> localCount = new ThreadLocal<>();
         // How many threads have instances refer to this configuration.
         private int globalCount = 0;
     }
@@ -85,14 +85,14 @@ final class RealmCache {
 
     // Realm path will be used as the key to store different RealmCaches. Different Realm configurations with same path
     // are not allowed and an exception will be thrown when trying to add it to the cache map.
-    private static Map<String, RealmCache> cachesMap = new HashMap<String, RealmCache>();
+    private static final Map<String, RealmCache> cachesMap = new HashMap<>();
 
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
     private static final String WRONG_REALM_CLASS_MESSAGE = "The type of Realm class must be Realm or DynamicRealm.";
 
     private RealmCache(RealmConfiguration config) {
         configuration = config;
-        refAndCountMap = new EnumMap<RealmCacheType, RefAndCount>(RealmCacheType.class);
+        refAndCountMap = new EnumMap<>(RealmCacheType.class);
         for (RealmCacheType type : RealmCacheType.values()) {
             refAndCountMap.put(type, new RefAndCount());
         }

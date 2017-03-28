@@ -74,7 +74,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public RealmList() {
         collection = null;
         view = null;
-        unmanagedList = new ArrayList<E>();
+        unmanagedList = new ArrayList<>();
     }
 
     /**
@@ -92,7 +92,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         }
         collection = null;
         view = null;
-        unmanagedList = new ArrayList<E>(objects.length);
+        unmanagedList = new ArrayList<>(objects.length);
         Collections.addAll(unmanagedList, objects);
     }
 
@@ -813,11 +813,13 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         }
         checkValidView();
         if (className != null) {
-            return new OrderedRealmCollectionSnapshot<E>(realm,
+            return new OrderedRealmCollectionSnapshot<>(
+                    realm,
                     new io.realm.internal.Collection(realm.sharedRealm, view, null),
                     className);
         } else {
-            return new OrderedRealmCollectionSnapshot<E>(realm,
+            return new OrderedRealmCollectionSnapshot<>(
+                    realm,
                     new io.realm.internal.Collection(realm.sharedRealm, view, null),
                     clazz);
         }

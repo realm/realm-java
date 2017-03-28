@@ -18,6 +18,7 @@ package io.realm;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -39,32 +40,34 @@ public class RealmObjectSchema {
     private static final Map<Class<?>, FieldMetaData> SUPPORTED_SIMPLE_FIELDS;
 
     static {
-        SUPPORTED_SIMPLE_FIELDS = new HashMap<Class<?>, FieldMetaData>();
-        SUPPORTED_SIMPLE_FIELDS.put(String.class, new FieldMetaData(RealmFieldType.STRING, true));
-        SUPPORTED_SIMPLE_FIELDS.put(short.class, new FieldMetaData(RealmFieldType.INTEGER, false));
-        SUPPORTED_SIMPLE_FIELDS.put(Short.class, new FieldMetaData(RealmFieldType.INTEGER, true));
-        SUPPORTED_SIMPLE_FIELDS.put(int.class, new FieldMetaData(RealmFieldType.INTEGER, false));
-        SUPPORTED_SIMPLE_FIELDS.put(Integer.class, new FieldMetaData(RealmFieldType.INTEGER, true));
-        SUPPORTED_SIMPLE_FIELDS.put(long.class, new FieldMetaData(RealmFieldType.INTEGER, false));
-        SUPPORTED_SIMPLE_FIELDS.put(Long.class, new FieldMetaData(RealmFieldType.INTEGER, true));
-        SUPPORTED_SIMPLE_FIELDS.put(float.class, new FieldMetaData(RealmFieldType.FLOAT, false));
-        SUPPORTED_SIMPLE_FIELDS.put(Float.class, new FieldMetaData(RealmFieldType.FLOAT, true));
-        SUPPORTED_SIMPLE_FIELDS.put(double.class, new FieldMetaData(RealmFieldType.DOUBLE, false));
-        SUPPORTED_SIMPLE_FIELDS.put(Double.class, new FieldMetaData(RealmFieldType.DOUBLE, true));
-        SUPPORTED_SIMPLE_FIELDS.put(boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, false));
-        SUPPORTED_SIMPLE_FIELDS.put(Boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, true));
-        SUPPORTED_SIMPLE_FIELDS.put(byte.class, new FieldMetaData(RealmFieldType.INTEGER, false));
-        SUPPORTED_SIMPLE_FIELDS.put(Byte.class, new FieldMetaData(RealmFieldType.INTEGER, true));
-        SUPPORTED_SIMPLE_FIELDS.put(byte[].class, new FieldMetaData(RealmFieldType.BINARY, true));
-        SUPPORTED_SIMPLE_FIELDS.put(Date.class, new FieldMetaData(RealmFieldType.DATE, true));
+        Map<Class<?>, FieldMetaData> m = new HashMap<>();
+        m.put(String.class, new FieldMetaData(RealmFieldType.STRING, true));
+        m.put(short.class, new FieldMetaData(RealmFieldType.INTEGER, false));
+        m.put(Short.class, new FieldMetaData(RealmFieldType.INTEGER, true));
+        m.put(int.class, new FieldMetaData(RealmFieldType.INTEGER, false));
+        m.put(Integer.class, new FieldMetaData(RealmFieldType.INTEGER, true));
+        m.put(long.class, new FieldMetaData(RealmFieldType.INTEGER, false));
+        m.put(Long.class, new FieldMetaData(RealmFieldType.INTEGER, true));
+        m.put(float.class, new FieldMetaData(RealmFieldType.FLOAT, false));
+        m.put(Float.class, new FieldMetaData(RealmFieldType.FLOAT, true));
+        m.put(double.class, new FieldMetaData(RealmFieldType.DOUBLE, false));
+        m.put(Double.class, new FieldMetaData(RealmFieldType.DOUBLE, true));
+        m.put(boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, false));
+        m.put(Boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, true));
+        m.put(byte.class, new FieldMetaData(RealmFieldType.INTEGER, false));
+        m.put(Byte.class, new FieldMetaData(RealmFieldType.INTEGER, true));
+        m.put(byte[].class, new FieldMetaData(RealmFieldType.BINARY, true));
+        m.put(Date.class, new FieldMetaData(RealmFieldType.DATE, true));
+        SUPPORTED_SIMPLE_FIELDS = Collections.unmodifiableMap(m);
     }
 
     private static final Map<Class<?>, FieldMetaData> SUPPORTED_LINKED_FIELDS;
 
     static {
-        SUPPORTED_LINKED_FIELDS = new HashMap<Class<?>, FieldMetaData>();
-        SUPPORTED_LINKED_FIELDS.put(RealmObject.class, new FieldMetaData(RealmFieldType.OBJECT, false));
-        SUPPORTED_LINKED_FIELDS.put(RealmList.class, new FieldMetaData(RealmFieldType.LIST, false));
+        Map<Class<?>, FieldMetaData> m = new HashMap<>();
+        m.put(RealmObject.class, new FieldMetaData(RealmFieldType.OBJECT, false));
+        m.put(RealmList.class, new FieldMetaData(RealmFieldType.LIST, false));
+        SUPPORTED_LINKED_FIELDS = Collections.unmodifiableMap(m);
     }
 
     private final BaseRealm realm;
@@ -276,7 +279,7 @@ public class RealmObjectSchema {
     private Set<Property> getProperties() {
         if (realm == null) {
             long[] ptrs = nativeGetProperties(nativePtr);
-            Set<Property> properties = new LinkedHashSet<Property>(ptrs.length);
+            Set<Property> properties = new LinkedHashSet<>(ptrs.length);
             for (int i = 0; i < ptrs.length; i++) {
                 properties.add(new Property(ptrs[i]));
             }
@@ -559,7 +562,7 @@ public class RealmObjectSchema {
      */
     public Set<String> getFieldNames() {
         int columnCount = (int) table.getColumnCount();
-        Set<String> columnNames = new LinkedHashSet<String>(columnCount);
+        Set<String> columnNames = new LinkedHashSet<>(columnCount);
         for (int i = 0; i < columnCount; i++) {
             columnNames.add(table.getColumnName(i));
         }

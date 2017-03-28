@@ -68,10 +68,10 @@ abstract class BaseRealm implements Closeable {
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
     final long threadId;
-    protected RealmConfiguration configuration;
+    protected final RealmConfiguration configuration;
     protected SharedRealm sharedRealm;
 
-    StandardRealmSchema schema;
+    protected final StandardRealmSchema schema;
 
     protected BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();
@@ -676,7 +676,7 @@ abstract class BaseRealm implements Closeable {
             this.excludeFields = excludeFields;
         }
 
-        public BaseRealm getRealm() {
+        BaseRealm getRealm() {
             return realm;
         }
 

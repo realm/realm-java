@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import io.realm.RealmConfiguration;
 import io.realm.OsRealmSchema;
+import io.realm.RealmConfiguration;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
@@ -110,12 +110,12 @@ public final class SharedRealm implements Closeable, NativeObject {
         }
     }
 
+    public final List<WeakReference<Collection>> collections = new CopyOnWriteArrayList<>();
+    public final List<WeakReference<Collection.Iterator>> iterators = new ArrayList<>();
+
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
-    public final List<WeakReference<Collection>> collections = new CopyOnWriteArrayList<WeakReference<Collection>>();
     public final Capabilities capabilities;
-    public final List<WeakReference<Collection.Iterator>> iterators =
-            new ArrayList<WeakReference<Collection.Iterator>>();
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -174,8 +174,9 @@ public final class SharedRealm implements Closeable, NativeObject {
         void onSchemaVersionChanged(long currentVersion);
     }
 
+    private final RealmConfiguration configuration;
+
     private long nativePtr;
-    private RealmConfiguration configuration;
     final Context context;
     private long lastSchemaVersion;
     private final SchemaVersionListener schemaChangeListener;
@@ -403,7 +404,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     // See https://github.com/realm/realm-java/issues/3883 for more information.
     // Should only be called by Iterator's constructor.
     void addIterator(Collection.Iterator iterator) {
-        iterators.add(new WeakReference<Collection.Iterator>(iterator));
+        iterators.add(new WeakReference<>(iterator));
     }
 
     // The detaching should happen before transaction begins.

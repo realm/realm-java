@@ -31,7 +31,6 @@ import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmObjectSchema;
 import io.realm.RealmSchema;
-import io.realm.StandardRealmSchema;
 import io.realm.exceptions.RealmException;
 
 

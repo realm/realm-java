@@ -3690,34 +3690,34 @@ public class RealmTests {
 
     @Test
     public void schemaIndexCacheIsUpdatedAfterSchemaChange() {
-        final CatRealmProxy.CatColumnInfo catColumnInfo;
-        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnIndices().getColumnInfo(Cat.class);
-
-        final long nameIndex = catColumnInfo.nameIndex;
         final AtomicLong nameIndexNew = new AtomicLong(-1L);
 
-        // Changes column index of "name".
+        // get the pre-update index for the "name" column.
+        CatRealmProxy.CatColumnInfo catColumnInfo
+                = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnIndices().getColumnInfo(Cat.class);
+        final long nameIndex = catColumnInfo.nameIndex;
+
+        // Change the index of the column "name".
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 final Table catTable = realm.getSchema().getTable(Cat.CLASS_NAME);
                 final long nameIndex = catTable.getColumnIndex(Cat.FIELD_NAME);
                 catTable.removeColumn(nameIndex);
-                final long newIndex = catTable.addColumn(RealmFieldType.STRING,
-                        Cat.FIELD_NAME, true);
-
+                final long newIndex = catTable.addColumn(RealmFieldType.STRING, Cat.FIELD_NAME, true);
                 realm.setVersion(realm.getConfiguration().getSchemaVersion() + 1);
-
                 nameIndexNew.set(newIndex);
             }
         });
+
         // We need to update index cache if the schema version was changed in the same thread.
         realm.sharedRealm.invokeSchemaChangeListenerIfSchemaChanged();
 
-        // Checks if the index was changed.
+        // Verify that the index has changed.
         assertNotEquals(nameIndex, nameIndexNew);
 
-        // Checks if index in the ColumnInfo is updated.
+        // Verify that the index in the ColumnInfo has been updated.
+        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnIndices().getColumnInfo(Cat.class);
         assertEquals(nameIndexNew.get(), catColumnInfo.nameIndex);
         assertEquals(nameIndexNew.get(), (long) catColumnInfo.getIndicesMap().get(Cat.FIELD_NAME));
 

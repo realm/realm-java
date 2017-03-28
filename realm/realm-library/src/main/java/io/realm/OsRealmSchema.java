@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -32,25 +31,58 @@ import java.util.Set;
  * @see RealmMigration
  */
 public class OsRealmSchema extends RealmSchema {
-    private static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
+    static final class Creator extends RealmSchema {
+        private final Map<String, RealmObjectSchema> schema = new HashMap<>();
 
-    // Caches Class Strings to their Schema object
+        @Override
+        public void close() { }
+
+        @Override
+        public RealmObjectSchema get(String className) {
+            checkEmpty(className);
+            return (!contains(className)) ? null : schema.get(className);
+        }
+
+        @Override
+        public Set<RealmObjectSchema> getAll() {
+            return new LinkedHashSet<>(schema.values());
+        }
+
+        @Override
+        public RealmObjectSchema create(String className) {
+            checkEmpty(className);
+            RealmObjectSchema realmObjectSchema = new RealmObjectSchema(className);
+            schema.put(className, realmObjectSchema);
+            return realmObjectSchema;
+        }
+
+        @Override
+        public boolean contains(String className) {
+            return schema.containsKey(className);
+        }
+    }
+
+
     private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
 
     private final long nativePtr;
 
-    OsRealmSchema(ArrayList<RealmObjectSchema> realmObjectSchemas) {
-        long list[] = new long[realmObjectSchemas.size()];
-        for (int i = 0; i < realmObjectSchemas.size(); i++) {
-            list[i] = realmObjectSchemas.get(i).getNativePtr();
+    OsRealmSchema(Creator creator) {
+        Set<RealmObjectSchema> realmObjectSchemas = creator.getAll();
+        long[] schemaNativePointers = new long[realmObjectSchemas.size()];
+        int i = 0;
+        for (RealmObjectSchema schema : realmObjectSchemas) {
+            schemaNativePointers[i++] = schema.getNativePtr();
         }
-        this.nativePtr = nativeCreateFromList(list);
+        this.nativePtr = nativeCreateFromList(schemaNativePointers);
     }
 
     public long getNativePtr() {
         return this.nativePtr;
     }
 
+    // THIS IS NEVER CALLED!
+    // See BaseRealm uses a StandardRealmSchema, not a OsRealmSchema.
     @Override
     public void close() {
         Set<RealmObjectSchema> schemas = getAll();
@@ -68,7 +100,7 @@ public class OsRealmSchema extends RealmSchema {
      */
     @Override
     public RealmObjectSchema get(String className) {
-        checkEmpty(className, EMPTY_STRING_MSG);
+        checkEmpty(className);
         return (!contains(className)) ? null : dynamicClassToSchema.get(className);
     }
 
@@ -96,7 +128,7 @@ public class OsRealmSchema extends RealmSchema {
     @Override
     public RealmObjectSchema create(String className) {
         // Adding a class is always permitted.
-        checkEmpty(className, EMPTY_STRING_MSG);
+        checkEmpty(className);
         RealmObjectSchema realmObjectSchema = new RealmObjectSchema(className);
         dynamicClassToSchema.put(className, realmObjectSchema);
         return realmObjectSchema;
@@ -113,9 +145,9 @@ public class OsRealmSchema extends RealmSchema {
         return dynamicClassToSchema.containsKey(className);
     }
 
-    private void checkEmpty(String str, String error) {
+    static void checkEmpty(String str) {
         if (str == null || str.isEmpty()) {
-            throw new IllegalArgumentException(error);
+            throw new IllegalArgumentException("Null or empty class names are not allowed");
         }
     }
 
