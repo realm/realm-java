@@ -19,7 +19,6 @@ package io.realm.examples.objectserver;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.support.annotation.ColorInt;
 import android.support.annotation.ColorRes;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -28,7 +27,6 @@ import android.view.View;
 import android.widget.TextView;
 
 import java.util.Locale;
-import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
@@ -44,7 +42,6 @@ import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.examples.objectserver.model.CRDTCounter;
-import io.realm.log.RealmLog;
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
 public class CounterActivity extends AppCompatActivity {
@@ -60,7 +57,6 @@ public class CounterActivity extends AppCompatActivity {
     private ProgressListener downloadListener = new ProgressListener() {
         @Override
         public void onChange(Progress progress) {
-            RealmLog.error(progress.toString());
             downloadingChanges.set(!progress.isTransferComplete());
             runOnUiThread(updateProgressBar);
         }
@@ -68,7 +64,6 @@ public class CounterActivity extends AppCompatActivity {
     private ProgressListener uploadListener = new ProgressListener() {
         @Override
         public void onChange(Progress progress) {
-            RealmLog.error(progress.toString());
             uploadingChanges.set(!progress.isTransferComplete());
             runOnUiThread(updateProgressBar);
         }
@@ -182,7 +177,6 @@ public class CounterActivity extends AppCompatActivity {
     }
 
     private void updateProgressBar(boolean downloading, boolean uploading) {
-        RealmLog.error("Download: %s, Upload: %s", downloading , uploading);
         @ColorRes int color = android.R.color.black;
         int visibility = View.VISIBLE;
         if (downloading && uploading) {
