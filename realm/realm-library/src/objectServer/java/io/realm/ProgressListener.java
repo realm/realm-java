@@ -31,15 +31,15 @@ public interface ProgressListener {
      *
      * <pre>
      * {@code
-     * // Adding a download progress listener that completes when all known changes have been
+     * // Adding an upload progress listener that completes when all known changes have been
      * // uploaded.
-     * session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
+     * session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
      *   \@Override
      *    public void onChange(Progress progress) {
      *      activity.runOnUiThread(new Runnable() {
      *        \@Override
      *         public void run() {
-     *           updateProgressBar(progres);
+     *           updateProgressBar(progress);
      *         }
      *      });
      *      if (progress.isTransferComplete() {

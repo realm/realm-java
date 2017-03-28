@@ -150,6 +150,9 @@ public class SyncSession {
      * Add a progress listener tracking changes that needs to be downloaded from the Realm Object
      * Server.
      *
+     * The {@link ProgressListener} will be triggered immediately when registered, and periodically
+     * afterwards.
+     *
      * @param mode type of mode used. See {@link ProgressMode} for more information.
      * @param listener listener to register.
      */
@@ -160,6 +163,9 @@ public class SyncSession {
     /**
      * Add a progress listener tracking changes that needs to be uploaded from the device to the
      * Realm Object Server.
+     *
+     * The {@link ProgressListener} will be triggered immediately when registered, and periodically
+     * afterwards.
      *
      * @param mode type of mode used. See {@link ProgressMode} for more information.
      * @param listener listener to register.

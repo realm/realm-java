@@ -26,7 +26,7 @@ import java.util.Locale;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(AndroidJUnit4.class)
-public class ProgressClassTests {
+public class ProgressTests {
 
     @Test
     public void getFractionTransferred() {

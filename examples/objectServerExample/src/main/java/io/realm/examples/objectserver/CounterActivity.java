@@ -181,7 +181,6 @@ public class CounterActivity extends AppCompatActivity {
         int visibility = View.VISIBLE;
         if (downloading && uploading) {
             color = R.color.progress_both;
-            progressBar.setVisibility(View.VISIBLE);
         } else if (downloading) {
             color = R.color.progress_download;
         } else if (uploading) {
