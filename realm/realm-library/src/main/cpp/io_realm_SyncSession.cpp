@@ -53,8 +53,9 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JN
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIEnv* env, jclass,
-                                                                            jstring j_local_realm_path, jlong listener_id,
-                                                                            jint direction, jboolean is_streaming)
+                                                                            jstring j_local_realm_path,
+                                                                            jlong listener_id, jint direction,
+                                                                            jboolean is_streaming)
 {
     try {
         // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda
@@ -62,8 +63,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
         std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_active_session(local_realm_path);
         if (!session) {
             // FIXME: We should lift this restriction
-            ThrowException(env, IllegalState, "Cannot register a progress listener before a session is "
-                                              "created. A session will be created after the first call to Realm.getInstance().");
+            ThrowException(env, IllegalState,
+                           "Cannot register a progress listener before a session is "
+                           "created. A session will be created after the first call to Realm.getInstance().");
             return static_cast<jlong>(0);
         }
 
@@ -75,22 +77,22 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
             auto path = local_env->NewStringUTF(local_realm_path.c_str());
-            env->CallStaticVoidMethod(java_syncmanager_class, java_notify_progress_listener, path, listener_id,
-                                      static_cast<jlong>(transferred), static_cast<jlong>(transferrable));
+            local_env->CallStaticVoidMethod(java_syncmanager_class, java_notify_progress_listener, path, listener_id,
+                                            static_cast<jlong>(transferred), static_cast<jlong>(transferrable));
 
             // All exceptions will be caught on the Java side of handlers, but errors will still end
             // up here, so we need to do something sensible with them.
             // Throwing a C++ exception will terminate the sync thread and cause the pending Java
             // exception to become visible. For some (unknown) reason Logcat will not see the C++
             // exception, only the Java one.
-            if (env->ExceptionCheck()) {
-                env->ExceptionDescribe(env);
+            if (local_env->ExceptionCheck()) {
+                local_env->ExceptionDescribe(local_env);
                 throw std::runtime_error("An unexpected Error was thrown from Java. See LogCat");
             }
 
             // Callback happens on a thread not controlled by the JVM. So manual cleanup is
             // required.
-            env->DeleteLocalRef(path);
+            local_env->DeleteLocalRef(path);
         };
         uint64_t token = session->register_progress_notifier(callback, type, to_bool(is_streaming));
         return static_cast<jlong>(token);
