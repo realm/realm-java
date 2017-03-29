@@ -68,10 +68,13 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         realm.commitTransaction();
     }
 
-    private void assertTransferComplete(Progress progress) {
+    private void assertTransferComplete(Progress progress, boolean nonZeroChange) {
         assertTrue(progress.isTransferComplete());
         assertEquals(1.0D, progress.getFractionTransferred(), 0.0D);
         assertEquals(progress.getTransferableBytes(), progress.getTransferredBytes());
+        if (nonZeroChange) {
+            assertTrue(progress.getTransferredBytes() > 0);
+        }
     }
 
     // Create remote data for a given user.
@@ -109,7 +112,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
             @Override
             public void onChange(Progress progress) {
                 if (progress.isTransferComplete()) {
-                    assertTransferComplete(progress);
+                    assertTransferComplete(progress, true);
                     Realm realm = Realm.getInstance(config);
                     assertEquals(TEST_SIZE, realm.where(AllTypes.class).count());
                     realm.close();
@@ -144,29 +147,30 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         worker.start();
 
         SyncUser adminUser = loginAdminUser();
-        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString()).build();
-        Realm realm = Realm.getInstance(config);
-        SyncSession session = SyncManager.getSession(config);
+        final SyncConfiguration adminConfig = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString()).build();
+        Realm adminRealm = Realm.getInstance(adminConfig);
+        Realm userRealm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(userWithData, Constants.SYNC_USER_REALM).build()); // Keep session alive
+        SyncSession session = SyncManager.getSession(adminConfig);
         session.addDownloadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
             @Override
             public void onChange(Progress progress) {
                 if (progress.isTransferComplete()) {
-                    assertTransferComplete(progress);
                     switch (transferCompleted.incrementAndGet()) {
                         case 1:
                             // Initial trigger when registering
-                            assertEquals(0, progress.getTransferredBytes());
-                            assertEquals(0, progress.getTransferableBytes());
+                            assertTransferComplete(progress, false);
                             break;
                         case 2: {
-                            Realm adminRealm = Realm.getInstance(config);
+                            assertTransferComplete(progress, true);
+                            Realm adminRealm = Realm.getInstance(adminConfig);
                             assertEquals(TEST_SIZE, adminRealm.where(AllTypes.class).count());
                             adminRealm.close();
                             startWorker.countDown();
                             break;
                         }
                         case 3: {
-                            Realm adminRealm = Realm.getInstance(config);
+                            assertTransferComplete(progress, true);
+                            Realm adminRealm = Realm.getInstance(adminConfig);
                             assertEquals(TEST_SIZE*2, adminRealm.where(AllTypes.class).count());
                             adminRealm.close();
                             allChangesDownloaded.countDown();
@@ -179,7 +183,8 @@ public class ProgressListenerTests extends BaseIntegrationTest {
             }
         });
         TestHelper.awaitOrFail(allChangesDownloaded);
-        realm.close();
+        adminRealm.close();
+        userRealm.close();
         userWithData.logout();
         adminUser.logout();
         worker.join();
@@ -196,8 +201,9 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
             @Override
             public void onChange(Progress progress) {
+                RealmLog.error("Upload" + progress.toString());
                 if (progress.isTransferComplete()) {
-                    assertTransferComplete(progress);
+                    assertTransferComplete(progress, true);
                     allChangeUploaded.countDown();
                 }
             }
@@ -227,7 +233,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
                             realm.close();
                             break;
                         case 2:
-                            assertTransferComplete(progress);
+                            assertTransferComplete(progress, true);
                             testDone.countDown();
                             break;
                         default:
