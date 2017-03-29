@@ -20,7 +20,7 @@ package io.realm;
  * Class used to encapsulate progress notifications when either downloading or uploading Realm data.
  * Each instance of this class is an immutable snapshot of the current progress.
  * <p>
- * If the {@link ProgressListener} was registered with {@link ProgressMode#INDEFINETELY}, the progress reported by
+ * If the {@link ProgressListener} was registered with {@link ProgressMode#INDEFINITELY}, the progress reported by
  * {@link #getFractionTransferred()} can both increase and decrease since more changes might be added while
  * the progres listener is registered. This means it is possible for one notification to report
  * {@code true} for {@link #isTransferComplete()}, and then on the next event report {@code false}.
@@ -90,7 +90,7 @@ public class Progress {
     /**
      * Returns true when all pending bytes have been transferred.
      * <p>
-     * If the {@link ProgressListener} was registered with {@link ProgressMode#INDEFINETELY}, this method can return
+     * If the {@link ProgressListener} was registered with {@link ProgressMode#INDEFINITELY}, this method can return
      * {@code false} for subsequent events after returning {@code true}.
      * <p>
      * If the {@link ProgressListener} was registered with {@link ProgressMode#CURRENT_CHANGES}, when this method

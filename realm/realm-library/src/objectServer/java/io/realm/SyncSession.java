@@ -202,7 +202,7 @@ public class SyncSession {
 
     private void addProgressListener(ProgressMode mode, int direction, ProgressListener listener) {
         checkProgressListenerArguments(mode, listener);
-        boolean isStreaming = (mode == ProgressMode.INDEFINETELY);
+        boolean isStreaming = (mode == ProgressMode.INDEFINITELY);
         long listenerId = progressListenerId.incrementAndGet();
 
         // A listener might be triggered immediately as part of `nativeAddProgressListener`, so

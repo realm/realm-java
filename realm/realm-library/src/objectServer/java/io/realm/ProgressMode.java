@@ -43,5 +43,5 @@ public enum ProgressMode {
      * <p>
      * This is useful when e.g. you want to track if all changes have been uploaded to the server from the device.
      */
-    INDEFINETELY
+    INDEFINITELY
 }
