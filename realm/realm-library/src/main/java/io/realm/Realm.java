@@ -397,13 +397,16 @@ public class Realm extends BaseRealm {
             // Assumption: When SyncConfiguration then additive schema update mode.
             final OsRealmSchema schema = new OsRealmSchema(schemaCreator);
             long newVersion = realm.configuration.getSchemaVersion();
-            if (realm.sharedRealm.requiresMigration(schema)) {
+            // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
+            // It absolutely breaks encapsulation and needs to be fixed!
+            long schemaNativePointer = schema.getNativePtr();
+            if (realm.sharedRealm.requiresMigration(schemaNativePointer)) {
                 if (currentVersion >= newVersion) {
                     throw new IllegalArgumentException(String.format("The schema was changed but the schema version " +
                             "was not updated. The configured schema version (%d) must be higher than the one in the Realm " +
                             "file (%d) in order to update the schema.", newVersion, currentVersion));
                 }
-                realm.sharedRealm.updateSchema(schema, newVersion);
+                realm.sharedRealm.updateSchema(schemaNativePointer, newVersion);
                 // The OS currently does not handle setting the schema version. We have to do it manually.
                 realm.setVersion(newVersion);
                 commitChanges = true;
