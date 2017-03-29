@@ -155,7 +155,7 @@ public class SyncSession {
      * afterwards.
      *
      * @param mode type of mode used. See {@link ProgressMode} for more information.
-     * @param listener listener to register.
+     * @param listener the listener to register.
      */
     public synchronized void addDownloadProgressListener(ProgressMode mode, ProgressListener listener) {
         addProgressListener(mode, DIRECTION_DOWNLOAD, listener);
@@ -169,7 +169,7 @@ public class SyncSession {
      * afterwards.
      *
      * @param mode type of mode used. See {@link ProgressMode} for more information.
-     * @param listener listener to register.
+     * @param listener the listener to register.
      */
     public synchronized void addUploadProgressListener(ProgressMode mode, ProgressListener listener) {
         addProgressListener(mode, DIRECTION_UPLOAD, listener);
