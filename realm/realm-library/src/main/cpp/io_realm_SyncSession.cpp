@@ -91,7 +91,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
             // required.
             env->DeleteLocalRef(path);
         };
-        uint64_t token = session->register_progress_notifier(callback, type, to_bool(isStreaming));
+        uint64_t token = session->register_progress_notifier(callback, type, to_bool(is_streaming));
         return static_cast<jlong>(token);
     }
     CATCH_STD()

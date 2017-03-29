@@ -24,9 +24,12 @@ public enum ProgressMode {
      * When registering the {@link ProgressListener}, it will record the current size of changes, and will only
      * continue to report progress updates until those changes have been either downloaded or uploaded. After that
      * the progress listener will not report any further changes.
-     *
+     * <p>
+     * This means that listeners registered in this mode should be done <i>before</i> changes are written to
+     * the Realm.
+     * <p>
      * Progress reported in this mode will only ever increase.
-     *
+     * <p>
      * This is useful when e.g. reporting progress when downloading a Realm for the first time.
      */
     CURRENT_CHANGES,
@@ -34,10 +37,10 @@ public enum ProgressMode {
     /**
      * A {@link ProgressListener} registered in this mode, will continue to report progress changes, even
      * if changes are being added after the listener was registered.
-     *
+     * <p>
      * Progress reported in this mode can both increase and decrease, e.g if large amounts of data is
      * written after registering the listener.
-     *
+     * <p>
      * This is useful when e.g. you want to track if all changes have been uploaded to the server from the device.
      */
     INDEFINETELY
