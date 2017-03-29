@@ -18,6 +18,7 @@ package io.realm;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -71,7 +72,7 @@ public class SyncSession {
     // jobject, which would require a similar map on the C++ side.
     // We need Listener -> Token map in order to remove the progress listener in C++ from Java.
     private Map<Long, Pair<ProgressListener, Progress>> listenerIdToProgressListenerMap = new HashMap<>();
-    private Map<ProgressListener, Long> progressListenerToOsTokenMap = new HashMap<>();
+    private Map<ProgressListener, Long> progressListenerToOsTokenMap = new IdentityHashMap<>();
     // Counter used to assign all ProgressListeners on this session with a unique id.
     // ListenerId is created by Java to enable C++ to reference the java listener without holding
     // a reference to the actual object.
@@ -147,7 +148,7 @@ public class SyncSession {
     }
     
     /**
-     * Add a progress listener tracking changes that needs to be downloaded from the Realm Object
+     * Adds a progress listener tracking changes that needs to be downloaded from the Realm Object
      * Server.
      *
      * The {@link ProgressListener} will be triggered immediately when registered, and periodically
@@ -161,7 +162,7 @@ public class SyncSession {
     }
 
     /**
-     * Add a progress listener tracking changes that needs to be uploaded from the device to the
+     * Adds a progress listener tracking changes that needs to be uploaded from the device to the
      * Realm Object Server.
      *
      * The {@link ProgressListener} will be triggered immediately when registered, and periodically
@@ -175,7 +176,7 @@ public class SyncSession {
     }
 
     /**
-     * Remove a progress listener. If the listener wasn't registered, this method will do nothing.
+     * Removes a progress listener. If the listener wasn't registered, this method will do nothing.
 
      * @param listener listener to remove.
      */

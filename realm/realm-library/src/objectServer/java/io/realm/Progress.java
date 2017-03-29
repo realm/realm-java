@@ -25,7 +25,7 @@ package io.realm;
  * the progres listener is registered. This means it is possible for one notification to report
  * {@code true} for {@link #isTransferComplete()}, and then on the next event report {@code false}.
  * <p>
- * if the {@link ProgressListener} was registered with {@link ProgressMode#CURRENT_CHANGES}, progress can only ever
+ * If the {@link ProgressListener} was registered with {@link ProgressMode#CURRENT_CHANGES}, progress can only ever
  * increase, and once {@link #isTransferComplete()} returns {@code true}, no further events will be generated.
  *
  * @see SyncSession#addDownloadProgressListener(ProgressMode, ProgressListener)
@@ -37,7 +37,7 @@ public class Progress {
     private final long transferableBytes;
 
     /**
-     * Create a snapshot of the current progress when downloading or uploading changes.
+     * Creates a snapshot of the current progress when downloading or uploading changes.
      *
      * @param transferredBytes number of bytes transferred.
      * @param transferableBytes total number of bytes that needs to be transferred (including those already transferred).

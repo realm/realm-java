@@ -124,7 +124,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
     }
 
     @Test
-    public void downloadProgressListener_indefinetely() {
+    public void downloadProgressListener_indefinetely() throws InterruptedException {
         final AtomicInteger transferCompleted = new AtomicInteger(0);
         final CountDownLatch allChangesDownloaded = new CountDownLatch(1);
         final CountDownLatch startWorker = new CountDownLatch(1);
@@ -134,13 +134,14 @@ public class ProgressListenerTests extends BaseIntegrationTest {
 
         // Create worker thread that puts data into another Realm.
         // This is to avoid blocking one progress listener while waiting for another to complete.
-        new Thread(new Runnable() {
+        Thread worker = new Thread(new Runnable() {
             @Override
             public void run() {
                 TestHelper.awaitOrFail(startWorker);
                 createRemoteData(userWithData);
             }
-        }).start();
+        });
+        worker.start();
 
         SyncUser adminUser = loginAdminUser();
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString()).build();
@@ -181,6 +182,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         realm.close();
         userWithData.logout();
         adminUser.logout();
+        worker.join();
     }
 
     @Test
@@ -203,7 +205,6 @@ public class ProgressListenerTests extends BaseIntegrationTest {
 
         TestHelper.awaitOrFail(allChangeUploaded);
         realm.close();
-
     }
 
     @Test
