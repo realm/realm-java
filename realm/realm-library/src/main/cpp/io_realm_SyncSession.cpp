@@ -29,16 +29,16 @@ using namespace realm;
 using namespace sync;
 
 JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv* env, jclass,
-                                                                              jstring localRealmPath,
-                                                                              jstring accessToken,
+                                                                              jstring j_local_realm_path,
+                                                                              jstring j_access_token,
                                                                               jstring sync_realm_url)
 {
     TR_ENTER()
     try {
-        JStringAccessor local_realm_path(env, localRealmPath);
+        JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
         if (session) {
-            JStringAccessor access_token(env, accessToken);
+            JStringAccessor access_token(env, j_access_token);
             JStringAccessor realm_url(env, sync_realm_url);
             session->refresh_access_token(access_token, std::string(realm_url));
             return JNI_TRUE;
@@ -53,12 +53,12 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JN
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIEnv* env, jclass,
-                                                                            jstring localRealmPath, jlong listenerId,
-                                                                            jint direction, jboolean isStreaming)
+                                                                            jstring j_local_realm_path, jlong listener_id,
+                                                                            jint direction, jboolean is_streaming)
 {
     try {
         // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda
-        std::string local_realm_path(JStringAccessor(env, localRealmPath));
+        std::string local_realm_path(JStringAccessor(env, j_local_realm_path));
         std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_active_session(local_realm_path);
         if (!session) {
             // FIXME: We should lift this restriction
@@ -70,12 +70,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
         SyncSession::NotifierType type =
             (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
 
-        std::function<SyncProgressNotifierCallback> callback = [local_realm_path, listenerId](
+        std::function<SyncProgressNotifierCallback> callback = [local_realm_path, listener_id](
             uint64_t transferred, uint64_t transferrable) {
             JNIEnv* env = jni_util::JniUtils::get_env(true);
 
             auto path = env->NewStringUTF(local_realm_path.c_str());
-            env->CallStaticVoidMethod(java_syncmanager_class, java_notify_progress_listener, path, listenerId,
+            env->CallStaticVoidMethod(java_syncmanager_class, java_notify_progress_listener, path, listener_id,
                                       static_cast<jlong>(transferred), static_cast<jlong>(transferrable));
 
             // All exceptions will be caught on the Java side of handlers, but errors will still end
@@ -99,14 +99,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
 }
 
 JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveProgressListener(JNIEnv* env, jclass,
-                                                                              jstring localRealmPath,
-                                                                              jlong listenerToken)
+                                                                              jstring j_local_realm_path,
+                                                                              jlong listener_token)
 {
     try {
-        JStringAccessor local_realm_path(env, localRealmPath);
+        JStringAccessor local_realm_path(env, j_local_realm_path);
         std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_active_session(local_realm_path);
         if (session) {
-            session->unregister_progress_notifier(static_cast<uint64_t>(listenerToken));
+            session->unregister_progress_notifier(static_cast<uint64_t>(listener_token));
         }
     }
     CATCH_STD()
