@@ -172,10 +172,17 @@ public class SyncUser {
      * @throws IllegalArgumentException if the URL is malformed.
      */
     public static SyncUser login(final SyncCredentials credentials, final String authenticationUrl) throws ObjectServerError {
-        final URL authUrl;
+        URL authUrl;
         try {
             authUrl = new URL(authenticationUrl);
-        } catch (MalformedURLException e) {
+            // If no path segment is provided append `/auth` which is the standard location.
+            if (authUrl.getPath().equals("")) {
+                URI uri = authUrl.toURI();
+                String newPath = uri.getPath() + "/auth";
+                URI newUri = uri.resolve(newPath).normalize();
+                authUrl = newUri.toURL();
+            }
+        } catch (MalformedURLException | URISyntaxException e) {
             throw new IllegalArgumentException("Invalid URL " + authenticationUrl + ".", e);
         }
 

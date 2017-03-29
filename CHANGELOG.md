@@ -13,6 +13,7 @@
   * Migration for linking objects is not yet supported.
   * Backlink verification is incomplete.  Evil code can cause native crashes.
 * [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface (#4080).
+* [ObjectServer] Authentication URL's now automatically append `/auth` if no other path segment was set (#4370).
 
 ### Bug Fixes
 
