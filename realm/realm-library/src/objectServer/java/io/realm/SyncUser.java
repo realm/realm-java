@@ -177,12 +177,9 @@ public class SyncUser {
             authUrl = new URL(authenticationUrl);
             // If no path segment is provided append `/auth` which is the standard location.
             if (authUrl.getPath().equals("")) {
-                URI uri = authUrl.toURI();
-                String newPath = uri.getPath() + "/auth";
-                URI newUri = uri.resolve(newPath).normalize();
-                authUrl = newUri.toURL();
+                authUrl = new URL(authUrl.toString() + "/auth");
             }
-        } catch (MalformedURLException | URISyntaxException e) {
+        } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Invalid URL " + authenticationUrl + ".", e);
         }
 

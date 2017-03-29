@@ -223,6 +223,7 @@ public class SyncUserTests {
         SyncManager.setAuthServerImpl(authServer);
         String[][] urls = {
                 {"http://ros.realm.io", "http://ros.realm.io/auth"},
+                {"http://ros.realm.io:8080", "http://ros.realm.io:8080/auth"},
                 {"http://ros.realm.io/", "http://ros.realm.io/"},
                 {"http://ros.realm.io/?foo=bar", "http://ros.realm.io/?foo=bar"},
                 {"http://ros.realm.io/auth", "http://ros.realm.io/auth"},
