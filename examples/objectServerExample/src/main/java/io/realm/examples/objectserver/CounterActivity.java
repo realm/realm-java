@@ -124,8 +124,8 @@ public class CounterActivity extends AppCompatActivity {
 
             // Setup progress listeners for indeterminate progress bars
             session = SyncManager.getSession(config);
-            session.addDownloadProgressListener(ProgressMode.INDEFINETELY, downloadListener);
-            session.addUploadProgressListener(ProgressMode.INDEFINETELY, uploadListener);
+            session.addDownloadProgressListener(ProgressMode.INDEFINITELY, downloadListener);
+            session.addUploadProgressListener(ProgressMode.INDEFINITELY, uploadListener);
         }
     }
 
