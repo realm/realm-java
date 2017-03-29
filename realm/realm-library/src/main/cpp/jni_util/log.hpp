@@ -142,6 +142,8 @@ public:
         shared().log(fatal, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
 
+    static realm::util::RootLogger::Level convert_to_core_log_level(Level level);
+
     // Get the shared Log instance.
     static Log& shared();
 
@@ -178,13 +180,26 @@ protected:
 // Implement this function to return the default logger which will be registered during initialization.
 extern std::shared_ptr<JniLogger> get_default_logger();
 
+// Do NOT call set_level_threshold on the bridge to set the log level. Instead, call the Log::set_level which will
+// set all logger levels.
 class CoreLoggerBridge : public realm::util::RootLogger {
 public:
-    CoreLoggerBridge(std::string tag) : m_tag(std::move(tag)) {}
+    CoreLoggerBridge(std::string tag);
+    ~CoreLoggerBridge();
+    CoreLoggerBridge(CoreLoggerBridge&&) = delete;
+    CoreLoggerBridge(CoreLoggerBridge&) = delete;
+    CoreLoggerBridge operator=(CoreLoggerBridge&&) = delete;
+    CoreLoggerBridge operator=(CoreLoggerBridge&) = delete;
     void do_log(Logger::Level, std::string msg) override;
 
 private:
+    // Set log level for all logger bridges.
+    static void set_levels(Log::Level level);
+    friend class Log;
+
     const std::string m_tag;
+    static std::vector<CoreLoggerBridge*> s_bridges;
+    static std::mutex s_mutex;
 };
 
 } // namespace jni_util

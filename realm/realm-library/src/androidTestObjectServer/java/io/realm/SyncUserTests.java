@@ -36,6 +36,7 @@ import java.util.UUID;
 
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.util.SyncTestUtils;
 
@@ -209,6 +210,37 @@ public class SyncUserTests {
             SyncCredentials credentials = SyncCredentials.accessToken("foo", "bar");
             SyncUser user = SyncUser.login(credentials, "http://ros.realm.io/auth");
             assertTrue(user.isValid());
+        } finally {
+            SyncManager.setAuthServerImpl(originalServer);
+        }
+    }
+
+    // Checks that `/auth` is correctly added to any URL without a path
+    @Test
+    public void login_appendAuthSegment() {
+        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        AuthenticationServer originalServer = SyncManager.getAuthServer();
+        SyncManager.setAuthServerImpl(authServer);
+        String[][] urls = {
+                {"http://ros.realm.io", "http://ros.realm.io/auth"},
+                {"http://ros.realm.io:8080", "http://ros.realm.io:8080/auth"},
+                {"http://ros.realm.io/", "http://ros.realm.io/"},
+                {"http://ros.realm.io/?foo=bar", "http://ros.realm.io/?foo=bar"},
+                {"http://ros.realm.io/auth", "http://ros.realm.io/auth"},
+                {"http://ros.realm.io/auth/", "http://ros.realm.io/auth/"},
+                {"http://ros.realm.io/custom-path/", "http://ros.realm.io/custom-path/"}
+        };
+
+        try {
+            for (String[] url : urls) {
+                RealmLog.error(url[0]);
+                String input = url[0];
+                String normalizedInput = url[1];
+                SyncCredentials credentials = SyncCredentials.accessToken("token", UUID.randomUUID().toString());
+                SyncUser user = SyncUser.login(credentials, input);
+                assertEquals(normalizedInput, user.getAuthenticationUrl().toString());
+                user.logout();
+            }
         } finally {
             SyncManager.setAuthServerImpl(originalServer);
         }
