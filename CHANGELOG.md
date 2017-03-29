@@ -37,6 +37,7 @@
 * Fixed a potential cause for Realm file corruptions (never reported).
 * Add `@Override` annotation to proxy class accessors and stop using raw type in proxy classes in order to remove warnings from javac (#4329).
 * `findFirstAsync()` now returns an invalid object if there is no object matches the query condition instead of running the query repeatedly until it can find one (#4352).
+* [ObjectServer] Changing the log level after starting a session now works correctly (#4337).
 
 ### Deprecated
 
