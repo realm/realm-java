@@ -17,18 +17,18 @@
 package io.realm;
 
 /**
- * Interface used when interesting in updates on data being either being uploaded or downloaded from
+ * Interface used when interested in updates on data either being uploaded to or downloaded from
  * a Realm Object Server.
  */
 public interface ProgressListener {
     /**
      * This method will be called periodically from the underlying Object Server Client responsible
      * for uploading and downloading changes from the remote Object Server.
-     *
+     * <p>
      * This callback will <i>not</i> happen on the UI thread, but on the worker thread controlling
      * the Object Server Client. Use {@code Activity.runOnUiThread(Runnable)} or similar to update
      * any UI elements.
-     *
+     * <p>
      * <pre>
      * {@code
      * // Adding an upload progress listener that completes when all known changes have been

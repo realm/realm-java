@@ -249,7 +249,7 @@ public class SyncManager {
     }
 
     /**
-     * All progress listener events from native Sync is reported to this method.
+     * All progress listener events from native Sync are reported to this method.
      * It costs 2 HashMap lookups for each listener triggered (one to find the session, one to
      * find the progress listener), but it means we don't have to cache anything on the C++ side which
      * can leak since we don't have control over the session lifecycle.

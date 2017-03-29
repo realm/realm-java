@@ -38,10 +38,10 @@ public enum ProgressMode {
      * A {@link ProgressListener} registered in this mode, will continue to report progress changes, even
      * if changes are being added after the listener was registered.
      * <p>
-     * Progress reported in this mode can both increase and decrease, e.g if large amounts of data is
+     * Progress reported in this mode can both increase and decrease, e.g. if large amounts of data is
      * written after registering the listener.
      * <p>
-     * This is useful when e.g. you want to track if all changes have been uploaded to the server from the device.
+     * This is useful when you want to track if all changes have been uploaded to the server from the device.
      */
     INDEFINITELY
 }

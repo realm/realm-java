@@ -72,9 +72,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
 
         std::function<SyncProgressNotifierCallback> callback = [local_realm_path, listener_id](
             uint64_t transferred, uint64_t transferrable) {
-            JNIEnv* env = jni_util::JniUtils::get_env(true);
+            JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
-            auto path = env->NewStringUTF(local_realm_path.c_str());
+            auto path = local_env->NewStringUTF(local_realm_path.c_str());
             env->CallStaticVoidMethod(java_syncmanager_class, java_notify_progress_listener, path, listener_id,
                                       static_cast<jlong>(transferred), static_cast<jlong>(transferrable));
 
@@ -84,7 +84,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
             // exception to become visible. For some (unknown) reason Logcat will not see the C++
             // exception, only the Java one.
             if (env->ExceptionCheck()) {
-                throw std::runtime_error("An unexpected Error was thrown from Java");
+                env->ExceptionDescribe(env);
+                throw std::runtime_error("An unexpected Error was thrown from Java. See LogCat");
             }
 
             // Callback happens on a thread not controlled by the JVM. So manual cleanup is

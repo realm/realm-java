@@ -148,9 +148,9 @@ public class SyncSession {
     }
     
     /**
-     * Adds a progress listener tracking changes that needs to be downloaded from the Realm Object
+     * Adds a progress listener tracking changes that need to be downloaded from the Realm Object
      * Server.
-     *
+     * <p>
      * The {@link ProgressListener} will be triggered immediately when registered, and periodically
      * afterwards.
      *
@@ -162,9 +162,9 @@ public class SyncSession {
     }
 
     /**
-     * Adds a progress listener tracking changes that needs to be uploaded from the device to the
+     * Adds a progress listener tracking changes that need to be uploaded from the device to the
      * Realm Object Server.
-     *
+     * <p>
      * The {@link ProgressListener} will be triggered immediately when registered, and periodically
      * afterwards.
      *
@@ -219,6 +219,7 @@ public class SyncSession {
             // Listener was properly registered.
             progressListenerToOsTokenMap.put(listener, listenerToken);
         }
+        RealmLog.error("Listeners: " + listenerIdToProgressListenerMap.size());
     }
 
     private void checkProgressListenerArguments(ProgressMode mode, ProgressListener listener) {

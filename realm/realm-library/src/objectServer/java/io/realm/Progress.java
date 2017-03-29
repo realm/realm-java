@@ -88,7 +88,7 @@ public class Progress {
     }
 
     /**
-     * Returns true when all pending bytes have been transferred.
+     * Returns {@code true} when all pending bytes have been transferred.
      * <p>
      * If the {@link ProgressListener} was registered with {@link ProgressMode#INDEFINITELY}, this method can return
      * {@code false} for subsequent events after returning {@code true}.
