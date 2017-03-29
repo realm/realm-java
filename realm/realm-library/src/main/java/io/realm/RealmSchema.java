@@ -36,6 +36,9 @@ import io.realm.internal.Table;
 public abstract class RealmSchema {
     private ColumnIndices columnIndices; // Cached field look up
 
+    /**
+     * Release the schema and any of native resources it might hold.
+     */
     public abstract void close();
 
     /**
@@ -47,7 +50,7 @@ public abstract class RealmSchema {
     public abstract RealmObjectSchema get(String className);
 
     /**
-     * Returns the {@link RealmObjectSchema} for all RealmObject classes that can be saved in this Realm.
+     * Returns the {@link RealmObjectSchema}s for all RealmObject classes that can be saved in this Realm.
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */

@@ -30,7 +30,7 @@ import java.util.Set;
  *
  * @see RealmMigration
  */
-public class OsRealmSchema extends RealmSchema {
+class OsRealmSchema extends RealmSchema {
     static final class Creator extends RealmSchema {
         private final Map<String, RealmObjectSchema> schema = new HashMap<>();
 
@@ -61,7 +61,6 @@ public class OsRealmSchema extends RealmSchema {
             return schema.containsKey(className);
         }
     }
-
 
     private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
 
