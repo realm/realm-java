@@ -47,7 +47,7 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
 } s_client_thread_listener;
 
 struct AndroidSyncLoggerFactory : public realm::SyncLoggerFactory {
-    // The level param is ignored. Use the global RealmLog.setLevel() to controll all log levels.
+    // The level param is ignored. Use the global RealmLog.setLevel() to control all log levels.
     std::unique_ptr<util::Logger> make_logger(Logger::Level) override
     {
         auto logger = std::make_unique<CoreLoggerBridge>(std::string("REALM_SYNC"));

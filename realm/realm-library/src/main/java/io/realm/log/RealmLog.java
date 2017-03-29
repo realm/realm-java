@@ -299,7 +299,7 @@ public final class RealmLog {
 
     private static native int nativeGetLogLevel();
 
-    // Below methods are used for testing core logger bridge only.
+    // Methods below are used for testing core logger bridge only.
     static native long nativeCreateCoreLoggerBridge(String tag);
 
     static native void nativeCloseCoreLoggerBridge(long nativePtr);

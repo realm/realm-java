@@ -181,7 +181,7 @@ protected:
 extern std::shared_ptr<JniLogger> get_default_logger();
 
 // Do NOT call set_level_threshold on the bridge to set the log level. Instead, call the Log::set_level which will
-// set all logger's levels.
+// set all logger levels.
 class CoreLoggerBridge : public realm::util::RootLogger {
 public:
     CoreLoggerBridge(std::string tag);
