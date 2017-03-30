@@ -52,6 +52,7 @@ static void check_memmove()
     }
     if (ptr == dest) {
         // Do nothing, everything is correct.
+        Log::e("memmove is not broken on this device - lucky you.");
     }
     else if (ptr == dest + 1) {
         Log::e("memmove is broken on this device. Switch to workaround version.");
