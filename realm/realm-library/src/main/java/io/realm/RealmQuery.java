@@ -1915,15 +1915,14 @@ public class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Similar to {@link #findFirst()} but runs asynchronously on a worker thread
-     * This method is only available from a Looper thread.
+     * Similar to {@link #findFirst()} but runs asynchronously on a worker thread. An listener should be registered to
+     * the returned {@link RealmObject} to get the notification when query completes. The registered listener will also
+     * be triggered if there are changes made to the queried {@link RealmObject}. If the {@link RealmObject} is deleted,
+     * the listener will be called one last time and then stop. The query will not be re-run.
      *
-     * @return immediately an empty {@link RealmObject}. Trying to access any field on the returned object
-     * before it is loaded will throw an {@code IllegalStateException}. Use {@link RealmObject#isLoaded()} to check if
-     * the object is fully loaded or register a listener {@link io.realm.RealmObject#addChangeListener}
-     * to be notified when the query completes. If no RealmObject was found after the query completed, the returned
-     * RealmObject will have {@link RealmObject#isLoaded()} set to {@code true} and {@link RealmObject#isValid()} set to
-     * {@code false}.
+     * @return immediately an empty {@link RealmObject} with {@code isLoaded() == false}. Trying to access any field on
+     * the returned object before it is loaded will throw an {@code IllegalStateException}.
+     * @throws IllegalStateException if this is called on a non-looper thread.
      */
     public E findFirstAsync() {
         realm.checkIfValid();

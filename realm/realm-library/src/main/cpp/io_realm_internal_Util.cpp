@@ -53,9 +53,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         java_lang_double_init = env->GetMethodID(java_lang_double, "<init>", "(D)V");
         java_util_date = GetClass(env, "java/util/Date");
         java_util_date_init = env->GetMethodID(java_util_date, "<init>", "(J)V");
-#if REALM_ENABLE_SYNC
-        java_syncmanager = GetClass(env, "io/realm/SyncManager");
-#endif
     }
 
     return JNI_VERSION_1_6;
@@ -73,9 +70,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void*)
         env->DeleteGlobalRef(java_lang_double);
         env->DeleteGlobalRef(java_util_date);
         env->DeleteGlobalRef(java_lang_string);
-#if REALM_ENABLE_SYNC
-        env->DeleteGlobalRef(java_syncmanager);
-#endif
+        JniUtils::release();
     }
 }
 

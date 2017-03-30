@@ -28,6 +28,7 @@
 #include "util.hpp"
 
 #include "jni_util/java_method.hpp"
+#include "jni_util/java_class.hpp"
 
 using namespace realm;
 using namespace realm::_impl;
@@ -74,11 +75,12 @@ public:
         : m_config(std::move(config))
     {
 #if REALM_ENABLE_SYNC
+        static JavaClass sync_manager_class(env, "io/realm/SyncManager");
         // Doing the methods lookup from the thread that loaded the lib, to avoid
         // https://developer.android.com/training/articles/perf-jni.html#faq_FindClass
-        static JavaMethod java_error_callback_method(env, java_syncmanager, "notifyErrorHandler",
+        static JavaMethod java_error_callback_method(env, sync_manager_class, "notifyErrorHandler",
                                                      "(ILjava/lang/String;Ljava/lang/String;)V", true);
-        static JavaMethod java_bind_session_method(env, java_syncmanager, "bindSessionWithConfig",
+        static JavaMethod java_bind_session_method(env, sync_manager_class, "bindSessionWithConfig",
                                                    "(Ljava/lang/String;)Ljava/lang/String;", true);
 
         // error handler will be called form the sync client thread
@@ -96,7 +98,7 @@ public:
             }
 
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
-            env->CallStaticVoidMethod(java_syncmanager, java_error_callback_method, error_code,
+            env->CallStaticVoidMethod(sync_manager_class, java_error_callback_method, error_code,
                                       to_jstring(env, error_message), to_jstring(env, session.get()->path()));
         };
 
@@ -110,7 +112,7 @@ public:
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
 
             jstring access_token_string = (jstring)env->CallStaticObjectMethod(
-                java_syncmanager, java_bind_session_method, to_jstring(env, path.c_str()));
+                sync_manager_class, java_bind_session_method, to_jstring(env, path.c_str()));
             if (access_token_string) {
                 // reusing cached valid token
                 JStringAccessor access_token(env, access_token_string);
@@ -246,6 +248,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeCommitTransactio
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         shared_realm->commit_transaction();
+        // Realm could be closed in the RealmNotifier.didChange().
+        if (!shared_realm->is_closed()) {
+            // To trigger async queries, so the UI can be refreshed immediately to avoid inconsistency.
+            // See more discussion on https://github.com/realm/realm-java/issues/4245
+            shared_realm->refresh();
+        }
     }
     CATCH_STD()
 }

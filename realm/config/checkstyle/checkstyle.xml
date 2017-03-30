@@ -22,7 +22,8 @@
     <module name="RegexpSingleline">
         <property name="format" value="\s+$"/>
         <property name="message" value="Line has trailing spaces."/>
-    </module> -->
+    </module>
+    -->
 
     <!-- Space after 'for', 'if', 'while', 'try' -->
     <module name="RegexpSingleline">
@@ -38,14 +39,14 @@
 
     <module name="TreeWalker">
         <property name="cacheFile" value="bin/cachefile"/>
-
         <!-- Checks for Javadoc comments.                     -->
         <!-- See http://checkstyle.sf.net/config_javadoc.html -->
         <!--module name="JavadocMethod"/-->
         <!--module name="JavadocType"/-->
         <!--module name="JavadocVariable"/-->
         <!-- TODO: UNCOMMENT
-        <module name="JavadocStyle"/> -->
+        <module name="JavadocStyle"/>
+        -->
 
 
         <!-- Checks for Naming Conventions.                  -->
@@ -59,7 +60,8 @@
         <module name="PackageName"/>
         <module name="ParameterName"/>
         <module name="StaticVariableName"/>
-        <module name="TypeName"/> -->
+        <module name="TypeName"/>
+        -->
 
 
         <!-- Checks for imports                              -->
@@ -72,13 +74,14 @@
 
         <!-- Checks for Size Violations.                    -->
         <!-- See http://checkstyle.sf.net/config_sizes.html -->
+        <!--<module name="MethodLength"/>-->
+        <!--<module name="ParameterNumber"/>-->
         <!-- TODO: UNCOMMENT
         <module name="LineLength">
             <property name="max" value="120"/>
             <property name="severity" value="warning"/>
-        </module> -->
-        <!--<module name="MethodLength"/>-->
-        <!--<module name="ParameterNumber"/>-->
+        </module>
+        -->
 
 
         <!-- Checks for whitespace                               -->
@@ -92,7 +95,8 @@
         <module name="OperatorWrap"/>
         <module name="ParenPad"/>
         <module name="TypecastParenPad"/>
-        <module name="WhitespaceAfter"/> -->
+        <module name="WhitespaceAfter"/>
+        -->
         <module name="WhitespaceAround">
             <property name="tokens" value="LITERAL_DO"/>
         </module>
@@ -100,10 +104,12 @@
 
         <!-- Modifier Checks                                    -->
         <!-- See http://checkstyle.sf.net/config_modifiers.html -->
-        <!-- TODO: UNCOMMENT
         <module name="ModifierOrder"/>
-        <module name="RedundantModifier"/> -->
+        <module name="RedundantModifier"/>
 
+
+        <!-- Coding Checks                                   -->
+        <!-- See http://checkstyle.sf.net/config_coding.html -->
 
         <!-- Checks for blocks. You know, those {}'s         -->
         <!-- See http://checkstyle.sf.net/config_blocks.html -->
@@ -112,25 +118,29 @@
         <!-- <module name="LeftCurly"/> -->
         <!--module name="NeedBraces"/-->
         <!-- <module name="RightCurly"/> -->
+        <module name="EmptyCatchBlock">
+            <property name="exceptionVariableName" value="expected|ignore"/>
+        </module>
 
 
         <!-- Checks for common coding problems               -->
         <!-- See http://checkstyle.sf.net/config_coding.html -->
         <!--module name="AvoidInlineConditionals"/-->
         <!-- TODO: UNCOMMENT
-        <module name="CovariantEquals"/>
         <module name="EmptyStatement"/>
         <module name="EqualsAvoidNull"/>
         <module name="EqualsHashCode"/>
         <module name="HiddenField"/>
         <module name="IllegalInstantiation"/>
         <module name="InnerAssignment"/>
+        <module name="MissingSwitchDefault"/>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
         <module name="MagicNumber">
             <property name="severity" value="warning"/>
         </module>
-        <module name="MissingSwitchDefault"/>
-        <module name="SimplifyBooleanExpression"/>
-        <module name="SimplifyBooleanReturn"/> -->
+        -->
+        <module name="CovariantEquals"/>
 
         <!-- Checks for class design                         -->
         <!-- See http://checkstyle.sf.net/config_design.html -->
@@ -140,15 +150,21 @@
             <property name="severity" value="warning"/>
         </module>
         <module name="HideUtilityClassConstructor"/>
-        <module name="InterfaceIsType"/> -->
-        <!--module name="VisibilityModifier"/-->
+        <module name="InterfaceIsType"/>
+        -->
+        <module name="MutableException"/>
+        <module name="VisibilityModifier">
+            <property name="allowPublicImmutableFields" value="true"/>
+        </module>
 
 
         <!-- Miscellaneous other checks.                   -->
         <!-- See http://checkstyle.sf.net/config_misc.html -->
-        <!-- TODO: UNCOMMENT <module name="ArrayTypeStyle"/> -->
         <!--module name="FinalParameters"/-->
         <!--module name="TodoComment"/-->
-        <!-- TODO: UNCOMMENT <module name="UpperEll"/> -->
+        <!-- TODO: UNCOMMENT
+        <module name="UpperEll"/>
+        -->
+        <module name="ArrayTypeStyle"/>
     </module>
 </module>

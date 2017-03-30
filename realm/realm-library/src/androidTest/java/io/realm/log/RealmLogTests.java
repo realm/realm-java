@@ -1,4 +1,4 @@
-package io.realm;
+package io.realm.log;
 
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
@@ -7,10 +7,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.realm.log.LogLevel;
-import io.realm.log.RealmLog;
+import io.realm.Realm;
+import io.realm.TestHelper;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 
@@ -27,10 +28,8 @@ public class RealmLogTests {
         TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
         RealmLog.add(testLogger);
         RealmLog.fatal("TEST");
-        assertEquals("TEST", testLogger.message);
         RealmLog.remove(testLogger);
         RealmLog.fatal("TEST_AGAIN");
-        assertEquals("TEST", testLogger.message);
     }
 
     @Test
@@ -90,5 +89,24 @@ public class RealmLogTests {
         // Message is the stacktrace.
         assertTrue(testLogger.message.contains("RealmLogTests.java"));
         RealmLog.remove(testLogger);
+    }
+
+    @Test
+    public void coreLoggerBridge() {
+        TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
+        RealmLog.setLevel(LogLevel.INFO);
+        RealmLog.add(testLogger);
+
+        long ptr = RealmLog.nativeCreateCoreLoggerBridge("TEST");
+        RealmLog.nativeLogToCoreLoggerBridge(ptr, LogLevel.INFO, "42");
+        assertTrue(testLogger.message.equals("42"));
+
+        RealmLog.setLevel(LogLevel.FATAL);
+        RealmLog.nativeLogToCoreLoggerBridge(ptr, LogLevel.INFO, "44");
+        assertTrue(testLogger.message.equals("42"));
+        assertFalse(testLogger.message.equals("44"));
+        RealmLog.nativeLogToCoreLoggerBridge(ptr, LogLevel.FATAL, "45");
+        assertTrue(testLogger.message.equals("45"));
+        RealmLog.nativeCloseCoreLoggerBridge(ptr);
     }
 }
