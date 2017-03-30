@@ -112,10 +112,10 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
-    public final List<WeakReference<Collection>> collections = new CopyOnWriteArrayList<WeakReference<Collection>>();
     public final Capabilities capabilities;
     public final List<WeakReference<Collection.Iterator>> iterators =
             new ArrayList<WeakReference<Collection.Iterator>>();
+    private final List<WeakReference<PendingRow>> pendingRows = new CopyOnWriteArrayList<WeakReference<PendingRow>>();
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -241,6 +241,7 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     public void beginTransaction() {
         detachIterators();
+        executePendingRowQueries();
         nativeBeginTransaction(nativePtr);
         invokeSchemaChangeListenerIfSchemaChanged();
     }
@@ -426,6 +427,38 @@ public final class SharedRealm implements Closeable, NativeObject {
             }
         }
         iterators.clear();
+    }
+
+    // addPendingRow, removePendingRow and executePendingRow queries are to solve that the listener cannot be added
+    // inside a transaction. For the findFirstAsync(), listener is registered on an Object Store Results first, then move
+    // the listeners to the Object when the query for Results returns. When beginTransaction() called, all listeners'
+    // on the results will be triggered first, that leads to the registration of listeners on the Object which will
+    // throw because of the transaction has already begun. So here we execute all PendingRow queries first before
+    // calling the Object Store begin_transaction to avoid the problem.
+    // Add pending row to the list when it is created. It should be called in the PendingRow constructor.
+    void addPendingRow(PendingRow pendingRow) {
+       pendingRows.add(new WeakReference<PendingRow>(pendingRow));
+    }
+
+    // Remove pending row from the list. It should be called when pending row's query finished.
+    void removePendingRow(PendingRow pendingRow) {
+        for (WeakReference<PendingRow> ref : pendingRows) {
+            PendingRow row = ref.get();
+            if (row == null || row == pendingRow) {
+                pendingRows.remove(ref);
+            }
+        }
+    }
+
+    // Execute all pending row queries.
+    private void executePendingRowQueries() {
+        for (WeakReference<PendingRow> ref : pendingRows) {
+            PendingRow row = ref.get();
+            if (row != null) {
+                row.executeQuery();
+            }
+        }
+        pendingRows.clear();
     }
 
     private static native void nativeInit(String temporaryDirectoryPath);

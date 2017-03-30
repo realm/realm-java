@@ -37,7 +37,6 @@ import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
-import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
@@ -628,10 +627,11 @@ public class RealmAsyncQueryTests {
         }
     }
 
-    // Similar UC as #testForceLoadAsync using 'findFirst'.
+    // load should trigger the listener with empty change set.
     @Test
     @RunTestInLooperThread
     public void findFirstAsync_forceLoad() throws Throwable {
+        final AtomicBoolean listenerCalled = new AtomicBoolean(false);
         Realm Realm = looperThread.realm;
         populateTestRealm(Realm, 10);
         final AllTypes realmResults = Realm.where(AllTypes.class)
@@ -640,10 +640,20 @@ public class RealmAsyncQueryTests {
 
         assertFalse(realmResults.isLoaded());
 
+        realmResults.addChangeListener(new RealmObjectChangeListener<RealmModel>() {
+            @Override
+            public void onChange(RealmModel object, ObjectChangeSet changeSet) {
+                assertNull(changeSet);
+                assertFalse(listenerCalled.get());
+                listenerCalled.set(true);
+            }
+        });
+
         assertTrue(realmResults.load());
         assertTrue(realmResults.isLoaded());
         assertEquals("test data 4", realmResults.getColumnString());
 
+        assertTrue(listenerCalled.get());
         looperThread.testComplete();
     }
 
