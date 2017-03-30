@@ -138,7 +138,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -Og -DNDEBUG")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set link flags
-set(REALM_LINKER_FLAGS "")
+set(REALM_LINKER_FLAGS "-Wl,--wrap,memmove")
 if (build_SYNC)
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -lz")
 endif()
