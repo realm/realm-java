@@ -4,6 +4,7 @@
 
 * Now `targetSdkVersion` is 25.
 * Listeners on `RealmList` and `RealmResults` will be triggered immediately when the transaction is committed on the same thread (#4245).
+* `RealmQuery.distinct()` can be performed on unindexed fields (#2285).
 
 ### Bug Fixes
 
