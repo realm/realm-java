@@ -94,6 +94,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.FIELD)
+@Beta
 public @interface LinkingObjects {
     /**
      * The name of a field that contains a relation to an instance of the
