@@ -1522,11 +1522,13 @@ public class RealmQuery<E extends RealmModel> {
      * Returns a distinct set of objects of a specific class. If the result is sorted, the first
      * object will be returned in case of multiple occurrences, otherwise it is undefined which
      * object is returned.
+     * <p>
+     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
      *
      * @param fieldName the field name.
      * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type,
-     * is not indexed, or points to linked fields.
+     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
+     * to linked fields.
      */
     public RealmResults<E> distinct(String fieldName) {
         realm.checkIfValid();
@@ -1539,13 +1541,14 @@ public class RealmQuery<E extends RealmModel> {
      * Asynchronously returns a distinct set of objects of a specific class. If the result is
      * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
      * undefined which object is returned.
+     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
      *
      * @param fieldName the field name.
      * @return immediately a {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
      * query completes.
-     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type,
-     * is not indexed, or points to linked fields.
+     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
+     * to linked fields.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
         realm.checkIfValid();
