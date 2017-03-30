@@ -87,23 +87,25 @@ add_library(lib_realm_core STATIC IMPORTED)
 set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_PATH}
                                                 IMPORTED_LINK_INTERFACE_LIBRARIES atomic)
 
-# Sync static library
-set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-${ANDROID_ABI}.a)
-# Workaround for old core's funny ABI nicknames
-if (NOT EXISTS ${sync_lib_PATH})
-    if (ARMEABI)
-        set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm.a)
-    elseif (ARMEABI_V7A)
-        set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm-v7a.a)
-    elseif (ARM64_V8A)
-        set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm64.a)
-    else()
-        message(FATAL_ERROR "Cannot find core lib file: ${sync_lib_PATH}")
+if (build_SYNC)
+    # Sync static library
+    set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-${ANDROID_ABI}.a)
+    # Workaround for old core's funny ABI nicknames
+    if (NOT EXISTS ${sync_lib_PATH})
+        if (ARMEABI)
+            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm.a)
+        elseif (ARMEABI_V7A)
+            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm-v7a.a)
+        elseif (ARM64_V8A)
+            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm64.a)
+        else()
+            message(FATAL_ERROR "Cannot find sync lib file: ${sync_lib_PATH}")
+        endif()
     endif()
+    add_library(lib_realm_sync STATIC IMPORTED)
+    set_target_properties(lib_realm_sync PROPERTIES IMPORTED_LOCATION ${sync_lib_PATH}
+                                                    IMPORTED_LINK_INTERFACE_LIBRARIES lib_realm_core)
 endif()
-add_library(lib_realm_sync STATIC IMPORTED)
-set_target_properties(lib_realm_sync PROPERTIES IMPORTED_LOCATION ${sync_lib_PATH}
-                                                IMPORTED_LINK_INTERFACE_LIBRARIES lib_realm_core)
 
 # build application's shared lib
 include_directories(${REALM_CORE_DIST_DIR}/include
