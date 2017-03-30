@@ -80,7 +80,7 @@ public class Progress {
      */
     public double getFractionTransferred() {
         if (transferableBytes == 0) {
-            return (transferredBytes == 0) ? 1.0D : 0.0D;
+            return 1.0D;
         } else {
             double percentage = (double) transferredBytes / (double) transferableBytes;
             return percentage > 1.0D ? 1.0D : percentage;

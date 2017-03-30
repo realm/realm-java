@@ -254,6 +254,7 @@ public class SyncManager {
      * find the progress listener), but it means we don't have to cache anything on the C++ side which
      * can leak since we don't have control over the session lifecycle.
      */
+    @SuppressWarnings("unused")
     private static synchronized void notifyProgressListener(String localRealmPath, long listenerId, long transferedBytes, long transferableBytes) {
         SyncSession session = sessions.get(localRealmPath);
         if (session != null) {

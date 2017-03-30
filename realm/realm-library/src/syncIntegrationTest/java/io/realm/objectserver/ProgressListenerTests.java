@@ -171,7 +171,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
                         case 3: {
                             assertTransferComplete(progress, true);
                             Realm adminRealm = Realm.getInstance(adminConfig);
-                            assertEquals(TEST_SIZE*2, adminRealm.where(AllTypes.class).count());
+                            assertEquals(TEST_SIZE * 2, adminRealm.where(AllTypes.class).count());
                             adminRealm.close();
                             allChangesDownloaded.countDown();
                             break;

@@ -177,7 +177,7 @@ public class SyncSession {
 
     /**
      * Removes a progress listener. If the listener wasn't registered, this method will do nothing.
-
+     *
      * @param listener listener to remove.
      */
     public synchronized void removeProgressListener(ProgressListener listener) {
