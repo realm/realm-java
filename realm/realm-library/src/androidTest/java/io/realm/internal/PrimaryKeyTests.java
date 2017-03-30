@@ -242,7 +242,7 @@ public class PrimaryKeyTests {
         table2.addSearchIndex(column2);
         try {
             table2.setPrimaryKey(column2);
-        } catch (RealmError ignored) {
+        } catch (IllegalStateException ignored) {
             // Column has no search index.
         }
 

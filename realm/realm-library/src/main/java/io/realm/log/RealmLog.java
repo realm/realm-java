@@ -298,4 +298,11 @@ public final class RealmLog {
     private static native void nativeSetLogLevel(int level);
 
     private static native int nativeGetLogLevel();
+
+    // Methods below are used for testing core logger bridge only.
+    static native long nativeCreateCoreLoggerBridge(String tag);
+
+    static native void nativeCloseCoreLoggerBridge(long nativePtr);
+
+    static native void nativeLogToCoreLoggerBridge(long nativePtr, int level, String message);
 }
