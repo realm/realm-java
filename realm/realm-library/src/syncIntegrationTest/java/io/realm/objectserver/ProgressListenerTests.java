@@ -201,7 +201,6 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
             @Override
             public void onChange(Progress progress) {
-                RealmLog.error("Upload" + progress.toString());
                 if (progress.isTransferComplete()) {
                     assertTransferComplete(progress, true);
                     allChangeUploaded.countDown();

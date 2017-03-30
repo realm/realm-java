@@ -219,7 +219,6 @@ public class SyncSession {
             // Listener was properly registered.
             progressListenerToOsTokenMap.put(listener, listenerToken);
         }
-        RealmLog.error("Listeners: " + listenerIdToProgressListenerMap.size());
     }
 
     private void checkProgressListenerArguments(ProgressMode mode, ProgressListener listener) {
