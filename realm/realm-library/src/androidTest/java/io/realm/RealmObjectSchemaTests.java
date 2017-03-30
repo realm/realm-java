@@ -48,7 +48,7 @@ public class RealmObjectSchemaTests {
     private RealmObjectSchema DOG_SCHEMA;
     private DynamicRealm realm;
     private RealmObjectSchema schema;
-    private RealmSchema realmSchema;
+    private StandardRealmSchema realmSchema;
 
     @Before
     public void setUp() {

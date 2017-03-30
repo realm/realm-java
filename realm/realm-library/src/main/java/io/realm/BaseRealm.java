@@ -68,10 +68,10 @@ abstract class BaseRealm implements Closeable {
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
     final long threadId;
-    protected RealmConfiguration configuration;
+    protected final RealmConfiguration configuration;
     protected SharedRealm sharedRealm;
 
-    RealmSchema schema;
+    protected final StandardRealmSchema schema;
 
     protected BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();
@@ -85,7 +85,7 @@ abstract class BaseRealm implements Closeable {
                                 RealmCache.updateSchemaCache((Realm) BaseRealm.this);
                             }
                         }, true);
-        this.schema = new RealmSchema(this);
+        this.schema = new StandardRealmSchema(this);
     }
 
     /**
@@ -464,7 +464,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @return The {@link RealmSchema} for this Realm.
      */
-    public RealmSchema getSchema() {
+    public StandardRealmSchema getSchema() {
         return schema;
     }
 
@@ -642,6 +642,10 @@ abstract class BaseRealm implements Closeable {
         super.finalize();
     }
 
+    public SharedRealm getSharedRealm() {
+        return sharedRealm;
+    }
+
     // Internal delegate for migrations.
     protected interface MigrationCallback {
         void migrationComplete();
@@ -663,7 +667,7 @@ abstract class BaseRealm implements Closeable {
             this.excludeFields = excludeFields;
         }
 
-        public BaseRealm getRealm() {
+        BaseRealm getRealm() {
             return realm;
         }
 

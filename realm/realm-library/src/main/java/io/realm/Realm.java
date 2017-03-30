@@ -293,7 +293,7 @@ public class Realm extends BaseRealm {
 
         if (columnIndices != null) {
             // Copies global cache as a Realm local indices cache.
-            realm.schema.columnIndices = columnIndices.clone();
+            realm.schema.setColumnIndices(columnIndices);
         } else {
             final boolean syncingConfig = configuration.isSyncConfiguration();
 
@@ -355,8 +355,9 @@ public class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
-            realm.schema.columnIndices = new ColumnIndices(
-                    (unversioned) ? realm.configuration.getSchemaVersion() : currentVersion, columnInfoMap);
+            realm.schema.setColumnIndices(
+                    (unversioned) ? realm.configuration.getSchemaVersion() : currentVersion,
+                    columnInfoMap);
 
             if (unversioned) {
                 final Transaction transaction = realm.configuration.getInitialDataTransaction();
@@ -388,23 +389,24 @@ public class Realm extends BaseRealm {
             final RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
-            final ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<>();
-            final RealmSchema realmSchemaCache = new RealmSchema();
+            final OsRealmSchema.Creator schemaCreator = new OsRealmSchema.Creator();
             for (Class<? extends RealmModel> modelClass : modelClasses) {
-                RealmObjectSchema realmObjectSchema = mediator.createRealmObjectSchema(modelClass, realmSchemaCache);
-                realmObjectSchemas.add(realmObjectSchema);
+                mediator.createRealmObjectSchema(modelClass, schemaCreator);
             }
 
             // Assumption: When SyncConfiguration then additive schema update mode.
-            final RealmSchema schema = new RealmSchema(realmObjectSchemas);
+            final OsRealmSchema schema = new OsRealmSchema(schemaCreator);
             long newVersion = realm.configuration.getSchemaVersion();
-            if (realm.sharedRealm.requiresMigration(schema)) {
+            // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
+            // It absolutely breaks encapsulation and needs to be fixed!
+            long schemaNativePointer = schema.getNativePtr();
+            if (realm.sharedRealm.requiresMigration(schemaNativePointer)) {
                 if (currentVersion >= newVersion) {
                     throw new IllegalArgumentException(String.format("The schema was changed but the schema version " +
                             "was not updated. The configured schema version (%d) must be higher than the one in the Realm " +
                             "file (%d) in order to update the schema.", newVersion, currentVersion));
                 }
-                realm.sharedRealm.updateSchema(schema, newVersion);
+                realm.sharedRealm.updateSchema(schemaNativePointer, newVersion);
                 // The OS currently does not handle setting the schema version. We have to do it manually.
                 realm.setVersion(newVersion);
                 commitChanges = true;
@@ -415,7 +417,7 @@ public class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
-            realm.schema.columnIndices = new ColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
+            realm.getSchema().setColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
 
             if (unversioned) {
                 final Transaction transaction = realm.configuration.getInitialDataTransaction();
@@ -601,7 +603,7 @@ public class Realm extends BaseRealm {
      * @see #createOrUpdateAllFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, InputStream in) throws IOException {
+    public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, InputStream in) {
         if (clazz == null || in == null) {
             return;
         }
@@ -809,7 +811,7 @@ public class Realm extends BaseRealm {
      * @see #createObjectFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream in) throws IOException {
+    public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream in) {
         if (clazz == null || in == null) {
             return null;
         }
@@ -974,10 +976,10 @@ public class Realm extends BaseRealm {
      */
     public <E extends RealmModel> List<E> copyToRealm(Iterable<E> objects) {
         if (objects == null) {
-            return new ArrayList<E>();
+            return new ArrayList<>();
         }
-        Map<RealmModel, RealmObjectProxy> cache = new HashMap<RealmModel, RealmObjectProxy>();
-        ArrayList<E> realmObjects = new ArrayList<E>();
+        Map<RealmModel, RealmObjectProxy> cache = new HashMap<>();
+        ArrayList<E> realmObjects = new ArrayList<>();
         for (E object : objects) {
             checkNotNullObject(object);
             realmObjects.add(copyOrUpdate(object, false, cache));
@@ -1050,7 +1052,7 @@ public class Realm extends BaseRealm {
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
-        Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>();
+        Map<RealmModel, Long> cache = new HashMap<>();
         configuration.getSchemaMediator().insert(this, object, cache);
     }
 
@@ -1120,7 +1122,7 @@ public class Realm extends BaseRealm {
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
-        Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>();
+        Map<RealmModel, Long> cache = new HashMap<>();
         configuration.getSchemaMediator().insertOrUpdate(this, object, cache);
     }
 
@@ -1139,11 +1141,11 @@ public class Realm extends BaseRealm {
      */
     public <E extends RealmModel> List<E> copyToRealmOrUpdate(Iterable<E> objects) {
         if (objects == null) {
-            return new ArrayList<E>(0);
+            return new ArrayList<>(0);
         }
 
-        Map<RealmModel, RealmObjectProxy> cache = new HashMap<RealmModel, RealmObjectProxy>();
-        ArrayList<E> realmObjects = new ArrayList<E>();
+        Map<RealmModel, RealmObjectProxy> cache = new HashMap<>();
+        ArrayList<E> realmObjects = new ArrayList<>();
         for (E object : objects) {
             checkNotNullObject(object);
             realmObjects.add(copyOrUpdate(object, true, cache));
@@ -1197,11 +1199,11 @@ public class Realm extends BaseRealm {
     public <E extends RealmModel> List<E> copyFromRealm(Iterable<E> realmObjects, int maxDepth) {
         checkMaxDepth(maxDepth);
         if (realmObjects == null) {
-            return new ArrayList<E>(0);
+            return new ArrayList<>(0);
         }
 
-        ArrayList<E> unmanagedObjects = new ArrayList<E>();
-        Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> listCache = new HashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>();
+        ArrayList<E> unmanagedObjects = new ArrayList<>();
+        Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> listCache = new HashMap<>();
         for (E object : realmObjects) {
             checkValidObjectForDetach(object);
             unmanagedObjects.add(createDetachedCopy(object, maxDepth, listCache));
@@ -1653,7 +1655,7 @@ public class Realm extends BaseRealm {
      */
     ColumnIndices updateSchemaCache(ColumnIndices[] globalCacheArray) {
         final long currentSchemaVersion = sharedRealm.getSchemaVersion();
-        final long cacheSchemaVersion = schema.columnIndices.getSchemaVersion();
+        final long cacheSchemaVersion = schema.getSchemaVersion();
         if (currentSchemaVersion == cacheSchemaVersion) {
             return null;
         }
@@ -1666,7 +1668,7 @@ public class Realm extends BaseRealm {
             // Not found in global cache. create it.
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
             final Map<Class<? extends RealmModel>, ColumnInfo> map;
-            map = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
+            map = new HashMap<>(modelClasses.size());
             try {
                 for (Class<? extends RealmModel> clazz : modelClasses) {
                     final ColumnInfo columnInfo = mediator.validateTable(clazz, sharedRealm, true);
@@ -1678,7 +1680,7 @@ public class Realm extends BaseRealm {
 
             cacheForCurrentVersion = createdGlobalCache = new ColumnIndices(currentSchemaVersion, map);
         }
-        schema.columnIndices.copyFrom(cacheForCurrentVersion, mediator);
+        schema.setColumnIndices(cacheForCurrentVersion, mediator);
         return createdGlobalCache;
     }
 
@@ -1755,7 +1757,7 @@ public class Realm extends BaseRealm {
         class Callback {
             public void onSuccess() {}
 
-            public void onError(Exception e) {}
+            public void onError(Exception ignore) {}
         }
 
         /**

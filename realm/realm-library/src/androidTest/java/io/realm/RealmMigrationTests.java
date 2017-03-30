@@ -1300,7 +1300,7 @@ public class RealmMigrationTests {
             }
         }
     }
-    
+
     // TODO Add unit tests for default nullability
     // TODO Add unit tests for default Indexing for Primary keys
 }
