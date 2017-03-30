@@ -115,7 +115,6 @@ public class RealmProxyClassGenerator {
         emitPersistedFieldAccessors(writer);
         emitBacklinkFieldAccessors(writer);
         emitCreateRealmObjectSchemaMethod(writer);
-        emitInitTableMethod(writer);
         emitValidateTableMethod(writer);
         emitGetTableNameMethod(writer);
         emitGetFieldNamesMethod(writer);
@@ -611,7 +610,7 @@ public class RealmProxyClassGenerator {
                 String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
                 String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
                 String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
-                writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", %s, %s, %s, %s))",
+                writer.emitStatement("realmObjectSchema.add(\"%s\", %s, %s, %s, %s)",
                         fieldName,
                         Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
                         primaryKeyFlag,
@@ -621,83 +620,20 @@ public class RealmProxyClassGenerator {
                 writer.beginControlFlow("if (!realmSchema.contains(\"" + fieldTypeSimpleName + "\"))")
                         .emitStatement("%s%s.createRealmObjectSchema(realmSchema)", fieldTypeSimpleName, Constants.PROXY_SUFFIX)
                         .endControlFlow()
-                        .emitStatement("realmObjectSchema.add(new Property(\"%s\", RealmFieldType.OBJECT, realmSchema.get(\"%s\")))",
+                        .emitStatement("realmObjectSchema.add(\"%s\", RealmFieldType.OBJECT, realmSchema.get(\"%s\"))",
                                 fieldName, fieldTypeSimpleName);
             } else if (Utils.isRealmList(field)) {
                 String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
                 writer.beginControlFlow("if (!realmSchema.contains(\"" + genericTypeSimpleName + "\"))")
                         .emitStatement("%s%s.createRealmObjectSchema(realmSchema)", genericTypeSimpleName, Constants.PROXY_SUFFIX)
                         .endControlFlow()
-                        .emitStatement("realmObjectSchema.add(new Property(\"%s\", RealmFieldType.LIST, realmSchema.get(\"%s\")))",
+                        .emitStatement("realmObjectSchema.add(\"%s\", RealmFieldType.LIST, realmSchema.get(\"%s\"))",
                                 fieldName, genericTypeSimpleName);
             }
         }
         writer.emitStatement("return realmObjectSchema");
         writer.endControlFlow();
         writer.emitStatement("return realmSchema.get(\"" + this.simpleClassName + "\")");
-        writer.endMethod()
-                .emitEmptyLine();
-    }
-
-    private void emitInitTableMethod(JavaWriter writer) throws IOException {
-        writer.beginMethod(
-                "Table", // Return type
-                "initTable", // Method name
-                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "SharedRealm", "sharedRealm"); // Argument type & argument name
-
-        writer.beginControlFlow("if (!sharedRealm.hasTable(\"" + Constants.TABLE_PREFIX + this.simpleClassName + "\"))");
-        writer.emitStatement("Table table = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.simpleClassName);
-
-        // For each field generate corresponding table index constant
-        for (VariableElement field : metadata.getFields()) {
-            String fieldName = field.getSimpleName().toString();
-            String fieldTypeCanonicalName = field.asType().toString();
-            String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
-
-            if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
-                String nullableFlag;
-                if (metadata.isNullable(field)) {
-                    nullableFlag = "Table.NULLABLE";
-                } else {
-                    nullableFlag = "Table.NOT_NULLABLE";
-                }
-                writer.emitStatement("table.addColumn(%s, \"%s\", %s)",
-                        Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
-                        fieldName, nullableFlag);
-            } else if (Utils.isRealmModel(field)) {
-                writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName)
-                        .emitStatement("%s%s.initTable(sharedRealm)", fieldTypeSimpleName, Constants.PROXY_SUFFIX)
-                        .endControlFlow()
-                        .emitStatement("table.addColumnLink(RealmFieldType.OBJECT, \"%s\", sharedRealm.getTable(\"%s%s\"))",
-                                fieldName, Constants.TABLE_PREFIX, fieldTypeSimpleName);
-            } else if (Utils.isRealmList(field)) {
-                String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-                writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, genericTypeSimpleName)
-                        .emitStatement("%s.initTable(sharedRealm)", Utils.getProxyClassName(genericTypeSimpleName))
-                        .endControlFlow()
-                        .emitStatement("table.addColumnLink(RealmFieldType.LIST, \"%s\", sharedRealm.getTable(\"%s%s\"))",
-                                fieldName, Constants.TABLE_PREFIX, genericTypeSimpleName);
-            }
-        }
-
-        for (VariableElement field : metadata.getIndexedFields()) {
-            String fieldName = field.getSimpleName().toString();
-            writer.emitStatement("table.addSearchIndex(table.getColumnIndex(\"%s\"))", fieldName);
-        }
-
-        if (metadata.hasPrimaryKey()) {
-            String fieldName = metadata.getPrimaryKey().getSimpleName().toString();
-            writer.emitStatement("table.setPrimaryKey(\"%s\")", fieldName);
-        } else {
-            writer.emitStatement("table.setPrimaryKey(\"\")");
-        }
-
-        writer.emitStatement("return table");
-
-        writer.endControlFlow();
-
-        writer.emitStatement("return sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.simpleClassName);
         writer.endMethod()
                 .emitEmptyLine();
     }

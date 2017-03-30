@@ -642,7 +642,7 @@ abstract class BaseRealm implements Closeable {
         super.finalize();
     }
 
-    public SharedRealm getSharedRealm() {
+    SharedRealm getSharedRealm() {
         return sharedRealm;
     }
 

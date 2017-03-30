@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ import io.realm.internal.Util;
  *
  * @see io.realm.RealmMigration
  */
-public class StandardRealmSchema extends RealmSchema {
+class StandardRealmSchema extends RealmSchema {
 
-    private static final String TABLE_PREFIX = Table.TABLE_PREFIX;
+    static final String TABLE_PREFIX = Table.TABLE_PREFIX;
     private static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
 
     // Caches Dynamic Class objects given as Strings to Realm Tables
@@ -43,9 +43,9 @@ public class StandardRealmSchema extends RealmSchema {
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<Class<? extends RealmModel>, Table> classToTable = new HashMap<>();
     // Caches Class objects (both model classes and proxy classes) to their Schema object
-    private final Map<Class<? extends RealmModel>, RealmObjectSchema> classToSchema = new HashMap<>();
+    private final Map<Class<? extends RealmModel>, StandardRealmObjectSchema> classToSchema = new HashMap<>();
     // Caches Class Strings to their Schema object
-    private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
+    private final Map<String, StandardRealmObjectSchema> dynamicClassToSchema = new HashMap<>();
 
     private final BaseRealm realm;
 
@@ -73,12 +73,12 @@ public class StandardRealmSchema extends RealmSchema {
         if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }
 
         Table table = realm.getSharedRealm().getTable(internalClassName);
-        RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-        return new RealmObjectSchema(realm, table, columnIndices);
+        StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
+        return new StandardRealmObjectSchema(realm, table, columnIndices);
     }
 
     /**
-     * Returns the {@link RealmObjectSchema} for all RealmObject classes that can be saved in this Realm.
+     * Returns the {@link StandardRealmObjectSchema} for all RealmObject classes that can be saved in this Realm.
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
@@ -92,8 +92,8 @@ public class StandardRealmSchema extends RealmSchema {
                 continue;
             }
             Table table = realm.getSharedRealm().getTable(tableName);
-            RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-            schemas.add(new RealmObjectSchema(realm, table, columnIndices));
+            StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
+            schemas.add(new StandardRealmObjectSchema(realm, table, columnIndices));
         }
         return schemas;
     }
@@ -117,8 +117,8 @@ public class StandardRealmSchema extends RealmSchema {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
         Table table = realm.getSharedRealm().getTable(internalTableName);
-        RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-        return new RealmObjectSchema(realm, table, columnIndices);
+        StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
+        return new StandardRealmObjectSchema(realm, table, columnIndices);
     }
 
     /**
@@ -138,6 +138,7 @@ public class StandardRealmSchema extends RealmSchema {
      *
      * @param className name of the class to remove.
      */
+    @Override
     public void remove(String className) {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
         checkEmpty(className, EMPTY_STRING_MSG);
@@ -157,6 +158,7 @@ public class StandardRealmSchema extends RealmSchema {
      * @param newClassName new class name.
      * @return a schema object for renamed class.
      */
+    @Override
     public RealmObjectSchema rename(String oldClassName, String newClassName) {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
         checkEmpty(oldClassName, "Class names cannot be empty or null");
@@ -184,8 +186,8 @@ public class StandardRealmSchema extends RealmSchema {
             table.setPrimaryKey(pkField);
         }
 
-        RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-        return new RealmObjectSchema(realm, table, columnIndices);
+        StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
+        return new StandardRealmObjectSchema(realm, table, columnIndices);
     }
 
     private void checkEmpty(String str, String error) {
@@ -236,8 +238,8 @@ public class StandardRealmSchema extends RealmSchema {
         return table;
     }
 
-    RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
-        RealmObjectSchema classSchema = classToSchema.get(clazz);
+    StandardRealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
+        StandardRealmObjectSchema classSchema = classToSchema.get(clazz);
         if (classSchema != null) { return classSchema; }
 
         Class<? extends RealmModel> originalClass = Util.getOriginalModelClass(clazz);
@@ -247,7 +249,7 @@ public class StandardRealmSchema extends RealmSchema {
         }
         if (classSchema == null) {
             Table table = getTable(clazz);
-            classSchema = new RealmObjectSchema(realm, table, getColumnInfo(originalClass).getIndicesMap());
+            classSchema = new StandardRealmObjectSchema(realm, table, getColumnInfo(originalClass).getIndicesMap());
             classToSchema.put(originalClass, classSchema);
         }
         if (isProxyClass(originalClass, clazz)) {
@@ -257,16 +259,16 @@ public class StandardRealmSchema extends RealmSchema {
         return classSchema;
     }
 
-    RealmObjectSchema getSchemaForClass(String className) {
+    StandardRealmObjectSchema getSchemaForClass(String className) {
         className = Table.TABLE_PREFIX + className;
-        RealmObjectSchema dynamicSchema = dynamicClassToSchema.get(className);
+        StandardRealmObjectSchema dynamicSchema = dynamicClassToSchema.get(className);
         if (dynamicSchema == null) {
             if (!realm.getSharedRealm().hasTable(className)) {
                 throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
             Table table = realm.getSharedRealm().getTable(className);
-            RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-            dynamicSchema = new RealmObjectSchema(realm, table, columnIndices);
+            StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
+            dynamicSchema = new StandardRealmObjectSchema(realm, table, columnIndices);
             dynamicClassToSchema.put(className, dynamicSchema);
         }
         return dynamicSchema;

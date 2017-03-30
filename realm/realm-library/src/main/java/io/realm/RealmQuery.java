@@ -54,7 +54,7 @@ public class RealmQuery<E extends RealmModel> {
     private final Table table;
     private final BaseRealm realm;
     private final TableQuery query;
-    private final RealmObjectSchema schema;
+    private final StandardRealmObjectSchema schema;
     private Class<E> clazz;
     private String className;
     private LinkView linkView;

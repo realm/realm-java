@@ -644,7 +644,7 @@ public class RealmObjectSchemaTests {
         DynamicRealmObject dog2 = realm.createObject(className);
         dog2.setInt("age", 2);
 
-        DOG_SCHEMA.transform(new RealmObjectSchema.Function() {
+        DOG_SCHEMA.transform(new StandardRealmObjectSchema.Function() {
             @Override
             public void apply(DynamicRealmObject obj) {
                 obj.setInt("age", obj.getInt("age") + 1);
@@ -659,7 +659,7 @@ public class RealmObjectSchemaTests {
         DynamicRealmObject dog1 = realm.createObject(className);
         dog1.setInt("age", 1);
 
-        DOG_SCHEMA.transform(new RealmObjectSchema.Function() {
+        DOG_SCHEMA.transform(new StandardRealmObjectSchema.Function() {
             @Override
             public void apply(DynamicRealmObject dog) {
                 DynamicRealmObject owner = realm.createObject("Owner");
@@ -738,7 +738,7 @@ public class RealmObjectSchemaTests {
         RealmConfiguration emptyConfig = configFactory.createConfiguration("empty");
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(emptyConfig);
         dynamicRealm.beginTransaction();
-        RealmObjectSchema objectSchema = dynamicRealm.getSchema().create(className);
+        StandardRealmObjectSchema objectSchema = (StandardRealmObjectSchema) dynamicRealm.getSchema().create(className);
 
         assertNull(objectSchema.getFieldIndex(fieldName));
 

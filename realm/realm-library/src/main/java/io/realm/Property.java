@@ -33,8 +33,7 @@ class Property {
     }
 
     public Property(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
-        String linkedToName = linkedTo.getClassName();
-        this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), linkedToName);
+        this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), linkedTo.getClassName());
     }
 
     protected Property(long nativePtr) {

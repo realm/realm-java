@@ -406,49 +406,24 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
         if (!realmSchema.contains("AllTypes")) {
             RealmObjectSchema realmObjectSchema = realmSchema.create("AllTypes");
-            realmObjectSchema.add(new Property("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, !Property.REQUIRED));
-            realmObjectSchema.add(new Property("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, !Property.REQUIRED);
+            realmObjectSchema.add("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
             if (!realmSchema.contains("AllTypes")) {
                 AllTypesRealmProxy.createRealmObjectSchema(realmSchema);
             }
-            realmObjectSchema.add(new Property("columnObject", RealmFieldType.OBJECT, realmSchema.get("AllTypes")));
+            realmObjectSchema.add("columnObject", RealmFieldType.OBJECT, realmSchema.get("AllTypes"));
             if (!realmSchema.contains("AllTypes")) {
                 AllTypesRealmProxy.createRealmObjectSchema(realmSchema);
             }
-            realmObjectSchema.add(new Property("columnRealmList", RealmFieldType.LIST, realmSchema.get("AllTypes")));
+            realmObjectSchema.add("columnRealmList", RealmFieldType.LIST, realmSchema.get("AllTypes"));
             return realmObjectSchema;
         }
         return realmSchema.get("AllTypes");
-    }
-
-    public static Table initTable(SharedRealm sharedRealm) {
-        if (!sharedRealm.hasTable("class_AllTypes")) {
-            Table table = sharedRealm.getTable("class_AllTypes");
-            table.addColumn(RealmFieldType.STRING, "columnString", Table.NULLABLE);
-            table.addColumn(RealmFieldType.INTEGER, "columnLong", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.FLOAT, "columnFloat", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.DOUBLE, "columnDouble", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.BOOLEAN, "columnBoolean", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.DATE, "columnDate", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.BINARY, "columnBinary", Table.NOT_NULLABLE);
-            if (!sharedRealm.hasTable("class_AllTypes")) {
-                AllTypesRealmProxy.initTable(sharedRealm);
-            }
-            table.addColumnLink(RealmFieldType.OBJECT, "columnObject", sharedRealm.getTable("class_AllTypes"));
-            if (!sharedRealm.hasTable("class_AllTypes")) {
-                AllTypesRealmProxy.initTable(sharedRealm);
-            }
-            table.addColumnLink(RealmFieldType.LIST, "columnRealmList", sharedRealm.getTable("class_AllTypes"));
-            table.addSearchIndex(table.getColumnIndex("columnString"));
-            table.setPrimaryKey("columnString");
-            return table;
-        }
-        return sharedRealm.getTable("class_AllTypes");
     }
 
     public static AllTypesColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
