@@ -32,10 +32,25 @@ void* __builtin_memmove(void *dest, const void *src, size_t n);
 typedef void* (*MemMoveFunc)(void *dest, const void *src, size_t n);
 static MemMoveFunc s_wrap_memmove_ptr = &__real_memmove;
 
-static void* hacked_memmove(void *dest, const void *src, size_t n)
+static void* hacked_memmove(void *dest, const void *src, size_t count)
 {
-    //return (int8_t*)__real_memmove(dest, src, n) - n;
-    return __builtin_memmove(dest, src, n);
+    uint8_t* tmp;
+    const uint8_t* s;
+
+    if (dest <= src) {
+		tmp = (uint8_t*)dest;
+		s = (uint8_t*)src;
+		while (count--)
+			*tmp++ = *s++;
+	} else {
+		tmp = (uint8_t*)dest;
+		tmp += count;
+		s = (uint8_t*)src;
+		s += count;
+		while (count--)
+			*--tmp = *--s;
+	}
+	return dest;
 }
 
 void* __wrap_memmove(void *dest, const void *src, size_t n)
