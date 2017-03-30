@@ -46,7 +46,7 @@ void* __wrap_memmove(void *dest, const void *src, size_t n)
 static void check_memmove()
 {
     char *array = strdup("Foobar");
-    void *ptr = memmove(array + 1, array, sizeof("Foobar") - 2);
+    void *ptr = __real_memmove(array + 1, array, sizeof("Foobar") - 2);
     if (ptr != array + 1) {
         Log::e("memmove is broken on this device. switch to the builtin function.");
         s_wrap_memmove_ptr = &hacked_memmove;
