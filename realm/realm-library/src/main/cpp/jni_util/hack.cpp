@@ -15,10 +15,13 @@
  */
 
 #include "hack.hpp"
+#include "log.hpp"
 
 #include <string.h>
 
 #include <realm/util/assert.hpp>
+
+using namespace realm::jni_util;
 
 extern "C" {
 void* __wrap_memmove(void *dest, const void *src, size_t n);
@@ -28,7 +31,7 @@ void* __real_memmove(void *dest, const void *src, size_t n);
 typedef void* (*MemMoveFunc)(void *dest, const void *src, size_t n);
 static MemMoveFunc s_wrap_memmove_ptr = &__real_memmove;
 
-static inline void* hacked_memmove(void *dest, const void *src, size_t n)
+static void* hacked_memmove(void *dest, const void *src, size_t n)
 {
     return (int8_t*)__real_memmove(dest, src, n) - n;
 }
@@ -40,17 +43,23 @@ void* __wrap_memmove(void *dest, const void *src, size_t n)
 
 static void check_memmove()
 {
-    int8_t array[] = {42,0};
-    void* ptr = memmove(array + 1, array, 1);
-    if (array[1] != 42) {
+    int8_t src[] = {42,0};
+    int8_t* dest = src + 1;
+    void* ptr = memmove(dest, src, 1);
+    if (src[1] != 42) {
+        Log::e("memmove is broken on this device. The moved content is not correct.");
         REALM_ASSERT_RELEASE(false);
     }
-    if (ptr == array) {
+    if (ptr == dest) {
         // Do nothing, everything is correct.
     }
-    else if (ptr == array + 1) {
+    else if (ptr == dest + 1) {
+        Log::e("memmove is broken on this device. Switch to workaround version.");
         s_wrap_memmove_ptr = &hacked_memmove;
-    } else {
+    }
+    else {
+        Log::e("memmove is broken on this device. expected return ptr: %1, but get %2",
+               reinterpret_cast<int64_t>(dest), reinterpret_cast<int64_t>(ptr));
         REALM_ASSERT_RELEASE(false);
     }
 }
