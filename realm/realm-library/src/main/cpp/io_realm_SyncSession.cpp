@@ -86,7 +86,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
             // exception to become visible. For some (unknown) reason Logcat will not see the C++
             // exception, only the Java one.
             if (local_env->ExceptionCheck()) {
-                local_env->ExceptionDescribe(local_env);
+                local_env->ExceptionDescribe();
                 throw std::runtime_error("An unexpected Error was thrown from Java. See LogCat");
             }
 
