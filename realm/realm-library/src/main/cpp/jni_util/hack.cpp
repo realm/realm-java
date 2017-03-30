@@ -26,6 +26,7 @@ using namespace realm::jni_util;
 extern "C" {
 void* __wrap_memmove(void *dest, const void *src, size_t n);
 void* __real_memmove(void *dest, const void *src, size_t n);
+void* __builtin_memmove(void *dest, const void *src, size_t n);
 }
 
 typedef void* (*MemMoveFunc)(void *dest, const void *src, size_t n);
@@ -33,7 +34,8 @@ static MemMoveFunc s_wrap_memmove_ptr = &__real_memmove;
 
 static void* hacked_memmove(void *dest, const void *src, size_t n)
 {
-    return (int8_t*)__real_memmove(dest, src, n) - n;
+    //return (int8_t*)__real_memmove(dest, src, n) - n;
+    return __builtin_memmove(dest, src, n);
 }
 
 void* __wrap_memmove(void *dest, const void *src, size_t n)
@@ -43,24 +45,14 @@ void* __wrap_memmove(void *dest, const void *src, size_t n)
 
 static void check_memmove()
 {
-    int8_t src[] = {42,0};
-    int8_t* dest = src + 1;
-    void* ptr = memmove(dest, src, 1);
-    if (src[1] != 42) {
-        Log::e("memmove is broken on this device. The moved content is not correct.");
-        REALM_ASSERT_RELEASE(false);
-    }
-    if (ptr == dest) {
-        // Do nothing, everything is correct.
-    }
-    else if (ptr == dest + 1) {
-        Log::e("memmove is broken on this device. Switch to workaround version.");
+    char *array = strdup("Foobar");
+    void *ptr = memmove(array + 1, array, sizeof("Foobar") - 2);
+    if (ptr != array + 1) {
+        Log::e("memmove is broken on this device. switch to the builtin function.");
         s_wrap_memmove_ptr = &hacked_memmove;
     }
     else {
-        Log::e("memmove is broken on this device. expected return ptr: %1, but get %2",
-               reinterpret_cast<int64_t>(dest), reinterpret_cast<int64_t>(ptr));
-        REALM_ASSERT_RELEASE(false);
+        Log::e("memmove is not broken on this device - lucky you.");
     }
 }
 
