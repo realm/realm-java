@@ -16,9 +16,9 @@
 
 package io.realm;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -90,7 +90,7 @@ public class SyncManager {
         }
     };
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
-    private static Map<String, SyncSession> sessions = new HashMap<String, SyncSession>();
+    private static Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
     private static CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
 
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
@@ -244,6 +244,24 @@ public class SyncManager {
                 } catch (Exception exception) {
                     RealmLog.error(exception);
                 }
+            }
+        }
+    }
+
+    /**
+     * All progress listener events from native Sync are reported to this method.
+     * It costs 2 HashMap lookups for each listener triggered (one to find the session, one to
+     * find the progress listener), but it means we don't have to cache anything on the C++ side which
+     * can leak since we don't have control over the session lifecycle.
+     */
+    @SuppressWarnings("unused")
+    private static synchronized void notifyProgressListener(String localRealmPath, long listenerId, long transferedBytes, long transferableBytes) {
+        SyncSession session = sessions.get(localRealmPath);
+        if (session != null) {
+            try {
+                session.notifyProgressListener(listenerId, transferedBytes, transferableBytes);
+            } catch (Exception exception) {
+                RealmLog.error(exception);
             }
         }
     }

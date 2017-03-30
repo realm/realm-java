@@ -37,7 +37,6 @@ import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
-import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
@@ -628,10 +627,11 @@ public class RealmAsyncQueryTests {
         }
     }
 
-    // Similar UC as #testForceLoadAsync using 'findFirst'.
+    // load should trigger the listener with empty change set.
     @Test
     @RunTestInLooperThread
     public void findFirstAsync_forceLoad() throws Throwable {
+        final AtomicBoolean listenerCalled = new AtomicBoolean(false);
         Realm Realm = looperThread.realm;
         populateTestRealm(Realm, 10);
         final AllTypes realmResults = Realm.where(AllTypes.class)
@@ -640,10 +640,20 @@ public class RealmAsyncQueryTests {
 
         assertFalse(realmResults.isLoaded());
 
+        realmResults.addChangeListener(new RealmObjectChangeListener<RealmModel>() {
+            @Override
+            public void onChange(RealmModel object, ObjectChangeSet changeSet) {
+                assertNull(changeSet);
+                assertFalse(listenerCalled.get());
+                listenerCalled.set(true);
+            }
+        });
+
         assertTrue(realmResults.load());
         assertTrue(realmResults.isLoaded());
         assertEquals("test data 4", realmResults.getColumnString());
 
+        assertTrue(listenerCalled.get());
         looperThread.testComplete();
     }
 
@@ -871,15 +881,76 @@ public class RealmAsyncQueryTests {
         final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
-            try {
-                realm.where(AnnotationIndexTypes.class).distinctAsync("notIndex" + fieldName);
-                fail("notIndex" + fieldName);
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
+        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class)
+                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_BOOL);
+        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class)
+                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_LONG);
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class)
+                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_DATE);
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class)
+                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
 
-        looperThread.testComplete();
+        assertFalse(distinctBool.isLoaded());
+        assertTrue(distinctBool.isValid());
+        assertTrue(distinctBool.isEmpty());
+
+        assertFalse(distinctLong.isLoaded());
+        assertTrue(distinctLong.isValid());
+        assertTrue(distinctLong.isEmpty());
+
+        assertFalse(distinctDate.isLoaded());
+        assertTrue(distinctDate.isValid());
+        assertTrue(distinctDate.isEmpty());
+
+        assertFalse(distinctString.isLoaded());
+        assertTrue(distinctString.isValid());
+        assertTrue(distinctString.isEmpty());
+
+        final Runnable changeListenerDone = new Runnable() {
+            final AtomicInteger signalCallbackFinished = new AtomicInteger(4);
+            @Override
+            public void run() {
+                if (signalCallbackFinished.decrementAndGet() == 0) {
+                    looperThread.testComplete();
+                }
+            }
+        };
+
+        looperThread.keepStrongReference.add(distinctBool);
+        looperThread.keepStrongReference.add(distinctLong);
+        looperThread.keepStrongReference.add(distinctDate);
+        looperThread.keepStrongReference.add(distinctString);
+        distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(2, distinctBool.size());
+                changeListenerDone.run();
+            }
+        });
+
+        distinctLong.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(numberOfBlocks, distinctLong.size());
+                changeListenerDone.run();
+            }
+        });
+
+        distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(numberOfBlocks, distinctDate.size());
+                changeListenerDone.run();
+            }
+        });
+
+        distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(numberOfBlocks, distinctString.size());
+                changeListenerDone.run();
+            }
+        });
     }
 
     @Test

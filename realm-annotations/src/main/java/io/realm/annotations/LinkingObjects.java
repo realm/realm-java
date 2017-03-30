@@ -44,7 +44,7 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  * In the above example `Person` is related to `Dog` through the field `dog`.
- * This in turn means that an implict reverse relationship exists between the class `Dog`
+ * This in turn means that an implicit reverse relationship exists between the class `Dog`
  * and the class `Person`. This inverse relationship is made public and queryable by the `RealmResults`
  * field annotated with `@LinkingObject`. This makes it possible to query properties of the dogs owner
  * without having to manually maintain a "owner" field in the `Dog` class.
@@ -57,6 +57,8 @@ import java.lang.annotation.Target;
  *     <li>They are ignored when doing a `copyToRealm().`</li>
  *     <li>They are ignored when doing a `copyFromRealm().`</li>
  *     <li>They are ignored when using the various `createObjectFromJson*` and `createAllFromJson*` methods.</li>
+ *     <li>Listeners on an object with a `@LinkingObject` field will not be triggered if the linking objects change,
+ *     e.g: if another object drops a reference to this object.</li>
  * </ul>
  * <p>
  * In addition, they have the following restrictions:
@@ -92,6 +94,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.FIELD)
+@Beta
 public @interface LinkingObjects {
     /**
      * The name of a field that contains a relation to an instance of the

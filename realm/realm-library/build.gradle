@@ -29,7 +29,9 @@ if (!ext.coreArchiveDir) {
 }
 ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/realm-sync-android-${project.coreVersion}.tar.gz")
 ext.coreDistributionDir = file("${projectDir}/distribution/realm-core/")
-ext.coreDir = file("${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
+ext.coreDir = file(project.coreSourcePath ?
+        "${project.coreSourcePath}/android-lib" :
+        "${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
 ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
 ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
 
@@ -46,11 +48,11 @@ android {
         externalNativeBuild {
             cmake {
                 arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}",
-                          // FIXME:
-                          // This is copied from https://dl.google.com/android/repository/cmake-3.4.2909474-linux-x86_64.zip
-                          // because of the android.toolchain.cmake shipped with Android SDK CMake 3.6 doesn't work with our
-                          // JNI build currently (lack of lto linking support).
-                          // This file should be removed and use the one from Android SDK cmake package when it supports lto.
+                        // FIXME:
+                        // This is copied from https://dl.google.com/android/repository/cmake-3.4.2909474-linux-x86_64.zip
+                        // because of the android.toolchain.cmake shipped with Android SDK CMake 3.6 doesn't work with our
+                        // JNI build currently (lack of lto linking support).
+                        // This file should be removed and use the one from Android SDK cmake package when it supports lto.
                         "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
@@ -110,6 +112,15 @@ android {
                 }
             }
             consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-objectServer.pro'
+        }
+    }
+
+    variantFilter { variant ->
+        def names = variant.flavors*.name
+
+        // Ignore the objectServer flavour when building from core source.
+        if (coreSourcePath && names.contains("objectServer")) {
+            variant.ignore = true
         }
     }
 }
@@ -183,7 +194,7 @@ task javadoc(type: Javadoc) {
         links "http://reactivex.io/RxJava/javadoc/"
         linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
 
-        tags = [ betaTag ]
+        tags = [betaTag]
     }
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'
@@ -266,7 +277,7 @@ check.dependsOn tasks.checkstyle
 // Configuration options can be found here:
 // http://developer.android.com/reference/android/support/test/runner/AndroidJUnitRunner.html
 task connectedBenchmarks(type: GradleBuild) {
-    description =  'Run all benchmarks on connected devices'
+    description = 'Run all benchmarks on connected devices'
     group = 'Verification'
     buildFile = file("${projectDir}/build.gradle")
     startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.package', 'io.realm.benchmarks')
@@ -274,7 +285,7 @@ task connectedBenchmarks(type: GradleBuild) {
 }
 
 task connectedUnitTests(type: GradleBuild) {
-    description =  'Run all unit tests on connected devices'
+    description = 'Run all unit tests on connected devices'
     group = 'Verification'
     buildFile = file("${projectDir}/build.gradle")
     startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.notPackage', 'io.realm.benchmarks')
@@ -372,7 +383,7 @@ publishing {
                 accessKey project.hasProperty('s3AccessKey') ? s3AccessKey : 'noAccessKey'
                 secretKey project.hasProperty('s3SecretKey') ? s3SecretKey : 'noSecretKey'
             }
-            if(project.version.endsWith('-SNAPSHOT')) {
+            if (project.version.endsWith('-SNAPSHOT')) {
                 url "s3://realm-ci-artifacts/maven/snapshots/"
             } else {
                 url "s3://realm-ci-artifacts/maven/releases/"
@@ -412,7 +423,7 @@ task downloadCore() {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
 
-    def calcSha256Hash = {File targetFile ->
+    def calcSha256Hash = { File targetFile ->
         MessageDigest sha = MessageDigest.getInstance("SHA-256")
         Formatter hexHash = new Formatter()
         sha.digest(targetFile.bytes).each { b -> hexHash.format('%02x', b) }
@@ -496,9 +507,14 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
         coreSourcePath ? compileCore : downloadCore
     }
 
+    // Build with the output from core source dir. No need to deploy anything.
+    onlyIf {
+        return !coreSourcePath
+    }
+
     outputs.upToDateWhen {
-        // Clean up the coreDir if it is newly downloaded or compiled from source
-        if (coreDownloaded || coreSourcePath) {
+        // Clean up the coreDir if it is newly downloaded
+        if (coreDownloaded) {
             return false
         }
 
@@ -589,52 +605,52 @@ android.productFlavors.all { flavor ->
         dependsOn "assemble${flavor.name.capitalize()}"
         group = 'Publishing'
         commandLine 'curl',
-            '-X',
-            'PUT',
-            '-T',
-            "${buildDir}/outputs/aar/realm-android-library-${flavor.name}-release.aar",
-            '-u',
-            "${userName}:${accessKey}",
-            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.aar?publish=0"
+                '-X',
+                'PUT',
+                '-T',
+                "${buildDir}/outputs/aar/realm-android-library-${flavor.name}-release.aar",
+                '-u',
+                "${userName}:${accessKey}",
+                "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.aar?publish=0"
     }
 
     task("bintraySources${flavor.name.capitalize()}", type: Exec) {
         dependsOn sourcesJar
         group = 'Publishing'
         commandLine 'curl',
-            '-X',
-            'PUT',
-            '-T',
-            "${buildDir}/libs/realm-android-library-${project.version}-sources.jar",
-            '-u',
-            "${userName}:${accessKey}",
-            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-sources.jar?publish=0"
+                '-X',
+                'PUT',
+                '-T',
+                "${buildDir}/libs/realm-android-library-${project.version}-sources.jar",
+                '-u',
+                "${userName}:${accessKey}",
+                "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-sources.jar?publish=0"
     }
 
     task("bintrayJavadoc${flavor.name.capitalize()}", type: Exec) {
         dependsOn javadocJar
         group = 'Publishing'
         commandLine 'curl',
-            '-X',
-            'PUT',
-            '-T',
-            "${buildDir}/libs/realm-android-library-${project.version}-javadoc.jar",
-            '-u',
-            "${userName}:${accessKey}",
-            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-javadoc.jar?publish=0"
+                '-X',
+                'PUT',
+                '-T',
+                "${buildDir}/libs/realm-android-library-${project.version}-javadoc.jar",
+                '-u',
+                "${userName}:${accessKey}",
+                "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-javadoc.jar?publish=0"
     }
 
     task("bintrayPom${flavor.name.capitalize()}", type: Exec) {
         dependsOn "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal"
         group = 'Publishing'
         commandLine 'curl',
-            '-X',
-            'PUT',
-            '-T',
-            "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
-            '-u',
-            "${userName}:${accessKey}",
-            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.pom?publish=0"
+                '-X',
+                'PUT',
+                '-T',
+                "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
+                '-u',
+                "${userName}:${accessKey}",
+                "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.pom?publish=0"
     }
 
     // OJO
@@ -738,11 +754,11 @@ def checkNdk(String ndkPath) {
     }
     if (detectedNdkVersion != project.ndkVersion) {
         throw new GradleException("Your NDK version: ${detectedNdkVersion}."
-                +" Realm JNI must be compiled with the version ${project.ndkVersion} of NDK.")
+                + " Realm JNI must be compiled with the version ${project.ndkVersion} of NDK.")
     }
 }
 
-def getValueFromPropertiesFile(File propFile, String key) {
+static def getValueFromPropertiesFile(File propFile, String key) {
     if (!propFile.isFile() || !propFile.canRead()) {
         return null
     }

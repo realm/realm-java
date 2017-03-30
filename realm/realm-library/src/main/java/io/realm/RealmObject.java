@@ -313,12 +313,28 @@ public abstract class RealmObject implements RealmModel {
     }
 
     /**
-     * Adds a change listener to this RealmObject.
+     * Adds a change listener to this RealmObject to get detailed information about changes. The listener will be
+     * triggered if any value field or referenced RealmObject field is changed, or the RealmList field itself is
+     * changed.
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
-     * @throws IllegalArgumentException if object is an unmanaged RealmObject.
      * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
+     * @throws IllegalStateException if you try to add a listener inside a transaction.
+     */
+    public final <E extends RealmModel> void addChangeListener(RealmObjectChangeListener<E> listener) {
+        //noinspection unchecked
+        RealmObject.addChangeListener((E) this, listener);
+    }
+
+    /**
+     * Adds a change listener to this RealmObject that will be triggered if any value field or referenced RealmObject
+     * field is changed, or the RealmList field itself is changed.
+     *
+     * @param listener the change listener to be notified.
+     * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
+     * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
+     * @throws IllegalStateException if you try to add a listener inside a transaction.
      */
     public final <E extends RealmModel> void addChangeListener(RealmChangeListener<E> listener) {
         //noinspection unchecked
@@ -326,15 +342,18 @@ public abstract class RealmObject implements RealmModel {
     }
 
     /**
-     * Adds a change listener to a RealmObject.
+     * Adds a change listener to a RealmObject to get detailed information about the changes. The listener will be
+     * triggered if any value field or referenced RealmObject field is changed, or the RealmList field itself is
+     * changed.
      *
      * @param object RealmObject to add listener to.
      * @param listener the change listener to be notified.
-     * @throws IllegalArgumentException if the {@code object} or the change listener is {@code null}.
-     * @throws IllegalArgumentException if object is an unmanaged RealmObject.
+     * @throws IllegalArgumentException if the {@code object} is {@code null} or an unmanaged object, or the change
+     * listener is {@code null}.
      * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
+     * @throws IllegalStateException if you try to add a listener inside a transaction.
      */
-    public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener<E> listener) {
+    public static <E extends RealmModel> void addChangeListener(E object, RealmObjectChangeListener<E> listener) {
         if (object == null) {
             throw new IllegalArgumentException("Object should not be null");
         }
@@ -351,6 +370,32 @@ public abstract class RealmObject implements RealmModel {
         } else {
             throw new IllegalArgumentException("Cannot add listener from this unmanaged RealmObject (created outside of Realm)");
         }
+    }
+
+    /**
+     * Adds a change listener to a RealmObject that will be triggered if any value field or referenced RealmObject field
+     * is changed, or the RealmList field itself is changed.
+     *
+     * @param object RealmObject to add listener to.
+     * @param listener the change listener to be notified.
+     * @throws IllegalArgumentException if the {@code object} is {@code null} or an unmanaged object, or the change
+     * listener is {@code null}.
+     * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
+     * @throws IllegalStateException if you try to add a listener inside a transaction.
+     */
+    public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener<E> listener) {
+        addChangeListener(object, new ProxyState.RealmChangeListenerWrapper<E>(listener));
+    }
+
+    /**
+     * Removes a previously registered listener.
+     *
+     * @param listener the instance to be removed.
+     * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
+     * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
+     */
+    public final void removeChangeListener(RealmObjectChangeListener listener) {
+        RealmObject.removeChangeListener(this, listener);
     }
 
     /**
@@ -373,7 +418,7 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalArgumentException if object is an unmanaged RealmObject.
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      */
-    public static <E extends RealmModel> void removeChangeListener(E object, RealmChangeListener listener) {
+    public static <E extends RealmModel> void removeChangeListener(E object, RealmObjectChangeListener listener) {
         if (object == null) {
             throw new IllegalArgumentException("Object should not be null");
         }
@@ -390,6 +435,19 @@ public abstract class RealmObject implements RealmModel {
         } else {
             throw new IllegalArgumentException("Cannot remove listener from this unmanaged RealmObject (created outside of Realm)");
         }
+    }
+
+    /**
+     * Removes a previously registered listener on the given RealmObject.
+     *
+     * @param object RealmObject to remove listener from.
+     * @param listener the instance to be removed.
+     * @throws IllegalArgumentException if the {@code object} or the change listener is {@code null}.
+     * @throws IllegalArgumentException if object is an unmanaged RealmObject.
+     * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
+     */
+    public static <E extends RealmModel> void removeChangeListener(E object, RealmChangeListener<E> listener) {
+        removeChangeListener(object, new ProxyState.RealmChangeListenerWrapper<E>(listener));
     }
 
     /**
