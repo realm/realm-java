@@ -27,7 +27,6 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.BaseIntegrationTest;
-import io.realm.ClientResetHandler;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -67,11 +66,6 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
                         fail("Realm 1 unexpected error: " + error);
-                    }
-
-                    @Override
-                    public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
-                        fail("Client Reset");
                     }
                 })
                 .build();

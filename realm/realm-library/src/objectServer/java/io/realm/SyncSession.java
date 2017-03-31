@@ -123,7 +123,7 @@ public class SyncSession {
         ErrorCode errCode = ErrorCode.fromInt(errorCode);
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
-            errorHandler.onClientResetRequired(this, new ClientResetHandler(errCode, "A Client Reset is required. " +
+            errorHandler.onError(this, new ClientResetRequiredError(errCode, "A Client Reset is required. " +
                     "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
                     errorMessage, getConfiguration()));
         } else {
@@ -251,13 +251,9 @@ public class SyncSession {
          * When an exception is thrown in the error handler, the occurrence will be logged and the exception
          * will be ignored.
          *
-         * @param session {@link SyncSession} this error happened on.
-         * @param error type of error.
-         */
-        void onError(SyncSession session, ObjectServerError error);
-
-        /**
-         * An error that indicates the Realm needs to be reset.
+         * <p>
+         * When the {@code error.getErrorCode()} returns {@link ErrorCode#CLIENT_RESET}, it indicates the Realm
+         * needs to be reset and the {@code error} can be cast to {@link ClientResetRequiredError}.
          * <p>
          * A synced Realm may need to be reset because the Realm Object Server encountered an error and had
          * to be restored from a backup. If the backup copy of the remote Realm is of an earlier version
@@ -275,7 +271,7 @@ public class SyncSession {
          * The client reset process can be initiated in one of two ways:
          * <ol>
          *     <li>
-         *         Run {@link ClientResetHandler#executeClientReset()} manually. All Realm instances must be
+         *         Run {@link ClientResetRequiredError#executeClientReset()} manually. All Realm instances must be
          *         closed before this method is called.
          *     </li>
          *     <li>
@@ -290,11 +286,11 @@ public class SyncSession {
          * synchronized to the Object Server. Those changes will only be present in the backed up file. It is therefore
          * recommended to close all open Realm instances as soon as possible.
          *
+         *
          * @param session {@link SyncSession} this error happened on.
-         * @param handler reference to the specific Client Reset error.
-         * @see <a href="https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup">Client Recovery From A Backup</a>
+         * @param error type of error.
          */
-        void onClientResetRequired(SyncSession session, ClientResetHandler handler);
+        void onError(SyncSession session, ObjectServerError error);
     }
 
     String accessToken(final AuthenticationServer authServer) {

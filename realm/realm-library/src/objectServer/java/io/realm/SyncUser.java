@@ -70,14 +70,13 @@ public class SyncUser {
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
                             public void onError(SyncSession session, ObjectServerError error) {
-                                RealmLog.error(String.format("Unexpected error with %s's management Realm: %s",
-                                        user.getIdentity(),
-                                        error.toString()));
-                            }
-
-                            @Override
-                            public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
-                                RealmLog.error("Client Reset required for users management Realm: " + user.toString());
+                                if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
+                                    RealmLog.error("Client Reset required for user's management Realm: " + user.toString());
+                                } else {
+                                    RealmLog.error(String.format("Unexpected error with %s's management Realm: %s",
+                                            user.getIdentity(),
+                                            error.toString()));
+                                }
                             }
                         })
                         .modules(new PermissionModule())

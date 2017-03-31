@@ -21,16 +21,16 @@ import java.io.File;
 /**
  * Class encapsulating information needed for handling a Client Reset event.
  *
- * @see io.realm.SyncSession.ErrorHandler#onClientResetRequired(SyncSession, ClientResetHandler) for more information
+ * @see io.realm.SyncSession.ErrorHandler#onError(SyncSession, ObjectServerError) for more information
  *      about when and why Client Reset occurs and how to deal with it.
  */
-public class ClientResetHandler extends ObjectServerError {
+public class ClientResetRequiredError extends ObjectServerError {
 
     private final RealmConfiguration configuration;
     private final File backupFile;
     private final File originalFile;
 
-    public ClientResetHandler(ErrorCode errorCode, String errorMessage, String backupFilePath, RealmConfiguration configuration) {
+    public ClientResetRequiredError(ErrorCode errorCode, String errorMessage, String backupFilePath, RealmConfiguration configuration) {
         super(errorCode, errorMessage);
         this.configuration = configuration;
         this.backupFile = new File(backupFilePath);
