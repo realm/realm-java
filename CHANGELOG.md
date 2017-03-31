@@ -4,7 +4,6 @@
 
 * Updated file format of Realm files. Existing Realm files will automatically be migrated to the new format when they are opened.
 * [ObjectServer] Due to file format changes, Realm Object Server 1.3.0 or later is required.
-* [ObjectServer] Added `onClientResetRequired(SyncSession, ClientResetHandler)` method to the `ErrorHandler` interface (#4080).
 
 ### Enhancements
 
