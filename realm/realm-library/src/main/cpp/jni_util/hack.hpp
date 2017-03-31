@@ -18,6 +18,8 @@
 #define REALM_JNI_UTIL_HACK_HPP
 
 extern "C" {
+
+// Workaround bugs on some devices.
 void hack_init();
 }
 

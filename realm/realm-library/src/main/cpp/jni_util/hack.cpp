@@ -54,18 +54,25 @@ void* __wrap_memcpy(void *dest, const void *src, size_t n)
     return (*s_wrap_memcpy_ptr)(dest, src, n);
 }
 
+
+// See https://github.com/realm/realm-java/issues/3651#issuecomment-290290228
+// There is a bug in memmove for some Samsung devices which will return "dest-n" instead of dest.
+// The bug was originally found by QT, see https://bugreports.qt.io/browse/QTBUG-34984 .
+// To work around it, we use linker's wrap feature to use a pure C implementation of memmove if the device has the
+// problem.
 static void check_memmove()
 {
-    char *array = strdup("Foobar");
-    void *ptr = __real_memmove(array + 1, array, sizeof("Foobar") - 2);
+    char* array = strdup("Foobar");
+    void* ptr = __real_memmove(array + 1, array, sizeof("Foobar") - 2);
     if (ptr != array + 1) {
-        Log::e("memmove is broken on this device. switch to the builtin function.");
+        Log::e("memmove is broken on this device. switch to the builtin implementation.");
         s_wrap_memmove_ptr = &hacked_memmove;
         s_wrap_memcpy_ptr =  &hacked_memmove;
     }
     else {
-        Log::e("memmove is not broken on this device - lucky you.");
+        Log::i("memmove is not broken on this device - lucky you.");
     }
+    free(array);
 }
 
 void hack_init()

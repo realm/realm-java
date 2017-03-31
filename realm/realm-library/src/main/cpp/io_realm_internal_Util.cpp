@@ -23,6 +23,7 @@
 #include "util.hpp"
 
 #include "jni_util/jni_utils.hpp"
+#include "jni_util/hack.hpp"
 
 using std::string;
 using namespace realm::jni_util;
@@ -37,6 +38,9 @@ const string TABLE_PREFIX("class_");
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
 {
+    // Workaround some known bugs of system calls on some special devices.
+    hack_init();
+
     JNIEnv* env;
     if (vm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
         return JNI_ERR;
