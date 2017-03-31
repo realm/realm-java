@@ -126,7 +126,7 @@ endif()
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
     -Wno-missing-field-initializers  -Wno-maybe-uninitialized -Wno-uninitialized")
-set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14 -fsigned-char")
+set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14 -fsigned-char -fno-builtin-memcpy -fno-builtin-memmove")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()
@@ -138,7 +138,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -Og -DNDEBUG")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set link flags
-set(REALM_LINKER_FLAGS "-Wl,--wrap,memmove")
+set(REALM_LINKER_FLAGS "-Wl,--wrap,memmove -Wl,--wrap,memcpy")
 if (build_SYNC)
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -lz")
 endif()

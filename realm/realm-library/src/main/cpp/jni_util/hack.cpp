@@ -16,6 +16,7 @@
 
 #include "hack.hpp"
 #include "log.hpp"
+#include "bcopy.hpp"
 
 #include <string.h>
 
@@ -27,35 +28,30 @@ extern "C" {
 void* __wrap_memmove(void *dest, const void *src, size_t n);
 void* __real_memmove(void *dest, const void *src, size_t n);
 void* __builtin_memmove(void *dest, const void *src, size_t n);
+
+void* __wrap_memcpy(void *dest, const void *src, size_t n);
+void* __real_memcpy(void *dest, const void *src, size_t n);
+void* __builtin_memcpy(void *dest, const void *src, size_t n);
 }
 
 typedef void* (*MemMoveFunc)(void *dest, const void *src, size_t n);
 static MemMoveFunc s_wrap_memmove_ptr = &__real_memmove;
+static MemMoveFunc s_wrap_memcpy_ptr = &__real_memcpy;
 
 static void* hacked_memmove(void *dest, const void *src, size_t count)
 {
-    uint8_t* tmp;
-    const uint8_t* s;
-
-    if (dest <= src) {
-		tmp = (uint8_t*)dest;
-		s = (uint8_t*)src;
-		while (count--)
-			*tmp++ = *s++;
-	} else {
-		tmp = (uint8_t*)dest;
-		tmp += count;
-		s = (uint8_t*)src;
-		s += count;
-		while (count--)
-			*--tmp = *--s;
-	}
-	return dest;
+    Log::e("hacked_memmove");
+    return my_bcopy(dest, src, count);
 }
 
 void* __wrap_memmove(void *dest, const void *src, size_t n)
 {
     return (*s_wrap_memmove_ptr)(dest, src, n);
+}
+
+void* __wrap_memcpy(void *dest, const void *src, size_t n)
+{
+    return (*s_wrap_memcpy_ptr)(dest, src, n);
 }
 
 static void check_memmove()
@@ -65,6 +61,7 @@ static void check_memmove()
     if (ptr != array + 1) {
         Log::e("memmove is broken on this device. switch to the builtin function.");
         s_wrap_memmove_ptr = &hacked_memmove;
+        s_wrap_memcpy_ptr =  &hacked_memmove;
     }
     else {
         Log::e("memmove is not broken on this device - lucky you.");
