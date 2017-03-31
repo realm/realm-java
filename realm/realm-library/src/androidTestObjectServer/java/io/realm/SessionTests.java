@@ -124,7 +124,7 @@ public class SessionTests {
                             return;
                         }
 
-                        final ClientResetObjectServerError handler = (ClientResetObjectServerError) error;
+                        final ClientResetRequiredError handler = (ClientResetRequiredError) error;
                         String filePathFromError = handler.getOriginalFile().getAbsolutePath();
                         String filePathFromConfig = session.getConfiguration().getPath();
                         assertEquals(filePathFromError, filePathFromConfig);
@@ -157,7 +157,7 @@ public class SessionTests {
                             return;
                         }
 
-                        final ClientResetObjectServerError handler = (ClientResetObjectServerError) error;
+                        final ClientResetRequiredError handler = (ClientResetRequiredError) error;
                         try {
                             handler.executeClientReset();
                             fail("All Realms should be closed before executing Client Reset can be allowed");
