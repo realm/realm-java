@@ -46,7 +46,7 @@ set(classes_LIST
 set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
-        io.realm.ClientResetHandler io.realm.RealmFileUserStore
+        io.realm.ClientResetObjectServerError io.realm.RealmFileUserStore
         io.realm.SyncManager io.realm.SyncSession
     )
 endif()

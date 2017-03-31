@@ -119,11 +119,12 @@ public class SessionTests {
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
-                        fail("Wrong error " + error.toString());
-                    }
+                        if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
+                            fail("Wrong error " + error.toString());
+                            return;
+                        }
 
-                    @Override
-                    public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
+                        final ClientResetObjectServerError handler = (ClientResetObjectServerError) error;
                         String filePathFromError = handler.getOriginalFile().getAbsolutePath();
                         String filePathFromConfig = session.getConfiguration().getPath();
                         assertEquals(filePathFromError, filePathFromConfig);
@@ -151,11 +152,12 @@ public class SessionTests {
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
-                        fail("Wrong error " + error.toString());
-                    }
+                        if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
+                            fail("Wrong error " + error.toString());
+                            return;
+                        }
 
-                    @Override
-                    public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
+                        final ClientResetObjectServerError handler = (ClientResetObjectServerError) error;
                         try {
                             handler.executeClientReset();
                             fail("All Realms should be closed before executing Client Reset can be allowed");

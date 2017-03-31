@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.realm.BaseIntegrationTest;
-import io.realm.ClientResetHandler;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
@@ -74,11 +73,6 @@ public class AuthTests extends BaseIntegrationTest {
                             @Override
                             public void onError(SyncSession session, ObjectServerError error) {
                                 fail("Session failed: " + error);
-                            }
-
-                            @Override
-                            public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
-                                fail("Client Reset");
                             }
                         })
                         .build();
