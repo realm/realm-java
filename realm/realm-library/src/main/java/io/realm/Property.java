@@ -28,11 +28,11 @@ class Property {
 
     private final long nativePtr;
 
-    public Property(String name, RealmFieldType type, boolean isPrimary, boolean isIndexed, boolean isRequired) {
+    Property(String name, RealmFieldType type, boolean isPrimary, boolean isIndexed, boolean isRequired) {
         this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), isPrimary, isIndexed, !isRequired);
     }
 
-    public Property(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
+    Property(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
         this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), linkedTo.getClassName());
     }
 

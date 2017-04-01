@@ -65,8 +65,8 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     }
 
     private final BaseRealm realm;
-    final Table table;
     private final Map<String, Long> columnIndices;
+    private final Table table;
 
     /**
      * Creates a schema object for a given Realm class.
@@ -79,6 +79,10 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         this.realm = realm;
         this.table = table;
         this.columnIndices = columnIndices;
+    }
+
+    public Table getTable() {
+        return table;
     }
 
     /**
@@ -584,7 +588,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         }
         String[] names = fieldDescription.split("\\.");
 
-        final RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
+        //final RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
 
         long[] columnIndices = new long[names.length];
         Table currentTable = table;
@@ -755,7 +759,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     public static final class DynamicColumnMap implements Map<String, Long> {
         private final Table table;
 
-        public DynamicColumnMap(Table table) {
+        DynamicColumnMap(Table table) {
             this.table = table;
         }
 

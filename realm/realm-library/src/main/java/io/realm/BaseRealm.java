@@ -62,7 +62,7 @@ abstract class BaseRealm implements Closeable {
     static final String LISTENER_NOT_ALLOWED_MESSAGE = "Listeners cannot be used on current thread.";
 
 
-    volatile static Context applicationContext;
+    static volatile Context applicationContext;
 
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();

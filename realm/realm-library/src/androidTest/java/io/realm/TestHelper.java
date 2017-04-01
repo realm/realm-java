@@ -69,6 +69,7 @@ import static junit.framework.Assert.fail;
 public class TestHelper {
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
+    private static final Random RANDOM = new Random();
 
     public static class ExpectedCountCallback implements RealmCache.Callback {
 
@@ -159,7 +160,7 @@ public class TestHelper {
     // Returns a random key used by encrypted Realms.
     public static byte[] getRandomKey() {
         byte[] key = new byte[64];
-        new Random().nextBytes(key);
+        RANDOM.nextBytes(key);
         return key;
     }
 

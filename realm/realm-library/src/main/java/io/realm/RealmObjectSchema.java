@@ -281,11 +281,11 @@ public abstract class RealmObjectSchema {
     }
 
     // Tuple containing data about each supported Java type.
-    static class FieldMetaData {
-        public final RealmFieldType realmType;
-        public final boolean defaultNullable;
+    protected static class FieldMetaData {
+        protected final RealmFieldType realmType;
+        protected final boolean defaultNullable;
 
-        public FieldMetaData(RealmFieldType realmType, boolean defaultNullable) {
+        protected FieldMetaData(RealmFieldType realmType, boolean defaultNullable) {
             this.realmType = realmType;
             this.defaultNullable = defaultNullable;
         }
