@@ -114,7 +114,7 @@ class OsRealmSchema extends RealmSchema {
     }
 
     /**
-     * Returns the {@link StandardRealmObjectSchema} for all RealmObject classes that can be saved in this Realm.
+     * Returns the {@link RealmObjectSchema} for all RealmObject classes that can be saved in this Realm.
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */

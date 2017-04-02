@@ -51,32 +51,32 @@ class OsRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
-    public RealmObjectSchema setClassName(String className) {
+    public OsRealmObjectSchema setClassName(String className) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes) {
+    public OsRealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public RealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema) {
+    public OsRealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public RealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema) {
+    public OsRealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public RealmObjectSchema removeField(String fieldName) {
+    public OsRealmObjectSchema removeField(String fieldName) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public RealmObjectSchema renameField(String currentFieldName, String newFieldName) {
+    public OsRealmObjectSchema renameField(String currentFieldName, String newFieldName) {
         throw new UnsupportedOperationException();
     }
 
@@ -86,7 +86,7 @@ class OsRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
-    public RealmObjectSchema addIndex(String fieldName) {
+    public OsRealmObjectSchema addIndex(String fieldName) {
         throw new UnsupportedOperationException();
     }
 
@@ -96,27 +96,27 @@ class OsRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
-    public RealmObjectSchema removeIndex(String fieldName) {
+    public OsRealmObjectSchema removeIndex(String fieldName) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public RealmObjectSchema addPrimaryKey(String fieldName) {
+    public OsRealmObjectSchema addPrimaryKey(String fieldName) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public RealmObjectSchema removePrimaryKey() {
+    public OsRealmObjectSchema removePrimaryKey() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public RealmObjectSchema setRequired(String fieldName, boolean required) {
+    public OsRealmObjectSchema setRequired(String fieldName, boolean required) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public RealmObjectSchema setNullable(String fieldName, boolean nullable) {
+    public OsRealmObjectSchema setNullable(String fieldName, boolean nullable) {
         throw new UnsupportedOperationException();
     }
 
@@ -151,7 +151,7 @@ class OsRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
-    public RealmObjectSchema transform(Function function) {
+    public OsRealmObjectSchema transform(Function function) {
         throw new UnsupportedOperationException();
     }
 
@@ -166,13 +166,13 @@ class OsRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
-    RealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
+    OsRealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         nativeAddProperty(nativePtr, new Property(name, type, primary, indexed, required).getNativePtr());
         return this;
     }
 
     @Override
-    RealmObjectSchema add(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
+    OsRealmObjectSchema add(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
         nativeAddProperty(nativePtr, new Property(name, type, linkedTo).getNativePtr());
         return this;
     }

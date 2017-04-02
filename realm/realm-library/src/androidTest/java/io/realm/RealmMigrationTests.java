@@ -619,7 +619,7 @@ public class RealmMigrationTests {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 realm.getSchema().get(MigrationFieldTypeToInt.CLASS_NAME)
                         .addField("temp_id", int.class)
-                        .transform(new StandardRealmObjectSchema.Function() {
+                        .transform(new RealmObjectSchema.Function() {
                             @Override
                             public void apply(DynamicRealmObject obj) {
                                 String fieldValue = obj.getString(MigrationPrimaryKey.FIELD_PRIMARY);
@@ -670,7 +670,7 @@ public class RealmMigrationTests {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 realm.getSchema().get(MigrationFieldTypeToInteger.CLASS_NAME)
                         .addField("temp_id", Integer.class)
-                        .transform(new StandardRealmObjectSchema.Function() {
+                        .transform(new RealmObjectSchema.Function() {
                             @Override
                             public void apply(DynamicRealmObject obj) {
                                 String fieldValue = obj.getString(MigrationPrimaryKey.FIELD_PRIMARY);

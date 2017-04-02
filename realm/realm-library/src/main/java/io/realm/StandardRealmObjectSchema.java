@@ -116,7 +116,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @see StandardRealmSchema#rename(String, String)
      */
     @Override
-    public RealmObjectSchema setClassName(String className) {
+    public StandardRealmObjectSchema setClassName(String className) {
         realm.checkNotInSync(); // renaming a table is not permitted
         checkEmpty(className);
         String internalTableName = Table.TABLE_PREFIX + className;
@@ -164,7 +164,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * already exists.
      */
     @Override
-    public RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes) {
+    public StandardRealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes) {
         FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(fieldType);
         if (metadata == null) {
             if (SUPPORTED_LINKED_FIELDS.containsKey(fieldType)) {
@@ -201,7 +201,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     @Override
-    public RealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema) {
+    public StandardRealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
         table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
@@ -217,7 +217,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @throws IllegalArgumentException if the field name is illegal or a field with that name already exists.
      */
     @Override
-    public RealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema) {
+    public StandardRealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
         table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
@@ -232,7 +232,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exist.
      */
     @Override
-    public RealmObjectSchema removeField(String fieldName) {
+    public StandardRealmObjectSchema removeField(String fieldName) {
         realm.checkNotInSync(); // destructive modification of a schema is not permitted
         checkLegalName(fieldName);
         if (!hasField(fieldName)) {
@@ -255,7 +255,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exist or if the new field name already exists.
      */
     @Override
-    public RealmObjectSchema renameField(String currentFieldName, String newFieldName) {
+    public StandardRealmObjectSchema renameField(String currentFieldName, String newFieldName) {
         realm.checkNotInSync(); // destructive modification of a schema is not permitted
         checkLegalName(currentFieldName);
         checkFieldExists(currentFieldName);
@@ -290,7 +290,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * index defined.
      */
     @Override
-    public RealmObjectSchema addIndex(String fieldName) {
+    public StandardRealmObjectSchema addIndex(String fieldName) {
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
         long columnIndex = getColumnIndex(fieldName);
@@ -325,7 +325,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exist or the field doesn't have an index.
      */
     @Override
-    public RealmObjectSchema removeIndex(String fieldName) {
+    public StandardRealmObjectSchema removeIndex(String fieldName) {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
@@ -348,7 +348,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * has a primary key defined.
      */
     @Override
-    public RealmObjectSchema addPrimaryKey(String fieldName) {
+    public StandardRealmObjectSchema addPrimaryKey(String fieldName) {
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
         if (table.hasPrimaryKey()) {
@@ -372,7 +372,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
      */
     @Override
-    public RealmObjectSchema removePrimaryKey() {
+    public StandardRealmObjectSchema removePrimaryKey() {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
         if (!table.hasPrimaryKey()) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
@@ -397,7 +397,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @see Required
      */
     @Override
-    public RealmObjectSchema setRequired(String fieldName, boolean required) {
+    public StandardRealmObjectSchema setRequired(String fieldName, boolean required) {
         long columnIndex = table.getColumnIndex(fieldName);
         boolean currentColumnRequired = isRequired(fieldName);
         RealmFieldType type = table.getColumnType(columnIndex);
@@ -433,7 +433,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @throws IllegalArgumentException if the field name doesn't exist, or cannot be set as nullable.
      */
     @Override
-    public RealmObjectSchema setNullable(String fieldName, boolean nullable) {
+    public StandardRealmObjectSchema setNullable(String fieldName, boolean nullable) {
         setRequired(fieldName, !nullable);
         return this;
     }
@@ -527,7 +527,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @return this schema.
      */
     @Override
-    public RealmObjectSchema transform(Function function) {
+    public StandardRealmObjectSchema transform(Function function) {
         if (function != null) {
             long size = table.size();
             for (long i = 0; i < size; i++) {
@@ -550,7 +550,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
-    RealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
+    StandardRealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         long columnIndex = table.addColumn(type, name, (required) ? Table.NOT_NULLABLE : Table.NULLABLE);
 
         if (indexed) { table.addSearchIndex(columnIndex); }
@@ -561,7 +561,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
-    RealmObjectSchema add(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
+    StandardRealmObjectSchema add(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
         table.addColumnLink(
                 type,
                 name,
