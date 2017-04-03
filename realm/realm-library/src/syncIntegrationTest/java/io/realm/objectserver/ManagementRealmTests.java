@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.BaseIntegrationTest;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
