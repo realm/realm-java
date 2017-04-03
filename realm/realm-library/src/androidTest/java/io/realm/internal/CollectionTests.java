@@ -196,12 +196,12 @@ public class CollectionTests {
 
     @Test
     public void clear() {
-        assertEquals(table.size(), 4);
+        assertEquals(4, table.size());
         Collection collection = new Collection(sharedRealm, table.where());
         sharedRealm.beginTransaction();
         collection.clear();
         sharedRealm.commitTransaction();
-        assertEquals(table.size(), 0);
+        assertEquals(0, table.size());
     }
 
     @Test
@@ -217,7 +217,7 @@ public class CollectionTests {
 
         Collection collection = new Collection(sharedRealm, table.where(), sortDescriptor);
         UncheckedRow row = table.getUncheckedRow(0);
-        assertEquals(collection.indexOf(row), 3);
+        assertEquals(3, collection.indexOf(row));
     }
 
     @Test
@@ -225,7 +225,7 @@ public class CollectionTests {
         SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
 
         Collection collection = new Collection(sharedRealm, table.where(), sortDescriptor);
-        assertEquals(collection.indexOf(0), 3);
+        assertEquals(3, collection.indexOf(0));
     }
 
     @Test
@@ -240,8 +240,8 @@ public class CollectionTests {
         assertEquals(3, collection.size());
         assertEquals(2, collection2.size());
 
-        assertEquals(collection2.getUncheckedRow(0).getLong(2), 3);
-        assertEquals(collection2.getUncheckedRow(1).getLong(2), 1);
+        assertEquals(3, collection2.getUncheckedRow(0).getLong(2));
+        assertEquals(1, collection2.getUncheckedRow(1).getLong(2));
     }
 
     // 1. Create a results and add listener.
@@ -257,8 +257,8 @@ public class CollectionTests {
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection collection1) {
-                assertEquals(collection1, collection);
-                assertEquals(collection1.size(), 4);
+                assertEquals(collection, collection1);
+                assertEquals(4, collection1.size());
                 sharedRealm.close();
                 looperThread.testComplete();
             }
@@ -277,8 +277,8 @@ public class CollectionTests {
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection collection1) {
-                assertEquals(collection1, collection);
-                assertEquals(collection1.size(), 4);
+                assertEquals(collection, collection1);
+                assertEquals(4, collection1.size());
                 sharedRealm.close();
                 onChangeCalled.set(true);
             }
@@ -323,7 +323,7 @@ public class CollectionTests {
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection element) {
-                assertEquals(latch.getCount(), 1);
+                assertEquals(1, latch.getCount());
                 latch.countDown();
             }
         });
@@ -346,8 +346,8 @@ public class CollectionTests {
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection collection1) {
-                assertEquals(collection1, collection);
-                assertEquals(collection1.size(), 5);
+                assertEquals(collection, collection1);
+                assertEquals(5, collection1.size());
                 sharedRealm.close();
                 looperThread.testComplete();
             }
@@ -368,8 +368,8 @@ public class CollectionTests {
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection collection1) {
-                assertEquals(collection1, collection);
-                assertEquals(collection1.size(), 5);
+                assertEquals(collection, collection1);
+                assertEquals(5, collection1.size());
                 sharedRealm.close();
                 looperThread.testComplete();
             }
@@ -394,10 +394,10 @@ public class CollectionTests {
             public void onChange(Collection collection1) {
                 switch (listenerCounter.getAndIncrement()) {
                     case 0:
-                        assertEquals(collection1.size(), 4);
+                        assertEquals(4, collection1.size());
                         break;
                     case 1:
-                        assertEquals(collection1.size(), 5);
+                        assertEquals(5, collection1.size());
                         sharedRealm.close();
                         break;
                     default:
