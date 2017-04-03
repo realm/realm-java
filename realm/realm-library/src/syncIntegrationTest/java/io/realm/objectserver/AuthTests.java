@@ -6,7 +6,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.realm.BaseIntegrationTest;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.Realm;

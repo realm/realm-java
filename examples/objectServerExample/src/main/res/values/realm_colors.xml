@@ -20,9 +20,4 @@
     <color name="flamingo_darker">#d64881</color>
     <color name="touch_area_pressed">#dadada</color>
 
-    // Progress bar colors
-    <color name="progress_upload">#EF5350</color>
-    <color name="progress_download">#9CCC65</color>
-    <color name="progress_both">#FFA726</color>
-
 </resources>
