@@ -39,6 +39,7 @@ import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.entities.AllTypes;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.TestSyncConfigurationFactory;
 
@@ -320,6 +321,31 @@ public class ProgressListenerTests extends BaseIntegrationTest {
 
         checkListener(session, ProgressMode.INDEFINITELY);
         checkListener(session, ProgressMode.CURRENT_CHANGES);
+
+        realm.close();
+    }
+
+    @Test
+    public void uploadListener_keepIncreasingInSize() {
+        SyncConfiguration config = createSyncConfig();
+        Realm realm = Realm.getInstance(config);
+        SyncSession session = SyncManager.getSession(config);
+        for (int i = 0; i < 10; i++) {
+            final CountDownLatch changesUploaded = new CountDownLatch(1);
+            writeSampleData(realm);
+            final int testNo = i;
+            session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
+                @Override
+                public void onChange(Progress progress) {
+                    RealmLog.error("Test %s -> %s", Integer.toString(testNo), progress.toString());
+                    if (progress.isTransferComplete()) {
+                        assertTransferComplete(progress, true);
+                        changesUploaded.countDown();
+                    }
+                }
+            });
+            TestHelper.awaitOrFail(changesUploaded);
+        }
 
         realm.close();
     }
