@@ -13,7 +13,6 @@
   * Linking objects are not yet supported on dynamic objects
   * Migration for linking objects is not yet supported.
   * Backlink verification is incomplete.  Evil code can cause native crashes.
-* [ObjectServer] Added support for Sync Progress Notifications through `SyncSession.addDownloadProgressListener(ProgressMode, ProgressListener)` and `SyncSession.addUploadProgressListener(ProgressMode, ProgressListener)` (#4104).
 * [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface (#4080).
 * [ObjectServer] Authentication URLs now automatically append `/auth` if no other path segment is set (#4370).
 * The listener on `RealmObject` will only be triggered if the object changes (#3894).

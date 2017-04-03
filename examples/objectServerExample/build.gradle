@@ -61,9 +61,7 @@ realm {
 
 dependencies {
     compile 'com.android.support:support-v4:25.2.0'
-    compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.android.support:design:25.2.0'
-    compile 'me.zhanghai.android.materialprogressbar:library:1.3.0'
     compile 'com.jakewharton:butterknife:8.3.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.3.0'
 }
