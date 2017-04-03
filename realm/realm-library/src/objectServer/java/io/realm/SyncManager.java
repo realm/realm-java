@@ -69,6 +69,11 @@ public class SyncManager {
     private static final SyncSession.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new SyncSession.ErrorHandler() {
         @Override
         public void onError(SyncSession session, ObjectServerError error) {
+            if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
+                RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
+                return;
+            }
+
             String errorMsg = String.format("Session Error[%s]: %s",
                     session.getConfiguration().getServerUrl(),
                     error.toString());
@@ -82,11 +87,6 @@ public class SyncManager {
                 default:
                     throw new IllegalArgumentException("Unsupported error category: " + error.getErrorCode().getCategory());
             }
-        }
-
-        @Override
-        public void onClientResetRequired(SyncSession session, ClientResetHandler handler) {
-            RealmLog.error("Client Reset required for: " + session.getConfiguration().getPath());
         }
     };
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'

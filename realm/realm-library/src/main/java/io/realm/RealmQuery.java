@@ -51,13 +51,13 @@ import io.realm.internal.TableQuery;
  */
 public class RealmQuery<E extends RealmModel> {
 
-    private BaseRealm realm;
+    private final Table table;
+    private final BaseRealm realm;
+    private final TableQuery query;
+    private final RealmObjectSchema schema;
     private Class<E> clazz;
     private String className;
-    private Table table;
-    private RealmObjectSchema schema;
     private LinkView linkView;
-    private TableQuery query;
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
     static final String ASYNC_QUERY_WRONG_THREAD_MESSAGE = "Async query cannot be created on current thread.";
@@ -71,7 +71,7 @@ public class RealmQuery<E extends RealmModel> {
      * to run it.
      */
     public static <E extends RealmModel> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
-        return new RealmQuery<E>(realm, clazz);
+        return new RealmQuery<>(realm, clazz);
     }
 
     /**
@@ -83,7 +83,7 @@ public class RealmQuery<E extends RealmModel> {
      * to run it.
      */
     public static <E extends RealmModel> RealmQuery<E> createDynamicQuery(DynamicRealm realm, String className) {
-        return new RealmQuery<E>(realm, className);
+        return new RealmQuery<>(realm, className);
     }
 
     /**
@@ -97,7 +97,7 @@ public class RealmQuery<E extends RealmModel> {
     @SuppressWarnings("unchecked")
     public static <E extends RealmModel> RealmQuery<E> createQueryFromResult(RealmResults<E> queryResults) {
         if (queryResults.classSpec != null) {
-            return new RealmQuery<E>(queryResults, queryResults.classSpec);
+            return new RealmQuery<>(queryResults, queryResults.classSpec);
         } else {
             return new RealmQuery(queryResults, queryResults.className);
         }
@@ -122,7 +122,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(Realm realm, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.schema = realm.schema.getSchemaForClass(clazz);
+        this.schema = realm.getSchema().getSchemaForClass(clazz);
         this.table = schema.table;
         this.linkView = null;
         this.query = table.where();
@@ -131,7 +131,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(RealmResults<E> queryResults, Class<E> clazz) {
         this.realm = queryResults.realm;
         this.clazz = clazz;
-        this.schema = realm.schema.getSchemaForClass(clazz);
+        this.schema = realm.getSchema().getSchemaForClass(clazz);
         this.table = queryResults.getTable();
         this.linkView = null;
         this.query = queryResults.getCollection().where();
@@ -140,7 +140,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(BaseRealm realm, LinkView linkView, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.schema = realm.schema.getSchemaForClass(clazz);
+        this.schema = realm.getSchema().getSchemaForClass(clazz);
         this.table = schema.table;
         this.linkView = linkView;
         this.query = linkView.where();
@@ -149,7 +149,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(BaseRealm realm, String className) {
         this.realm = realm;
         this.className = className;
-        this.schema = realm.schema.getSchemaForClass(className);
+        this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.table;
         this.query = table.where();
     }
@@ -157,7 +157,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(RealmResults<DynamicRealmObject> queryResults, String className) {
         this.realm = queryResults.realm;
         this.className = className;
-        this.schema = realm.schema.getSchemaForClass(className);
+        this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.table;
         this.query = queryResults.getCollection().where();
     }
@@ -165,7 +165,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(BaseRealm realm, LinkView linkView, String className) {
         this.realm = realm;
         this.className = className;
-        this.schema = realm.schema.getSchemaForClass(className);
+        this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.table;
         this.linkView = linkView;
         this.query = linkView.where();
@@ -1522,11 +1522,13 @@ public class RealmQuery<E extends RealmModel> {
      * Returns a distinct set of objects of a specific class. If the result is sorted, the first
      * object will be returned in case of multiple occurrences, otherwise it is undefined which
      * object is returned.
+     * <p>
+     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
      *
      * @param fieldName the field name.
      * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type,
-     * is not indexed, or points to linked fields.
+     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
+     * to linked fields.
      */
     public RealmResults<E> distinct(String fieldName) {
         realm.checkIfValid();
@@ -1539,13 +1541,14 @@ public class RealmQuery<E extends RealmModel> {
      * Asynchronously returns a distinct set of objects of a specific class. If the result is
      * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
      * undefined which object is returned.
+     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
      *
      * @param fieldName the field name.
      * @return immediately a {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
      * query completes.
-     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type,
-     * is not indexed, or points to linked fields.
+     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
+     * to linked fields.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
         realm.checkIfValid();
@@ -1906,12 +1909,7 @@ public class RealmQuery<E extends RealmModel> {
         realm.checkIfValid();
 
         long tableRowIndex = getSourceRowIndexForFirstObject();
-        if (tableRowIndex >= 0) {
-            E realmObject = realm.get(clazz, className, tableRowIndex);
-            return realmObject;
-        } else {
-            return null;
-        }
+        return (tableRowIndex < 0) ? null : realm.get(clazz, className, tableRowIndex);
     }
 
     /**
@@ -1967,9 +1965,9 @@ public class RealmQuery<E extends RealmModel> {
         RealmResults<E> results;
         Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
         if (isDynamicQuery()) {
-            results = new RealmResults<E>(realm, collection, className);
+            results = new RealmResults<>(realm, collection, className);
         } else {
-            results = new RealmResults<E>(realm, collection, clazz);
+            results = new RealmResults<>(realm, collection, clazz);
         }
         if (loadResults) {
             results.load();

@@ -15,7 +15,7 @@
  */
 
 #include <jni.h>
-#include "io_realm_RealmSchema.h"
+#include "io_realm_OsRealmSchema.h"
 
 #include <object-store/src/schema.hpp>
 #include <object-store/src/object_schema.hpp>
@@ -25,7 +25,7 @@
 using namespace realm;
 
 
-JNIEXPORT jlong JNICALL Java_io_realm_RealmSchema_nativeCreateFromList(JNIEnv* env, jclass,
+JNIEXPORT jlong JNICALL Java_io_realm_OsRealmSchema_nativeCreateFromList(JNIEnv* env, jclass,
                                                                        jlongArray objectSchemaPtrs_)
 {
     TR_ENTER()
@@ -43,14 +43,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmSchema_nativeCreateFromList(JNIEnv* e
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_RealmSchema_nativeClose(JNIEnv*, jclass, jlong nativePtr)
+JNIEXPORT void JNICALL Java_io_realm_OsRealmSchema_nativeClose(JNIEnv*, jclass, jlong nativePtr)
 {
     TR_ENTER_PTR(nativePtr)
     Schema* schema = reinterpret_cast<Schema*>(nativePtr);
     delete schema;
 }
 
-JNIEXPORT jlongArray JNICALL Java_io_realm_RealmSchema_nativeGetAll(JNIEnv* env, jclass, jlong nativePtr)
+JNIEXPORT jlongArray JNICALL Java_io_realm_OsRealmSchema_nativeGetAll(JNIEnv* env, jclass, jlong nativePtr)
 {
     TR_ENTER_PTR(nativePtr)
     try {

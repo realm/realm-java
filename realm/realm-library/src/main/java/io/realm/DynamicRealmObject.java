@@ -344,7 +344,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         try {
             LinkView linkView = proxyState.getRow$realm().getLinkList(columnIndex);
             String className = RealmSchema.getSchemaForTable(linkView.getTargetTable());
-            return new RealmList<DynamicRealmObject>(className, linkView, proxyState.getRealm$realm());
+            return new RealmList<>(className, linkView, proxyState.getRealm$realm());
         } catch (IllegalArgumentException e) {
             checkFieldType(fieldName, columnIndex, RealmFieldType.LIST);
             throw e;
@@ -713,7 +713,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             typeValidated = false;
         } else {
             String listType = list.className != null ? list.className
-                    : Table.tableNameToClassName(proxyState.getRealm$realm().schema.getTable(list.clazz).getName());
+                    : Table.tableNameToClassName(proxyState.getRealm$realm().getSchema().getTable(list.clazz).getName());
             if (!linkTargetTableName.equals(listType)) {
                 throw new IllegalArgumentException(String.format(Locale.ENGLISH,
                         "The elements in the list are not the proper type. " +

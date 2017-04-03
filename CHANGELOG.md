@@ -4,7 +4,6 @@
 
 * Updated file format of Realm files. Existing Realm files will automatically be migrated to the new format when they are opened.
 * [ObjectServer] Due to file format changes, Realm Object Server 1.3.0 or later is required.
-* [ObjectServer] Added `onClientResetRequired(SyncSession, ClientResetHandler)` method to the `ErrorHandler` interface (#4080).
 
 ### Enhancements
 
@@ -38,6 +37,7 @@
 * Now using Gradle 3.4.1
 * Now `targetSdkVersion` is 25.
 * Listeners on `RealmList` and `RealmResults` will be triggered immediately when the transaction is committed on the same thread (#4245).
+* `RealmQuery.distinct()` can be performed on unindexed fields (#2285).
 
 ### Bug Fixes
 

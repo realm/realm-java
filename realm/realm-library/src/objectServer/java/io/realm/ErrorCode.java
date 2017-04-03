@@ -127,8 +127,8 @@ public enum ErrorCode {
         throw new IllegalArgumentException("Unknown error code: " + errorCode);
     }
 
-public enum Category {
+    public enum Category {
         FATAL,          // Abort session as soon as possible
-        RECOVERABLE    // Still possible to recover the session by either rebinding or providing the required information.
+        RECOVERABLE,    // Still possible to recover the session by either rebinding or providing the required information.
     }
 }
