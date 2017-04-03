@@ -29,7 +29,8 @@ static constexpr NeedToCreateLocalRef need_to_create_local_ref{};
 // Wraps jobject and automatically calls DeleteLocalRef when this object is destroyed.
 // DeleteLocalRef is not necessary to be called in most cases since all local references will be cleaned up when the
 // program returns to Java from native. But if the local ref is created in a loop, consider to use this class to wrap
-// it because the size of local reference table is relative small (512 bytes on Android).
+// it
+// because the size of local reference table is relative small (512 bytes on Android).
 template <typename T>
 class JavaLocalRef {
 public:
