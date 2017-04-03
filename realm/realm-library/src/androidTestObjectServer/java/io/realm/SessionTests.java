@@ -61,54 +61,6 @@ public class SessionTests {
         assertEquals(configuration, session.getConfiguration());
     }
 
-    @Test
-    public void addDownloadProgressListener_nullThrows() {
-        SyncSession session = SyncManager.getSession(configuration);
-        try {
-            session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, null);
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-    }
-
-    @Test
-    public void addUploadProgressListener_nullThrows() {
-        SyncSession session = SyncManager.getSession(configuration);
-        try {
-            session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, null);
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-    }
-
-    @Test
-    public void removeProgressListener() {
-        Realm realm = Realm.getInstance(configuration);
-        SyncSession session = SyncManager.getSession(configuration);
-        ProgressListener[] listeners = new ProgressListener[] {
-                null,
-                new ProgressListener() {
-                    @Override
-                    public void onChange(Progress progress) {
-                        // Listener 1, not present
-                    }
-                },
-                new ProgressListener() {
-                    @Override
-                    public void onChange(Progress progress) {
-                        // Listener 2, present
-                    }
-                }
-        };
-        session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, listeners[2]);
-
-        // Check that remove works unconditionally for all input
-        for (ProgressListener listener : listeners) {
-            session.removeProgressListener(listener);
-        }
-        realm.close();
-    }
-
     // Check that a Client Reset is correctly reported.
     @Test
     @RunTestInLooperThread
