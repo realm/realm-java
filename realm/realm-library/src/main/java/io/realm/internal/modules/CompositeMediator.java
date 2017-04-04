@@ -38,7 +38,6 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
-import io.realm.internal.Table;
 import io.realm.internal.Util;
 
 
@@ -50,7 +49,7 @@ public class CompositeMediator extends RealmProxyMediator {
     private final Map<Class<? extends RealmModel>, RealmProxyMediator> mediators;
 
     public CompositeMediator(RealmProxyMediator... mediators) {
-        final HashMap<Class<? extends RealmModel>, RealmProxyMediator> tempMediators = new HashMap<Class<? extends RealmModel>, RealmProxyMediator>();
+        final HashMap<Class<? extends RealmModel>, RealmProxyMediator> tempMediators = new HashMap<>();
         if (mediators != null) {
             for (RealmProxyMediator mediator : mediators) {
                 for (Class<? extends RealmModel> realmClass : mediator.getModelClasses()) {
@@ -65,12 +64,6 @@ public class CompositeMediator extends RealmProxyMediator {
     public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema schema) {
         RealmProxyMediator mediator = getMediator(clazz);
         return mediator.createRealmObjectSchema(clazz, schema);
-    }
-
-    @Override
-    public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
-        RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.createTable(clazz, sharedRealm);
     }
 
     @Override

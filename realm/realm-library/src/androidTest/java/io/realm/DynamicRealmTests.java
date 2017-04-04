@@ -93,7 +93,7 @@ public class DynamicRealmTests {
             allTypes.setBoolean(AllTypes.FIELD_BOOLEAN, (i % 3) == 0);
             allTypes.setBlob(AllTypes.FIELD_BINARY, new byte[]{1, 2, 3});
             allTypes.setDate(AllTypes.FIELD_DATE, new Date());
-            allTypes.setDouble(AllTypes.FIELD_DOUBLE, 3.1415D + i);
+            allTypes.setDouble(AllTypes.FIELD_DOUBLE, Math.PI + i);
             allTypes.setFloat(AllTypes.FIELD_FLOAT, 1.234567F + i);
             allTypes.setString(AllTypes.FIELD_STRING, "test data " + i);
             allTypes.setLong(AllTypes.FIELD_LONG, i);
@@ -675,7 +675,7 @@ public class DynamicRealmTests {
         dynamicRealm.commitTransaction();
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Field 'nonExisting' does not exist.");
+        thrown.expectMessage("Invalid query: field 'nonExisting' does not exist in table 'NoField'.");
         dynamicRealm.where(className).equalTo("nonExisting", 1);
     }
 }

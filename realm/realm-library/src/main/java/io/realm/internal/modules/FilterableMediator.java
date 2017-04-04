@@ -38,7 +38,6 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
-import io.realm.internal.Table;
 import io.realm.internal.Util;
 
 
@@ -60,7 +59,7 @@ public class FilterableMediator extends RealmProxyMediator {
     public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmModel>> allowedClasses) {
         this.originalMediator = originalMediator;
 
-        Set<Class<? extends RealmModel>> tempAllowedClasses = new HashSet<Class<? extends RealmModel>>();
+        Set<Class<? extends RealmModel>> tempAllowedClasses = new HashSet<>();
         if (originalMediator != null) {
             Set<Class<? extends RealmModel>> originalClasses = originalMediator.getModelClasses();
             for (Class<? extends RealmModel> clazz : allowedClasses) {
@@ -80,12 +79,6 @@ public class FilterableMediator extends RealmProxyMediator {
     public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema schema) {
         checkSchemaHasClass(clazz);
         return originalMediator.createRealmObjectSchema(clazz, schema);
-    }
-
-    @Override
-    public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
-        checkSchemaHasClass(clazz);
-        return originalMediator.createTable(clazz, sharedRealm);
     }
 
     @Override

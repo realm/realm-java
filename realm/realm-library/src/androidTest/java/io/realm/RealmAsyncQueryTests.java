@@ -1264,7 +1264,7 @@ public class RealmAsyncQueryTests {
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date());
-            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnDouble(Math.PI);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -1285,11 +1285,11 @@ public class RealmAsyncQueryTests {
                 AnnotationIndexTypes obj = realm.createObject(AnnotationIndexTypes.class);
                 obj.setIndexBoolean(j % 2 == 0);
                 obj.setIndexLong(j);
-                obj.setIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setIndexDate(withNull ? null : new Date(1000L * j));
                 obj.setIndexString(withNull ? null : "Test " + j);
                 obj.setNotIndexBoolean(j % 2 == 0);
                 obj.setNotIndexLong(j);
-                obj.setNotIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setNotIndexDate(withNull ? null : new Date(1000L * j));
                 obj.setNotIndexString(withNull ? null : "Test " + j);
             }
         }

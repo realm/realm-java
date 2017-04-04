@@ -843,66 +843,33 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
         if (!realmSchema.contains("NullTypes")) {
             RealmObjectSchema realmObjectSchema = realmSchema.create("NullTypes");
-            realmObjectSchema.add(new Property("fieldStringNotNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldStringNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldBooleanNotNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldBooleanNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldBytesNotNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldBytesNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldByteNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldByteNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldShortNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldShortNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldIntegerNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldIntegerNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldLongNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldLongNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldFloatNotNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldFloatNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldDoubleNotNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldDoubleNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add("fieldStringNotNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("fieldStringNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+            realmObjectSchema.add("fieldBooleanNotNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("fieldBooleanNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+            realmObjectSchema.add("fieldBytesNotNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("fieldBytesNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+            realmObjectSchema.add("fieldByteNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("fieldByteNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+            realmObjectSchema.add("fieldShortNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("fieldShortNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+            realmObjectSchema.add("fieldIntegerNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("fieldIntegerNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+            realmObjectSchema.add("fieldLongNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("fieldLongNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+            realmObjectSchema.add("fieldFloatNotNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("fieldFloatNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+            realmObjectSchema.add("fieldDoubleNotNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("fieldDoubleNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+            realmObjectSchema.add("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
             if (!realmSchema.contains("NullTypes")) {
                 NullTypesRealmProxy.createRealmObjectSchema(realmSchema);
             }
-            realmObjectSchema.add(new Property("fieldObjectNull", RealmFieldType.OBJECT, realmSchema.get("NullTypes")));
+            realmObjectSchema.add("fieldObjectNull", RealmFieldType.OBJECT, realmSchema.get("NullTypes"));
             return realmObjectSchema;
         }
         return realmSchema.get("NullTypes");
-    }
-
-    public static Table initTable(SharedRealm sharedRealm) {
-        if (!sharedRealm.hasTable("class_NullTypes")) {
-            Table table = sharedRealm.getTable("class_NullTypes");
-            table.addColumn(RealmFieldType.STRING, "fieldStringNotNull", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.STRING, "fieldStringNull", Table.NULLABLE);
-            table.addColumn(RealmFieldType.BOOLEAN, "fieldBooleanNotNull", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.BOOLEAN, "fieldBooleanNull", Table.NULLABLE);
-            table.addColumn(RealmFieldType.BINARY, "fieldBytesNotNull", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.BINARY, "fieldBytesNull", Table.NULLABLE);
-            table.addColumn(RealmFieldType.INTEGER, "fieldByteNotNull", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.INTEGER, "fieldByteNull", Table.NULLABLE);
-            table.addColumn(RealmFieldType.INTEGER, "fieldShortNotNull", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.INTEGER, "fieldShortNull", Table.NULLABLE);
-            table.addColumn(RealmFieldType.INTEGER, "fieldIntegerNotNull", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.INTEGER, "fieldIntegerNull", Table.NULLABLE);
-            table.addColumn(RealmFieldType.INTEGER, "fieldLongNotNull", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.INTEGER, "fieldLongNull", Table.NULLABLE);
-            table.addColumn(RealmFieldType.FLOAT, "fieldFloatNotNull", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.FLOAT, "fieldFloatNull", Table.NULLABLE);
-            table.addColumn(RealmFieldType.DOUBLE, "fieldDoubleNotNull", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.DOUBLE, "fieldDoubleNull", Table.NULLABLE);
-            table.addColumn(RealmFieldType.DATE, "fieldDateNotNull", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.DATE, "fieldDateNull", Table.NULLABLE);
-            if (!sharedRealm.hasTable("class_NullTypes")) {
-                NullTypesRealmProxy.initTable(sharedRealm);
-            }
-            table.addColumnLink(RealmFieldType.OBJECT, "fieldObjectNull", sharedRealm.getTable("class_NullTypes"));
-            table.setPrimaryKey("");
-            return table;
-        }
-        return sharedRealm.getTable("class_NullTypes");
     }
 
     public static NullTypesColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
