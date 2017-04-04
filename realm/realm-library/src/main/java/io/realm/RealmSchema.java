@@ -89,19 +89,35 @@ public abstract class RealmSchema {
      */
     public abstract boolean contains(String className);
 
-    final void setColumnIndices(ColumnIndices columnIndices) {
+    final void setInitialColumnIndices(ColumnIndices columnIndices) {
+        if (this.columnIndices != null) {
+            throw new IllegalStateException("An instance of ColumnIndices is already set.");
+        }
         this.columnIndices = columnIndices.clone();
     }
 
-    final void setColumnIndices(long version, Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap) {
+    final void setInitialColumnIndices(long version, Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap) {
+        if (this.columnIndices != null) {
+            throw new IllegalStateException("An instance of ColumnIndices is already set.");
+        }
         columnIndices = new ColumnIndices(version, columnInfoMap);
     }
 
-    void setColumnIndices(ColumnIndices cacheForCurrentVersion, RealmProxyMediator mediator) {
-        columnIndices.copyFrom(cacheForCurrentVersion, mediator);
+    /**
+     * Updates all {@link ColumnInfo} elements in {@code columnIndices}.
+     *
+     * <p>
+     * The ColumnInfo elements are shared between all {@link RealmObject}s created by the Realm instance
+     * which owns this RealmSchema. Updating them also means updating indices information in those {@link RealmObject}s.
+     *
+     * @param schemaVersion new schema version.
+     * @param mediator mediator for the Realm.
+     */
+    void updateColumnIndices(ColumnIndices schemaVersion, RealmProxyMediator mediator) {
+        columnIndices.copyFrom(schemaVersion, mediator);
     }
 
-    final ColumnIndices getColumnIndices() {
+    final ColumnIndices cloneColumnIndices() {
         checkIndices();
         return columnIndices.clone();
     }

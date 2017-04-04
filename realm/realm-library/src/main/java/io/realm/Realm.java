@@ -293,7 +293,7 @@ public class Realm extends BaseRealm {
 
         if (columnIndices != null) {
             // Copies global cache as a Realm local indices cache.
-            realm.schema.setColumnIndices(columnIndices);
+            realm.schema.setInitialColumnIndices(columnIndices);
         } else {
             final boolean syncingConfig = configuration.isSyncConfiguration();
 
@@ -359,7 +359,7 @@ public class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
-            realm.getSchema().setColumnIndices(
+            realm.getSchema().setInitialColumnIndices(
                     (unversioned) ? configuration.getSchemaVersion() : currentVersion,
                     columnInfoMap);
 
@@ -425,7 +425,7 @@ public class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
-            realm.getSchema().setColumnIndices(
+            realm.getSchema().setInitialColumnIndices(
                     (unversioned) ? newVersion : currentVersion,
                     columnInfoMap);
 
@@ -1690,7 +1690,7 @@ public class Realm extends BaseRealm {
 
             cacheForCurrentVersion = createdGlobalCache = new ColumnIndices(currentSchemaVersion, map);
         }
-        schema.setColumnIndices(cacheForCurrentVersion, mediator);
+        schema.updateColumnIndices(cacheForCurrentVersion, mediator);
         return createdGlobalCache;
     }
 
