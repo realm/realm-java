@@ -130,7 +130,7 @@ public class ObjectServerUser {
         // Optimistically create a long-lived token with all permissions. If this is incorrect the Object Server
         // will reject it anyway. If tokens are added manually it is up to the user to ensure they are also used
         // correctly.
-        Token token = new Token(accessToken, null, uri.toString(), Long.MAX_VALUE, Token.Permission.values(), false);
+        Token token = new Token(accessToken, null, uri.toString(), Long.MAX_VALUE, Token.Permission.values());
         addRealm(uri, new AccessDescription(token, localPath, deleteOnLogout));
     }
 

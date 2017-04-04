@@ -70,6 +70,10 @@ public class Token {
         return new Token(value, identity, path, expiresSec, permissions, isAdmin);
     }
 
+    public Token(String value, String identity, String path, long expiresSec, Permission[] permissions) {
+        this(value, identity, path, expiresSec, permissions, false);
+    }
+
     public Token(String value, String identity, String path, long expiresSec, Permission[] permissions, boolean isAdmin) {
         this.value = value;
         this.identity = identity;

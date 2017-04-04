@@ -67,7 +67,7 @@ public class SyncTestUtils {
 
     public static SyncUser createTestUser(String userTokenValue, String realmTokenValue, String userIdentifier, String authUrl, long expires, boolean isAdmin) {
         Token userToken = new Token(userTokenValue, userIdentifier, null, expires, null, isAdmin);
-        Token accessToken = new Token(realmTokenValue, userIdentifier, "/foo", expires, new Token.Permission[] {Token.Permission.DOWNLOAD }, false);
+        Token accessToken = new Token(realmTokenValue, userIdentifier, "/foo", expires, new Token.Permission[] {Token.Permission.DOWNLOAD });
         ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(accessToken, "/data/data/myapp/files/default", false);
 
         JSONObject obj = new JSONObject();
@@ -104,7 +104,7 @@ public class SyncTestUtils {
 
     public static AuthenticateResponse createRefreshResponse() {
         try {
-            Token userToken = new Token(USER_TOKEN, "JohnDoe", null, Long.MAX_VALUE, null, false);
+            Token userToken = new Token(USER_TOKEN, "JohnDoe", null, Long.MAX_VALUE, null);
             JSONObject response = new JSONObject();
             response.put("refresh_token", userToken.toJson());
             return AuthenticateResponse.from(response.toString());

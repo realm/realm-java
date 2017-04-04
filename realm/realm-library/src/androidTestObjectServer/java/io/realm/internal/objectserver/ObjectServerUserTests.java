@@ -40,7 +40,7 @@ public class ObjectServerUserTests {
     }
 
     private static ObjectServerUser createFakeUser(String id) {
-        final Token token = new Token("token_value", id, "path_value", Long.MAX_VALUE, null, false);
+        final Token token = new Token("token_value", id, "path_value", Long.MAX_VALUE, null);
         return new ObjectServerUser(token, authUrl);
     }
 
