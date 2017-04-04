@@ -18,13 +18,40 @@ package io.realm.internal;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+import io.realm.rule.TestRealmConfigurationFactory;
+
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 public class JNINativeTest {
+
+    // Before and After are required when you run the tests alone.
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+
+    private Realm realm;
+
+    @Before
+    public void setUp() {
+        RealmConfiguration realmConfig = configFactory.createConfiguration();
+        realm = Realm.getInstance(realmConfig);
+    }
+
+    @After
+    public void tearDown() {
+        if (realm != null) {
+            realm.close();
+        }
+    }
 
     @Test
     public void nativeExceptions() {
@@ -37,5 +64,10 @@ public class JNINativeTest {
                 assertEquals("Exception kind: " + i, expect, throwable.toString());
             }
         }
+    }
+
+    @Test
+    public void nativeStrings() {
+        assertTrue(TestUtil.testNativeString());
     }
 }
