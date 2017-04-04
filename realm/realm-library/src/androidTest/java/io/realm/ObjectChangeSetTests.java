@@ -337,4 +337,36 @@ public class ObjectChangeSetTests {
         allTypes.deleteFromRealm();
         realm.commitTransaction();
     }
+
+    @Test
+    @RunTestInLooperThread
+    public void moreFieldsChangedThanLocalRefTableSize() {
+        final String CLASS_NAME = "ManyFields";
+        final int FIELD_COUNT = 1024;
+        RealmConfiguration config = looperThread.createConfiguration("many_fields");
+        DynamicRealm realm = DynamicRealm.getInstance(config);
+
+        realm.beginTransaction();
+        RealmSchema schema = realm.getSchema();
+        RealmObjectSchema objectSchema = schema.create(CLASS_NAME);
+        for (int i = 0; i < FIELD_COUNT; i++) {
+            objectSchema.addField("field" + i, int.class);
+        }
+        DynamicRealmObject obj = realm.createObject(CLASS_NAME);
+        realm.commitTransaction();
+
+        obj.addChangeListener(new RealmObjectChangeListener<DynamicRealmObject>() {
+            @Override
+            public void onChange(DynamicRealmObject object, ObjectChangeSet changeSet) {
+                assertEquals(FIELD_COUNT, changeSet.getChangedFields().length);
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        for (int i = 0; i < FIELD_COUNT; i++) {
+            obj.setInt("field" + i, 42);
+        }
+        realm.commitTransaction();
+    }
 }
