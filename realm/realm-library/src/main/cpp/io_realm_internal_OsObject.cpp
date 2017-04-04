@@ -70,7 +70,7 @@ struct ChangeCallback {
             return;
         }
 
-        // The local ref of jstring needs to be released to void reach the local ref table size limitation.
+        // The local ref of jstring needs to be released to avoid reach the local ref table size limitation.
         std::vector<JavaGlobalRef> field_names;
         auto table = m_wrapper->m_object.row().get_table();
         for (size_t i = 0; i < change_set.columns.size(); ++i) {
