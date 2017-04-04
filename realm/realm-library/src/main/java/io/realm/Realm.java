@@ -403,7 +403,7 @@ public class Realm extends BaseRealm {
 
             // Assumption: When SyncConfiguration then additive schema update mode.
             schema = new OsRealmSchema(schemaCreator);
-            long newVersion = realm.configuration.getSchemaVersion();
+            long newVersion = configuration.getSchemaVersion();
             // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
             // It absolutely breaks encapsulation and needs to be fixed!
             long schemaNativePointer = schema.getNativePtr();
