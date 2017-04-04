@@ -20,6 +20,8 @@
 
 ### Bug Fixes
 
+* Crash with `LogicError` with `Bad version number` on notifier thread (#4369).
+
 ### Deprecated
 
 ### Internal
