@@ -90,7 +90,6 @@ class OsRealmSchema extends RealmSchema {
         return this.nativePtr;
     }
 
-    // THIS IS NEVER CALLED!
     // See BaseRealm uses a StandardRealmSchema, not a OsRealmSchema.
     @Override
     public void close() {
