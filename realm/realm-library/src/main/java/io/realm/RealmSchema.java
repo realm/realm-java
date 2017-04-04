@@ -54,7 +54,7 @@ public abstract class RealmSchema {
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
-    public abstract Set<RealmObjectSchema> getAll();
+    public abstract Set<? extends RealmObjectSchema> getAll();
 
     /**
      * Adds a new class to the Realm.
@@ -63,6 +63,23 @@ public abstract class RealmSchema {
      * @return a Realm schema object for that class.
      */
     public abstract RealmObjectSchema create(String className);
+
+    /**
+     * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
+     * to it will throw an {@link IllegalStateException}. Removes those classes or fields first.
+     *
+     * @param className name of the class to remove.
+     */
+    public abstract void remove(String className);
+
+    /**
+     * Renames a class already in the Realm.
+     *
+     * @param oldClassName old class name.
+     * @param newClassName new class name.
+     * @return a schema object for renamed class.
+     */
+    public abstract RealmObjectSchema rename(String oldClassName, String newClassName);
 
     /**
      * Checks if a given class already exists in the schema.

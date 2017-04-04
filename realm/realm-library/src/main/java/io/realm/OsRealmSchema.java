@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import java.util.Set;
  */
 class OsRealmSchema extends RealmSchema {
     static final class Creator extends RealmSchema {
-        private final Map<String, RealmObjectSchema> schema = new HashMap<>();
+        private final Map<String, OsRealmObjectSchema> schema = new HashMap<>();
 
         @Override
         public void close() { }
@@ -44,14 +44,14 @@ class OsRealmSchema extends RealmSchema {
         }
 
         @Override
-        public Set<RealmObjectSchema> getAll() {
+        public Set<OsRealmObjectSchema> getAll() {
             return new LinkedHashSet<>(schema.values());
         }
 
         @Override
         public RealmObjectSchema create(String className) {
             checkEmpty(className);
-            RealmObjectSchema realmObjectSchema = new RealmObjectSchema(className);
+            OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(className);
             schema.put(className, realmObjectSchema);
             return realmObjectSchema;
         }
@@ -60,6 +60,16 @@ class OsRealmSchema extends RealmSchema {
         public boolean contains(String className) {
             return schema.containsKey(className);
         }
+
+        @Override
+        public void remove(String className) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public RealmObjectSchema rename(String oldClassName, String newClassName) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
@@ -67,10 +77,10 @@ class OsRealmSchema extends RealmSchema {
     private final long nativePtr;
 
     OsRealmSchema(Creator creator) {
-        Set<RealmObjectSchema> realmObjectSchemas = creator.getAll();
+        Set<OsRealmObjectSchema> realmObjectSchemas = creator.getAll();
         long[] schemaNativePointers = new long[realmObjectSchemas.size()];
         int i = 0;
-        for (RealmObjectSchema schema : realmObjectSchemas) {
+        for (OsRealmObjectSchema schema : realmObjectSchemas) {
             schemaNativePointers[i++] = schema.getNativePtr();
         }
         this.nativePtr = nativeCreateFromList(schemaNativePointers);
@@ -84,7 +94,7 @@ class OsRealmSchema extends RealmSchema {
     // See BaseRealm uses a StandardRealmSchema, not a OsRealmSchema.
     @Override
     public void close() {
-        Set<RealmObjectSchema> schemas = getAll();
+        Set<OsRealmObjectSchema> schemas = getAll();
         for (RealmObjectSchema schema : schemas) {
             schema.close();
         }
@@ -109,11 +119,11 @@ class OsRealmSchema extends RealmSchema {
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
     @Override
-    public Set<RealmObjectSchema> getAll() {
+    public Set<OsRealmObjectSchema> getAll() {
         long[] ptrs = nativeGetAll(nativePtr);
-        Set<RealmObjectSchema> schemas = new LinkedHashSet<>(ptrs.length);
+        Set<OsRealmObjectSchema> schemas = new LinkedHashSet<>(ptrs.length);
         for (int i = 0; i < ptrs.length; i++) {
-            schemas.add(new RealmObjectSchema(ptrs[i]));
+            schemas.add(new OsRealmObjectSchema(ptrs[i]));
         }
         return schemas;
     }
@@ -128,9 +138,19 @@ class OsRealmSchema extends RealmSchema {
     public RealmObjectSchema create(String className) {
         // Adding a class is always permitted.
         checkEmpty(className);
-        RealmObjectSchema realmObjectSchema = new RealmObjectSchema(className);
+        OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(className);
         dynamicClassToSchema.put(className, realmObjectSchema);
         return realmObjectSchema;
+    }
+
+    @Override
+    public void remove(String className) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RealmObjectSchema rename(String oldClassName, String newClassName) {
+        throw new UnsupportedOperationException();
     }
 
     /**

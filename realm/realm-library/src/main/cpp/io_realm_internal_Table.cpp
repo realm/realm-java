@@ -1533,7 +1533,9 @@ static bool check_valid_primary_key_column(JNIEnv* env, Table* table, StringData
             return true;
 
         default:
-            ThrowException(env, IllegalArgument, "Invalid primary key type: " + column_type);
+            std::ostringstream error_msg;
+            error_msg << "Invalid primary key type for column: " << column_name;
+            ThrowException(env, IllegalArgument, error_msg.str());
             return false;
     }
 }

@@ -380,7 +380,7 @@ public class RealmResultsTests extends CollectionTests {
             allTypes.setColumnBoolean((i % 2) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date(YEAR_MILLIS * (i - objects / 2)));
-            allTypes.setColumnDouble(3.1415 + i);
+            allTypes.setColumnDouble(Math.PI + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -404,7 +404,7 @@ public class RealmResultsTests extends CollectionTests {
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date(DECADE_MILLIS * (i - (objects / 2))));
-            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnDouble(Math.PI);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);

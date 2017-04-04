@@ -484,22 +484,22 @@ public class RealmLinkTests {
     public void queryShouldFail() {
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat..hasTail", true).findAll();
-            fail("Should throw Exception");
+            fail("Should throw Exception (double dot)");
         } catch (IllegalArgumentException ignored) {
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo(".cat.hasTail", true).findAll();
-            fail("Should throw Exception");
+            fail("Should throw Exception (initial dot)");
         } catch (IllegalArgumentException ignored) {
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat.hasTail.", true).findAll();
-            fail("Should throw Exception");
+            fail("Should throw Exception (final dot)");
         } catch (IllegalArgumentException ignored) {
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("not.there", true).findAll();
-            fail("Should throw Exception");
+            fail("Should throw Exception (non-existent column)");
         } catch (IllegalArgumentException ignored) {
         }
     }

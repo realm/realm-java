@@ -18,9 +18,9 @@ package io.realm.internal;
 
 class TestUtil {
 
-    public native static long getMaxExceptionNumber();
+    public static native long getMaxExceptionNumber();
 
-    public native static String getExpectedMessage(long exceptionKind);
+    public static native String getExpectedMessage(long exceptionKind);
 
-    public native static void testThrowExceptions(long exceptionKind);
+    public static native void testThrowExceptions(long exceptionKind);
 }

@@ -55,14 +55,6 @@ public abstract class RealmProxyMediator {
     public abstract RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema);
 
     /**
-     * Creates the backing table in Realm for the given RealmObject class.
-     *
-     * @param clazz the {@link RealmObject} model class to create backing table for.
-     * @param sharedRealm the wrapper object of underlying native database.
-     */
-    public abstract Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm);
-
-    /**
      * Validates the backing table in Realm for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} model class to validate.
