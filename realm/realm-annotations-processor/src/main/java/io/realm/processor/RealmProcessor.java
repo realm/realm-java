@@ -134,7 +134,7 @@ public class RealmProcessor extends AbstractProcessor {
     private final Set<Backlink> backlinksToValidate = new HashSet<Backlink>();
 
     private boolean hasProcessedModules = false;
-    private int round;
+    private int round = -1;
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -146,8 +146,7 @@ public class RealmProcessor extends AbstractProcessor {
         round++;
 
         if (round == 0) {
-            RealmVersionChecker updateChecker = RealmVersionChecker.getInstance(processingEnv);
-            updateChecker.executeRealmVersionUpdate();
+            RealmVersionChecker.getInstance(processingEnv).executeRealmVersionUpdate();
         }
 
         if (roundEnv.errorRaised()) { return true; }
