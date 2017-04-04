@@ -20,7 +20,7 @@
 
 ### Bug Fixes
 
-* Crash with `LoggicError` with `Bad version number` on notifier thread (#4369).
+* Crash with `LogicError` with `Bad version number` on notifier thread (#4369).
 
 ### Deprecated
 
