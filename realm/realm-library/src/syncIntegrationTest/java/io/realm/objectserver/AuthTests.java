@@ -6,6 +6,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
@@ -24,6 +27,8 @@ import io.realm.rule.RunTestInLooperThread;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertFalse;
+
 
 @RunWith(AndroidJUnit4.class)
 public class AuthTests extends BaseIntegrationTest {
@@ -61,12 +66,36 @@ public class AuthTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void login_withAccessToken() {
-        SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
-        SyncCredentials credentials = SyncCredentials.accessToken(admin.getAccessToken().value(), "custom-admin-user");
+    public void login_newUser() {
+        SyncCredentials credentials = SyncCredentials.usernamePassword("myUser", "password", true);
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
             public void onSuccess(SyncUser user) {
+                assertFalse(user.isAdmin());
+                try {
+                    assertEquals(new URL(Constants.AUTH_URL), user.getAuthenticationUrl());
+                } catch (MalformedURLException e) {
+                    fail(e.toString());
+                }
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void login_withAccessToken() {
+        SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        SyncCredentials credentials = SyncCredentials.accessToken(adminUser.getAccessToken().value(), "custom-admin-user", adminUser.isAdmin());
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                assertTrue(user.isAdmin());
                 final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override

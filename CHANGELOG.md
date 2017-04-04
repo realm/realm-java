@@ -15,6 +15,7 @@
   * Backlink verification is incomplete.  Evil code can cause native crashes.
 * [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface (#4080).
 * [ObjectServer] Authentication URLs now automatically append `/auth` if no other path segment is set (#4370).
+* [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
 * The listener on `RealmObject` will only be triggered if the object changes (#3894).
 * Added `RealmObjectChangeListener` to get detailed information about `RealmObject` changes.
 

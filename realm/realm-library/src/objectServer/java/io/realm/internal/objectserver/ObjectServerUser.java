@@ -130,7 +130,7 @@ public class ObjectServerUser {
         // Optimistically create a long-lived token with all permissions. If this is incorrect the Object Server
         // will reject it anyway. If tokens are added manually it is up to the user to ensure they are also used
         // correctly.
-        Token token = new Token(accessToken, null, uri.toString(), Long.MAX_VALUE, Token.Permission.values());
+        Token token = new Token(accessToken, null, uri.toString(), Long.MAX_VALUE, Token.Permission.values(), false);
         addRealm(uri, new AccessDescription(token, localPath, deleteOnLogout));
     }
 
@@ -190,6 +190,10 @@ public class ObjectServerUser {
 
     public Collection<AccessDescription> getRealms() {
         return realms.values();
+    }
+
+    public boolean isAdmin() {
+        return refreshToken.isAdmin();
     }
 
     // Wrapper for all Realm data needed by a User that might get serialized.

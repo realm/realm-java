@@ -156,6 +156,8 @@ public class SyncCredentials {
      * has logged in. Credentials created this way are automatically assumed to have successfully logged in.
      * This means that providing this credential to {@link SyncUser#login(SyncCredentials, String)} will always
      * succeed, but accessing any Realm after might fail if the token is no longer valid.
+     * <p>
+     * It is assumed that this user is not an administrator. Otherwise use {@link #accessToken(String, String, boolean)}.
      *
      * @param accessToken user's access token.
      * @param identifier user identifier.
@@ -163,8 +165,25 @@ public class SyncCredentials {
      *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
      */
     public static SyncCredentials accessToken(String accessToken, String identifier) {
+        return accessToken(accessToken, identifier, false);
+    }
+
+    /**
+     * Creates credentials from an existing access token. Since an access token is the proof that a user already
+     * has logged in. Credentials created this way are automatically assumed to have successfully logged in.
+     * This means that providing this credential to {@link SyncUser#login(SyncCredentials, String)} will always
+     * succeed, but accessing any Realm after might fail if the token is no longer valid.
+     *
+     * @param accessToken user's access token.
+     * @param identifier user identifier.
+     * @param isAdmin {@code true} if the access token is an administrators token, {@code false} if it is a normal users.
+     * @return a set of credentials that can be used to log into the Object Server using
+     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
+     */
+    public static SyncCredentials accessToken(String accessToken, String identifier, boolean isAdmin) {
         HashMap<String, Object> userInfo = new HashMap<String, Object>();
         userInfo.put("_token", accessToken);
+        userInfo.put("_isAdmin", isAdmin);
         return new SyncCredentials(identifier, IdentityProvider.ACCESS_TOKEN, userInfo);
     }
 

@@ -40,8 +40,10 @@ import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.util.SyncTestUtils;
 
+import static io.realm.util.SyncTestUtils.createTestAdminUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -117,7 +119,7 @@ public class SyncUserTests {
     private AuthenticateResponse getNewRandomUser() {
         String identity = UUID.randomUUID().toString();
         String userTokenValue = UUID.randomUUID().toString();
-        return SyncTestUtils.createLoginResponse(userTokenValue, identity, Long.MAX_VALUE);
+        return SyncTestUtils.createLoginResponse(userTokenValue, identity, Long.MAX_VALUE, false);
     }
 
     // Test that current user is cleared if it is logged out
@@ -153,6 +155,15 @@ public class SyncUserTests {
         Map<String, SyncUser> users = SyncUser.all();
         assertEquals(1, users.size());
         assertTrue(users.entrySet().iterator().next().getValue().isValid());
+    }
+
+    @Test
+    public void isAdmin() {
+        SyncUser user1 = createTestUser();
+        assertFalse(user1.isAdmin());
+
+        SyncUser user2 = createTestAdminUser();
+        assertTrue(user2.isAdmin());
     }
 
     // Tests that the user store returns the last user to login
