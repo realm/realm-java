@@ -381,6 +381,7 @@ public class Realm extends BaseRealm {
         // Everything in this method needs to be behind a transaction lock to prevent multi-process interaction while
         // the Realm is initialized.
         boolean commitChanges = false;
+        OsRealmSchema schema = null;
         try {
             realm.beginTransaction();
             long currentVersion = realm.getVersion();
@@ -395,7 +396,7 @@ public class Realm extends BaseRealm {
             }
 
             // Assumption: When SyncConfiguration then additive schema update mode.
-            final OsRealmSchema schema = new OsRealmSchema(schemaCreator);
+            schema = new OsRealmSchema(schemaCreator);
             long newVersion = realm.configuration.getSchemaVersion();
             // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
             // It absolutely breaks encapsulation and needs to be fixed!
@@ -411,7 +412,6 @@ public class Realm extends BaseRealm {
                 realm.setVersion(newVersion);
                 commitChanges = true;
             }
-            schema.close();
 
             final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
@@ -430,6 +430,9 @@ public class Realm extends BaseRealm {
             commitChanges = false;
             throw e;
         } finally {
+            if (schema != null) {
+                schema.close();
+            }
             if (commitChanges) {
                 realm.commitTransaction();
             } else {
