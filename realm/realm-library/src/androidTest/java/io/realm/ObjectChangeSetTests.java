@@ -338,13 +338,14 @@ public class ObjectChangeSetTests {
         realm.commitTransaction();
     }
 
+    // When there are more than 512 fields change, the JNI local ref table size limitation may be reached.
     @Test
     @RunTestInLooperThread
     public void moreFieldsChangedThanLocalRefTableSize() {
         final String CLASS_NAME = "ManyFields";
         final int FIELD_COUNT = 1024;
         RealmConfiguration config = looperThread.createConfiguration("many_fields");
-        DynamicRealm realm = DynamicRealm.getInstance(config);
+        final DynamicRealm realm = DynamicRealm.getInstance(config);
 
         realm.beginTransaction();
         RealmSchema schema = realm.getSchema();
@@ -359,6 +360,7 @@ public class ObjectChangeSetTests {
             @Override
             public void onChange(DynamicRealmObject object, ObjectChangeSet changeSet) {
                 assertEquals(FIELD_COUNT, changeSet.getChangedFields().length);
+                realm.close();
                 looperThread.testComplete();
             }
         });
