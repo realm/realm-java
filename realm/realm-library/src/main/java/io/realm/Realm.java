@@ -411,6 +411,7 @@ public class Realm extends BaseRealm {
                 realm.setVersion(newVersion);
                 commitChanges = true;
             }
+            schema.close();
 
             final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
