@@ -70,7 +70,8 @@ struct ChangeCallback {
             return;
         }
 
-        std::vector<jstring> field_names;
+        // The local ref of jstring needs to be released to avoid reach the local ref table size limitation.
+        std::vector<JavaGlobalRef> field_names;
         auto table = m_wrapper->m_object.row().get_table();
         for (size_t i = 0; i < change_set.columns.size(); ++i) {
             if (change_set.columns[i].empty()) {
@@ -78,11 +79,11 @@ struct ChangeCallback {
             }
             // FIXME: After full integration of the OS schema, parse the column name from
             // wrapper->m_object.get_object_schema() will be faster.
-            field_names.push_back(to_jstring(env, table->get_column_name(i)));
+            field_names.push_back(JavaGlobalRef(env, to_jstring(env, table->get_column_name(i)), true));
         }
         m_field_names_array = env->NewObjectArray(field_names.size(), java_lang_string, 0);
         for (size_t i = 0; i < field_names.size(); ++i) {
-            env->SetObjectArrayElement(m_field_names_array, i, field_names[i]);
+            env->SetObjectArrayElement(m_field_names_array, i, field_names[i].get());
         }
     }
 

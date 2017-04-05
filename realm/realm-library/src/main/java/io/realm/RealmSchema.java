@@ -54,7 +54,7 @@ public abstract class RealmSchema {
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
-    public abstract Set<RealmObjectSchema> getAll();
+    public abstract Set<? extends RealmObjectSchema> getAll();
 
     /**
      * Adds a new class to the Realm.
@@ -65,6 +65,23 @@ public abstract class RealmSchema {
     public abstract RealmObjectSchema create(String className);
 
     /**
+     * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
+     * to it will throw an {@link IllegalStateException}. Removes those classes or fields first.
+     *
+     * @param className name of the class to remove.
+     */
+    public abstract void remove(String className);
+
+    /**
+     * Renames a class already in the Realm.
+     *
+     * @param oldClassName old class name.
+     * @param newClassName new class name.
+     * @return a schema object for renamed class.
+     */
+    public abstract RealmObjectSchema rename(String oldClassName, String newClassName);
+
+    /**
      * Checks if a given class already exists in the schema.
      *
      * @param className class name to check.
@@ -72,19 +89,35 @@ public abstract class RealmSchema {
      */
     public abstract boolean contains(String className);
 
-    final void setColumnIndices(ColumnIndices columnIndices) {
+    final void setInitialColumnIndices(ColumnIndices columnIndices) {
+        if (this.columnIndices != null) {
+            throw new IllegalStateException("An instance of ColumnIndices is already set.");
+        }
         this.columnIndices = columnIndices.clone();
     }
 
-    final void setColumnIndices(long version, Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap) {
+    final void setInitialColumnIndices(long version, Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap) {
+        if (this.columnIndices != null) {
+            throw new IllegalStateException("An instance of ColumnIndices is already set.");
+        }
         columnIndices = new ColumnIndices(version, columnInfoMap);
     }
 
-    void setColumnIndices(ColumnIndices cacheForCurrentVersion, RealmProxyMediator mediator) {
-        columnIndices.copyFrom(cacheForCurrentVersion, mediator);
+    /**
+     * Updates all {@link ColumnInfo} elements in {@code columnIndices}.
+     *
+     * <p>
+     * The ColumnInfo elements are shared between all {@link RealmObject}s created by the Realm instance
+     * which owns this RealmSchema. Updating them also means updating indices information in those {@link RealmObject}s.
+     *
+     * @param schemaVersion new schema version.
+     * @param mediator mediator for the Realm.
+     */
+    void updateColumnIndices(ColumnIndices schemaVersion, RealmProxyMediator mediator) {
+        columnIndices.copyFrom(schemaVersion, mediator);
     }
 
-    final ColumnIndices getColumnIndices() {
+    final ColumnIndices cloneColumnIndices() {
         checkIndices();
         return columnIndices.clone();
     }

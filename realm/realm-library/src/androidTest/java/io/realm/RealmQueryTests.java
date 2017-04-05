@@ -98,7 +98,7 @@ public class RealmQueryTests {
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date(DECADE_MILLIS * (i - (dataSize / 2))));
-            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnDouble(Math.PI);
             allTypes.setColumnFloat(1.2345f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -139,8 +139,8 @@ public class RealmQueryTests {
             noPrimaryKeyNullTypes.setFieldLongNotNull((long) i);
             noPrimaryKeyNullTypes.setFieldFloatNull((i % 3) == 0 ? null : 1.2345f + i);
             noPrimaryKeyNullTypes.setFieldFloatNotNull(1.2345f + i);
-            noPrimaryKeyNullTypes.setFieldDoubleNull((i % 3) == 0 ? null : 3.1415 + i);
-            noPrimaryKeyNullTypes.setFieldDoubleNotNull(3.1415 + i);
+            noPrimaryKeyNullTypes.setFieldDoubleNull((i % 3) == 0 ? null : Math.PI + i);
+            noPrimaryKeyNullTypes.setFieldDoubleNotNull(Math.PI + i);
             noPrimaryKeyNullTypes.setFieldDateNull((i % 3) == 0 ? null : new Date(DECADE_MILLIS * (i - (dataSize / 2))));
             noPrimaryKeyNullTypes.setFieldDateNotNull(new Date(DECADE_MILLIS * (i - (dataSize / 2))));
         }
@@ -821,13 +821,13 @@ public class RealmQueryTests {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{3.1415d + 1}).findAll();
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{Math.PI + 1}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{3.1415d + 2}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{Math.PI + 2}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{3.1415d + 1, 3.1415d + 2}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{Math.PI + 1, Math.PI + 2}).findAll();
         assertEquals(2, resultList.size());
-        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Double[]{3.1415d + 1, 3.1415d + 2}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Double[]{Math.PI + 1, Math.PI + 2}).findAll();
         assertEquals(198, resultList.size());
     }
 
@@ -996,7 +996,7 @@ public class RealmQueryTests {
     public void in_doubleNotNull() {
         doTestForInDouble(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL);
         try {
-            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL, new Double[]{3.1415d + 1, null, 3.1415d + 2}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL, new Double[]{Math.PI + 1, null, Math.PI + 2}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -1005,7 +1005,7 @@ public class RealmQueryTests {
     @Test
     public void in_doubleNull() {
         doTestForInDouble(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL);
-        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL, new Double[]{3.1415d + 1, null, 3.1415d + 2}).findAll();
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL, new Double[]{Math.PI + 1, null, Math.PI + 2}).findAll();
         assertEquals(131, resultList.size());
     }
 
@@ -3060,11 +3060,11 @@ public class RealmQueryTests {
                 AnnotationIndexTypes obj = realm.createObject(AnnotationIndexTypes.class);
                 obj.setIndexBoolean(j % 2 == 0);
                 obj.setIndexLong(j);
-                obj.setIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setIndexDate(withNull ? null : new Date(1000L * j));
                 obj.setIndexString(withNull ? null : "Test " + j);
                 obj.setNotIndexBoolean(j % 2 == 0);
                 obj.setNotIndexLong(j);
-                obj.setNotIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setNotIndexDate(withNull ? null : new Date(1000L * j));
                 obj.setNotIndexString(withNull ? null : "Test " + j);
                 obj.setFieldObject(obj);
             }

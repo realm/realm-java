@@ -168,7 +168,7 @@ public class RealmTests {
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date());
-            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnDouble(Math.PI);
             allTypes.setColumnFloat(1.234567f + i);
 
             allTypes.setColumnString("test data " + i);
@@ -370,13 +370,13 @@ public class RealmTests {
         }
 
         try {
-            realm.where(AllTypes.class).equalTo("invalidcolumnname", 3.1415d).findAll();
+            realm.where(AllTypes.class).equalTo("invalidcolumnname", Math.PI).findAll();
             fail("Invalid field name");
         } catch (Exception ignored) {
         }
 
         try {
-            realm.where(AllTypes.class).equalTo("invalidcolumnname", 3.1415f).findAll();
+            realm.where(AllTypes.class).equalTo("invalidcolumnname", Math.PI).findAll();
             fail("Invalid field name");
         } catch (Exception ignored) {
         }
@@ -455,7 +455,7 @@ public class RealmTests {
 
         realm.beginTransaction();
         AllTypes allTypes = realm.createObject(AllTypes.class);
-        allTypes.setColumnFloat(3.1415f);
+        allTypes.setColumnFloat(3.14F);
         allTypes.setColumnString("a unique string");
         realm.commitTransaction();
 
@@ -464,7 +464,7 @@ public class RealmTests {
 
         resultList = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_STRING, "a unique string").findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 3.1415f).findAll();
+        resultList = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 3.14F).findAll();
         assertEquals(1, resultList.size());
     }
 
@@ -3694,7 +3694,7 @@ public class RealmTests {
 
         // get the pre-update index for the "name" column.
         CatRealmProxy.CatColumnInfo catColumnInfo
-                = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnIndices().getColumnInfo(Cat.class);
+                = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnInfo(Cat.class);
         final long nameIndex = catColumnInfo.nameIndex;
 
         // Change the index of the column "name".
@@ -3717,7 +3717,7 @@ public class RealmTests {
         assertNotEquals(nameIndex, nameIndexNew);
 
         // Verify that the index in the ColumnInfo has been updated.
-        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnIndices().getColumnInfo(Cat.class);
+        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnInfo(Cat.class);
         assertEquals(nameIndexNew.get(), catColumnInfo.nameIndex);
         assertEquals(nameIndexNew.get(), (long) catColumnInfo.getIndicesMap().get(Cat.FIELD_NAME));
 

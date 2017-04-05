@@ -293,7 +293,7 @@ public class Realm extends BaseRealm {
 
         if (columnIndices != null) {
             // Copies global cache as a Realm local indices cache.
-            realm.schema.setColumnIndices(columnIndices);
+            realm.schema.setInitialColumnIndices(columnIndices);
         } else {
             final boolean syncingConfig = configuration.isSyncConfiguration();
 
@@ -337,30 +337,34 @@ public class Realm extends BaseRealm {
             boolean unversioned = currentVersion == UNVERSIONED;
             commitChanges = unversioned;
 
+            RealmConfiguration configuration = realm.getConfiguration();
+
             if (unversioned) {
-                realm.setVersion(realm.configuration.getSchemaVersion());
+                realm.setVersion(configuration.getSchemaVersion());
             }
-            final RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
+
+            final RealmProxyMediator mediator = configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
-            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             if (unversioned) {
                 // Create all of the tables.
                 for (Class<? extends RealmModel> modelClass : modelClasses) {
-                    mediator.createTable(modelClass, realm.sharedRealm);
+                    mediator.createRealmObjectSchema(modelClass, realm.getSchema());
                 }
             }
+
+            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 // Now that they have all been created, validate them.
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
-            realm.schema.setColumnIndices(
-                    (unversioned) ? realm.configuration.getSchemaVersion() : currentVersion,
+            realm.getSchema().setInitialColumnIndices(
+                    (unversioned) ? configuration.getSchemaVersion() : currentVersion,
                     columnInfoMap);
 
             if (unversioned) {
-                final Transaction transaction = realm.configuration.getInitialDataTransaction();
+                final Transaction transaction = configuration.getInitialDataTransaction();
                 if (transaction != null) {
                     transaction.execute(realm);
                 }
@@ -377,16 +381,19 @@ public class Realm extends BaseRealm {
         }
     }
 
+    // Everything in this method needs to be behind a transaction lock
+    // to prevent multi-process interaction while the Realm is initialized.
     private static void initializeSyncedRealm(Realm realm) {
-        // Everything in this method needs to be behind a transaction lock to prevent multi-process interaction while
-        // the Realm is initialized.
         boolean commitChanges = false;
+        OsRealmSchema schema = null;
         try {
             realm.beginTransaction();
             long currentVersion = realm.getVersion();
-            final boolean unversioned = (currentVersion == UNVERSIONED);
+            final boolean unversioned = currentVersion == UNVERSIONED;
 
-            final RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
+            RealmConfiguration configuration = realm.getConfiguration();
+
+            final RealmProxyMediator mediator = configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
             final OsRealmSchema.Creator schemaCreator = new OsRealmSchema.Creator();
@@ -395,16 +402,18 @@ public class Realm extends BaseRealm {
             }
 
             // Assumption: When SyncConfiguration then additive schema update mode.
-            final OsRealmSchema schema = new OsRealmSchema(schemaCreator);
-            long newVersion = realm.configuration.getSchemaVersion();
+            schema = new OsRealmSchema(schemaCreator);
+            long newVersion = configuration.getSchemaVersion();
             // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
             // It absolutely breaks encapsulation and needs to be fixed!
             long schemaNativePointer = schema.getNativePtr();
             if (realm.sharedRealm.requiresMigration(schemaNativePointer)) {
                 if (currentVersion >= newVersion) {
-                    throw new IllegalArgumentException(String.format("The schema was changed but the schema version " +
-                            "was not updated. The configured schema version (%d) must be higher than the one in the Realm " +
-                            "file (%d) in order to update the schema.", newVersion, currentVersion));
+                    throw new IllegalArgumentException(String.format(
+                            "The schema was changed but the schema version was not updated. " +
+                                    "The configured schema version (%d) must be greater than the version " +
+                                    " in the Realm file (%d) in order to update the schema.",
+                            newVersion, currentVersion));
                 }
                 realm.sharedRealm.updateSchema(schemaNativePointer, newVersion);
                 // The OS currently does not handle setting the schema version. We have to do it manually.
@@ -417,10 +426,12 @@ public class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
-            realm.getSchema().setColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
+            realm.getSchema().setInitialColumnIndices(
+                    (unversioned) ? newVersion : currentVersion,
+                    columnInfoMap);
 
             if (unversioned) {
-                final Transaction transaction = realm.configuration.getInitialDataTransaction();
+                final Transaction transaction = configuration.getInitialDataTransaction();
                 if (transaction != null) {
                     transaction.execute(realm);
                 }
@@ -429,6 +440,9 @@ public class Realm extends BaseRealm {
             commitChanges = false;
             throw e;
         } finally {
+            if (schema != null) {
+                schema.close();
+            }
             if (commitChanges) {
                 realm.commitTransaction();
             } else {
@@ -1680,7 +1694,7 @@ public class Realm extends BaseRealm {
 
             cacheForCurrentVersion = createdGlobalCache = new ColumnIndices(currentSchemaVersion, map);
         }
-        schema.setColumnIndices(cacheForCurrentVersion, mediator);
+        schema.updateColumnIndices(cacheForCurrentVersion, mediator);
         return createdGlobalCache;
     }
 

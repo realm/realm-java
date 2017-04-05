@@ -1,61 +1,48 @@
-## 3.1.0 (YYYY-MM-DD)
+## 3.2.0 (YYYY-MM-DD)
+
+### Enhancements
+
+* [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
+
+
+
+## 3.1.0 (2017-04-05)
 
 ### Breaking Changes
 
-* Updated file format of Realm files. Existing Realm files will automatically be migrated to the new format when they are opened.
+* Updated file format of Realm files. Existing Realm files will automatically be migrated to the new format when they are opened, but older versions of Realm cannot open these files.
 * [ObjectServer] Due to file format changes, Realm Object Server 1.3.0 or later is required.
 
 ### Enhancements
 
-* The real `RealmMigrationNeededException` is now thrown instead of `IllegalArgumentException` if no migration is provided for a Realm that requires it.
-* Partial implementation of `LinkingObjects`.  There is documentation in `io.realm.annotations.LinkingObjects`.  Internal docs are in `io.realm.processor.Backlink`.
-  * Queries on linking objects do not work.  Queries like `were(...).equalTo("field.linkingObjects.id", 7).findAll()` are not yet supported.
-  * Linking objects are not yet supported on dynamic objects
-  * Migration for linking objects is not yet supported.
+* Added support for reverse relationships through the `@LinkingObjects` annotation. See `io.realm.annotations.LinkingObjects` for documentation.  
+  * This feature is in `@Beta`.
+  * Queries on linking objects do not work.  Queries like `where(...).equalTo("field.linkingObjects.id", 7).findAll()` are not yet supported.
   * Backlink verification is incomplete.  Evil code can cause native crashes.
+* The listener on `RealmObject` will only be triggered if the object changes (#3894).
+* Added `RealmObjectChangeListener` interface that provide detailed information about `RealmObject` field changes.
+* Listeners on `RealmList` and `RealmResults` will be triggered immediately when the transaction is committed on the same thread (#4245).
+* The real `RealmMigrationNeededException` is now thrown instead of `IllegalArgumentException` if no migration is provided for a Realm that requires it.
+* `RealmQuery.distinct()` can be performed on unindexed fields (#2285).
+* `targetSdkVersion` is now 25.
 * [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface (#4080).
 * [ObjectServer] Authentication URLs now automatically append `/auth` if no other path segment is set (#4370).
-* [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
-* The listener on `RealmObject` will only be triggered if the object changes (#3894).
-* Added `RealmObjectChangeListener` to get detailed information about `RealmObject` changes.
 
 ### Bug Fixes
 
 * Crash with `LogicError` with `Bad version number` on notifier thread (#4369).
-
-### Deprecated
-
-### Internal
-
-* Using the Object Store's Session and SyncManager.
-* Upgraded to Realm Sync 1.5.0.
-* Upgraded to Realm Core 2.5.1.
-
-
-## 3.0.1 (YYYY-MM-DD)
-
-### Enhancements
-
-* Now using Gradle 3.4.1
-* Now `targetSdkVersion` is 25.
-* Listeners on `RealmList` and `RealmResults` will be triggered immediately when the transaction is committed on the same thread (#4245).
-* `RealmQuery.distinct()` can be performed on unindexed fields (#2285).
-
-### Bug Fixes
-
 * `Realm.migrateRealm(RealmConfiguration)` now fails correctly with an `IllegalArgumentException` if a `SyncConfiguration` is provided (#4075).
 * Fixed a potential cause for Realm file corruptions (never reported).
 * Add `@Override` annotation to proxy class accessors and stop using raw type in proxy classes in order to remove warnings from javac (#4329).
 * `findFirstAsync()` now returns an invalid object if there is no object matches the query condition instead of running the query repeatedly until it can find one (#4352).
 * [ObjectServer] Changing the log level after starting a session now works correctly (#4337).
 
-### Deprecated
-
 ### Internal
 
-* Upgraded to Realm Sync 1.3.2.
-* Upgraded to Realm Core 2.4.0.
-
+* Using the Object Store's Session and SyncManager.
+* Upgraded to Realm Sync 1.5.0.
+* Upgraded to Realm Core 2.5.1.
+* Upgraded Gradle to 3.4.1
 
 ## 3.0.0 (2017-02-28)
 

@@ -145,22 +145,11 @@ public class SimpleRealmProxy extends some.test.Simple
     public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
         if (!realmSchema.contains("Simple")) {
             RealmObjectSchema realmObjectSchema = realmSchema.create("Simple");
-            realmObjectSchema.add(new Property("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
-            realmObjectSchema.add(new Property("age", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+            realmObjectSchema.add("age", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
             return realmObjectSchema;
         }
         return realmSchema.get("Simple");
-    }
-
-    public static Table initTable(SharedRealm sharedRealm) {
-        if (!sharedRealm.hasTable("class_Simple")) {
-            Table table = sharedRealm.getTable("class_Simple");
-            table.addColumn(RealmFieldType.STRING, "name", Table.NULLABLE);
-            table.addColumn(RealmFieldType.INTEGER, "age", Table.NOT_NULLABLE);
-            table.setPrimaryKey("");
-            return table;
-        }
-        return sharedRealm.getTable("class_Simple");
     }
 
     public static SimpleColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
