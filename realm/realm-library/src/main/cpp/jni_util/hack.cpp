@@ -21,6 +21,11 @@
 
 #include <realm/util/assert.hpp>
 
+#ifndef REALM_WRAP_MEMMOVE
+#error "REALM_WRAP_MEMMOVE is not defined!"
+#endif
+
+#if REALM_WRAP_MEMMOVE
 extern "C" {
 void* __wrap_memmove(void *dest, const void *src, size_t n);
 void* __real_memmove(void *dest, const void *src, size_t n);
@@ -74,13 +79,16 @@ static void check_memmove()
     }
     free(array);
 }
+#endif
 
 namespace realm {
 namespace jni_util {
 
 void hack_init()
 {
+#if REALM_WRAP_MEMMOVE
     check_memmove();
+#endif
 }
 
 }
