@@ -166,6 +166,18 @@ public class SyncUserTests {
         assertTrue(user2.isAdmin());
     }
 
+    @Test
+    public void isAdmin_allUsers() {
+        UserStore userStore = SyncManager.getUserStore();
+        SyncUser user = SyncTestUtils.createTestAdminUser();
+        assertTrue(user.isAdmin());
+        userStore.put(user);
+
+        Map <String, SyncUser> users = SyncUser.all();
+        assertEquals(1, users.size());
+        assertTrue(users.entrySet().iterator().next().getValue().isAdmin());
+    }
+
     // Tests that the user store returns the last user to login
     /* FIXME: This test fails because of wrong JSON string.
     @Test
