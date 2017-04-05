@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
@@ -29,5 +28,5 @@ android {
 
 dependencies {
     provided 'org.projectlombok:lombok:1.16.6'
-    apt 'org.projectlombok:lombok:1.16.6'
+    annotationProcessor 'org.projectlombok:lombok:1.16.6'
 }
