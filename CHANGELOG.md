@@ -1,12 +1,8 @@
 ## 3.2.0 (YYYY-MM-DD)
 
-
-## 3.1.0 (2017-04-05)
-
 ### Enhancements
 
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore' annotation (#4279).
-* Allow extending 
 
 
 ## 3.1.0 (YYYY-MM-DD)
