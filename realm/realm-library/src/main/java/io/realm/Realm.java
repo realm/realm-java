@@ -385,6 +385,7 @@ public class Realm extends BaseRealm {
     // to prevent multi-process interaction while the Realm is initialized.
     private static void initializeSyncedRealm(Realm realm) {
         boolean commitChanges = false;
+        OsRealmSchema schema = null;
         try {
             realm.beginTransaction();
             long currentVersion = realm.getVersion();
@@ -401,7 +402,7 @@ public class Realm extends BaseRealm {
             }
 
             // Assumption: When SyncConfiguration then additive schema update mode.
-            final OsRealmSchema schema = new OsRealmSchema(schemaCreator);
+            schema = new OsRealmSchema(schemaCreator);
             long newVersion = configuration.getSchemaVersion();
             // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
             // It absolutely breaks encapsulation and needs to be fixed!
@@ -439,6 +440,9 @@ public class Realm extends BaseRealm {
             commitChanges = false;
             throw e;
         } finally {
+            if (schema != null) {
+                schema.close();
+            }
             if (commitChanges) {
                 realm.commitTransaction();
             } else {
