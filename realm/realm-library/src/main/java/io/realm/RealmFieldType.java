@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 
 import io.realm.internal.Keep;
 
+
 /**
  * List of the types used by Realm's underlying storage engine.
  * <p>
@@ -46,6 +47,7 @@ public enum RealmFieldType {
 
     // Primitive array for fast mapping between between native values and their Realm type.
     private static RealmFieldType[] typeList = new RealmFieldType[15];
+
     static {
         RealmFieldType[] columnTypes = values();
         for (int i = 0; i < columnTypes.length; i++) {
@@ -77,19 +79,32 @@ public enum RealmFieldType {
      */
     public boolean isValid(Object obj) {
         switch (nativeValue) {
-            case 0: return (obj instanceof Long || obj instanceof Integer || obj instanceof Short || obj instanceof Byte);
-            case 1: return (obj instanceof Boolean);
-            case 2: return (obj instanceof String);
-            case 4: return (obj instanceof byte[] || obj instanceof ByteBuffer);
-            case 5: return (obj == null || obj instanceof Object[][]);
-            case 7: return (obj instanceof java.util.Date); // The unused DateTime.
-            case 8: return (obj instanceof java.util.Date);
-            case 9: return (obj instanceof Float);
-            case 10: return (obj instanceof Double);
-            case 12: return false;
-            case 13: return false;
-            case 14: return false;
-            default: throw new RuntimeException("Unsupported Realm type:  " + this);
+            case 0:
+                return (obj instanceof Long || obj instanceof Integer || obj instanceof Short || obj instanceof Byte);
+            case 1:
+                return (obj instanceof Boolean);
+            case 2:
+                return (obj instanceof String);
+            case 4:
+                return (obj instanceof byte[] || obj instanceof ByteBuffer);
+            case 5:
+                return (obj == null || obj instanceof Object[][]);
+            case 7:
+                return (obj instanceof java.util.Date); // The unused DateTime.
+            case 8:
+                return (obj instanceof java.util.Date);
+            case 9:
+                return (obj instanceof Float);
+            case 10:
+                return (obj instanceof Double);
+            case 12:
+                return false;
+            case 13:
+                return false;
+            case 14:
+                return false;
+            default:
+                throw new RuntimeException("Unsupported Realm type:  " + this);
         }
     }
 

@@ -21,6 +21,7 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+
 /**
  * An ObserverPairList holds a list of ObserverPairs. An {@link ObserverPair} is pair containing an observer and a
  * listener. The observer is the object to react to the changes through the listener. The observer is saved as a weak
@@ -32,13 +33,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * @param <T> the type of {@link ObserverPair}.
  */
-class ObserverPairList<T extends ObserverPairList.ObserverPair> {
+public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
 
     /**
      * @param <T> the type of observer.
      * @param <S> the type of listener.
      */
-    abstract static class ObserverPair<T, S> {
+    public abstract static class ObserverPair<T, S> {
         final WeakReference<T> observerRef;
         protected final S listener;
         // Should only be set by the outer class. To marked it as removed in case it is removed in foreach callback.
@@ -80,7 +81,7 @@ class ObserverPairList<T extends ObserverPairList.ObserverPair> {
      *
      * @param <T> type of ObserverPair.
      */
-    interface Callback<T extends ObserverPair> {
+    public interface Callback<T extends ObserverPair> {
         void onCalled(T pair, Object observer);
     }
 
@@ -95,7 +96,7 @@ class ObserverPairList<T extends ObserverPairList.ObserverPair> {
      *
      * @param callback to be executed on the pair.
      */
-    void foreach(Callback<T> callback) {
+    public void foreach(Callback<T> callback) {
         for (T pair : pairs) {
             if (cleared) {
                 break;

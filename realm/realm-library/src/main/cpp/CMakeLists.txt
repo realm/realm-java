@@ -36,16 +36,19 @@ set(classes_LIST
     io.realm.internal.Table io.realm.internal.CheckedRow
     io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
-    io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.RealmSchema
-    io.realm.RealmObjectSchema io.realm.internal.Collection
+    io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.OsRealmSchema
+    io.realm.OsRealmObjectSchema io.realm.internal.Collection
     io.realm.internal.NativeObjectReference io.realm.internal.CollectionChangeSet
+    io.realm.internal.OsObject
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319
 set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
-        io.realm.SyncManager io.realm.internal.objectserver.ObjectServerSession io.realm.RealmFileUserStore)
+        io.realm.ClientResetRequiredError io.realm.RealmFileUserStore
+        io.realm.SyncManager io.realm.SyncSession
+    )
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
@@ -84,23 +87,25 @@ add_library(lib_realm_core STATIC IMPORTED)
 set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_PATH}
                                                 IMPORTED_LINK_INTERFACE_LIBRARIES atomic)
 
-# Sync static library
-set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-${ANDROID_ABI}.a)
-# Workaround for old core's funny ABI nicknames
-if (NOT EXISTS ${sync_lib_PATH})
-    if (ARMEABI)
-        set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm.a)
-    elseif (ARMEABI_V7A)
-        set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm-v7a.a)
-    elseif (ARM64_V8A)
-        set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm64.a)
-    else()
-        message(FATAL_ERROR "Cannot find core lib file: ${sync_lib_PATH}")
+if (build_SYNC)
+    # Sync static library
+    set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-${ANDROID_ABI}.a)
+    # Workaround for old core's funny ABI nicknames
+    if (NOT EXISTS ${sync_lib_PATH})
+        if (ARMEABI)
+            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm.a)
+        elseif (ARMEABI_V7A)
+            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm-v7a.a)
+        elseif (ARM64_V8A)
+            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm64.a)
+        else()
+            message(FATAL_ERROR "Cannot find sync lib file: ${sync_lib_PATH}")
+        endif()
     endif()
+    add_library(lib_realm_sync STATIC IMPORTED)
+    set_target_properties(lib_realm_sync PROPERTIES IMPORTED_LOCATION ${sync_lib_PATH}
+                                                    IMPORTED_LINK_INTERFACE_LIBRARIES lib_realm_core)
 endif()
-add_library(lib_realm_sync STATIC IMPORTED)
-set_target_properties(lib_realm_sync PROPERTIES IMPORTED_LOCATION ${sync_lib_PATH}
-                                                IMPORTED_LINK_INTERFACE_LIBRARIES lib_realm_core)
 
 # build application's shared lib
 include_directories(${REALM_CORE_DIST_DIR}/include
@@ -153,9 +158,11 @@ file(GLOB jni_SRC
 # Those source file are only needed for sync.
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ClientResetRequiredError.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFileUserStore.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectserver_ObjectServerSession.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFileUserStore.cpp)
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
+    )
 endif()
 
 # Object Store source files

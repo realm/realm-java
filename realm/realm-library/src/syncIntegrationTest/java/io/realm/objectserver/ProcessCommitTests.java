@@ -22,8 +22,6 @@ import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +44,6 @@ import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.service.SendOneCommit;
 import io.realm.objectserver.service.SendsALot;
 import io.realm.objectserver.utils.Constants;
-import io.realm.objectserver.utils.HttpUtils;
 import io.realm.objectserver.utils.UserFactory;
 
 import static org.junit.Assert.assertEquals;

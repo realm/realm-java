@@ -16,14 +16,14 @@
 
 #include <jni.h>
 
+#include "jni_util/jni_utils.hpp"
+#include "jni_util/hack.hpp"
+
 #include <realm/string_data.hpp>
 #include <realm/unicode.hpp>
 
 #include "mem_usage.hpp"
 #include "util.hpp"
-
-#include "jni_util/jni_utils.hpp"
-#include "jni_util/hack.hpp"
 
 using std::string;
 using namespace realm::jni_util;
@@ -74,6 +74,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void*)
         env->DeleteGlobalRef(java_lang_double);
         env->DeleteGlobalRef(java_util_date);
         env->DeleteGlobalRef(java_lang_string);
+        JniUtils::release();
     }
 }
 

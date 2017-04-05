@@ -499,11 +499,11 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         // See setUp() for values of fields.
         // N = TEST_DATA_SIZE
 
-        // Type: double; a = 3.1415
+        // Type: double; a = Math.PI
         // a, a+1, ..., a+i, ..., a+N-1
-        // sum = 3.1415*N + N*(N-1)/2
-        // average = sum/N = 3.1415+(N-1)/2
-        double average = 3.1415 + (N - 1.0) * 0.5;
+        // sum = Math.PI*N + N*(N-1)/2
+        // average = sum/N = Math.PI+(N-1)/2
+        double average = Math.PI + (N - 1.0) * 0.5;
         assertEquals(average, collection.average(AllJavaTypes.FIELD_DOUBLE), 0.0001);
 
         // Type: long
@@ -575,7 +575,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertEquals(sizeAfterRemove - 1, collection.max(AllJavaTypes.FIELD_LONG).intValue());
         // Sum of numbers 0 to M-1: (M-1)*M/2
         assertEquals((sizeAfterRemove - 1) * sizeAfterRemove / 2, collection.sum(AllJavaTypes.FIELD_LONG).intValue());
-        double average = 3.1415 + (sizeAfterRemove - 1.0) * 0.5;
+        double average = Math.PI + (sizeAfterRemove - 1.0) * 0.5;
         assertEquals(average, collection.average(AllJavaTypes.FIELD_DOUBLE), 0.0001);
         assertEquals(new Date(YEAR_MILLIS * 20 * (sizeAfterRemove / 2 - 1)), collection.maxDate(AllJavaTypes.FIELD_DATE));
         assertEquals(new Date(-YEAR_MILLIS * 20 * TEST_SIZE / 2), collection.minDate(AllJavaTypes.FIELD_DATE));

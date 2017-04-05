@@ -23,18 +23,17 @@ package io.realm;
 
 class Property {
     public static final boolean PRIMARY_KEY = true;
-    public static final boolean REQUIRED    = true;
-    public static final boolean INDEXED     = true;
+    public static final boolean REQUIRED = true;
+    public static final boolean INDEXED = true;
 
     private final long nativePtr;
 
-    public Property(String name, RealmFieldType type, boolean isPrimary, boolean isIndexed, boolean isRequired) {
+    Property(String name, RealmFieldType type, boolean isPrimary, boolean isIndexed, boolean isRequired) {
         this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), isPrimary, isIndexed, !isRequired);
     }
 
-    public Property(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
-        String linkedToName = linkedTo.getClassName();
-        this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), linkedToName);
+    Property(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
+        this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), linkedTo.getClassName());
     }
 
     protected Property(long nativePtr) {
@@ -52,6 +51,8 @@ class Property {
     }
 
     private static native long nativeCreateProperty(String name, int type, boolean isPrimary, boolean isIndexed, boolean isNullable);
+
     private static native long nativeCreateProperty(String name, int type, String linkedToName);
+
     private static native void nativeClose(long nativePtr);
 }

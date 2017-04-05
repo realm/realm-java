@@ -26,6 +26,7 @@ import java.util.Locale;
 
 import io.realm.BuildConfig;
 
+
 /**
  * Utility methods for Realm Core.
  */
@@ -48,7 +49,7 @@ public class RealmCore {
      * can be damaged or missing. This happens for the Android installer, especially when apps are installed
      * through other means than the official Play store. In this case, the .so file can be found in the .apk.
      * In other to access the .apk, an {@link android.content.Context} must be provided.
-     *
+     * <p>
      * Although loadLibrary is synchronized internally from AOSP 4.3, for compatibility reasons,
      * KEEP synchronized here for old devices!
      */
@@ -65,8 +66,7 @@ public class RealmCore {
         try {
             addNativeLibraryPath(BINARIES_PATH);
             resetLibraryPath();
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             // Above can't be used on Android.
         }
 //*/
@@ -80,7 +80,7 @@ public class RealmCore {
             if (jnilib == null) {
                 System.err.println("Searched java.library.path=" + System.getProperty("java.library.path"));
                 throw new RuntimeException("Couldn't load the Realm JNI library 'realm_jni32.dll or realm_jni64.dll" +
-                                           "'. Please include the directory to the library in java.library.path.");
+                        "'. Please include the directory to the library in java.library.path.");
             }
         }
         return jnilib;

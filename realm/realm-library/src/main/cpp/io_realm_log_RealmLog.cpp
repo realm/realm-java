@@ -82,3 +82,22 @@ JNIEXPORT jint JNICALL Java_io_realm_log_RealmLog_nativeGetLogLevel(JNIEnv* env,
 
     return static_cast<jint>(Log::Level::all);
 }
+
+// Methods for testing only.
+JNIEXPORT jlong JNICALL Java_io_realm_log_RealmLog_nativeCreateCoreLoggerBridge(JNIEnv* env, jclass, jstring tag)
+{
+    return reinterpret_cast<jlong>(new CoreLoggerBridge(JStringAccessor(env, tag)));
+}
+
+JNIEXPORT void JNICALL Java_io_realm_log_RealmLog_nativeCloseCoreLoggerBridge(JNIEnv*, jclass, jlong native_ptr)
+{
+    delete reinterpret_cast<CoreLoggerBridge*>(native_ptr);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_log_RealmLog_nativeLogToCoreLoggerBridge(JNIEnv* env, jclass, jlong native_ptr,
+                                                                              jint level, jstring msg)
+{
+    CoreLoggerBridge* bridge = reinterpret_cast<CoreLoggerBridge*>(native_ptr);
+    std::string message = JStringAccessor(env, msg);
+    bridge->log(Log::convert_to_core_log_level(static_cast<Log::Level>(level)), message.c_str());
+}

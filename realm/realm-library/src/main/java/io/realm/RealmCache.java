@@ -26,10 +26,11 @@ import java.util.Map;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
-import io.realm.internal.ObjectServerFacade;
+
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.
@@ -50,12 +51,13 @@ final class RealmCache {
 
     private static class RefAndCount {
         // The Realm instance in this thread.
-        private final ThreadLocal<BaseRealm> localRealm = new ThreadLocal<BaseRealm>();
+        private final ThreadLocal<BaseRealm> localRealm = new ThreadLocal<>();
         // How many references to this Realm instance in this thread.
-        private final ThreadLocal<Integer> localCount = new ThreadLocal<Integer>();
+        private final ThreadLocal<Integer> localCount = new ThreadLocal<>();
         // How many threads have instances refer to this configuration.
         private int globalCount = 0;
     }
+
     private enum RealmCacheType {
         TYPED_REALM,
         DYNAMIC_REALM;
@@ -70,6 +72,7 @@ final class RealmCache {
             throw new IllegalArgumentException(WRONG_REALM_CLASS_MESSAGE);
         }
     }
+
     // Separated references and counters for typed Realm and dynamic Realm.
     private final EnumMap<RealmCacheType, RefAndCount> refAndCountMap;
 
@@ -82,14 +85,14 @@ final class RealmCache {
 
     // Realm path will be used as the key to store different RealmCaches. Different Realm configurations with same path
     // are not allowed and an exception will be thrown when trying to add it to the cache map.
-    private static Map<String, RealmCache> cachesMap = new HashMap<String, RealmCache>();
+    private static final Map<String, RealmCache> cachesMap = new HashMap<>();
 
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
     private static final String WRONG_REALM_CLASS_MESSAGE = "The type of Realm class must be Realm or DynamicRealm.";
 
     private RealmCache(RealmConfiguration config) {
         configuration = config;
-        refAndCountMap = new EnumMap<RealmCacheType, RefAndCount>(RealmCacheType.class);
+        refAndCountMap = new EnumMap<>(RealmCacheType.class);
         for (RealmCacheType type : RealmCacheType.values()) {
             refAndCountMap.put(type, new RefAndCount());
         }
@@ -103,7 +106,7 @@ final class RealmCache {
      * @return the {@link Realm} or {@link DynamicRealm} instance.
      */
     static synchronized <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration,
-                                                        Class<E> realmClass) {
+            Class<E> realmClass) {
         boolean isCacheInMap = true;
         RealmCache cache = cachesMap.get(configuration.getPath());
         if (cache == null) {
@@ -137,7 +140,6 @@ final class RealmCache {
             // Creates a new local Realm instance
             BaseRealm realm;
 
-
             if (realmClass == Realm.class) {
                 // RealmMigrationNeededException might be thrown here.
                 realm = Realm.createInstance(configuration, cache.typedColumnIndicesArray);
@@ -162,7 +164,7 @@ final class RealmCache {
             if (realmClass == Realm.class && refAndCount.globalCount == 0) {
                 final BaseRealm realm = refAndCount.localRealm.get();
                 // Stores a copy of local ColumnIndices as a global cache.
-                RealmCache.storeColumnIndices(cache.typedColumnIndicesArray, realm.schema.columnIndices.clone());
+                RealmCache.storeColumnIndices(cache.typedColumnIndicesArray, realm.schema.cloneColumnIndices());
             }
             // This is the first instance in current thread, increase the global count.
             refAndCount.globalCount++;
@@ -172,10 +174,6 @@ final class RealmCache {
         @SuppressWarnings("unchecked")
         E realm = (E) refAndCount.localRealm.get();
 
-        // Notifies SyncPolicy that the Realm has been opened for the first time
-        if (refAndCount.globalCount == 1) {
-            ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).realmOpened(configuration);
-        }
         return realm;
     }
 
@@ -267,10 +265,10 @@ final class RealmCache {
             // Tries to detect this problem specifically so we can throw a better error message.
             RealmMigration newMigration = newConfiguration.getMigration();
             RealmMigration oldMigration = configuration.getMigration();
-            if (oldMigration != null 
-                && newMigration != null 
-                && oldMigration.getClass().equals(newMigration.getClass())
-                && !newMigration.equals(oldMigration)) {
+            if (oldMigration != null
+                    && newMigration != null
+                    && oldMigration.getClass().equals(newMigration.getClass())
+                    && !newMigration.equals(oldMigration)) {
                 throw new IllegalArgumentException("Configurations cannot be different if used to open the same file. " +
                         "The most likely cause is that equals() and hashCode() are not overridden in the " +
                         "migration class: " + newConfiguration.getMigration().getClass().getCanonicalName());
@@ -326,7 +324,7 @@ final class RealmCache {
         }
     }
 
-   /**
+    /**
      * Runs the callback function with synchronization on {@link RealmCache}.
      *
      * @param callback the callback will be executed.

@@ -38,8 +38,8 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
-import io.realm.internal.Table;
 import io.realm.internal.Util;
+
 
 /**
  * Specialized version of a {@link RealmProxyMediator} that can further filter the available classes based on provided
@@ -59,7 +59,7 @@ public class FilterableMediator extends RealmProxyMediator {
     public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmModel>> allowedClasses) {
         this.originalMediator = originalMediator;
 
-        Set<Class<? extends RealmModel>> tempAllowedClasses = new HashSet<Class<? extends RealmModel>>();
+        Set<Class<? extends RealmModel>> tempAllowedClasses = new HashSet<>();
         if (originalMediator != null) {
             Set<Class<? extends RealmModel>> originalClasses = originalMediator.getModelClasses();
             for (Class<? extends RealmModel> clazz : allowedClasses) {
@@ -80,15 +80,10 @@ public class FilterableMediator extends RealmProxyMediator {
         checkSchemaHasClass(clazz);
         return originalMediator.createRealmObjectSchema(clazz, schema);
     }
-    @Override
-    public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
-        checkSchemaHasClass(clazz);
-        return originalMediator.createTable(clazz, sharedRealm);
-    }
 
     @Override
     public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm,
-                                    boolean allowExtraColumns) {
+            boolean allowExtraColumns) {
         checkSchemaHasClass(clazz);
         return originalMediator.validateTable(clazz, sharedRealm, allowExtraColumns);
     }
@@ -107,11 +102,11 @@ public class FilterableMediator extends RealmProxyMediator {
 
     @Override
     public <E extends RealmModel> E newInstance(Class<E> clazz,
-                                                Object baseRealm,
-                                                Row row,
-                                                ColumnInfo columnInfo,
-                                                boolean acceptDefaultValue,
-                                                List<String> excludeFields) {
+            Object baseRealm,
+            Row row,
+            ColumnInfo columnInfo,
+            boolean acceptDefaultValue,
+            List<String> excludeFields) {
         checkSchemaHasClass(clazz);
         return originalMediator.newInstance(clazz, baseRealm, row, columnInfo, acceptDefaultValue, excludeFields);
     }

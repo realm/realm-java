@@ -19,6 +19,7 @@ package io.realm.processor;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class Constants {
     public static final String REALM_PACKAGE_NAME = "io.realm";
     public static final String PROXY_SUFFIX = "RealmProxy";
@@ -33,8 +34,11 @@ public class Constants {
     static final String STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED =
             "throw new io.realm.exceptions.RealmException(\"Primary key field '%s' cannot be changed after object" +
                     " was created.\")";
+    static final String STATEMENT_EXCEPTION_ILLEGAL_JSON_LOAD =
+            "throw new io.realm.exceptions.RealmException(\"\\\"%s\\\" field \\\"%s\\\" cannot be loaded from json\")";
 
     static final Map<String, String> JAVA_TO_REALM_TYPES;
+
     static {
         JAVA_TO_REALM_TYPES = new HashMap<String, String>();
         JAVA_TO_REALM_TYPES.put("byte", "Long");
@@ -58,6 +62,7 @@ public class Constants {
     }
 
     static final Map<String, String> JAVA_TO_COLUMN_TYPES;
+
     static {
         JAVA_TO_COLUMN_TYPES = new HashMap<String, String>();
         JAVA_TO_COLUMN_TYPES.put("byte", "RealmFieldType.INTEGER");
@@ -80,6 +85,7 @@ public class Constants {
     }
 
     static final Map<String, String> JAVA_TO_FIELD_SETTER;
+
     static {
         JAVA_TO_FIELD_SETTER = new HashMap<String, String>();
         JAVA_TO_FIELD_SETTER.put("byte", "setByte");

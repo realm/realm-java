@@ -142,10 +142,10 @@ public class BulkInsertTests {
         allTypes.columnBoolean = false;
         allTypes.columnBinary = new byte[]{1, 2, 3};
         allTypes.columnDate = new Date();
-        allTypes.columnDouble = 3.1415;
+        allTypes.columnDouble = Math.PI;
         allTypes.columnFloat = 1.234567f;
         allTypes.columnString = "test data";
-        allTypes.columnByte = 0b0010_1010;
+        allTypes.columnByte = 0x2A;
 
         realm.beginTransaction();
         realm.insert(allTypes);

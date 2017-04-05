@@ -19,6 +19,7 @@ package io.realm;
 import io.realm.internal.Collection;
 import io.realm.internal.UncheckedRow;
 
+
 /**
  * An {@link OrderedRealmCollectionSnapshot} is a special type of {@link OrderedRealmCollection}. It can be created by
  * calling {@link OrderedRealmCollection#createSnapshot()}. Unlike {@link RealmResults} and {@link RealmList}, its
@@ -204,8 +205,8 @@ public class OrderedRealmCollectionSnapshot<E extends RealmModel> extends Ordere
      * This deletes all objects in the collection from the underlying Realm. All objects in the collection snapshot
      * will become invalid.
      *
-     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @return {@code true} if objects was deleted, {@code false} otherwise.
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
     @Override

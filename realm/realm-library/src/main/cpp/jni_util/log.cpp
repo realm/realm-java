@@ -16,16 +16,18 @@
 
 #include <algorithm>
 
+#include <realm/util/assert.hpp>
+
 #include "jni_util/log.hpp"
-#include "util/format.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
 using namespace realm::util;
 
-const char* CoreLoggerBridge::TAG = "REALM_CORE";
 const char* Log::REALM_JNI_TAG = "REALM_JNI";
 Log::Level Log::s_level = Log::Level::warn;
+std::vector<CoreLoggerBridge*> CoreLoggerBridge::s_bridges;
+std::mutex CoreLoggerBridge::s_mutex;
 
 // Native wrapper for Java RealmLogger class
 class JavaLogger : public JniLogger {
@@ -159,6 +161,7 @@ void Log::clear_loggers()
 void Log::set_level(Level level)
 {
     s_level = level;
+    CoreLoggerBridge::set_levels(level);
 }
 
 void Log::log(Level level, const char* tag, jthrowable throwable, const char* message)
@@ -168,6 +171,53 @@ void Log::log(Level level, const char* tag, jthrowable throwable, const char* me
         for (auto& logger : m_loggers) {
             logger->log(level, tag, throwable, message);
         }
+    }
+}
+
+realm::util::RootLogger::Level Log::convert_to_core_log_level(Level level)
+{
+        switch (level) {
+            case Log::trace:
+                return RootLogger::Level::trace;
+            case Log::debug:
+                return RootLogger::Level::debug;
+            case Log::info:
+                return RootLogger::Level::info;
+            case Log::warn:
+                return RootLogger::Level::warn;
+            case Log::error:
+                return RootLogger::Level::error;
+            case Log::fatal:
+                return RootLogger::Level::fatal;
+            case Log::all:
+                return RootLogger::Level::all;
+            case Log::off:
+                return RootLogger::Level::off;
+            default:
+                break;
+        }
+        REALM_UNREACHABLE();
+}
+
+CoreLoggerBridge::CoreLoggerBridge(std::string tag)
+    : m_tag(std::move(tag))
+{
+    std::lock_guard<std::mutex> lock(s_mutex);
+    s_bridges.push_back(this);
+    set_level_threshold(Log::convert_to_core_log_level(Log::shared().get_level()));
+}
+
+CoreLoggerBridge::~CoreLoggerBridge()
+{
+    std::lock_guard<std::mutex> lock(s_mutex);
+    s_bridges.erase(std::remove(s_bridges.begin(), s_bridges.end(), this), s_bridges.end());
+}
+
+void CoreLoggerBridge::set_levels(Log::Level level)
+{
+    std::lock_guard<std::mutex> lock(s_mutex);
+    for (auto bridge : s_bridges) {
+        bridge->set_level_threshold(Log::convert_to_core_log_level(level));
     }
 }
 
@@ -199,11 +249,5 @@ void CoreLoggerBridge::do_log(realm::util::Logger::Level level, std::string msg)
         case Level::off: // Fall through.
             throw std::invalid_argument(format("Invalid log level."));
     }
-    Log::shared().log(jni_level, TAG, msg.c_str());
-}
-
-CoreLoggerBridge& CoreLoggerBridge::shared()
-{
-    static CoreLoggerBridge log_bridge;
-    return log_bridge;
+    Log::shared().log(jni_level, m_tag.c_str(), msg.c_str());
 }
