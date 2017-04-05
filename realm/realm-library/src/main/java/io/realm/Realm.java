@@ -293,7 +293,7 @@ public class Realm extends BaseRealm {
 
         if (columnIndices != null) {
             // Copies global cache as a Realm local indices cache.
-            realm.schema.setColumnIndices(columnIndices);
+            realm.schema.setInitialColumnIndices(columnIndices);
         } else {
             final boolean syncingConfig = configuration.isSyncConfiguration();
 
@@ -359,7 +359,7 @@ public class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
-            realm.getSchema().setColumnIndices(
+            realm.getSchema().setInitialColumnIndices(
                     (unversioned) ? configuration.getSchemaVersion() : currentVersion,
                     columnInfoMap);
 
@@ -385,6 +385,7 @@ public class Realm extends BaseRealm {
     // to prevent multi-process interaction while the Realm is initialized.
     private static void initializeSyncedRealm(Realm realm) {
         boolean commitChanges = false;
+        OsRealmSchema schema = null;
         try {
             realm.beginTransaction();
             long currentVersion = realm.getVersion();
@@ -401,7 +402,7 @@ public class Realm extends BaseRealm {
             }
 
             // Assumption: When SyncConfiguration then additive schema update mode.
-            final OsRealmSchema schema = new OsRealmSchema(schemaCreator);
+            schema = new OsRealmSchema(schemaCreator);
             long newVersion = configuration.getSchemaVersion();
             // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
             // It absolutely breaks encapsulation and needs to be fixed!
@@ -425,7 +426,7 @@ public class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
-            realm.getSchema().setColumnIndices(
+            realm.getSchema().setInitialColumnIndices(
                     (unversioned) ? newVersion : currentVersion,
                     columnInfoMap);
 
@@ -439,6 +440,9 @@ public class Realm extends BaseRealm {
             commitChanges = false;
             throw e;
         } finally {
+            if (schema != null) {
+                schema.close();
+            }
             if (commitChanges) {
                 realm.commitTransaction();
             } else {
@@ -1690,7 +1694,7 @@ public class Realm extends BaseRealm {
 
             cacheForCurrentVersion = createdGlobalCache = new ColumnIndices(currentSchemaVersion, map);
         }
-        schema.setColumnIndices(cacheForCurrentVersion, mediator);
+        schema.updateColumnIndices(cacheForCurrentVersion, mediator);
         return createdGlobalCache;
     }
 

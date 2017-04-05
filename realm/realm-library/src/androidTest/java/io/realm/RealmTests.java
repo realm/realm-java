@@ -3694,7 +3694,7 @@ public class RealmTests {
 
         // get the pre-update index for the "name" column.
         CatRealmProxy.CatColumnInfo catColumnInfo
-                = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnIndices().getColumnInfo(Cat.class);
+                = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnInfo(Cat.class);
         final long nameIndex = catColumnInfo.nameIndex;
 
         // Change the index of the column "name".
@@ -3717,7 +3717,7 @@ public class RealmTests {
         assertNotEquals(nameIndex, nameIndexNew);
 
         // Verify that the index in the ColumnInfo has been updated.
-        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnIndices().getColumnInfo(Cat.class);
+        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnInfo(Cat.class);
         assertEquals(nameIndexNew.get(), catColumnInfo.nameIndex);
         assertEquals(nameIndexNew.get(), (long) catColumnInfo.getIndicesMap().get(Cat.FIELD_NAME));
 
