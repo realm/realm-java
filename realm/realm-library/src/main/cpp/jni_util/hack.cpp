@@ -29,6 +29,12 @@ void* __wrap_memcpy(void *dest, const void *src, size_t n);
 void* __real_memcpy(void *dest, const void *src, size_t n);
 }
 
+namespace realm {
+namespace jni_util {
+extern void* __bcopy(void* dst0, const void* src0, size_t length);
+}
+}
+
 using namespace realm::jni_util;
 
 typedef void* (*MemMoveFunc)(void *dest, const void *src, size_t n);
@@ -37,7 +43,6 @@ static MemMoveFunc s_wrap_memcpy_ptr = &__real_memcpy;
 
 static void* hacked_memmove(void *dest, const void *src, size_t count)
 {
-    Log::e("hacked_memmove");
     return __bcopy(dest, src, count);
 }
 
@@ -72,8 +77,6 @@ static void check_memmove()
 
 namespace realm {
 namespace jni_util {
-
-extern void* __bcopy(void* dst0, const void* src0, size_t length);
 
 void hack_init()
 {
