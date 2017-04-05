@@ -32,8 +32,6 @@
 #include "sync/sync_manager.hpp"
 #endif
 
-#include "jni_util/hack.hpp"
-
 using namespace realm;
 using namespace realm::_impl;
 
@@ -58,8 +56,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv* env
                                                                      jstring temporary_directory_path)
 {
     TR_ENTER()
-
-    hack_init();
 
     try {
         JStringAccessor path(env, temporary_directory_path);    // throws

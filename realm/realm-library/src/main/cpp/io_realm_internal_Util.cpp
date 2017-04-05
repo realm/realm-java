@@ -38,7 +38,7 @@ const string TABLE_PREFIX("class_");
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
 {
-    // Workaround some known bugs of system calls on some special devices.
+    // Workaround for some known bugs in system calls on specific devices.
     hack_init();
 
     JNIEnv* env;

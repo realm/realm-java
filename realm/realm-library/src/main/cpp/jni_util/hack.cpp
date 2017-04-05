@@ -16,23 +16,20 @@
 
 #include "hack.hpp"
 #include "log.hpp"
-#include "bcopy.hpp"
 
 #include <string.h>
 
 #include <realm/util/assert.hpp>
 
-using namespace realm::jni_util;
-
 extern "C" {
 void* __wrap_memmove(void *dest, const void *src, size_t n);
 void* __real_memmove(void *dest, const void *src, size_t n);
-void* __builtin_memmove(void *dest, const void *src, size_t n);
 
 void* __wrap_memcpy(void *dest, const void *src, size_t n);
 void* __real_memcpy(void *dest, const void *src, size_t n);
-void* __builtin_memcpy(void *dest, const void *src, size_t n);
 }
+
+using namespace realm::jni_util;
 
 typedef void* (*MemMoveFunc)(void *dest, const void *src, size_t n);
 static MemMoveFunc s_wrap_memmove_ptr = &__real_memmove;
@@ -41,7 +38,7 @@ static MemMoveFunc s_wrap_memcpy_ptr = &__real_memcpy;
 static void* hacked_memmove(void *dest, const void *src, size_t count)
 {
     Log::e("hacked_memmove");
-    return my_bcopy(dest, src, count);
+    return __bcopy(dest, src, count);
 }
 
 void* __wrap_memmove(void *dest, const void *src, size_t n)
@@ -63,19 +60,26 @@ void* __wrap_memcpy(void *dest, const void *src, size_t n)
 static void check_memmove()
 {
     char* array = strdup("Foobar");
-    void* ptr = __real_memmove(array + 1, array, sizeof("Foobar") - 2);
-    if (ptr != array + 1) {
-        Log::e("memmove is broken on this device. switch to the builtin implementation.");
+    size_t len = strlen(array);
+    void* ptr = __real_memmove(array + 1, array, len - 1);
+    if (ptr != array + 1 || strncmp(array, "FFooba", len) != 0) {
+        Log::e("memmove is broken on this device. Switching to the builtin implementation.");
         s_wrap_memmove_ptr = &hacked_memmove;
         s_wrap_memcpy_ptr =  &hacked_memmove;
     }
-    else {
-        Log::i("memmove is not broken on this device - lucky you.");
-    }
     free(array);
 }
+
+namespace realm {
+namespace jni_util {
+
+extern void* __bcopy(void* dst0, const void* src0, size_t length);
 
 void hack_init()
 {
     check_memmove();
 }
+
+}
+}
+
