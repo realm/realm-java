@@ -1,5 +1,13 @@
 ## 3.1.0 (YYYY-MM-DD)
 
+### Enhancements
+
+* Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore' annotation (#4279).
+* Allow extending 
+
+
+## 3.1.0 (YYYY-MM-DD)
+
 ### Breaking Changes
 
 * Updated file format of Realm files. Existing Realm files will automatically be migrated to the new format when they are opened.
