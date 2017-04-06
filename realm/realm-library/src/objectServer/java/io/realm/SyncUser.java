@@ -379,7 +379,7 @@ public class SyncUser {
     /**
      * Returns {@code true} if this user is an administrator on the Realm Object Server, {@code false} otherwise.
      * <p>
-     * Administrators can access all Realms on the server as well as change their permissions.
+     * Administrators can access all Realms on the server as well as change the permissions of the Realms.
      *
      * @return {@code true} if the user is an administrator on the Realm Object Server, {@code false} otherwise.
      */
