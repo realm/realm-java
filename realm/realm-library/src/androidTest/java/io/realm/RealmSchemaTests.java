@@ -56,7 +56,7 @@ public class RealmSchemaTests {
                 .build();
         Realm.getInstance(realmConfig).close(); // create Schema
         realm = DynamicRealm.getInstance(realmConfig);
-        realmSchema = this.realm.getSchema();
+        realmSchema = this.realm.getSchemaInternal();
         realm.beginTransaction();
     }
 

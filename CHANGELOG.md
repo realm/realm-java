@@ -1,3 +1,16 @@
+## 3.1.1 (YYY-MM-DD)
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+* Unintentionally exposing `StandardRealmSchema` (#4443).
+
+### Internal
+
+
 ## 3.1.0 (2017-04-05)
 
 ### Breaking Changes

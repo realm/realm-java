@@ -3701,7 +3701,7 @@ public class RealmTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                final Table catTable = realm.getSchema().getTable(Cat.CLASS_NAME);
+                final Table catTable = realm.getSchemaInternal().getTable(Cat.CLASS_NAME);
                 final long nameIndex = catTable.getColumnIndex(Cat.FIELD_NAME);
                 catTable.removeColumn(nameIndex);
                 final long newIndex = catTable.addColumn(RealmFieldType.STRING, Cat.FIELD_NAME, true);

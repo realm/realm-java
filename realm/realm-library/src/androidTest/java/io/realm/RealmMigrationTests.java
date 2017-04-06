@@ -364,7 +364,7 @@ public class RealmMigrationTests {
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
 
-        Table table = realm.getSchema().getTable(MigrationClassRenamed.class);
+        Table table = realm.getSchemaInternal().getTable(MigrationClassRenamed.class);
         assertTrue(table.hasPrimaryKey());
         assertEquals(MigrationClassRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertEquals(MigrationClassRenamed.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
@@ -426,7 +426,7 @@ public class RealmMigrationTests {
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
 
-        Table table = realm.getSchema().getTable(MigrationClassRenamed.class);
+        Table table = realm.getSchemaInternal().getTable(MigrationClassRenamed.class);
         assertTrue(table.hasPrimaryKey());
         assertEquals(MigrationClassRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertEquals(MigrationClassRenamed.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
@@ -525,7 +525,7 @@ public class RealmMigrationTests {
                 .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
-        Table table = realm.getSchema().getTable(MigrationPosteriorIndexOnly.class);
+        Table table = realm.getSchemaInternal().getTable(MigrationPosteriorIndexOnly.class);
 
         assertTrue(table.hasPrimaryKey());
         assertEquals(MigrationPosteriorIndexOnly.DEFAULT_FIELDS_COUNT, table.getColumnCount());
@@ -552,7 +552,7 @@ public class RealmMigrationTests {
                 .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
-        Table table = realm.getSchema().getTable(MigrationPriorIndexOnly.class);
+        Table table = realm.getSchemaInternal().getTable(MigrationPriorIndexOnly.class);
 
         assertTrue(table.hasPrimaryKey());
         assertEquals(MigrationPriorIndexOnly.DEFAULT_FIELDS_COUNT, table.getColumnCount());
@@ -579,12 +579,12 @@ public class RealmMigrationTests {
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
 
-        Table table = realm.getSchema().getTable(MigrationFieldRenamed.class);
+        Table table = realm.getSchemaInternal().getTable(MigrationFieldRenamed.class);
         assertTrue(table.hasPrimaryKey());
         assertEquals(MigrationFieldRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertEquals(MigrationFieldRenamed.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
 
-        RealmObjectSchema objectSchema = realm.getSchema().getSchemaForClass(MigrationFieldRenamed.class);
+        RealmObjectSchema objectSchema = realm.getSchemaInternal().getSchemaForClass(MigrationFieldRenamed.class);
         assertFalse(objectSchema.hasField(MigrationPrimaryKey.FIELD_PRIMARY));
         assertEquals(MigrationFieldRenamed.FIELD_PRIMARY, objectSchema.getPrimaryKey());
     }
@@ -645,12 +645,12 @@ public class RealmMigrationTests {
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
 
-        Table table = realm.getSchema().getTable(MigrationFieldTypeToInt.class);
+        Table table = realm.getSchemaInternal().getTable(MigrationFieldTypeToInt.class);
         assertTrue(table.hasPrimaryKey());
         assertEquals(MigrationFieldTypeToInt.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertEquals(MigrationFieldTypeToInt.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
 
-        RealmObjectSchema objectSchema = realm.getSchema().getSchemaForClass(MigrationFieldTypeToInt.class);
+        RealmObjectSchema objectSchema = realm.getSchemaInternal().getSchemaForClass(MigrationFieldTypeToInt.class);
         assertFalse(objectSchema.hasField(MigrationPrimaryKey.FIELD_PRIMARY));
         assertEquals(MigrationFieldTypeToInt.FIELD_PRIMARY, objectSchema.getPrimaryKey());
         assertEquals(1, realm.where(MigrationFieldTypeToInt.class).count());
@@ -693,12 +693,12 @@ public class RealmMigrationTests {
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
 
-        Table table = realm.getSchema().getTable(MigrationFieldTypeToInteger.class);
+        Table table = realm.getSchemaInternal().getTable(MigrationFieldTypeToInteger.class);
         assertTrue(table.hasPrimaryKey());
         assertEquals(MigrationFieldTypeToInteger.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertEquals(MigrationFieldTypeToInteger.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
 
-        RealmObjectSchema objectSchema = realm.getSchema().getSchemaForClass(MigrationFieldTypeToInteger.class);
+        RealmObjectSchema objectSchema = realm.getSchemaInternal().getSchemaForClass(MigrationFieldTypeToInteger.class);
         assertFalse(objectSchema.hasField(MigrationPrimaryKey.FIELD_PRIMARY));
         assertEquals(MigrationFieldTypeToInteger.FIELD_PRIMARY, objectSchema.getPrimaryKey());
         assertEquals(2, realm.where(MigrationFieldTypeToInteger.class).count());
@@ -760,7 +760,7 @@ public class RealmMigrationTests {
             RealmMigration migration = new RealmMigration() {
                 @Override
                 public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                    RealmObjectSchema schema = realm.getSchema().getSchemaForClass(clazz.getSimpleName());
+                    RealmObjectSchema schema = realm.getSchemaInternal().getSchemaForClass(clazz.getSimpleName());
                     schema.addIndex("id");
                     // @PrimaryKey fields in PrimaryKeyAsLong and PrimaryKeyAsString.class should be set 'nullable'.
                     schema.setNullable("name", true);
@@ -938,7 +938,7 @@ public class RealmMigrationTests {
                 public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                     if (oldVersion == 0) { // 0 after initNullTypesTableExcludes
                         // No @Required for not nullable field
-                        RealmObjectSchema nullTypesSchema = realm.getSchema().getSchemaForClass(NullTypes.CLASS_NAME);
+                        RealmObjectSchema nullTypesSchema = realm.getSchemaInternal().getSchemaForClass(NullTypes.CLASS_NAME);
                         if (field.equals(NullTypes.FIELD_STRING_NOT_NULL)) {
                             // 1 String
                             nullTypesSchema.addField(field, String.class);
@@ -1007,7 +1007,7 @@ public class RealmMigrationTests {
                 public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                     if (oldVersion == 0) { // 0 after initNullTypesTableExcludes
                         // No @Required for not nullable field
-                        RealmObjectSchema nullTypesSchema = realm.getSchema().getSchemaForClass(NullTypes.CLASS_NAME);
+                        RealmObjectSchema nullTypesSchema = realm.getSchemaInternal().getSchemaForClass(NullTypes.CLASS_NAME);
                         if (field.equals(NullTypes.FIELD_STRING_NULL)) {
                             // 1 String
                             nullTypesSchema.addField(field, String.class, FieldAttribute.REQUIRED);
@@ -1078,7 +1078,7 @@ public class RealmMigrationTests {
             RealmMigration migration = new RealmMigration() {
                 @Override
                 public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                    RealmObjectSchema schema = realm.getSchema().getSchemaForClass(clazz.getSimpleName());
+                    RealmObjectSchema schema = realm.getSchemaInternal().getSchemaForClass(clazz.getSimpleName());
                     if (clazz == PrimaryKeyAsString.class) {
                         schema.setNullable("name", true);
                     } else {
@@ -1096,7 +1096,7 @@ public class RealmMigrationTests {
             configFactory.copyRealmFromAssets(context, "default-notnullable-primarykey.realm", Realm.DEFAULT_REALM_NAME);
             Realm.migrateRealm(realmConfig);
             realm = Realm.getInstance(realmConfig);
-            RealmObjectSchema schema = realm.getSchema().getSchemaForClass(clazz);
+            RealmObjectSchema schema = realm.getSchemaInternal().getSchemaForClass(clazz);
             assertEquals(SCHEMA_VERSION, realm.getVersion());
             assertTrue(didMigrate.get());
             if (clazz == PrimaryKeyAsString.class) {

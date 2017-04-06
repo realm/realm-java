@@ -713,7 +713,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             typeValidated = false;
         } else {
             String listType = list.className != null ? list.className
-                    : Table.tableNameToClassName(proxyState.getRealm$realm().getSchema().getTable(list.clazz).getName());
+                    : Table.tableNameToClassName(proxyState.getRealm$realm().getSchemaInternal().getTable(list.clazz).getName());
             if (!linkTargetTableName.equals(listType)) {
                 throw new IllegalArgumentException(String.format(Locale.ENGLISH,
                         "The elements in the list are not the proper type. " +
@@ -937,7 +937,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
     // Checks if the given field is primary key field. Throws if it is a PK field.
     private void checkIsPrimaryKey(String fieldName) {
-        RealmObjectSchema objectSchema = proxyState.getRealm$realm().getSchema().getSchemaForClass(getType());
+        RealmObjectSchema objectSchema = proxyState.getRealm$realm().getSchemaInternal().getSchemaForClass(getType());
         if (objectSchema.hasPrimaryKey() && objectSchema.getPrimaryKey().equals(fieldName)) {
             throw new IllegalArgumentException(String.format(
                     "Primary key field '%s' cannot be changed after object was created.", fieldName));
