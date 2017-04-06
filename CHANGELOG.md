@@ -1,3 +1,9 @@
+## 3.1.1 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Crash caused by Listeners on `RealmObject` getting triggered the 2nd time with different changed field (#4437).
+
 ## 3.1.0 (2017-04-05)
 
 ### Breaking Changes

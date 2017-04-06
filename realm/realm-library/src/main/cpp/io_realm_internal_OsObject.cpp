@@ -124,6 +124,8 @@ struct ChangeCallback {
                                                       "([Ljava/lang/String;)V");
             env->CallVoidMethod(row_obj, notify_change_listeners, m_field_names_array);
         });
+        m_field_names_array = nullptr;
+        m_deleted = false;
     }
 
     void error(std::exception_ptr err)
