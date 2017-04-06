@@ -122,10 +122,9 @@ struct ChangeCallback {
         m_wrapper->m_row_object_weak_ref.call_with_local_ref(env, [&](JNIEnv*, jobject row_obj) {
             static JavaMethod notify_change_listeners(env, row_obj, "notifyChangeListeners",
                                                       "([Ljava/lang/String;)V");
-            env->CallVoidMethod(row_obj, notify_change_listeners, m_field_names_array);
+            env->CallVoidMethod(row_obj, notify_change_listeners, m_deleted ? nullptr : m_field_names_array);
         });
         m_field_names_array = nullptr;
-        m_deleted = false;
     }
 
     void error(std::exception_ptr err)
