@@ -54,6 +54,7 @@ public class RealmAnnotationTests {
         object.setNotIndexString("String 1");
         object.setIndexString("String 2");
         object.setIgnoreString("String 3");
+        object.setTransientString("String 4");
         realm.commitTransaction();
     }
 
@@ -67,7 +68,8 @@ public class RealmAnnotationTests {
     @Test
     public void ignore() {
         Table table = realm.getTable(AnnotationTypes.class);
-        assertEquals(-1, table.getColumnIndex("ignoreString"));
+        assertEquals(-1, table.getColumnIndex(AnnotationTypes.FIELD_IGNORE_STRING));
+        assertEquals(-1, table.getColumnIndex(AnnotationTypes.FIELD_TRANSIENT_STRING));
     }
 
     // Tests if "index" annotation works with supported types.
