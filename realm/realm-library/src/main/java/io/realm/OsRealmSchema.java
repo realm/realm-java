@@ -21,6 +21,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.internal.Table;
+
 
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
@@ -59,6 +61,26 @@ class OsRealmSchema extends RealmSchema {
         @Override
         public boolean contains(String className) {
             return schema.containsKey(className);
+        }
+
+        @Override
+        Table getTable(Class<? extends RealmModel> clazz) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        Table getTable(String className) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        StandardRealmObjectSchema getSchemaForClass(String className) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -161,6 +183,26 @@ class OsRealmSchema extends RealmSchema {
     @Override
     public boolean contains(String className) {
         return dynamicClassToSchema.containsKey(className);
+    }
+
+    @Override
+    Table getTable(Class<? extends RealmModel> clazz) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    Table getTable(String className) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    StandardRealmObjectSchema getSchemaForClass(String className) {
+        throw new UnsupportedOperationException();
     }
 
     static void checkEmpty(String str) {

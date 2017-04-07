@@ -60,7 +60,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
             throw new IllegalArgumentException("Row is " + row.getClass());
         }
         UncheckedRow uncheckedRow = (UncheckedRow) row;
-        Table srcTable = realm.getSchemaInternal().getTable(srcTableType);
+        Table srcTable = realm.getSchema().getTable(srcTableType);
         return new RealmResults<T>(
                 realm,
                 Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),

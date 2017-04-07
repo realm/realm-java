@@ -464,11 +464,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @return The {@link RealmSchema} for this Realm.
      */
-    public RealmSchema getSchema() {
-        return schema;
-    }
-
-    StandardRealmSchema getSchemaInternal() {
+    public StandardRealmSchema getSchema() {
         return schema;
     }
 

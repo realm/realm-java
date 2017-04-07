@@ -122,7 +122,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(Realm realm, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.schema = realm.getSchemaInternal().getSchemaForClass(clazz);
+        this.schema = realm.getSchema().getSchemaForClass(clazz);
         this.table = schema.getTable();
         this.linkView = null;
         this.query = table.where();
@@ -131,7 +131,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(RealmResults<E> queryResults, Class<E> clazz) {
         this.realm = queryResults.realm;
         this.clazz = clazz;
-        this.schema = realm.getSchemaInternal().getSchemaForClass(clazz);
+        this.schema = realm.getSchema().getSchemaForClass(clazz);
         this.table = queryResults.getTable();
         this.linkView = null;
         this.query = queryResults.getCollection().where();
@@ -140,7 +140,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(BaseRealm realm, LinkView linkView, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.schema = realm.getSchemaInternal().getSchemaForClass(clazz);
+        this.schema = realm.getSchema().getSchemaForClass(clazz);
         this.table = schema.getTable();
         this.linkView = linkView;
         this.query = linkView.where();
@@ -149,7 +149,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(BaseRealm realm, String className) {
         this.realm = realm;
         this.className = className;
-        this.schema = realm.getSchemaInternal().getSchemaForClass(className);
+        this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = table.where();
     }
@@ -157,7 +157,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(RealmResults<DynamicRealmObject> queryResults, String className) {
         this.realm = queryResults.realm;
         this.className = className;
-        this.schema = realm.getSchemaInternal().getSchemaForClass(className);
+        this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = queryResults.getCollection().where();
     }
@@ -165,7 +165,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(BaseRealm realm, LinkView linkView, String className) {
         this.realm = realm;
         this.className = className;
-        this.schema = realm.getSchemaInternal().getSchemaForClass(className);
+        this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
         this.linkView = linkView;
         this.query = linkView.where();

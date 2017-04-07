@@ -55,7 +55,7 @@ public class RealmObjectSchemaTests {
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         Realm.getInstance(realmConfig).close(); // Creates Schema.
         realm = DynamicRealm.getInstance(realmConfig);
-        realmSchema = realm.getSchemaInternal();
+        realmSchema = realm.getSchema();
         DOG_SCHEMA = realmSchema.get("Dog");
         realm.beginTransaction();
         schema = realmSchema.create("NewClass");
