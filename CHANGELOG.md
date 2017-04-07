@@ -1,4 +1,4 @@
-## 3.1.1 (YYY-MM-DD)
+## 3.1.1 (YYYY-MM-DD)
 
 ### Deprecated
 
@@ -6,6 +6,7 @@
 
 ### Bug Fixes
 
+* Crash caused by Listeners on `RealmObject` getting triggered the 2nd time with different changed field (#4437).
 * Unintentionally exposing `StandardRealmSchema` (#4443).
 
 ### Internal
