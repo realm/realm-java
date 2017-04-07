@@ -203,6 +203,7 @@ class StandardRealmSchema extends RealmSchema {
         }
     }
 
+    @Override
     Table getTable(String className) {
         className = Table.TABLE_PREFIX + className;
         Table table = dynamicClassToTable.get(className);
@@ -217,6 +218,7 @@ class StandardRealmSchema extends RealmSchema {
         return table;
     }
 
+    @Override
     Table getTable(Class<? extends RealmModel> clazz) {
         Table table = classToTable.get(clazz);
         if (table != null) { return table; }
@@ -238,6 +240,7 @@ class StandardRealmSchema extends RealmSchema {
         return table;
     }
 
+    @Override
     StandardRealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
         StandardRealmObjectSchema classSchema = classToSchema.get(clazz);
         if (classSchema != null) { return classSchema; }
@@ -259,6 +262,7 @@ class StandardRealmSchema extends RealmSchema {
         return classSchema;
     }
 
+    @Override
     StandardRealmObjectSchema getSchemaForClass(String className) {
         className = Table.TABLE_PREFIX + className;
         StandardRealmObjectSchema dynamicSchema = dynamicClassToSchema.get(className);

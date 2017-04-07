@@ -145,4 +145,9 @@ public abstract class RealmSchema {
             throw new IllegalStateException("Attempt to use column index before set.");
         }
     }
+
+    abstract Table getTable(Class<? extends RealmModel> clazz);
+    abstract Table getTable(String className);
+    abstract RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz);
+    abstract RealmObjectSchema getSchemaForClass(String className);
 }
