@@ -1,3 +1,5 @@
+## 3.2.0 (YYYY-MM-DD)
+
 ## 3.1.1 (YYYY-MM-DD)
 
 ### Bug Fixes
