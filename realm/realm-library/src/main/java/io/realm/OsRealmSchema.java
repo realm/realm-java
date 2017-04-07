@@ -196,12 +196,12 @@ class OsRealmSchema extends RealmSchema {
     }
 
     @Override
-    RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
+    OsRealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    StandardRealmObjectSchema getSchemaForClass(String className) {
+    OsRealmObjectSchema getSchemaForClass(String className) {
         throw new UnsupportedOperationException();
     }
 

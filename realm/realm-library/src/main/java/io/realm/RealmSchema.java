@@ -149,5 +149,5 @@ public abstract class RealmSchema {
     abstract Table getTable(Class<? extends RealmModel> clazz);
     abstract Table getTable(String className);
     abstract RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz);
-    abstract StandardRealmObjectSchema getSchemaForClass(String className);
+    abstract RealmObjectSchema getSchemaForClass(String className);
 }
