@@ -30,6 +30,10 @@ class BytecodeModifier {
 
     private static final Logger logger = LoggerFactory.getLogger('realm-logger')
 
+    static boolean isModelField(CtField field) {
+        return !field.hasAnnotation(Ignore.class) && !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())
+    }
+
     /**
      * Adds Realm specific accessors to a model class.
      * All the declared fields will be associated with a getter and a setter.
@@ -40,7 +44,7 @@ class BytecodeModifier {
         logger.debug "  Realm: Adding accessors to ${clazz.simpleName}"
         def methods = clazz.getDeclaredMethods()*.name
         clazz.declaredFields.each { CtField field ->
-            if (!Modifier.isStatic(field.getModifiers()) && !field.hasAnnotation(Ignore.class)) {
+            if (isModelField(field)) {
                 if (!methods.contains("realmGet\$${field.name}".toString())) {
                     clazz.addMethod(CtNewMethod.getter("realmGet\$${field.name}", field))
                 }
