@@ -311,8 +311,8 @@ public class ObjectChangeSetTests {
                     assertFalse(longChanged.get());
                     longChanged.set(true);
                 } else if (changeSet.isFieldChanged(AllTypes.FIELD_FLOAT)) {
-                    assertFalse(stringChanged.get());
-                    assertFalse(longChanged.get());
+                    assertTrue(stringChanged.get());
+                    assertTrue(longChanged.get());
                     assertFalse(floatChanged.get());
                     floatChanged.set(true);
                     looperThread.testComplete();
