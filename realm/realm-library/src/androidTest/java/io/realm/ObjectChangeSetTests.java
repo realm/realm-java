@@ -288,9 +288,12 @@ public class ObjectChangeSetTests {
         realm.commitTransaction();
     }
 
+    // Relevant to https://github.com/realm/realm-java/issues/4437
+    // When the object listener triggered at the 2nd time, the local ref m_field_names_array has not been reset and it
+    // contains an invalid local ref which has been released before.
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
-    public void  changeDifferentFieldOneAfterAnother() {
+    public void changeDifferentFieldOneAfterAnother() {
         Realm realm = looperThread.realm;
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         final AtomicBoolean stringChanged = new AtomicBoolean(false);
@@ -308,6 +311,8 @@ public class ObjectChangeSetTests {
                     assertFalse(longChanged.get());
                     longChanged.set(true);
                 } else if (changeSet.isFieldChanged(AllTypes.FIELD_FLOAT)) {
+                    assertFalse(stringChanged.get());
+                    assertFalse(longChanged.get());
                     assertFalse(floatChanged.get());
                     floatChanged.set(true);
                     looperThread.testComplete();
