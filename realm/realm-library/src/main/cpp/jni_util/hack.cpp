@@ -34,8 +34,6 @@ void* __wrap_memcpy(void *dest, const void *src, size_t n);
 void* __real_memcpy(void *dest, const void *src, size_t n);
 }
 
-namespace realm {
-
 using namespace realm::jni_util;
 
 typedef void* (*MemMoveFunc)(void *dest, const void *src, size_t n);
