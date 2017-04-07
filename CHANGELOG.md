@@ -6,9 +6,17 @@
 
 ## 3.1.1 (YYYY-MM-DD)
 
+### Deprecated
+
+### Enhancements
+
 ### Bug Fixes
 
 * Crash caused by Listeners on `RealmObject` getting triggered the 2nd time with different changed field (#4437).
+* Unintentionally exposing `StandardRealmSchema` (#4443).
+
+### Internal
+
 
 ## 3.1.0 (2017-04-05)
 
