@@ -16,7 +16,7 @@
 
 #include "hack.hpp"
 #include "log.hpp"
-#include "bcopy.hpp"
+
 
 #include <string.h>
 
@@ -38,10 +38,35 @@ typedef void* (*MemMoveFunc)(void *dest, const void *src, size_t n);
 static MemMoveFunc s_wrap_memmove_ptr = &__real_memmove;
 static MemMoveFunc s_wrap_memcpy_ptr = &__real_memcpy;
 
-static void* hacked_memmove(void *dest, const void *src, size_t count)
+static void* hacked_memmove(void* s1, const void* s2, size_t n)
 {
-    Log::e("hacked_memmove");
-    return my_bcopy(dest, src, count);
+    // adapted from https://github.com/dryc/libc11/blob/master/src/string/memmove.c
+    char* dest = (char*)s1;
+    const char* src = (const char*)s2;
+    if (dest <= src) {
+        while (n--) {
+            *dest++ = *src++;
+        }
+    }
+    else {
+        src += n;
+        dest += n;
+        while (n--) {
+            *--dest = *--src;
+        }
+    }
+    return static_cast<void*>(s1);
+}
+
+static void* hacked_memcpy(void* s1, const void* s2, size_t n)
+{
+    // adapted from https://github.com/dryc/libc11/blob/master/src/string/memcpy.c
+    char* dest = (char*)s1;
+    const char* src = (const char*)s2;
+    while (n--) {
+        *dest++ = *src++;
+    }
+    return static_cast<void*>(s1);
 }
 
 void* __wrap_memmove(void *dest, const void *src, size_t n)
@@ -67,7 +92,7 @@ static void check_memmove()
     if (ptr != array + 1) {
         Log::e("memmove is broken on this device. switch to the builtin implementation.");
         s_wrap_memmove_ptr = &hacked_memmove;
-        s_wrap_memcpy_ptr =  &hacked_memmove;
+        s_wrap_memcpy_ptr  = &hacked_memcpy;
     }
     else {
         Log::i("memmove is not broken on this device - lucky you.");
