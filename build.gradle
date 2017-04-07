@@ -195,6 +195,7 @@ task distributionPackage(type:Zip) {
     from('changelog.txt')
     from('LICENSE')
     from('version.txt')
+    from('realm.properties')
     from('realm/realm-library/build/libs') {
         include 'realm-android-${currentVersion}-javadoc.jar'
         into 'docs'

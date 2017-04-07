@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import io.realm.OrderedCollectionChangeSet;
 
+
 /**
  * Implementation of {@link OrderedCollectionChangeSet}. This class holds a pointer to the Object Store's
  * CollectionChangeSet and read from it only when needed. Creating an Java object from JNI when the collection
@@ -66,7 +67,7 @@ public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeOb
      * {@inheritDoc}
      */
     @Override
-    public int[] getChanges()  {
+    public int[] getChanges() {
         return nativeGetIndices(nativePtr, TYPE_MODIFICATION);
     }
 
@@ -122,8 +123,10 @@ public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeOb
     }
 
     private native static long nativeGetFinalizerPtr();
+
     // Returns the ranges as an long array. eg.: [startIndex1, length1, startIndex2, length2, ...]
     private native static int[] nativeGetRanges(long nativePtr, int type);
+
     // Returns the indices array.
     private native static int[] nativeGetIndices(long nativePtr, int type);
 }

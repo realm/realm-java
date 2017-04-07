@@ -21,6 +21,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+
 /**
  * This annotation is used to mark the fields and methods to be kept by ProGuard/DexGuard.
  * The ProGuard configuration must have '-keep class io.realm.internal.KeepMember'

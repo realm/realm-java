@@ -267,12 +267,14 @@ public class RealmResultsTests extends CollectionTests {
         final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
-            try {
-                realm.where(AnnotationIndexTypes.class).findAll().distinct(field);
-                fail(field);
-            } catch (IllegalArgumentException ignored) {
-            }
+        RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class)
+                .findAll().distinct(AnnotationIndexTypes.FIELD_NOT_INDEX_BOOL);
+        assertEquals(2, distinctBool.size());
+        for (String field : new String[]{AnnotationIndexTypes.FIELD_NOT_INDEX_LONG,
+                AnnotationIndexTypes.FIELD_NOT_INDEX_DATE, AnnotationIndexTypes.FIELD_NOT_INDEX_STRING}) {
+            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).findAll()
+                    .distinct(field);
+            assertEquals(field, numberOfBlocks, distinct.size());
         }
     }
 
@@ -378,7 +380,7 @@ public class RealmResultsTests extends CollectionTests {
             allTypes.setColumnBoolean((i % 2) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date(YEAR_MILLIS * (i - objects / 2)));
-            allTypes.setColumnDouble(3.1415 + i);
+            allTypes.setColumnDouble(Math.PI + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -402,7 +404,7 @@ public class RealmResultsTests extends CollectionTests {
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date(DECADE_MILLIS * (i - (objects / 2))));
-            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnDouble(Math.PI);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -542,18 +544,81 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     @RunTestInLooperThread
     public void distinctAsync_notIndexedFields() {
+        final AtomicInteger changeListenerCalled = new AtomicInteger(4);
+        Realm realm = looperThread.realm;
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
-            try {
-                realm.where(AnnotationIndexTypes.class).findAll().distinctAsync(field);
-                fail(field);
-            } catch (IllegalArgumentException ignored) {
+        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_BOOL);
+        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_LONG);
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_DATE);
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_STRING);
+
+        assertFalse(distinctBool.isLoaded());
+        assertTrue(distinctBool.isValid());
+        assertTrue(distinctBool.isEmpty());
+
+        assertFalse(distinctLong.isLoaded());
+        assertTrue(distinctLong.isValid());
+        assertTrue(distinctLong.isEmpty());
+
+        assertFalse(distinctDate.isLoaded());
+        assertTrue(distinctDate.isValid());
+        assertTrue(distinctDate.isEmpty());
+
+        assertFalse(distinctString.isLoaded());
+        assertTrue(distinctString.isValid());
+        assertTrue(distinctString.isEmpty());
+
+        final Runnable endTest = new Runnable() {
+            @Override
+            public void run() {
+                if (changeListenerCalled.decrementAndGet() == 0) {
+                    looperThread.testComplete();
+                }
             }
-        }
-        looperThread.testComplete();
+        };
+
+        looperThread.keepStrongReference.add(distinctBool);
+        looperThread.keepStrongReference.add(distinctLong);
+        looperThread.keepStrongReference.add(distinctDate);
+        looperThread.keepStrongReference.add(distinctString);
+        distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(2, distinctBool.size());
+                endTest.run();
+            }
+        });
+
+        distinctLong.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(numberOfBlocks, distinctLong.size());
+                endTest.run();
+            }
+        });
+
+        distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(numberOfBlocks, distinctDate.size());
+                endTest.run();
+            }
+        });
+
+        distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(numberOfBlocks, distinctString.size());
+                endTest.run();
+            }
+        });
     }
 
     @Test
@@ -1137,7 +1202,7 @@ public class RealmResultsTests extends CollectionTests {
                 fieldObjectValue.setFieldInt(fieldObjectIntValue);
                 obj.setFieldObject(fieldObjectValue);
 
-                final RealmList<RandomPrimaryKey> list = new RealmList<>();
+                final RealmList<RandomPrimaryKey> list = new RealmList<RandomPrimaryKey>();
                 final RandomPrimaryKey listItem = new RandomPrimaryKey();
                 listItem.setFieldInt(fieldListIntValue);
                 list.add(listItem);

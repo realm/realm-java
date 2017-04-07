@@ -704,10 +704,6 @@ extern jmethodID java_lang_double_init;
 extern jclass java_util_date;
 extern jmethodID java_util_date_init;
 
-// FIXME Move to own library
-extern jclass session_class_ref;
-extern jmethodID session_error_handler;
-
 inline jobject NewLong(JNIEnv* env, int64_t value)
 {
     return env->NewObject(java_lang_long, java_lang_long_init, value);

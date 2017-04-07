@@ -18,6 +18,7 @@ package io.realm.log;
 
 import android.util.Log;
 
+
 /**
  * Global logger used by all Realm components.
  * Custom loggers can be added by registering classes implementing {@link RealmLogger}.
@@ -281,14 +282,27 @@ public final class RealmLog {
             }
             stringBuilder.append(message);
         }
-        nativeLog(level,REALM_JAVA_TAG, throwable, stringBuilder.toString());
+        nativeLog(level, REALM_JAVA_TAG, throwable, stringBuilder.toString());
     }
 
     private static native void nativeAddLogger(RealmLogger logger);
+
     private static native void nativeRemoveLogger(RealmLogger logger);
+
     private static native void nativeClearLoggers();
+
     private static native void nativeRegisterDefaultLogger();
+
     private static native void nativeLog(int level, String tag, Throwable throwable, String message);
+
     private static native void nativeSetLogLevel(int level);
+
     private static native int nativeGetLogLevel();
+
+    // Methods below are used for testing core logger bridge only.
+    static native long nativeCreateCoreLoggerBridge(String tag);
+
+    static native void nativeCloseCoreLoggerBridge(long nativePtr);
+
+    static native void nativeLogToCoreLoggerBridge(long nativePtr, int level, String message);
 }

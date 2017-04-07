@@ -28,7 +28,6 @@ import junit.framework.AssertionFailedError;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -795,28 +794,6 @@ public class NotificationsTest {
                 realm.beginTransaction();
                 realm.createObject(Dog.class);
                 realm.commitTransaction();
-            }
-        });
-    }
-
-    // TODO: Fix or delete this test after integration of object notification from Object Store
-    @Test
-    @RunTestInLooperThread
-    @Ignore
-    public void realmObjectListenerAddedAfterCommit() {
-        Realm realm = looperThread.realm;
-        realm.beginTransaction();
-        AllTypes obj = realm.createObject(AllTypes.class);
-        realm.commitTransaction();
-
-        realm.beginTransaction();
-        obj.setColumnLong(42);
-        realm.commitTransaction();
-
-        obj.addChangeListener(new RealmChangeListener<AllTypes>() {
-            @Override
-            public void onChange(AllTypes object) {
-                looperThread.testComplete();
             }
         });
     }

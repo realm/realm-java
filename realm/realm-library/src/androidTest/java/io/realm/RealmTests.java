@@ -168,7 +168,7 @@ public class RealmTests {
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date());
-            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnDouble(Math.PI);
             allTypes.setColumnFloat(1.234567f + i);
 
             allTypes.setColumnString("test data " + i);
@@ -370,13 +370,13 @@ public class RealmTests {
         }
 
         try {
-            realm.where(AllTypes.class).equalTo("invalidcolumnname", 3.1415d).findAll();
+            realm.where(AllTypes.class).equalTo("invalidcolumnname", Math.PI).findAll();
             fail("Invalid field name");
         } catch (Exception ignored) {
         }
 
         try {
-            realm.where(AllTypes.class).equalTo("invalidcolumnname", 3.1415f).findAll();
+            realm.where(AllTypes.class).equalTo("invalidcolumnname", Math.PI).findAll();
             fail("Invalid field name");
         } catch (Exception ignored) {
         }
@@ -455,7 +455,7 @@ public class RealmTests {
 
         realm.beginTransaction();
         AllTypes allTypes = realm.createObject(AllTypes.class);
-        allTypes.setColumnFloat(3.1415f);
+        allTypes.setColumnFloat(3.14F);
         allTypes.setColumnString("a unique string");
         realm.commitTransaction();
 
@@ -464,7 +464,7 @@ public class RealmTests {
 
         resultList = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_STRING, "a unique string").findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 3.1415f).findAll();
+        resultList = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 3.14F).findAll();
         assertEquals(1, resultList.size());
     }
 
@@ -660,7 +660,7 @@ public class RealmTests {
 
     @Test
     public void executeTransaction_canceled() {
-        final AtomicReference<RuntimeException> thrownException = new AtomicReference<>(null);
+        final AtomicReference<RuntimeException> thrownException = new AtomicReference<RuntimeException>(null);
 
         assertEquals(0, realm.where(Owner.class).count());
         try {
@@ -1797,7 +1797,7 @@ public class RealmTests {
             try {
                 realm2 = Realm.getInstance(configFactory.createConfiguration(ENCRYPTED_REALM, key2));
             } catch (Exception e) {
-                fail();
+                fail("Unexpected exception: " + e);
             } finally {
                 if (realm2 != null) {
                     realm2.close();
@@ -2476,7 +2476,7 @@ public class RealmTests {
             fieldObjectValue.setFieldInt(fieldObjectIntValue);
             obj.setFieldObject(fieldObjectValue);
 
-            final RealmList<RandomPrimaryKey> list = new RealmList<>();
+            final RealmList<RandomPrimaryKey> list = new RealmList<RandomPrimaryKey>();
             final RandomPrimaryKey listItem = new RandomPrimaryKey();
             listItem.setFieldInt(fieldListIntValue);
             list.add(listItem);
@@ -2531,7 +2531,7 @@ public class RealmTests {
             fieldObjectValue.setFieldInt(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 1);
             obj.setFieldObject(fieldObjectValue);
 
-            final RealmList<RandomPrimaryKey> list = new RealmList<>();
+            final RealmList<RandomPrimaryKey> list = new RealmList<RandomPrimaryKey>();
             final RandomPrimaryKey listItem = new RandomPrimaryKey();
             listItem.setFieldInt(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 2);
             list.add(listItem);
@@ -3690,34 +3690,34 @@ public class RealmTests {
 
     @Test
     public void schemaIndexCacheIsUpdatedAfterSchemaChange() {
-        final CatRealmProxy.CatColumnInfo catColumnInfo;
-        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.columnIndices.getColumnInfo(Cat.class);
-
-        final long nameIndex = catColumnInfo.nameIndex;
         final AtomicLong nameIndexNew = new AtomicLong(-1L);
 
-        // Changes column index of "name".
+        // get the pre-update index for the "name" column.
+        CatRealmProxy.CatColumnInfo catColumnInfo
+                = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnInfo(Cat.class);
+        final long nameIndex = catColumnInfo.nameIndex;
+
+        // Change the index of the column "name".
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 final Table catTable = realm.getSchema().getTable(Cat.CLASS_NAME);
                 final long nameIndex = catTable.getColumnIndex(Cat.FIELD_NAME);
                 catTable.removeColumn(nameIndex);
-                final long newIndex = catTable.addColumn(RealmFieldType.STRING,
-                        Cat.FIELD_NAME, true);
-
+                final long newIndex = catTable.addColumn(RealmFieldType.STRING, Cat.FIELD_NAME, true);
                 realm.setVersion(realm.getConfiguration().getSchemaVersion() + 1);
-
                 nameIndexNew.set(newIndex);
             }
         });
+
         // We need to update index cache if the schema version was changed in the same thread.
         realm.sharedRealm.invokeSchemaChangeListenerIfSchemaChanged();
 
-        // Checks if the index was changed.
+        // Verify that the index has changed.
         assertNotEquals(nameIndex, nameIndexNew);
 
-        // Checks if index in the ColumnInfo is updated.
+        // Verify that the index in the ColumnInfo has been updated.
+        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnInfo(Cat.class);
         assertEquals(nameIndexNew.get(), catColumnInfo.nameIndex);
         assertEquals(nameIndexNew.get(), (long) catColumnInfo.getIndicesMap().get(Cat.FIELD_NAME));
 

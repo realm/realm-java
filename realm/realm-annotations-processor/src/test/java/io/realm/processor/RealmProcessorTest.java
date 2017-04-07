@@ -56,6 +56,17 @@ public class RealmProcessorTest {
     private JavaFileObject UseExtendRealmList = JavaFileObjects.forResource("some/test/UseExtendRealmList.java");
     private JavaFileObject SimpleRealmModel = JavaFileObjects.forResource("some/test/SimpleRealmModel.java");
     private JavaFileObject customInterface = JavaFileObjects.forResource("some/test/CustomInterface.java");
+    private JavaFileObject backlinks = JavaFileObjects.forResource("some/test/Backlinks.java");
+    private JavaFileObject backlinksTarget = JavaFileObjects.forResource("some/test/BacklinkTarget.java");
+    private JavaFileObject backlinksInvalidField = JavaFileObjects.forResource("some/test/Backlinks_InvalidFieldType.java");
+    private JavaFileObject backlinksLinked = JavaFileObjects.forResource("some/test/Backlinks_LinkedFields.java");
+    private JavaFileObject backlinksMissingParam = JavaFileObjects.forResource("some/test/Backlinks_MissingParameter.java");
+    private JavaFileObject backlinksMissingGeneric = JavaFileObjects.forResource("some/test/Backlinks_MissingGeneric.java");
+    private JavaFileObject backlinksRequired = JavaFileObjects.forResource("some/test/Backlinks_Required.java");
+    private JavaFileObject backlinksIgnored = JavaFileObjects.forResource("some/test/Backlinks_Ignored.java");
+    private JavaFileObject backlinksNotFound = JavaFileObjects.forResource("some/test/Backlinks_NotFound.java");
+    private JavaFileObject backlinksNonFinalField = JavaFileObjects.forResource("some/test/Backlinks_NotFinal.java");
+    private JavaFileObject backlinksWrongType = JavaFileObjects.forResource("some/test/Backlinks_WrongType.java");
 
     @Test
     public void compileSimpleFile() {
@@ -183,7 +194,8 @@ public class RealmProcessorTest {
     @Test
     public void compileAppModuleMixedParametersFail() throws Exception {
         ASSERT.about(javaSources())
-                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAppModuleMixedParameters.java")))
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource(
+                    "some/test/InvalidAllTypesModuleMixedParameters.java")))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }
@@ -191,7 +203,8 @@ public class RealmProcessorTest {
     @Test
     public void compileAppModuleWrongTypeFail() throws Exception {
         ASSERT.about(javaSources())
-                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAppModuleWrongType.java")))
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource(
+                    "some/test/InvalidAllTypesModuleWrongType.java")))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }
@@ -459,5 +472,93 @@ public class RealmProcessorTest {
                 .that(Arrays.asList(JavaFileObjects.forResource("some/test/InterfaceObjectReference.java"), customInterface))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
+    }
+
+    @Test
+    public void compileBacklinks() {
+        ASSERT.about(javaSources())
+            .that(Arrays.asList(backlinks, backlinksTarget))
+            .processedWith(new RealmProcessor())
+            .compilesWithoutError();
+    }
+
+    @Test
+    public void failOnLinkingObjectsWithInvalidFieldType() {
+        ASSERT.about(javaSources())
+            .that(Arrays.asList(backlinks, backlinksTarget, backlinksInvalidField))
+            .processedWith(new RealmProcessor())
+            .failsToCompile()
+            .withErrorContaining("Fields annotated with @LinkingObjects must be RealmResults");
+    }
+
+    @Test
+    public void failOnLinkingObjectsWithNonFinalField() {
+        ASSERT.about(javaSources())
+            .that(Arrays.asList(backlinks, backlinksTarget, backlinksNonFinalField))
+            .processedWith(new RealmProcessor())
+            .failsToCompile()
+            .withErrorContaining("must be final");
+    }
+
+    @Test
+    public void failsOnLinkingObjectsWithLinkedFields() {
+        ASSERT.about(javaSources())
+            .that(Arrays.asList(backlinks, backlinksTarget, backlinksLinked))
+            .processedWith(new RealmProcessor())
+            .failsToCompile()
+            .withErrorContaining("The use of '.' to specify fields in referenced classes is not supported");
+    }
+
+    @Test
+    public void failsOnLinkingObjectsMissingFieldName() {
+        ASSERT.about(javaSources())
+            .that(Arrays.asList(backlinks, backlinksTarget, backlinksMissingParam))
+            .processedWith(new RealmProcessor())
+            .failsToCompile()
+            .withErrorContaining("must have a parameter identifying the link target");
+    }
+
+    @Test
+    public void failsOnLinkingObjectsMissingGeneric() {
+        ASSERT.about(javaSources())
+            .that(Arrays.asList(backlinks, backlinksTarget, backlinksMissingGeneric))
+            .processedWith(new RealmProcessor())
+            .failsToCompile()
+            .withErrorContaining("must specify a generic type");
+    }
+
+    @Test
+    public void failsOnLinkingObjectsWithRequiredFields() {
+        ASSERT.about(javaSources())
+            .that(Arrays.asList(backlinks, backlinksTarget, backlinksRequired))
+            .processedWith(new RealmProcessor())
+            .failsToCompile()
+            .withErrorContaining("cannot be @Required");
+    }
+
+    @Test
+    public void failsOnLinkingObjectsWithIgnoreFields() {
+        ASSERT.about(javaSources())
+            .that(Arrays.asList(backlinks, backlinksTarget, backlinksIgnored))
+            .processedWith(new RealmProcessor())
+            .compilesWithoutError();
+    }
+
+    @Test
+    public void failsOnLinkingObjectsFieldNotFound() {
+        ASSERT.about(javaSources())
+            .that(Arrays.asList(backlinks, backlinksTarget, backlinksNotFound))
+            .processedWith(new RealmProcessor())
+            .failsToCompile()
+            .withErrorContaining("does not exist in class");
+    }
+
+    @Test
+    public void failsOnLinkingObjectsWithFieldWrongType() {
+        ASSERT.about(javaSources())
+            .that(Arrays.asList(backlinks, backlinksTarget, backlinksWrongType))
+            .processedWith(new RealmProcessor())
+            .failsToCompile()
+            .withErrorContaining("instead of");
     }
 }

@@ -96,7 +96,7 @@ public class IOSRealmTests {
                 assertEquals(1.234D + (double)i, obj.getDoubleCol(), 0D);
                 assertArrayEquals(new byte[]{1, 2, 3}, obj.getByteCol());
                 assertEquals("String " + Integer.toString(i), obj.getStringCol());
-                assertEquals(new Date((1000 + i) * 1000), obj.getDateCol());
+                assertEquals(new Date((1000L + i) * 1000), obj.getDateCol());
                 assertEquals("Foo", result.get(i).getChild().getName());
                 assertEquals(10, result.get(i).getChildren().size());
                 for (int j = 0; j < 10; j++) {

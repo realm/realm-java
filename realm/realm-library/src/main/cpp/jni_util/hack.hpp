@@ -17,11 +17,12 @@
 #ifndef REALM_JNI_UTIL_HACK_HPP
 #define REALM_JNI_UTIL_HACK_HPP
 
-extern "C" {
+namespace realm {
+namespace jni_util {
 
 // Workaround bugs on some devices.
 void hack_init();
+
 }
-
+}
 #endif // REALM_JNI_UTIL_HACK_HPP
-

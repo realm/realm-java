@@ -22,6 +22,7 @@ import java.util.List;
 import io.realm.RealmFieldType;
 import io.realm.Sort;
 
+
 /**
  * Java class to present the same name core class in Java. This can be converted to a cpp realm::SortDescriptor object
  * through realm::_impl::JavaSortDescriptor.
@@ -120,11 +121,6 @@ public class SortDescriptor {
                     "Distinct is not supported on '%s' field '%s' in '%s'.",
                     descriptor.getFieldType().toString(), descriptor.getFieldName(), fieldDescriptions));
         }
-        if (!descriptor.hasSearchIndex()) {
-            throw new IllegalArgumentException(String.format(
-                    "Field '%s' in '%s' must be indexed in order to use it for distinct queries.",
-                    descriptor.getFieldName(), fieldDescriptions));
-        }
     }
 
     // Called by JNI.
@@ -143,6 +139,6 @@ public class SortDescriptor {
     @KeepMember
     @SuppressWarnings("unused")
     private long getTablePtr() {
-       return table.getNativePtr();
+        return table.getNativePtr();
     }
 }

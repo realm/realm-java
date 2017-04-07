@@ -34,7 +34,6 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.entities.Dog;
-import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;

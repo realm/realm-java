@@ -121,16 +121,6 @@ public class SortDescriptorTests {
     }
 
     @Test
-    public void getInstanceForDistinct_shouldThrowIfNoSearchIndex() {
-        RealmFieldType type = RealmFieldType.STRING;
-        table.addColumn(type, type.name());
-
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("must be indexed");
-        SortDescriptor.getInstanceForDistinct(table, type.name());
-    }
-
-    @Test
     public void getInstanceForDistinct_shouldThrowOnInvalidField() {
         List<RealmFieldType> types = new ArrayList<RealmFieldType>();
         for (RealmFieldType type : RealmFieldType.values()) {
