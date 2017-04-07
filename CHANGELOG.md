@@ -8,6 +8,7 @@
 
 * Crash caused by Listeners on `RealmObject` getting triggered the 2nd time with different changed field (#4437).
 * Unintentionally exposing `StandardRealmSchema` (#4443).
+* Workaround for crashes on specific Samsung devices which are caused by a buggy `memmove` call (#3651).
 
 ### Internal
 
