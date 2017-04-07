@@ -4,7 +4,7 @@
 
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore' annotation (#4279).
 
-## 3.1.1 (YYYY-MM-DD)
+## 3.1.1 (2017-04-07)
 
 ### Deprecated
 
