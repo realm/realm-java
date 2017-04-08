@@ -1,3 +1,16 @@
+## 3.1.2 (YYYY-MM-DD)
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+* Incompatible return type of `RealmSchema.getAll()` and `BaseRealm.getSchema()` (#4443).
+
+### Internal
+
+
 ## 3.1.1 (2017-04-07)
 
 ### Deprecated
