@@ -54,7 +54,7 @@ public class Migration implements RealmMigration {
                 int age;
         ************************************************/
         // Migrate from version 0 to version 1
-        if (oldVersion == 0) {
+        if (oldVersion == 0 && oldVersion < newVersion) {
             RealmObjectSchema personSchema = schema.get("Person");
 
             // Combine 'firstName' and 'lastName' in a new field called 'fullName'
@@ -87,7 +87,7 @@ public class Migration implements RealmMigration {
 
          ************************************************/
         // Migrate from version 1 to version 2
-        if (oldVersion == 1) {
+        if (oldVersion == 1 && oldVersion < newVersion) {
 
             // Create a new class
             RealmObjectSchema petSchema = schema.create("Pet")
@@ -124,7 +124,7 @@ public class Migration implements RealmMigration {
                     int age;
          ************************************************/
         // Migrate from version 2 to version 3
-        if (oldVersion == 2) {
+        if (oldVersion == 2 && oldVersion < newVersion) {
             RealmObjectSchema personSchema = schema.get("Person");
             personSchema.setNullable("fullName", true); // fullName is nullable now.
 
