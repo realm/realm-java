@@ -113,7 +113,7 @@ public class ExampleActivity extends Activity {
             public void execute(Realm realm) {
                 // Add a person
                 Person person = realm.createObject(Person.class);
-                person.setId(1);
+                person.id = 1;
                 person.setName("John Young");
                 person.setAge(14);
             }
