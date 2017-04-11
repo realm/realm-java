@@ -396,13 +396,18 @@ public class Realm extends BaseRealm {
             final RealmProxyMediator mediator = configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
-            final OsRealmSchema.Creator schemaCreator = new OsRealmSchema.Creator();
-            for (Class<? extends RealmModel> modelClass : modelClasses) {
-                mediator.createRealmObjectSchema(modelClass, schemaCreator);
-            }
+            OsRealmSchema.Creator schemaCreator = new OsRealmSchema.Creator();
+            try {
+                for (Class<? extends RealmModel> modelClass : modelClasses) {
+                    mediator.createRealmObjectSchema(modelClass, schemaCreator);
+                }
 
-            // Assumption: When SyncConfiguration then additive schema update mode.
-            schema = new OsRealmSchema(schemaCreator);
+                // Assumption: When SyncConfiguration then additive schema update mode.
+                schema = new OsRealmSchema(schemaCreator);
+            } finally {
+                schemaCreator.close();
+                schemaCreator = null;
+            }
             long newVersion = configuration.getSchemaVersion();
             // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
             // It absolutely breaks encapsulation and needs to be fixed!

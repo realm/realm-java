@@ -37,7 +37,12 @@ class OsRealmSchema extends RealmSchema {
         private final Map<String, OsRealmObjectSchema> schema = new HashMap<>();
 
         @Override
-        public void close() { }
+        public void close() {
+            for (Map.Entry<String, OsRealmObjectSchema> entry : schema.entrySet()) {
+                entry.getValue().close();
+            }
+            schema.clear();
+        }
 
         @Override
         public RealmObjectSchema get(String className) {
