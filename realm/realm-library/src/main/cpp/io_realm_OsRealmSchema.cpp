@@ -33,8 +33,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_OsRealmSchema_nativeCreateFromList(JNIEnv*
         std::vector<ObjectSchema> object_schemas;
         JniLongArray array(env, objectSchemaPtrs_);
         for (jsize i = 0; i < array.len(); ++i) {
-            ObjectSchema object_schema = *reinterpret_cast<ObjectSchema*>(array[i]);
-            object_schemas.push_back(std::move(object_schema));
+            object_schemas.push_back(*reinterpret_cast<ObjectSchema*>(array[i]));
         }
         auto* schema = new Schema(object_schemas);
         return reinterpret_cast<jlong>(schema);
@@ -61,8 +60,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_OsRealmSchema_nativeGetAll(JNIEnv* en
         auto it = schema->begin();
         size_t index = 0;
         while (it != schema->end()) {
-            auto object_schema = *it;
-            tmp[index] = reinterpret_cast<jlong>(new ObjectSchema(std::move(object_schema)));
+            tmp[index] = reinterpret_cast<jlong>(new ObjectSchema(*it));
             ++index;
             ++it;
         }
