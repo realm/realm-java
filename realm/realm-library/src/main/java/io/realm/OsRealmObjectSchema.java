@@ -19,7 +19,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 class OsRealmObjectSchema extends RealmObjectSchema {
-    private final long nativePtr;
+    private long nativePtr;
 
     /**
      * Creates a schema object using object store. This constructor is intended to be used by
@@ -38,7 +38,10 @@ class OsRealmObjectSchema extends RealmObjectSchema {
 
     @Override
     public void close() {
-        nativeClose(nativePtr);
+        if (nativePtr != 0L) {
+            nativeClose(nativePtr);
+            nativePtr = 0L;
+        }
     }
 
     @Override
