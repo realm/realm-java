@@ -96,7 +96,7 @@ class OsRealmSchema extends RealmSchema {
 
     private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
 
-    private final long nativePtr;
+    private long nativePtr;
 
     OsRealmSchema(Creator creator) {
         Set<OsRealmObjectSchema> realmObjectSchemas = creator.getAll();
@@ -119,7 +119,10 @@ class OsRealmSchema extends RealmSchema {
         for (RealmObjectSchema schema : schemas) {
             schema.close();
         }
-        nativeClose(nativePtr);
+        if (nativePtr != 0L) {
+            nativeClose(nativePtr);
+            nativePtr = 0L;
+        }
     }
 
     /**
