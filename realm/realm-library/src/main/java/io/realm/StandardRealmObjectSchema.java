@@ -81,7 +81,8 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         this.columnIndices = columnIndices;
     }
 
-    public Table getTable() {
+    @Override
+    Table getTable() {
         return table;
     }
 
@@ -652,6 +653,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @return column index.
      * @throws IllegalArgumentException if the field does not exists.
      */
+    @Override
     long getAndCheckFieldIndex(String fieldName) {
         Long index = columnIndices.get(fieldName);
         if (index == null) {

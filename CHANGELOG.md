@@ -7,9 +7,11 @@
 ### Bug Fixes
 
 * Crash caused by JNI couldn't find `OsObject.notifyChangeListeners` when ProGuard is enabled (#4461).
+* Incompatible return type of `RealmSchema.getAll()` and `BaseRealm.getSchema()` (#4443).
 * Memory leaked when synced Realm was initialized (#4465).
 
 ### Internal
+
 
 ## 3.1.1 (2017-04-07)
 
