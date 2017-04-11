@@ -75,27 +75,3 @@ JNIEXPORT jstring JNICALL Java_io_realm_OsRealmObjectSchema_nativeGetClassName(J
 
     return nullptr;
 }
-
-JNIEXPORT jlongArray JNICALL Java_io_realm_OsRealmObjectSchema_nativeCopyProperties(JNIEnv* env, jclass, jlong nativePtr)
-{
-    TR_ENTER_PTR(nativePtr)
-    try {
-        ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(nativePtr);
-        size_t size = object_schema->persisted_properties.size();
-        jlongArray native_ptr_array = env->NewLongArray(static_cast<jsize>(size));
-        jlong* tmp = new jlong[size];
-        auto it = object_schema->persisted_properties.begin();
-        size_t index = 0;
-        while (it != object_schema->persisted_properties.end()) {
-            tmp[index] = reinterpret_cast<jlong>(new Property(*it/* do not move*/));
-            ++index;
-            ++it;
-        }
-        env->SetLongArrayRegion(native_ptr_array, 0, static_cast<jsize>(size), tmp);
-        delete tmp;
-        return native_ptr_array;
-    }
-    CATCH_STD()
-
-    return nullptr;
-}
