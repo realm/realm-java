@@ -1,8 +1,29 @@
 ## 3.2.0 (YYYY-MM-DD)
 
+### Deprecated
+
 ### Enhancements
 
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore' annotation (#4279).
+
+### Bug Fixes
+
+### Internal
+
+
+## 3.1.2 (YYYY-MM-DD)
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+* Crash caused by JNI couldn't find `OsObject.notifyChangeListeners` when ProGurad is enabled (#4461).
+* Incompatible return type of `RealmSchema.getAll()` and `BaseRealm.getSchema()` (#4443).
+
+### Internal
+
 
 ## 3.1.1 (2017-04-07)
 

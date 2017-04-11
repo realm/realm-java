@@ -18,6 +18,9 @@ package io.realm;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import io.realm.internal.Table;
+
+
 class OsRealmObjectSchema extends RealmObjectSchema {
     private final long nativePtr;
 
@@ -179,6 +182,16 @@ class OsRealmObjectSchema extends RealmObjectSchema {
 
     long getNativePtr() {
         return nativePtr;
+    }
+
+    @Override
+    Table getTable() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    long getAndCheckFieldIndex(String fieldName) {
+        throw new UnsupportedOperationException();
     }
 
     private Set<Property> getProperties() {
