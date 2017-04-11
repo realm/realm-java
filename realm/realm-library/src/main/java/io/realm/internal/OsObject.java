@@ -24,6 +24,7 @@ import io.realm.RealmObjectChangeListener;
 /**
  * Java wrapper for Object Store's {@code Object} class. Currently it is only used for object notifications.
  */
+@KeepMember
 public class OsObject implements NativeObject {
 
     private static class OsObjectChangeSet implements ObjectChangeSet {
@@ -143,6 +144,7 @@ public class OsObject implements NativeObject {
 
     // Called by JNI
     @SuppressWarnings("unused")
+    @KeepMember
     private void notifyChangeListeners(String[] changedFields) {
         observerPairs.foreach(new Callback(changedFields));
     }
