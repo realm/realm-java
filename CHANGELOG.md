@@ -1,3 +1,9 @@
+## 3.1.2 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Crash caused by JNI couldn't find `OsObject.notifyChangeListeners` when ProGurad is enabled (#4461).
+
 ## 3.1.1 (2017-04-07)
 
 ### Deprecated
