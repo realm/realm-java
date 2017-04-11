@@ -1,3 +1,16 @@
+## 3.1.2 (YYYY-MM-DD)
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+* `OsObject.notifyChangeListeners()` was obfuscated by the ProGuard (#4463).
+
+### Internal
+
+
 ## 3.1.1 (2017-04-07)
 
 ### Deprecated

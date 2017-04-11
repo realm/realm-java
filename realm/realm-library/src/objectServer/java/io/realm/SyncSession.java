@@ -47,6 +47,7 @@ import io.realm.log.RealmLog;
  * This object is thread safe.
  */
 @Keep
+@KeepMember
 public class SyncSession {
     private final static ScheduledThreadPoolExecutor REFRESH_TOKENS_EXECUTOR = new ScheduledThreadPoolExecutor(1);
     private final static long REFRESH_MARGIN_DELAY = TimeUnit.SECONDS.toMillis(10);
