@@ -441,7 +441,7 @@ public class Realm extends BaseRealm {
                     transaction.execute(realm);
                 }
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             commitChanges = false;
             throw e;
         } finally {
