@@ -29,14 +29,14 @@ JavaMethod::JavaMethod(JNIEnv* env, jclass cls, const char* method_name, const c
         m_method_id = env->GetMethodID(cls, method_name, signature);
     }
 
-    REALM_ASSERT_DEBUG(m_method_id != nullptr);
+    REALM_ASSERT_RELEASE(m_method_id != nullptr);
 }
 
 JavaMethod::JavaMethod(JNIEnv* env, jobject obj, const char* method_name, const char* signature)
 {
     jclass cls = env->GetObjectClass(obj);
     m_method_id = env->GetMethodID(cls, method_name, signature);
-    REALM_ASSERT_DEBUG(m_method_id != nullptr);
+    REALM_ASSERT_RELEASE(m_method_id != nullptr);
     env->DeleteLocalRef(cls);
 }
 
@@ -44,7 +44,7 @@ JavaMethod::JavaMethod(JNIEnv* env, const char* class_name, const char* method_n
                        bool static_method)
 {
     jclass cls = env->FindClass(class_name);
-    REALM_ASSERT_DEBUG(cls != nullptr);
+    REALM_ASSERT_RELEASE(cls != nullptr);
     if (static_method) {
         m_method_id = env->GetStaticMethodID(cls, method_name, signature);
     }
