@@ -38,7 +38,7 @@ class OsRealmObjectSchema extends RealmObjectSchema {
 
     @Override
     public void close() {
-        Set<Property> properties = getProperties();
+        Set<Property> properties = copyProperties();
         for (Property property : properties) {
             property.close();
         }
@@ -191,8 +191,8 @@ class OsRealmObjectSchema extends RealmObjectSchema {
         return nativePtr;
     }
 
-    private Set<Property> getProperties() {
-        long[] ptrs = nativeGetProperties(nativePtr);
+    private Set<Property> copyProperties() {
+        long[] ptrs = nativeCopyProperties(nativePtr);
         Set<Property> properties = new LinkedHashSet<>(ptrs.length);
         for (int i = 0; i < ptrs.length; i++) {
             properties.add(new Property(ptrs[i]));
@@ -204,7 +204,7 @@ class OsRealmObjectSchema extends RealmObjectSchema {
 
     static native void nativeAddProperty(long nativePtr, long nativePropertyPtr);
 
-    static native long[] nativeGetProperties(long nativePtr);
+    static native long[] nativeCopyProperties(long nativePtr);
 
     static native void nativeClose(long nativePtr);
 

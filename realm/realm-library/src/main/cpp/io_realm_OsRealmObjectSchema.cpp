@@ -76,7 +76,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_OsRealmObjectSchema_nativeGetClassName(J
     return nullptr;
 }
 
-JNIEXPORT jlongArray JNICALL Java_io_realm_OsRealmObjectSchema_nativeGetProperties(JNIEnv* env, jclass, jlong nativePtr)
+JNIEXPORT jlongArray JNICALL Java_io_realm_OsRealmObjectSchema_nativeCopyProperties(JNIEnv* env, jclass, jlong nativePtr)
 {
     TR_ENTER_PTR(nativePtr)
     try {
@@ -87,8 +87,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_OsRealmObjectSchema_nativeGetProperti
         auto it = object_schema->persisted_properties.begin();
         size_t index = 0;
         while (it != object_schema->persisted_properties.end()) {
-            Property property = *it;
-            tmp[index] = reinterpret_cast<jlong>(new Property(std::move(property)));
+            tmp[index] = reinterpret_cast<jlong>(new Property(*it/* do not move*/));
             ++index;
             ++it;
         }
