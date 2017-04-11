@@ -120,10 +120,6 @@ class OsRealmSchema extends RealmSchema {
     // See BaseRealm uses a StandardRealmSchema, not a OsRealmSchema.
     @Override
     public void close() {
-        Set<OsRealmObjectSchema> schemas = getAll();
-        for (RealmObjectSchema schema : schemas) {
-            schema.close();
-        }
         if (nativePtr != 0L) {
             nativeClose(nativePtr);
             nativePtr = 0L;
@@ -149,12 +145,7 @@ class OsRealmSchema extends RealmSchema {
      */
     @Override
     public Set<OsRealmObjectSchema> getAll() {
-        long[] ptrs = nativeGetAll(nativePtr);
-        Set<OsRealmObjectSchema> schemas = new LinkedHashSet<>(ptrs.length);
-        for (int i = 0; i < ptrs.length; i++) {
-            schemas.add(new OsRealmObjectSchema(ptrs[i]));
-        }
-        return schemas;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -222,6 +213,4 @@ class OsRealmSchema extends RealmSchema {
     static native long nativeCreateFromList(long[] objectSchemaPtrs);
 
     static native void nativeClose(long nativePtr);
-
-    static native long[] nativeGetAll(long nativePtr);
 }
