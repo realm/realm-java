@@ -6,6 +6,7 @@
 
 ### Bug Fixes
 
+* Crash caused by JNI couldn't find `OsObject.notifyChangeListeners` when ProGurad is enabled (#4461).
 * Incompatible return type of `RealmSchema.getAll()` and `BaseRealm.getSchema()` (#4443).
 
 ### Internal
