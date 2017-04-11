@@ -34,7 +34,7 @@ import io.realm.internal.Table;
  */
 class OsRealmSchema extends RealmSchema {
     static final class Creator extends RealmSchema {
-        private final Map<String, OsRealmObjectSchema> schema = new HashMap<>();
+        private final Map<String, RealmObjectSchema> schema = new HashMap<>();
 
         @Override
         public void close() { }
@@ -46,7 +46,7 @@ class OsRealmSchema extends RealmSchema {
         }
 
         @Override
-        public Set<OsRealmObjectSchema> getAll() {
+        public Set<RealmObjectSchema> getAll() {
             return new LinkedHashSet<>(schema.values());
         }
 
@@ -99,11 +99,11 @@ class OsRealmSchema extends RealmSchema {
     private final long nativePtr;
 
     OsRealmSchema(Creator creator) {
-        Set<OsRealmObjectSchema> realmObjectSchemas = creator.getAll();
+        Set<RealmObjectSchema> realmObjectSchemas = creator.getAll();
         long[] schemaNativePointers = new long[realmObjectSchemas.size()];
         int i = 0;
-        for (OsRealmObjectSchema schema : realmObjectSchemas) {
-            schemaNativePointers[i++] = schema.getNativePtr();
+        for (RealmObjectSchema schema : realmObjectSchemas) {
+            schemaNativePointers[i++] = ((OsRealmObjectSchema) schema).getNativePtr();
         }
         this.nativePtr = nativeCreateFromList(schemaNativePointers);
     }
@@ -115,7 +115,7 @@ class OsRealmSchema extends RealmSchema {
     // See BaseRealm uses a StandardRealmSchema, not a OsRealmSchema.
     @Override
     public void close() {
-        Set<OsRealmObjectSchema> schemas = getAll();
+        Set<RealmObjectSchema> schemas = getAll();
         for (RealmObjectSchema schema : schemas) {
             schema.close();
         }
@@ -140,9 +140,9 @@ class OsRealmSchema extends RealmSchema {
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
     @Override
-    public Set<OsRealmObjectSchema> getAll() {
+    public Set<RealmObjectSchema> getAll() {
         long[] ptrs = nativeGetAll(nativePtr);
-        Set<OsRealmObjectSchema> schemas = new LinkedHashSet<>(ptrs.length);
+        Set<RealmObjectSchema> schemas = new LinkedHashSet<>(ptrs.length);
         for (int i = 0; i < ptrs.length; i++) {
             schemas.add(new OsRealmObjectSchema(ptrs[i]));
         }

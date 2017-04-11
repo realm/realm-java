@@ -47,7 +47,7 @@ public class RealmSchemaTests {
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
     private DynamicRealm realm;
-    private StandardRealmSchema realmSchema;
+    private RealmSchema realmSchema;
 
     @Before
     public void setUp() {

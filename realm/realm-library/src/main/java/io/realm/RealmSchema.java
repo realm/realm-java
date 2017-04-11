@@ -54,7 +54,7 @@ public abstract class RealmSchema {
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
-    public abstract Set<? extends RealmObjectSchema> getAll();
+    public abstract Set<RealmObjectSchema> getAll();
 
     /**
      * Adds a new class to the Realm.
