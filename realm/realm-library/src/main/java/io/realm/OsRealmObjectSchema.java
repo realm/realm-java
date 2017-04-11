@@ -167,13 +167,23 @@ class OsRealmObjectSchema extends RealmObjectSchema {
 
     @Override
     OsRealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
-        nativeAddProperty(nativePtr, new Property(name, type, primary, indexed, required).getNativePtr());
+        final Property property = new Property(name, type, primary, indexed, required);
+        try {
+            nativeAddProperty(nativePtr, property.getNativePtr());
+        } finally {
+            property.close();
+        }
         return this;
     }
 
     @Override
     OsRealmObjectSchema add(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
-        nativeAddProperty(nativePtr, new Property(name, type, linkedTo).getNativePtr());
+        final Property property = new Property(name, type, linkedTo);
+        try {
+            nativeAddProperty(nativePtr, property.getNativePtr());
+        } finally {
+            property.close();
+        }
         return this;
     }
 
