@@ -1,3 +1,16 @@
+## 3.1.2 (YYYY-MM-DD)
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+* Memory leaked when synced Realm was initialized (#4465).
+
+### Internal
+
+
 ## 3.1.1 (2017-04-07)
 
 ### Deprecated
