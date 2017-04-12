@@ -32,6 +32,9 @@ import io.realm.RealmChangeListener;
 @Keep
 public class Collection implements NativeObject {
 
+    private static final String CLOSED_REALM_MESSAGE =
+            "This Realm instance has already been closed, making it unusable.";
+
     private static class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
         public CollectionObserverPair(T observer, Object listener) {
             super(observer, listener);
@@ -94,6 +97,10 @@ public class Collection implements NativeObject {
         protected int pos = -1;
 
         public Iterator(Collection collection) {
+            if (collection.sharedRealm.isClosed()) {
+                throw new IllegalStateException(CLOSED_REALM_MESSAGE);
+            }
+
             this.iteratorCollection = collection;
 
             if (collection.isSnapshot) {
