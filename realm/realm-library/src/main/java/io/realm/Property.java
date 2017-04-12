@@ -26,7 +26,7 @@ class Property {
     public static final boolean REQUIRED = true;
     public static final boolean INDEXED = true;
 
-    private final long nativePtr;
+    private long nativePtr;
 
     Property(String name, RealmFieldType type, boolean isPrimary, boolean isIndexed, boolean isRequired) {
         this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), isPrimary, isIndexed, !isRequired);
@@ -47,6 +47,7 @@ class Property {
     public void close() {
         if (nativePtr != 0) {
             nativeClose(nativePtr);
+            nativePtr = 0L;
         }
     }
 
