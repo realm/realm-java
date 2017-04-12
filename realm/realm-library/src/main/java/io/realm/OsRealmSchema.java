@@ -38,7 +38,7 @@ class OsRealmSchema extends RealmSchema {
 
         @Override
         public void close() {
-            for (Map.Entry<String, OsRealmObjectSchema> entry : schema.entrySet()) {
+            for (Map.Entry<String, RealmObjectSchema> entry : schema.entrySet()) {
                 entry.getValue().close();
             }
             schema.clear();
