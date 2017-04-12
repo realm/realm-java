@@ -319,7 +319,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     public boolean isClosed() {
-        return nativePtr == 0 || nativeIsClosed(nativePtr);
+        return nativeIsClosed(nativePtr);
     }
 
     public void writeCopy(File file, byte[] key) {
