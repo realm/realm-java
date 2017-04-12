@@ -176,7 +176,7 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private final RealmConfiguration configuration;
 
-    private long nativePtr;
+    final private long nativePtr;
     final Context context;
     private long lastSchemaVersion;
     private final SchemaVersionListener schemaChangeListener;
@@ -319,7 +319,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     public boolean isClosed() {
-        return nativePtr == 0 || nativeIsClosed(nativePtr);
+        return nativeIsClosed(nativePtr);
     }
 
     public void writeCopy(File file, byte[] key) {
@@ -368,12 +368,9 @@ public final class SharedRealm implements Closeable, NativeObject {
             realmNotifier.close();
         }
         synchronized (context) {
-            if (nativePtr != 0) {
-                nativeCloseSharedRealm(nativePtr);
-                // It is OK to clear the nativePtr. It has been saved to the NativeObjectReference when adding to the
-                // context.
-                nativePtr = 0;
-            }
+            nativeCloseSharedRealm(nativePtr);
+            // Don't reset the nativePtr since we still rely on Object Store to check if the given SharedRealm ptr
+            // is closed or not.
         }
     }
 

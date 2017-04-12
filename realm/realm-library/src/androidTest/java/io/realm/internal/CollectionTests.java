@@ -487,6 +487,14 @@ public class CollectionTests {
     }
 
     @Test
+    public void collectionIterator_newInstance_throwsWhenSharedRealmIsClosed() {
+        final Collection collection = new Collection(sharedRealm, table.where());
+        sharedRealm.close();
+        thrown.expect(IllegalStateException.class);
+        new TestIterator(collection);
+    }
+
+    @Test
     public void getMode() {
         Collection collection = new Collection(sharedRealm, table.where());
         assertTrue(Collection.Mode.QUERY == collection.getMode());

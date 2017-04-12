@@ -53,7 +53,9 @@ public class SharedRealmTests {
 
     @After
     public void tearDown() {
-        sharedRealm.close();
+        if (sharedRealm != null) {
+            sharedRealm.close();
+        }
     }
 
     @Test
@@ -98,6 +100,13 @@ public class SharedRealmTests {
         assertTrue(sharedRealm.isInTransaction());
         sharedRealm.cancelTransaction();
         assertFalse(sharedRealm.isInTransaction());
+    }
+
+    @Test
+    public void isInTransaction_returnFalseWhenRealmClosed() {
+        sharedRealm.close();
+        assertFalse(sharedRealm.isInTransaction());
+        sharedRealm = null;
     }
 
     @Test
@@ -230,5 +239,20 @@ public class SharedRealmTests {
         sharedRealm.refresh();
         assertTrue(listenerCalled.get());
         assertEquals(before + 1, schemaVersionFromListener.get());
+    }
+
+    @Test
+    public void isClosed() {
+        sharedRealm.close();
+        assertTrue(sharedRealm.isClosed());
+        sharedRealm = null;
+    }
+
+    @Test
+    public void close_twice() {
+        sharedRealm.close();
+        sharedRealm.close();
+        assertTrue(sharedRealm.isClosed());
+        sharedRealm = null;
     }
 }

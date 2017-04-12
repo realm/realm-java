@@ -22,6 +22,7 @@
 * Crash caused by JNI couldn't find `OsObject.notifyChangeListeners` when ProGuard is enabled (#4461).
 * Incompatible return type of `RealmSchema.getAll()` and `BaseRealm.getSchema()` (#4443).
 * Memory leaked when synced Realm was initialized (#4465).
+* An `IllegalStateException` will be thrown when starting iterating `OrderedRealmCollection` if the Realm is closed (#4471).
 
 ### Internal
 
