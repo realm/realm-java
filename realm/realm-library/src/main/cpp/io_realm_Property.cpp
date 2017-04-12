@@ -57,8 +57,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_Property_nativeCreateProperty__Ljava_lang_
         JStringAccessor link_name(env, linkedToName_);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
         bool is_nullable = (p_type == PropertyType::Object);
-        std::unique_ptr<Property> property(new Property(name, p_type, link_name, "", false, false, is_nullable));
-        return reinterpret_cast<jlong>(property.release());
+        return reinterpret_cast<jlong>(new Property(name, p_type, link_name, "", false, false, is_nullable));
     }
     CATCH_STD()
     return 0;
