@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+* A ISE will be thrown when starting iterating `OrderedRealmCollection` if the Realm is closed (#4471).
+
 ### Bug Fixes
 
 * Crash caused by JNI couldn't find `OsObject.notifyChangeListeners` when ProGuard is enabled (#4461).

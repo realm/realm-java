@@ -225,7 +225,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeCloseSharedRealm
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     // Close the SharedRealm only. Let the finalizer daemon thread free the SharedRealm
-    shared_realm->close();
+    if (!shared_realm->is_closed()) {
+        shared_realm->close();
+    }
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeBeginTransaction(JNIEnv* env, jclass,
