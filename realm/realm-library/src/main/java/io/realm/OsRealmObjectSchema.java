@@ -22,7 +22,7 @@ import io.realm.internal.Table;
 
 
 class OsRealmObjectSchema extends RealmObjectSchema {
-    private final long nativePtr;
+    private long nativePtr;
 
     /**
      * Creates a schema object using object store. This constructor is intended to be used by
@@ -41,11 +41,10 @@ class OsRealmObjectSchema extends RealmObjectSchema {
 
     @Override
     public void close() {
-        Set<Property> properties = getProperties();
-        for (Property property : properties) {
-            property.close();
+        if (nativePtr != 0L) {
+            nativeClose(nativePtr);
+            nativePtr = 0L;
         }
-        nativeClose(nativePtr);
     }
 
     @Override
@@ -170,13 +169,23 @@ class OsRealmObjectSchema extends RealmObjectSchema {
 
     @Override
     OsRealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
-        nativeAddProperty(nativePtr, new Property(name, type, primary, indexed, required).getNativePtr());
+        final Property property = new Property(name, type, primary, indexed, required);
+        try {
+            nativeAddProperty(nativePtr, property.getNativePtr());
+        } finally {
+            property.close();
+        }
         return this;
     }
 
     @Override
     OsRealmObjectSchema add(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
-        nativeAddProperty(nativePtr, new Property(name, type, linkedTo).getNativePtr());
+        final Property property = new Property(name, type, linkedTo);
+        try {
+            nativeAddProperty(nativePtr, property.getNativePtr());
+        } finally {
+            property.close();
+        }
         return this;
     }
 
@@ -194,20 +203,9 @@ class OsRealmObjectSchema extends RealmObjectSchema {
         throw new UnsupportedOperationException();
     }
 
-    private Set<Property> getProperties() {
-        long[] ptrs = nativeGetProperties(nativePtr);
-        Set<Property> properties = new LinkedHashSet<>(ptrs.length);
-        for (int i = 0; i < ptrs.length; i++) {
-            properties.add(new Property(ptrs[i]));
-        }
-        return properties;
-    }
-
     static native long nativeCreateRealmObjectSchema(String className);
 
     static native void nativeAddProperty(long nativePtr, long nativePropertyPtr);
-
-    static native long[] nativeGetProperties(long nativePtr);
 
     static native void nativeClose(long nativePtr);
 
