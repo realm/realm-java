@@ -4,7 +4,7 @@
 
 ### Enhancements
 
-* An ISE will be thrown when starting iterating `OrderedRealmCollection` if the Realm is closed (#4471).
+* An `IllegalStateException` will be thrown when starting iterating `OrderedRealmCollection` if the Realm is closed (#4471).
 
 ### Bug Fixes
 
