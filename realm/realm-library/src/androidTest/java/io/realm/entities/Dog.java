@@ -19,6 +19,7 @@ package io.realm.entities;
 
 import java.util.Date;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Index;
 
@@ -39,6 +40,7 @@ public class Dog extends RealmObject {
     private boolean hasTail;
     private Date birthday;
     private Owner owner;
+    private RealmList<Cat> catFriends;
 
     public Dog() {
     }
@@ -101,5 +103,13 @@ public class Dog extends RealmObject {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public RealmList<Cat> getCatFriends() {
+        return catFriends;
+    }
+
+    public void setCatFriends(RealmList<Cat> catFriends) {
+        this.catFriends = catFriends;
     }
 }
