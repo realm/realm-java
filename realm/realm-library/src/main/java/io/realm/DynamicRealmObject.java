@@ -35,6 +35,7 @@ import io.realm.internal.android.JsonUtils;
  */
 @SuppressWarnings("WeakerAccess")
 public class DynamicRealmObject extends RealmObject implements RealmObjectProxy {
+    private static final String MSG_LINK_QUERY_NOT_SUPPORTED = "Field name must not contain '.'";
 
     private final ProxyState proxyState = new ProxyState(this);
 
@@ -942,6 +943,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         final RealmObjectSchema realmObjectSchema = schema.get(srcClassName);
         if (realmObjectSchema == null) {
             throw new IllegalArgumentException("Class not found: " + srcClassName);
+        }
+
+        if (srcFieldName != null && srcFieldName.contains(".")) {
+            throw new IllegalArgumentException(MSG_LINK_QUERY_NOT_SUPPORTED);
         }
 
         final RealmFieldType fieldType = realmObjectSchema.getFieldType(srcFieldName); // throws IAE if not found

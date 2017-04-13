@@ -146,6 +146,22 @@ public class LinkingObjectsDynamicTests {
     }
 
     @Test
+    public void linkingObjects_linkQueryNotSupported() throws Exception {
+        dynamicRealm.beginTransaction();
+        final DynamicRealmObject object = dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 1L);
+        dynamicRealm.commitTransaction();
+
+        try {
+            object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_OBJECT);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            final Field expectedMessageField = DynamicRealmObject.class.getDeclaredField("MSG_LINK_QUERY_NOT_SUPPORTED");
+            expectedMessageField.setAccessible(true);
+            assertEquals(expectedMessageField.get(null), expected.getMessage());
+        }
+    }
+
+    @Test
     public void linkingObjects_invalidFieldType() {
         dynamicRealm.beginTransaction();
         final DynamicRealmObject object = dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 1L);
