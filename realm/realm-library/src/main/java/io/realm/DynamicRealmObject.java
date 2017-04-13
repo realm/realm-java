@@ -925,6 +925,36 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         return sb.toString();
     }
 
+    /**
+     * Returns {@link RealmResults<DynamicRealmObject>} containing all {@code srcClassName} class objects that have a relationship
+     * to this object from {@code srcFieldName} field.
+     *
+     * @param srcClassName name of the class returned objects belong to.
+     * @param srcFieldName name of the field to use.
+     * @return result.
+     */
+    public RealmResults<DynamicRealmObject> linkingObjects(String srcClassName, String srcFieldName) {
+        final DynamicRealm realm = (DynamicRealm) proxyState.getRealm$realm();
+        realm.checkIfValid();
+
+        final RealmSchema schema = realm.getSchema();
+        final RealmObjectSchema realmObjectSchema = schema.get(srcClassName);
+        if (realmObjectSchema == null) {
+            throw new IllegalArgumentException("Class not found: " + srcClassName);
+        }
+
+        final RealmFieldType fieldType = realmObjectSchema.getFieldType(srcFieldName); // throws IAE if not found
+        if (fieldType != RealmFieldType.OBJECT && fieldType != RealmFieldType.LIST) {
+            throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                    "Unexpected field type: %1$s. Field type should be either %2$s.%3$s or %2$s.%4$s.",
+                    fieldType.name(),
+                    RealmFieldType.class.getSimpleName(),
+                    RealmFieldType.OBJECT.name(), RealmFieldType.LIST.name()));
+        }
+
+        return RealmResults.createBacklinkResults(realm, proxyState.getRow$realm(), realmObjectSchema.getTable(), srcFieldName);
+    }
+
     @Override
     public void realm$injectObjectContext() {
         // nothing to do for DynamicRealmObject

@@ -53,7 +53,7 @@ public class LinkingObjectsUnmanagedTests {
         }
     }
 
-    // When unmanaged, an object's backlinks fields have their initialized value (probably null).
+    // When unmanaged, an object's backlinks fields are null.
     @Test
     public void copyFromRealm() {
         realm.beginTransaction();
@@ -65,41 +65,18 @@ public class LinkingObjectsUnmanagedTests {
         assertEquals(parent, child.getObjectParents().first());
 
         AllJavaTypes unmanagedChild = realm.copyFromRealm(child);
-        assertEquals(new AllJavaTypes().getObjectParents(), unmanagedChild.getObjectParents());
-    }
-
-    // When managed, an object's backlinks fields get live.
-    @Test
-    public void copyToRealm() {
-        AllJavaTypes unmanagedChild = new AllJavaTypes(1);
-
-        realm.beginTransaction();
-        AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
-        realm.commitTransaction();
-        assertEquals(new AllJavaTypes().getObjectParents(), unmanagedChild.getObjectParents());
-
-        realm.beginTransaction();
-        AllJavaTypes child = realm.copyToRealm(unmanagedChild);
-        parent.setFieldObject(child);
-        realm.commitTransaction();
-
-        RealmResults<AllJavaTypes> parents = child.getObjectParents();
-        assertNotNull(parents);
-        assertEquals(1, parents.size());
-        assertEquals(parent, parents.first());
+        assertNull(unmanagedChild.getObjectParents());
     }
 
     // Test round-trip
     @Test
     public void copyToAndFromRealm() {
+        // When managed, an object's backlinks fields get live.
         AllJavaTypes unmanagedChild = new AllJavaTypes(1);
+        assertNull(unmanagedChild.getObjectParents());
 
         realm.beginTransaction();
         AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
-        realm.commitTransaction();
-        assertEquals(new AllJavaTypes().getObjectParents(), unmanagedChild.getObjectParents());
-
-        realm.beginTransaction();
         AllJavaTypes child = realm.copyToRealm(unmanagedChild);
         parent.setFieldObject(child);
         realm.commitTransaction();
@@ -109,9 +86,11 @@ public class LinkingObjectsUnmanagedTests {
         assertEquals(1, parents.size());
         assertEquals(parent, parents.first());
 
+        // backlinks fields in unmanaged object created from managed object are null.
+
         unmanagedChild = realm.copyFromRealm(child);
         assertEquals(unmanagedChild.getFieldId(), 1);
-        assertEquals(new AllJavaTypes().getObjectParents(), unmanagedChild.getObjectParents());
+        assertNull(unmanagedChild.getObjectParents());
 
         RealmResults<AllJavaTypes> queryResults = realm.where(AllJavaTypes.class).equalTo("fieldId", 1).findAll();
         assertEquals(1, queryResults.size());

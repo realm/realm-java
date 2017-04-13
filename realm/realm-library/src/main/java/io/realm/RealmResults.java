@@ -67,6 +67,17 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
                 srcTableType);
     }
 
+    static RealmResults<DynamicRealmObject> createBacklinkResults(DynamicRealm realm, Row row, Table srcTable, String srcFieldName) {
+        if (!(row instanceof UncheckedRow)) {
+            throw new IllegalArgumentException("Row is " + row.getClass());
+        }
+        UncheckedRow uncheckedRow = (UncheckedRow) row;
+        return new RealmResults<>(
+                realm,
+                Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
+                Table.tableNameToClassName(srcTable.getName()));
+    }
+
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
         super(realm, collection, clazz);
