@@ -335,7 +335,7 @@ public class Collection implements NativeObject {
                 row.getNativePtr(),
                 srcTable.getNativePtr(),
                 srcTable.getColumnIndex(srcFieldName));
-        return new Collection(realm, row.getTable(), backlinksPtr, true);
+        return new Collection(realm, srcTable, backlinksPtr, true);
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query,

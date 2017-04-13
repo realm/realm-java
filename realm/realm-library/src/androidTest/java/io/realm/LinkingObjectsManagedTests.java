@@ -151,6 +151,22 @@ public class LinkingObjectsManagedTests {
         assertEquals(parent, child.getListParents().last());
     }
 
+    // This test reproduces https://github.com/realm/realm-java/issues/4487
+    @Test
+    public void issue4487_checkIfTableIsCorrect() {
+        realm.beginTransaction();
+        final BacklinksTarget target = realm.createObject(BacklinksTarget.class);
+        target.setId(1);
+        final BacklinksSource source = realm.createObject(BacklinksSource.class);
+        source.setChild(target);
+        realm.commitTransaction();
+
+        final RealmResults<BacklinksSource> parents = target.getParents();
+        final BacklinksSource sourceFromBacklinks = parents.first();
+
+        assertEquals(source, sourceFromBacklinks);
+    }
+
     // A listener registered on the backlinked object should not be called after the listener is removed
     @Test
     @RunTestInLooperThread
