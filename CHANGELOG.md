@@ -4,6 +4,10 @@
 
 * `equals()` and `hashCode()` of managed `RealmObject`s that come from linking objects don't work correctly (#4487).
 
+### Internal
+
+* Upgraded to Realm Sync 1.5.2.
+
 ## 3.1.2 (2017-04-12)
 
 ### Bug Fixes
