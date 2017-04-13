@@ -23,6 +23,11 @@ import io.realm.annotations.PrimaryKey;
 
 public class AnnotationTypes extends RealmObject {
 
+    public static final String FIELD_INDEX_STRING = "indexString";
+    public static final String FIELD_NOT_INDEX_STRING = "notIndexString";
+    public static final String FIELD_IGNORE_STRING= "ignoreString";
+    public static final String FIELD_TRANSIENT_STRING = "transientString";
+
     @PrimaryKey
     private long id;
 
@@ -32,6 +37,8 @@ public class AnnotationTypes extends RealmObject {
 
     @Ignore
     private String ignoreString;
+
+    private transient String transientString;
 
     public long getId() {
         return id;
@@ -65,5 +72,11 @@ public class AnnotationTypes extends RealmObject {
         this.ignoreString = ignoreString;
     }
 
+    public String getTransientString() {
+        return transientString;
+    }
 
+    public void setTransientString(String transientString) {
+        this.transientString = transientString;
+    }
 }

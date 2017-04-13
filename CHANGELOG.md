@@ -1,3 +1,17 @@
+## 3.2.0 (YYYY-MM-DD)
+
+### Deprecated
+
+### Enhancements
+
+* Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore' annotation (#4279).
+
+### Bug Fixes
+
+### Internal
+
+* Upgraded to Realm Sync 1.5.2.
+
 ## 3.1.2 (2017-04-12)
 
 ### Bug Fixes

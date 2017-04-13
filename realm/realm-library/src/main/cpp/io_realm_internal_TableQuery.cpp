@@ -17,7 +17,7 @@
 #include "io_realm_internal_TableQuery.h"
 
 #include <realm.hpp>
-#include <realm/group_shared.hpp>
+#include <realm/query_expression.hpp>
 
 #include <shared_realm.hpp>
 #include <object_store.hpp>
