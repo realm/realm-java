@@ -153,7 +153,7 @@ public class LinkingObjectsManagedTests {
 
     // This test reproduces https://github.com/realm/realm-java/issues/4487
     @Test
-    public void issue4487() {
+    public void issue4487_checkIfTableIsCorrect() {
         realm.beginTransaction();
         final BacklinksTarget target = realm.createObject(BacklinksTarget.class);
         target.setId(1);
