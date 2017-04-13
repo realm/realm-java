@@ -4,6 +4,10 @@
 
 * Upgraded to Realm Sync 1.5.2.
 
+### Bug Fixes
+
+* Field name was missing in exception message when `null` was set to required field (#4484).
+
 ## 3.1.2 (2017-04-12)
 
 ### Bug Fixes

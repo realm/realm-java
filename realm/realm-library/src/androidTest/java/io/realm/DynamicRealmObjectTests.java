@@ -598,25 +598,29 @@ public class DynamicRealmObjectTests {
         DynamicRealmObject dObj = new DynamicRealmObject(obj);
         try {
             for (SupportedType type : SupportedType.values()) {
+                String fieldName = null;
                 try {
                     switch (type) {
                         case OBJECT: continue; // Ignore
-                        case LIST: dObj.setNull(NullTypes.FIELD_LIST_NULL); break;
-                        case BOOLEAN: dObj.setNull(NullTypes.FIELD_BOOLEAN_NOT_NULL); break;
-                        case BYTE: dObj.setNull(NullTypes.FIELD_BYTE_NOT_NULL); break;
-                        case SHORT: dObj.setNull(NullTypes.FIELD_SHORT_NOT_NULL); break;
-                        case INT: dObj.setNull(NullTypes.FIELD_INTEGER_NOT_NULL); break;
-                        case LONG: dObj.setNull(NullTypes.FIELD_LONG_NOT_NULL); break;
-                        case FLOAT: dObj.setNull(NullTypes.FIELD_FLOAT_NOT_NULL); break;
-                        case DOUBLE: dObj.setNull(NullTypes.FIELD_DOUBLE_NOT_NULL); break;
-                        case STRING: dObj.setNull(NullTypes.FIELD_STRING_NOT_NULL); break;
-                        case BINARY: dObj.setNull(NullTypes.FIELD_BYTES_NOT_NULL); break;
-                        case DATE: dObj.setNull(NullTypes.FIELD_DATE_NOT_NULL); break;
+                        case LIST: fieldName = NullTypes.FIELD_LIST_NULL; break;
+                        case BOOLEAN: fieldName = NullTypes.FIELD_BOOLEAN_NOT_NULL; break;
+                        case BYTE: fieldName = NullTypes.FIELD_BYTE_NOT_NULL; break;
+                        case SHORT: fieldName = NullTypes.FIELD_SHORT_NOT_NULL; break;
+                        case INT: fieldName = NullTypes.FIELD_INTEGER_NOT_NULL; break;
+                        case LONG: fieldName = NullTypes.FIELD_LONG_NOT_NULL; break;
+                        case FLOAT: fieldName = NullTypes.FIELD_FLOAT_NOT_NULL; break;
+                        case DOUBLE: fieldName = NullTypes.FIELD_DOUBLE_NOT_NULL; break;
+                        case STRING: fieldName = NullTypes.FIELD_STRING_NOT_NULL; break;
+                        case BINARY: fieldName = NullTypes.FIELD_BYTES_NOT_NULL; break;
+                        case DATE: fieldName = NullTypes.FIELD_DATE_NOT_NULL; break;
                         default:
                             fail("Unknown type: " + type);
                     }
+
+                    dObj.setNull(fieldName);
                     fail("Setting value to null should throw: " + type);
                 } catch (IllegalArgumentException ignored) {
+                    assertTrue(ignored.getMessage().contains(fieldName));
                 }
             }
         } finally {
