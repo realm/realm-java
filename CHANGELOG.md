@@ -2,7 +2,7 @@
 
 ### Bug Fixes
 
-* `equals()` and `hashCode()` of managed `RealmObject`s that comes from linking objects don't work correctly (#4487).
+* `equals()` and `hashCode()` of managed `RealmObject`s that come from linking objects don't work correctly (#4487).
 
 
 ## 3.1.2 (2017-04-12)
