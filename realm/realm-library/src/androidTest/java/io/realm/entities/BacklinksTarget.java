@@ -20,9 +20,13 @@ import io.realm.RealmResults;
 import io.realm.annotations.LinkingObjects;
 
 public class BacklinksTarget extends RealmObject {
+    public static final String CLASS_NAME = "BacklinksTarget";
+    public static final String FIELD_ID = "id";
+    public static final String FIELD_PARENTS = "parents";
+
     private int id;
 
-    @LinkingObjects("child")
+    @LinkingObjects(BacklinksSource.FIELD_CHILD)
     private final RealmResults<BacklinksSource> parents = null;
 
     public int getId() {

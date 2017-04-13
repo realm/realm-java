@@ -926,12 +926,13 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     /**
-     * Returns {@link RealmResults<DynamicRealmObject>} containing all {@code srcClassName} class objects that have a relationship
+     * Returns {@link RealmResults} containing all {@code srcClassName} class objects that have a relationship
      * to this object from {@code srcFieldName} field.
      *
      * @param srcClassName name of the class returned objects belong to.
-     * @param srcFieldName name of the field to use.
-     * @return result.
+     * @param srcFieldName name of the field to use. Field type must be either {@code io.realm.RealmFieldType.OBJECT} or
+     * {@code io.realm.RealmFieldType.LIST}.
+     * @return the result.
      */
     public RealmResults<DynamicRealmObject> linkingObjects(String srcClassName, String srcFieldName) {
         final DynamicRealm realm = (DynamicRealm) proxyState.getRealm$realm();
