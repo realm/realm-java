@@ -10,6 +10,7 @@
 
 ### Internal
 
+* Upgraded to Realm Sync 1.5.2.
 
 ## 3.1.2 (2017-04-12)
 
