@@ -81,6 +81,8 @@ public interface Row {
 
     LinkView getLinkList(long columnIndex);
 
+    void checkIfBacklinkAvailable();
+
     void setLong(long columnIndex, long value);
 
     void setBoolean(long columnIndex, boolean value);

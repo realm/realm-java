@@ -3,6 +3,7 @@
 ### Bug Fixes
 
 * `equals()` and `hashCode()` of managed `RealmObject`s that come from linking objects don't work correctly (#4487).
+* Now throws `IllegalStateException` if getters of linking objects are called against deleted or not yet loaded `RealmObject`s (#4499).
 
 ### Internal
 

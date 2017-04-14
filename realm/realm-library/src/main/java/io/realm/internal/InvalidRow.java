@@ -110,6 +110,11 @@ public enum InvalidRow implements Row {
     }
 
     @Override
+    public void checkIfBacklinkAvailable() {
+        throw getStubException();
+    }
+
+    @Override
     public void setLong(long columnIndex, long value) {
         throw getStubException();
     }

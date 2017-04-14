@@ -404,7 +404,7 @@ public class LinkingObjectsManagedTests {
 
     @Test
     @RunTestInLooperThread
-    public void linkingObjects_IllegalStateException_ifNotYetYetLoaded() {
+    public void linkingObjects_IllegalStateException_ifNotYetLoaded() {
         final Realm realm = looperThread.realm;
 
         realm.executeTransaction(new Realm.Transaction() {
