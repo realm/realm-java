@@ -488,10 +488,7 @@ public class LinkingObjectsManagedTests {
             @Override
             public void execute(Realm realm) {
                 // delete target object indirectly
-                realm.where(BacklinksTarget.class)
-                        .equalTo(BacklinksTarget.FIELD_ID, 1L)
-                        .findFirst()
-                        .deleteFromRealm();
+                realm.where(BacklinksTarget.class).findAll().deleteAllFromRealm();
             }
         });
 
