@@ -2558,14 +2558,14 @@ public class RealmQueryTests {
             realm.where(Owner.class).isNull("dogs");
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
         }
 
         try {
             realm.where(Cat.class).isNull("owner.dogs");
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
         }
     }
 
@@ -2576,14 +2576,14 @@ public class RealmQueryTests {
             realm.where(Owner.class).isNotNull("dogs");
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
         }
 
         try {
             realm.where(Cat.class).isNotNull("owner.dogs");
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
         }
     }
 
