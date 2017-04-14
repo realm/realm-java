@@ -3,14 +3,11 @@
 ### Bug Fixes
 
 * `equals()` and `hashCode()` of managed `RealmObject`s that come from linking objects don't work correctly (#4487).
+* Field name was missing in exception message when `null` was set to required field (#4484).
 
 ### Internal
 
 * Upgraded to Realm Sync 1.5.2.
-
-### Bug Fixes
-
-* Field name was missing in exception message when `null` was set to required field (#4484).
 
 ## 3.1.2 (2017-04-12)
 
