@@ -465,6 +465,45 @@ public class LinkingObjectsManagedTests {
         fail();
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void linkingObjects_IllegalStateException_ifDeletedIndirectly() {
+        final Realm realm = looperThread.realm;
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final BacklinksTarget target1 = realm.createObject(BacklinksTarget.class);
+                target1.setId(1);
+
+                final BacklinksSource source = realm.createObject(BacklinksSource.class);
+                source.setChild(target1);
+            }
+        });
+
+        final BacklinksTarget target = realm.where(BacklinksTarget.class)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                // delete target object indirectly
+                realm.where(BacklinksTarget.class)
+                        .equalTo(BacklinksTarget.FIELD_ID, 1L)
+                        .findFirst()
+                        .deleteFromRealm();
+            }
+        });
+
+        // precondition
+        assertFalse(target.isValid());
+
+        thrown.expect(IllegalStateException.class);
+        //noinspection ResultOfMethodCallIgnored
+        target.getParents();
+        fail();
+    }
+
     /**
      * Table validation should fail if the backinked column already exists in the target table.
      * The realm `backlinks-fieldInUse.realm` contains the classes `BacklinksSource` and `BacklinksTarget`
