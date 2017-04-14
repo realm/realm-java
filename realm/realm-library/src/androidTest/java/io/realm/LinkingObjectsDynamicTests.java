@@ -20,6 +20,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +36,7 @@ import io.realm.entities.Owner;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -213,7 +215,7 @@ public class LinkingObjectsDynamicTests {
     }
 
     @Test
-    public void linkingObjects_definedInModel() {
+    public void linkingObjects_OBJECT_definedInModel() {
         final int numSourceOfTarget1 = 3;
         final int numSourceOfTarget2 = 2;
         realm.executeTransaction(new Realm.Transaction() {
@@ -272,7 +274,7 @@ public class LinkingObjectsDynamicTests {
     }
 
     @Test
-    public void linkingObjects_notDefinedInModel() {
+    public void linkingObjects_OBJECT_notDefinedInModel() {
         final int numOwnersOfCat1 = 3;
         final int numOwnersOfCat2 = 2;
         realm.executeTransaction(new Realm.Transaction() {
@@ -330,8 +332,92 @@ public class LinkingObjectsDynamicTests {
         assertTrue(cat3Owners.isEmpty());
     }
 
+    @Test
+    public void linkingObjects_LIST() {
+        //           source100          source200        source300
+        //            //    \\          \\ || //
+        //        target1   target2     target2
+        //
+        //  /  = object ref
+        //  // = list ref
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final AllJavaTypes target1 = realm.createObject(AllJavaTypes.class, 1L);
+                final AllJavaTypes target2 = realm.createObject(AllJavaTypes.class, 2L);
+                final AllJavaTypes target3 = realm.createObject(AllJavaTypes.class, 3L);
+
+                final AllJavaTypes source100 = realm.createObject(AllJavaTypes.class, 100L);
+                source100.getFieldList().add(target1);
+                source100.getFieldList().add(target2);
+
+                // list contains three target2s
+                final AllJavaTypes source200 = realm.createObject(AllJavaTypes.class, 200L);
+                source200.getFieldList().add(target2);
+                source200.getFieldList().add(target2);
+                source200.getFieldList().add(target2);
+            }
+        });
+
+        final DynamicRealmObject target1 = dynamicRealm.where(AllJavaTypes.CLASS_NAME).equalTo(AllJavaTypes.FIELD_ID, 1L).findFirst();
+        final DynamicRealmObject target2 = dynamicRealm.where(AllJavaTypes.CLASS_NAME).equalTo(AllJavaTypes.FIELD_ID, 2L).findFirst();
+        final DynamicRealmObject target3 = dynamicRealm.where(AllJavaTypes.CLASS_NAME).equalTo(AllJavaTypes.FIELD_ID, 3L).findFirst();
+
+        // tests sources of target1
+        final RealmResults<DynamicRealmObject> target1Sources = target1.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_LIST);
+        assertNotNull(target1Sources);
+        assertEquals(1, target1Sources.size());
+        assertEquals(AllJavaTypes.CLASS_NAME, target1Sources.first().getType());
+        assertEquals(100L, target1Sources.first().getLong(AllJavaTypes.FIELD_ID));
+        assertTrue(target1Sources.first().getList(AllJavaTypes.FIELD_LIST).contains(target1));
+        assertTrue(target1Sources.first().getList(AllJavaTypes.FIELD_LIST).contains(target2));
+        assertFalse(target1Sources.first().getList(AllJavaTypes.FIELD_LIST).contains(target3));
+
+        // tests sources of target2
+        final RealmResults<DynamicRealmObject> target2Sources = target2.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_LIST);
+        assertNotNull(target2Sources);
+        // TODO Is ↓ an expected behavior?
+        // if a source (in this test, source200) contains multiple references to a target in one RealmList, those must not be aggregated.
+        assertEquals(4, target2Sources.size());
+        boolean source100Found = false;
+        boolean source200Found = false;
+        for (DynamicRealmObject target2Source : target2Sources) {
+            final long idValue = target2Source.getLong(AllJavaTypes.FIELD_ID);
+            if (idValue == 100L) {
+                source100Found = true;
+            } else if (idValue == 200L) {
+                source200Found = true;
+            } else {
+                fail("unexpected id value: " + idValue);
+            }
+
+            assertEquals(AllJavaTypes.CLASS_NAME, target2Source.getType());
+            assertTrue(target2Source.getList(AllJavaTypes.FIELD_LIST).contains(target2));
+            assertFalse(target2Source.getList(AllJavaTypes.FIELD_LIST).contains(target3));
+        }
+        assertTrue(source100Found);
+        assertTrue(source200Found);
+
+        // tests sources of target3
+        final RealmResults<DynamicRealmObject> target3Sources = target3.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_LIST);
+        assertNotNull(target3Sources);
+        assertTrue(target3Sources.isEmpty());
+
+        dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                final DynamicRealmObject source200 = dynamicRealm.where(AllJavaTypes.CLASS_NAME).equalTo(AllJavaTypes.FIELD_ID, 200L).findFirst();
+                // remove last reference in the list
+                source200.getList(AllJavaTypes.FIELD_LIST).remove(2);
+            }
+        });
+
+        // backlinks are also updated
+        assertEquals(3, target2Sources.size());
+    }
 
     @Test
+    @Ignore
     public void dynamicQuery_invalidSyntax() {
         String[] invalidBacklinks = new String[] {
             "linkingObject(x",
