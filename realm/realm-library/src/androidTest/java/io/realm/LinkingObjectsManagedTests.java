@@ -410,11 +410,11 @@ public class LinkingObjectsManagedTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                final BacklinksTarget target1 = realm.createObject(BacklinksTarget.class);
-                target1.setId(1);
+                final BacklinksTarget target = realm.createObject(BacklinksTarget.class);
+                target.setId(1);
 
                 final BacklinksSource source = realm.createObject(BacklinksSource.class);
-                source.setChild(target1);
+                source.setChild(target);
             }
         });
 
@@ -438,11 +438,11 @@ public class LinkingObjectsManagedTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                final BacklinksTarget target1 = realm.createObject(BacklinksTarget.class);
-                target1.setId(1);
+                final BacklinksTarget target = realm.createObject(BacklinksTarget.class);
+                target.setId(1);
 
                 final BacklinksSource source = realm.createObject(BacklinksSource.class);
-                source.setChild(target1);
+                source.setChild(target);
             }
         });
 
