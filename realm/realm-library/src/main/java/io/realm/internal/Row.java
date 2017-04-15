@@ -81,8 +81,6 @@ public interface Row {
 
     LinkView getLinkList(long columnIndex);
 
-    void checkIfBacklinkAvailable();
-
     void setLong(long columnIndex, long value);
 
     void setBoolean(long columnIndex, boolean value);
@@ -111,6 +109,11 @@ public interface Row {
      * @return {@code true} if the row is still valid and attached to the underlying data. {@code false} otherwise.
      */
     boolean isAttached();
+
+    /**
+     * Throws {@link IllegalStateException} if the row is not attached.
+     */
+    void checkIfAttached();
 
     /**
      * Returns {@code true} if the field name exists.

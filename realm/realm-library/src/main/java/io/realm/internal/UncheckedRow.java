@@ -188,13 +188,6 @@ public class UncheckedRow implements NativeObject, Row {
         return new LinkView(context, parent, columnIndex, nativeLinkViewPtr);
     }
 
-    @Override
-    public void checkIfBacklinkAvailable() {
-        if (!isAttached()) {
-            throw new IllegalStateException("Object is no longer managed by Realm. Has it been deleted?");
-        }
-    }
-
     // Setters
 
     @Override
@@ -297,6 +290,13 @@ public class UncheckedRow implements NativeObject, Row {
     @Override
     public boolean isAttached() {
         return nativePtr != 0 && nativeIsAttached(nativePtr);
+    }
+
+    @Override
+    public void checkIfAttached() {
+        if (!isAttached()) {
+            throw new IllegalStateException("Object is no longer managed by Realm. Has it been deleted?");
+        }
     }
 
     @Override

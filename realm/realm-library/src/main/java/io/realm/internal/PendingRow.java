@@ -137,11 +137,6 @@ public class PendingRow implements Row {
     }
 
     @Override
-    public void checkIfBacklinkAvailable() {
-        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
-    }
-
-    @Override
     public void setLong(long columnIndex, long value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
@@ -199,6 +194,11 @@ public class PendingRow implements Row {
     @Override
     public boolean isAttached() {
         return false;
+    }
+
+    @Override
+    public void checkIfAttached() {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
