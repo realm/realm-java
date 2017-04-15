@@ -15,6 +15,7 @@
 ### Bug Fixes
 
 * `equals()` and `hashCode()` of managed `RealmObject`s that come from linking objects don't work correctly (#4487).
+* Field name was missing in exception message when `null` was set to required field (#4484).
 
 ### Internal
 

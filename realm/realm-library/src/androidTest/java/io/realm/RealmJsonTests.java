@@ -1447,6 +1447,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(0));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_STRING_NOT_NULL));
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
@@ -1456,6 +1457,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(1));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_BYTES_NOT_NULL));
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
@@ -1474,6 +1476,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(3));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_BYTE_NOT_NULL));
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
@@ -1483,6 +1486,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(4));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_SHORT_NOT_NULL));
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
@@ -1492,6 +1496,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(5));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_INTEGER_NOT_NULL));
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
@@ -1501,6 +1506,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(6));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_LONG_NOT_NULL));
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
@@ -1510,6 +1516,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(7));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_FLOAT_NOT_NULL));
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
@@ -1519,6 +1526,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(8));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DOUBLE_NOT_NULL));
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
@@ -1528,6 +1536,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(9));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DATE_NOT_NULL));
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
@@ -1552,6 +1561,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(0)));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_STRING_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1561,6 +1571,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(1)));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_BYTES_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1570,6 +1581,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(2)));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_BOOLEAN_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1579,6 +1591,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(3)));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_BYTE_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1588,6 +1601,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(4)));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_SHORT_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1597,6 +1611,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(5)));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_INTEGER_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1606,6 +1621,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(6)));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_LONG_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1615,6 +1631,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(7)));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_FLOAT_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1624,6 +1641,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(8)));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DOUBLE_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1633,6 +1651,7 @@ public class RealmJsonTests {
             realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(9)));
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DATE_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
