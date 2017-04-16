@@ -5,6 +5,7 @@
 ### Enhancements
 
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore' annotation (#4279).
+* Added `DynamicRealmObject#linkingObjects(String,String) to support linking objects on `DynamicRealm` (#4492).
 
 ### Bug Fixes
 
