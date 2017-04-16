@@ -18,6 +18,9 @@ package io.realm.entities;
 import io.realm.RealmObject;
 
 public class BacklinksSource extends RealmObject {
+    public static final String CLASS_NAME = "BacklinksSource";
+    public static final String FIELD_CHILD = "child";
+
     private BacklinksTarget child;
 
     public BacklinksTarget getChild() {
