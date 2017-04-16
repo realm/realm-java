@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
@@ -33,6 +34,8 @@ import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
 import io.realm.entities.Cat;
 import io.realm.entities.Owner;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -47,6 +50,11 @@ public class LinkingObjectsDynamicTests {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     private Realm realm;
     private DynamicRealm dynamicRealm;
@@ -414,6 +422,78 @@ public class LinkingObjectsDynamicTests {
 
         // backlinks are also updated
         assertEquals(3, target2Sources.size());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void linkingObjects_IllegalStateException_ifNotYetLoaded() {
+        final Realm realm = looperThread.realm;
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final BacklinksTarget target1 = realm.createObject(BacklinksTarget.class);
+                target1.setId(1);
+
+                final BacklinksSource source = realm.createObject(BacklinksSource.class);
+                source.setChild(target1);
+            }
+        });
+
+
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        try {
+            final DynamicRealmObject targetAsync = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
+                    .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirstAsync();
+            // precondition
+            assertFalse(targetAsync.isLoaded());
+
+            thrown.expect(IllegalStateException.class);
+            targetAsync.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
+            fail();
+        } finally {
+            dynamicRealm.close();
+        }
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void linkingObjects_IllegalStateException_ifDeleted() {
+        final Realm realm = looperThread.realm;
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final BacklinksTarget target1 = realm.createObject(BacklinksTarget.class);
+                target1.setId(1);
+
+                final BacklinksSource source = realm.createObject(BacklinksSource.class);
+                source.setChild(target1);
+            }
+        });
+
+
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        try {
+            final DynamicRealmObject target = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
+                    .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
+
+            dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
+                @Override
+                public void execute(DynamicRealm realm) {
+                    target.deleteFromRealm();
+                }
+            });
+
+            // precondition
+            assertFalse(target.isValid());
+
+            thrown.expect(IllegalStateException.class);
+            target.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
+            fail();
+        } finally {
+            dynamicRealm.close();
+        }
     }
 
     @Test
