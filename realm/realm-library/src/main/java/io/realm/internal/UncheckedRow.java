@@ -293,6 +293,13 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
+    public void checkIfAttached() {
+        if (!isAttached()) {
+            throw new IllegalStateException("Object is no longer managed by Realm. Has it been deleted?");
+        }
+    }
+
+    @Override
     public boolean hasColumn(String fieldName) {
         return nativeHasColumn(nativePtr, fieldName);
     }

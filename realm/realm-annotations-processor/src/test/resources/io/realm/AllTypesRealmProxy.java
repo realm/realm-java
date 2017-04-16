@@ -397,6 +397,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     public RealmResults<some.test.AllTypes> realmGet$parentObjects() {
         BaseRealm realm = proxyState.getRealm$realm();
         realm.checkIfValid();
+        proxyState.getRow$realm().checkIfAttached();
         if (parentObjectsBacklinks == null) {
             parentObjectsBacklinks = RealmResults.createBacklinkResults(realm, proxyState.getRow$realm(), some.test.AllTypes.class, "columnObject");
         }
