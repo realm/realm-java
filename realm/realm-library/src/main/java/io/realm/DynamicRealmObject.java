@@ -938,6 +938,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     public RealmResults<DynamicRealmObject> linkingObjects(String srcClassName, String srcFieldName) {
         final DynamicRealm realm = (DynamicRealm) proxyState.getRealm$realm();
         realm.checkIfValid();
+        proxyState.getRow$realm().checkIfAttached();
 
         final RealmSchema schema = realm.getSchema();
         final RealmObjectSchema realmObjectSchema = schema.get(srcClassName);
