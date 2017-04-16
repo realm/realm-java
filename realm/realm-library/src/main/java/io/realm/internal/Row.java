@@ -111,6 +111,11 @@ public interface Row {
     boolean isAttached();
 
     /**
+     * Throws {@link IllegalStateException} if the row is not attached.
+     */
+    void checkIfAttached();
+
+    /**
      * Returns {@code true} if the field name exists.
      *
      * @param fieldName field name to check.
