@@ -569,6 +569,7 @@ public class RealmProxyClassGenerator {
             writer.beginMethod(realmResultsType, metadata.getInternalGetter(backlink.getTargetField()), EnumSet.of(Modifier.PUBLIC))
                 .emitStatement("BaseRealm realm = proxyState.getRealm$realm()")
                 .emitStatement("realm.checkIfValid()")
+                .emitStatement("proxyState.getRow$realm().checkIfAttached()")
                 .beginControlFlow("if (" + cacheFieldName + " == null)")
                     .emitStatement(cacheFieldName + " = RealmResults.createBacklinkResults(realm, proxyState.getRow$realm(), %s.class, \"%s\")",
                         backlink.getSourceClass(), backlink.getSourceField())

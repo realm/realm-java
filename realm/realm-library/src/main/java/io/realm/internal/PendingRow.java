@@ -197,6 +197,11 @@ public class PendingRow implements Row {
     }
 
     @Override
+    public void checkIfAttached() {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
     public boolean hasColumn(String fieldName) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
