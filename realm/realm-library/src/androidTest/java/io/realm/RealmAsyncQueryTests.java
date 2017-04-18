@@ -632,9 +632,9 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void findFirstAsync_forceLoad() throws Throwable {
         final AtomicBoolean listenerCalled = new AtomicBoolean(false);
-        Realm Realm = looperThread.realm;
-        populateTestRealm(Realm, 10);
-        final AllTypes realmResults = Realm.where(AllTypes.class)
+        Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
+        final AllTypes realmResults = realm.where(AllTypes.class)
                 .between("columnLong", 4, 9)
                 .findFirstAsync();
 
@@ -655,6 +655,38 @@ public class RealmAsyncQueryTests {
 
         assertTrue(listenerCalled.get());
         looperThread.testComplete();
+    }
+
+    // For issue https://github.com/realm/realm-java/issues/4495
+    @Test
+    @RunTestInLooperThread
+    public void findFirstAsync_twoListenersOnSameInvalidObjectsCauseNPE() {
+        final Realm realm = looperThread.realm;
+        final AllTypes allTypes = realm.where(AllTypes.class).findFirstAsync();
+        final AtomicBoolean firstListenerCalled = new AtomicBoolean(false);
+
+        allTypes.addChangeListener(new RealmChangeListener<AllTypes>() {
+            @Override
+            public void onChange(AllTypes element) {
+                allTypes.removeChangeListener(this);
+                assertFalse(firstListenerCalled.getAndSet(true));
+                if (!element.isValid()) {
+                    realm.beginTransaction();
+                    realm.createObject(AllTypes.class);
+                    realm.commitTransaction();
+                }
+            }
+        });
+
+        allTypes.addChangeListener(new RealmChangeListener<AllTypes>() {
+            @Override
+            public void onChange(AllTypes element) {
+                allTypes.removeChangeListener(this);
+                assertTrue(firstListenerCalled.get());
+                assertFalse(element.isValid());
+                looperThread.testComplete();
+            }
+        });
     }
 
     // **************************************

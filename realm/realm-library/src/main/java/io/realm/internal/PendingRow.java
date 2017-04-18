@@ -227,6 +227,9 @@ public class PendingRow implements Row {
         if (pendingCollection.isValid()) {
             // PendingRow will always get the first Row of the query since we only support findFirst.
             UncheckedRow uncheckedRow = pendingCollection.firstUncheckedRow();
+            // Clear the pending collection immediately in case beginTransaction is called in the listener which will
+            // execute the query again.
+            clearPendingCollection();
             // If no rows returned by the query, notify the frontend with an invalid row.
             if (uncheckedRow != null) {
                 Row row = returnCheckedRow ? CheckedRow.getFromRow(uncheckedRow) : uncheckedRow;
@@ -236,9 +239,10 @@ public class PendingRow implements Row {
                 // No row matches the query, return a invalid row.
                 frontEnd.onQueryFinished(InvalidRow.INSTANCE);
             }
+        } else {
+            clearPendingCollection();
         }
 
-        clearPendingCollection();
     }
 
     // Execute the query immediately and call frontend's onQueryFinished().
