@@ -5,9 +5,7 @@
 ### Enhancements
 
 * [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
-
-
-* Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore' annotation (#4279).
+* Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).
 
 ### Bug Fixes
 
