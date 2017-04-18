@@ -35,7 +35,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnName(
                                                                                 jlong nativeRowPtr, jlong columnIndex)
 {
     if (!ROW_AND_COL_INDEX_VALID(env, ROW(nativeRowPtr), columnIndex)) {
-        return NULL;
+        return nullptr;
     }
 
     return Java_io_realm_internal_UncheckedRow_nativeGetColumnName(env, obj, nativeRowPtr, columnIndex);
@@ -82,7 +82,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_CheckedRow_nativeGetBoolean(JN
                                                                               jlong nativeRowPtr, jlong columnIndex)
 {
     if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Bool)) {
-        return 0;
+        return JNI_FALSE;
     }
 
     return Java_io_realm_internal_UncheckedRow_nativeGetBoolean(env, obj, nativeRowPtr, columnIndex);
@@ -122,7 +122,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_CheckedRow_nativeGetString(JNIE
                                                                             jlong nativeRowPtr, jlong columnIndex)
 {
     if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_String)) {
-        return 0;
+        return nullptr;
     }
 
     return Java_io_realm_internal_UncheckedRow_nativeGetString(env, obj, nativeRowPtr, columnIndex);
@@ -133,7 +133,7 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_CheckedRow_nativeGetByteArra
                                                                                   jlong columnIndex)
 {
     if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Binary)) {
-        return 0;
+        return nullptr;
     }
 
     return Java_io_realm_internal_UncheckedRow_nativeGetByteArray(env, obj, nativeRowPtr, columnIndex);
@@ -153,7 +153,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_CheckedRow_nativeIsNullLink(JN
                                                                               jlong nativeRowPtr, jlong columnIndex)
 {
     if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Link)) {
-        return 0;
+        return JNI_FALSE;
     }
 
     return Java_io_realm_internal_UncheckedRow_nativeIsNullLink(env, obj, nativeRowPtr, columnIndex);
