@@ -189,7 +189,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStartListening(JNIE
         // The wrapper pointer will be used in the callback. But it should never become an invalid pointer when the
         // notification block gets called. This should be guaranteed by the Object Store that after the notification
         // token is destroyed, the block shouldn't be called.
-        wrapper->m_notification_token = wrapper->m_object.add_notification_block(ChangeCallback(wrapper));
+        wrapper->m_notification_token = wrapper->m_object.add_notification_callback(ChangeCallback(wrapper));
     }
     CATCH_STD()
 }
