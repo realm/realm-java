@@ -114,6 +114,22 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Refreshes the Realm instance and all the RealmResults and RealmObjects instances coming from it.
+     * It also calls the listeners associated to the Realm instance.
+     *
+     * Calling this on a thread with async queries will turn those queries into synchronous queries.
+     *
+     * @throws IllegalStateException if attempting to refresh from within a transaction.
+     */
+    public void refresh() {
+        checkIfValid();
+        if (isInTransaction()) {
+            throw new IllegalStateException("Cannot refresh a Realm instance inside a transaction.");
+        }
+        sharedRealm.refresh();
+    }
+
+    /**
      * Checks if the Realm is currently in a transaction.
      *
      * @return {@code true} if inside a transaction, {@code false} otherwise.
