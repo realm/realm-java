@@ -1139,6 +1139,33 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
+    @RunTestInLooperThread
+    public void removeAllChangeListeners_thenAdd() {
+        final Realm realm = looperThread.realm;
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
+
+        collection.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                fail();
+            }
+        });
+        collection.removeAllChangeListeners();
+
+        collection.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                assertEquals(1, results.size());
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+    }
+
+    @Test
     public void deleteAndDeleteAll() {
         realm.beginTransaction();
         for (int i = 0; i < 10; i++) {

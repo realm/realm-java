@@ -5,6 +5,7 @@
 * `equals()` and `hashCode()` of managed `RealmObject`s that come from linking objects don't work correctly (#4487).
 * Field name was missing in exception message when `null` was set to required field (#4484).
 * Now throws `IllegalStateException` when a getter of linking objects is called against deleted or not yet loaded `RealmObject`s (#4499).
+* Native crash when adding listeners to `RealmObject` after removing listeners from the same `RealmObject` before (#4502).
 
 ### Internal
 
