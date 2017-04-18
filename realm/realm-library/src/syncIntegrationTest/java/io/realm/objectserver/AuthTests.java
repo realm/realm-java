@@ -24,6 +24,8 @@ import io.realm.rule.RunTestInLooperThread;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 
 @RunWith(AndroidJUnit4.class)
 public class AuthTests extends BaseIntegrationTest {
@@ -128,4 +130,118 @@ public class AuthTests extends BaseIntegrationTest {
             }
         }, 1000);
     }
+
+    @Test
+    @RunTestInLooperThread
+    public void currentUser_multipleUsersThrows() {
+        SyncCredentials credentials = SyncCredentials.usernamePassword("user1", "user1", true);
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(final SyncUser user1) {
+                // We already have a current user,
+                // usually we need to logout before switching to another user
+                SyncCredentials credentials = SyncCredentials.usernamePassword("user2", "user2", true);
+                SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+
+                    @Override
+                    public void onSuccess(SyncUser user2) {
+                        assertNotEquals(user1, user2);
+                        try {
+                            SyncUser.currentUser();
+                            fail("Login another user should fail, we support one active user only");
+                        } catch (IllegalStateException expected) {
+                            looperThread.testComplete();
+                        }
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        fail();
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void currentUser_canSwitchUser() {
+        SyncCredentials credentials = SyncCredentials.usernamePassword("user1", "user1", true);
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(final SyncUser user1) {
+                SyncCredentials credentials = SyncCredentials.usernamePassword("user2", "user2", true);
+                SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+
+                    @Override
+                    public void onSuccess(SyncUser user2) {
+                        assertNotEquals(user1, user2);
+
+                        user1.logout();
+                        SyncUser currentUser = SyncUser.currentUser();
+                        assertEquals(user2, currentUser);
+                        looperThread.testComplete();
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        fail();
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void currentUser_logoutThenLogging() {
+        // Create and logging with `user1`
+        SyncCredentials credentials = SyncCredentials.usernamePassword("user1", "user1", true);
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(final SyncUser user1) {
+                assertEquals(user1, SyncUser.currentUser());
+
+                // logout `user1`
+                user1.logout();
+
+                // No current active user
+                assertNull(SyncUser.currentUser());
+
+                // logging again with `user1`
+                SyncCredentials credentials = SyncCredentials.usernamePassword("user1", "user1", false);
+                SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+                    @Override
+                    public void onSuccess(SyncUser user) {
+                        // currentUser doesn't throw
+                        assertEquals(user, SyncUser.currentUser());
+
+                        assertEquals(user.getIdentity(), user1.getIdentity());
+                        looperThread.testComplete();
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        fail();
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail();
+            }
+        });
+    }
+
 }

@@ -25,6 +25,7 @@ import io.realm.Realm;
 import io.realm.SyncManager;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
+import io.realm.objectserver.utils.TestHelper;
 
 class BaseIntegrationTest {
 
@@ -33,6 +34,7 @@ class BaseIntegrationTest {
         SyncManager.Debug.skipOnlineChecking = true;
         try {
             Realm.init(InstrumentationRegistry.getContext());
+            TestHelper.resetSyncMetadata();
             HttpUtils.startSyncServer();
         } catch (Exception e) {
             // Throwing an exception from this method will crash JUnit. Instead just log it.
