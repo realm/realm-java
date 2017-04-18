@@ -46,6 +46,7 @@ import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -149,6 +150,22 @@ public class LinkingObjectsManagedTests {
         assertEquals(2, child.getListParents().size());
         assertEquals(parent, child.getListParents().first());
         assertEquals(parent, child.getListParents().last());
+    }
+
+    // This test reproduces https://github.com/realm/realm-java/issues/4487
+    @Test
+    public void issue4487_checkIfTableIsCorrect() {
+        realm.beginTransaction();
+        final BacklinksTarget target = realm.createObject(BacklinksTarget.class);
+        target.setId(1);
+        final BacklinksSource source = realm.createObject(BacklinksSource.class);
+        source.setChild(target);
+        realm.commitTransaction();
+
+        final RealmResults<BacklinksSource> parents = target.getParents();
+        final BacklinksSource sourceFromBacklinks = parents.first();
+
+        assertEquals(source, sourceFromBacklinks);
     }
 
     // A listener registered on the backlinked object should not be called after the listener is removed
@@ -383,6 +400,105 @@ public class LinkingObjectsManagedTests {
         assertNotNull(parents);
         assertEquals(1, parents.size());
         assertTrue(parents.contains(parent));
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void linkingObjects_IllegalStateException_ifNotYetLoaded() {
+        final Realm realm = looperThread.realm;
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final BacklinksTarget target = realm.createObject(BacklinksTarget.class);
+                target.setId(1);
+
+                final BacklinksSource source = realm.createObject(BacklinksSource.class);
+                source.setChild(target);
+            }
+        });
+
+
+        final BacklinksTarget targetAsync = realm.where(BacklinksTarget.class)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirstAsync();
+        // precondition
+        assertFalse(targetAsync.isLoaded());
+
+        thrown.expect(IllegalStateException.class);
+        //noinspection ResultOfMethodCallIgnored
+        targetAsync.getParents();
+        fail();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void linkingObjects_IllegalStateException_ifDeleted() {
+        final Realm realm = looperThread.realm;
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final BacklinksTarget target = realm.createObject(BacklinksTarget.class);
+                target.setId(1);
+
+                final BacklinksSource source = realm.createObject(BacklinksSource.class);
+                source.setChild(target);
+            }
+        });
+
+        final BacklinksTarget target = realm.where(BacklinksTarget.class)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                target.deleteFromRealm();
+            }
+        });
+
+        // precondition
+        assertFalse(target.isValid());
+
+        thrown.expect(IllegalStateException.class);
+        //noinspection ResultOfMethodCallIgnored
+        target.getParents();
+        fail();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void linkingObjects_IllegalStateException_ifDeletedIndirectly() {
+        final Realm realm = looperThread.realm;
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final BacklinksTarget target1 = realm.createObject(BacklinksTarget.class);
+                target1.setId(1);
+
+                final BacklinksSource source = realm.createObject(BacklinksSource.class);
+                source.setChild(target1);
+            }
+        });
+
+        final BacklinksTarget target = realm.where(BacklinksTarget.class)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                // delete target object indirectly
+                realm.where(BacklinksTarget.class).findAll().deleteAllFromRealm();
+            }
+        });
+
+        // precondition
+        assertFalse(target.isValid());
+
+        thrown.expect(IllegalStateException.class);
+        //noinspection ResultOfMethodCallIgnored
+        target.getParents();
+        fail();
     }
 
     /**

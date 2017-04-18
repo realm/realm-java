@@ -1,5 +1,7 @@
 ## 3.2.0 (YYYY-MM-DD)
 
+### Deprecated
+
 ### Enhancements
 
 * [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
@@ -7,20 +9,38 @@
 
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore' annotation (#4279).
 
+### Bug Fixes
+
+### Internal
+
+## 3.1.3 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* `equals()` and `hashCode()` of managed `RealmObject`s that come from linking objects don't work correctly (#4487).
+* Field name was missing in exception message when `null` was set to required field (#4484).
+* Now throws `IllegalStateException` when a getter of linking objects is called against deleted or not yet loaded `RealmObject`s (#4499).
+
+### Internal
+
+* Upgraded to Realm Sync 1.5.2.
+
+## 3.1.2 (2017-04-12)
+
+### Bug Fixes
+
+* Crash caused by JNI couldn't find `OsObject.notifyChangeListeners` when ProGuard is enabled (#4461).
+* Incompatible return type of `RealmSchema.getAll()` and `BaseRealm.getSchema()` (#4443).
+* Memory leaked when synced Realm was initialized (#4465).
+* An `IllegalStateException` will be thrown when starting iterating `OrderedRealmCollection` if the Realm is closed (#4471).
+
 ## 3.1.1 (2017-04-07)
-
-### Deprecated
-
-### Enhancements
 
 ### Bug Fixes
 
 * Crash caused by Listeners on `RealmObject` getting triggered the 2nd time with different changed field (#4437).
 * Unintentionally exposing `StandardRealmSchema` (#4443).
 * Workaround for crashes on specific Samsung devices which are caused by a buggy `memmove` call (#3651).
-
-### Internal
-
 
 ## 3.1.0 (2017-04-05)
 

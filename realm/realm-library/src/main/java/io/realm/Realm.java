@@ -386,6 +386,7 @@ public class Realm extends BaseRealm {
     private static void initializeSyncedRealm(Realm realm) {
         boolean commitChanges = false;
         OsRealmSchema schema = null;
+        OsRealmSchema.Creator schemaCreator = null;
         try {
             realm.beginTransaction();
             long currentVersion = realm.getVersion();
@@ -396,13 +397,16 @@ public class Realm extends BaseRealm {
             final RealmProxyMediator mediator = configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
-            final OsRealmSchema.Creator schemaCreator = new OsRealmSchema.Creator();
+            schemaCreator = new OsRealmSchema.Creator();
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 mediator.createRealmObjectSchema(modelClass, schemaCreator);
             }
 
             // Assumption: When SyncConfiguration then additive schema update mode.
             schema = new OsRealmSchema(schemaCreator);
+            schemaCreator.close();
+            schemaCreator = null;
+
             long newVersion = configuration.getSchemaVersion();
             // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
             // It absolutely breaks encapsulation and needs to be fixed!
@@ -436,10 +440,14 @@ public class Realm extends BaseRealm {
                     transaction.execute(realm);
                 }
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             commitChanges = false;
             throw e;
         } finally {
+            if (schemaCreator != null) {
+                schemaCreator.close();
+            }
+
             if (schema != null) {
                 schema.close();
             }

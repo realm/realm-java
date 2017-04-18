@@ -1439,6 +1439,7 @@ public class RealmObjectTests {
             list.first().setFieldStringNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_STRING_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1449,6 +1450,7 @@ public class RealmObjectTests {
             list.first().setFieldBytesNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_BYTES_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1459,6 +1461,7 @@ public class RealmObjectTests {
             list.first().setFieldBooleanNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_BOOLEAN_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1466,9 +1469,10 @@ public class RealmObjectTests {
         // 4 Byte
         try {
             realm.beginTransaction();
-            list.first().setFieldBytesNotNull(null);
+            list.first().setFieldByteNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_BYTE_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1481,6 +1485,7 @@ public class RealmObjectTests {
             list.first().setFieldFloatNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_FLOAT_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1491,6 +1496,7 @@ public class RealmObjectTests {
             list.first().setFieldDoubleNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DOUBLE_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1501,6 +1507,7 @@ public class RealmObjectTests {
             list.first().setFieldDateNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DATE_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }

@@ -19,6 +19,7 @@ package io.realm;
 import java.util.Set;
 
 import io.realm.annotations.Required;
+import io.realm.internal.Table;
 
 
 /**
@@ -290,4 +291,7 @@ public abstract class RealmObjectSchema {
             this.defaultNullable = defaultNullable;
         }
     }
+
+    abstract Table getTable();
+    abstract long getAndCheckFieldIndex(String fieldName);
 }
