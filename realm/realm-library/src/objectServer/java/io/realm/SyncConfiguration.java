@@ -78,6 +78,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final SyncUser user;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
+    private String serverCertificate;
 
     private SyncConfiguration(File directory,
                                 String filename,
@@ -94,7 +95,8 @@ public class SyncConfiguration extends RealmConfiguration {
                                 SyncUser user,
                                 URI serverUrl,
                                 SyncSession.ErrorHandler errorHandler,
-                                boolean deleteRealmOnLogout
+                                boolean deleteRealmOnLogout,
+                                String serverCertificate
     ) {
         super(directory,
                 filename,
@@ -114,6 +116,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.serverUrl = serverUrl;
         this.errorHandler = errorHandler;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
+        this.serverCertificate = serverCertificate;
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -149,7 +152,8 @@ public class SyncConfiguration extends RealmConfiguration {
         if (!serverUrl.equals(that.serverUrl)) return false;
         if (!user.equals(that.user)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
-        return true;
+        return serverCertificate != null ? serverCertificate.equals(that.serverCertificate) : that.serverCertificate == null;
+
     }
 
     @Override
@@ -157,8 +161,9 @@ public class SyncConfiguration extends RealmConfiguration {
         int result = super.hashCode();
         result = 31 * result + serverUrl.hashCode();
         result = 31 * result + user.hashCode();
-        result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
         result = 31 * result + errorHandler.hashCode();
+        result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
+        result = 31 * result + (serverCertificate != null ? serverCertificate.hashCode() : 0);
         return result;
     }
 
@@ -209,6 +214,12 @@ public class SyncConfiguration extends RealmConfiguration {
         return deleteRealmOnLogout;
     }
 
+    public String getServerCertificate() {
+        // this should return the path of the copied file from @res/raw
+        // note on rooted device a root user can change the certificate
+        return serverCertificate;
+    }
+
     @Override
     boolean isSyncConfiguration() {
         return true;
@@ -222,6 +233,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private File directory;
         private boolean overrideDefaultFolder = false;
         private String fileName;
+        private String serverCertificate;
         private boolean overrideDefaultLocalFileName = false;
         private byte[] key;
         private long schemaVersion = 0;
@@ -573,6 +585,24 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
+        /**
+         * Sets the (absolute path) of the PEM certificate used to validate the secure Realm Object Server
+         * connection.
+         * Note: this is not a client certificate
+         * FIXME finish Javadoc
+         * This assume that the certificate is embeded with the application under the `@res/raw` directory
+         * if you want to specifiy a different location you need to use, which takes a n absolute path
+         * @param filename
+         * @return
+         */
+        public Builder serverCertificate(String filename) {
+            if (filename == null || filename.isEmpty()) {
+                throw new IllegalArgumentException("A non-empty filename must be provided");
+            }
+            this.serverCertificate = filename;
+            return this;
+        }
+
         private String MD5(String in) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -685,7 +715,8 @@ public class SyncConfiguration extends RealmConfiguration {
                     user,
                     resolvedServerUrl,
                     errorHandler,
-                    deleteRealmOnLogout
+                    deleteRealmOnLogout,
+                    serverCertificate
             );
         }
 
