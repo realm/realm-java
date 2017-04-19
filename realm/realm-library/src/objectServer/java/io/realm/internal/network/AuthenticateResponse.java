@@ -81,10 +81,10 @@ public class AuthenticateResponse extends AuthServerResponse {
      * @param identifier user identifier.
      * @param refreshToken user's refresh token.
      */
-    public static AuthenticateResponse createValidResponseWithUser(String identifier, String refreshToken) {
+    public static AuthenticateResponse createValidResponseWithUser(String identifier, String refreshToken, boolean isAdmin) {
         try {
             JSONObject response = new JSONObject();
-            response.put(JSON_FIELD_REFRESH_TOKEN, new Token(refreshToken, identifier, null, Long.MAX_VALUE, Token.Permission.ALL).toJson());
+            response.put(JSON_FIELD_REFRESH_TOKEN, new Token(refreshToken, identifier, null, Long.MAX_VALUE, Token.Permission.ALL, isAdmin).toJson());
             return new AuthenticateResponse(response.toString());
         } catch (JSONException e) {
             throw new RuntimeException(e);

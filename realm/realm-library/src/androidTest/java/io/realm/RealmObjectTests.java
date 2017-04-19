@@ -1792,6 +1792,35 @@ public class RealmObjectTests {
 
     @Test
     @RunTestInLooperThread
+    public void removeAllChangeListeners_thenAdd() {
+        final Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        dog.setAge(13);
+        realm.commitTransaction();
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
+            @Override
+            public void onChange(Dog object) {
+                fail();
+            }
+        });
+        dog.removeAllChangeListeners();
+
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
+            @Override
+            public void onChange(Dog dog) {
+                assertEquals(14, dog.getAge());
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        dog.setAge(14);
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
     public void removeChangeListener_throwOnUnmanagedObject() {
         Dog dog = new Dog();
         RealmChangeListener listener = new RealmChangeListener<Dog>() {
