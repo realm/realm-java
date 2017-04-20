@@ -233,4 +233,5 @@ prepare_branch
 build
 upload_to_bintray
 publish_distribution
+push_release
 publish_javadoc
