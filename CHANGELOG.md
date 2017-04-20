@@ -20,10 +20,12 @@
 * Now throws `IllegalStateException` when a getter of linking objects is called against deleted or not yet loaded `RealmObject`s (#4499).
 * `NullPointerException` caused by local transaction inside the listener of `findFirstAsync()`'s results (#4495).
 * Native crash when adding listeners to `RealmObject` after removing listeners from the same `RealmObject` before (#4502).
+* Native crash with "Invalid argument" error happened on some Android 7.1.1 devices when opening Realm on external storage (#4461).
 
 ### Internal
 
-* Upgraded to Realm Sync 1.5.2.
+* Upgraded to Realm Sync 1.6.0.
+* Upgraded to Realm Core 2.6.1.
 
 ## 3.1.2 (2017-04-12)
 
