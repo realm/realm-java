@@ -137,6 +137,7 @@ public class RealmAsyncQueryTests {
                 Realm newRealm = Realm.getInstance(looperThread.realmConfiguration);
                 assertEquals(1, newRealm.where(Owner.class).count());
                 assertEquals("Owner", newRealm.where(Owner.class).findFirst().getName());
+                newRealm.close();
                 looperThread.testComplete();
             }
         });
@@ -186,6 +187,7 @@ public class RealmAsyncQueryTests {
                 assertEquals(0, newRealm.where(Owner.class).count());
                 assertNull(newRealm.where(Owner.class).findFirst());
                 assertEquals(runtimeException, error);
+                newRealm.close();
                 looperThread.testComplete();
             }
         });
@@ -368,32 +370,40 @@ public class RealmAsyncQueryTests {
     public void executeTransactionAsync_onSuccessOnNonLooperThreadThrows() {
         Realm realm = Realm.getInstance(configFactory.createConfiguration());
         thrown.expect(IllegalStateException.class);
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
+        try {
+            realm.executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
 
-            }
-        }, new Realm.Transaction.OnSuccess() {
-            @Override
-            public void onSuccess() {
-            }
-        });
+                }
+            }, new Realm.Transaction.OnSuccess() {
+                @Override
+                public void onSuccess() {
+                }
+            });
+        } finally {
+            realm.close();
+        }
     }
 
     @Test
     public void executeTransactionAsync_onErrorOnNonLooperThreadThrows() {
         Realm realm = Realm.getInstance(configFactory.createConfiguration());
         thrown.expect(IllegalStateException.class);
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
+        try {
+            realm.executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
 
-            }
-        }, new Realm.Transaction.OnError() {
-            @Override
-            public void onError(Throwable error) {
-            }
-        });
+                }
+            }, new Realm.Transaction.OnError() {
+                @Override
+                public void onError(Throwable error) {
+                }
+            });
+        } finally {
+            realm.close();
+        }
     }
 
     // ************************************
