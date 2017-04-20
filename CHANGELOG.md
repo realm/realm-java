@@ -7,6 +7,7 @@
 * Now throws `IllegalStateException` when a getter of linking objects is called against deleted or not yet loaded `RealmObject`s (#4499).
 * `NullPointerException` caused by local transaction inside the listener of `findFirstAsync()`'s results (#4495).
 * Native crash when adding listeners to `RealmObject` after removing listeners from the same `RealmObject` before (#4502).
+* `OrderedRealmCollectionChangeListener` didn't report change ranges correctly when circular link's field changed (#4474).
 
 ### Internal
 

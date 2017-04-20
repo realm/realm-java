@@ -30,6 +30,7 @@ public class Dog extends RealmObject {
     public static final String FIELD_HEIGHT = "height";
     public static final String FIELD_WEIGHT = "weight";
     public static final String FIELD_BIRTHDAY = "birthday";
+    public static final String FIELD_HAS_TAIL = "hasTail";
 
     @Index
     private String name;
