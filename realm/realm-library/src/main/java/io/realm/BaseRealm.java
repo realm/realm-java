@@ -115,9 +115,11 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Refreshes the Realm instance and all the RealmResults and RealmObjects instances coming from it.
-     * It also calls the listeners associated to the Realm instance.
-     *
-     * Calling this on a thread with async queries will turn those queries into synchronous queries.
+     * It also calls any listeners associated with the Realm if neeeded.
+     * <p>
+     * WARNING: Calling this on a thread with async queries will turn those queries into synchronous queries.
+     * In most cases it is better to use {@link RealmChangeListener}s to be notified about changes to the
+     * Realm on a given thread than it is to use this method. 
      *
      * @throws IllegalStateException if attempting to refresh from within a transaction.
      */
