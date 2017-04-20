@@ -428,8 +428,8 @@ public class ObjectChangeSetTests {
         realm.beginTransaction();
         Owner owner = realm.createObject(Owner.class);
         Dog dog1 = realm.createObject(Dog.class);
-        dog1.setHasTail(true);
         dog1.setOwner(owner);
+        dog1.setHasTail(true);
         owner.getDogs().add(dog1);
         Dog dog2 = realm.createObject(Dog.class);
         dog2.setOwner(owner);
