@@ -173,7 +173,7 @@ publish_distribution() {
     # Create distribution package
     ./gradlew distributionPackage
     cd build/outputs/distribution
-    unzip realm-java-{$VERSION}.zip
+    unzip realm-java-${VERSION}.zip
 
     # Test
     check_adb_device
@@ -202,7 +202,7 @@ publish_javadoc() {
 
     while true
     do
-        read -r -p "Type 'Yes' clean uncommitted files in 'source/en/docs/java'... " input
+        read -r -p "Type 'Yes' to clean uncommitted files in 'source/en/docs/java'... " input
 
         case $input in
             [yY][eE][sS])
