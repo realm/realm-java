@@ -2,7 +2,7 @@
 
 ### Enhancements
 
-* [ObjectServer] Resume synchronization as soon as the network is back (#4141).
+* [ObjectServer] Resume synchronization as soon as the connectivity is back (#4141).
 
 ### Bug Fixes
 
