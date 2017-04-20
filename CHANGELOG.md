@@ -11,7 +11,7 @@
 
 ### Internal
 
-## 3.1.3 (YYYY-MM-DD)
+## 3.1.3 (2017-04-20)
 
 ### Enhancements
 
