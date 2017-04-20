@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.entities.Owner;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
@@ -416,5 +417,50 @@ public class ObjectChangeSetTests {
             obj.setInt("field" + i, 42);
         }
         realm.commitTransaction();
+    }
+
+    // For https://github.com/realm/realm-java/issues/4474
+    @Test
+    @RunTestInLooperThread
+    public void allParentObjectShouldBeInChangeSet() {
+        Realm realm = looperThread.realm;
+
+        realm.beginTransaction();
+        Owner owner = realm.createObject(Owner.class);
+        Dog dog1 = realm.createObject(Dog.class);
+        dog1.setOwner(owner);
+        dog1.setHasTail(true);
+        owner.getDogs().add(dog1);
+        Dog dog2 = realm.createObject(Dog.class);
+        dog2.setOwner(owner);
+        dog2.setHasTail(true);
+        owner.getDogs().add(dog2);
+        Dog dog3 = realm.createObject(Dog.class);
+        dog3.setOwner(owner);
+        dog3.setHasTail(true);
+        owner.getDogs().add(dog3);
+
+        realm.commitTransaction();
+
+        RealmResults<Dog> dogs = realm.where(Dog.class).equalTo(Dog.FIELD_HAS_TAIL, true).findAll();
+        looperThread.keepStrongReference.add(dogs);
+        dogs.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
+            @Override
+            public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
+                assertEquals(1, changeSet.getDeletions().length);
+                assertEquals(0, changeSet.getInsertions().length);
+
+                assertEquals(1, changeSet.getChangeRanges().length);
+                assertEquals(0, changeSet.getChangeRanges()[0].startIndex);
+                assertEquals(2, changeSet.getChangeRanges()[0].length);
+
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        dog3.setHasTail(false);
+        realm.commitTransaction();
+        looperThread.testComplete();
     }
 }

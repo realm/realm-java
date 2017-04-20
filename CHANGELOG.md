@@ -21,6 +21,7 @@
 * `NullPointerException` caused by local transaction inside the listener of `findFirstAsync()`'s results (#4495).
 * Native crash when adding listeners to `RealmObject` after removing listeners from the same `RealmObject` before (#4502).
 * Native crash with "Invalid argument" error happened on some Android 7.1.1 devices when opening Realm on external storage (#4461).
+* `OrderedRealmCollectionChangeListener` didn't report change ranges correctly when circular link's field changed (#4474).
 
 ### Internal
 
