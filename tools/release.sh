@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Script to make release on the local machine.
+# See https://github.com/realm/realm-wiki/wiki/Java-Release-Checklist for more details.
+# FIXME: Only patch release is supported now.
+
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -13,7 +17,7 @@ EOF
 # Input Validation
 ######################################
 
-if [ "$#" -eq 0 -o "$#" -gt 3 ]; then
+if [ "$#" -eq 0 -o "$#" -gt 3 ] ; then
     usage
     exit 1
 fi
@@ -44,32 +48,32 @@ check_env() {
         echo "Cannot find executable file 's3cmd'."
         exit -1
     fi
-    if [[ ! -e $HOME/.s3cfg ]] ; then
+    if [[ ! -e "$HOME/.s3cfg" ]] ; then
         echo "'$HOME/.s3cfg' cannot be found."
         exit -1
     fi
 
     # Check BinTray credentials
-    if ! grep "bintrayUser=realm" $HOME/.gradle/gradle.properties > /dev/null ; then
-        echo "'bintrayUser' is not set in the '~/.gradle/gradle.properties'."
+    if ! grep "bintrayUser=realm" "$HOME/.gradle/gradle.properties" > /dev/null ; then
+        echo "'bintrayUser' is not set in the '$HOME/.gradle/gradle.properties'."
         exit -1
     fi
 
-    if ! grep "bintrayKey=.*" $HOME/.gradle/gradle.properties > /dev/null; then
-        echo "'bintrayKey' is not set in the '~/.gradle/gradle.properties'."
+    if ! grep "bintrayKey=.*" "$HOME/.gradle/gradle.properties" > /dev/null; then
+        echo "'bintrayKey' is not set in the '$HOME/.gradle/gradle.properties'."
         exit -1
     fi
 
     # Check gradle params
-    if grep buildTargetABIs $HOME/.gradle/gradle.properties | grep -v "^#" > /dev/null ; then
+    if grep buildTargetABIs "$HOME/.gradle/gradle.properties" | grep -v "^#" > /dev/null ; then
         echo "'buildTargetABIs' should be disabled in the '$HOME/.gradle/gradle.properties'."
         exit -1
     fi
-    if grep ccachePath $HOME/.gradle/gradle.properties | grep -v "^#" > /dev/null ; then
+    if grep ccachePath "$HOME/.gradle/gradle.properties" | grep -v "^#" > /dev/null ; then
         echo "'ccachePath' should be disabled in the '$HOME/.gradle/gradle.properties'."
         exit -1
     fi
-    if grep lcachePath $HOME/.gradle/gradle.properties | grep -v "^#" > /dev/null ; then
+    if grep lcachePath "$HOME/.gradle/gradle.properties" | grep -v "^#" > /dev/null ; then
         echo "'lcachePath' should be disabled in the '$HOME/.gradle/gradle.properties'."
         exit -1
     fi
@@ -140,10 +144,7 @@ build() {
     check_adb_device
 
     # Verify examples
-    cd examples
-    ./gradlew uninstallAll
-    ./gradlew monkeyDebug
-    cd ..
+    (cd examples && ./gradlew uninstallAll && ./gradlew monkeyDebug)
 }
 
 upload_to_bintray() {
@@ -159,7 +160,7 @@ upload_to_bintray() {
     do
         read -r -p "Have you published 16 artifacts on Bintray? Type 'Yes' to continue... " input
 
-        case $input in
+        case "$input" in
             [yY][eE][sS])
                 break
                 ;;
@@ -172,15 +173,16 @@ publish_distribution() {
 
     # Create distribution package
     ./gradlew distributionPackage
-    cd build/outputs/distribution
+    pushd build/outputs/distribution
     unzip realm-java-${VERSION}.zip
 
     # Test
     check_adb_device
-    cd examples/
+    pushd examples/
     ./gradlew uninstallAll
     ./gradlew monkeyRelease
-    cd ../../../../
+    popd
+    popd
     ./gradlew distribute
 }
 
@@ -204,7 +206,7 @@ publish_javadoc() {
     do
         read -r -p "Type 'Yes' to clean uncommitted files in 'source/en/docs/java'... " input
 
-        case $input in
+        case "$input" in
             [yY][eE][sS])
                 break
                 ;;
