@@ -17,7 +17,7 @@ EOF
 # Input Validation
 ######################################
 
-if [ "$#" -eq 0 -o "$#" -gt 3 ] ; then
+if [ "$#" -eq 0 ] || [ "$#" -gt 1 ] ; then
     usage
     exit 1
 fi
@@ -33,7 +33,7 @@ REALM_JAVA_PATH=$(pwd)
 
 check_adb_device() {
     if ! adb get-state 1>/dev/null 2>&1 ; then
-        read -n 1 -s -p "Attach a test device or start the emulator then press any key to continue..."
+        read -n 1 -s -p -r "Attach a test device or start the emulator then press any key to continue..."
         echo ""
         check_adb_device
     fi
@@ -101,25 +101,25 @@ prepare_branch() {
     git clean -xfd
     git submodule update --init --recursive
 
-    if ! cat version.txt | grep -q "SNAPSHOT" ; then
+    if ! grep -q "SNAPSHOT" version.txt ; then
         echo "'version.txt' doesn't contain 'SNAPSHOT'."
         exit -1
     fi
 
     version_in_changelog=$(head -1 CHANGELOG.md | grep -o "[0-9]*\.[0-9]*\.[0-9]*")
-    VERSION=$(cat version.txt | grep -o "[0-9]*\.[0-9]*\.[0-9]*")
+    VERSION=$(grep -o "[0-9]*\.[0-9]*\.[0-9]*" version.txt)
     if [[ "${VERSION}" != "${version_in_changelog}" ]] ; then
         echo "'version.txt' doens't match the entry in 'CHANGELOG.md'. ${VERSION} vs ${version_in_changelog}."
         exit -1
     fi
 
     # Check if tag exists in remote
-    if git ls-remote --tags origin | grep v${VERSION} > /dev/null ; then
+    if git ls-remote --tags origin | grep "v${VERSION}" > /dev/null ; then
         echo "Tag 'v${VERSION}' exists in remote!"
         exit -1
     fi
-    if git tag | grep v${VERSION} > /dev/null ; then
-        git tag -d v${VERSION}
+    if git tag | grep "v${VERSION}" > /dev/null ; then
+        git tag -d "v${VERSION}"
     fi
 
     # Update date in change log
@@ -174,7 +174,7 @@ publish_distribution() {
     # Create distribution package
     ./gradlew distributionPackage
     pushd build/outputs/distribution
-    unzip realm-java-${VERSION}.zip
+    unzip "realm-java-${VERSION}.zip"
 
     # Test
     check_adb_device
@@ -197,10 +197,10 @@ push_release() {
 
 publish_javadoc() {
     echo "Publishing javadoc..."
-    cd ${REALM_IO_PATH}
+    cd "${REALM_IO_PATH}"
     git fetch --all
     branch_name=publish_java_doc/${VERSION}
-    git checkout origin/master -b ${branch_name}
+    git checkout origin/master -b "${branch_name}"
 
     while true
     do
@@ -214,11 +214,11 @@ publish_javadoc() {
     done
     git clean -xfd ./source/en/docs/java/
     bundle exec rake generate:java_docs[$VERSION]
-    cp -R ${REALM_JAVA_PATH}/realm/realm-library/build/docs/javadoc/* ./source/en/docs/java/latest/api/
+    cp -R "${REALM_JAVA_PATH}/realm/realm-library/build/docs/javadoc/*" ./source/en/docs/java/latest/api/
     bundle exec rake generate:inject_ga_latest_java_api
     git add ./source/en/docs/java/
     git commit -m "Release realm-java doc ${VERSION}"
-    git push origin ${branch_name}
+    git push origin "${branch_name}"
     path_to_hub=$(which hub)
     if [[ ! -x "$path_to_hub" ]] ; then
         echo "'hub' cannot be found in the executable path."
