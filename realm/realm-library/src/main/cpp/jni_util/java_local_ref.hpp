@@ -46,11 +46,6 @@ public:
         m_env->DeleteLocalRef(m_jobject);
     }
 
-    JavaLocalRef(const JavaLocalRef&) = delete;
-    JavaLocalRef& operator=(const JavaLocalRef&) = delete;
-    JavaLocalRef(JavaLocalRef&& rhs) = delete;
-    JavaLocalRef& operator=(JavaLocalRef&& rhs) = delete;
-
     inline operator bool() const noexcept
     {
         return m_jobject != nullptr;
@@ -59,6 +54,10 @@ public:
     {
         return m_jobject;
     }
+    inline T get() const noexcept
+    {
+        return m_jobject;
+    };
 
 private:
     T m_jobject;

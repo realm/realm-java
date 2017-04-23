@@ -16,7 +16,10 @@
 
 package io.realm;
 
+import android.os.Looper;
+
 import java.net.URI;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -59,6 +62,8 @@ public class SyncSession {
     private RealmAsyncTask refreshTokenNetworkRequest;
     private AtomicBoolean onGoingAccessTokenQuery = new AtomicBoolean(false);
     private volatile boolean isClosed = false;
+    private WaitForServerChangesWrapper waitingForServerChanges;
+    private final Object waitForChangesMutex = new Object();
 
     SyncSession(SyncConfiguration configuration) {
         this.configuration = configuration;
@@ -112,10 +117,62 @@ public class SyncSession {
 
     void close() {
         isClosed = true;
+        notifyAllChangesDownloaded(null, null);
         if (networkRequest != null) {
             networkRequest.cancel();
         }
         clearScheduledAccessTokenRefresh();
+    }
+
+    // waitForDownloadCompletion and this method must be synchronized so success is not reported before
+    // everything is setup.
+    void notifyAllChangesDownloaded(Long errorcode, String errorMessage) {
+        synchronized (waitForChangesMutex) {
+            if (waitingForServerChanges != null) {
+                waitingForServerChanges.handleResult(errorcode, errorMessage);
+            }
+        }
+    }
+
+    /**
+     * Calling this method will block until all known remote changes have been download and applied to the Realm.
+     * This will involve network access, so calling this method should only be done from a non-UI thread.
+     * <p>
+     * If the device is offline, this method will return immediately.
+     * <p>
+     * This method cannot be called before the session has been started.
+     *
+     * @throws IllegalStateException if called on the Android main thread.
+     */
+    public void downloadAllServerChanges() {
+        if (Looper.getMainLooper() == Looper.myLooper()) {
+            throw new IllegalStateException("This method cannot be called from the UI thread");
+        }
+
+         // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
+         // an async listener there and let it callback to the Java Session when done. This feel icky at best, but
+         // since all operations on the SyncSession operate under a shared mutex, we would prevent all other actions on the
+         // session, including trying to stop it.
+         // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
+         // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
+        synchronized (waitForChangesMutex) {
+            if (!isClosed) {
+                boolean listenerRegistered = nativeWaitForDownloadCompletion(configuration.getPath());
+                if (!listenerRegistered) {
+                    throw new ObjectServerError(ErrorCode.UNKNOWN, "It was not possible to download all changes. Have the Sync Client been started?");
+                }
+                waitingForServerChanges = new WaitForServerChangesWrapper();
+                waitingForServerChanges.waitForServerChanges();
+
+                // This might return after the session was closed. In that case, just ignore any result
+                if (!isClosed) {
+                    if (!waitingForServerChanges.isSuccess()) {
+                        waitingForServerChanges.throwExceptionIfNeeded();
+                    }
+                    waitingForServerChanges = null;
+                }
+            }
+        }
     }
 
     /**
@@ -351,6 +408,59 @@ public class SyncSession {
         }
     }
 
+    // Wrapper class for handling the async operations of the underlying SyncSession calling `async_wait_for_download_completion`
+    private static class WaitForServerChangesWrapper {
+
+        private final CountDownLatch waitForChanges = new CountDownLatch(1);
+        private boolean resultReceived = false;
+        private Long errorCode = null;
+        private String errorMessage;
+
+        public void cancelWait() {
+            waitForChanges.countDown();
+        }
+
+        /**
+         * Block until the wait either completes or is terminated for other reasons.
+         */
+        public void waitForServerChanges() {
+            try {
+                waitForChanges.await();
+            } catch (InterruptedException e) {
+                throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+            }
+        }
+
+        /**
+         * Process the result of a waiting action. This will also unblock anyone who called {@link #waitForChanges}.
+         *
+         * @param errorCode error code if an error occured, {@code null} if changes where successfully downloaded.
+         * @param errorMessage error message (if any).
+         */
+        public void handleResult(Long errorCode, String errorMessage) {
+            this.errorCode = errorCode;
+            this.errorMessage = errorMessage;
+            this.resultReceived = true;
+            waitForChanges.countDown();
+        }
+
+        public boolean isSuccess() {
+            return resultReceived && errorCode == null;
+        }
+
+        /**
+         * Will throw an exception if the wait was terminated with an error. If it was canceled, this method will
+         * do nothing.
+         */
+        public void throwExceptionIfNeeded() {
+            if (resultReceived && errorCode != null) {
+                throw new ObjectServerError(ErrorCode.UNKNOWN, String.format("Internal error (%d): %s", errorCode, errorMessage));
+            }
+        }
+    }
+
+
     private static native boolean nativeRefreshAccessToken(String path, String accessToken, String authURL);
+    private native boolean nativeWaitForDownloadCompletion(String path);
 }
 

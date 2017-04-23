@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
+import io.realm.SyncSession;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
 
@@ -127,6 +128,17 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             throw new RealmException("Could not invoke method to remove session: " + syncConfig.toString(), e);
         } catch (IllegalAccessException e) {
             throw new RealmException("Could not remove session: " + syncConfig.toString(), e);
+        }
+    }
+
+    @Override
+    public void downloadServerChangesIfNeeded(RealmConfiguration config) {
+        if (config instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) config;
+            if (syncConfig.shouldWaitForServerChanges()) {
+                SyncSession session = SyncManager.getSession(syncConfig);
+                session.downloadAllServerChanges();
+            }
         }
     }
 }

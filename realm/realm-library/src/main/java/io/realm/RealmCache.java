@@ -140,6 +140,9 @@ final class RealmCache {
             // Creates a new local Realm instance
             BaseRealm realm;
 
+            // If waitForServerChanges was enabled, we need to make sure that all data is downloaded before proceeding
+            ObjectServerFacade.getSyncFacadeIfPossible().downloadServerChangesIfNeeded(configuration);
+
             if (realmClass == Realm.class) {
                 // RealmMigrationNeededException might be thrown here.
                 realm = Realm.createInstance(configuration, cache.typedColumnIndicesArray);
