@@ -354,11 +354,6 @@ public class SyncUser {
         }
     }
 
-    private static void scheduleRequest(final Request request, final Callback callback) {
-        ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
-        final Handler handler = new Handler(Looper.myLooper());
-    }
-
     /**
      * Returns a JSON token representing this user.
      * <p>
