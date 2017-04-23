@@ -268,4 +268,14 @@ public class SyncUserTests {
             SyncManager.setAuthServerImpl(originalServer);
         }
     }
+
+    @Test
+    public void changePassword_nullThrows() {
+        SyncUser user = createTestUser();
+        try {
+            user.changePassword(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
 }
