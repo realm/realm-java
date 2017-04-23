@@ -8,6 +8,7 @@ import org.junit.runner.RunWith;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.UUID;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
@@ -157,4 +158,40 @@ public class AuthTests extends BaseIntegrationTest {
             }
         }, 1000);
     }
+
+
+    @Test
+    public void changePassword() {
+        String username = UUID.randomUUID().toString();
+        String originalPassword = "password";
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, originalPassword, true);
+        SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(userOld.isValid());
+
+        // Change password and try to log in with new password
+        String newPassword = "new-password";
+        userOld.changePassword(newPassword);
+        userOld.logout();
+        credentials = SyncCredentials.usernamePassword(username, newPassword, false);
+        SyncUser userNew = SyncUser.login(credentials, Constants.AUTH_URL);
+
+        assertTrue(userNew.isValid());
+        assertEquals(userOld.getIdentity(), userNew.getIdentity());
+    }
+
+    @Test
+    public void changePassword_throwExceptionOnError() {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        user.logout();
+
+        try {
+            user.changePassword("new-password");
+            fail();
+        } catch (ObjectServerError ignored) {
+        }
+    }
+
 }

@@ -56,4 +56,9 @@ public interface AuthenticationServer {
      * logged out as well.
      */
     LogoutResponse logout(Token userToken, URL authenticationUrl);
+
+    /**
+     * Change a users password.
+     */
+    ChangePasswordResponse changePassword(Token userToken, String newPassword, URL authenticationUrl);
 }

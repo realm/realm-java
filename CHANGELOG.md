@@ -5,6 +5,7 @@
 ### Enhancements
 
 * [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
+* [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` (#4423).
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).
 * Added `Realm.refresh()` and `DynamicRealm.refresh()` (#3476).
 
