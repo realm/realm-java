@@ -278,4 +278,24 @@ public class SyncUserTests {
         } catch (IllegalArgumentException ignored) {
         }
     }
+
+    @Test
+    public void changePasswordAsync_nonLooperThreadThrows() {
+        SyncUser user = createTestUser();
+        try {
+            user.changePasswordAsync(null, new SyncUser.Callback() {
+                @Override
+                public void onSuccess(SyncUser user) {
+                    fail();
+                }
+
+                @Override
+                public void onError(ObjectServerError error) {
+                    fail();
+                }
+            });
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
 }

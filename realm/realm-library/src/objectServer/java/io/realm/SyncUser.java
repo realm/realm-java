@@ -36,6 +36,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import io.realm.internal.Util;
+import io.realm.internal.android.AndroidCapabilities;
+import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
@@ -314,7 +316,6 @@ public class SyncUser {
      * Android UI thread will always crash.
      *
      * @param newPassword the users new password.
-     * @throws IllegalArgumentException if not on a Looper thread.
      * @throws ObjectServerError if the password could not be changed for some reason.
      */
     public void changePassword(String newPassword) throws ObjectServerError {
@@ -349,9 +350,8 @@ public class SyncUser {
     }
 
     private static void checkLooperThread(String errorMessage) {
-        if (Looper.myLooper() == null) {
-            throw new IllegalStateException(errorMessage);
-        }
+        AndroidCapabilities capabilities = new AndroidCapabilities();
+        capabilities.checkCanDeliverNotification(errorMessage);
     }
 
     /**
@@ -489,12 +489,12 @@ public class SyncUser {
     private static abstract class Request {
 
         private final Callback callback;
-        private final Handler handler;
+        private final AndroidRealmNotifier handler;
         private final ThreadPoolExecutor networkPoolExecutor;
 
         public Request(ThreadPoolExecutor networkPoolExecutor, Callback callback) {
             this.callback = callback;
-            this.handler = new Handler(Looper.myLooper());
+            this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
             this.networkPoolExecutor = networkPoolExecutor;
         }
 
@@ -524,10 +524,12 @@ public class SyncUser {
                         try {
                             callback.onError(error);
                         } catch (Exception e) {
-                            RealmLog.debug("onError has thrown an exception that is being ignored: %s", Util.getStackTrace(e));
+                            RealmLog.error(e, "onError has thrown an exception that is being ignored.");
                         }
                     }
                 });
+            } else {
+                RealmLog.error(error, "An error was thrown, but no callback was available");
             }
         }
 
