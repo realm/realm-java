@@ -1,3 +1,9 @@
+## 3.1.4
+
+## Bug fixes
+
+* Added missing row validation check in certain cases on invalidated/deleted objects (#4540).
+
 ## 3.1.3 (2017-04-20)
 
 ### Enhancements
