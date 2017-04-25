@@ -22,6 +22,7 @@
 #include "object-store/src/sync/sync_session.hpp"
 
 #include "util.hpp"
+#include "jni_util/java_global_ref.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_local_ref.hpp"
@@ -67,27 +68,22 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
             static jni_util::JavaClass java_sync_session_class(env, "io/realm/SyncSession");
             static jni_util::JavaMethod java_notify_result_method(
                 env, java_sync_session_class, "notifyAllChangesDownloaded", "(Ljava/lang/Long;Ljava/lang/String;)V");
-            jobject java_session_object = env->NewGlobalRef(session_object);
+            jni_util::JavaGlobalRef java_session_object_ref(env, session_object);
 
             bool listener_registered =
-                session->wait_for_download_completion([java_session_object](std::error_code error) {
+                session->wait_for_download_completion([java_session_object_ref](std::error_code error) {
                     JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
-                    jni_util::JavaLocalRef<jobject> java_error_code(env, nullptr);
-                    jni_util::JavaLocalRef<jstring> java_error_message(env, nullptr);
+                    jni_util::JavaLocalRef<jobject> java_error_code_ref(env, nullptr);
+                    jni_util::JavaLocalRef<jstring> java_error_message_ref(env, nullptr);
                     if (error != std::error_code{}) {
-                        java_error_code = jni_util::JavaLocalRef<jobject>(env, NewLong(env, error.value()));
-                        java_error_message =
+                        java_error_code_ref = jni_util::JavaLocalRef<jobject>(env, NewLong(env, error.value()));
+                        java_error_message_ref =
                             jni_util::JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
                     }
-                    env->CallVoidMethod(java_session_object, java_notify_result_method, java_error_code.get(),
-                                        java_error_message.get());
-                    env->DeleteGlobalRef(java_session_object);
+                    env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method,
+                                        java_error_code_ref.get(), java_error_message_ref.get());
                 });
 
-            // Cleanup immediately in case the listener never will be called
-            if (!listener_registered) {
-                env->DeleteGlobalRef(java_session_object);
-            }
             return to_jbool(listener_registered);
         }
         else {

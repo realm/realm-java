@@ -41,6 +41,14 @@ public:
     inline JavaLocalRef(JNIEnv* env, T obj, NeedToCreateLocalRef) noexcept
         : m_jobject(env->NewLocalRef(obj))
         , m_env(env){};
+
+    JavaLocalRef& operator=(JavaLocalRef&& rhs)
+    {
+        this->~JavaLocalRef();
+        new (this) JavaLocalRef(rhs.m_env, rhs.m_jobject);
+        return *this;
+    }
+
     inline ~JavaLocalRef()
     {
         m_env->DeleteLocalRef(m_jobject);
@@ -58,6 +66,10 @@ public:
     {
         return m_jobject;
     };
+
+    JavaLocalRef(const JavaLocalRef&) = delete;
+    JavaLocalRef& operator=(const JavaLocalRef&) = delete;
+    JavaLocalRef(JavaLocalRef&& rhs) = delete;
 
 private:
     T m_jobject;
