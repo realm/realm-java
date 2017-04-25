@@ -133,11 +133,11 @@ public class Realm extends BaseRealm {
     /**
      * The constructor is private to enforce the use of the static one.
      *
-     * @param configuration the {@link RealmConfiguration} used to open the Realm.
+     * @param cache the {@link RealmCache} associated to this Realm instance.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
      */
-    Realm(RealmConfiguration configuration) {
-        super(configuration);
+    private Realm(RealmCache cache) {
+        super(cache);
     }
 
     /**
@@ -254,16 +254,13 @@ public class Realm extends BaseRealm {
     /**
      * Creates a {@link Realm} instance without checking the existence in the {@link RealmCache}.
      *
-     * @param configuration {@link RealmConfiguration} used to create the Realm.
-     * @param globalCacheArray if this is not {@code null} and contains an entry for current schema version,
-     * the {@link BaseRealm#schema#columnIndices} will be initialized with the copy of
-     * the entry. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated
-     * from the Realm file.
+     * @param cache the {@link RealmCache} where to create the realm in.
      * @return a {@link Realm} instance.
      */
-    static Realm createInstance(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
+    static Realm createInstance(RealmCache cache) {
+        RealmConfiguration configuration = cache.getConfiguration();
         try {
-            return createAndValidate(configuration, globalCacheArray);
+            return createAndValidate(cache);
 
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
@@ -279,17 +276,19 @@ public class Realm extends BaseRealm {
                 }
             }
 
-            return createAndValidate(configuration, globalCacheArray);
+            return createAndValidate(cache);
         }
     }
 
-    private static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
-        Realm realm = new Realm(configuration);
+    private static Realm createAndValidate(RealmCache cache) {
+        Realm realm = new Realm(cache);
+        RealmConfiguration configuration = realm.configuration;
 
         final long currentVersion = realm.getVersion();
         final long requiredVersion = configuration.getSchemaVersion();
 
-        final ColumnIndices columnIndices = RealmCache.findColumnIndices(globalCacheArray, requiredVersion);
+        final ColumnIndices columnIndices = RealmCache.findColumnIndices(cache.getTypedColumnIndicesArray(),
+                requiredVersion);
 
         if (columnIndices != null) {
             // Copies global cache as a Realm local indices cache.

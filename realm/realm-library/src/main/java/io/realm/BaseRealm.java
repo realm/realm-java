@@ -31,7 +31,6 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
@@ -69,20 +68,33 @@ abstract class BaseRealm implements Closeable {
 
     final long threadId;
     protected final RealmConfiguration configuration;
+    // Which RealmCache is this Realm associated to. It could be null if the Realm instance is opened without putting it
+    // into a cache. It also could be null if the Realm is closed.
+    private RealmCache realmCache;
     protected SharedRealm sharedRealm;
 
     protected final StandardRealmSchema schema;
 
-    protected BaseRealm(RealmConfiguration configuration) {
+    // Create a realm instance and associate it to a RealmCache.
+    BaseRealm(RealmCache cache) {
+        this(cache.getConfiguration());
+        this.realmCache = cache;
+    }
+
+    // Create a realm instance without associating it to any RealmCache.
+    BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
+        this.realmCache = null;
 
         this.sharedRealm = SharedRealm.getInstance(configuration,
                 !(this instanceof Realm) ? null :
                         new SharedRealm.SchemaVersionListener() {
                             @Override
                             public void onSchemaVersionChanged(long currentVersion) {
-                                RealmCache.updateSchemaCache((Realm) BaseRealm.this);
+                                if (realmCache != null) {
+                                    realmCache.updateSchemaCache((Realm) BaseRealm.this);
+                                }
                             }
                         }, true);
         this.schema = new StandardRealmSchema(this);
@@ -259,16 +271,20 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if the {@link io.realm.Realm} instance has already been closed.
      */
     public void stopWaitForChange() {
-        RealmCache.invokeWithLock(new RealmCache.Callback0() {
-            @Override
-            public void onCall() {
-                // Checks if the Realm instance has been closed.
-                if (sharedRealm == null || sharedRealm.isClosed()) {
-                    throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+        if (realmCache != null) {
+            realmCache.invokeWithLock(new RealmCache.Callback0() {
+                @Override
+                public void onCall() {
+                    // Checks if the Realm instance has been closed.
+                    if (sharedRealm == null || sharedRealm.isClosed()) {
+                        throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+                    }
+                    sharedRealm.stopWaitForChange();
                 }
-                sharedRealm.stopWaitForChange();
-            }
-        });
+            });
+        } else {
+            throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+        }
     }
 
     /**
@@ -414,13 +430,18 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
         }
 
-        RealmCache.release(this);
+        if (realmCache != null) {
+            realmCache.release(this);
+        } else {
+            doClose();
+        }
     }
 
     /**
      * Closes the Realm instances and all its resources without checking the {@link RealmCache}.
      */
     void doClose() {
+        realmCache = null;
         if (sharedRealm != null) {
             sharedRealm.close();
             sharedRealm = null;
@@ -487,9 +508,8 @@ abstract class BaseRealm implements Closeable {
     <E extends RealmModel> E get(Class<E> clazz, long rowIndex, boolean acceptDefaultValue, List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
-        E result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
+        return configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
                 acceptDefaultValue, excludeFields);
-        return result;
     }
 
     // Used by RealmList/RealmResults
@@ -605,7 +625,9 @@ abstract class BaseRealm implements Closeable {
                 RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
                 DynamicRealm realm = null;
                 try {
-                    realm = DynamicRealm.getInstance(configuration);
+                    // Create a DynamicRealm WITHOUT putting it into a RealmCache to avoid recursive locks and call init
+                    // steps multiple times (copy asset file / initialData transaction).
+                    realm = DynamicRealm.createInstance(configuration);
                     realm.beginTransaction();
                     long currentVersion = realm.getVersion();
                     realmMigration.migrate(realm, currentVersion, configuration.getSchemaVersion());

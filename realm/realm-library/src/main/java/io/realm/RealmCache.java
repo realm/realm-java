@@ -76,7 +76,8 @@ final class RealmCache {
     // Separated references and counters for typed Realm and dynamic Realm.
     private final EnumMap<RealmCacheType, RefAndCount> refAndCountMap;
 
-    final private RealmConfiguration configuration;
+    // This will be only valid if refAndCount.globalCount > 0
+    private RealmConfiguration configuration;
 
     // Column indices are cached to speed up opening typed Realm. If a Realm instance is created in one thread, creating
     // Realm instances in other threads doesn't have to initialize the column indices again.
@@ -85,13 +86,14 @@ final class RealmCache {
 
     // Realm path will be used as the key to store different RealmCaches. Different Realm configurations with same path
     // are not allowed and an exception will be thrown when trying to add it to the cache map.
+    // The RealmCache won't be removed from the map even when all Realm instances associated to it get closed. Instead,
+    // it will be reused when the next time a Realm with the same path gets opened.
     private static final Map<String, RealmCache> cachesMap = new HashMap<>();
 
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
     private static final String WRONG_REALM_CLASS_MESSAGE = "The type of Realm class must be Realm or DynamicRealm.";
 
-    private RealmCache(RealmConfiguration config) {
-        configuration = config;
+    private RealmCache() {
         refAndCountMap = new EnumMap<>(RealmCacheType.class);
         for (RealmCacheType type : RealmCacheType.values()) {
             refAndCountMap.put(type, new RefAndCount());
@@ -105,25 +107,29 @@ final class RealmCache {
      * @param realmClass class of {@link Realm} or {@link DynamicRealm} to be created in or gotten from the cache.
      * @return the {@link Realm} or {@link DynamicRealm} instance.
      */
-    static synchronized <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration,
+    static <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration,
             Class<E> realmClass) {
-        boolean isCacheInMap = true;
-        RealmCache cache = cachesMap.get(configuration.getPath());
-        if (cache == null) {
-            // Creates a new cache.
-            cache = new RealmCache(configuration);
-            // The new cache should be added to the map later.
-            isCacheInMap = false;
-
-            copyAssetFileIfNeeded(configuration);
-        } else {
-            // Throws the exception if validation failed.
-            cache.validateConfiguration(configuration);
+        RealmCache cache;
+        synchronized (RealmCache.class) {
+            cache = cachesMap.get(configuration.getPath());
+            if (cache == null) {
+                // Creates a new cache.
+                cache = new RealmCache();
+                cachesMap.put(configuration.getPath(), cache);
+            }
         }
 
-        RefAndCount refAndCount = cache.refAndCountMap.get(RealmCacheType.valueOf(realmClass));
+        return cache.doCreateRealmOrGetFromCache(configuration, realmClass);
+    }
+
+    private synchronized <E extends BaseRealm> E doCreateRealmOrGetFromCache(RealmConfiguration configuration,
+            Class<E> realmClass) {
+
+        RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.valueOf(realmClass));
 
         if (refAndCount.globalCount == 0) {
+            copyAssetFileIfNeeded(configuration);
+
             SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
             if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
                 sharedRealm.beginTransaction();
@@ -134,6 +140,12 @@ final class RealmCache {
                 }
             }
             sharedRealm.close();
+
+            // We are holding the lock, and we can set the invalidated configuration since there is no global ref to it.
+            this.configuration = configuration;
+        } else {
+            // Throws the exception if validation failed.
+            validateConfiguration(configuration);
         }
 
         if (refAndCount.localRealm.get() == null) {
@@ -142,19 +154,15 @@ final class RealmCache {
 
             if (realmClass == Realm.class) {
                 // RealmMigrationNeededException might be thrown here.
-                realm = Realm.createInstance(configuration, cache.typedColumnIndicesArray);
+                realm = Realm.createInstance(this);
             } else if (realmClass == DynamicRealm.class) {
-                realm = DynamicRealm.createInstance(configuration);
+                realm = DynamicRealm.createInstance(this);
             } else {
                 throw new IllegalArgumentException(WRONG_REALM_CLASS_MESSAGE);
             }
 
             // The Realm instance has been created without exceptions. Cache and reference count can be updated now.
 
-            // The cache is not in the map yet. Add it to the map after the Realm instance created successfully.
-            if (!isCacheInMap) {
-                cachesMap.put(configuration.getPath(), cache);
-            }
             refAndCount.localRealm.set(realm);
             refAndCount.localCount.set(0);
         }
@@ -164,17 +172,15 @@ final class RealmCache {
             if (realmClass == Realm.class && refAndCount.globalCount == 0) {
                 final BaseRealm realm = refAndCount.localRealm.get();
                 // Stores a copy of local ColumnIndices as a global cache.
-                RealmCache.storeColumnIndices(cache.typedColumnIndicesArray, realm.schema.cloneColumnIndices());
+                RealmCache.storeColumnIndices(typedColumnIndicesArray, realm.schema.cloneColumnIndices());
             }
             // This is the first instance in current thread, increase the global count.
             refAndCount.globalCount++;
         }
         refAndCount.localCount.set(refCount + 1);
 
-        @SuppressWarnings("unchecked")
-        E realm = (E) refAndCount.localRealm.get();
-
-        return realm;
+        //noinspection unchecked
+        return (E) refAndCount.localRealm.get();
     }
 
     /**
@@ -183,22 +189,16 @@ final class RealmCache {
      *
      * @param realm Realm instance to be released from cache.
      */
-    static synchronized void release(BaseRealm realm) {
+    synchronized void release(BaseRealm realm) {
         String canonicalPath = realm.getPath();
-        RealmCache cache = cachesMap.get(canonicalPath);
-        Integer refCount = null;
-        RefAndCount refAndCount = null;
-
-        if (cache != null) {
-            refAndCount = cache.refAndCountMap.get(RealmCacheType.valueOf(realm.getClass()));
-            refCount = refAndCount.localCount.get();
-        }
+        RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.valueOf(realm.getClass()));
+        Integer refCount = refAndCount.localCount.get();
         if (refCount == null) {
             refCount = 0;
         }
 
         if (refCount <= 0) {
-            RealmLog.warn("%s has been closed already.", canonicalPath);
+            RealmLog.warn("%s has been closed already. refCount is %s", canonicalPath, refCount);
             return;
         }
 
@@ -222,12 +222,12 @@ final class RealmCache {
             // Clears the column indices cache if needed.
             if (realm instanceof Realm && refAndCount.globalCount == 0) {
                 // All typed Realm instances of this file are cleared from cache.
-                Arrays.fill(cache.typedColumnIndicesArray, null);
+                Arrays.fill(typedColumnIndicesArray, null);
             }
 
             int totalRefCount = 0;
             for (RealmCacheType type : RealmCacheType.values()) {
-                totalRefCount += cache.refAndCountMap.get(type).globalCount;
+                totalRefCount += refAndCountMap.get(type).globalCount;
             }
 
             // No more local reference to this Realm in current thread, close the instance.
@@ -293,9 +293,13 @@ final class RealmCache {
             callback.onResult(0);
             return;
         }
+        cache.doInvokeWithGlobalRefCount(callback);
+    }
+
+    synchronized void doInvokeWithGlobalRefCount(Callback callback) {
         int totalRefCount = 0;
         for (RealmCacheType type : RealmCacheType.values()) {
-            totalRefCount += cache.refAndCountMap.get(type).globalCount;
+            totalRefCount += refAndCountMap.get(type).globalCount;
         }
         callback.onResult(totalRefCount);
     }
@@ -305,19 +309,14 @@ final class RealmCache {
      *
      * @param realm the instance that contains the schema cache to be updated.
      */
-    static synchronized void updateSchemaCache(Realm realm) {
-        final RealmCache cache = cachesMap.get(realm.getPath());
-        if (cache == null) {
-            // Called during initialization. just skip it.
-            return;
-        }
-        final RefAndCount refAndCount = cache.refAndCountMap.get(RealmCacheType.TYPED_REALM);
+    synchronized void updateSchemaCache(Realm realm) {
+        final RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.TYPED_REALM);
         if (refAndCount.localRealm.get() == null) {
             // Called during initialization. just skip it.
             // We can reach here if the DynamicRealm instance is initialized first.
             return;
         }
-        final ColumnIndices[] globalCacheArray = cache.typedColumnIndicesArray;
+        final ColumnIndices[] globalCacheArray = typedColumnIndicesArray;
         final ColumnIndices createdCacheEntry = realm.updateSchemaCache(globalCacheArray);
         if (createdCacheEntry != null) {
             RealmCache.storeColumnIndices(globalCacheArray, createdCacheEntry);
@@ -329,7 +328,7 @@ final class RealmCache {
      *
      * @param callback the callback will be executed.
      */
-    static synchronized void invokeWithLock(Callback0 callback) {
+    synchronized void invokeWithLock(Callback0 callback) {
         callback.onCall();
     }
 
@@ -452,5 +451,13 @@ final class RealmCache {
         }
         array[candidateIndex] = columnIndices;
         return candidateIndex;
+    }
+
+    public RealmConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    public ColumnIndices[] getTypedColumnIndicesArray() {
+        return typedColumnIndicesArray;
     }
 }
