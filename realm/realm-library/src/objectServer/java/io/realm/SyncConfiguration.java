@@ -60,7 +60,6 @@ import io.realm.rx.RxObservableFactory;
  *
  * <ul>
  *     <li>{@code deleteRealmIfMigrationNeeded()}</li>
- *     <li>{@code schemaVersion(long version)}</li>
  *     <li>{@code migration(Migration)}</li>
  * </ul>
  *
@@ -464,8 +463,14 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the schema version of the Realm. This must be equal to or higher than the schema version of the existing
-         * Realm file, if any. If the schema version is higher than the already existing Realm, a migration is needed.
+         * Sets the schema version of the Realm.
+         * <p>
+         * While synced Realms only support additive schema changes which can be applied without requiring a manual
+         * migration, the schema version must still be incremented as an indication to Realm that the change was
+         * intentional.
+         * <p>
+         * Failing to increment the schema version will cause Realm to throw a {@link io.realm.exceptions.RealmMigrationNeededException}
+         * when the Realm is opened and the changed schema will not be applied.
          *
          * @param schemaVersion the schema version.
          * @throws IllegalArgumentException if schema version is invalid.
