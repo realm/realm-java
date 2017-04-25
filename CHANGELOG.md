@@ -1,3 +1,9 @@
+## 3.1.4
+
+## Bug fixes
+
+* Added row validation check (#4540).
+
 ## 3.1.3 (2017-04-20)
 
 ### Enhancements
