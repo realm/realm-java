@@ -131,15 +131,9 @@ public class AuthTests extends BaseIntegrationTest {
         });
     }
 
-    // The error handler throws an exception but it is ignored (but logged). That means, this test should not
-    // pass and not be stopped by an IllegalArgumentException.
     @Test
     @RunTestInLooperThread
     public void loginAsync_errorHandlerThrows() {
-        // set log level to info to make sure the IllegalArgumentException
-        // thrown in the test is visible in Logcat
-        final int defaultLevel = RealmLog.getLevel();
-        RealmLog.setLevel(LogLevel.INFO);
         SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
@@ -150,19 +144,10 @@ public class AuthTests extends BaseIntegrationTest {
             @Override
             public void onError(ObjectServerError error) {
                 assertEquals(ErrorCode.INVALID_CREDENTIALS, error.getErrorCode());
-                throw new IllegalArgumentException("BOOM");
-            }
-        });
-
-        looperThread.postRunnableDelayed(new Runnable() {
-            @Override
-            public void run() {
-                RealmLog.setLevel(defaultLevel);
                 looperThread.testComplete();
             }
-        }, 1000);
+        });
     }
-
 
     @Test
     public void changePassword() {
