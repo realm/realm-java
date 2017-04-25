@@ -106,7 +106,7 @@ public class AuthTests extends BaseIntegrationTest {
                         .build();
 
                 final Realm realm = Realm.getInstance(config);
-                looperThread.testRealms.add(realm);
+                looperThread.addTestRealm(realm);
 
                 // FIXME: Right now we have no Java API for detecting when a session is established
                 // So we optimistically assume it has been connected after 1 second.

@@ -162,7 +162,7 @@ public class NotificationsTest {
             }
         };
 
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.addChangeListener(listener);
         realm.addChangeListener(listener);
         realm.addChangeListener(new RealmChangeListener<Realm>() {
@@ -317,7 +317,7 @@ public class NotificationsTest {
     @RunTestInLooperThread
     public void globalListener_looperThread_triggeredByLocalCommit() {
         final AtomicInteger success = new AtomicInteger(0);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
@@ -335,7 +335,7 @@ public class NotificationsTest {
     @RunTestInLooperThread
     public void globalListener_looperThread_triggeredByRemoteCommit() {
         final AtomicInteger success = new AtomicInteger(0);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
@@ -361,7 +361,7 @@ public class NotificationsTest {
                 looperThread.testComplete();
             }
         };
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.addChangeListener(listener);
         realm.beginTransaction();
         realm.commitTransaction();
@@ -370,7 +370,7 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread
     public void addRemoveListenerConcurrency() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final AtomicInteger counter1 = new AtomicInteger(0);
         final AtomicInteger counter2 = new AtomicInteger(0);
         final AtomicInteger counter3 = new AtomicInteger(0);
@@ -447,7 +447,7 @@ public class NotificationsTest {
         // Test both ways to check accidental ordering from unordered collections.
         final AtomicInteger listenerACalled = new AtomicInteger(0);
         final AtomicInteger listenerBCalled = new AtomicInteger(0);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         final RealmChangeListener<Realm> listenerA = new RealmChangeListener<Realm>() {
 
@@ -690,12 +690,12 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread
     public void asyncRealmResultsShouldNotBlockBackgroundCommitNotification() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
         final AtomicBoolean resultsListenerDone = new AtomicBoolean(false);
         final AtomicBoolean realmListenerDone = new AtomicBoolean(false);
 
-        looperThread.keepStrongReference.add(dogs);
+        looperThread.keepStrongReference(dogs);
         assertTrue(dogs.load());
         assertEquals(0, dogs.size());
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
@@ -750,7 +750,7 @@ public class NotificationsTest {
     public void asyncRealmObjectShouldNotBlockBackgroundCommitNotification() {
         final AtomicInteger numberOfRealmCallbackInvocation = new AtomicInteger(0);
         final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(final Realm realm) {
@@ -816,7 +816,7 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void realmListener_realmResultShouldBeSynced() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         assertEquals(1, results.size());
 
@@ -844,13 +844,13 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread
     public void accessingSyncRealmResultInsideAsyncResultListener() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final AtomicInteger asyncResultCallback = new AtomicInteger(0);
 
         final RealmResults<AllTypes> syncResults = realm.where(AllTypes.class).findAll();
 
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
-        looperThread.keepStrongReference.add(results);
+        looperThread.keepStrongReference(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> results) {
@@ -884,11 +884,11 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread
     public void accessingSyncRealmResultsInsideAnotherResultListener() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmResults<AllTypes> syncResults1 = realm.where(AllTypes.class).findAll();
         final RealmResults<AllTypes> syncResults2 = realm.where(AllTypes.class).findAll();
 
-        looperThread.keepStrongReference.add(syncResults1);
+        looperThread.keepStrongReference(syncResults1);
         syncResults1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
@@ -906,7 +906,7 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread(threadName = "IntentService[1]")
     public void listenersNotAllowedOnIntentServiceThreads() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();

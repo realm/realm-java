@@ -3075,7 +3075,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnEmptyObject() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmChangeListener<AllTypes> dummyListener = new RealmChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object) {
@@ -3116,7 +3116,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnObject() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmChangeListener<AllTypes> dummyListener = new RealmChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object) {
@@ -3161,7 +3161,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnResults() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmChangeListener<RealmResults<AllTypes>> dummyListener = new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
@@ -3200,7 +3200,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void addChangeListener_throwOnAddingNullListenerFromLooperThread() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         try {
             realm.addChangeListener(null);
@@ -3233,7 +3233,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void removeChangeListener_throwOnRemovingNullListenerFromLooperThread() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         try {
             realm.removeChangeListener(null);
@@ -3836,7 +3836,7 @@ public class RealmTests {
     public void refresh_triggerNotifications() {
         final CountDownLatch bgThreadDone = new CountDownLatch(1);
         final AtomicBoolean listenerCalled = new AtomicBoolean(false);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         assertEquals(0, results.size());
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
@@ -3852,7 +3852,7 @@ public class RealmTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Realm realm = Realm.getInstance(looperThread.realmConfiguration);
+                Realm realm = Realm.getInstance(looperThread.getConfiguration());
                 realm.beginTransaction();
                 realm.createObject(AllTypes.class);
                 realm.commitTransaction();
@@ -3895,7 +3895,7 @@ public class RealmTests {
     public void refresh_forceSynchronousNotifications() {
         final CountDownLatch bgThreadDone = new CountDownLatch(1);
         final AtomicBoolean listenerCalled = new AtomicBoolean(false);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
@@ -3909,7 +3909,7 @@ public class RealmTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Realm realm = Realm.getInstance(looperThread.realmConfiguration);
+                Realm realm = Realm.getInstance(looperThread.getConfiguration());
                 realm.beginTransaction();
                 realm.createObject(AllTypes.class);
                 realm.commitTransaction();

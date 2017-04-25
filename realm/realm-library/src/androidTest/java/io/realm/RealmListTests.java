@@ -993,7 +993,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     private RealmList<Dog> prepareRealmListInLooperThread() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         Owner owner = realm.createObject(Owner.class);
         owner.setName("Owner");
@@ -1010,7 +1010,7 @@ public class RealmListTests extends CollectionTests {
     @RunTestInLooperThread
     public void addChangeListener() {
         collection = prepareRealmListInLooperThread();
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final AtomicInteger listenerCalledCount = new AtomicInteger(0);
         collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
             @Override
@@ -1039,7 +1039,7 @@ public class RealmListTests extends CollectionTests {
     @RunTestInLooperThread
     public void removeAllChangeListeners() {
         collection = prepareRealmListInLooperThread();
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final AtomicInteger listenerCalledCount = new AtomicInteger(0);
         collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
             @Override
@@ -1077,7 +1077,7 @@ public class RealmListTests extends CollectionTests {
     @RunTestInLooperThread
     public void removeChangeListener() {
         collection = prepareRealmListInLooperThread();
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final AtomicInteger listenerCalledCount = new AtomicInteger(0);
         RealmChangeListener<RealmList<Dog>> listener1 = new RealmChangeListener<RealmList<Dog>>() {
             @Override
