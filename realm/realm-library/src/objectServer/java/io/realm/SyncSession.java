@@ -125,9 +125,9 @@ public class SyncSession {
     }
 
     // This method will be called once all changes have been downloaded.
-    // This method might be called on another thread than the one that called `downloadAllServerChanges`
+    // This method might be called on another thread than the one that called `downloadAllServerChanges`.
     // Be very careful with synchronized blocks.
-    // If the native listener was successfully registered, Object Store guarantee that this method will be called at
+    // If the native listener was successfully registered, Object Store guarantees that this method will be called at
     // least once, even if the session is closed.
     void notifyAllChangesDownloaded(Long errorcode, String errorMessage) {
         if (waitingForServerChanges != null) {
@@ -136,7 +136,7 @@ public class SyncSession {
     }
 
     /**
-     * Calling this method will block until all known remote changes have been download and applied to the Realm.
+     * Calling this method will block until all known remote changes have been downloaded and applied to the Realm.
      * This will involve network access, so calling this method should only be done from a non-UI thread.
      * <p>
      * If the device is offline, this method will return immediately.
@@ -149,18 +149,18 @@ public class SyncSession {
         checkMainThread("downloadAllServerChanges() cannot be called from the main thread.");
 
         // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
-         // an async listener there and let it callback to the Java Session when done. This feel icky at best, but
-         // since all operations on the SyncSession operate under a shared mutex, we would prevent all other actions on the
-         // session, including trying to stop it.
-         // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
-         // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
+        // an async listener there and let it callback to the Java Session when done. This feels icky at best, but
+        // since all operations on the SyncSession operate under a shared mutex, we would prevent all other actions on the
+        // session, including trying to stop it.
+        // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
+        // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
         synchronized (waitForChangesMutex) {
             if (!isClosed) {
                 waitingForServerChanges = new WaitForServerChangesWrapper();
                 boolean listenerRegistered = nativeWaitForDownloadCompletion(configuration.getPath());
                 if (!listenerRegistered) {
                     waitingForServerChanges = null;
-                    throw new ObjectServerError(ErrorCode.UNKNOWN, "It was not possible to download all changes. Have the Sync Client been started?");
+                    throw new ObjectServerError(ErrorCode.UNKNOWN, "It was not possible to download all changes. Have the SyncClient been started?");
                 }
                 waitingForServerChanges.waitForServerChanges();
 
@@ -442,7 +442,7 @@ public class SyncSession {
         /**
          * Process the result of a waiting action. This will also unblock anyone who called {@link #waitForChanges}.
          *
-         * @param errorCode error code if an error occured, {@code null} if changes where successfully downloaded.
+         * @param errorCode error code if an error occurred, {@code null} if changes were successfully downloaded.
          * @param errorMessage error message (if any).
          */
         public void handleResult(Long errorCode, String errorMessage) {

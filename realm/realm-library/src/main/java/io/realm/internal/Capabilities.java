@@ -38,7 +38,7 @@ public interface Capabilities {
 
     /**
      * Multiple threads might be able to deliver notifications, but the Main thread in GUI applications often have
-     * special rules that needs to be enforced.
+     * special rules that need to be enforced.
      */
     boolean isMainThread();
 }

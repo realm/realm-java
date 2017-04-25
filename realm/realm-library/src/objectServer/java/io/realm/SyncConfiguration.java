@@ -223,7 +223,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * Returns {@code true} if the Realm will download all known changes from the remote server before being opened.
      *
      * @return {@code true} if all changes will be downloaded before the Realm can be opened. {@code false} if the Realm
-     * can be opened right away.
+     * can be opened immediately.
      */
     public boolean shouldWaitForServerChanges() {
         return waitForServerChanges;
@@ -586,7 +586,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * <p>
          * If a device is offline, the Realm will open immediately.
          * <p>
-         * This check is only enforced the first time a Realm is opened on each thread, i.e. it will be enforced
+         * This check is only enforced the first time a Realm is opened on each thread i.e., it will be enforced
          * the first time you call {@link Realm#getInstance(RealmConfiguration)}, the 2nd time, the cached instance
          * will be returned.
          * <p>

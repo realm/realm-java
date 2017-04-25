@@ -52,7 +52,7 @@ public class AndroidCapabilities implements Capabilities {
 
     @Override
     public boolean isMainThread() {
-        return looper == Looper.getMainLooper();
+        return looper != null && looper == Looper.getMainLooper();
     }
 
     private boolean hasLooper() {

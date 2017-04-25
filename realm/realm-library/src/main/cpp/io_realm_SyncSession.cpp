@@ -86,9 +86,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
 
             return to_jbool(listener_registered);
         }
-        else {
-            return JNI_FALSE;
-        }
     }
     CATCH_STD()
     return JNI_FALSE;
