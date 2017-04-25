@@ -512,7 +512,7 @@ public class SyncUser {
                     } catch (ObjectServerError e) {
                         postError(e);
                     } catch (Throwable e) {
-                        RealmLog.error(e, "Unexpected error");
+                        postError(new ObjectServerError(ErrorCode.UNKNOWN, "Unexpected error", e));
                     }
                 }
             });
