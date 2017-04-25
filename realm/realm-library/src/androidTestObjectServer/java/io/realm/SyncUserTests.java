@@ -289,7 +289,7 @@ public class SyncUserTests {
     public void changePasswordAsync_nonLooperThreadThrows() {
         SyncUser user = createTestUser();
 
-        thrown.expect(IllegalArgumentException.class);
+        thrown.expect(IllegalStateException.class);
         user.changePasswordAsync(null, new SyncUser.Callback() {
             @Override
             public void onSuccess(SyncUser user) {
