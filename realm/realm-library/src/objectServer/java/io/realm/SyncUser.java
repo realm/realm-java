@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import io.realm.internal.RealmNotifier;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
@@ -489,7 +490,7 @@ public class SyncUser {
     private static abstract class Request {
 
         private final Callback callback;
-        private final AndroidRealmNotifier handler;
+        private final RealmNotifier handler;
         private final ThreadPoolExecutor networkPoolExecutor;
 
         public Request(ThreadPoolExecutor networkPoolExecutor, Callback callback) {
@@ -510,6 +511,8 @@ public class SyncUser {
                         postSuccess(Request.this.run());
                     } catch (ObjectServerError e) {
                         postError(e);
+                    } catch (Throwable e) {
+                        RealmLog.error(e, "Unexpected error");
                     }
                 }
             });
@@ -517,19 +520,19 @@ public class SyncUser {
         }
 
         private void postError(final ObjectServerError error) {
+            boolean errorHandled = false;
             if (callback != null) {
-                handler.post(new Runnable() {
+                Runnable action = new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            callback.onError(error);
-                        } catch (Exception e) {
-                            RealmLog.error(e, "onError has thrown an exception that is being ignored.");
-                        }
+                        callback.onError(error);
                     }
-                });
-            } else {
-                RealmLog.error(error, "An error was thrown, but no callback was available");
+                };
+                errorHandled = handler.post(action);
+            }
+
+            if (!errorHandled) {
+                RealmLog.error(error, "An error was thrown, but could not be handled.");
             }
         }
 

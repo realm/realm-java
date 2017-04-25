@@ -17,12 +17,14 @@
 package io.realm;
 
 import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -56,6 +58,12 @@ public class SyncUserTests {
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
+
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
+
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
 
     @BeforeClass
     public static void initUserStore() {
@@ -272,30 +280,26 @@ public class SyncUserTests {
     @Test
     public void changePassword_nullThrows() {
         SyncUser user = createTestUser();
-        try {
-            user.changePassword(null);
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
+
+        thrown.expect(IllegalArgumentException.class);
+        user.changePassword(null);
     }
 
     @Test
     public void changePasswordAsync_nonLooperThreadThrows() {
         SyncUser user = createTestUser();
-        try {
-            user.changePasswordAsync(null, new SyncUser.Callback() {
-                @Override
-                public void onSuccess(SyncUser user) {
-                    fail();
-                }
 
-                @Override
-                public void onError(ObjectServerError error) {
-                    fail();
-                }
-            });
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
+        thrown.expect(IllegalArgumentException.class);
+        user.changePasswordAsync(null, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail();
+            }
+        });
     }
 }

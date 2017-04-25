@@ -4,6 +4,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.net.MalformedURLException;
@@ -35,6 +36,9 @@ import static org.junit.Assert.assertFalse;
 public class AuthTests extends BaseIntegrationTest {
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
+
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void login_userNotExist() {
@@ -187,11 +191,8 @@ public class AuthTests extends BaseIntegrationTest {
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         user.logout();
 
-        try {
-            user.changePassword("new-password");
-            fail();
-        } catch (ObjectServerError ignored) {
-        }
+        thrown.expect(ObjectServerError.class);
+        user.changePassword("new-password");
     }
 
 }

@@ -36,8 +36,8 @@ import okhttp3.Response;
 public class OkHttpAuthenticationServer implements AuthenticationServer {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private static final String ACTION_LOGOUT = "/create"; // Auth end point for logging out users
-    private static final String ACTION_CHANGE_PASSWORD = "/password"; // Auth end point for changing passwords
+    private static final String ACTION_LOGOUT = "create"; // Auth end point for logging out users
+    private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
 
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
@@ -93,7 +93,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         try {
             String requestBody = ChangePasswordRequest.create(userToken, newPassword).toJson();
             return changePassword(buildActionUrl(authenticationUrl, ACTION_CHANGE_PASSWORD), requestBody);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             return ChangePasswordResponse.createFailure(new ObjectServerError(ErrorCode.UNKNOWN, e));
         }
     }
@@ -102,8 +102,8 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     private static URL buildActionUrl(URL authenticationUrl, String action) {
         final String baseUrlString = authenticationUrl.toExternalForm();
         try {
-            // Assertion: baseUrlString must not end with `/`
-            return new URL(baseUrlString + action);
+            String separator = baseUrlString.endsWith("/") ? "" : "/";
+            return new URL(baseUrlString + separator + action);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
