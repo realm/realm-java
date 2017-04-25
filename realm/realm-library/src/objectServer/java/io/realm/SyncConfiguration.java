@@ -579,6 +579,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Setting this will cause the Realm to not open until all known changes from the server has been downloaded.
+         * <p>
          * Since downloading all changes can be an lengthy operation that might block the UI thread, Realms with this
          * setting enabled should only be opened on background threads or with
          * {@code Realm.getInstanceAsync(config, onSuccess)} on the UI thread.
@@ -590,8 +591,6 @@ public class SyncConfiguration extends RealmConfiguration {
          * will be returned.
          * <p>
          * If {@code Realm#getInstanceAsync(RealmConfiguration)} is called, this check will be enforced each time.
-         *
-         * opening the Realm.
          */
         public Builder waitForServerChanges() {
             this.waitForServerChanges = true;

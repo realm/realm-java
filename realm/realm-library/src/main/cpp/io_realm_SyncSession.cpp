@@ -62,11 +62,11 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
     try {
         JStringAccessor local_realm_path(env, localRealmPath);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
+
         if (session) {
             static jni_util::JavaClass java_sync_session_class(env, "io/realm/SyncSession");
-            static jni_util::JavaMethod java_notify_result_method(env, java_sync_session_class,
-                                                                  "notifyAllChangesDownloaded",
-                                                                  "(ILjava/lang/Long;Ljava/lang/String;)V");
+            static jni_util::JavaMethod java_notify_result_method(
+                env, java_sync_session_class, "notifyAllChangesDownloaded", "(Ljava/lang/Long;Ljava/lang/String;)V");
             jobject java_session_object = env->NewGlobalRef(session_object);
 
             bool listener_registered =
@@ -88,6 +88,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
             if (!listener_registered) {
                 env->DeleteGlobalRef(java_session_object);
             }
+            return to_jbool(listener_registered);
         }
         else {
             return JNI_FALSE;

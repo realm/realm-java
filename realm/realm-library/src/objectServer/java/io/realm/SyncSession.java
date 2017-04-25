@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.internal.Keep;
 import io.realm.internal.KeepMember;
 import io.realm.internal.SyncObjectServerFacade;
+import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
@@ -117,20 +118,20 @@ public class SyncSession {
 
     void close() {
         isClosed = true;
-        notifyAllChangesDownloaded(null, null);
         if (networkRequest != null) {
             networkRequest.cancel();
         }
         clearScheduledAccessTokenRefresh();
     }
 
-    // waitForDownloadCompletion and this method must be synchronized so success is not reported before
-    // everything is setup.
+    // This method will be called once all changes have been downloaded.
+    // This method might be called on another thread than the one that called `downloadAllServerChanges`
+    // Be very careful with synchronized blocks.
+    // If the native listener was successfully registered, Object Store guarantee that this method will be called at
+    // least once, even if the session is closed.
     void notifyAllChangesDownloaded(Long errorcode, String errorMessage) {
-        synchronized (waitForChangesMutex) {
-            if (waitingForServerChanges != null) {
-                waitingForServerChanges.handleResult(errorcode, errorMessage);
-            }
+        if (waitingForServerChanges != null) {
+            waitingForServerChanges.handleResult(errorcode, errorMessage);
         }
     }
 
@@ -145,11 +146,9 @@ public class SyncSession {
      * @throws IllegalStateException if called on the Android main thread.
      */
     public void downloadAllServerChanges() {
-        if (Looper.getMainLooper() == Looper.myLooper()) {
-            throw new IllegalStateException("This method cannot be called from the UI thread");
-        }
+        checkMainThread("downloadAllServerChanges() cannot be called from the main thread.");
 
-         // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
+        // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
          // an async listener there and let it callback to the Java Session when done. This feel icky at best, but
          // since all operations on the SyncSession operate under a shared mutex, we would prevent all other actions on the
          // session, including trying to stop it.
@@ -157,11 +156,12 @@ public class SyncSession {
          // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
         synchronized (waitForChangesMutex) {
             if (!isClosed) {
+                waitingForServerChanges = new WaitForServerChangesWrapper();
                 boolean listenerRegistered = nativeWaitForDownloadCompletion(configuration.getPath());
                 if (!listenerRegistered) {
+                    waitingForServerChanges = null;
                     throw new ObjectServerError(ErrorCode.UNKNOWN, "It was not possible to download all changes. Have the Sync Client been started?");
                 }
-                waitingForServerChanges = new WaitForServerChangesWrapper();
                 waitingForServerChanges.waitForServerChanges();
 
                 // This might return after the session was closed. In that case, just ignore any result
@@ -169,9 +169,15 @@ public class SyncSession {
                     if (!waitingForServerChanges.isSuccess()) {
                         waitingForServerChanges.throwExceptionIfNeeded();
                     }
-                    waitingForServerChanges = null;
                 }
+                waitingForServerChanges = null;
             }
+        }
+    }
+
+    private void checkMainThread(String errorMessage) {
+        if (new AndroidCapabilities().isMainThread()) {
+            throw new IllegalStateException(errorMessage);
         }
     }
 
@@ -412,7 +418,7 @@ public class SyncSession {
     private static class WaitForServerChangesWrapper {
 
         private final CountDownLatch waitForChanges = new CountDownLatch(1);
-        private boolean resultReceived = false;
+        private volatile boolean resultReceived = false;
         private Long errorCode = null;
         private String errorMessage;
 
@@ -424,10 +430,12 @@ public class SyncSession {
          * Block until the wait either completes or is terminated for other reasons.
          */
         public void waitForServerChanges() {
-            try {
-                waitForChanges.await();
-            } catch (InterruptedException e) {
-                throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+            if (!resultReceived) {
+                try {
+                    waitForChanges.await();
+                } catch (InterruptedException e) {
+                    throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+                }
             }
         }
 
@@ -458,7 +466,6 @@ public class SyncSession {
             }
         }
     }
-
 
     private static native boolean nativeRefreshAccessToken(String path, String accessToken, String authURL);
     private native boolean nativeWaitForDownloadCompletion(String path);

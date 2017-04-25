@@ -54,6 +54,11 @@ public class RealmNotifierTests {
         @Override
         public void checkCanDeliverNotification(String exceptionMessage) {
         }
+
+        @Override
+        public boolean isMainThread() {
+            return false;
+        }
     };
 
     @Before

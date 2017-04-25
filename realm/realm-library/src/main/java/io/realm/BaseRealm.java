@@ -31,6 +31,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
@@ -86,6 +87,11 @@ abstract class BaseRealm implements Closeable {
                             }
                         }, true);
         this.schema = new StandardRealmSchema(this);
+
+        // If waitForServerChanges() was enabled, we need to make sure that all data is downloaded
+        // before proceeding. We need to open the Realm instance first to start any potential underlying
+        // SyncSession so this will work. TODO: This needs to be decoupled.
+        ObjectServerFacade.getSyncFacadeIfPossible().downloadServerChangesIfNeeded(configuration);
     }
 
     /**
