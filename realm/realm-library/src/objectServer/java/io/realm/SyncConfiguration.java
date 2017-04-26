@@ -474,6 +474,14 @@ public class SyncConfiguration extends RealmConfiguration {
          * <p>
          * <b>WARNING:</b> There is no guarantee that the value inserted here is the same returned by {@link Realm#getVersion()}.
          * Due to the nature of synced Realms, the value can both be higher and lower.
+         * <ul>
+         *     <li>It will be lower if another client with a lesser {@code schemaVersion} connected to the server for
+         *         the first time after this schemaVersion was used.
+     *         </li>
+         *     <li>It will be higher if another client with a higher {@code schemaVersion} connected to the server after
+         *         this Realm was created.
+     *         </li>
+         * </ul>
          *
          * @param schemaVersion the schema version.
          * @throws IllegalArgumentException if schema version is invalid.
