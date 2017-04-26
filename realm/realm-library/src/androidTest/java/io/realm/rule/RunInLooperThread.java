@@ -20,11 +20,12 @@ import android.os.Handler;
 import android.os.Looper;
 
 import org.junit.runner.Description;
+import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -37,8 +38,6 @@ import java.util.concurrent.ThreadFactory;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
-
-import static org.junit.Assert.fail;
 
 
 /**
@@ -77,10 +76,10 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     // Access guarded by 'lock'
     private LinkedList<Object> keepStrongReference;
 
-    // Custom Realm used by the test. Saving the reference here will guarantee the instance is closed when exiting the test.
+    // Custom Realm used by the test. Saving the reference here will guarantee
+    // that the instance is closed when exiting the test.
     // Access guarded by 'lock'
     private List<Realm> testRealms;
-
 
     /**
      * Get the configuration for the test realm.
@@ -145,7 +144,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     /**
      * Explicitly close all held realms.
      * <p>
-     * 'testRealms' is ccessed from both test and main threads.
+     * 'testRealms' is accessed from both test and main threads.
      * 'testRealms' is valid after {@code before}.
      */
     public void closeTestRealms() {
@@ -199,7 +198,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     // Accessed from both test and main threads
     // Valid after the test thread has started.
-    Handler getBackgroundHandler() {
+    private Handler getBackgroundHandler() {
         synchronized (lock) {
             while (backgroundHandler == null) {
                 try {
@@ -295,7 +294,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         void run(RealmConfiguration realmConfig);
     }
 
-    class RunInLooperThreadStatement extends Statement {
+    private class RunInLooperThreadStatement extends Statement {
         private final RunTestInLooperThread annotation;
         private final Statement base;
 
@@ -305,12 +304,13 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         }
 
         @Override
-        @SuppressWarnings({"ClassNewInstance", "Finally"})
+        @SuppressWarnings("ClassNewInstance")
         public void evaluate() throws Throwable {
             before();
 
             Class<? extends RunnableBefore> runnableBefore = annotation.before();
             if (!runnableBefore.isInterface()) {
+                // this is dangerous: newInstance can throw checked exceptions.
                 // this is dangerous: config is mutable.
                 runnableBefore.newInstance().run(getConfiguration());
             }
@@ -318,9 +318,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             runTest(annotation.threadName());
         }
 
-        @SuppressWarnings({"unused", "ThrowFromFinallyBlock"})
         private void runTest(final String threadName) throws Throwable {
-            Exception testException = null;
+            Throwable failure = null;
 
             try {
                 ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
@@ -330,56 +329,50 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
                 TestThread test = new TestThread(base);
 
+                @SuppressWarnings({"UnusedAssignment", "unused"})
                 Future<?> ignored = executorService.submit(test);
 
                 TestHelper.exitOrThrow(executorService, signalTestCompleted, test);
-            } catch (Exception error) {
+            } catch (Throwable testfailure) {
                 // These exceptions should only come from TestHelper.awaitOrFail()
-                testException = error;
+                failure = testfailure;
             } finally {
                 // Tries as hard as possible to close down gracefully, while still keeping all exceptions intact.
-                cleanUp(testException);
-
-                // Only TestHelper.awaitOrFail() threw an exception
-                if (testException != null) {
-                    //noinspection ThrowFromFinallyBlock
-                    throw testException;
-                }
+                failure = cleanUp(failure);
+            }
+            if (failure != null) {
+                throw failure;
             }
         }
 
-        private void cleanUp(Exception testException) {
+        private Throwable cleanUp(Throwable testfailure) {
             try {
                 after();
-            } catch (Throwable e) {
-                if (testException == null) {
+                return testfailure;
+            } catch (Throwable afterFailure) {
+                if (testfailure == null) {
                     // Only after() threw an exception
-                    throw e;
+                    return afterFailure;
                 }
 
-                // Both TestHelper.awaitOrFail() and after() threw an exception. Make sure we are aware of
-                // that fact by printing both exceptions.
-                StringWriter testStackTrace = new StringWriter();
-                testException.printStackTrace(new PrintWriter(testStackTrace));
-
-                StringWriter afterStackTrace = new StringWriter();
-                e.printStackTrace(new PrintWriter(afterStackTrace));
-
-                StringBuilder errorMessage = new StringBuilder()
-                        .append("after() threw an error that shadows a test case error")
-                        .append('\n')
-                        .append("== Test case exception ==\n")
-                        .append(testStackTrace.toString())
-                        .append('\n')
-                        .append("== after() exception ==\n")
-                        .append(afterStackTrace.toString());
-
-                fail(errorMessage.toString());
+                // Both TestHelper.awaitOrFail() and after() threw exceptions
+                return new MultipleFailureException(Arrays.asList(testfailure, afterFailure)) {
+                    @Override
+                    public void printStackTrace(PrintStream out) {
+                        int i = 0;
+                        for (Throwable t : getFailures()) {
+                            out.println("Error " + i + ": " + t.getMessage());
+                            t.printStackTrace(out);
+                            out.println();
+                            i++;
+                        }
+                    }
+                };
             }
         }
     }
 
-    class TestThread implements Runnable, TestHelper.LooperTest {
+    private class TestThread implements Runnable, TestHelper.LooperTest {
         private final CountDownLatch signalClosedRealm = new CountDownLatch(1);
         private final Statement base;
         private Looper looper;
@@ -399,7 +392,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             return looper;
         }
 
-        synchronized void setLooper(Looper looper) {
+        private synchronized void setLooper(Looper looper) {
             this.looper = looper;
             setBackgroundHandler(new Handler(looper));
         }
@@ -409,7 +402,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             return threadAssertionError;
         }
 
-        private synchronized void setException(Throwable threadAssertionError) {
+        // Only record the first error
+        private synchronized void setAssertionError(Throwable threadAssertionError) {
             if (this.threadAssertionError == null) {
                 this.threadAssertionError = threadAssertionError;
             }
@@ -423,13 +417,14 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                 setLooper(Looper.myLooper());
                 base.evaluate();
                 Looper.loop();
-            } catch (Throwable e) {
-                setException(e);
+            } catch (Throwable t) {
+                setAssertionError(t);
                 setUnitTestFailed();
             } finally {
                 try {
                     looperTearDown();
                 } catch (Throwable t) {
+                    setAssertionError(t);
                     setUnitTestFailed();
                 }
                 testComplete();
