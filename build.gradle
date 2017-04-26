@@ -289,6 +289,12 @@ task manualClean {
             workingDir "${rootDir}"
             commandLine 'find', '.', '-mindepth', '2', '-type', 'd', '-name', '.gradle', '-print', '-exec', 'rm', '-rf', '{}', ';', '-prune'
         }
+
+        // clean ${System.env.HOME}/.m2/repository/io/realm
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'sh', '-c', "echo \"${System.env.HOME}/.m2/repository/io/realm\" && rm -rf \"${System.env.HOME}/.m2/repository/io/realm\""
+        }
     }
 }
 
