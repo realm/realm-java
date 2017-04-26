@@ -233,9 +233,12 @@ final class RealmCache {
             // No more local reference to this Realm in current thread, close the instance.
             realm.doClose();
 
-            // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
+            // No more instance of typed Realm and dynamic Realm.
             if (totalRefCount == 0) {
-                cachesMap.remove(canonicalPath);
+                // We keep the cache in the map even when its global counter reaches 0. It will be reused when next time
+                // a Realm instance with the same path is opened. By not removing it, the lock on RaelmCache.class is
+                // not needed here.
+                configuration = null;
                 ObjectServerFacade.getFacade(realm.getConfiguration().isSyncConfiguration())
                         .realmClosed(realm.getConfiguration());
             }
@@ -393,17 +396,23 @@ final class RealmCache {
     }
 
     static int getLocalThreadCount(RealmConfiguration configuration) {
-        RealmCache cache = cachesMap.get(configuration.getPath());
+        RealmCache cache;
+        synchronized (RealmCache.class) {
+            cache = cachesMap.get(configuration.getPath());
+        }
         if (cache == null) {
             return 0;
-        } else {
-            int totalRefCount = 0;
-            for (RealmCacheType type : RealmCacheType.values()) {
-                Integer localCount = cache.refAndCountMap.get(type).localCount.get();
-                totalRefCount += (localCount != null) ? localCount : 0;
-            }
-            return totalRefCount;
         }
+        return cache.doGetLocalThreadCount();
+    }
+
+    private synchronized int doGetLocalThreadCount() {
+        int totalRefCount = 0;
+        for (RealmCacheType type : RealmCacheType.values()) {
+            Integer localCount = refAndCountMap.get(type).localCount.get();
+            totalRefCount += (localCount != null) ? localCount : 0;
+        }
+        return totalRefCount;
     }
 
     /**
