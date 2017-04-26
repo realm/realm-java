@@ -12,6 +12,8 @@
 
 ### Internal
 
+* Use separated locks for different `RealmCache` ($4551).
+
 ## 3.1.4
 
 ## Bug fixes
