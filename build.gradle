@@ -268,7 +268,7 @@ task clean {
 }
 
 task manualClean {
-    description = 'Clean build files manually, which means that this task works without clean tasks'
+    description = 'Clean build files without using clean tasks defined in sub projects'
     group = 'Clean'
 
     doLast {
