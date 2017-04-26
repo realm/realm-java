@@ -144,7 +144,7 @@ final class RealmCache {
             // We are holding the lock, and we can set the invalidated configuration since there is no global ref to it.
             this.configuration = configuration;
         } else {
-            // Throws the exception if validation failed.
+            // Throws exception if validation failed.
             validateConfiguration(configuration);
         }
 

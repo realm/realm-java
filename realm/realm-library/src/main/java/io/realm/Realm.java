@@ -260,7 +260,7 @@ public class Realm extends BaseRealm {
     static Realm createInstance(RealmCache cache) {
         RealmConfiguration configuration = cache.getConfiguration();
         try {
-            return createAndValidate(cache);
+            return createAndValidateFromCache(cache);
 
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
@@ -276,11 +276,11 @@ public class Realm extends BaseRealm {
                 }
             }
 
-            return createAndValidate(cache);
+            return createAndValidateFromCache(cache);
         }
     }
 
-    private static Realm createAndValidate(RealmCache cache) {
+    private static Realm createAndValidateFromCache(RealmCache cache) {
         Realm realm = new Realm(cache);
         RealmConfiguration configuration = realm.configuration;
 

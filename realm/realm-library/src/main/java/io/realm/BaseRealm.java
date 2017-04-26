@@ -68,8 +68,8 @@ abstract class BaseRealm implements Closeable {
 
     final long threadId;
     protected final RealmConfiguration configuration;
-    // Which RealmCache is this Realm associated to. It could be null if the Realm instance is opened without putting it
-    // into a cache. It also could be null if the Realm is closed.
+    // Which RealmCache is this Realm associated to. It is null if the Realm instance is opened without being put into a
+    // cache. It is also null if the Realm is closed.
     private RealmCache realmCache;
     protected SharedRealm sharedRealm;
 
