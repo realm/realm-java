@@ -20,6 +20,7 @@ import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.content.Context;
 import android.os.Build;
+import android.os.SystemClock;
 import android.util.JsonReader;
 
 import org.json.JSONArray;
@@ -179,6 +180,7 @@ public class Realm extends BaseRealm {
      *
      * @param context the Application Context.
      * @throws IllegalArgumentException if a {@code null} context is provided.
+     * @throws IllegalStateException if {@link Context#getFilesDir()} could not be found.
      * @see #getDefaultInstance()
      */
     public static synchronized void init(Context context) {
@@ -186,6 +188,7 @@ public class Realm extends BaseRealm {
             if (context == null) {
                 throw new IllegalArgumentException("Non-null context required.");
             }
+            checkUserDirectoryAvailable(context);
             RealmCore.loadLibrary(context);
             defaultConfiguration = new RealmConfiguration.Builder(context).build();
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
@@ -194,6 +197,54 @@ public class Realm extends BaseRealm {
         }
     }
 
+    /**
+     * In some cases, Context.getFilesDir() is not available when the app launches the first time.
+     * This should never happen according to the official Android documentation, but the race condition wasn't fixed
+     * until Android 4.4.
+     * <p>
+     * This method attempts to fix that situation. If this doesn't work an {@link IllegalStateException} will be
+     * thrown.
+     * <p>
+     * See these links for further details:
+     * https://issuetracker.google.com/issues/36918154
+     * https://github.com/realm/realm-java/issues/4493#issuecomment-295349044
+     */
+    private static void checkUserDirectoryAvailable(Context context) {
+        File userDir = context.getFilesDir();
+        if (userDir != null && !userDir.exists()) {
+            try {
+                // This was reported as working on some devices, which I really hope is just the race condition
+                // kicking in, otherwise something is seriously wrong with the permission system on those devices.
+                // We will try it anyway, since starting a loop will be slower by many magnitudes.
+                userDir.mkdirs();
+            } catch (SecurityException ignored) {
+            }
+        }
+        if (userDir == null || !userDir.exists()) {
+            // Wait a "reasonable" amount of time before quitting.
+            // In this case we define reasonable as 200 ms (~12 dropped frames) before giving up (which most likely
+            // will result in the app crashing). This lag would only be seen in worst case scenarios, and then, only
+            // when the app is started the first time.
+            long[] timeoutsMs = new long[]{1, 2, 5, 10, 16}; // Exponential waits, capped at 16 ms;
+            long maxTotalWaitMs = 200;
+            long currentTotalWaitMs = 0;
+            int waitIndex = -1;
+            while (context.getFilesDir() == null || !context.getFilesDir().exists()) {
+                long waitMs = timeoutsMs[Math.min(++waitIndex, timeoutsMs.length - 1)];
+                SystemClock.sleep(waitMs);
+                currentTotalWaitMs += waitMs;
+                if (currentTotalWaitMs > maxTotalWaitMs) {
+                    break;
+                }
+            }
+        }
+
+        // One final check before giving up
+        if (context.getFilesDir() == null || !context.getFilesDir().exists()) {
+            throw new IllegalStateException("Context.getFilesDir() could not be found. See https://issuetracker.google.com/issues/36918154");
+        }
+    }
+    
     /**
      * Realm static constructor that returns the Realm instance defined by the {@link io.realm.RealmConfiguration} set
      * by {@link #setDefaultConfiguration(RealmConfiguration)}

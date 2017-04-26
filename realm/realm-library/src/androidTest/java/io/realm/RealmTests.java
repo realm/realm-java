@@ -38,12 +38,17 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -116,6 +121,9 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 
 @RunWith(AndroidJUnit4.class)
 public class RealmTests {
@@ -127,6 +135,8 @@ public class RealmTests {
     public final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public final TemporaryFolder tmpFolder = new TemporaryFolder();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
@@ -3828,5 +3838,38 @@ public class RealmTests {
         // Tests if it works when the namedPipeDir and the named pipe files already exist.
         realmOnExternalStorage = Realm.getInstance(config);
         realmOnExternalStorage.close();
+    }
+
+    // Verify that the logic for waiting for the users file dir to be come available isn't totally broken
+    // This is pretty hard to test, so forced to break encapsulation in this case.
+    @Test
+    public void init_waitForFilesDir() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException {
+        java.lang.reflect.Method m = Realm.class.getDeclaredMethod("checkUserDirectoryAvailable", android.content.Context.class);
+        m.setAccessible(true);
+
+        // A) Check it fails if getFilesDir is never created
+        Context mockContext = mock(Context.class);
+        when(mockContext.getFilesDir()).thenReturn(null);
+
+        try {
+            m.invoke(null, mockContext);
+            fail();
+        } catch (InvocationTargetException e) {
+            assertEquals(IllegalStateException.class, e.getCause().getClass());
+        }
+
+        // B) Check we return if the filesDir becomes available after a while
+        mockContext = mock(Context.class);
+        when(mockContext.getFilesDir()).then(new Answer<File>() {
+            int calls = 0;
+            File userFolder = tmpFolder.newFolder();
+            @Override
+            public File answer(InvocationOnMock invocationOnMock) throws Throwable {
+                calls++;
+                return (calls > 5) ? userFolder : null; // Start returning the correct folder after 5 attempts
+            }
+        });
+
+        assertNull(m.invoke(null, mockContext));
     }
 }
