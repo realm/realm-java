@@ -211,13 +211,17 @@ public class Realm extends BaseRealm {
      */
     private static void checkUserDirectoryAvailable(Context context) {
         File userDir = context.getFilesDir();
-        if (userDir != null && !userDir.exists()) {
-            try {
-                // This was reported as working on some devices, which I really hope is just the race condition
-                // kicking in, otherwise something is seriously wrong with the permission system on those devices.
-                // We will try it anyway, since starting a loop will be slower by many magnitudes.
-                userDir.mkdirs();
-            } catch (SecurityException ignored) {
+        if (userDir != null) {
+            if (userDir.exists()) {
+                return; // Everything is fine. Escape as soon as possible
+            } else {
+                try {
+                    // This was reported as working on some devices, which I really hope is just the race condition
+                    // kicking in, otherwise something is seriously wrong with the permission system on those devices.
+                    // We will try it anyway, since starting a loop will be slower by many magnitudes.
+                    userDir.mkdirs();
+                } catch (SecurityException ignored) {
+                }
             }
         }
         if (userDir == null || !userDir.exists()) {
@@ -244,7 +248,7 @@ public class Realm extends BaseRealm {
             throw new IllegalStateException("Context.getFilesDir() could not be found. See https://issuetracker.google.com/issues/36918154");
         }
     }
-    
+
     /**
      * Realm static constructor that returns the Realm instance defined by the {@link io.realm.RealmConfiguration} set
      * by {@link #setDefaultConfiguration(RealmConfiguration)}
