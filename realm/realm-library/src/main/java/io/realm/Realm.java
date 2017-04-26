@@ -188,7 +188,7 @@ public class Realm extends BaseRealm {
             if (context == null) {
                 throw new IllegalArgumentException("Non-null context required.");
             }
-            checkUserDirectoryAvailable(context);
+            checkFilesDirAvailable(context);
             RealmCore.loadLibrary(context);
             defaultConfiguration = new RealmConfiguration.Builder(context).build();
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
@@ -209,22 +209,22 @@ public class Realm extends BaseRealm {
      * https://issuetracker.google.com/issues/36918154
      * https://github.com/realm/realm-java/issues/4493#issuecomment-295349044
      */
-    private static void checkUserDirectoryAvailable(Context context) {
-        File userDir = context.getFilesDir();
-        if (userDir != null) {
-            if (userDir.exists()) {
+    private static void checkFilesDirAvailable(Context context) {
+        File filesDir = context.getFilesDir();
+        if (filesDir != null) {
+            if (filesDir.exists()) {
                 return; // Everything is fine. Escape as soon as possible
             } else {
                 try {
                     // This was reported as working on some devices, which I really hope is just the race condition
                     // kicking in, otherwise something is seriously wrong with the permission system on those devices.
                     // We will try it anyway, since starting a loop will be slower by many magnitudes.
-                    userDir.mkdirs();
+                    filesDir.mkdirs();
                 } catch (SecurityException ignored) {
                 }
             }
         }
-        if (userDir == null || !userDir.exists()) {
+        if (filesDir == null || !filesDir.exists()) {
             // Wait a "reasonable" amount of time before quitting.
             // In this case we define reasonable as 200 ms (~12 dropped frames) before giving up (which most likely
             // will result in the app crashing). This lag would only be seen in worst case scenarios, and then, only

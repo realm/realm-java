@@ -3844,7 +3844,7 @@ public class RealmTests {
     // This is pretty hard to test, so forced to break encapsulation in this case.
     @Test
     public void init_waitForFilesDir() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException {
-        java.lang.reflect.Method m = Realm.class.getDeclaredMethod("checkUserDirectoryAvailable", android.content.Context.class);
+        java.lang.reflect.Method m = Realm.class.getDeclaredMethod("checkFilesDirAvailable", Context.class);
         m.setAccessible(true);
 
         // A) Check it fails if getFilesDir is never created
