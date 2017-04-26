@@ -1,5 +1,5 @@
 project.ext.sdkVersion = 25
-project.ext.buildTools = '25.0.2'
+project.ext.buildTools = '25.0.3'
 
 // Don't cache SNAPSHOT (changing) dependencies.
 configurations.all {
