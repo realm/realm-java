@@ -471,6 +471,9 @@ public class SyncConfiguration extends RealmConfiguration {
          * <p>
          * Failing to increment the schema version will cause Realm to throw a {@link io.realm.exceptions.RealmMigrationNeededException}
          * when the Realm is opened and the changed schema will not be applied.
+         * <p>
+         * <b>WARNING:</b> There is no guarantee that the value inserted here is the same returned by {@link Realm#getVersion()}.
+         * Due to the nature of synced Realms, the value can both be higher and lower.
          *
          * @param schemaVersion the schema version.
          * @throws IllegalArgumentException if schema version is invalid.
