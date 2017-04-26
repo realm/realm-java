@@ -1,3 +1,23 @@
+## 3.2.0 (YYYY-MM-DD)
+
+### Deprecated
+
+### Enhancements
+
+* [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
+* Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).
+* Added `Realm.refresh()` and `DynamicRealm.refresh()` (#3476).
+
+### Bug Fixes
+
+### Internal
+
+## 3.1.4
+
+## Bug fixes
+
+* Added missing row validation check in certain cases on invalidated/deleted objects (#4540).
+
 ## 3.1.3 (2017-04-20)
 
 ### Enhancements

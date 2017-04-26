@@ -30,20 +30,29 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  */
 public class Token {
 
+    private static final String KEY_TOKEN = "token";
+    private static final String KEY_TOKEN_DATA = "token_data";
+    private static final String KEY_IDENTITY = "identity";
+    private static final String KEY_PATH = "path";
+    private static final String KEY_EXPIRES = "expires";
+    private static final String KEY_ACCESS = "access";
+    private static final String KEY_IS_ADMIN = "is_admin";
+
     private final String value;
     private final long expiresSec;
     private final Permission[] permissions;
     private final String identity;
     private final String path;
+    private final boolean isAdmin;
 
     public static Token from(JSONObject token) throws JSONException {
-        String value = token.getString("token");
-        JSONObject tokenData = token.getJSONObject("token_data");
-        String identity = tokenData.getString("identity");
-        String path = tokenData.optString("path");
-        long expiresSec = tokenData.getLong("expires");
+        String value = token.getString(KEY_TOKEN);
+        JSONObject tokenData = token.getJSONObject(KEY_TOKEN_DATA);
+        String identity = tokenData.getString(KEY_IDENTITY);
+        String path = tokenData.optString(KEY_PATH);
+        long expiresSec = tokenData.getLong(KEY_EXPIRES);
         Permission[] permissions;
-        JSONArray access = tokenData.getJSONArray("access");
+        JSONArray access = tokenData.getJSONArray(KEY_ACCESS);
         if (access != null) {
             permissions = new Permission[access.length()];
             for (int i = 0; i < access.length(); i++) {
@@ -56,11 +65,16 @@ public class Token {
         } else {
             permissions = new Permission[0];
         }
+        boolean isAdmin = tokenData.optBoolean(KEY_IS_ADMIN);
 
-        return new Token(value, identity, path, expiresSec, permissions);
+        return new Token(value, identity, path, expiresSec, permissions, isAdmin);
     }
 
     public Token(String value, String identity, String path, long expiresSec, Permission[] permissions) {
+        this(value, identity, path, expiresSec, permissions, false);
+    }
+
+    public Token(String value, String identity, String path, long expiresSec, Permission[] permissions, boolean isAdmin) {
         this.value = value;
         this.identity = identity;
         this.path = path;
@@ -70,6 +84,7 @@ public class Token {
         } else {
             this.permissions = new Permission[0];
         }
+        this.isAdmin = isAdmin;
     }
 
     public String value() {
@@ -79,6 +94,8 @@ public class Token {
     public String identity() { return identity; }
 
     public String path() { return path; }
+
+    public boolean isAdmin() { return isAdmin; }
 
     /**
      * Returns when this token expires. Timestamp is in UTC seconds.
@@ -107,17 +124,18 @@ public class Token {
     public JSONObject toJson() {
         JSONObject obj = new JSONObject();
         try {
-            obj.put("token", value);
+            obj.put(KEY_TOKEN, value);
             JSONObject tokenData = new JSONObject();
-            tokenData.put("identity", identity);
-            tokenData.put("path", path);
-            tokenData.put("expires", expiresSec);
+            tokenData.put(KEY_IDENTITY, identity);
+            tokenData.put(KEY_PATH, path);
+            tokenData.put(KEY_EXPIRES, expiresSec);
             JSONArray perms = new JSONArray();
             for (int i = 0; i < permissions.length; i++) {
                 perms.put(permissions[i].toString().toLowerCase(Locale.US));
             }
-            tokenData.put("access", perms);
-            obj.put("token_data", tokenData);
+            tokenData.put(KEY_ACCESS, perms);
+            tokenData.put(KEY_IS_ADMIN, isAdmin);
+            obj.put(KEY_TOKEN_DATA, tokenData);
             return obj;
         } catch (JSONException e) {
             throw new RuntimeException("Could not convert Token to JSON.", e);
@@ -126,15 +144,16 @@ public class Token {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         Token token = (Token) o;
 
-        if (expiresSec != token.expiresSec) return false;
-        if (!value.equals(token.value)) return false;
-        if (!Arrays.equals(permissions, token.permissions)) return false;
-        if (!identity.equals(token.identity)) return false;
+        if (expiresSec != token.expiresSec) { return false; }
+        if (isAdmin != token.isAdmin) { return false; }
+        if (!value.equals(token.value)) { return false; }
+        if (!Arrays.equals(permissions, token.permissions)) { return false; }
+        if (!identity.equals(token.identity)) { return false; }
         return path != null ? path.equals(token.path) : token.path == null;
     }
 
@@ -145,6 +164,7 @@ public class Token {
         result = 31 * result + Arrays.hashCode(permissions);
         result = 31 * result + identity.hashCode();
         result = 31 * result + (path != null ? path.hashCode() : 0);
+        result = 31 * result + (isAdmin ? 1 : 0);
         return result;
     }
 
