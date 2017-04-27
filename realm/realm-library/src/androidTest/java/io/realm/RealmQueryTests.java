@@ -52,7 +52,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 
-
 @RunWith(AndroidJUnit4.class)
 public class RealmQueryTests extends QueryTests {
 
@@ -2856,7 +2855,7 @@ public class RealmQueryTests extends QueryTests {
             thread.start();
         }
 
-        latch.await();
+        TestHelper.awaitOrFail(latch);
     }
 
     @Test

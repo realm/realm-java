@@ -255,7 +255,7 @@ public class RealmCacheTests {
         });
         thread.start();
 
-        closeLatch.await();
+        TestHelper.awaitOrFail(closeLatch);
         RealmCache.invokeWithGlobalRefCount(defaultConfig, new TestHelper.ExpectedCountCallback(1));
         realmA.close();
         RealmCache.invokeWithGlobalRefCount(defaultConfig, new TestHelper.ExpectedCountCallback(0));

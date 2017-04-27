@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -67,6 +66,10 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 public class TestHelper {
+    public static final int VERY_SHORT_WAIT_SECS = 1;
+    public static final int SHORT_WAIT_SECS = 10;
+    public static final int STANDARD_WAIT_SECS = 100;
+    public static final int LONG_WAIT_SECS = 1000;
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
     private static final Random RANDOM = new Random();
@@ -779,14 +782,14 @@ public class TestHelper {
     }
 
     public static void awaitOrFail(CountDownLatch latch) {
-        awaitOrFail(latch, 300);
+        awaitOrFail(latch, STANDARD_WAIT_SECS);
     }
 
     public static void awaitOrFail(CountDownLatch latch, int numberOfSeconds) {
         try {
             if (android.os.Debug.isDebuggerConnected()) {
-                // If we are debugging the tests, just waits without a timeout. In case we are stopping at a break point
-                // and timeout happens.
+                // If we are debugging the tests, just waits without a timeout.
+                // Don't want a timeout while we are stopped at a break point.
                 latch.await();
             } else if (!latch.await(numberOfSeconds, TimeUnit.SECONDS)) {
                 fail("Test took longer than " + numberOfSeconds + " seconds");
