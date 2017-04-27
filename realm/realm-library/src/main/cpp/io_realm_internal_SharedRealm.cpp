@@ -15,7 +15,6 @@
  */
 
 #include "io_realm_internal_SharedRealm.h"
-#define REALM_ENABLE_SYNC 1
 #if REALM_ENABLE_SYNC
 #include "object-store/src/sync/sync_manager.hpp"
 #include "object-store/src/sync/sync_config.hpp"
@@ -73,7 +72,8 @@ public:
     JniConfigWrapper(REALM_UNUSED JNIEnv* env, REALM_UNUSED Realm::Config& config,
                      REALM_UNUSED jstring sync_realm_url, REALM_UNUSED jstring sync_realm_auth_url,
                      REALM_UNUSED jstring sync_user_identity, REALM_UNUSED jstring sync_refresh_token,
-                     REALM_UNUSED jstring sync_verify_servers_ssl_certificate)
+                     REALM_UNUSED jboolean sync_client_validate_ssl,
+                     REALM_UNUSED jstring sync_ssl_trust_certificate_path)
         : m_config(std::move(config))
     {
 #if REALM_ENABLE_SYNC
@@ -118,14 +118,13 @@ public:
             if (access_token_string) {
                 // reusing cached valid token
                 JStringAccessor access_token(env, access_token_string);
-                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url));//FIXME remove uti;::optional
+                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url));
             }
         };
 
         // Get logged in user
         JStringAccessor user_identity(env, sync_user_identity);
         JStringAccessor realm_url(env, sync_realm_url);
-
         std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_identity);
         if (!user) {
             JStringAccessor realm_auth_url(env, sync_realm_auth_url);
@@ -133,13 +132,19 @@ public:
             user = SyncManager::shared().get_user(user_identity, refresh_token,
                                                   realm::util::Optional<std::string>(realm_auth_url));
         }
-        m_config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
-            user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler)});
-
-        if (sync_verify_servers_ssl_certificate) {
-            JStringAccessor verify_servers_ssl_certificate(env, sync_verify_servers_ssl_certificate);
-            m_config.sync_config->verify_servers_ssl_certificate = verify_servers_ssl_certificate;
+        if (sync_ssl_trust_certificate_path) {
+            JStringAccessor ssl_trust_certificate_path(env, sync_ssl_trust_certificate_path);
+            m_config.sync_config = std::make_shared<SyncConfig>(
+                SyncConfig{user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler),
+                           std::move(error_handler), nullptr, util::none, sync_client_validate_ssl,
+                           realm::util::Optional<std::string>(ssl_trust_certificate_path)});
         }
+        else {
+            m_config.sync_config = std::make_shared<SyncConfig>(
+                SyncConfig{user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler),
+                           std::move(error_handler), nullptr, util::none, sync_client_validate_ssl});
+        }
+
 #else
         REALM_UNREACHABLE();
 #endif
@@ -175,7 +180,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
     jlong /* schema_version */, jboolean disable_format_upgrade, jboolean auto_change_notification,
     REALM_UNUSED jstring sync_server_url, REALM_UNUSED jstring sync_server_auth_url,
     REALM_UNUSED jstring sync_user_identity, REALM_UNUSED jstring sync_refresh_token,
-    REALM_UNUSED jstring sync_verify_servers_ssl_certificate)
+    REALM_UNUSED jboolean sync_client_validate_ssl, REALM_UNUSED jstring sync_ssl_trust_certificate_path)
 {
     TR_ENTER()
 
@@ -192,8 +197,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
         config.disable_format_upgrade = disable_format_upgrade;
         config.automatic_change_notifications = auto_change_notification;
         if (sync_server_url) {
-            return reinterpret_cast<jlong>(new JniConfigWrapper(env, config, sync_server_url, sync_server_auth_url,
-                                                                sync_user_identity, sync_refresh_token, sync_verify_servers_ssl_certificate));
+            return reinterpret_cast<jlong>(
+                new JniConfigWrapper(env, config, sync_server_url, sync_server_auth_url, sync_user_identity,
+                                     sync_refresh_token, sync_client_validate_ssl, sync_ssl_trust_certificate_path));
         }
         else {
             return reinterpret_cast<jlong>(new JniConfigWrapper(env, config));
