@@ -245,7 +245,7 @@ public class Realm extends BaseRealm {
 
         // One final check before giving up
         if (context.getFilesDir() == null || !context.getFilesDir().exists()) {
-            throw new IllegalStateException("Context.getFilesDir() could not be found. See https://issuetracker.google.com/issues/36918154");
+            throw new IllegalStateException("Context.getFilesDir() returns " + context.getFilesDir() + " which is not an existing directory. See https://issuetracker.google.com/issues/36918154");
         }
     }
 
