@@ -191,7 +191,8 @@ public class SyncUser {
                 // the JSON response expected from the server.
                 String userIdentifier = credentials.getUserIdentifier();
                 String token = (String) credentials.getUserInfo().get("_token");
-                result = AuthenticateResponse.createValidResponseWithUser(userIdentifier, token);
+                boolean isAdmin = (Boolean) credentials.getUserInfo().get("_isAdmin");
+                result = AuthenticateResponse.createValidResponseWithUser(userIdentifier, token, isAdmin);
             } else {
                 final AuthenticationServer server = SyncManager.getAuthServer();
                 result = server.loginUser(credentials, authUrl);
@@ -373,6 +374,17 @@ public class SyncUser {
     public boolean isValid() {
         Token userToken = getSyncUser().getUserToken();
         return syncUser.isLoggedIn() && userToken != null && userToken.expiresMs() > System.currentTimeMillis();
+    }
+
+    /**
+     * Returns {@code true} if this user is an administrator on the Realm Object Server, {@code false} otherwise.
+     * <p>
+     * Administrators can access all Realms on the server as well as change the permissions of the Realms.
+     *
+     * @return {@code true} if the user is an administrator on the Realm Object Server, {@code false} otherwise.
+     */
+    public boolean isAdmin() {
+        return syncUser.isAdmin();
     }
 
     /**

@@ -23,18 +23,10 @@ public class Transient extends RealmObject {
     private int age;
 
     public String getName() {
-        return realmGet$name();
-    }
-
-    public void setName(String name) {
-        realmSet$name(name);
-    }
-
-    public String realmGet$name() {
         return name;
     }
 
-    public void realmSet$name(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
@@ -52,33 +44,5 @@ public class Transient extends RealmObject {
 
     public void realmSet$age(int age) {
         this.age = age;
-    }
-
-    @Override
-    public String toString() {
-        return "Simple{" +
-                "name='" + name + '\'' +
-                ", age=" + age +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Simple simple = (Simple) o;
-
-        if (age != simple.age) return false;
-        if (name != null ? !name.equals(simple.name) : simple.name != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + age;
-        return result;
     }
 }
