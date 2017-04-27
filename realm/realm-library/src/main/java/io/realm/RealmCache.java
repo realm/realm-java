@@ -106,23 +106,25 @@ final class RealmCache {
         }
     }
 
-    private static synchronized RealmCache getCache(String realmPath, boolean createIfNotExist) {
+    private static RealmCache getCache(String realmPath, boolean createIfNotExist) {
         RealmCache cacheToReturn = null;
-        Iterator<Map.Entry<String, WeakReference<RealmCache>>> it = cachesMap.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, WeakReference<RealmCache>> entry = it.next();
-            RealmCache cache = entry.getValue().get();
-            if (cache == null) {
-                // Clear the entry if there is no one holding the RealmCache.
-                it.remove();
-            } else if (entry.getKey().equals(realmPath)) {
-                cacheToReturn = cache;
+        synchronized (cachesMap) {
+            Iterator<Map.Entry<String, WeakReference<RealmCache>>> it = cachesMap.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<String, WeakReference<RealmCache>> entry = it.next();
+                RealmCache cache = entry.getValue().get();
+                if (cache == null) {
+                    // Clear the entry if there is no one holding the RealmCache.
+                    it.remove();
+                } else if (entry.getKey().equals(realmPath)) {
+                    cacheToReturn = cache;
+                }
             }
-        }
 
-        if (cacheToReturn == null && createIfNotExist) {
-            cacheToReturn = new RealmCache();
-            cachesMap.put(realmPath, new WeakReference<RealmCache>(cacheToReturn));
+            if (cacheToReturn == null && createIfNotExist) {
+                cacheToReturn = new RealmCache();
+                cachesMap.put(realmPath, new WeakReference<RealmCache>(cacheToReturn));
+            }
         }
         return cacheToReturn;
     }
@@ -309,17 +311,19 @@ final class RealmCache {
      * @param configuration the {@link RealmConfiguration} of {@link Realm} or {@link DynamicRealm}.
      * @param callback the callback will be executed with the global reference count.
      */
-    static synchronized void invokeWithGlobalRefCount(RealmConfiguration configuration, Callback callback) {
-        // NOTE: Although getCache is locked on the RealmCache.class, this whole method needs to be lock with it as
+    static void invokeWithGlobalRefCount(RealmConfiguration configuration, Callback callback) {
+        // NOTE: Although getCache is locked on the cacheMap, this whole method needs to be lock with it as
         // well. Since we need to ensure there is no Realm instance can be opened when this method is called (for
         // deleteRealm).
         // Recursive lock cannot be avoided here.
-        RealmCache cache = getCache(configuration.getPath(), false);
-        if (cache == null) {
-            callback.onResult(0);
-            return;
+        synchronized (cachesMap) {
+            RealmCache cache = getCache(configuration.getPath(), false);
+            if (cache == null) {
+                callback.onResult(0);
+                return;
+            }
+            cache.doInvokeWithGlobalRefCount(callback);
         }
-        cache.doInvokeWithGlobalRefCount(callback);
     }
 
     private synchronized void doInvokeWithGlobalRefCount(Callback callback) {
