@@ -20,11 +20,12 @@ import android.os.Handler;
 import android.os.Looper;
 
 import org.junit.runner.Description;
+import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -38,188 +39,222 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
 
-import static org.junit.Assert.fail;
 
 /**
  * Rule that runs the test inside a worker looper thread. This rule is responsible
- * of creating a temp directory containing a Realm instance then delete it, once the test finishes.
- *
+ * of creating a temp directory containing a Realm instance then deleting it, once the test finishes.
+ * <p>
  * All Realms used in a method method annotated with {@code @RunTestInLooperThread } should use
- * {@link RunInLooperThread#createConfiguration()} and friends to create their configurations. Failing to do so can
- * result in the test failing because the Realm could not be deleted (Reason is that {@link TestRealmConfigurationFactory}
- * and this class does not agree in which order to delete all open Realms.
+ * {@link RunInLooperThread#createConfiguration()} and friends to create their configurations.
+ * Failing to do so can result in the test failing because the Realm could not be deleted
+ * (this class and {@link TestRealmConfigurationFactory} do not agree in which order to delete
+ * the open Realms).
  */
 public class RunInLooperThread extends TestRealmConfigurationFactory {
+    private static final long WAIT_TIMEOUT_MS = 60 * 1000;
+
+    // lock protecting objects shared with the test thread
+    private final Object lock = new Object();
+
+    // Thread safe
+    private final CountDownLatch signalTestCompleted = new CountDownLatch(1);
+
+    // Access guarded by 'lock'
+    private RealmConfiguration realmConfiguration;
 
     // Default Realm created by this Rule. It is guaranteed to be closed when the test finishes.
-    public Realm realm;
-    // Custom Realm used by the test. Saving the reference here will guarantee the instance is closed when exiting the test.
-    public List<Realm> testRealms = new ArrayList<Realm>();
-    public RealmConfiguration realmConfiguration;
-    private CountDownLatch signalTestCompleted;
+    // Access guarded by 'lock'
+    private Realm realm;
+
+    // Access guarded by 'lock'
     private Handler backgroundHandler;
 
     // the variables created inside the test are local and eligible for GC.
     // but sometimes we need the variables to survive across different Looper
     // events (Callbacks happening in the future), so we add a strong reference
     // to them for the duration of the test.
-    public LinkedList<Object> keepStrongReference;
+    // Access guarded by 'lock'
+    private LinkedList<Object> keepStrongReference;
 
-    @Override
-    protected void before() throws Throwable {
-        super.before();
-        realmConfiguration = createConfiguration(UUID.randomUUID().toString());
-        signalTestCompleted = new CountDownLatch(1);
-        keepStrongReference = new LinkedList<Object>();
-    }
+    // Custom Realm used by the test. Saving the reference here will guarantee
+    // that the instance is closed when exiting the test.
+    // Access guarded by 'lock'
+    private List<Realm> testRealms;
 
-    @Override
-    protected void after() {
-        super.after();
-        realmConfiguration = null;
-        realm = null;
-        testRealms.clear();
-        keepStrongReference = null;
-    }
-
-    @Override
-    public Statement apply(final Statement base, Description description) {
-        final RunTestInLooperThread annotation = description.getAnnotation(RunTestInLooperThread.class);
-        if (annotation == null) {
-            return base;
+    /**
+     * Get the configuration for the test realm.
+     * <p>
+     * Set on main thread, accessed from test thread.
+     * Valid after {@code before}.
+     *
+     * @return the test realm configuration.
+     */
+    public RealmConfiguration getConfiguration() {
+        synchronized (lock) {
+            return realmConfiguration;
         }
-        return new Statement() {
-            private Throwable testException;
+    }
 
-            @Override
-            @SuppressWarnings({"ClassNewInstance", "Finally"})
-            public void evaluate() throws Throwable {
-                before();
-                final String threadName = annotation.threadName();
-                Class<? extends RunnableBefore> runnableBefore = annotation.before();
-                if (!runnableBefore.isInterface()) {
-                    runnableBefore.newInstance().run(realmConfiguration);
-                }
+    /**
+     * Get the test realm.
+     * <p>
+     * Set on test thread, accessed from main thread.
+     * Valid only after the test thread has started.
+     *
+     * @return the test realm.
+     */
+    public Realm getRealm() {
+        synchronized (lock) {
+            while (backgroundHandler == null) {
                 try {
-                    final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-                    final Throwable[] threadAssertionError = new Throwable[1];
-                    final Looper[] backgroundLooper = new Looper[1];
-                    final ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
-                        @Override
-                        public Thread newThread(Runnable runnable) {
-                            return new Thread(runnable, threadName);
-                        }
-                    });
-                    //noinspection unused
-                    final Future<?> submit = executorService.submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            Looper.prepare();
-                            backgroundLooper[0] = Looper.myLooper();
-                            backgroundHandler = new Handler(backgroundLooper[0]);
-                            try {
-                                realm = Realm.getInstance(realmConfiguration);
-                                base.evaluate();
-                                Looper.loop();
-                            } catch (Throwable e) {
-                                threadAssertionError[0] = e;
-                                unitTestFailed = true;
-                            } finally {
-                                try {
-                                    looperTearDown();
-                                } catch (Throwable t) {
-                                    if (threadAssertionError[0] == null) {
-                                        threadAssertionError[0] = t;
-                                    }
-                                    unitTestFailed = true;
-                                }
-                                signalTestCompleted.countDown();
-                                if (realm != null) {
-                                    realm.close();
-                                }
-                                if (!testRealms.isEmpty()) {
-                                    for (Realm testRealm : testRealms) {
-                                        testRealm.close();
-                                    }
-                                }
-                                signalClosedRealm.countDown();
-                            }
-                        }
-                    });
-                    TestHelper.exitOrThrow(executorService, signalTestCompleted, signalClosedRealm, backgroundLooper, threadAssertionError);
-                } catch (Throwable error) {
-                    // These exceptions should only come from TestHelper.awaitOrFail()
-                    testException = error;
-                } finally {
-                    // Tries as hard as possible to close down gracefully, while still keeping all exceptions intact.
-                    try {
-                        after();
-                    } catch (Throwable e) {
-                        if (testException != null) {
-                            // Both TestHelper.awaitOrFail() and after() threw an exception. Make sure we are aware of
-                            // that fact by printing both exceptions.
-                            StringWriter testStackTrace = new StringWriter();
-                            testException.printStackTrace(new PrintWriter(testStackTrace));
-
-                            StringWriter afterStackTrace = new StringWriter();
-                            e.printStackTrace(new PrintWriter(afterStackTrace));
-
-                            StringBuilder errorMessage = new StringBuilder()
-                                    .append("after() threw an error that shadows a test case error")
-                                    .append('\n')
-                                    .append("== Test case exception ==\n")
-                                    .append(testStackTrace.toString())
-                                    .append('\n')
-                                    .append("== after() exception ==\n")
-                                    .append(afterStackTrace.toString());
-                            fail(errorMessage.toString());
-                        } else {
-                            // Only after() threw an exception
-                            throw e;
-                        }
-                    }
-
-                    // Only TestHelper.awaitOrFail() threw an exception
-                    if (testException != null) {
-                        //noinspection ThrowFromFinallyBlock
-                        throw testException;
-                    }
+                    lock.wait(WAIT_TIMEOUT_MS);
+                } catch (InterruptedException ignore) {
+                    break;
                 }
             }
-        };
-    }
-
-    /**
-     * Signal that the test has completed.
-     */
-    public void testComplete() {
-        signalTestCompleted.countDown();
-    }
-
-    /**
-     * Signal that the test has completed.
-     *
-     * @param latches additional latches to wait before set the test completed flag.
-     */
-    public void testComplete(CountDownLatch... latches) {
-        for (CountDownLatch latch : latches) {
-            TestHelper.awaitOrFail(latch);
+            return realm;
         }
-        signalTestCompleted.countDown();
     }
 
     /**
-     * Posts a runnable to this worker threads looper.
+     * Hold a reference to an object, to prevent it from being GCed,
+     * until after the test completes.
+     * <p>
+     * Accessed only from the main thread, here, but synchronized in case it is called from within a test.
+     * Valid after {@code before}.
+     */
+    public void keepStrongReference(Object obj) {
+        synchronized (lock) {
+            keepStrongReference.add(obj);
+        }
+    }
+
+    /**
+     * Add a Realm to be closed when test is complete.
+     * <p>
+     * Accessed from both test and main threads.
+     * Valid after {@code before}.
+     */
+    public void addTestRealm(Realm realm) {
+        synchronized (lock) {
+            testRealms.add(realm);
+        }
+    }
+
+    /**
+     * Explicitly close all held realms.
+     * <p>
+     * 'testRealms' is accessed from both test and main threads.
+     * 'testRealms' is valid after {@code before}.
+     */
+    public void closeTestRealms() {
+        List<Realm> realms = new ArrayList<>();
+        synchronized (lock) {
+            List<Realm> tmp = testRealms;
+            testRealms = realms;
+            realms = tmp;
+        }
+
+        for (Realm testRealm : realms) {
+            testRealm.close();
+        }
+    }
+
+    /**
+     * Posts a runnable to the currently running looper.
      */
     public void postRunnable(Runnable runnable) {
-        backgroundHandler.post(runnable);
+        getBackgroundHandler().post(runnable);
     }
 
     /**
      * Posts a runnable to this worker threads looper with a delay in milli second.
      */
     public void postRunnableDelayed(Runnable runnable, long delayMillis) {
-        backgroundHandler.postDelayed(runnable, delayMillis);
+        getBackgroundHandler().postDelayed(runnable, delayMillis);
+    }
+
+    /**
+     * Signal that the test has completed.
+     * <p>
+     * Used on both the main and test threads.
+     * Valid after {@code before}.
+     */
+    public void testComplete() {
+        signalTestCompleted.countDown();
+    }
+
+    /**
+     * Signal that the test has completed, after waiting for any additional latches.
+     *
+     * @param latches additional latches to wait on, before setting the test completed flag.
+     */
+    public void testComplete(CountDownLatch... latches) {
+        for (CountDownLatch latch : latches) {
+            TestHelper.awaitOrFail(latch);
+        }
+        testComplete();
+    }
+
+    // Accessed from both test and main threads
+    // Valid after the test thread has started.
+    private Handler getBackgroundHandler() {
+        synchronized (lock) {
+            while (backgroundHandler == null) {
+                try {
+                    lock.wait(WAIT_TIMEOUT_MS);
+                } catch (InterruptedException ignore) {
+                    break;
+                }
+            }
+            return this.backgroundHandler;
+        }
+    }
+
+    // Accessed from both test and main threads
+    // Storing the handler is the gate that indicates that the test thread has started.
+    void setBackgroundHandler(Handler backgroundHandler) {
+        synchronized (lock) {
+            this.backgroundHandler = backgroundHandler;
+            lock.notifyAll();
+        }
+    }
+
+    @Override
+    protected void before() throws Throwable {
+        super.before();
+
+        RealmConfiguration config = createConfiguration(UUID.randomUUID().toString());
+        LinkedList<Object> refs = new LinkedList<>();
+        List<Realm> realms = new LinkedList<>();
+
+        synchronized (lock) {
+            realmConfiguration = config;
+            realm = null;
+            backgroundHandler = null;
+            keepStrongReference = refs;
+            testRealms = realms;
+        }
+    }
+
+    @Override
+    protected void after() {
+        super.after();
+
+        // probably belt *and* suspenders...
+        synchronized (lock) {
+            backgroundHandler = null;
+            keepStrongReference = null;
+        }
+    }
+
+    @Override
+    public Statement apply(Statement base, Description description) {
+        final RunTestInLooperThread annotation = description.getAnnotation(RunTestInLooperThread.class);
+        if (annotation == null) {
+            return base;
+        }
+        return new RunInLooperThreadStatement(annotation, base);
     }
 
     /**
@@ -229,11 +264,173 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     public void looperTearDown() {
     }
 
+    private void initRealm() {
+        synchronized (lock) {
+            realm = Realm.getInstance(realmConfiguration);
+        }
+    }
+
+    private void closeRealms() {
+        closeTestRealms();
+
+        Realm oldRealm;
+        synchronized (lock) {
+            oldRealm = realm;
+
+            realm = null;
+            realmConfiguration = null;
+        }
+
+        if (oldRealm != null) {
+            oldRealm.close();
+        }
+    }
+
     /**
      * If an implementation of this is supplied with the annotation, the {@link RunnableBefore#run(RealmConfiguration)}
      * will be executed before the looper thread starts. It is normally for populating the Realm before the test.
      */
     public interface RunnableBefore {
         void run(RealmConfiguration realmConfig);
+    }
+
+    private class RunInLooperThreadStatement extends Statement {
+        private final RunTestInLooperThread annotation;
+        private final Statement base;
+
+        RunInLooperThreadStatement(RunTestInLooperThread annotation, Statement base) {
+            this.annotation = annotation;
+            this.base = base;
+        }
+
+        @Override
+        @SuppressWarnings("ClassNewInstance")
+        public void evaluate() throws Throwable {
+            before();
+
+            Class<? extends RunnableBefore> runnableBefore = annotation.before();
+            if (!runnableBefore.isInterface()) {
+                // this is dangerous: newInstance can throw checked exceptions.
+                // this is dangerous: config is mutable.
+                runnableBefore.newInstance().run(getConfiguration());
+            }
+
+            runTest(annotation.threadName());
+        }
+
+        private void runTest(final String threadName) throws Throwable {
+            Throwable failure = null;
+
+            try {
+                ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
+                    @Override
+                    public Thread newThread(Runnable runnable) { return new Thread(runnable, threadName); }
+                });
+
+                TestThread test = new TestThread(base);
+
+                @SuppressWarnings({"UnusedAssignment", "unused"})
+                Future<?> ignored = executorService.submit(test);
+
+                TestHelper.exitOrThrow(executorService, signalTestCompleted, test);
+            } catch (Throwable testfailure) {
+                // These exceptions should only come from TestHelper.awaitOrFail()
+                failure = testfailure;
+            } finally {
+                // Tries as hard as possible to close down gracefully, while still keeping all exceptions intact.
+                failure = cleanUp(failure);
+            }
+            if (failure != null) {
+                throw failure;
+            }
+        }
+
+        private Throwable cleanUp(Throwable testfailure) {
+            try {
+                after();
+                return testfailure;
+            } catch (Throwable afterFailure) {
+                if (testfailure == null) {
+                    // Only after() threw an exception
+                    return afterFailure;
+                }
+
+                // Both TestHelper.awaitOrFail() and after() threw exceptions
+                return new MultipleFailureException(Arrays.asList(testfailure, afterFailure)) {
+                    @Override
+                    public void printStackTrace(PrintStream out) {
+                        int i = 0;
+                        for (Throwable t : getFailures()) {
+                            out.println("Error " + i + ": " + t.getMessage());
+                            t.printStackTrace(out);
+                            out.println();
+                            i++;
+                        }
+                    }
+                };
+            }
+        }
+    }
+
+    private class TestThread implements Runnable, TestHelper.LooperTest {
+        private final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+        private final Statement base;
+        private Looper looper;
+        private Throwable threadAssertionError;
+
+        TestThread(Statement base) {
+            this.base = base;
+        }
+
+        @Override
+        public CountDownLatch getRealmClosedSignal() {
+            return signalClosedRealm;
+        }
+
+        @Override
+        public synchronized Looper getLooper() {
+            return looper;
+        }
+
+        private synchronized void setLooper(Looper looper) {
+            this.looper = looper;
+            setBackgroundHandler(new Handler(looper));
+        }
+
+        @Override
+        public synchronized Throwable getAssertionError() {
+            return threadAssertionError;
+        }
+
+        // Only record the first error
+        private synchronized void setAssertionError(Throwable threadAssertionError) {
+            if (this.threadAssertionError == null) {
+                this.threadAssertionError = threadAssertionError;
+            }
+        }
+
+        @Override
+        public void run() {
+            Looper.prepare();
+            try {
+                initRealm();
+                setLooper(Looper.myLooper());
+                base.evaluate();
+                Looper.loop();
+            } catch (Throwable t) {
+                setAssertionError(t);
+                setUnitTestFailed();
+            } finally {
+                try {
+                    looperTearDown();
+                } catch (Throwable t) {
+                    setAssertionError(t);
+                    setUnitTestFailed();
+                }
+                testComplete();
+                closeRealms();
+                signalClosedRealm.countDown();
+            }
+        }
     }
 }

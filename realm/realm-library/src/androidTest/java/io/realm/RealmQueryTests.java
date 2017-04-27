@@ -2994,11 +2994,11 @@ public class RealmQueryTests {
     @Test
     @RunTestInLooperThread
     public void findAllSortedAsync_onSubObjectField() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class)
                 .findAllSortedAsync(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
-        looperThread.keepStrongReference.add(results);
+        looperThread.keepStrongReference(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> results) {
@@ -3029,7 +3029,7 @@ public class RealmQueryTests {
     @Test
     @RunTestInLooperThread
     public void findAllSortedAsync_listOnSubObjectField() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         String[] fieldNames = new String[2];
         fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
         fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
@@ -3041,7 +3041,7 @@ public class RealmQueryTests {
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class)
                 .findAllSortedAsync(fieldNames, sorts);
-        looperThread.keepStrongReference.add(results);
+        looperThread.keepStrongReference(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> results) {
@@ -3193,7 +3193,7 @@ public class RealmQueryTests {
     @RunTestInLooperThread
     public void distinctAsync() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(4);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
@@ -3228,10 +3228,10 @@ public class RealmQueryTests {
             }
         };
 
-        looperThread.keepStrongReference.add(distinctBool);
-        looperThread.keepStrongReference.add(distinctLong);
-        looperThread.keepStrongReference.add(distinctDate);
-        looperThread.keepStrongReference.add(distinctString);
+        looperThread.keepStrongReference(distinctBool);
+        looperThread.keepStrongReference(distinctLong);
+        looperThread.keepStrongReference(distinctDate);
+        looperThread.keepStrongReference(distinctString);
         distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
             public void onChange(RealmResults<AnnotationIndexTypes> object) {
@@ -3269,7 +3269,7 @@ public class RealmQueryTests {
     @RunTestInLooperThread
     public void distinctAsync_withNullValues() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(2);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
@@ -3288,8 +3288,8 @@ public class RealmQueryTests {
             }
         };
 
-        looperThread.keepStrongReference.add(distinctDate);
-        looperThread.keepStrongReference.add(distinctString);
+        looperThread.keepStrongReference(distinctDate);
+        looperThread.keepStrongReference(distinctString);
 
         distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
