@@ -1126,20 +1126,16 @@ public class RealmAsyncQueryTests {
         new Thread() {
             @Override
             public void run() {
-                try {
-                    queriesCompleted.await();
-                    Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+                TestHelper.awaitOrFail(queriesCompleted);
+                Realm bgRealm = Realm.getInstance(realm.getConfiguration());
 
-                    bgRealm.beginTransaction();
-                    bgRealm.createObject(AllTypes.class);
-                    bgRealm.createObject(AnnotationIndexTypes.class);
-                    bgRealm.commitTransaction();
+                bgRealm.beginTransaction();
+                bgRealm.createObject(AllTypes.class);
+                bgRealm.createObject(AnnotationIndexTypes.class);
+                bgRealm.commitTransaction();
 
-                    bgRealm.close();
-                    bgRealmClosedLatch.countDown();
-                } catch (InterruptedException e) {
-                    fail(e.getMessage());
-                }
+                bgRealm.close();
+                bgRealmClosedLatch.countDown();
             }
         }.start();
     }
