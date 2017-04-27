@@ -422,7 +422,7 @@ final class RealmCache {
         // Access local ref count only, no need to by synchronized.
         int totalRefCount = 0;
         for (RealmCacheType type : RealmCacheType.values()) {
-            Integer localCount = refAndCountMap.get(type).localCount.get();
+            Integer localCount = cache.refAndCountMap.get(type).localCount.get();
             totalRefCount += (localCount != null) ? localCount : 0;
         }
         return totalRefCount;
