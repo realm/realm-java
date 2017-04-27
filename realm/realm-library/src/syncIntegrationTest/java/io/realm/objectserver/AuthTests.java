@@ -1,5 +1,7 @@
 package io.realm.objectserver;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Rule;
@@ -10,6 +12,9 @@ import org.junit.runner.RunWith;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
@@ -19,8 +24,6 @@ import io.realm.SyncCredentials;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
-import io.realm.log.LogLevel;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
@@ -132,21 +135,44 @@ public class AuthTests extends BaseIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
-    public void loginAsync_errorHandlerThrows() {
-        SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
-            @Override
-            public void onSuccess(SyncUser user) {
-                fail();
-            }
+    public void loginAsync_errorHandlerThrows() throws InterruptedException {
+        final AtomicBoolean errorThrown = new AtomicBoolean(false);
 
+        // Create custom Looper thread to be able to check for errors thrown when processing Looper events.
+        Thread t = new Thread(new Runnable() {
+            private volatile Handler handler;
             @Override
-            public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.INVALID_CREDENTIALS, error.getErrorCode());
-                looperThread.testComplete();
+            public void run() {
+                Looper.prepare();
+                try {
+                    handler = new Handler();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
+                            SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+                                @Override
+                                public void onSuccess(SyncUser user) {
+                                    fail();
+                                }
+
+                                @Override
+                                public void onError(ObjectServerError error) {
+                                    assertEquals(ErrorCode.INVALID_CREDENTIALS, error.getErrorCode());
+                                    throw new IllegalArgumentException("BOOM");
+                                }
+                            });
+                        }
+                    });
+                    Looper.loop(); //
+                } catch (IllegalArgumentException e) {
+                    errorThrown.set(true);
+                }
             }
         });
+        t.start();
+        t.join(TimeUnit.SECONDS.toMillis(10));
+        assertTrue(errorThrown.get());
     }
 
     @Test
@@ -169,7 +195,7 @@ public class AuthTests extends BaseIntegrationTest {
     }
 
     @Test
-    public void changePassword_throwExceptionOnError() {
+    public void changePassword_throwWhenUserIsLoggedOut() {
         String username = UUID.randomUUID().toString();
         String password = "password";
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);

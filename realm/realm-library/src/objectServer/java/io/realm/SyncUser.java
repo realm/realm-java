@@ -288,7 +288,7 @@ public class SyncUser {
             syncUser.clearTokens();
             syncUser.localLogout();
 
-            // Finally create server token. The local user is logged out in any case.
+            // Finally revoke server token. The local user is logged out in any case.
             final AuthenticationServer server = SyncManager.getAuthServer();
             ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
             //noinspection unused
@@ -313,11 +313,14 @@ public class SyncUser {
     }
 
     /**
-     * Change this users password. This is done synchronously and involves the network, so calling this method on the
+     * Change this user's password. This is done synchronously and involves the network, so calling this method on the
      * Android UI thread will always crash.
+     * <p>
+     * <b>WARNING:</b> Changing a users password using an authentication server that doesn't use HTTPS is a major
+     * security flaw, and should only be done while testing.
      *
-     * @param newPassword the users new password.
-     * @throws ObjectServerError if the password could not be changed for some reason.
+     * @param newPassword the user's new password.
+     * @throws ObjectServerError if the password could not be changed.
      */
     public void changePassword(String newPassword) throws ObjectServerError {
         if (newPassword == null) {
@@ -331,11 +334,14 @@ public class SyncUser {
     }
 
     /**
-     * Change this users password asynchronously.
+     * Change this user's password asynchronously.
+     * <p>
+     * <b>WARNING:</b> Changing a users password using an authentication server that doesn't use HTTPS is a major
+     * security flaw, and should only be done while testing.
      *
-     * @param newPassword the users new password.
+     * @param newPassword the user's new password.
      * @param callback callback when login has completed or failed. The callback will always happen on the same thread
-     * as this this method is called on.
+     * as this method is called on.
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
