@@ -160,7 +160,7 @@ public class SyncSession {
                 boolean listenerRegistered = nativeWaitForDownloadCompletion(configuration.getPath());
                 if (!listenerRegistered) {
                     waitingForServerChanges = null;
-                    throw new ObjectServerError(ErrorCode.UNKNOWN, "It was not possible to download all changes. Have the SyncClient been started?");
+                    throw new ObjectServerError(ErrorCode.UNKNOWN, "It was not possible to download all changes. Has the SyncClient been started?");
                 }
                 waitingForServerChanges.waitForServerChanges();
 
@@ -422,10 +422,6 @@ public class SyncSession {
         private Long errorCode = null;
         private String errorMessage;
 
-        public void cancelWait() {
-            waitForChanges.countDown();
-        }
-
         /**
          * Block until the wait either completes or is terminated for other reasons.
          */
@@ -434,7 +430,7 @@ public class SyncSession {
                 try {
                     waitForChanges.await();
                 } catch (InterruptedException e) {
-                    throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+                    RealmLog.warn("Downloading changes have been interrupted");
                 }
             }
         }
