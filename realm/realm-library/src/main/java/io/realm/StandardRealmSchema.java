@@ -330,12 +330,6 @@ class StandardRealmSchema extends RealmSchema {
                 currentTable = tableInfo.getLinkedTable(columnName);
             }
 
-            //TODO: Remove this as soon as there are tests for LOs.
-            if (columnType == RealmFieldType.LINKING_OBJECTS) {
-                throw new IllegalArgumentException(
-                        String.format("Invalid query: LinkingObjects are not yet supported in queries: '%s.%s'.", columnName, currentTable));
-            }
-
             columnInfo[0][i] = columnIndex;
             columnInfo[1][i] = (columnType != RealmFieldType.LINKING_OBJECTS)
                     ? NativeObject.NULLPTR

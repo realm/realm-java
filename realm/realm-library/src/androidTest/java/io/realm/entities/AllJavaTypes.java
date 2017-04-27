@@ -26,6 +26,7 @@ import io.realm.annotations.Index;
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 
+
 public class AllJavaTypes extends RealmObject {
 
     public static final String CLASS_NAME = "AllJavaTypes";
@@ -44,9 +45,15 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_BINARY = "fieldBinary";
     public static final String FIELD_OBJECT = "fieldObject";
     public static final String FIELD_LIST = "fieldList";
+    public static final String FIELD_LO_OBJECT = "objectParents";
+    public static final String FIELD_LO_LIST = "listParents";
 
-    public static final String   INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY;
-    public static final String[] INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT = new String[]{FIELD_OBJECT + "." + FIELD_BINARY, FIELD_OBJECT + "." + FIELD_OBJECT, FIELD_OBJECT + "." + FIELD_LIST};
+    public static final String INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT
+            = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY;
+    public static final String[] INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT = new String[] {
+            FIELD_OBJECT + "." + FIELD_BINARY,
+            FIELD_OBJECT + "." + FIELD_OBJECT,
+            FIELD_OBJECT + "." + FIELD_LIST};
 
     @Ignore private String fieldIgnored;
     @Index private String fieldString;
@@ -63,14 +70,13 @@ public class AllJavaTypes extends RealmObject {
     private AllJavaTypes fieldObject;
     private RealmList<AllJavaTypes> fieldList;
 
-    @LinkingObjects("fieldObject")
+    @LinkingObjects(FIELD_OBJECT)
     private final RealmResults<AllJavaTypes> objectParents = null;
 
-    @LinkingObjects("fieldList")
+    @LinkingObjects(FIELD_LIST)
     private final RealmResults<AllJavaTypes> listParents = null;
 
     public AllJavaTypes() {
-
     }
 
     public AllJavaTypes(long fieldLong) {

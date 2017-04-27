@@ -20,6 +20,8 @@ import java.util.Date;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.RealmResults;
+import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
@@ -37,30 +39,32 @@ import io.realm.annotations.Required;
 // 11 Object
 public class NullTypes extends RealmObject {
 
-    public static String CLASS_NAME = "NullTypes";
-    public static String FIELD_ID = "id";
-    public static String FIELD_STRING_NOT_NULL = "fieldStringNotNull";
-    public static String FIELD_STRING_NULL = "fieldStringNull";
-    public static String FIELD_BYTES_NOT_NULL = "fieldBytesNotNull";
-    public static String FIELD_BYTES_NULL = "fieldBytesNull";
-    public static String FIELD_BOOLEAN_NOT_NULL = "fieldBooleanNotNull";
-    public static String FIELD_BOOLEAN_NULL = "fieldBooleanNull";
-    public static String FIELD_BYTE_NOT_NULL = "fieldByteNotNull";
-    public static String FIELD_BYTE_NULL = "fieldByteNull";
-    public static String FIELD_SHORT_NOT_NULL = "fieldShortNotNull";
-    public static String FIELD_SHORT_NULL = "fieldShortNull";
-    public static String FIELD_INTEGER_NOT_NULL = "fieldIntegerNotNull";
-    public static String FIELD_INTEGER_NULL = "fieldIntegerNull";
-    public static String FIELD_LONG_NOT_NULL = "fieldLongNotNull";
-    public static String FIELD_LONG_NULL = "fieldLongNull";
-    public static String FIELD_FLOAT_NOT_NULL = "fieldFloatNotNull";
-    public static String FIELD_FLOAT_NULL = "fieldFloatNull";
-    public static String FIELD_DOUBLE_NOT_NULL = "fieldDoubleNotNull";
-    public static String FIELD_DOUBLE_NULL = "fieldDoubleNull";
-    public static String FIELD_DATE_NOT_NULL = "fieldDateNotNull";
-    public static String FIELD_DATE_NULL = "fieldDateNull";
-    public static String FIELD_OBJECT_NULL = "fieldObjectNull";
-    public static String FIELD_LIST_NULL = "fieldListNull";
+    public static final String CLASS_NAME = "NullTypes";
+    public static final String FIELD_ID = "id";
+    public static final String FIELD_STRING_NOT_NULL = "fieldStringNotNull";
+    public static final String FIELD_STRING_NULL = "fieldStringNull";
+    public static final String FIELD_BYTES_NOT_NULL = "fieldBytesNotNull";
+    public static final String FIELD_BYTES_NULL = "fieldBytesNull";
+    public static final String FIELD_BOOLEAN_NOT_NULL = "fieldBooleanNotNull";
+    public static final String FIELD_BOOLEAN_NULL = "fieldBooleanNull";
+    public static final String FIELD_BYTE_NOT_NULL = "fieldByteNotNull";
+    public static final String FIELD_BYTE_NULL = "fieldByteNull";
+    public static final String FIELD_SHORT_NOT_NULL = "fieldShortNotNull";
+    public static final String FIELD_SHORT_NULL = "fieldShortNull";
+    public static final String FIELD_INTEGER_NOT_NULL = "fieldIntegerNotNull";
+    public static final String FIELD_INTEGER_NULL = "fieldIntegerNull";
+    public static final String FIELD_LONG_NOT_NULL = "fieldLongNotNull";
+    public static final String FIELD_LONG_NULL = "fieldLongNull";
+    public static final String FIELD_FLOAT_NOT_NULL = "fieldFloatNotNull";
+    public static final String FIELD_FLOAT_NULL = "fieldFloatNull";
+    public static final String FIELD_DOUBLE_NOT_NULL = "fieldDoubleNotNull";
+    public static final String FIELD_DOUBLE_NULL = "fieldDoubleNull";
+    public static final String FIELD_DATE_NOT_NULL = "fieldDateNotNull";
+    public static final String FIELD_DATE_NULL = "fieldDateNull";
+    public static final String FIELD_OBJECT_NULL = "fieldObjectNull";
+    public static final String FIELD_LIST_NULL = "fieldListNull";
+    public static final String FIELD_LO_OBJECT_NULL = "objectParentsNull";
+    public static final String FIELD_LO_LIST_NULL = "listParentsNull";
 
     @PrimaryKey
     private int id;
@@ -108,6 +112,13 @@ public class NullTypes extends RealmObject {
     private NullTypes fieldObjectNull;
 
     private RealmList<NullTypes> fieldListNull;
+
+    @LinkingObjects(FIELD_OBJECT_NULL)
+    private final RealmResults<NullTypes> objectParentsNull = null;
+
+    @LinkingObjects(FIELD_LIST_NULL)
+    private final RealmResults<NullTypes> listParentsNull = null;
+
 
     public int getId() {
         return id;

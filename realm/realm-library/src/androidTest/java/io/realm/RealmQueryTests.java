@@ -18,27 +18,19 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
-import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
 import io.realm.entities.NoPrimaryKeyNullTypes;
@@ -51,9 +43,7 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -62,34 +52,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 
+
 @RunWith(AndroidJUnit4.class)
-public class RealmQueryTests {
-    @Rule
-    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
-    @Rule
-    public final RunInLooperThread looperThread = new RunInLooperThread();
-
-    protected final static int TEST_DATA_SIZE = 10;
-    protected final static int TEST_NO_PRIMARY_KEY_NULL_TYPES_SIZE = 200;
-
-    private final static long DECADE_MILLIS = 10 * TimeUnit.DAYS.toMillis(365);
-
-    protected Realm realm;
-
-    @Before
-    public void setUp() throws Exception {
-        RealmConfiguration realmConfig = configFactory.createConfiguration();
-        realm = Realm.getInstance(realmConfig);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        if (realm != null) {
-            realm.close();
-        }
-    }
+public class RealmQueryTests extends QueryTests {
 
     private void populateTestRealm(Realm testRealm, int dataSize) {
         testRealm.beginTransaction();
@@ -2018,8 +1983,33 @@ public class RealmQueryTests {
         assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_DOUBLE_NULL).count());
         // 10 Date
         assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_DATE_NULL).count());
-        // 11 Object
+        // 12 Object
         assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL).count());
+    }
+
+    @Test
+    public void isNull_unsupportedTypes() {
+        // 13 List
+        try {
+            assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_LIST_NULL).count());
+            fail("isNull is unsupported on type LIST(13)");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList([fieldListNull]) is not nullable.", expected.getMessage());
+        }
+
+        // 14 Linking Objects
+        try {
+            assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_LO_OBJECT_NULL).count());
+            fail("isNull is unsupported on type LINKING_OBJECT(14) targeting an OBJECT");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+        }
+        try {
+            assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_LO_LIST_NULL).count());
+            fail("isNull is unsupported on type LINKING_OBJECT(14) targeting a LIST");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+        }
     }
 
     // Queries nullable field for not null.
@@ -2056,7 +2046,8 @@ public class RealmQueryTests {
         // 10 Date
         assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DATE_NULL, new Date(0)).count());
         assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DATE_NULL, (Date) null).count());
-        // 11 Object skipped, doesn't support notEqualTo query
+        // 12 Object skipped, doesn't support notEqualTo query
+        // 13 LinkingObject skipped, doesn't support notEqualTo query
     }
 
     // Queries nullable field for not null.
@@ -2086,6 +2077,31 @@ public class RealmQueryTests {
         assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_DATE_NULL).count());
         // 11 Object
         assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL).count());
+    }
+
+    @Test
+    public void isNotNull_unsupportedTypes() {
+        // 13 List
+        try {
+            assertEquals(1, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LIST_NULL).count());
+            fail("isNull is unsupported on type LIST(13)");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList([fieldListNull]) is not nullable.", expected.getMessage());
+        }
+
+        // 14 Linking Objects
+        try {
+            assertEquals(1, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LO_OBJECT_NULL).count());
+            fail("isNull is unsupported on type LINKING_OBJECT(14) targeting an OBJECT");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+        }
+        try {
+            assertEquals(1, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LO_LIST_NULL).count());
+            fail("isNull is unsupported on type LINKING_OBJECT(14) targeting a LIST");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+        }
     }
 
     // Queries nullable field with beginsWith - all strings begin with null.
@@ -2529,17 +2545,43 @@ public class RealmQueryTests {
         // 10 Date
         assertEquals(2, realm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DATE_NULL).count());
+    }
+
+    @Test
+    public void isNull_unsupportedLinkedTypes() {
         // FIXME
-        // Core now supports `isNotNull` on nested link fields: https://github.com/realm/realm-cocoa/pull/4743
+        // Core now supports `isNull` on nested link fields: https://github.com/realm/realm-cocoa/pull/4743
         // tracked in https://github.com/realm/realm-java/issues/4529
-        // 11 Object
-        // assertEquals(1, realm.where(NullTypes.class).isNull(
+        // 12 Object
+        //assertEquals(1, realm.where(NullTypes.class).isNull(
         //        NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count());
         try {
-            realm.where(NullTypes.class).isNull(
-                    NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL);
-            fail();
-        } catch (IllegalArgumentException ignored) {
+            realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL);
+            fail("isNull is unsupported on nested linked fields (OBJECT)");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: [isNull() by nested query for link field is not supported].", expected.getMessage());
+        }
+
+        // 13 LIST
+        try {
+            realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LIST_NULL);
+            fail("isNull is unsupported on nested linked fields (LIST)");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+        }
+
+        // 14 LINKING OBJECTS
+        try {
+            realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_OBJECT_NULL);
+            fail("isNull is unsupported on nested linked fields (LINKING_OBJECT => OBJECT)");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+        }
+        try {
+            realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_LIST_NULL);
+            fail("isNull is unsupported on nested linked fields (LINKING_OBJECT => LIST)");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
         }
     }
 
@@ -2618,7 +2660,7 @@ public class RealmQueryTests {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        // 11 Object skipped, doesn't support equalTo query
+        // 12 Object - 14 Linking Object skipped.  They don't support equalTo query
     }
 
     // Tests isNotNull on link's nullable field.
@@ -2656,17 +2698,44 @@ public class RealmQueryTests {
         // 10 Date
         assertEquals(1, realm.where(NullTypes.class).isNotNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DATE_NULL).count());
+    }
+
+
+    @Test
+    public void isNotNull_unsupportedLinkedTypes() {
         // FIXME
         // Core now supports `isNotNull` on nested link fields: https://github.com/realm/realm-cocoa/pull/4743
         // tracked in https://github.com/realm/realm-java/issues/4529
-        // 11 Object
+        // 12 Object
         //assertEquals(1, realm.where(NullTypes.class).isNotNull(
         //        NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count());
         try {
-            realm.where(NullTypes.class).isNotNull(
-                    NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL);
-            fail();
-        } catch (IllegalArgumentException ignored) {
+            realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL);
+            fail("isNull is unsupported on nested linked fields (OBJECT)");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: [isNotNull() by nested query for link field is not supported].", expected.getMessage());
+        }
+
+        // 13 LIST
+        try {
+            realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LIST_NULL);
+            fail("isNull is unsupported on nested linked fields (LIST)");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+        }
+
+        // 14 LINKING OBJECTS
+        try {
+            realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_OBJECT_NULL);
+            fail("isNull is unsupported on nested linked fields (LINKING_OBJECT => OBJECT)");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+        }
+        try {
+            realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_LIST_NULL);
+            fail("isNull is unsupported on nested linked fields (LINKING_OBJECT => LIST)");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
         }
     }
 
@@ -2746,45 +2815,11 @@ public class RealmQueryTests {
         } catch (IllegalArgumentException ignored) {
         }
         // 11 Object skipped, RealmObject is always nullable.
+        // 13 List - 14 Linking Object skipped.  They don't support equalTo query
     }
 
-    // Calling isNull on fields with the RealmList type will trigger an exception.
+    @Ignore("Disabled because of time to run.")
     @Test
-    public void isNull_listFieldThrows() {
-        try {
-            realm.where(Owner.class).isNull("dogs");
-            fail();
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
-        }
-
-        try {
-            realm.where(Cat.class).isNull("owner.dogs");
-            fail();
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
-        }
-    }
-
-    // Calling isNotNull on fields with the RealmList type will trigger an exception.
-    @Test
-    public void isNotNull_listFieldThrows() {
-        try {
-            realm.where(Owner.class).isNotNull("dogs");
-            fail();
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
-        }
-
-        try {
-            realm.where(Cat.class).isNotNull("owner.dogs");
-            fail();
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
-        }
-    }
-
-    // @Test Disabled because of time consuming.
     public void largeRealmMultipleThreads() throws InterruptedException {
         final int nObjects = 500000;
         final int nThreads = 3;
@@ -2903,46 +2938,6 @@ public class RealmQueryTests {
         assertFalse(query.isValid());
     }
 
-
-    private static final List<RealmFieldType> SUPPORTED_IS_EMPTY_TYPES = Arrays.asList(
-            RealmFieldType.STRING,
-            RealmFieldType.BINARY,
-            RealmFieldType.LIST,
-            RealmFieldType.LINKING_OBJECTS);
-
-    private static final List<RealmFieldType> NOT_SUPPORTED_IS_EMPTY_TYPES;
-
-    static {
-        final ArrayList<RealmFieldType> list = new ArrayList<RealmFieldType>(Arrays.asList(RealmFieldType.values()));
-        list.removeAll(SUPPORTED_IS_EMPTY_TYPES);
-        list.remove(RealmFieldType.UNSUPPORTED_MIXED);
-        list.remove(RealmFieldType.UNSUPPORTED_TABLE);
-        list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        NOT_SUPPORTED_IS_EMPTY_TYPES = list;
-    }
-
-    private void createIsEmptyDataSet(Realm realm) {
-        realm.beginTransaction();
-
-        AllJavaTypes emptyValues = new AllJavaTypes();
-        emptyValues.setFieldId(1);
-        emptyValues.setFieldString("");
-        emptyValues.setFieldBinary(new byte[0]);
-        emptyValues.setFieldObject(emptyValues);
-        emptyValues.setFieldList(new RealmList<AllJavaTypes>());
-        realm.copyToRealm(emptyValues);
-
-        AllJavaTypes nonEmpty = new AllJavaTypes();
-        nonEmpty.setFieldId(2);
-        nonEmpty.setFieldString("Foo");
-        nonEmpty.setFieldBinary(new byte[] {1, 2, 3});
-        nonEmpty.setFieldObject(nonEmpty);
-        nonEmpty.setFieldList(new RealmList<AllJavaTypes>(emptyValues));
-        realm.copyToRealmOrUpdate(nonEmpty);
-
-        realm.commitTransaction();
-    }
-
     @Test
     public void isEmpty() {
         createIsEmptyDataSet(realm);
@@ -2958,7 +2953,8 @@ public class RealmQueryTests {
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
-                    // FIXME!!! GBM - write test;
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2981,7 +2977,8 @@ public class RealmQueryTests {
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
-                    // FIXME!!! GBM - write test;
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -3034,46 +3031,6 @@ public class RealmQueryTests {
         }
     }
 
-    // Not-empty test harnesses.
-    private static final List<RealmFieldType> SUPPORTED_IS_NOT_EMPTY_TYPES = Arrays.asList(
-            RealmFieldType.STRING,
-            RealmFieldType.BINARY,
-            RealmFieldType.LIST,
-            RealmFieldType.LINKING_OBJECTS);
-
-    private static final List<RealmFieldType> NOT_SUPPORTED_IS_NOT_EMPTY_TYPES;
-
-    static {
-        final ArrayList<RealmFieldType> list = new ArrayList<RealmFieldType>(Arrays.asList(RealmFieldType.values()));
-        list.removeAll(SUPPORTED_IS_NOT_EMPTY_TYPES);
-        list.remove(RealmFieldType.UNSUPPORTED_MIXED);
-        list.remove(RealmFieldType.UNSUPPORTED_TABLE);
-        list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = list;
-    }
-
-    private void createIsNotEmptyDataSet(Realm realm) {
-        realm.beginTransaction();
-
-        AllJavaTypes emptyValues = new AllJavaTypes();
-        emptyValues.setFieldId(1);
-        emptyValues.setFieldString("");
-        emptyValues.setFieldBinary(new byte[0]);
-        emptyValues.setFieldObject(emptyValues);
-        emptyValues.setFieldList(new RealmList<AllJavaTypes>());
-        realm.copyToRealm(emptyValues);
-
-        AllJavaTypes notEmpty = new AllJavaTypes();
-        notEmpty.setFieldId(2);
-        notEmpty.setFieldString("Foo");
-        notEmpty.setFieldBinary(new byte[] {1, 2, 3});
-        notEmpty.setFieldObject(notEmpty);
-        notEmpty.setFieldList(new RealmList<AllJavaTypes>(emptyValues));
-        realm.copyToRealmOrUpdate(notEmpty);
-
-        realm.commitTransaction();
-    }
-
     @Test
     public void isNotEmpty() {
         createIsNotEmptyDataSet(realm);
@@ -3089,7 +3046,8 @@ public class RealmQueryTests {
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
-                    // FIXME!!! GBM - write test;
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -3112,7 +3070,8 @@ public class RealmQueryTests {
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
-                    // FIXME!!! GBM - write test;
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
                     fail("Unknown type: " + type);

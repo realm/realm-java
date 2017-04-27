@@ -1492,7 +1492,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmQuery<E> isEmpty(String fieldName) {
         realm.checkIfValid();
 
-        long[][] columnInfo = schema.getColumnIndices(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST);
+        long[][] columnInfo = schema.getColumnIndices(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
         this.query.isEmpty(columnInfo[0], columnInfo[1]);
         return this;
     }
@@ -1508,7 +1508,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmQuery<E> isNotEmpty(String fieldName) {
         realm.checkIfValid();
 
-        long[][] columnInfo = schema.getColumnIndices(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST);
+        long[][] columnInfo = schema.getColumnIndices(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
         this.query.isNotEmpty(columnInfo[0], columnInfo[1]);
         return this;
     }

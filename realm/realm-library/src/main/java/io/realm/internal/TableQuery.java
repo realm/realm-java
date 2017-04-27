@@ -736,6 +736,7 @@ public class TableQuery implements NativeObject {
 
     private native void nativeContains(long nativeQueryPtr, long[] columnIndices, long[] tablePtrs, String value, boolean caseSensitive);
 
+    //FIXME!!! GBM - add support for backlinks
     private native void nativeIsEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
 
     private native long nativeFind(long nativeQueryPtr, long fromTableRow);

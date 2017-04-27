@@ -71,12 +71,12 @@ static TableRef getTableForLinkQuery(jlong nativeQueryPtr, JniLongArray& tablesA
     TableRef table_ref = Q(nativeQueryPtr)->get_table();
     jsize link_element_count = indicesArray.len() - 1;
     for (int i = 0; i < link_element_count; i++) {
-        auto colIndex = size_t(indicesArray[i]);
-        auto tablePtr = TBL(tablesArray[i]);
-        if (tablePtr == nullptr) {
-            table_ref->link(colIndex);
+        auto col_index = size_t(indicesArray[i]);
+        auto table_ptr = TBL(tablesArray[i]);
+        if (table_ptr == nullptr) {
+            table_ref->link(col_index);
         }  else {
-            table_ref->backlink(*tablePtr, colIndex);
+            table_ref->backlink(*table_ptr, col_index);
         }
     }
     return table_ref;
