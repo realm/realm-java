@@ -148,7 +148,7 @@ final class RealmCache {
 
         RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.valueOf(realmClass));
 
-        if (refAndCount.globalCount == 0) {
+        if (getTotalGlobalRefCount() == 0) {
             copyAssetFileIfNeeded(configuration);
 
             SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
@@ -246,16 +246,11 @@ final class RealmCache {
                 Arrays.fill(typedColumnIndicesArray, null);
             }
 
-            int totalRefCount = 0;
-            for (RealmCacheType type : RealmCacheType.values()) {
-                totalRefCount += refAndCountMap.get(type).globalCount;
-            }
-
             // No more local reference to this Realm in current thread, close the instance.
             realm.doClose();
 
             // No more instance of typed Realm and dynamic Realm.
-            if (totalRefCount == 0) {
+            if (getTotalGlobalRefCount() == 0) {
                 // We keep the cache in the map even when its global counter reaches 0. It will be reused when next time
                 // a Realm instance with the same path is opened. By not removing it, the lock on RaelmCache.class is
                 // not needed here.
@@ -327,11 +322,7 @@ final class RealmCache {
     }
 
     private synchronized void doInvokeWithGlobalRefCount(Callback callback) {
-        int totalRefCount = 0;
-        for (RealmCacheType type : RealmCacheType.values()) {
-            totalRefCount += refAndCountMap.get(type).globalCount;
-        }
-        callback.onResult(totalRefCount);
+        callback.onResult(getTotalGlobalRefCount());
     }
 
     /**
@@ -427,10 +418,8 @@ final class RealmCache {
         if (cache == null) {
             return 0;
         }
-        return cache.doGetLocalThreadCount();
-    }
 
-    private synchronized int doGetLocalThreadCount() {
+        // Access local ref count only, no need to by synchronized.
         int totalRefCount = 0;
         for (RealmCacheType type : RealmCacheType.values()) {
             Integer localCount = refAndCountMap.get(type).localCount.get();
@@ -492,5 +481,16 @@ final class RealmCache {
 
     public ColumnIndices[] getTypedColumnIndicesArray() {
         return typedColumnIndicesArray;
+    }
+
+    /**
+     * @return the total global ref count.
+     */
+    private int getTotalGlobalRefCount() {
+        int totalRefCount = 0;
+        for (RealmCacheType type : RealmCacheType.values()) {
+            totalRefCount += refAndCountMap.get(type).globalCount;
+        }
+        return totalRefCount;
     }
 }

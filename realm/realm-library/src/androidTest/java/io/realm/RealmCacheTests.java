@@ -330,4 +330,38 @@ public class RealmCacheTests {
         dynamicRealmA.close();
         assertNull(realmA.sharedRealm);
     }
+
+    // The DynamicRealm and Realm with the same Realm path should share the same RealmCache
+    @Test
+    public void typedRealmAndDynamicRealmShareTheSameCache() {
+        RealmConfiguration config1 = configFactory.createConfigurationBuilder()
+                .name("same_name")
+                .build();
+
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder()
+                .name("same_name")
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        // Because of config1 doesn't have initialData block, these two configurations are not the same.
+                        // So if a Realm is created with config1, then create another Realm with config2 should just
+                        // fail before executing this block.
+                        fail();
+                    }
+                })
+                .build();
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config1);
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config2);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            dynamicRealm.close();
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
 }
