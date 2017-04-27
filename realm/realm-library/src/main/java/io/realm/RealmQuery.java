@@ -185,7 +185,7 @@ public class RealmQuery<E extends RealmModel> {
         if (linkView != null) {
             return linkView.isAttached();
         }
-        return table != null && table.getTable().isValid();
+        return table != null && table.isValid();
     }
 
     /**
@@ -1577,7 +1577,7 @@ public class RealmQuery<E extends RealmModel> {
 
         fieldNames[0] = firstFieldName;
         System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(table.getTable(), fieldNames);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(table, fieldNames);
         return createRealmResults(query, null, distinctDescriptor, true);
     }
 

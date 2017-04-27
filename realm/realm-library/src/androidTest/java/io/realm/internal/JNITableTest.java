@@ -75,13 +75,13 @@ public class JNITableTest {
 
         Table t = new Table();
         // Removes rows without columns.
-        try { t.remove(0);  fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException ignored) {}
-        try { t.remove(10); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException ignored) {}
+        try { t.moveLastOver(0);  fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException ignored) {}
+        try { t.moveLastOver(10); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException ignored) {}
 
         // Column added, remove rows again.
         t.addColumn(RealmFieldType.STRING, "");
-        try { t.remove(0);  fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException ignored) {}
-        try { t.remove(10); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException ignored) {}
+        try { t.moveLastOver(0);  fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException ignored) {}
+        try { t.moveLastOver(10); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException ignored) {}
 
     }
 
@@ -315,34 +315,6 @@ public class JNITableTest {
         assertEquals(3000.0f, t.getFloat(2, 5));
     }
 
-    @Test
-    public void maximumDate() {
-
-        Table table = new Table();
-        table.addColumn(RealmFieldType.DATE, "date");
-
-        table.add(new Date(0));
-        table.add(new Date(10000));
-        table.add(new Date(1000));
-
-        assertEquals(new Date(10000), table.maximumDate(0));
-
-    }
-
-    @Test
-    public void minimumDate() {
-
-        Table table = new Table();
-        table.addColumn(RealmFieldType.DATE, "date");
-
-        table.add(new Date(10000));
-        table.add(new Date(0));
-        table.add(new Date(1000));
-
-        assertEquals(new Date(0), table.minimumDate(0));
-
-    }
-
     // Tests the migration of a string column to be nullable.
     @Test
     public void convertToNullable() {
@@ -387,7 +359,7 @@ public class JNITableTest {
                         }
                     } catch (IllegalArgumentException ignored) {
                     }
-                    table.removeLast();
+                    table.moveLastOver(table.size() - 1);
                     assertEquals(1, table.size());
 
                     table.convertColumnToNullable(colIndex);
@@ -485,7 +457,7 @@ public class JNITableTest {
                         }
                     } catch (IllegalArgumentException ignored) {
                     }
-                    table.removeLast();
+                    table.moveLastOver(table.size() -1);
                     assertEquals(2, table.size());
 
                     if (columnType == RealmFieldType.BINARY) {
