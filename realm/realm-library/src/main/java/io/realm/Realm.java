@@ -463,10 +463,7 @@ public class Realm extends BaseRealm {
             schemaCreator = null;
 
             long newVersion = configuration.getSchemaVersion();
-            // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
-            // It absolutely breaks encapsulation and needs to be fixed!
-            long schemaNativePointer = schema.getNativePtr();
-            if (realm.sharedRealm.requiresMigration(schemaNativePointer)) {
+            if (realm.sharedRealm.requiresMigration(schema.getNativePtr())) {
                 if (currentVersion >= newVersion) {
                     throw new IllegalArgumentException(String.format(
                             "The schema was changed but the schema version was not updated. " +
@@ -474,7 +471,7 @@ public class Realm extends BaseRealm {
                                     " in the Realm file (%d) in order to update the schema.",
                             newVersion, currentVersion));
                 }
-                realm.sharedRealm.updateSchema(schemaNativePointer, newVersion);
+                realm.sharedRealm.updateSchema(schema.getNativePtr(), newVersion);
                 // The OS currently does not handle setting the schema version. We have to do it manually.
                 realm.setVersion(newVersion);
                 commitChanges = true;
@@ -950,7 +947,7 @@ public class Realm extends BaseRealm {
         // Checks and throws the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
             throw new RealmException(String.format("'%s' has a primary key, use" +
-                    " 'createObject(Class<E>, Object)' instead.", Table.tableNameToClassName(table.getName())));
+                    " 'createObject(Class<E>, Object)' instead.", table.getClassName()));
         }
         long rowIndex = table.addEmptyRow();
         return get(clazz, rowIndex, acceptDefaultValue, excludeFields);
@@ -1575,8 +1572,8 @@ public class Realm extends BaseRealm {
                     }
                 } else {
                     if (backgroundException != null) {
-                        // FIXME: ThreadPoolExecutor will never throw the exception in the background. We need a
-                        //        redesign of the async transaction API.
+                        // FIXME: ThreadPoolExecutor will never throw the exception in the background.
+                        // We need a redesign of the async transaction API.
                         // Throw in the worker thread since the caller thread cannot get notifications.
                         throw new RealmException("Async transaction failed", backgroundException);
                     }
@@ -1738,14 +1735,19 @@ public class Realm extends BaseRealm {
         }
 
         ColumnIndices createdGlobalCache = null;
-        final RealmProxyMediator mediator = getConfiguration().getSchemaMediator();
         ColumnIndices cacheForCurrentVersion = RealmCache.findColumnIndices(globalCacheArray,
                 currentSchemaVersion);
         if (cacheForCurrentVersion == null) {
+            final RealmProxyMediator mediator = getConfiguration().getSchemaMediator();
+
             // Not found in global cache. create it.
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
             final Map<Class<? extends RealmModel>, ColumnInfo> map;
             map = new HashMap<>(modelClasses.size());
+
+
+            // This code may throw a RealmMigrationNeededException
+            //noinspection CaughtExceptionImmediatelyRethrown
             try {
                 for (Class<? extends RealmModel> clazz : modelClasses) {
                     final ColumnInfo columnInfo = mediator.validateTable(clazz, sharedRealm, true);
@@ -1757,7 +1759,7 @@ public class Realm extends BaseRealm {
 
             cacheForCurrentVersion = createdGlobalCache = new ColumnIndices(currentSchemaVersion, map);
         }
-        schema.updateColumnIndices(cacheForCurrentVersion, mediator);
+        schema.updateColumnIndices(cacheForCurrentVersion);
         return createdGlobalCache;
     }
 

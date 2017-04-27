@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 
 import io.realm.rule.TestRealmConfigurationFactory;
 
+
 @RunWith(AndroidJUnit4.class)
 public class LinkingObjectsDynamicTests {
 
@@ -50,12 +51,12 @@ public class LinkingObjectsDynamicTests {
     @Test
     public void dynamicQuery_invalidSyntax() {
         String[] invalidBacklinks = new String[] {
-            "linkingObject(x",
-            "linkingObject(x.y",
-            "linkingObject(x.y)",
-            "linkingObject(x.y).",
-            "linkingObject(x.y)..z",
-            "linkingObject(x.y).linkingObjects(x1.y1).z"
+                "linkingObject(x",
+                "linkingObject(x.y",
+                "linkingObject(x.y)",
+                "linkingObject(x.y).",
+                "linkingObject(x.y)..z",
+                "linkingObject(x.y).linkingObjects(x1.y1).z"
         };
     }
 }

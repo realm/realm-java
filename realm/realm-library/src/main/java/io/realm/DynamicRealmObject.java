@@ -36,7 +36,7 @@ import io.realm.internal.android.JsonUtils;
 @SuppressWarnings("WeakerAccess")
 public class DynamicRealmObject extends RealmObject implements RealmObjectProxy {
 
-    private final ProxyState proxyState = new ProxyState(this);
+    private final ProxyState<DynamicRealmObject> proxyState = new ProxyState<>(this);
 
     /**
      * Creates a dynamic Realm object based on an existing object.
@@ -343,7 +343,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
             LinkView linkView = proxyState.getRow$realm().getLinkList(columnIndex);
-            String className = RealmSchema.getSchemaForTable(linkView.getTargetTable());
+            String className = linkView.getTargetTable().getClassName();
             return new RealmList<>(className, linkView, proxyState.getRealm$realm());
         } catch (IllegalArgumentException e) {
             checkFieldType(fieldName, columnIndex, RealmFieldType.LIST);
@@ -704,7 +704,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         LinkView links = proxyState.getRow$realm().getLinkList(columnIndex);
         Table linkTargetTable = links.getTargetTable();
-        final String linkTargetTableName = Table.tableNameToClassName(linkTargetTable.getName());
+        final String linkTargetTableName = linkTargetTable.getClassName();
 
         boolean typeValidated;
         if (list.className == null && list.clazz == null) {
@@ -713,7 +713,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             typeValidated = false;
         } else {
             String listType = list.className != null ? list.className
-                    : Table.tableNameToClassName(proxyState.getRealm$realm().getSchema().getTable(list.clazz).getName());
+                    : proxyState.getRealm$realm().getSchema().getTable(list.clazz).getClassName();
             if (!linkTargetTableName.equals(listType)) {
                 throw new IllegalArgumentException(String.format(Locale.ENGLISH,
                         "The elements in the list are not the proper type. " +
@@ -735,7 +735,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                         "Element at index %d is not the proper type. " +
                                 "Was '%s' expected '%s'.",
                         i,
-                        Table.tableNameToClassName(obj.realmGet$proxyState().getRow$realm().getTable().getName()),
+                        obj.realmGet$proxyState().getRow$realm().getTable().getClassName(),
                         linkTargetTableName));
             }
             indices[i] = obj.realmGet$proxyState().getRow$realm().getIndex();
@@ -776,7 +776,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     public String getType() {
         proxyState.getRealm$realm().checkIfValid();
 
-        return RealmSchema.getSchemaForTable(proxyState.getRow$realm().getTable());
+        return proxyState.getRow$realm().getTable().getClassName();
     }
 
     /**
@@ -872,7 +872,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             return "Invalid object";
         }
 
-        final String className = Table.tableNameToClassName(proxyState.getRow$realm().getTable().getName());
+        final String className = proxyState.getRow$realm().getTable().getClassName();
         StringBuilder sb = new StringBuilder(className + " = [");
         String[] fields = getFieldNames();
         for (String field : fields) {
@@ -905,12 +905,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 case OBJECT:
                     sb.append(proxyState.getRow$realm().isNullLink(columnIndex)
                             ? "null"
-                            : Table.tableNameToClassName(proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getName()));
+                            : proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName());
                     break;
                 case LIST:
-                    final String tableName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getName();
-                    String targetType = Table.tableNameToClassName(tableName);
-                    sb.append(String.format("RealmList<%s>[%s]", targetType, proxyState.getRow$realm().getLinkList(columnIndex).size()));
+                    String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName();
+                    sb.append(String.format("RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getLinkList(columnIndex).size()));
                     break;
                 case UNSUPPORTED_TABLE:
                 case UNSUPPORTED_MIXED:

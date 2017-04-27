@@ -18,9 +18,12 @@ package io.realm;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.internal.ColumnInfo;
+import io.realm.internal.NativeObject;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 
@@ -34,8 +37,6 @@ import io.realm.internal.Util;
  * @see io.realm.RealmMigration
  */
 class StandardRealmSchema extends RealmSchema {
-
-    static final String TABLE_PREFIX = Table.TABLE_PREFIX;
     private static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
 
     // Caches Dynamic Class objects given as Strings to Realm Tables
@@ -69,12 +70,10 @@ class StandardRealmSchema extends RealmSchema {
     public RealmObjectSchema get(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
 
-        String internalClassName = TABLE_PREFIX + className;
+        String internalClassName = Table.getTableNameForClass(className);
         if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }
-
         Table table = realm.getSharedRealm().getTable(internalClassName);
-        StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
-        return new StandardRealmObjectSchema(realm, table, columnIndices);
+        return new StandardRealmObjectSchema(realm, this, table);
     }
 
     /**
@@ -91,9 +90,7 @@ class StandardRealmSchema extends RealmSchema {
             if (!Table.isModelTable(tableName)) {
                 continue;
             }
-            Table table = realm.getSharedRealm().getTable(tableName);
-            StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
-            schemas.add(new StandardRealmObjectSchema(realm, table, columnIndices));
+            schemas.add(new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName)));
         }
         return schemas;
     }
@@ -109,16 +106,14 @@ class StandardRealmSchema extends RealmSchema {
         // Adding a class is always permitted.
         checkEmpty(className, EMPTY_STRING_MSG);
 
-        String internalTableName = TABLE_PREFIX + className;
+        String internalTableName = Table.getTableNameForClass(className);
         if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
             throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
         }
         if (realm.getSharedRealm().hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
-        Table table = realm.getSharedRealm().getTable(internalTableName);
-        StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
-        return new StandardRealmObjectSchema(realm, table, columnIndices);
+        return new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(internalTableName));
     }
 
     /**
@@ -129,7 +124,7 @@ class StandardRealmSchema extends RealmSchema {
      */
     @Override
     public boolean contains(String className) {
-        return realm.getSharedRealm().hasTable(Table.TABLE_PREFIX + className);
+        return realm.getSharedRealm().hasTable(Table.getTableNameForClass(className));
     }
 
     /**
@@ -142,7 +137,7 @@ class StandardRealmSchema extends RealmSchema {
     public void remove(String className) {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
         checkEmpty(className, EMPTY_STRING_MSG);
-        String internalTableName = TABLE_PREFIX + className;
+        String internalTableName = Table.getTableNameForClass(className);
         checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
         Table table = getTable(className);
         if (table.hasPrimaryKey()) {
@@ -163,8 +158,8 @@ class StandardRealmSchema extends RealmSchema {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
         checkEmpty(oldClassName, "Class names cannot be empty or null");
         checkEmpty(newClassName, "Class names cannot be empty or null");
-        String oldInternalName = TABLE_PREFIX + oldClassName;
-        String newInternalName = TABLE_PREFIX + newClassName;
+        String oldInternalName = Table.getTableNameForClass(oldClassName);
+        String newInternalName = Table.getTableNameForClass(newClassName);
         checkHasTable(oldClassName, "Cannot rename class because it doesn't exist in this Realm: " + oldClassName);
         if (realm.getSharedRealm().hasTable(newInternalName)) {
             throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
@@ -186,8 +181,7 @@ class StandardRealmSchema extends RealmSchema {
             table.setPrimaryKey(pkField);
         }
 
-        StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
-        return new StandardRealmObjectSchema(realm, table, columnIndices);
+        return new StandardRealmObjectSchema(realm, this, table);
     }
 
     private void checkEmpty(String str, String error) {
@@ -197,7 +191,7 @@ class StandardRealmSchema extends RealmSchema {
     }
 
     private void checkHasTable(String className, String errorMsg) {
-        String internalTableName = TABLE_PREFIX + className;
+        String internalTableName = Table.getTableNameForClass(className);
         if (!realm.getSharedRealm().hasTable(internalTableName)) {
             throw new IllegalArgumentException(errorMsg);
         }
@@ -205,15 +199,15 @@ class StandardRealmSchema extends RealmSchema {
 
     @Override
     Table getTable(String className) {
-        className = Table.TABLE_PREFIX + className;
-        Table table = dynamicClassToTable.get(className);
+        String tableName = Table.getTableNameForClass(className);
+        Table table = dynamicClassToTable.get(tableName);
         if (table != null) { return table; }
 
-        if (!realm.getSharedRealm().hasTable(className)) {
+        if (!realm.getSharedRealm().hasTable(tableName)) {
             throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
         }
-        table = realm.getSharedRealm().getTable(className);
-        dynamicClassToTable.put(className, table);
+        table = realm.getSharedRealm().getTable(tableName);
+        dynamicClassToTable.put(tableName, table);
 
         return table;
     }
@@ -252,29 +246,174 @@ class StandardRealmSchema extends RealmSchema {
         }
         if (classSchema == null) {
             Table table = getTable(clazz);
-            classSchema = new StandardRealmObjectSchema(realm, table, getColumnInfo(originalClass).getIndicesMap());
+            classSchema = new StandardRealmObjectSchema(realm, this, table, getColumnInfo(originalClass));
             classToSchema.put(originalClass, classSchema);
         }
         if (isProxyClass(originalClass, clazz)) {
             // 'clazz' is the proxy class for 'originalClass'.
             classToSchema.put(clazz, classSchema);
         }
+
         return classSchema;
     }
 
     @Override
     StandardRealmObjectSchema getSchemaForClass(String className) {
-        className = Table.TABLE_PREFIX + className;
-        StandardRealmObjectSchema dynamicSchema = dynamicClassToSchema.get(className);
+        String tableName = Table.getTableNameForClass(className);
+        StandardRealmObjectSchema dynamicSchema = dynamicClassToSchema.get(tableName);
         if (dynamicSchema == null) {
-            if (!realm.getSharedRealm().hasTable(className)) {
+            if (!realm.getSharedRealm().hasTable(tableName)) {
                 throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
-            Table table = realm.getSharedRealm().getTable(className);
-            StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
-            dynamicSchema = new StandardRealmObjectSchema(realm, table, columnIndices);
-            dynamicClassToSchema.put(className, dynamicSchema);
+            dynamicSchema = new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName));
+            dynamicClassToSchema.put(tableName, dynamicSchema);
         }
         return dynamicSchema;
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * TODO:
+     * I suspect that choosing the parsing strategy based on whether there is a ref to a ColumnIndices
+     * around or not, is bad architecture.  Almost certainly, there should be a schema that has
+     * ColumnIndices and one that does not and the strategies below should belong to the first
+     * and second, respectively.  --gbm
+     */
+    @Override
+    long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType... validColumnTypes) {
+        return (haveColumnInfo())
+                ? getColumnIndicesCached(table.getClassName(), fieldDescription, validColumnTypes)
+                : getColumnIndicesDynamic(table, fieldDescription, validColumnTypes);
+    }
+
+    private long[][] getColumnIndicesCached(String tableName, String fieldDescription, RealmFieldType... validColumnTypes) {
+        List<String> fields = parseFieldDescription(fieldDescription);
+        int nFields = fields.size();
+        if (nFields <= 0) {
+            throw new IllegalArgumentException("Invalid query: Empty field descriptor");
+        }
+
+        long[][] columnInfo = new long[2][];
+        columnInfo[0] = new long[nFields];
+        columnInfo[1] = new long[nFields];
+
+        String currentTable = tableName;
+
+        ColumnInfo tableInfo;
+        String columnName = null;
+        RealmFieldType columnType = null;
+        long columnIndex;
+        for (int i = 0; i < nFields; i++) {
+            columnName = fields.get(i);
+            if ((columnName == null) || (columnName.length() <= 0)) {
+                throw new IllegalArgumentException(
+                        "Invalid query: Field descriptor contains an empty field.  A field description may not begin with or contain adjacent periods ('.').");
+            }
+
+            tableInfo = getColumnInfo(currentTable);
+            if (tableInfo == null) {
+                throw new IllegalArgumentException(
+                        String.format("Invalid query: table '%s' not found in this schema.", currentTable));
+            }
+
+            columnIndex = tableInfo.getColumnIndex(columnName);
+            if (columnIndex < 0) {
+                throw new IllegalArgumentException(
+                        String.format("Invalid query: field '%s' not found in table '%s'.", columnName, currentTable));
+            }
+
+            columnType = tableInfo.getColumnType(columnName);
+            // all but the last field must be a link type
+            if (i < nFields - 1) {
+                verifyColumnType(currentTable, columnName, columnType, RealmFieldType.OBJECT, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
+                currentTable = tableInfo.getLinkedTable(columnName);
+            }
+
+            //TODO: Remove this as soon as there are tests for LOs.
+            if (columnType == RealmFieldType.LINKING_OBJECTS) {
+                throw new IllegalArgumentException(
+                        String.format("Invalid query: LinkingObjects are not yet supported in queries: '%s.%s'.", columnName, currentTable));
+            }
+
+            columnInfo[0][i] = columnIndex;
+            columnInfo[1][i] = (columnType != RealmFieldType.LINKING_OBJECTS)
+                    ? NativeObject.NULLPTR
+                    : getNativeTablePtr(currentTable);
+        }
+
+        verifyColumnType(tableName, columnName, columnType, validColumnTypes);
+
+        return columnInfo;
+    }
+
+    // Backlinks are not supported here.
+    private long[][] getColumnIndicesDynamic(Table table, String fieldDescription, RealmFieldType... validColumnTypes) {
+        List<String> fields = parseFieldDescription(fieldDescription);
+        int nFields = fields.size();
+        if (nFields <= 0) {
+            throw new IllegalArgumentException("Invalid query: Empty field descriptor");
+        }
+
+        long[][] columnInfo = new long[2][];
+        columnInfo[0] = new long[nFields];
+        columnInfo[1] = new long[nFields];
+
+        Table currentTable = table;
+
+        String tableName = null;
+        String columnName = null;
+        RealmFieldType columnType = null;
+        long columnIndex;
+        for (int i = 0; i < nFields; i++) {
+            columnName = fields.get(i);
+            if ((columnName == null) || (columnName.length() <= 0)) {
+                throw new IllegalArgumentException(
+                        "Invalid query: Field descriptor contains an empty field.  A field description may not begin with or contain adjacent periods ('.').");
+            }
+            // "Invalid query:  field descriptor '" + fieldDescription + "': "
+
+            tableName = currentTable.getClassName();
+
+            columnIndex = currentTable.getColumnIndex(columnName);
+            if (columnIndex < 0) {
+                throw new IllegalArgumentException(
+                        String.format("Invalid query: field '%s' not found in table '%s'.", columnName, tableName));
+            }
+
+            columnType = currentTable.getColumnType(columnIndex);
+            // all but the last field must be a link type
+            if (i < nFields - 1) {
+                verifyColumnType(tableName, columnName, columnType, RealmFieldType.OBJECT, RealmFieldType.LIST);
+                currentTable = currentTable.getLinkTarget(columnIndex);
+            }
+
+            columnInfo[0][i] = columnIndex;
+            columnInfo[1][i] = NativeObject.NULLPTR;
+        }
+
+        verifyColumnType(tableName, columnName, columnType, validColumnTypes);
+
+        return columnInfo;
+    }
+
+    private void verifyColumnType(String tableName, String columnName, RealmFieldType columnType, RealmFieldType... validColumnTypes) {
+        if ((validColumnTypes == null) || (validColumnTypes.length <= 0)) {
+            return;
+        }
+
+        for (int i = 0; i < validColumnTypes.length; i++) {
+            if (validColumnTypes[i] == columnType) {
+                return;
+            }
+        }
+
+        throw new IllegalArgumentException(String.format(
+                "Invalid query: field '%s' in table '%s' is of invalid type '%s'.",
+                columnName, tableName, columnType.toString()));
+    }
+
+    private long getNativeTablePtr(String targetTable) {
+        return getTable(targetTable).getNativePtr();
     }
 }

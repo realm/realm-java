@@ -55,6 +55,8 @@ public class CollectionTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
+    private final long[] oneNullTable = new long[] {NativeObject.NULLPTR};
+
     private RealmConfiguration config;
     private SharedRealm sharedRealm;
     private Table table;
@@ -166,8 +168,8 @@ public class CollectionTests {
     @Test
     public void where() {
         Collection collection = new Collection(sharedRealm, table.where());
-        Collection collection2 = new Collection(sharedRealm, collection.where().equalTo(new long[]{0}, "John"));
-        Collection collection3 =new Collection(sharedRealm, collection2.where().equalTo(new long[]{1}, "Anderson"));
+        Collection collection2 = new Collection(sharedRealm, collection.where().equalTo(new long[] {0}, oneNullTable, "John"));
+        Collection collection3 = new Collection(sharedRealm, collection2.where().equalTo(new long[] {1}, oneNullTable, "Anderson"));
 
         // A new native Results should be created.
         assertTrue(collection.getNativePtr() != collection2.getNativePtr());
@@ -180,7 +182,7 @@ public class CollectionTests {
 
     @Test
     public void sort() {
-        Collection collection = new Collection(sharedRealm, table.where().greaterThan(new long[]{2}, 1));
+        Collection collection = new Collection(sharedRealm, table.where().greaterThan(new long[] {2}, oneNullTable, 1));
         SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
 
         Collection collection2 = collection.sort(sortDescriptor);
@@ -230,7 +232,7 @@ public class CollectionTests {
 
     @Test
     public void distinct() {
-        Collection collection = new Collection(sharedRealm, table.where().lessThan(new long[]{2}, 4));
+        Collection collection = new Collection(sharedRealm, table.where().lessThan(new long[] {2}, oneNullTable, 4));
 
         SortDescriptor distinctDescriptor = new SortDescriptor(table, new long[] {2});
         Collection collection2 = collection.distinct(distinctDescriptor);

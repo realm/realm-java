@@ -39,6 +39,7 @@ import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
+
 @RunWith(AndroidJUnit4.class)
 public class SortDescriptorTests {
     @Rule
@@ -111,7 +112,7 @@ public class SortDescriptorTests {
         table.addSearchIndex(intColumn);
 
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForDistinct(table, new String[] {
-               stringType.name(), intType.name()});
+                stringType.name(), intType.name()});
         assertEquals(2, sortDescriptor.getColumnIndices().length);
         assertNull(sortDescriptor.getAscendings());
         assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
@@ -122,20 +123,7 @@ public class SortDescriptorTests {
 
     @Test
     public void getInstanceForDistinct_shouldThrowOnInvalidField() {
-        List<RealmFieldType> types = new ArrayList<RealmFieldType>();
-        for (RealmFieldType type : RealmFieldType.values()) {
-            if (!SortDescriptor.validFieldTypesForDistinct.contains(type) &&
-                    type != RealmFieldType.UNSUPPORTED_DATE &&
-                    type != RealmFieldType.UNSUPPORTED_TABLE &&
-                    type != RealmFieldType.UNSUPPORTED_MIXED) {
-                if (type == RealmFieldType.LIST || type == RealmFieldType.OBJECT) {
-                    table.addColumnLink(type, type.name(), table);
-                } else {
-                    table.addColumn(type, type.name());
-                }
-                types.add(type);
-            }
-        }
+        List<RealmFieldType> types = getValidFieldTypes(SortDescriptor.validFieldTypesForDistinct);
 
         for (RealmFieldType type : types) {
             try {
@@ -217,26 +205,13 @@ public class SortDescriptorTests {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Number of fields and sort orders do not match.");
         SortDescriptor.getInstanceForSort(table,
-                new String[] { stringType.name(), intType.name()}, new Sort[] {Sort.ASCENDING});
+                new String[] {stringType.name(), intType.name()}, new Sort[] {Sort.ASCENDING});
 
     }
 
     @Test
     public void getInstanceForSort_shouldThrowOnInvalidField() {
-        List<RealmFieldType> types = new ArrayList<RealmFieldType>();
-        for (RealmFieldType type : RealmFieldType.values()) {
-            if (!SortDescriptor.validFieldTypesForSort.contains(type) &&
-                    type != RealmFieldType.UNSUPPORTED_DATE &&
-                    type != RealmFieldType.UNSUPPORTED_TABLE&&
-                    type != RealmFieldType.UNSUPPORTED_MIXED) {
-                if (type == RealmFieldType.LIST || type == RealmFieldType.OBJECT) {
-                    table.addColumnLink(type, type.name(), table);
-                } else {
-                    table.addColumn(type, type.name());
-                }
-                types.add(type);
-            }
-        }
+        List<RealmFieldType> types = getValidFieldTypes(SortDescriptor.validFieldTypesForSort);
 
         for (RealmFieldType type : types) {
             try {
@@ -258,5 +233,29 @@ public class SortDescriptorTests {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("is not a supported link field");
         SortDescriptor.getInstanceForSort(table, String.format("%s.%s", listType.name(), type.name()), Sort.ASCENDING);
+    }
+
+    private List<RealmFieldType> getValidFieldTypes(List<RealmFieldType> filter) {
+        List<RealmFieldType> types = new ArrayList<>();
+        for (RealmFieldType type : RealmFieldType.values()) {
+            if (!filter.contains(type)) {
+                switch (type) {
+                    case UNSUPPORTED_DATE:
+                    case UNSUPPORTED_TABLE:
+                    case UNSUPPORTED_MIXED:
+                    case LINKING_OBJECTS: // TODO: should be supported?s
+                        break;
+                    case LIST:
+                    case OBJECT:
+                        table.addColumnLink(type, type.name(), table);
+                        types.add(type);
+                        break;
+                    default:
+                        table.addColumn(type, type.name());
+                        types.add(type);
+                }
+            }
+        }
+        return types;
     }
 }

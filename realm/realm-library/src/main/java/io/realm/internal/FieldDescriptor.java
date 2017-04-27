@@ -22,6 +22,7 @@ import io.realm.RealmFieldType;
 
 /**
  * Class describing a single field possible several links away.
+ * TODO: The methods getColumnIndice and sparseFieldDescription from RealmSchema should be integrated here
  */
 public class FieldDescriptor {
 
