@@ -180,10 +180,10 @@ public class NotificationsTest {
 
     @Test
     public void notificationsNumber() throws InterruptedException, ExecutionException {
+        final CountDownLatch isReady = new CountDownLatch(1);
+        final CountDownLatch isRealmOpen = new CountDownLatch(1);
         final AtomicInteger counter = new AtomicInteger(0);
-        final AtomicBoolean isReady = new AtomicBoolean(false);
         final Looper[] looper = new Looper[1];
-        final AtomicBoolean isRealmOpen = new AtomicBoolean(true);
         final RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
@@ -201,12 +201,12 @@ public class NotificationsTest {
                     looper[0] = Looper.myLooper();
                     realm = Realm.getInstance(realmConfig);
                     realm.addChangeListener(listener);
-                    isReady.set(true);
+                    isReady.countDown();
                     Looper.loop();
                 } finally {
                     if (realm != null) {
                         realm.close();
-                        isRealmOpen.set(false);
+                        isRealmOpen.countDown();
                     }
                 }
                 return true;
@@ -214,10 +214,7 @@ public class NotificationsTest {
         });
 
         // Waits until the looper in the background thread is started.
-        while (!isReady.get()) {
-            Thread.sleep(5);
-        }
-        Thread.sleep(100);
+        TestHelper.awaitOrFail(isReady);
 
         // Triggers OnRealmChanged on background thread.
         realm = Realm.getInstance(realmConfig);
@@ -235,9 +232,7 @@ public class NotificationsTest {
         }
 
         // Waits until the Looper thread is actually closed.
-        while (isRealmOpen.get()) {
-            Thread.sleep(5);
-        }
+        TestHelper.awaitOrFail(isRealmOpen);
 
         assertEquals(1, counter.get());
         RealmCache.invokeWithGlobalRefCount(realmConfig, new TestHelper.ExpectedCountCallback(0));
@@ -262,7 +257,8 @@ public class NotificationsTest {
                 if (dogs.size() != 0) {
                     return false;
                 }
-                addHandlerMessages.await(1, TimeUnit.SECONDS); // Wait for main thread to add update messages.
+                // Wait for main thread to add update messages.
+                addHandlerMessages.await(TestHelper.VERY_SHORT_WAIT_SECS, TimeUnit.SECONDS);
 
                 // Creates a Handler for the thread now. All message and references for the notification handler will be
                 // cleared once we call close().
@@ -292,7 +288,7 @@ public class NotificationsTest {
         });
 
         // Waits until the looper is started on a background thread.
-        backgroundLooperStarted.await(1, TimeUnit.SECONDS);
+        backgroundLooperStarted.await(TestHelper.VERY_SHORT_WAIT_SECS, TimeUnit.SECONDS);
 
         // Executes a transaction that will trigger a Realm update.
         Realm realm = Realm.getInstance(realmConfig);
@@ -544,8 +540,8 @@ public class NotificationsTest {
         realm.commitTransaction();
         // Any REALM_CHANGED message should now only reach the open Handler on Thread1.
         try {
-            // TODO: Waiting 5 seconds is not a reliable condition. Figure out a better way for this.
-            if (!handlerNotified.await(5, TimeUnit.SECONDS)) {
+            // TODO: Waiting a few seconds is not a reliable condition. Figure out a better way for this.
+            if (!handlerNotified.await(TestHelper.SHORT_WAIT_SECS,  TimeUnit.SECONDS)) {
                 fail("Handler didn't receive message");
             }
         } finally {
@@ -573,11 +569,8 @@ public class NotificationsTest {
                 realm.setAutoRefresh(false);
                 TestHelper.quitLooperOrFail();
                 backgroundLooperStartedAndStopped.countDown();
-                try {
-                    mainThreadCommitCompleted.await();
-                } catch (InterruptedException e) {
-                    fail("Thread interrupted"); // This will prevent backgroundThreadStopped from being called.
-                }
+                // This will prevent backgroundThreadStopped from being called.
+                TestHelper.awaitOrFail(mainThreadCommitCompleted);
                 realm.close();
                 backgroundThreadStopped.countDown();
             }

@@ -70,12 +70,12 @@ public class RealmQueryTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
-    protected final static int TEST_DATA_SIZE = 10;
-    protected final static int TEST_NO_PRIMARY_KEY_NULL_TYPES_SIZE = 200;
+    private final static int TEST_DATA_SIZE = 10;
+    private final static int TEST_NO_PRIMARY_KEY_NULL_TYPES_SIZE = 200;
 
     private final static long DECADE_MILLIS = 10 * TimeUnit.DAYS.toMillis(365);
 
-    protected Realm realm;
+    private Realm realm;
 
     @Before
     public void setUp() throws Exception {
@@ -2624,7 +2624,7 @@ public class RealmQueryTests {
             thread.start();
         }
 
-        latch.await();
+        TestHelper.awaitOrFail(latch);
     }
 
     @Test
