@@ -53,7 +53,7 @@ public class LinkingObjectsUnmanagedTests {
         }
     }
 
-    // When unmanaged, an object's backlinks fields are null.
+    // When unmanaged, an object's backlinks fields have their initialized value (probably null).
     @Test
     public void copyFromRealm() {
         realm.beginTransaction();

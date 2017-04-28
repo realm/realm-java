@@ -35,7 +35,7 @@ import io.realm.internal.android.JsonUtils;
  */
 @SuppressWarnings("WeakerAccess")
 public class DynamicRealmObject extends RealmObject implements RealmObjectProxy {
-    static final String MSG_LINK_QUERY_NOT_SUPPORTED = "Field name must not contain '.'";
+    static final String MSG_LINK_QUERY_NOT_SUPPORTED = "Queries across relationships are not supported";
 
     private final ProxyState proxyState = new ProxyState(this);
 
