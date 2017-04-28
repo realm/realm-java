@@ -97,6 +97,7 @@ public class RealmConfiguration {
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
+    private final boolean readOnly;
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
@@ -111,7 +112,8 @@ public class RealmConfiguration {
             SharedRealm.Durability durability,
             RealmProxyMediator schemaMediator,
             RxObservableFactory rxObservableFactory,
-            Realm.Transaction initialDataTransaction) {
+            Realm.Transaction initialDataTransaction,
+            boolean readOnly) {
         this.realmDirectory = realmDirectory;
         this.realmFileName = realmFileName;
         this.canonicalPath = canonicalPath;
@@ -124,6 +126,7 @@ public class RealmConfiguration {
         this.schemaMediator = schemaMediator;
         this.rxObservableFactory = rxObservableFactory;
         this.initialDataTransaction = initialDataTransaction;
+        this.readOnly = readOnly;
     }
 
     public File getRealmDirectory() {
@@ -218,6 +221,15 @@ public class RealmConfiguration {
                     " See https://realm.io/docs/java/latest/#rxjava for more details.");
         }
         return rxObservableFactory;
+    }
+
+    /**
+     * Returns whether this Realm is read only or not.
+     *
+     * @return {@code true} if this Realm is read only, {@code false} if not.
+     */
+    public boolean isReadOnly() {
+        return readOnly;
     }
 
     @Override
@@ -387,6 +399,7 @@ public class RealmConfiguration {
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
+        private boolean readOnly;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -416,6 +429,7 @@ public class RealmConfiguration {
             this.migration = null;
             this.deleteRealmIfMigrationNeeded = false;
             this.durability = SharedRealm.Durability.FULL;
+            this.readOnly = false;
             if (DEFAULT_MODULE != null) {
                 this.modules.add(DEFAULT_MODULE);
             }
@@ -605,9 +619,31 @@ public class RealmConfiguration {
          * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
          *
          * @param assetFile path to the asset database file.
+         * an {@link IllegalStateException}.
          * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
         public Builder assetFile(final String assetFile) {
+            return assetFile(assetFile, false);
+        }
+
+        /**
+         * Copies the Realm file from the given asset file path.
+         * <p>
+         * When opening the Realm for the first time, instead of creating an empty file,
+         * the Realm file will be copied from the provided asset file and used instead.
+         * <p>
+         * <p>This cannot be configured to clear and recreate schema by calling {@link #deleteRealmIfMigrationNeeded()}
+         * at the same time as doing so will delete the copied asset schema.
+         * <p>
+         * <p>
+         * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
+         *
+         * @param assetFile path to the asset database file.
+         * @param readOnly if {@code true} no changes can be made to the Realm once copied. All write transactions will
+         * fail with an {@link IllegalStateException}.
+         * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
+         */
+        public Builder assetFile(final String assetFile, boolean readOnly) {
             if (TextUtils.isEmpty(assetFile)) {
                 throw new IllegalArgumentException("A non-empty asset file path must be provided");
             }
@@ -619,6 +655,7 @@ public class RealmConfiguration {
             }
 
             this.assetFilePath = assetFile;
+            this.readOnly = readOnly;
 
             return this;
         }
@@ -670,7 +707,8 @@ public class RealmConfiguration {
                     durability,
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
-                    initialDataTransaction
+                    initialDataTransaction,
+                    readOnly
             );
         }
 

@@ -91,6 +91,7 @@ public class SyncConfiguration extends RealmConfiguration {
                                 RealmProxyMediator schemaMediator,
                                 RxObservableFactory rxFactory,
                                 Realm.Transaction initialDataTransaction,
+                                boolean readOnly,
                                 SyncUser user,
                                 URI serverUrl,
                                 SyncSession.ErrorHandler errorHandler,
@@ -107,7 +108,8 @@ public class SyncConfiguration extends RealmConfiguration {
                 durability,
                 schemaMediator,
                 rxFactory,
-                initialDataTransaction
+                initialDataTransaction,
+                readOnly
         );
 
         this.user = user;
@@ -237,6 +239,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
         private boolean deleteRealmOnLogout = false;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
+        private boolean readOnly = false;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
@@ -539,6 +542,9 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param transaction transaction to execute.
          */
         public Builder initialData(Realm.Transaction transaction) {
+            if (readOnly) {
+                throw new IllegalStateException("initialData(Transaction) cannot be combined with readOnly().");
+            }
             initialDataTransaction = transaction;
             return this;
         }
@@ -570,6 +576,24 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("Non-null 'errorHandler' required.");
             }
             this.errorHandler = errorHandler;
+            return this;
+        }
+
+        /**
+         * Setting this will cause the Realm to become read only and all write transactions made against this Realm will
+         * fail with an {@link IllegalStateException}.
+         * <p>
+         * This in particular mean that {@link #initialData(Realm.Transaction)} will not work in combination with a
+         * read only Realm and setting this will result in a {@link IllegalStateException} being thrown.
+         * </p>
+         * Marking a Realm as read only only applies to the Realm in this process. Other processes or devices can still
+         * write to the Realm.
+         */
+        public Builder readOnly() {
+            if (initialDataTransaction != null) {
+                throw new IllegalStateException("readOnly() cannot be combined with initialData(Transaction).");
+            }
+            this.readOnly = true;
             return this;
         }
 
@@ -680,6 +704,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
                     initialDataTransaction,
+                    readOnly,
 
                     // Sync Configuration specific
                     user,
