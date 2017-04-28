@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.lang.reflect.Field;
 import java.util.Locale;
 
 import io.realm.entities.AllJavaTypes;
@@ -87,9 +86,7 @@ public class LinkingObjectsDynamicTests {
             object.linkingObjects(null, AllJavaTypes.FIELD_INT);
             fail();
         } catch (IllegalArgumentException expected) {
-            final Field messageField = StandardRealmSchema.class.getDeclaredField("EMPTY_STRING_MSG");
-            messageField.setAccessible(true);
-            assertEquals(messageField.get(null), expected.getMessage());
+            assertEquals(StandardRealmSchema.EMPTY_STRING_MSG, expected.getMessage());
         }
     }
 
@@ -165,9 +162,7 @@ public class LinkingObjectsDynamicTests {
             object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_OBJECT);
             fail();
         } catch (IllegalArgumentException expected) {
-            final Field expectedMessageField = DynamicRealmObject.class.getDeclaredField("MSG_LINK_QUERY_NOT_SUPPORTED");
-            expectedMessageField.setAccessible(true);
-            assertEquals(expectedMessageField.get(null), expected.getMessage());
+            assertEquals(DynamicRealmObject.MSG_LINK_QUERY_NOT_SUPPORTED, expected.getMessage());
         }
     }
 
