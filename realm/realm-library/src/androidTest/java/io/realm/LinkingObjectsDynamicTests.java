@@ -217,7 +217,7 @@ public class LinkingObjectsDynamicTests {
     }
 
     @Test
-    public void linkingObjects_OBJECT_definedInModel() {
+    public void linkingObjects_linkedByOBJECT_backlinksDefinedInModel() {
         final int numSourceOfTarget1 = 3;
         final int numSourceOfTarget2 = 2;
         realm.executeTransaction(new Realm.Transaction() {
@@ -276,7 +276,7 @@ public class LinkingObjectsDynamicTests {
     }
 
     @Test
-    public void linkingObjects_OBJECT_notDefinedInModel() {
+    public void linkingObjects_linkedByOBJECT_backlinksNotDefinedInModel() {
         final int numOwnersOfCat1 = 3;
         final int numOwnersOfCat2 = 2;
         realm.executeTransaction(new Realm.Transaction() {
@@ -335,7 +335,7 @@ public class LinkingObjectsDynamicTests {
     }
 
     @Test
-    public void linkingObjects_LIST() {
+    public void linkingObjects_linkedByLIST() {
         //           source100          source200        source300
         //            //    \\          \\ || //
         //        target1   target2     target2
