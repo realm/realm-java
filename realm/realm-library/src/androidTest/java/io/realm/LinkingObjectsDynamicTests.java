@@ -486,7 +486,6 @@ public class LinkingObjectsDynamicTests {
     }
 
     @Test
-    @Ignore
     public void dynamicQuery_invalidSyntax() {
         String[] invalidBacklinks = new String[] {
             "linkingObject(x",
