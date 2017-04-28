@@ -929,10 +929,13 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     /**
      * Returns {@link RealmResults} containing all {@code srcClassName} class objects that have a relationship
      * to this object from {@code srcFieldName} field.
+     * <p>
+     * An entry is added for each reference, e.g. if the same reference is in a list multiple times,
+     * the src object will show up here multiple times.
      *
      * @param srcClassName name of the class returned objects belong to.
-     * @param srcFieldName name of the field to use. Field type must be either {@code io.realm.RealmFieldType.OBJECT} or
-     * {@code io.realm.RealmFieldType.LIST}.
+     * @param srcFieldName name of the field in the source class that holds a reference to this object.
+     *                    Field type must be either {@code io.realm.RealmFieldType.OBJECT} or {@code io.realm.RealmFieldType.LIST}.
      * @return the result.
      */
     public RealmResults<DynamicRealmObject> linkingObjects(String srcClassName, String srcFieldName) {
