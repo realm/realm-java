@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.util.Log;
+
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -329,7 +331,6 @@ class StandardRealmSchema extends RealmSchema {
                 verifyColumnType(currentTable, columnName, columnType, RealmFieldType.OBJECT, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
                 currentTable = tableInfo.getLinkedTable(columnName);
             }
-
             columnInfo[0][i] = columnIndex;
             columnInfo[1][i] = (columnType != RealmFieldType.LINKING_OBJECTS)
                     ? NativeObject.NULLPTR

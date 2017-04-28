@@ -1988,26 +1988,28 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void isNull_unsupportedTypes() {
+        long result;
+
         // 13 List
         try {
-            assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_LIST_NULL).count());
-            fail("isNull is unsupported on type LIST(13)");
+            result = realm.where(NullTypes.class).isNull(NullTypes.FIELD_LIST_NULL).count();
+            fail("isNull should throw on type LIST(13)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList([fieldListNull]) is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: RealmList(fieldListNull) is not nullable.", expected.getMessage());
         }
 
         // 14 Linking Objects
         try {
-            assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_LO_OBJECT_NULL).count());
-            fail("isNull is unsupported on type LINKING_OBJECT(14) targeting an OBJECT");
+            result = realm.where(NullTypes.class).isNull(NullTypes.FIELD_LO_OBJECT).count();
+            fail("isNull should throw on type LINKING_OBJECT(14) targeting an OBJECT");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: LinkingObject from field fieldObjectNull is not nullable.", expected.getMessage());
         }
         try {
-            assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_LO_LIST_NULL).count());
-            fail("isNull is unsupported on type LINKING_OBJECT(14) targeting a LIST");
+            result = realm.where(NullTypes.class).isNull(NullTypes.FIELD_LO_LIST).count();
+            fail("isNull should throw on type LINKING_OBJECT(14) targeting a LIST");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: LinkingObject from field fieldListNull is not nullable.", expected.getMessage());
         }
     }
 
@@ -2080,26 +2082,28 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void isNotNull_unsupportedTypes() {
+        long result;
+
         // 13 List
         try {
-            assertEquals(1, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LIST_NULL).count());
-            fail("isNull is unsupported on type LIST(13)");
+            result = realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LIST_NULL).count();
+            fail("isNotNull should throw on type LIST(13)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList([fieldListNull]) is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: RealmList(fieldListNull) is not nullable.", expected.getMessage());
         }
 
         // 14 Linking Objects
         try {
-            assertEquals(1, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LO_OBJECT_NULL).count());
-            fail("isNull is unsupported on type LINKING_OBJECT(14) targeting an OBJECT");
+            result = realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LO_OBJECT).count();
+            fail("isNotNull should throw on type LINKING_OBJECT(14) targeting an OBJECT");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: LinkingObject from field fieldObjectNull is not nullable.", expected.getMessage());
         }
         try {
-            assertEquals(1, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LO_LIST_NULL).count());
-            fail("isNull is unsupported on type LINKING_OBJECT(14) targeting a LIST");
+            result = realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LO_LIST).count();
+            fail("isNotNull should throw on type LINKING_OBJECT(14) targeting a LIST");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: LinkingObject from field fieldListNull is not nullable.", expected.getMessage());
         }
     }
 
@@ -2548,6 +2552,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void isNull_unsupportedLinkedTypes() {
+        RealmQuery<NullTypes> result;
+
         // FIXME
         // Core now supports `isNull` on nested link fields: https://github.com/realm/realm-cocoa/pull/4743
         // tracked in https://github.com/realm/realm-java/issues/4529
@@ -2555,32 +2561,32 @@ public class RealmQueryTests extends QueryTests {
         //assertEquals(1, realm.where(NullTypes.class).isNull(
         //        NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count());
         try {
-            realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL);
-            fail("isNull is unsupported on nested linked fields (OBJECT)");
+            result = realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL);
+            fail("isNull should throw on nested linked fields (OBJECT)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: [isNull() by nested query for link field is not supported].", expected.getMessage());
+            assertEquals("Illegal Argument: isNull() by nested query for link field is not supported.", expected.getMessage());
         }
 
         // 13 LIST
         try {
-            realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LIST_NULL);
-            fail("isNull is unsupported on nested linked fields (LIST)");
+            result = realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LIST_NULL);
+            fail("isNull should throw on nested linked fields (LIST)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: RealmList(fieldListNull) is not nullable.", expected.getMessage());
         }
 
         // 14 LINKING OBJECTS
         try {
-            realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_OBJECT_NULL);
-            fail("isNull is unsupported on nested linked fields (LINKING_OBJECT => OBJECT)");
+            result = realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_OBJECT);
+            fail("isNull should throw on nested linked fields (LINKING_OBJECT => OBJECT)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: LinkingObject from field fieldObjectNull is not nullable.", expected.getMessage());
         }
         try {
-            realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_LIST_NULL);
-            fail("isNull is unsupported on nested linked fields (LINKING_OBJECT => LIST)");
+            result = realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_LIST);
+            fail("isNull should throw on nested linked fields (LINKING_OBJECT => LIST)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: LinkingObject from field fieldListNull is not nullable.", expected.getMessage());
         }
     }
 
@@ -2702,6 +2708,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void isNotNull_unsupportedLinkedTypes() {
+        RealmQuery<NullTypes> result;
+
         // FIXME
         // Core now supports `isNotNull` on nested link fields: https://github.com/realm/realm-cocoa/pull/4743
         // tracked in https://github.com/realm/realm-java/issues/4529
@@ -2709,32 +2717,32 @@ public class RealmQueryTests extends QueryTests {
         //assertEquals(1, realm.where(NullTypes.class).isNotNull(
         //        NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count());
         try {
-            realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL);
-            fail("isNull is unsupported on nested linked fields (OBJECT)");
+            result = realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL);
+            fail("isNotNull should throw on nested linked fields (OBJECT)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: [isNotNull() by nested query for link field is not supported].", expected.getMessage());
+            assertEquals("Illegal Argument: isNotNull() by nested query for link field is not supported.", expected.getMessage());
         }
 
         // 13 LIST
         try {
-            realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LIST_NULL);
-            fail("isNull is unsupported on nested linked fields (LIST)");
+            result = realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LIST_NULL);
+            fail("isNotNull should throw on nested linked fields (LIST)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: RealmList(fieldListNull) is not nullable.", expected.getMessage());
         }
 
         // 14 LINKING OBJECTS
         try {
-            realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_OBJECT_NULL);
-            fail("isNull is unsupported on nested linked fields (LINKING_OBJECT => OBJECT)");
+            result = realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_OBJECT);
+            fail("isNotNull should throw on nested linked fields (LINKING_OBJECT => OBJECT)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: LinkingObject from field fieldObjectNull is not nullable.", expected.getMessage());
         }
         try {
-            realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_LIST_NULL);
-            fail("isNull is unsupported on nested linked fields (LINKING_OBJECT => LIST)");
+            result = realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_LIST);
+            fail("isNotNull should throw on nested linked fields (LINKING_OBJECT => LIST)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: LinkingObject from field fieldListNull is not nullable.", expected.getMessage());
         }
     }
 
@@ -2937,6 +2945,7 @@ public class RealmQueryTests extends QueryTests {
         assertFalse(query.isValid());
     }
 
+    // FIXME!!! Fix native isEmpty to handle backlinks.
     @Test
     public void isEmpty() {
         createIsEmptyDataSet(realm);
@@ -2961,6 +2970,7 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
+    // FIXME!!! Fix native isEmpty to handle backlinks.
     @Test
     public void isEmpty_acrossLink() {
         createIsEmptyDataSet(realm);
@@ -3030,6 +3040,7 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
+    // FIXME!!! Fix native isEmpty to handle backlinks.
     @Test
     public void isNotEmpty() {
         createIsNotEmptyDataSet(realm);
@@ -3054,6 +3065,7 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
+    // FIXME!!! Fix native isEmpty to handle backlinks.
     @Test
     public void isNotEmpty_acrossLink() {
         createIsNotEmptyDataSet(realm);

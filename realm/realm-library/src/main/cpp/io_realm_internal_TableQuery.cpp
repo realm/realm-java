@@ -93,6 +93,20 @@ static TableRef getTableByArray(jlong nativeQueryPtr, JniLongArray& indicesArray
     return table_ref;
 }
 
+//FIXME!!! this needs a clue.
+static bool isNullable(JNIEnv* env, Table* src_table_ptr, TableRef table_ref, jlong column_idx)
+{
+    // if table_arr is not a nullptr, this is a backlink and not allowed.
+    if (src_table_ptr != nullptr) {
+        ThrowException(env, IllegalArgument, "LinkingObject from field " + std::string(src_table_ptr->get_column_name(column_idx)) + " is not nullable.");
+        return false;
+    }
+    if (!TBL_AND_COL_NULLABLE(env, table_ref.get(), column_idx)) {
+        return false;
+    }
+    return true;
+}
+
 template <typename coretype, typename cpptype, typename javatype>
 Query numeric_link_equal(TableRef tbl, jlong columnIndex, javatype value)
 {
@@ -1482,7 +1496,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
         TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
         jlong column_idx = index_arr[arr_len - 1];
         TableRef table_ref = getTableByArray(nativeQueryPtr, index_arr);
-        if (!TBL_AND_COL_NULLABLE(env, table_ref.get(), column_idx)) {
+
+        if (!isNullable(env, TBL(table_arr[arr_len - 1]), table_ref, column_idx)) {
             return;
         }
 
@@ -1592,6 +1607,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery(JN
 }
 
 
+
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv* env, jobject, jlong nativeQueryPtr,
                                                                          jlongArray columnIndexes,
                                                                          jlongArray tablePointers)
@@ -1605,7 +1621,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
         jlong column_idx = index_arr[arr_len - 1];
         TableRef table_ref = getTableByArray(nativeQueryPtr, index_arr);
 
-        if (!TBL_AND_COL_NULLABLE(env, table_ref.get(), column_idx)) {
+        if (!isNullable(env, TBL(table_arr[arr_len - 1]), table_ref, column_idx)) {
             return;
         }
 

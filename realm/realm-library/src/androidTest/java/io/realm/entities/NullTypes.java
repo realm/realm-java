@@ -63,8 +63,8 @@ public class NullTypes extends RealmObject {
     public static final String FIELD_DATE_NULL = "fieldDateNull";
     public static final String FIELD_OBJECT_NULL = "fieldObjectNull";
     public static final String FIELD_LIST_NULL = "fieldListNull";
-    public static final String FIELD_LO_OBJECT_NULL = "objectParentsNull";
-    public static final String FIELD_LO_LIST_NULL = "listParentsNull";
+    public static final String FIELD_LO_OBJECT = "objectParents";
+    public static final String FIELD_LO_LIST = "listParents";
 
     @PrimaryKey
     private int id;
@@ -111,14 +111,16 @@ public class NullTypes extends RealmObject {
 
     private NullTypes fieldObjectNull;
 
+    // never nullable
     private RealmList<NullTypes> fieldListNull;
 
+    // never nullable
     @LinkingObjects(FIELD_OBJECT_NULL)
-    private final RealmResults<NullTypes> objectParentsNull = null;
+    private final RealmResults<NullTypes> objectParents = null;
 
+    // never nullable
     @LinkingObjects(FIELD_LIST_NULL)
-    private final RealmResults<NullTypes> listParentsNull = null;
-
+    private final RealmResults<NullTypes> listParents = null;
 
     public int getId() {
         return id;
@@ -302,5 +304,13 @@ public class NullTypes extends RealmObject {
 
     public void setFieldListNull(RealmList<NullTypes> fieldListNull) {
         this.fieldListNull = fieldListNull;
+    }
+
+    public RealmResults<NullTypes> getObjectParents() {
+        return objectParents;
+    }
+
+    public RealmResults<NullTypes> getListParents() {
+        return listParents;
     }
 }
