@@ -20,7 +20,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -461,7 +460,6 @@ public class LinkingObjectsDynamicTests {
                 source.setChild(target1);
             }
         });
-
 
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
         try {
