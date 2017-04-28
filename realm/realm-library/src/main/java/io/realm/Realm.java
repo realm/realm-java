@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -387,30 +388,35 @@ public class Realm extends BaseRealm {
         // the Realm is initialized.
         boolean commitChanges = false;
         try {
-            realm.beginTransaction();
+            realm.beginTransaction(true);
             long currentVersion = realm.getVersion();
             boolean unversioned = currentVersion == UNVERSIONED;
             commitChanges = unversioned;
 
             RealmConfiguration configuration = realm.getConfiguration();
 
-            if (unversioned) {
-                realm.setVersion(configuration.getSchemaVersion());
-            }
+            // Only allow creating the schema if not in read-only mode
+            Set<Class<? extends RealmModel>> modelClasses = Collections.emptySet();
+            RealmProxyMediator mediator = null;
+            if (!configuration.isReadOnly()) {
+                if (unversioned) {
+                    realm.setVersion(configuration.getSchemaVersion());
+                }
 
-            final RealmProxyMediator mediator = configuration.getSchemaMediator();
-            final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
+                mediator = configuration.getSchemaMediator();
+                modelClasses = mediator.getModelClasses();
 
-            if (unversioned) {
-                // Create all of the tables.
-                for (Class<? extends RealmModel> modelClass : modelClasses) {
-                    mediator.createRealmObjectSchema(modelClass, realm.getSchema());
+                if (unversioned) {
+                    // Create all of the tables.
+                    for (Class<? extends RealmModel> modelClass : modelClasses) {
+                        mediator.createRealmObjectSchema(modelClass, realm.getSchema());
+                    }
                 }
             }
 
+            // Now that they have all been created, validate them.
             final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
-                // Now that they have all been created, validate them.
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
@@ -418,7 +424,7 @@ public class Realm extends BaseRealm {
                     (unversioned) ? configuration.getSchemaVersion() : currentVersion,
                     columnInfoMap);
 
-            if (unversioned) {
+            if (unversioned && configuration.isReadOnly()) {
                 final Transaction transaction = configuration.getInitialDataTransaction();
                 if (transaction != null) {
                     transaction.execute(realm);
@@ -431,7 +437,9 @@ public class Realm extends BaseRealm {
             if (commitChanges) {
                 realm.commitTransaction();
             } else {
-                realm.cancelTransaction();
+                if (realm.isInTransaction()) {
+                    realm.cancelTransaction();
+                }
             }
         }
     }

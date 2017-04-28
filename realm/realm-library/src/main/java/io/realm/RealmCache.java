@@ -126,7 +126,7 @@ final class RealmCache {
         if (refAndCount.globalCount == 0) {
             SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
             if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
-                sharedRealm.beginTransaction();
+                sharedRealm.beginTransaction(true);
                 if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
                     sharedRealm.commitTransaction();
                 } else {

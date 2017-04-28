@@ -48,7 +48,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -62,7 +61,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -3976,5 +3974,32 @@ public class RealmTests {
         } catch (IllegalStateException ignored) {
         }
         realm.cancelTransaction();
+    }
+
+    @Test
+    public void beginTransaction_readOnlyThrows() {
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .name("readonly.realm")
+                .schema(StringOnly.class)
+                .assetFile("readonly.realm", true)
+                .build();
+        realm = Realm.getInstance(config);
+
+        thrown.expect(IllegalStateException.class);
+        realm.beginTransaction();
+    }
+
+    @Test
+    public void getInstance_wrongSchemaInReadonlyThrows() {
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .name("readonly.realm")
+                .schema(StringOnly.class, AllJavaTypes.class)
+                .assetFile("readonly.realm", true)
+                .build();
+
+        // This will throw because the Realm doesn't have the correct schema, and a new file cannot be re-created
+        // because it is read only.
+        thrown.expect(IllegalStateException.class);
+        realm = Realm.getInstance(config);
     }
 }

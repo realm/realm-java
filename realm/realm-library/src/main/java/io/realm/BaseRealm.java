@@ -323,8 +323,12 @@ abstract class BaseRealm implements Closeable {
      * incompatible schema changes.
      */
     public void beginTransaction() {
+        beginTransaction(false);
+    }
+
+    void beginTransaction(boolean ignoreReadOnly) {
         checkIfValid();
-        sharedRealm.beginTransaction();
+        sharedRealm.beginTransaction(ignoreReadOnly);
     }
 
     /**
