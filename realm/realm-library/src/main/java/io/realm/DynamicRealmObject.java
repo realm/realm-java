@@ -70,7 +70,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         proxyState.setConstructionFinished();
     }
 
-    // row must not be an instance of UncheckedRow
+    // row must be an instance of CheckedRow or InvalidRow
     DynamicRealmObject(BaseRealm realm, Row row) {
         proxyState.setRealm$realm(realm);
         proxyState.setRow$realm(row);
@@ -966,7 +966,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     RealmFieldType.OBJECT.name(), RealmFieldType.LIST.name()));
         }
 
-        return RealmResults.createBacklinkResults(realm, proxyState.getRow$realm(), realmObjectSchema.getTable(), srcFieldName);
+        return RealmResults.createBacklinkResults(realm, (CheckedRow) proxyState.getRow$realm(), realmObjectSchema.getTable(), srcFieldName);
     }
 
     @Override
