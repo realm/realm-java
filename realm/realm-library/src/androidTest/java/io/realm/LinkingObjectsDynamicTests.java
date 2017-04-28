@@ -340,7 +340,6 @@ public class LinkingObjectsDynamicTests {
         //            //    \\          \\ || //
         //        target1   target2     target2
         //
-        //  /  = object ref
         //  // = list ref
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -378,7 +377,6 @@ public class LinkingObjectsDynamicTests {
         // tests sources of target2
         final RealmResults<DynamicRealmObject> target2Sources = target2.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_LIST);
         assertNotNull(target2Sources);
-        // TODO Is ↓ an expected behavior?
         // if a source (in this test, source200) contains multiple references to a target in one RealmList, those must not be aggregated.
         assertEquals(4, target2Sources.size());
         boolean source100Found = false;
