@@ -100,7 +100,7 @@ public class LinkingObjectsDynamicTests {
             object.linkingObjects(AllJavaTypes.CLASS_NAME, null);
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals("Column name can not be null.", expected.getMessage());
+            assertEquals("Non-null 'srcFieldName' required.", expected.getMessage());
         }
     }
 
