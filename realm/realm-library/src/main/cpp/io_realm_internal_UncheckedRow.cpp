@@ -385,11 +385,19 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeHasColumn(J
     return to_jbool(ndx != to_jlong_or_not_found(realm::not_found));
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNull(JNIEnv*, jobject, jlong nativeRowPtr,
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNull(JNIEnv* env, jobject, jlong nativeRowPtr,
                                                                             jlong columnIndex)
 {
     TR_ENTER_PTR(nativeRowPtr)
-    return to_jbool(ROW(nativeRowPtr)->is_null(columnIndex));
+    if (!ROW_VALID(env, ROW(nativeRowPtr))) {
+        return JNI_FALSE;
+    }
+
+    try {
+        return to_jbool(ROW(nativeRowPtr)->is_null(columnIndex));
+    }
+    CATCH_STD()
+    return JNI_FALSE;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull(JNIEnv* env, jobject, jlong nativeRowPtr,

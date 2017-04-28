@@ -6,13 +6,26 @@
 
 * [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).
+* Added `Realm.refresh()` and `DynamicRealm.refresh()` (#3476).
 * Added `DynamicRealmObject#linkingObjects(String,String) to support linking objects on `DynamicRealm` (#4492).
 
 ### Bug Fixes
 
 ### Internal
 
-## 3.1.3 (YYYY-MM-DD)
+## 3.1.4
+
+## Bug fixes
+
+* Added missing row validation check in certain cases on invalidated/deleted objects (#4540).
+* Initializing Realm is now more resilient if `Context.getFilesDir()` isn't working correctly (#4493).
+* `OrderedRealmCollectionSnapshot.get()` returned a wrong object (#4554).
+
+## 3.1.3 (2017-04-20)
+
+### Enhancements
+
+* [ObjectServer] Resume synchronization as soon as the connectivity is back (#4141).
 
 ### Bug Fixes
 
@@ -21,10 +34,13 @@
 * Now throws `IllegalStateException` when a getter of linking objects is called against deleted or not yet loaded `RealmObject`s (#4499).
 * `NullPointerException` caused by local transaction inside the listener of `findFirstAsync()`'s results (#4495).
 * Native crash when adding listeners to `RealmObject` after removing listeners from the same `RealmObject` before (#4502).
+* Native crash with "Invalid argument" error happened on some Android 7.1.1 devices when opening Realm on external storage (#4461).
+* `OrderedRealmCollectionChangeListener` didn't report change ranges correctly when circular link's field changed (#4474).
 
 ### Internal
 
-* Upgraded to Realm Sync 1.5.2.
+* Upgraded to Realm Sync 1.6.0.
+* Upgraded to Realm Core 2.6.1.
 
 ## 3.1.2 (2017-04-12)
 

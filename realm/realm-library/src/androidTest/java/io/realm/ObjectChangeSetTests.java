@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.entities.Owner;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
@@ -75,7 +76,7 @@ public class ObjectChangeSetTests {
                 looperThread.testComplete();
             }
         });
-        looperThread.keepStrongReference.add(allTypes);
+        looperThread.keepStrongReference(allTypes);
     }
 
     private void checkChangedField(AllTypes allTypes, final String... fieldNames) {
@@ -95,7 +96,7 @@ public class ObjectChangeSetTests {
                 looperThread.testComplete();
             }
         });
-        looperThread.keepStrongReference.add(allTypes);
+        looperThread.keepStrongReference(allTypes);
     }
 
     private void listenerShouldNotBeCalled(AllTypes allTypes) {
@@ -116,7 +117,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void objectDeleted() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkDeleted(allTypes);
         realm.beginTransaction();
@@ -127,7 +128,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeLongField() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_LONG);
         realm.beginTransaction();
@@ -138,7 +139,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeStringField() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_STRING);
         realm.beginTransaction();
@@ -149,7 +150,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeFloatField() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_FLOAT);
         realm.beginTransaction();
@@ -160,7 +161,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeDoubleField() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_DOUBLE);
         realm.beginTransaction();
@@ -171,7 +172,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeBooleanField() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_BOOLEAN);
         realm.beginTransaction();
@@ -182,7 +183,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeDateField() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_DATE);
         realm.beginTransaction();
@@ -193,7 +194,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeBinaryField() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_BINARY);
         realm.beginTransaction();
@@ -204,7 +205,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeLinkFieldSetNewObject() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_REALMOBJECT);
         realm.beginTransaction();
@@ -215,7 +216,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeLinkFieldSetNull() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_REALMOBJECT);
         realm.beginTransaction();
@@ -226,7 +227,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeLinkFieldRemoveObject() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_REALMOBJECT);
         realm.beginTransaction();
@@ -237,7 +238,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeLinkFieldOriginalObjectChanged_notTrigger() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         listenerShouldNotBeCalled(allTypes);
         realm.beginTransaction();
@@ -248,7 +249,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeLinkListAddObject() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_REALMLIST);
         realm.beginTransaction();
@@ -259,7 +260,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeLinkListClear() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_REALMLIST);
         realm.beginTransaction();
@@ -270,7 +271,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeAllFields() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         checkChangedField(allTypes, AllTypes.FIELD_LONG, AllTypes.FIELD_REALMLIST, AllTypes.FIELD_REALMOBJECT,
                 AllTypes.FIELD_DOUBLE, AllTypes.FIELD_FLOAT, AllTypes.FIELD_STRING, AllTypes.FIELD_BOOLEAN,
@@ -294,7 +295,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void changeDifferentFieldOneAfterAnother() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         final AtomicBoolean stringChanged = new AtomicBoolean(false);
         final AtomicBoolean longChanged = new AtomicBoolean(false);
@@ -338,7 +339,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void findFirstAsync_changeSetIsNullWhenQueryReturns() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         AllTypes allTypes = realm.where(AllTypes.class).findFirstAsync();
         allTypes.addChangeListener(new RealmObjectChangeListener<AllTypes>() {
             @Override
@@ -356,7 +357,7 @@ public class ObjectChangeSetTests {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void findFirstAsync_queryExecutedByLocalCommit() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final AtomicInteger listenerCounter = new AtomicInteger(0);
         final AllTypes allTypes = realm.where(AllTypes.class).findFirstAsync();
         allTypes.addChangeListener(new RealmObjectChangeListener<AllTypes>() {
@@ -416,5 +417,50 @@ public class ObjectChangeSetTests {
             obj.setInt("field" + i, 42);
         }
         realm.commitTransaction();
+    }
+
+    // For https://github.com/realm/realm-java/issues/4474
+    @Test
+    @RunTestInLooperThread
+    public void allParentObjectShouldBeInChangeSet() {
+        Realm realm = looperThread.getRealm();
+
+        realm.beginTransaction();
+        Owner owner = realm.createObject(Owner.class);
+        Dog dog1 = realm.createObject(Dog.class);
+        dog1.setOwner(owner);
+        dog1.setHasTail(true);
+        owner.getDogs().add(dog1);
+        Dog dog2 = realm.createObject(Dog.class);
+        dog2.setOwner(owner);
+        dog2.setHasTail(true);
+        owner.getDogs().add(dog2);
+        Dog dog3 = realm.createObject(Dog.class);
+        dog3.setOwner(owner);
+        dog3.setHasTail(true);
+        owner.getDogs().add(dog3);
+
+        realm.commitTransaction();
+
+        RealmResults<Dog> dogs = realm.where(Dog.class).equalTo(Dog.FIELD_HAS_TAIL, true).findAll();
+        looperThread.keepStrongReference(dogs);
+        dogs.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
+            @Override
+            public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
+                assertEquals(1, changeSet.getDeletions().length);
+                assertEquals(0, changeSet.getInsertions().length);
+
+                assertEquals(1, changeSet.getChangeRanges().length);
+                assertEquals(0, changeSet.getChangeRanges()[0].startIndex);
+                assertEquals(2, changeSet.getChangeRanges()[0].length);
+
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        dog3.setHasTail(false);
+        realm.commitTransaction();
+        looperThread.testComplete();
     }
 }

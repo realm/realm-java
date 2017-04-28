@@ -51,7 +51,8 @@ import static org.junit.Assert.assertTrue;
 public class TestRealmConfigurationFactory extends TemporaryFolder {
     private final Map<RealmConfiguration, Boolean> map = new ConcurrentHashMap<RealmConfiguration, Boolean>();
     private final Set<RealmConfiguration> configurations = Collections.newSetFromMap(map);
-    protected boolean unitTestFailed = false;
+
+    private boolean unitTestFailed = false;
 
     @Override
     public Statement apply(final Statement base, Description description) {
@@ -62,7 +63,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
                 try {
                     base.evaluate();
                 } catch (Throwable throwable) {
-                    unitTestFailed = true;
+                    setUnitTestFailed();
                     throw throwable;
                 } finally {
                     after();
@@ -89,13 +90,21 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
             }
         } catch (IllegalStateException e) {
             // Only throws the exception caused by deleting the opened Realm if the test case itself doesn't throw.
-            if (!unitTestFailed) {
+            if (!isUnitTestFailed()) {
                 throw e;
             }
         } finally {
             // This will delete the temp directory.
             super.after();
         }
+    }
+
+    public synchronized void setUnitTestFailed() {
+        this.unitTestFailed = true;
+    }
+
+    private synchronized boolean isUnitTestFailed() {
+        return this.unitTestFailed;
     }
 
     // This builder creates a configuration that is *NOT* managed.

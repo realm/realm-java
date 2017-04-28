@@ -253,7 +253,7 @@ public class CollectionTests {
         Table table = sharedRealm.getTable("test_table");
 
         final Collection collection = new Collection(sharedRealm, table.where());
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection collection1) {
@@ -342,7 +342,7 @@ public class CollectionTests {
         Table table = sharedRealm.getTable("test_table");
 
         final Collection collection = new Collection(sharedRealm, table.where());
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection collection1) {
@@ -363,7 +363,7 @@ public class CollectionTests {
         Table table = sharedRealm.getTable("test_table");
 
         final Collection collection = new Collection(sharedRealm, table.where());
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         assertEquals(collection.size(), 4); // Trigger the query to run.
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
@@ -388,7 +388,7 @@ public class CollectionTests {
         final AtomicInteger listenerCounter = new AtomicInteger(0);
 
         final Collection collection = new Collection(sharedRealm, table.where());
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection collection1) {
@@ -468,7 +468,7 @@ public class CollectionTests {
         Table table = sharedRealm.getTable("test_table");
         final Collection collection = new Collection(sharedRealm, table.where());
         final TestIterator iterator = new TestIterator(collection);
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         assertFalse(iterator.isDetached(sharedRealm));
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
