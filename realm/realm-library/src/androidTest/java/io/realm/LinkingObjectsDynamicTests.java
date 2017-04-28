@@ -172,7 +172,6 @@ public class LinkingObjectsDynamicTests {
         final DynamicRealmObject object = dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 1L);
         dynamicRealm.commitTransaction();
 
-
         for (RealmFieldType fieldType : RealmFieldType.values()) {
             try {
                 switch (fieldType) {
@@ -434,7 +433,6 @@ public class LinkingObjectsDynamicTests {
                 source.setChild(target1);
             }
         });
-
 
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
         try {
