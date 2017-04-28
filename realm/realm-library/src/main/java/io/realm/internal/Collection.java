@@ -367,7 +367,7 @@ public class Collection implements NativeObject {
 
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
-        this.table = linkView.getTable();
+        this.table = linkView.getTargetTable();
         this.context.addReference(this);
         // Collection created from LinkView is loaded by default. So that the listener will be triggered first time
         // with empty change set.
