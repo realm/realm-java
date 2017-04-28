@@ -422,7 +422,7 @@ public class LinkingObjectsDynamicTests {
     @Test
     @RunTestInLooperThread
     public void linkingObjects_IllegalStateException_ifNotYetLoaded() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -436,7 +436,7 @@ public class LinkingObjectsDynamicTests {
         });
 
 
-        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
         try {
             final DynamicRealmObject targetAsync = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
                     .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirstAsync();
@@ -454,7 +454,7 @@ public class LinkingObjectsDynamicTests {
     @Test
     @RunTestInLooperThread
     public void linkingObjects_IllegalStateException_ifDeleted() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -468,7 +468,7 @@ public class LinkingObjectsDynamicTests {
         });
 
 
-        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
         try {
             final DynamicRealmObject target = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
                     .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
