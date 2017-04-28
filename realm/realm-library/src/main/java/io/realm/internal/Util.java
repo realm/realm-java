@@ -38,11 +38,6 @@ public class Util {
 
     static native long nativeGetMemUsage();
 
-    // Called by JNI. Do not remove.
-    static void javaPrint(String txt) {
-        System.out.print(txt);
-    }
-
     public static String getTablePrefix() {
         return nativeGetTablePrefix();
     }
