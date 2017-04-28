@@ -946,7 +946,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             throw new IllegalArgumentException("Class not found: " + srcClassName);
         }
 
-        if (srcFieldName != null && srcFieldName.contains(".")) {
+        if (srcFieldName == null) {
+            throw new IllegalArgumentException("Non-null 'srcFieldName' required.");
+        }
+        if (srcFieldName.contains(".")) {
             throw new IllegalArgumentException(MSG_LINK_QUERY_NOT_SUPPORTED);
         }
 
