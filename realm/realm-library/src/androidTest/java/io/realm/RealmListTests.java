@@ -38,6 +38,7 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -1104,5 +1105,19 @@ public class RealmListTests extends CollectionTests {
         collection.get(0).setAge(42);
         realm.commitTransaction();
         assertEquals(1, listenerCalledCount.get());
+    }
+
+    // https://github.com/realm/realm-java/issues/4554
+    @Test
+    public void createSnapshot_shouldUseTargetTable() {
+        int sizeBefore = collection.size();
+        OrderedRealmCollectionSnapshot<Dog> snapshot = collection.createSnapshot();
+        realm.beginTransaction();
+        snapshot.get(0).deleteFromRealm();
+        realm.commitTransaction();
+        assertEquals(sizeBefore - 1, collection.size());
+
+        assertNotNull(collection.view);
+        assertEquals(collection.view.getTargetTable().getName(), snapshot.getTable().getName());
     }
 }
