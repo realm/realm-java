@@ -77,7 +77,7 @@ public class LinkingObjectsDynamicTests {
     }
 
     @Test
-    public void linkingObjects_ClassIsNull() throws Exception {
+    public void linkingObjects_classIsNull() throws Exception {
         dynamicRealm.beginTransaction();
         final DynamicRealmObject object = dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 1L);
         dynamicRealm.commitTransaction();
@@ -91,7 +91,7 @@ public class LinkingObjectsDynamicTests {
     }
 
     @Test
-    public void linkingObjects_FieldIsNull() throws Exception {
+    public void linkingObjects_fieldIsNull() throws Exception {
         dynamicRealm.beginTransaction();
         final DynamicRealmObject object = dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 1L);
         dynamicRealm.commitTransaction();
