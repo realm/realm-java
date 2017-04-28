@@ -441,7 +441,6 @@ public class LinkingObjectsDynamicTests {
 
             thrown.expect(IllegalStateException.class);
             targetAsync.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
-            fail();
         } finally {
             dynamicRealm.close();
         }
@@ -481,7 +480,6 @@ public class LinkingObjectsDynamicTests {
 
             thrown.expect(IllegalStateException.class);
             target.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
-            fail();
         } finally {
             dynamicRealm.close();
         }
