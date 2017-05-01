@@ -32,12 +32,6 @@ import io.realm.log.RealmLog;
 
 public class Util {
 
-    public static long getNativeMemUsage() {
-        return nativeGetMemUsage();
-    }
-
-    static native long nativeGetMemUsage();
-
     public static String getTablePrefix() {
         return nativeGetTablePrefix();
     }
