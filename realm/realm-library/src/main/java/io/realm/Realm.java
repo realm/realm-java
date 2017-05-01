@@ -388,6 +388,7 @@ public class Realm extends BaseRealm {
         // the Realm is initialized.
         boolean commitChanges = false;
         try {
+            // We need to start a transaction no matter readOnly mode, because it acts as an interprocess lock.
             realm.beginTransaction(true);
             long currentVersion = realm.getVersion();
             boolean unversioned = currentVersion == UNVERSIONED;
@@ -424,7 +425,7 @@ public class Realm extends BaseRealm {
                     (unversioned) ? configuration.getSchemaVersion() : currentVersion,
                     columnInfoMap);
 
-            if (unversioned && configuration.isReadOnly()) {
+            if (unversioned && !configuration.isReadOnly()) {
                 final Transaction transaction = configuration.getInitialDataTransaction();
                 if (transaction != null) {
                     transaction.execute(realm);
