@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.util.Log;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -411,8 +409,6 @@ public class OrderedCollectionChangeSetTests {
             looperThread.testComplete();
             return;
         }
-
-        Log.d("####", "test running on thread: " + Thread.currentThread());
 
         Realm realm = looperThread.getRealm();
         populateData(realm, 10);
