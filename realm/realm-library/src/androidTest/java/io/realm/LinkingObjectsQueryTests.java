@@ -33,6 +33,8 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class LinkingObjectsQueryTests extends QueryTests {
 
+    // the basic tests for isEqual and isNotEqual are in RealmQueryTests
+
     // FIXME!!! FieldDescriptor doesn't know about backlinks.
     // Distinct works on backlinks
     // Build a simple object graph.
@@ -67,7 +69,6 @@ public class LinkingObjectsQueryTests extends QueryTests {
         assertEquals(1, result.size());
         assertTrue(result.contains(gen2B));
     }
-
 
     // Query on a field descriptor starting with a backlink
     // Build a simple object graph.
