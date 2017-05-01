@@ -36,7 +36,7 @@ import okhttp3.Response;
 public class OkHttpAuthenticationServer implements AuthenticationServer {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private static final String ACTION_LOGOUT = "create"; // Auth end point for logging out users
+    private static final String ACTION_LOGOUT = "revoke"; // Auth end point for logging out users
     private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
 
     private final OkHttpClient client = new OkHttpClient.Builder()

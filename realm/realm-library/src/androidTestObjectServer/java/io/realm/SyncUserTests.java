@@ -40,6 +40,7 @@ import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
 
 import static io.realm.util.SyncTestUtils.createTestAdminUser;
@@ -301,5 +302,14 @@ public class SyncUserTests {
                 fail();
             }
         });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changePasswordAsync_nullCallbackThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalArgumentException.class);
+        user.changePasswordAsync("new-password", null);
     }
 }

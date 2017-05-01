@@ -313,7 +313,7 @@ public class SyncUser {
     }
 
     /**
-     * Change this user's password. This is done synchronously and involves the network, so calling this method on the
+     * Changes this user's password. This is done synchronously and involves the network, so calling this method on the
      * Android UI thread will always crash.
      * <p>
      * <b>WARNING:</b> Changing a users password using an authentication server that doesn't use HTTPS is a major
@@ -334,7 +334,7 @@ public class SyncUser {
     }
 
     /**
-     * Change this user's password asynchronously.
+     * Changes this user's password asynchronously.
      * <p>
      * <b>WARNING:</b> Changing a users password using an authentication server that doesn't use HTTPS is a major
      * security flaw, and should only be done while testing.
@@ -347,6 +347,9 @@ public class SyncUser {
      */
     public RealmAsyncTask changePasswordAsync(final String newPassword, final Callback callback) {
         checkLooperThread("Asynchronous changing password is only possible from looper threads.");
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
         return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public SyncUser run() {
