@@ -430,7 +430,6 @@ public class OrderedCollectionChangeSetTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Log.d("####", "runnable running on thread: " + Thread.currentThread());
                 Realm realm = Realm.getInstance(looperThread.getConfiguration())      ;
                 realm.beginTransaction();
                 realm.where(Dog.class).equalTo(Dog.FIELD_AGE, 0).findFirst().deleteFromRealm();
