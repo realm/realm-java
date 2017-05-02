@@ -641,7 +641,7 @@ public class SyncConfiguration extends RealmConfiguration {
          *       An existing list by Mozilla exist that could be used https://mozillacaprogram.secure.force.com/CA/IncludedCACertificateReportPEMCSV
          *
          * @param filename the path under {@code assets} to the root CA.
-         * @see https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_load_verify_locations.html
+         * @see <a href="https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_load_verify_locations.html">SSL_CTX_load_verify_locations</a>
          */
         public Builder trustedRootCA(String filename) {
             if (filename == null || filename.isEmpty()) {
