@@ -162,7 +162,7 @@ public class NotificationsTest {
             }
         };
 
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.addChangeListener(listener);
         realm.addChangeListener(listener);
         realm.addChangeListener(new RealmChangeListener<Realm>() {
@@ -180,10 +180,10 @@ public class NotificationsTest {
 
     @Test
     public void notificationsNumber() throws InterruptedException, ExecutionException {
+        final CountDownLatch isReady = new CountDownLatch(1);
+        final CountDownLatch isRealmOpen = new CountDownLatch(1);
         final AtomicInteger counter = new AtomicInteger(0);
-        final AtomicBoolean isReady = new AtomicBoolean(false);
         final Looper[] looper = new Looper[1];
-        final AtomicBoolean isRealmOpen = new AtomicBoolean(true);
         final RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
@@ -201,12 +201,12 @@ public class NotificationsTest {
                     looper[0] = Looper.myLooper();
                     realm = Realm.getInstance(realmConfig);
                     realm.addChangeListener(listener);
-                    isReady.set(true);
+                    isReady.countDown();
                     Looper.loop();
                 } finally {
                     if (realm != null) {
                         realm.close();
-                        isRealmOpen.set(false);
+                        isRealmOpen.countDown();
                     }
                 }
                 return true;
@@ -214,10 +214,7 @@ public class NotificationsTest {
         });
 
         // Waits until the looper in the background thread is started.
-        while (!isReady.get()) {
-            Thread.sleep(5);
-        }
-        Thread.sleep(100);
+        TestHelper.awaitOrFail(isReady);
 
         // Triggers OnRealmChanged on background thread.
         realm = Realm.getInstance(realmConfig);
@@ -235,9 +232,7 @@ public class NotificationsTest {
         }
 
         // Waits until the Looper thread is actually closed.
-        while (isRealmOpen.get()) {
-            Thread.sleep(5);
-        }
+        TestHelper.awaitOrFail(isRealmOpen);
 
         assertEquals(1, counter.get());
         RealmCache.invokeWithGlobalRefCount(realmConfig, new TestHelper.ExpectedCountCallback(0));
@@ -262,7 +257,8 @@ public class NotificationsTest {
                 if (dogs.size() != 0) {
                     return false;
                 }
-                addHandlerMessages.await(1, TimeUnit.SECONDS); // Wait for main thread to add update messages.
+                // Wait for main thread to add update messages.
+                addHandlerMessages.await(TestHelper.VERY_SHORT_WAIT_SECS, TimeUnit.SECONDS);
 
                 // Creates a Handler for the thread now. All message and references for the notification handler will be
                 // cleared once we call close().
@@ -292,7 +288,7 @@ public class NotificationsTest {
         });
 
         // Waits until the looper is started on a background thread.
-        backgroundLooperStarted.await(1, TimeUnit.SECONDS);
+        backgroundLooperStarted.await(TestHelper.VERY_SHORT_WAIT_SECS, TimeUnit.SECONDS);
 
         // Executes a transaction that will trigger a Realm update.
         Realm realm = Realm.getInstance(realmConfig);
@@ -317,7 +313,7 @@ public class NotificationsTest {
     @RunTestInLooperThread
     public void globalListener_looperThread_triggeredByLocalCommit() {
         final AtomicInteger success = new AtomicInteger(0);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
@@ -335,7 +331,7 @@ public class NotificationsTest {
     @RunTestInLooperThread
     public void globalListener_looperThread_triggeredByRemoteCommit() {
         final AtomicInteger success = new AtomicInteger(0);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
@@ -361,7 +357,7 @@ public class NotificationsTest {
                 looperThread.testComplete();
             }
         };
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.addChangeListener(listener);
         realm.beginTransaction();
         realm.commitTransaction();
@@ -370,7 +366,7 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread
     public void addRemoveListenerConcurrency() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final AtomicInteger counter1 = new AtomicInteger(0);
         final AtomicInteger counter2 = new AtomicInteger(0);
         final AtomicInteger counter3 = new AtomicInteger(0);
@@ -447,7 +443,7 @@ public class NotificationsTest {
         // Test both ways to check accidental ordering from unordered collections.
         final AtomicInteger listenerACalled = new AtomicInteger(0);
         final AtomicInteger listenerBCalled = new AtomicInteger(0);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         final RealmChangeListener<Realm> listenerA = new RealmChangeListener<Realm>() {
 
@@ -544,8 +540,8 @@ public class NotificationsTest {
         realm.commitTransaction();
         // Any REALM_CHANGED message should now only reach the open Handler on Thread1.
         try {
-            // TODO: Waiting 5 seconds is not a reliable condition. Figure out a better way for this.
-            if (!handlerNotified.await(5, TimeUnit.SECONDS)) {
+            // TODO: Waiting a few seconds is not a reliable condition. Figure out a better way for this.
+            if (!handlerNotified.await(TestHelper.SHORT_WAIT_SECS,  TimeUnit.SECONDS)) {
                 fail("Handler didn't receive message");
             }
         } finally {
@@ -573,11 +569,8 @@ public class NotificationsTest {
                 realm.setAutoRefresh(false);
                 TestHelper.quitLooperOrFail();
                 backgroundLooperStartedAndStopped.countDown();
-                try {
-                    mainThreadCommitCompleted.await();
-                } catch (InterruptedException e) {
-                    fail("Thread interrupted"); // This will prevent backgroundThreadStopped from being called.
-                }
+                // This will prevent backgroundThreadStopped from being called.
+                TestHelper.awaitOrFail(mainThreadCommitCompleted);
                 realm.close();
                 backgroundThreadStopped.countDown();
             }
@@ -690,12 +683,12 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread
     public void asyncRealmResultsShouldNotBlockBackgroundCommitNotification() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
         final AtomicBoolean resultsListenerDone = new AtomicBoolean(false);
         final AtomicBoolean realmListenerDone = new AtomicBoolean(false);
 
-        looperThread.keepStrongReference.add(dogs);
+        looperThread.keepStrongReference(dogs);
         assertTrue(dogs.load());
         assertEquals(0, dogs.size());
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
@@ -750,7 +743,7 @@ public class NotificationsTest {
     public void asyncRealmObjectShouldNotBlockBackgroundCommitNotification() {
         final AtomicInteger numberOfRealmCallbackInvocation = new AtomicInteger(0);
         final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(final Realm realm) {
@@ -816,7 +809,7 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void realmListener_realmResultShouldBeSynced() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         assertEquals(1, results.size());
 
@@ -844,13 +837,13 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread
     public void accessingSyncRealmResultInsideAsyncResultListener() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final AtomicInteger asyncResultCallback = new AtomicInteger(0);
 
         final RealmResults<AllTypes> syncResults = realm.where(AllTypes.class).findAll();
 
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
-        looperThread.keepStrongReference.add(results);
+        looperThread.keepStrongReference(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> results) {
@@ -884,11 +877,11 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread
     public void accessingSyncRealmResultsInsideAnotherResultListener() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmResults<AllTypes> syncResults1 = realm.where(AllTypes.class).findAll();
         final RealmResults<AllTypes> syncResults2 = realm.where(AllTypes.class).findAll();
 
-        looperThread.keepStrongReference.add(syncResults1);
+        looperThread.keepStrongReference(syncResults1);
         syncResults1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
@@ -906,7 +899,7 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread(threadName = "IntentService[1]")
     public void listenersNotAllowedOnIntentServiceThreads() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
