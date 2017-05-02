@@ -78,7 +78,7 @@ final class RealmCache {
     // Separated references and counters for typed Realm and dynamic Realm.
     private final EnumMap<RealmCacheType, RefAndCount> refAndCountMap;
 
-    // This will be only valid if refAndCount.globalCount > 0.
+    // This will be only valid if getTotalGlobalRefCount() > 0.
     // NOTE: We do reset this when globalCount reaches 0, but if exception thrown in doCreateRealmOrGetFromCache at the
     // first time when globalCount == 0, this could have a non-null value but it will be reset when the next
     // doCreateRealmOrGetFromCache is called with globalCount == 0.
