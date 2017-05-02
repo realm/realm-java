@@ -24,12 +24,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Iterator;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmFileException;
@@ -96,7 +96,7 @@ final class RealmCache {
         private Future future;
 
         CreateRealmRunnable(RealmNotifier notifier, RealmConfiguration configuration,
-                            BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
+                BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
             this.configuration = configuration;
             this.realmClass = realmClass;
             this.callback = callback;
@@ -242,7 +242,7 @@ final class RealmCache {
         return cache.doCreateRealmOrGetFromCacheAsync(configuration, callback, realmClass);
     }
 
-    private synchronized  <T extends BaseRealm> RealmAsyncTask doCreateRealmOrGetFromCacheAsync(
+    private synchronized <T extends BaseRealm> RealmAsyncTask doCreateRealmOrGetFromCacheAsync(
             RealmConfiguration configuration, BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
         Capabilities capabilities = new AndroidCapabilities();
         capabilities.checkCanDeliverNotification(ASYNC_NOT_ALLOWED_MSG);
@@ -326,7 +326,7 @@ final class RealmCache {
 
             if (realmClass == Realm.class && refAndCount.globalCount == 0) {
                 // Stores a copy of local ColumnIndices as a global cache.
-                RealmCache.storeColumnIndices(cache.typedColumnIndicesArray, realm.schema.getImmutableColumnIndicies());
+                RealmCache.storeColumnIndices(typedColumnIndicesArray, realm.schema.getImmutableColumnIndicies());
             }
             // This is the first instance in current thread, increase the global count.
             refAndCount.globalCount++;

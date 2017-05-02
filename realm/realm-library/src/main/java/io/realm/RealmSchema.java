@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -90,24 +88,6 @@ public abstract class RealmSchema {
      */
     public abstract boolean contains(String className);
 
-    /**
-     * Parses the passed field description (@see parseFieldDescription(String) and returns the information
-     * necessary for RealmQuery predicates to select the specified records.
-     * Because the values returned by this method will, immediately, be handed to native code, they are
-     * in coordinated arrays, not a List&lt;ColumnDeatils&gt;
-     * There are two kinds of records.  If return[1][i] is NativeObject.NULLPTR, return[0][i] contains
-     * the column index for the i-th element in the dotted field description path.
-     * If return[1][i] is *not* NativeObject.NULLPTR, it is a pointer to the source table for a backlink
-     * and return[0][i] is the column index of the source column in that table.
-     * TODO: This method should be integrated with the class FieldDescriptor.
-     *
-     * @param table the starting Table: where(Table.class)
-     * @param fieldDescription fieldName or link path to a field name.
-     * @param validColumnTypes valid field type for the last field in a linked field
-     * @return a pair of arrays:  [0] is column indices, [1] is either NativeObject.NULLPTR or a native table pointer.
-     */
-    abstract long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType... validColumnTypes);
-
     abstract Table getTable(Class<? extends RealmModel> clazz);
 
     abstract Table getTable(String className);
@@ -115,24 +95,6 @@ public abstract class RealmSchema {
     abstract RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz);
 
     abstract RealmObjectSchema getSchemaForClass(String className);
-
-    /**
-     * Parse the passed field description into its components.
-     * This must be standard across implementations and is, therefore, implemented in the base class.
-     * TODO: This method should be integrated with the class FieldDescriptor.
-     *
-     * @param fieldDescription a field description.
-     * @return the parse tree: a list of column names
-     */
-    protected final List<String> parseFieldDescription(String fieldDescription) {
-        if (fieldDescription == null || fieldDescription.equals("")) {
-            throw new IllegalArgumentException("Invalid query: field name is empty");
-        }
-        if (fieldDescription.endsWith(".")) {
-            throw new IllegalArgumentException("Invalid query: field name must not end with a period ('.')");
-        }
-        return Arrays.asList(fieldDescription.split("\\."));
-    }
 
     /**
      * Set the column index cache for this schema.
@@ -193,7 +155,7 @@ public abstract class RealmSchema {
 
     final long getSchemaVersion() {
         checkIndices();
-        return this.columnIndices.getSchemaVersion();
+        return columnIndices.getSchemaVersion();
     }
 
     final ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
