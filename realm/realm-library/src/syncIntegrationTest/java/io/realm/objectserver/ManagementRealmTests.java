@@ -69,7 +69,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                 })
                 .build();
         final Realm realm1 = Realm.getInstance(config1);
-        looperThread.testRealms.add(realm1);
+        looperThread.addTestRealm(realm1);
         realm1.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -83,7 +83,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
         // 3. Create PermissionOffer
         final AtomicReference<String> offerId = new AtomicReference<String>(null);
         final Realm user1ManagementRealm = user1.getManagementRealm();
-        looperThread.testRealms.add(user1ManagementRealm);
+        looperThread.addTestRealm(user1ManagementRealm);
         user1ManagementRealm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -103,7 +103,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                 RealmResults<PermissionOffer> offers = user1ManagementRealm.where(PermissionOffer.class)
                         .equalTo("id", offerId.get())
                         .findAllAsync();
-                looperThread.keepStrongReference.add(offers);
+                looperThread.keepStrongReference(offers);
                 offers.addChangeListener(new RealmChangeListener<RealmResults<PermissionOffer>>() {
                     @Override
                     public void onChange(RealmResults<PermissionOffer> offers) {
@@ -113,7 +113,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                             final String offerToken = offer.getToken();
                             final AtomicReference<String> offerResponseId = new AtomicReference<String>();
                             final Realm user2ManagementRealm = user2.getManagementRealm();
-                            looperThread.testRealms.add(user2ManagementRealm);
+                            looperThread.addTestRealm(user2ManagementRealm);
                             user2ManagementRealm.executeTransactionAsync(new Realm.Transaction() {
                                 @Override
                                 public void execute(Realm realm) {
@@ -128,7 +128,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                                     RealmResults<PermissionOfferResponse> responses = user2ManagementRealm.where(PermissionOfferResponse.class)
                                             .equalTo("id", offerResponseId.get())
                                             .findAllAsync();
-                                    looperThread.keepStrongReference.add(responses);
+                                    looperThread.keepStrongReference(responses);
                                     responses.addChangeListener(new RealmChangeListener<RealmResults<PermissionOfferResponse>>() {
                                         @Override
                                         public void onChange(RealmResults<PermissionOfferResponse> responses) {
@@ -136,9 +136,9 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                                             if (response != null && response.isSuccessful() && response.getToken().equals(offerToken)) {
                                                 // 7. Response accepted. It should now be possible for user2 to access user1's Realm
                                                 Realm realm = Realm.getInstance(config2);
-                                                looperThread.testRealms.add(realm);
+                                                looperThread.addTestRealm(realm);
                                                 RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
-                                                looperThread.keepStrongReference.add(dogs);
+                                                looperThread.keepStrongReference(dogs);
                                                 dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
                                                     @Override
                                                     public void onChange(RealmResults<Dog> element) {

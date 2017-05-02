@@ -217,7 +217,7 @@ public class RealmInMemoryTest {
 
                 // Waits until Realm instance closed in main thread.
                 try {
-                    realmInMainClosedLatch.await(3, TimeUnit.SECONDS);
+                    realmInMainClosedLatch.await(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     threadError[0] = new AssertionFailedError("Worker thread was interrupted.");
                     realm.close();
@@ -232,7 +232,7 @@ public class RealmInMemoryTest {
 
 
         // Waits until the worker thread started.
-        workerCommittedLatch.await(3, TimeUnit.SECONDS);
+        workerCommittedLatch.await(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS);
         if (threadError[0] != null) { throw threadError[0]; }
 
         // Refreshes will be ran in the next loop, manually refreshes it here.
@@ -253,7 +253,7 @@ public class RealmInMemoryTest {
         realmInMainClosedLatch.countDown();
 
         // Waits until the worker thread finished.
-        workerClosedLatch.await(3, TimeUnit.SECONDS);
+        workerClosedLatch.await(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS);
         if (threadError[0] != null) { throw threadError[0]; }
 
         // Since all previous Realm instances has been closed before, below will create a fresh new in-mem-realm instance.

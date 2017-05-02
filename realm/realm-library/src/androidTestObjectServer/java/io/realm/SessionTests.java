@@ -88,7 +88,7 @@ public class SessionTests {
                 .build();
 
         Realm realm = Realm.getInstance(config);
-        looperThread.testRealms.add(realm);
+        looperThread.addTestRealm(realm);
 
         // Trigger error
         SyncManager.simulateClientReset(SyncManager.getSession(config));
@@ -117,7 +117,7 @@ public class SessionTests {
                         }
 
                         // Execute Client Reset
-                        looperThread.testRealms.get(0).close();
+                        looperThread.closeTestRealms();
                         handler.executeClientReset();
 
                         // Validate that files have been moved
@@ -129,10 +129,9 @@ public class SessionTests {
                 .build();
 
         Realm realm = Realm.getInstance(config);
-        looperThread.testRealms.add(realm);
+        looperThread.addTestRealm(realm);
 
         // Trigger error
         SyncManager.simulateClientReset(SyncManager.getSession(config));
     }
-
 }

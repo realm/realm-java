@@ -61,6 +61,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -1984,10 +1985,7 @@ public class RealmTests {
             public void run() {
                 Realm realm = Realm.getInstance(configuration);
                 bgThreadReadyLatch.countDown();
-                try {
-                    readyToCloseLatch.await();
-                } catch (InterruptedException ignored) {
-                }
+                TestHelper.awaitOrFail(readyToCloseLatch);
                 realm.close();
                 closedLatch.countDown();
             }
@@ -2005,7 +2003,7 @@ public class RealmTests {
         readyToCloseLatch.countDown();
 
         realm.close();
-        closedLatch.await();
+        TestHelper.awaitOrFail(closedLatch);
         // Now we get log files back!
         assertTrue(tempDirRenamed.renameTo(tempDir));
 
@@ -2592,7 +2590,7 @@ public class RealmTests {
         thatThread.start();
 
         // Timeout should never happen.
-        latch.await();
+        TestHelper.awaitOrFail(latch);
         if (threadAssertionError[0] != null) {
             throw threadAssertionError[0];
         }
@@ -2630,7 +2628,7 @@ public class RealmTests {
         thatThread.start();
 
         // Timeout should never happen.
-        latch.await();
+        TestHelper.awaitOrFail(latch);
         if (threadAssertionError[0] != null) {
             throw threadAssertionError[0];
         }
@@ -2706,7 +2704,7 @@ public class RealmTests {
             @Override
             public void run() {
                 try {
-                    startLatch.await();
+                    startLatch.await(TestHelper.STANDARD_WAIT_SECS, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     exception.add(e);
                     return;
@@ -2735,7 +2733,7 @@ public class RealmTests {
             realm = null;
         }
 
-        endLatch.await();
+        TestHelper.awaitOrFail(endLatch);
 
         if (!exception.isEmpty()) {
             throw exception.get(0);
@@ -2762,7 +2760,7 @@ public class RealmTests {
                 Realm realm = Realm.getInstance(realmConfig);
                 realmOpenedInBgLatch.countDown();
                 try {
-                    realmClosedInFgLatch.await();
+                    realmClosedInFgLatch.await(TestHelper.STANDARD_WAIT_SECS, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     exception.add(e);
                     realm.close();
@@ -2773,7 +2771,7 @@ public class RealmTests {
                 realm.beginTransaction();
                 transBeganInBgLatch.countDown();
                 try {
-                    fgFinishedLatch.await();
+                    fgFinishedLatch.await(TestHelper.STANDARD_WAIT_SECS, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     exception.add(e);
                 }
@@ -2785,16 +2783,16 @@ public class RealmTests {
         });
         thread.start();
 
-        realmOpenedInBgLatch.await();
+        TestHelper.awaitOrFail(realmOpenedInBgLatch);
         // Step 3: Closes all realm instances in foreground thread.
         realm.close();
         realmClosedInFgLatch.countDown();
-        transBeganInBgLatch.await();
+        TestHelper.awaitOrFail(transBeganInBgLatch);
 
         // Step 5: Gets a new Realm instance in foreground.
         realm = Realm.getInstance(realmConfig);
         fgFinishedLatch.countDown();
-        bgFinishedLatch.await();
+        TestHelper.awaitOrFail(bgFinishedLatch);
 
         if (!exception.isEmpty()) {
             throw exception.get(0);
@@ -3084,7 +3082,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnEmptyObject() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmChangeListener<AllTypes> dummyListener = new RealmChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object) {
@@ -3125,7 +3123,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnObject() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmChangeListener<AllTypes> dummyListener = new RealmChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object) {
@@ -3170,7 +3168,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnResults() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmChangeListener<RealmResults<AllTypes>> dummyListener = new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
@@ -3209,7 +3207,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void addChangeListener_throwOnAddingNullListenerFromLooperThread() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         try {
             realm.addChangeListener(null);
@@ -3242,7 +3240,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void removeChangeListener_throwOnRemovingNullListenerFromLooperThread() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         try {
             realm.removeChangeListener(null);
