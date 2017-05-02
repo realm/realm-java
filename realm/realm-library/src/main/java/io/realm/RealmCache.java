@@ -20,11 +20,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
@@ -96,7 +99,14 @@ final class RealmCache {
     // are not allowed and an exception will be thrown when trying to add it to the cache list.
     // A weak ref is used to hold the RealmCache instance. The weak ref entry will be cleared if and only if there
     // is no Realm instance holding a strong ref to it and there is no Realm instance associated it is BEING created.
-    private static final List<WeakReference<RealmCache>> cachesList = new ArrayList<WeakReference<RealmCache>>();
+    private static final List<WeakReference<RealmCache>> cachesList = new LinkedList<WeakReference<RealmCache>>();
+
+    // See leak()
+    // isLeaked flag is used to avoid adding strong ref multiple times without iterating the list.
+    private final AtomicBoolean isLeaked = new AtomicBoolean(false);
+    // Keep strong ref to the leaked RealmCache
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    private static final Collection<RealmCache> leakedCaches = new ConcurrentLinkedQueue<RealmCache>();
 
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
     private static final String WRONG_REALM_CLASS_MESSAGE = "The type of Realm class must be Realm or DynamicRealm.";
@@ -503,5 +513,15 @@ final class RealmCache {
         }
 
         return totalRefCount;
+    }
+
+    /**
+     * If a Realm instance is GCed but `Realm.close()` is not called before, we still want to track the cache for
+     * debugging. Adding them to the list to keep the strong ref of the cache to prevent the cache gets GCed.
+     */
+    void leak() {
+        if (!isLeaked.getAndSet(true)) {
+            leakedCaches.add(this);
+        }
     }
 }

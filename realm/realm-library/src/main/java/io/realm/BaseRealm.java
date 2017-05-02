@@ -678,6 +678,9 @@ abstract class BaseRealm implements Closeable {
                     "Realm %s is being finalized without being closed, " +
                     "this can lead to running out of native memory.", configuration.getPath()
             );
+            if (realmCache != null) {
+                realmCache.leak();
+            }
         }
         super.finalize();
     }
