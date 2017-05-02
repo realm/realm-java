@@ -151,16 +151,23 @@ final class RealmCache {
         if (getTotalGlobalRefCount() == 0) {
             copyAssetFileIfNeeded(configuration);
 
-            SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
-            if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
-                sharedRealm.beginTransaction();
-                if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
-                    sharedRealm.commitTransaction();
-                } else {
-                    sharedRealm.cancelTransaction();
+            SharedRealm sharedRealm = null;
+            try {
+                sharedRealm = SharedRealm.getInstance(configuration);
+                if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
+                    sharedRealm.beginTransaction();
+                    if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
+                        sharedRealm.commitTransaction();
+                    } else {
+                        sharedRealm.cancelTransaction();
+                    }
+                }
+
+            } finally {
+                if (sharedRealm != null) {
+                    sharedRealm.close();
                 }
             }
-            sharedRealm.close();
 
             // We are holding the lock, and we can set the invalidated configuration since there is no global ref to it.
             this.configuration = configuration;
