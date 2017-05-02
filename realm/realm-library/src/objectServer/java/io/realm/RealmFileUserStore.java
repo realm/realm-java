@@ -32,7 +32,7 @@ public class RealmFileUserStore implements UserStore {
     public void put(SyncUser user) {
         String userJson = user.toJson();
         // create or update token (userJson) using identity
-        nativeUpdateOrCreateUser(user.getIdentity(), userJson, user.getSyncUser().getAuthenticationUrl().toString());
+        nativeUpdateOrCreateUser(user.getIdentity(), userJson, user.getSyncUser().getAuthenticationUrl().toString(), user.isAdmin());
     }
 
     /**
@@ -92,7 +92,7 @@ public class RealmFileUserStore implements UserStore {
 
     protected static native String[] nativeGetAllUsers();
 
-    protected static native void nativeUpdateOrCreateUser(String identity, String jsonToken, String url);
+    protected static native void nativeUpdateOrCreateUser(String identity, String jsonToken, String url, boolean isAdmin);
 
     protected static native void nativeLogoutUser(String identity);
 }

@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.StringOnly;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -57,6 +58,9 @@ public class SortTest {
 
     private final static Sort[] ORDER_ASC_ASC = {Sort.ASCENDING, Sort.ASCENDING};
     private final static Sort[] ORDER_ASC_DES = {Sort.ASCENDING, Sort.DESCENDING};
+
+    private static String chars;
+    private int numberOfPermutations;
 
     private void populateRealm(Realm realm) {
         realm.beginTransaction();
@@ -515,5 +519,62 @@ public class SortTest {
         AllTypes allTypes = realm.createObject(AllTypes.class);
         allTypes.setColumnDate(new Date(TEST_SIZE));
         realm.commitTransaction();
+    }
+
+    private void createAndTest(String str) {
+        realm.beginTransaction();
+        realm.delete(StringOnly.class);
+        for (int i = 0; i < str.length(); i++) {
+            StringOnly stringOnly = realm.createObject(StringOnly.class);
+            stringOnly.setChars(str.substring(i, i + 1));
+        }
+        realm.commitTransaction();
+        RealmResults<StringOnly> stringOnlies = realm.where(StringOnly.class).findAllSorted("chars");
+        for (int i = 0; i < chars.length(); i++) {
+            assertEquals(chars.substring(i, i + 1), stringOnlies.get(i).getChars());
+        }
+    }
+
+    // permute and swap: http://www.geeksforgeeks.org/write-a-c-program-to-print-all-permutations-of-a-given-string/
+    private void permute(String str, int l, int r) {
+        if (l == r) {
+            numberOfPermutations++;
+            createAndTest(str);
+        } else {
+            for (int i = l; i <= r; i++) {
+                str = swap(str,l,i);
+                permute(str, l+1, r);
+                str = swap(str,l,i);
+            }
+        }
+    }
+
+    private String swap(String a, int i, int j) {
+        char temp;
+        char[] charArray = a.toCharArray();
+        temp = charArray[i] ;
+        charArray[i] = charArray[j];
+        charArray[j] = temp;
+        return String.valueOf(charArray);
+    }
+
+    private int factorial(int n) {
+        int fac = 1;
+        for(int i = 1; i <= n; i++) {
+            fac *= i;
+        }
+        return fac;
+    }
+
+    @Test
+    public void sortCaseSensitive() {
+        chars = "'- !\"#$%&()*,./:;?_+<=>123aAbBcCxXyYzZ";
+        createAndTest(new StringBuffer(chars).reverse().toString());
+
+        // try all permutations - keep the list short
+        chars = "12aAbB";
+        numberOfPermutations = 0;
+        permute(chars, 0, chars.length()-1);
+        assertEquals(numberOfPermutations, factorial(chars.length()));
     }
 }

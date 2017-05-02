@@ -63,6 +63,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -3869,5 +3870,109 @@ public class RealmTests {
         });
 
         assertNull(m.invoke(null, mockContext));
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void refresh_triggerNotifications() {
+        final CountDownLatch bgThreadDone = new CountDownLatch(1);
+        final AtomicBoolean listenerCalled = new AtomicBoolean(false);
+        Realm realm = looperThread.getRealm();
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+        assertEquals(0, results.size());
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                assertEquals(1, results.size());
+                listenerCalled.set(true);
+            }
+        });
+
+        // Advance the Realm on a background while blocking this thread. When we refresh, it should trigger
+        // the listener.
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(looperThread.getConfiguration());
+                realm.beginTransaction();
+                realm.createObject(AllTypes.class);
+                realm.commitTransaction();
+                realm.close();
+                bgThreadDone.countDown();
+            }
+        }).run();
+        TestHelper.awaitOrFail(bgThreadDone);
+
+        realm.refresh();
+        assertTrue(listenerCalled.get());
+        looperThread.testComplete();
+    }
+
+    @Test
+    public void refresh_nonLooperThreadAdvances() {
+        final CountDownLatch bgThreadDone = new CountDownLatch(1);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+        assertEquals(0, results.size());
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(RealmTests.this.realm.getConfiguration());
+                realm.beginTransaction();
+                realm.createObject(AllTypes.class);
+                realm.commitTransaction();
+                realm.close();
+                bgThreadDone.countDown();
+            }
+        }).run();
+        TestHelper.awaitOrFail(bgThreadDone);
+
+        realm.refresh();
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void refresh_forceSynchronousNotifications() {
+        final CountDownLatch bgThreadDone = new CountDownLatch(1);
+        final AtomicBoolean listenerCalled = new AtomicBoolean(false);
+        Realm realm = looperThread.getRealm();
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                // Will be forced synchronous
+                assertEquals(1, results.size());
+                listenerCalled.set(true);
+            }
+        });
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(looperThread.getConfiguration());
+                realm.beginTransaction();
+                realm.createObject(AllTypes.class);
+                realm.commitTransaction();
+                realm.close();
+                bgThreadDone.countDown();
+            }
+        }).start();
+        TestHelper.awaitOrFail(bgThreadDone);
+
+        realm.refresh();
+        assertTrue(listenerCalled.get());
+        looperThread.testComplete();
+    }
+
+    @Test
+    public void refresh_insideTransactionThrows() {
+        realm.beginTransaction();
+        try {
+            realm.refresh();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+        realm.cancelTransaction();
     }
 }
