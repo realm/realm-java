@@ -191,7 +191,7 @@ public class RealmCacheTests {
         testRealm.close();
 
         // 2. Deletes the old Realm.
-        Realm.deleteRealm(config);
+        assertTrue(Realm.deleteRealm(config));
 
         // 3. Renames the new file to the old file name.
         assertTrue(copiedRealm.renameTo(new File(config.getRealmDirectory(), REALM_NAME)));
@@ -262,35 +262,106 @@ public class RealmCacheTests {
     }
 
     @Test
+    public void getInstance_differentConfigurationsShouldNotBlockEachOther() throws InterruptedException {
+        final CountDownLatch bgThreadStarted = new CountDownLatch(1);
+        final CountDownLatch realm2CreatedLatch = new CountDownLatch(1);
+
+        final RealmConfiguration config1 = configFactory.createConfigurationBuilder()
+                .name("config1.realm")
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        bgThreadStarted.countDown();
+                        TestHelper.awaitOrFail(realm2CreatedLatch);
+                    }
+                })
+                .build();
+
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder()
+                .name("config2.realm")
+                .build();
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(config1);
+                realm.close();
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(bgThreadStarted);
+        Realm realm = Realm.getInstance(config2);
+        realm2CreatedLatch.countDown();
+        realm.close();
+        thread.join();
+    }
+
+    @Test
     public void releaseCacheInOneThread() {
         // Tests release typed Realm instance.
         Realm realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         Realm realmB = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
-        RealmCache.release(realmA);
+        realmA.close();
         assertNotNull(realmA.sharedRealm);
-        RealmCache.release(realmB);
+        realmB.close();
         assertNull(realmB.sharedRealm);
         // No crash but warning in the log.
-        RealmCache.release(realmB);
+        realmB.close();
 
         // Tests release dynamic Realm instance.
         DynamicRealm dynamicRealmA = RealmCache.createRealmOrGetFromCache(defaultConfig,
                 DynamicRealm.class);
         DynamicRealm dynamicRealmB = RealmCache.createRealmOrGetFromCache(defaultConfig,
                 DynamicRealm.class);
-        RealmCache.release(dynamicRealmA);
+        dynamicRealmA.close();
         assertNotNull(dynamicRealmA.sharedRealm);
-        RealmCache.release(dynamicRealmB);
+        dynamicRealmB.close();
         assertNull(dynamicRealmB.sharedRealm);
         // No crash but warning in the log.
-        RealmCache.release(dynamicRealmB);
+        dynamicRealmB.close();
 
         // Tests both typed Realm and dynamic Realm in same thread.
         realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         dynamicRealmA = RealmCache.createRealmOrGetFromCache(defaultConfig, DynamicRealm.class);
-        RealmCache.release(realmA);
+        realmA.close();
         assertNull(realmA.sharedRealm);
-        RealmCache.release(dynamicRealmA);
+        dynamicRealmA.close();
         assertNull(realmA.sharedRealm);
+    }
+
+    // The DynamicRealm and Realm with the same Realm path should share the same RealmCache
+    @Test
+    public void typedRealmAndDynamicRealmShareTheSameCache() {
+        final String DB_NAME = "same_name.realm";
+        RealmConfiguration config1 = configFactory.createConfigurationBuilder()
+                .name(DB_NAME)
+                .build();
+
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder()
+                .name(DB_NAME)
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        // Because of config1 doesn't have initialData block, these two configurations are not the same.
+                        // So if a Realm is created with config1, then create another Realm with config2 should just
+                        // fail before executing this block.
+                        fail();
+                    }
+                })
+                .build();
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config1);
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config2);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            dynamicRealm.close();
+            if (realm != null) {
+                realm.close();
+            }
+        }
     }
 }
