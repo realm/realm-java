@@ -172,7 +172,7 @@ public class LinkingObjectsManagedTests {
     @Test
     @RunTestInLooperThread
     public void notification_notSentAfterUnregisterListenerModelObject() {
-        final Realm looperThreadRealm = looperThread.realm;
+        final Realm looperThreadRealm = looperThread.getRealm();
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -207,7 +207,7 @@ public class LinkingObjectsManagedTests {
     @Test
     @RunTestInLooperThread
     public void notification_onCommitRealmResults() {
-        final Realm looperThreadRealm = looperThread.realm;
+        final Realm looperThreadRealm = looperThread.getRealm();
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -243,7 +243,7 @@ public class LinkingObjectsManagedTests {
     @Test
     @RunTestInLooperThread
     public void notification_notSentAfterUnregisterListenerRealmResults() {
-        final Realm looperThreadRealm = looperThread.realm;
+        final Realm looperThreadRealm = looperThread.getRealm();
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -279,7 +279,7 @@ public class LinkingObjectsManagedTests {
     @Test
     @RunTestInLooperThread
     public void notification_onDeleteRealmResults() {
-        final Realm looperThreadRealm = looperThread.realm;
+        final Realm looperThreadRealm = looperThread.getRealm();
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -316,7 +316,7 @@ public class LinkingObjectsManagedTests {
     @Test
     @RunTestInLooperThread
     public void notification_notSentOnUnrelatedChangeRealmResults() {
-        final Realm looperThreadRealm = looperThread.realm;
+        final Realm looperThreadRealm = looperThread.getRealm();
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -405,7 +405,7 @@ public class LinkingObjectsManagedTests {
     @Test
     @RunTestInLooperThread
     public void linkingObjects_IllegalStateException_ifNotYetLoaded() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -433,7 +433,7 @@ public class LinkingObjectsManagedTests {
     @Test
     @RunTestInLooperThread
     public void linkingObjects_IllegalStateException_ifDeleted() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -468,7 +468,7 @@ public class LinkingObjectsManagedTests {
     @Test
     @RunTestInLooperThread
     public void linkingObjects_IllegalStateException_ifDeletedIndirectly() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -794,7 +794,9 @@ public class LinkingObjectsManagedTests {
         realm.commitTransaction();
 
         // Runnable is guaranteed to be enqueued on the Looper queue, after the notifications
-        looperThread.keepStrongReference.addAll(Arrays.asList(refs));
+        for (Object ref : refs) {
+            looperThread.keepStrongReference(ref);
+        }
         looperThread.postRunnable(
             new Runnable() {
                 @Override

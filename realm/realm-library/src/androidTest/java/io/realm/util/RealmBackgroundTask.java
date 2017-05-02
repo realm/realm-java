@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.TestHelper;
+
 
 /**
  * Utility class for running a task on a non-looper background thread.
@@ -62,7 +64,7 @@ public abstract class RealmBackgroundTask {
         }, "RealmBackgroundTask").start();
 
         try {
-            if (!jobDone.await(10, TimeUnit.SECONDS)) {
+            if (!jobDone.await(TestHelper.STANDARD_WAIT_SECS, TimeUnit.SECONDS)) {
                 exceptionHolder.setError("Job timed out!");
             }
         } catch (InterruptedException e) {
