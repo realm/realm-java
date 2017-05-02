@@ -96,8 +96,11 @@ android {
         abortOnError false
     }
 
+   flavorDimensions 'api'
+
     productFlavors {
         base {
+            dimension 'api'
             externalNativeBuild {
                 cmake {
                     arguments "-DREALM_FLAVOR=base"
@@ -106,6 +109,7 @@ android {
             consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-base.pro'
         }
         objectServer {
+            dimension 'api'
             externalNativeBuild {
                 cmake {
                     arguments "-DREALM_FLAVOR=objectServer"
@@ -227,10 +231,10 @@ task findbugs(type: FindBugs) {
         xml.enabled = false
         html.enabled = true
         xml {
-            destination "$project.buildDir/findbugs/findbugs-output.xml"
+            destination file("$project.buildDir/findbugs/findbugs-output.xml")
         }
         html {
-            destination "$project.buildDir/findbugs/findbugs-output.html"
+            destination file("$project.buildDir/findbugs/findbugs-output.html")
         }
     }
 }
