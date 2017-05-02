@@ -28,7 +28,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
@@ -268,23 +267,23 @@ public class RealmCacheTests {
         final CountDownLatch realm2CreatedLatch = new CountDownLatch(1);
 
         final RealmConfiguration config1 = configFactory.createConfigurationBuilder()
-                .name("config1")
+                .name("config1.realm")
                 .initialData(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
+                        bgThreadStarted.countDown();
                         TestHelper.awaitOrFail(realm2CreatedLatch);
                     }
                 })
                 .build();
 
         RealmConfiguration config2 = configFactory.createConfigurationBuilder()
-                .name("config2")
+                .name("config2.realm")
                 .build();
 
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                bgThreadStarted.countDown();
                 Realm realm = Realm.getInstance(config1);
                 realm.close();
             }
@@ -334,12 +333,13 @@ public class RealmCacheTests {
     // The DynamicRealm and Realm with the same Realm path should share the same RealmCache
     @Test
     public void typedRealmAndDynamicRealmShareTheSameCache() {
+        final String DB_NAME = "same_name.realm";
         RealmConfiguration config1 = configFactory.createConfigurationBuilder()
-                .name("same_name")
+                .name(DB_NAME)
                 .build();
 
         RealmConfiguration config2 = configFactory.createConfigurationBuilder()
-                .name("same_name")
+                .name(DB_NAME)
                 .initialData(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
