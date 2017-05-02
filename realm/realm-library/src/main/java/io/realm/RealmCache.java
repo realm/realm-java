@@ -203,21 +203,18 @@ final class RealmCache {
             }
 
             // The Realm instance has been created without exceptions. Cache and reference count can be updated now.
-
             refAndCount.localRealm.set(realm);
             refAndCount.localCount.set(0);
-        }
 
-        Integer refCount = refAndCount.localCount.get();
-        if (refCount == 0) {
             if (realmClass == Realm.class && refAndCount.globalCount == 0) {
-                final BaseRealm realm = refAndCount.localRealm.get();
                 // Stores a copy of local ColumnIndices as a global cache.
                 RealmCache.storeColumnIndices(typedColumnIndicesArray, realm.schema.cloneColumnIndices());
             }
             // This is the first instance in current thread, increase the global count.
             refAndCount.globalCount++;
         }
+
+        Integer refCount = refAndCount.localCount.get();
         refAndCount.localCount.set(refCount + 1);
 
         //noinspection unchecked
