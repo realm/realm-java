@@ -714,10 +714,7 @@ public class RealmObjectTests {
                 realm.commitTransaction();
 
                 createLatch.countDown();
-                try {
-                    testEndLatch.await();
-                } catch (InterruptedException ignored) {
-                }
+                TestHelper.awaitOrFail(testEndLatch);
 
                 // 3. Closes Realm in this thread and finishes.
                 realm.close();
@@ -725,7 +722,7 @@ public class RealmObjectTests {
         };
         thread.start();
 
-        createLatch.await();
+        TestHelper.awaitOrFail(createLatch);
         // 2. Sets created object to target.
         realm.beginTransaction();
         try {
@@ -869,10 +866,7 @@ public class RealmObjectTests {
                 realm.commitTransaction();
 
                 createLatch.countDown();
-                try {
-                    testEndLatch.await();
-                } catch (InterruptedException ignored) {
-                }
+                TestHelper.awaitOrFail(testEndLatch);
 
                 // 3. Close Realm in this thread and finishes.
                 realm.close();
@@ -880,7 +874,7 @@ public class RealmObjectTests {
         };
         thread.start();
 
-        createLatch.await();
+        TestHelper.awaitOrFail(createLatch);
         // 2. Sets created object to target.
         realm.beginTransaction();
         try {
