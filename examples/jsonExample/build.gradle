@@ -12,6 +12,14 @@ android {
         minSdkVersion 15
         versionCode 1
         versionName "1.0"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                // disable a check for unnecessary annotation processor in classpath.
+                // lombok does not provide separate jar for its annotation processor.
+                includeCompileClasspath = true
+            }
+        }
     }
     buildTypes {
         release {
@@ -27,6 +35,6 @@ android {
 }
 
 dependencies {
-    provided 'org.projectlombok:lombok:1.16.6'
-    annotationProcessor 'org.projectlombok:lombok:1.16.6'
+    provided 'org.projectlombok:lombok:1.16.16'
+    annotationProcessor 'org.projectlombok:lombok:1.16.16'
 }
