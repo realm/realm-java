@@ -67,8 +67,8 @@ public class AsyncTaskFragment extends Fragment {
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
+    public void onStop() {
+        super.onStop();
         if (asyncTask != null) {
             asyncTask.cancel(false);
         }
