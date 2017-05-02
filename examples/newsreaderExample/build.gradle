@@ -43,6 +43,7 @@ dependencies {
     compile 'com.squareup.retrofit:converter-jackson:2.0.0-beta2'
     compile 'com.squareup.retrofit:adapter-rxjava:2.0.0-beta2'
     compile 'com.jakewharton.timber:timber:4.1.0'
-    compile 'com.jakewharton:butterknife:7.0.1'
+    compile 'com.jakewharton:butterknife:8.5.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
     compile 'me.zhanghai.android.materialprogressbar:library:1.1.4'
 }
