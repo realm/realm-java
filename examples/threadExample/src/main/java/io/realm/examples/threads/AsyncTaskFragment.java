@@ -123,7 +123,7 @@ public class AsyncTaskFragment extends Fragment {
         @Override
         protected void onPreExecute() {
             final AsyncTaskFragment fragment = fragmentRef.get();
-            if (fragment == null) {
+            if (fragment == null || fragment.isDetached()) {
                 return;
             }
             fragment.logsView.removeAllViews();
