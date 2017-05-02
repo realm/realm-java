@@ -38,12 +38,17 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -56,6 +61,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -117,6 +123,9 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 
 @RunWith(AndroidJUnit4.class)
 public class RealmTests {
@@ -128,6 +137,8 @@ public class RealmTests {
     public final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public final TemporaryFolder tmpFolder = new TemporaryFolder();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
@@ -1975,10 +1986,7 @@ public class RealmTests {
             public void run() {
                 Realm realm = Realm.getInstance(configuration);
                 bgThreadReadyLatch.countDown();
-                try {
-                    readyToCloseLatch.await();
-                } catch (InterruptedException ignored) {
-                }
+                TestHelper.awaitOrFail(readyToCloseLatch);
                 realm.close();
                 closedLatch.countDown();
             }
@@ -1996,7 +2004,7 @@ public class RealmTests {
         readyToCloseLatch.countDown();
 
         realm.close();
-        closedLatch.await();
+        TestHelper.awaitOrFail(closedLatch);
         // Now we get log files back!
         assertTrue(tempDirRenamed.renameTo(tempDir));
 
@@ -2583,7 +2591,7 @@ public class RealmTests {
         thatThread.start();
 
         // Timeout should never happen.
-        latch.await();
+        TestHelper.awaitOrFail(latch);
         if (threadAssertionError[0] != null) {
             throw threadAssertionError[0];
         }
@@ -2621,7 +2629,7 @@ public class RealmTests {
         thatThread.start();
 
         // Timeout should never happen.
-        latch.await();
+        TestHelper.awaitOrFail(latch);
         if (threadAssertionError[0] != null) {
             throw threadAssertionError[0];
         }
@@ -2697,7 +2705,7 @@ public class RealmTests {
             @Override
             public void run() {
                 try {
-                    startLatch.await();
+                    startLatch.await(TestHelper.STANDARD_WAIT_SECS, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     exception.add(e);
                     return;
@@ -2726,7 +2734,7 @@ public class RealmTests {
             realm = null;
         }
 
-        endLatch.await();
+        TestHelper.awaitOrFail(endLatch);
 
         if (!exception.isEmpty()) {
             throw exception.get(0);
@@ -2753,7 +2761,7 @@ public class RealmTests {
                 Realm realm = Realm.getInstance(realmConfig);
                 realmOpenedInBgLatch.countDown();
                 try {
-                    realmClosedInFgLatch.await();
+                    realmClosedInFgLatch.await(TestHelper.STANDARD_WAIT_SECS, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     exception.add(e);
                     realm.close();
@@ -2764,7 +2772,7 @@ public class RealmTests {
                 realm.beginTransaction();
                 transBeganInBgLatch.countDown();
                 try {
-                    fgFinishedLatch.await();
+                    fgFinishedLatch.await(TestHelper.STANDARD_WAIT_SECS, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     exception.add(e);
                 }
@@ -2776,16 +2784,16 @@ public class RealmTests {
         });
         thread.start();
 
-        realmOpenedInBgLatch.await();
+        TestHelper.awaitOrFail(realmOpenedInBgLatch);
         // Step 3: Closes all realm instances in foreground thread.
         realm.close();
         realmClosedInFgLatch.countDown();
-        transBeganInBgLatch.await();
+        TestHelper.awaitOrFail(transBeganInBgLatch);
 
         // Step 5: Gets a new Realm instance in foreground.
         realm = Realm.getInstance(realmConfig);
         fgFinishedLatch.countDown();
-        bgFinishedLatch.await();
+        TestHelper.awaitOrFail(bgFinishedLatch);
 
         if (!exception.isEmpty()) {
             throw exception.get(0);
@@ -3075,7 +3083,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnEmptyObject() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmChangeListener<AllTypes> dummyListener = new RealmChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object) {
@@ -3116,7 +3124,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnObject() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmChangeListener<AllTypes> dummyListener = new RealmChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object) {
@@ -3161,7 +3169,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnResults() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmChangeListener<RealmResults<AllTypes>> dummyListener = new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
@@ -3200,7 +3208,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void addChangeListener_throwOnAddingNullListenerFromLooperThread() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         try {
             realm.addChangeListener(null);
@@ -3233,7 +3241,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void removeChangeListener_throwOnRemovingNullListenerFromLooperThread() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         try {
             realm.removeChangeListener(null);
@@ -3831,12 +3839,45 @@ public class RealmTests {
         realmOnExternalStorage.close();
     }
 
+    // Verify that the logic for waiting for the users file dir to be come available isn't totally broken
+    // This is pretty hard to test, so forced to break encapsulation in this case.
+    @Test
+    public void init_waitForFilesDir() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException {
+        java.lang.reflect.Method m = Realm.class.getDeclaredMethod("checkFilesDirAvailable", Context.class);
+        m.setAccessible(true);
+
+        // A) Check it fails if getFilesDir is never created
+        Context mockContext = mock(Context.class);
+        when(mockContext.getFilesDir()).thenReturn(null);
+
+        try {
+            m.invoke(null, mockContext);
+            fail();
+        } catch (InvocationTargetException e) {
+            assertEquals(IllegalStateException.class, e.getCause().getClass());
+        }
+
+        // B) Check we return if the filesDir becomes available after a while
+        mockContext = mock(Context.class);
+        when(mockContext.getFilesDir()).then(new Answer<File>() {
+            int calls = 0;
+            File userFolder = tmpFolder.newFolder();
+            @Override
+            public File answer(InvocationOnMock invocationOnMock) throws Throwable {
+                calls++;
+                return (calls > 5) ? userFolder : null; // Start returning the correct folder after 5 attempts
+            }
+        });
+
+        assertNull(m.invoke(null, mockContext));
+    }
+
     @Test
     @RunTestInLooperThread
     public void refresh_triggerNotifications() {
         final CountDownLatch bgThreadDone = new CountDownLatch(1);
         final AtomicBoolean listenerCalled = new AtomicBoolean(false);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         assertEquals(0, results.size());
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
@@ -3852,7 +3893,7 @@ public class RealmTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Realm realm = Realm.getInstance(looperThread.realmConfiguration);
+                Realm realm = Realm.getInstance(looperThread.getConfiguration());
                 realm.beginTransaction();
                 realm.createObject(AllTypes.class);
                 realm.commitTransaction();
@@ -3895,7 +3936,7 @@ public class RealmTests {
     public void refresh_forceSynchronousNotifications() {
         final CountDownLatch bgThreadDone = new CountDownLatch(1);
         final AtomicBoolean listenerCalled = new AtomicBoolean(false);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
@@ -3909,7 +3950,7 @@ public class RealmTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Realm realm = Realm.getInstance(looperThread.realmConfiguration);
+                Realm realm = Realm.getInstance(looperThread.getConfiguration());
                 realm.beginTransaction();
                 realm.createObject(AllTypes.class);
                 realm.commitTransaction();

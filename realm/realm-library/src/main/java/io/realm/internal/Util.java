@@ -32,17 +32,6 @@ import io.realm.log.RealmLog;
 
 public class Util {
 
-    public static long getNativeMemUsage() {
-        return nativeGetMemUsage();
-    }
-
-    static native long nativeGetMemUsage();
-
-    // Called by JNI. Do not remove.
-    static void javaPrint(String txt) {
-        System.out.print(txt);
-    }
-
     public static String getTablePrefix() {
         return nativeGetTablePrefix();
     }

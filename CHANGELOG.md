@@ -19,6 +19,8 @@
 ## Bug fixes
 
 * Added missing row validation check in certain cases on invalidated/deleted objects (#4540).
+* Initializing Realm is now more resilient if `Context.getFilesDir()` isn't working correctly (#4493).
+* `OrderedRealmCollectionSnapshot.get()` returned a wrong object (#4554).
 
 ## 3.1.3 (2017-04-20)
 

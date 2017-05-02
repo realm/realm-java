@@ -267,6 +267,37 @@ task clean {
     dependsOn cleanLocalMavenRepos
 }
 
+task manualClean {
+    description = 'Clean build files without using clean tasks defined in sub projects'
+    group = 'Clean'
+
+    doLast {
+        // clean 'build' directories
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'find', '.', '-type', 'd', '-name', 'build', '-print', '-exec', 'rm', '-rf', '{}', ';', '-prune'
+        }
+
+        // clean '.externalNativeBuild' directories
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'find', '.', '-type', 'd', '-name', '.externalNativeBuild', '-print', '-exec', 'rm', '-rf', '{}', ';', '-prune'
+        }
+
+        // clean '.gradle' directories except one in the root
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'find', '.', '-mindepth', '2', '-type', 'd', '-name', '.gradle', '-print', '-exec', 'rm', '-rf', '{}', ';', '-prune'
+        }
+
+        // clean ${System.env.HOME}/.m2/repository/io/realm
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'sh', '-c', "echo \"${System.env.HOME}/.m2/repository/io/realm\" && rm -rf \"${System.env.HOME}/.m2/repository/io/realm\""
+        }
+    }
+}
+
 task uploadDistributionPackage {
     group = 'Release'
     description = 'Upload the distribution package to S3'

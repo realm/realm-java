@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.util.Log;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -157,7 +159,7 @@ public class OrderedCollectionChangeSetTests {
         switch (type) {
             case REALM_RESULTS:
                 RealmResults<Dog> results = realm.where(Dog.class).findAllSorted(Dog.FIELD_AGE);
-                looperThread.keepStrongReference.add(results);
+                looperThread.keepStrongReference(results);
                 results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
                     @Override
                     public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
@@ -167,7 +169,7 @@ public class OrderedCollectionChangeSetTests {
                 break;
             case REALM_LIST:
                 RealmList<Dog> list = realm.where(Owner.class).findFirst().getDogs();
-                looperThread.keepStrongReference.add(list);
+                looperThread.keepStrongReference(list);
                 list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
                     @Override
                     public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changeSet) {
@@ -181,7 +183,7 @@ public class OrderedCollectionChangeSetTests {
     @Test
     @RunTestInLooperThread
     public void deletion() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateData(realm, 10);
 
         final ChangesCheck changesCheck = new ChangesCheck() {
@@ -213,7 +215,7 @@ public class OrderedCollectionChangeSetTests {
     @Test
     @RunTestInLooperThread
     public void insertion() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateData(realm, 0); // We need to create the owner.
         realm.beginTransaction();
         createObjects(realm, 0, 2, 5, 6, 7, 9);
@@ -247,7 +249,7 @@ public class OrderedCollectionChangeSetTests {
     @Test
     @RunTestInLooperThread
     public void changes() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateData(realm, 10);
         ChangesCheck changesCheck = new ChangesCheck() {
             @Override
@@ -278,7 +280,7 @@ public class OrderedCollectionChangeSetTests {
     @Test
     @RunTestInLooperThread
     public void moves() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateData(realm, 10);
         ChangesCheck changesCheck = new ChangesCheck() {
             @Override
@@ -307,7 +309,7 @@ public class OrderedCollectionChangeSetTests {
     @Test
     @RunTestInLooperThread
     public void mixed_changes() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateData(realm, 10);
         ChangesCheck changesCheck = new ChangesCheck() {
             @Override
@@ -347,7 +349,7 @@ public class OrderedCollectionChangeSetTests {
     @Test
     @RunTestInLooperThread
     public void changes_then_delete() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateData(realm, 10);
         ChangesCheck changesCheck = new ChangesCheck() {
             @Override
@@ -377,7 +379,7 @@ public class OrderedCollectionChangeSetTests {
     @Test
     @RunTestInLooperThread
     public void insert_then_delete() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateData(realm, 10);
         ChangesCheck changesCheck = new ChangesCheck() {
             @Override
@@ -409,7 +411,10 @@ public class OrderedCollectionChangeSetTests {
             looperThread.testComplete();
             return;
         }
-        Realm realm = looperThread.realm;
+
+        Log.d("####", "test running on thread: " + Thread.currentThread());
+
+        Realm realm = looperThread.getRealm();
         populateData(realm, 10);
         final RealmResults<Dog> results = realm.where(Dog.class).findAllSortedAsync(Dog.FIELD_AGE);
         results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
@@ -429,7 +434,8 @@ public class OrderedCollectionChangeSetTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Realm realm = Realm.getInstance(looperThread.realmConfiguration)      ;
+                Log.d("####", "runnable running on thread: " + Thread.currentThread());
+                Realm realm = Realm.getInstance(looperThread.getConfiguration())      ;
                 realm.beginTransaction();
                 realm.where(Dog.class).equalTo(Dog.FIELD_AGE, 0).findFirst().deleteFromRealm();
                 realm.commitTransaction();
