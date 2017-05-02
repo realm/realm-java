@@ -23,16 +23,21 @@ import org.junit.BeforeClass;
 
 import io.realm.Realm;
 import io.realm.SyncManager;
+import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
 
 class BaseIntegrationTest {
+
+    private static int originalLogLevel;
 
     @BeforeClass
     public static void setUp () throws Exception {
         SyncManager.Debug.skipOnlineChecking = true;
         try {
             Realm.init(InstrumentationRegistry.getContext());
+            originalLogLevel = RealmLog.getLevel();
+            RealmLog.setLevel(LogLevel.DEBUG);
             HttpUtils.startSyncServer();
         } catch (Exception e) {
             // Throwing an exception from this method will crash JUnit. Instead just log it.
@@ -45,6 +50,7 @@ class BaseIntegrationTest {
     public static void tearDown () throws Exception {
         try {
             HttpUtils.stopSyncServer();
+            RealmLog.setLevel(originalLogLevel);
         } catch (Exception e) {
             RealmLog.error("Failed to stop Sync Server", e);
         }

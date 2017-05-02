@@ -36,6 +36,8 @@ import okhttp3.Response;
 public class OkHttpAuthenticationServer implements AuthenticationServer {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private static final String ACTION_LOGOUT = "revoke"; // Auth end point for logging out users
+    private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
 
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
@@ -79,47 +81,63 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     @Override
     public LogoutResponse logout(Token userToken, URL authenticationUrl) {
         try {
-            String requestBody = LogoutRequest.revoke(userToken).toJson();
-            return logout(buildLogoutUrl(authenticationUrl), requestBody);
+            String requestBody = LogoutRequest.create(userToken).toJson();
+            return logout(buildActionUrl(authenticationUrl, ACTION_LOGOUT), requestBody);
         } catch (Exception e) {
             return LogoutResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
         }
     }
 
-    private static URL buildLogoutUrl(URL authenticationUrl) {
+    @Override
+    public ChangePasswordResponse changePassword(Token userToken, String newPassword, URL authenticationUrl) {
+        try {
+            String requestBody = ChangePasswordRequest.create(userToken, newPassword).toJson();
+            return changePassword(buildActionUrl(authenticationUrl, ACTION_CHANGE_PASSWORD), requestBody);
+        } catch (Throwable e) {
+            return ChangePasswordResponse.createFailure(new ObjectServerError(ErrorCode.UNKNOWN, e));
+        }
+    }
+
+    // Builds the URL for a specific auth endpoint
+    private static URL buildActionUrl(URL authenticationUrl, String action) {
         final String baseUrlString = authenticationUrl.toExternalForm();
         try {
-            if (baseUrlString.endsWith("/")) {
-                return new URL(baseUrlString + "revoke");
-            } else {
-                return new URL(baseUrlString + "/revoke");
-            }
+            String separator = baseUrlString.endsWith("/") ? "" : "/";
+            return new URL(baseUrlString + separator + action);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }
 
     private AuthenticateResponse authenticate(URL authenticationUrl, String requestBody) throws Exception {
-        Request request = new Request.Builder()
-                .url(authenticationUrl)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Accept", "application/json")
-                .post(RequestBody.create(JSON, requestBody))
-                .build();
+        RealmLog.debug("Network request (authenticate): " + authenticationUrl);
+        Request request = newAuthRequest(authenticationUrl).post(RequestBody.create(JSON, requestBody)).build();
         Call call = client.newCall(request);
         Response response = call.execute();
         return AuthenticateResponse.from(response);
     }
 
     private LogoutResponse logout(URL logoutUrl, String requestBody) throws Exception {
-        Request request = new Request.Builder()
-                .url(logoutUrl)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Accept", "application/json")
-                .post(RequestBody.create(JSON, requestBody))
-                .build();
+        RealmLog.debug("Network request (logout): " + logoutUrl);
+        Request request = newAuthRequest(logoutUrl).post(RequestBody.create(JSON, requestBody)).build();
         Call call = client.newCall(request);
         Response response = call.execute();
         return LogoutResponse.from(response);
     }
+
+    private ChangePasswordResponse changePassword(URL changePasswordUrl, String requestBody) throws Exception {
+        RealmLog.debug("Network request (changePassword): " + changePasswordUrl);
+        Request request = newAuthRequest(changePasswordUrl).put(RequestBody.create(JSON, requestBody)).build();
+        Call call = client.newCall(request);
+        Response response = call.execute();
+        return ChangePasswordResponse.from(response);
+    }
+
+    private Request.Builder newAuthRequest(URL url) {
+        return new Request.Builder()
+                .url(url)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Accept", "application/json");
+    }
+
 }
