@@ -428,8 +428,8 @@ final class RealmCache {
 
         // Access local ref count only, no need to by synchronized.
         int totalRefCount = 0;
-        for (RealmCacheType type : RealmCacheType.values()) {
-            Integer localCount = cache.refAndCountMap.get(type).localCount.get();
+        for (RefAndCount refAndCount : cache.refAndCountMap.values()) {
+            Integer localCount = refAndCount.localCount.get();
             totalRefCount += (localCount != null) ? localCount : 0;
         }
         return totalRefCount;
@@ -495,9 +495,10 @@ final class RealmCache {
      */
     private int getTotalGlobalRefCount() {
         int totalRefCount = 0;
-        for (RealmCacheType type : RealmCacheType.values()) {
-            totalRefCount += refAndCountMap.get(type).globalCount;
+        for (RefAndCount refAndCount : refAndCountMap.values()) {
+            totalRefCount += refAndCount.globalCount;
         }
+
         return totalRefCount;
     }
 }
