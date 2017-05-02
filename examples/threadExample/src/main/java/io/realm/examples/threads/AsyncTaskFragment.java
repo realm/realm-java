@@ -134,7 +134,7 @@ public class AsyncTaskFragment extends Fragment {
         @Override
         protected void onPostExecute(Integer sum) {
             final AsyncTaskFragment fragment = fragmentRef.get();
-            if (fragment == null) {
+            if (fragment == null || fragment.isDetached()) {
                 return;
             }
             fragment.progressView.setVisibility(View.GONE);
