@@ -127,6 +127,8 @@ import rx.Observable;
  */
 public class Realm extends BaseRealm {
 
+    private static final String NULL_CONFIG_MSG = "A non-null RealmConfiguration must be provided";
+
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
     private static RealmConfiguration defaultConfiguration;
@@ -279,9 +281,30 @@ public class Realm extends BaseRealm {
      */
     public static Realm getInstance(RealmConfiguration configuration) {
         if (configuration == null) {
-            throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
+            throw new IllegalArgumentException(NULL_CONFIG_MSG);
         }
         return RealmCache.createRealmOrGetFromCache(configuration, Realm.class);
+    }
+
+    /**
+     * The creation of the first Realm instance per {@link RealmConfiguration} in a process can take some time as all
+     * initialization code need to run at that point (setting up the Realm, validating schemas and creating initial
+     * data). This method places the initialization work in a background thread and deliver the Realm instance
+     * to the caller thread asynchronously after the initialization is finished.
+     *
+     * @param configuration {@link RealmConfiguration} used to open the Realm.
+     * @param callback invoked to return the results.
+     * @throws IllegalArgumentException if a null {@link RealmConfiguration} or a null {@link Callback} is provided.
+     * @throws IllegalStateException if it is called from a non-Looper or {@link IntentService} thread.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @see Callback for more details.
+     */
+    public static RealmAsyncTask getInstanceAsync(RealmConfiguration configuration,
+                                                  Callback callback) {
+        if (configuration == null) {
+            throw new IllegalArgumentException(NULL_CONFIG_MSG);
+        }
+        return RealmCache.createRealmOrGetFromCacheAsync(configuration, callback, Realm.class);
     }
 
     /**
@@ -1850,6 +1873,25 @@ public class Realm extends BaseRealm {
          */
         interface OnError {
             void onError(Throwable error);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public static abstract class Callback extends InstanceCallback<Realm> {
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public abstract void onSuccess(Realm realm);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void onError(Throwable exception) {
+            super.onError(exception);
         }
     }
 }

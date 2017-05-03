@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
@@ -753,4 +754,86 @@ abstract class BaseRealm implements Closeable {
     }
 
     public static final ThreadLocalRealmObjectContext objectContext = new ThreadLocalRealmObjectContext();
+
+    /**
+     * The Callback used when reporting back the result of loading a Realm asynchronously using either
+     * {@link Realm#getInstanceAsync(RealmConfiguration, Realm.Callback)} or
+     * {@link DynamicRealm#getInstanceAsync(RealmConfiguration, DynamicRealm.Callback)}.
+     * <p>
+     * Before creating the first Realm instance in a process, there are some initialization work that need to be done
+     * such as creating or validating schemas, running migration if needed,
+     * copy asset file if {@link RealmConfiguration.Builder#assetFile(String)} is supplied and execute the
+     * {@link RealmConfiguration.Builder#initialData(Realm.Transaction)} if necessary. This work may take time
+     * and block the caller thread for a while. To avoid the {@code getInstance()} call blocking the main thread, the
+     * {@code getInstanceAsync()} can be used instead to do the initialization work in the background thread and
+     * deliver a Realm instance to the caller thread.
+     * <p>
+     * In general, this method is mostly useful on the UI thread since that should be blocked as little as possible. On
+     * any other Looper threads or other threads that don't support callbacks, using the standard {@code getInstance()}
+     * should be fine.
+     * <p>
+     * Here is an example of using {@code getInstanceAsync()} when the app starts the first activity:
+     * <pre>
+     * public class MainActivity extends Activity {
+     *
+     *   private Realm realm = null;
+     *   private RealmAsyncTask realmAsyncTask;
+     *
+     *   \@Override
+     *   protected void onCreate(Bundle savedInstanceState) {
+     *     super.onCreate(savedInstanceState);
+     *     setContentView(R.layout.layout_main);
+     *     realmAsyncTask = Realm.getDefaultInstanceAsync(new Callback() {
+     *         \@Override
+     *         public void onSuccess(Realm realm) {
+     *             if (isDestroyed()) {
+     *                 // If the activity is destroyed, the Realm instance should be closed immediately to avoid leaks.
+     *                 // Or you can call realmAsyncTask.cancel() in onDestroy() to stop callback delivery.
+     *                 realm.close();
+     *             } else {
+     *                 MainActivity.this.realm = realm;
+     *                 // Remove the spinner and start the real UI.
+     *             }
+     *         }
+     *     });
+     *
+     *     // Show a spinner before Realm instance returned by the callback.
+     *   }
+     *
+     *   \@Override
+     *   protected void onDestroy() {
+     *     super.onDestroy();
+     *     if (realm != null) {
+     *         realm.close();
+     *         realm = null;
+     *     } else {
+     *         // Calling cancel() on the thread where getInstanceAsync was called on to stop the callback delivery.
+     *         // Otherwise you need to check if the activity is destroyed to close in the onSuccess() properly.
+     *         realmAsyncTask.cancel();
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
+     * @param <T> {@link Realm} or {@link DynamicRealm}.
+     */
+    public abstract static class InstanceCallback<T extends BaseRealm> {
+
+        /**
+         * Deliver a Realm instance to the caller thread.
+         *
+         * @param realm the Realm instance for the caller thread.
+         */
+        public abstract void onSuccess(T realm);
+
+        /**
+         * Deliver an error happens when creating the Realm instance to the caller thread. The default implementation
+         * will throw an exception on the caller thread.
+         *
+         * @param exception happened while initializing Realm on a background thread.
+         */
+        public void onError(Throwable exception) {
+            throw new RealmException("Exception happens when initializing Realm in the background thread.", exception);
+        }
+    }
 }

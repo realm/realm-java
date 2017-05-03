@@ -63,7 +63,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -3837,6 +3836,35 @@ public class RealmTests {
         // Tests if it works when the namedPipeDir and the named pipe files already exist.
         realmOnExternalStorage = Realm.getInstance(config);
         realmOnExternalStorage.close();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void getInstanceAsync_nonLooperThreadShouldThrow() {
+        Realm.getInstanceAsync(realmConfig, new Realm.Callback() {
+            @Override
+            public void onSuccess(Realm realm) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_nullConfigShouldThrow() {
+        thrown.expect(IllegalArgumentException.class);
+        Realm.getInstanceAsync(null, new Realm.Callback() {
+            @Override
+            public void onSuccess(Realm realm) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_nullCallbackShouldThrow() {
+        thrown.expect(IllegalArgumentException.class);
+        Realm.getInstanceAsync(realmConfig, null);
     }
 
     // Verify that the logic for waiting for the users file dir to be come available isn't totally broken

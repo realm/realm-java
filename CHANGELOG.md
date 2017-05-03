@@ -9,6 +9,7 @@
 * [ObjectServer] Added support for `SyncConfigration.Builder.waitForServerChanges(boolean)` (#4270).
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).
 * Added `Realm.refresh()` and `DynamicRealm.refresh()` (#3476).
+* Added `Realm.getInstanceAsync()` and `DynamicRealm.getInstanceAsync()` (#2299).
 
 ### Bug Fixes
 
