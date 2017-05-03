@@ -139,7 +139,7 @@ public class SyncSession {
      * Calling this method will block until all known remote changes have been downloaded and applied to the Realm.
      * This will involve network access, so calling this method should only be done from a non-UI thread.
      * <p>
-     * If the device is offline, this method will return immediately.
+     * If the device is offline, this method might never return.
      * <p>
      * This method cannot be called before the session has been started.
      *
