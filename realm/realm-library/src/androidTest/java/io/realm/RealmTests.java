@@ -3897,6 +3897,35 @@ public class RealmTests {
         realmOnExternalStorage.close();
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void getInstanceAsync_nonLooperThreadShouldThrow() {
+        Realm.getInstanceAsync(realmConfig, new Realm.Callback() {
+            @Override
+            public void onSuccess(Realm realm) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_nullConfigShouldThrow() {
+        thrown.expect(IllegalArgumentException.class);
+        Realm.getInstanceAsync(null, new Realm.Callback() {
+            @Override
+            public void onSuccess(Realm realm) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_nullCallbackShouldThrow() {
+        thrown.expect(IllegalArgumentException.class);
+        Realm.getInstanceAsync(realmConfig, null);
+    }
+
     // Verify that the logic for waiting for the users file dir to be come available isn't totally broken
     // This is pretty hard to test, so forced to break encapsulation in this case.
     @Test

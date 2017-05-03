@@ -71,6 +71,27 @@ public class DynamicRealm extends BaseRealm {
     }
 
     /**
+     * The creation of the first Realm instance per {@link RealmConfiguration} in a process can take some time as all
+     * initialization code need to run at that point (Setting up the Realm, validating schemas and creating initial
+     * data). This method places the initialization work in a background thread and deliver the Realm instance
+     * to the caller thread asynchronously after the initialization is finished.
+     *
+     * @param configuration {@link RealmConfiguration} used to open the Realm.
+     * @param callback invoked to return the results.
+     * @throws IllegalArgumentException if a null {@link RealmConfiguration} or a null {@link Callback} is provided.
+     * @throws IllegalStateException if it is called from a non-Looper or {@link android.app.IntentService} thread.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @see Callback for more details.
+     */
+    public static RealmAsyncTask getInstanceAsync(RealmConfiguration configuration,
+                                                  Callback callback) {
+        if (configuration == null) {
+            throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
+        }
+        return RealmCache.createRealmOrGetFromCacheAsync(configuration, callback, DynamicRealm.class);
+    }
+
+    /**
      * Instantiates and adds a new object to the Realm.
      *
      * @param className the class name of the object to create.
@@ -238,6 +259,25 @@ public class DynamicRealm extends BaseRealm {
      */
     public interface Transaction {
         void execute(DynamicRealm realm);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public static abstract class Callback extends InstanceCallback<DynamicRealm> {
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public abstract void onSuccess(DynamicRealm realm);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void onError(Throwable exception) {
+            super.onError(exception);
+        }
     }
 }
 
