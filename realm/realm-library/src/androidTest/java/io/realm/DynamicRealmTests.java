@@ -684,6 +684,7 @@ public class DynamicRealmTests {
         DynamicRealm.getInstanceAsync(defaultConfig, new DynamicRealm.Callback() {
             @Override
             public void onSuccess(DynamicRealm realm) {
+                fail();
             }
         });
     }
@@ -695,6 +696,7 @@ public class DynamicRealmTests {
         DynamicRealm.getInstanceAsync(null, new DynamicRealm.Callback() {
             @Override
             public void onSuccess(DynamicRealm realm) {
+                fail();
             }
         });
     }

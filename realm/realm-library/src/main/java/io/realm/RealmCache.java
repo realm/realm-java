@@ -90,7 +90,7 @@ final class RealmCache {
         private RealmConfiguration configuration;
         private BaseRealm.InstanceCallback<T> callback;
         private Class<T> realmClass;
-        private CountDownLatch createdInForegroundLatch = new CountDownLatch(1);
+        private CountDownLatch canReleaseBackgroundInstanceLatch = new CountDownLatch(1);
         private RealmNotifier notifier;
         // The Future this runnable belongs to.
         private Future future;
@@ -122,27 +122,31 @@ final class RealmCache {
                         // Using the future to check which this runnable belongs to is to ensure if it is canceled from
                         // the caller thread before, the callback will never be delivered.
                         if (future == null || future.isCancelled()) {
+                            canReleaseBackgroundInstanceLatch.countDown();
                             return;
                         }
                         T instanceToReturn = null;
+                        Throwable throwable = null;
                         try {
                             instanceToReturn = createRealmOrGetFromCache(configuration, realmClass);
                         } catch (Throwable e) {
-                            callback.onError(e);
+                            throwable = e;
                         } finally {
-                            createdInForegroundLatch.countDown();
+                            canReleaseBackgroundInstanceLatch.countDown();
                         }
                         if (instanceToReturn != null) {
                             callback.onSuccess(instanceToReturn);
+                        } else {
+                            callback.onError(throwable);
                         }
                     }
                 });
                 if (!results) {
-                    createdInForegroundLatch.countDown();
+                    canReleaseBackgroundInstanceLatch.countDown();
                 }
                 // There is a small chance that the posted runnable cannot be executed because of the thread terminated
                 // before the runnable gets fetched from the event queue.
-                if (!createdInForegroundLatch.await(2, TimeUnit.SECONDS)) {
+                if (!canReleaseBackgroundInstanceLatch.await(2, TimeUnit.SECONDS)) {
                     RealmLog.warn("Timeout for creating Realm instance in foreground thread in `CreateRealmRunnable` ");
                 }
             } catch (InterruptedException e) {
@@ -209,6 +213,29 @@ final class RealmCache {
         }
     }
 
+    private static RealmCache getCache(String realmPath, boolean createIfNotExist) {
+        RealmCache cacheToReturn = null;
+        synchronized (cachesList) {
+            Iterator<WeakReference<RealmCache>> it = cachesList.iterator();
+
+            while (it.hasNext()) {
+                RealmCache cache = it.next().get();
+                if (cache == null) {
+                    // Clear the entry if there is no one holding the RealmCache.
+                    it.remove();
+                } else if (cache.realmPath.equals(realmPath)) {
+                    cacheToReturn = cache;
+                }
+            }
+
+            if (cacheToReturn == null && createIfNotExist) {
+                cacheToReturn = new RealmCache(realmPath);
+                cachesList.add(new WeakReference<RealmCache>(cacheToReturn));
+            }
+        }
+        return cacheToReturn;
+    }
+
     static <T extends BaseRealm> RealmAsyncTask createRealmOrGetFromCacheAsync(
             RealmConfiguration configuration, BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
         RealmCache cache = getCache(configuration.getPath(), true);
@@ -231,29 +258,6 @@ final class RealmCache {
         createRealmRunnable.setFuture(future);
 
         return new RealmAsyncTaskImpl(future, BaseRealm.asyncTaskExecutor);
-    }
-
-    private static RealmCache getCache(String realmPath, boolean createIfNotExist) {
-        RealmCache cacheToReturn = null;
-        synchronized (cachesList) {
-            Iterator<WeakReference<RealmCache>> it = cachesList.iterator();
-
-            while (it.hasNext()) {
-                RealmCache cache = it.next().get();
-                if (cache == null) {
-                    // Clear the entry if there is no one holding the RealmCache.
-                    it.remove();
-                } else if (cache.realmPath.equals(realmPath)) {
-                    cacheToReturn = cache;
-                }
-            }
-
-            if (cacheToReturn == null && createIfNotExist) {
-                cacheToReturn = new RealmCache(realmPath);
-                cachesList.add(new WeakReference<RealmCache>(cacheToReturn));
-            }
-        }
-        return cacheToReturn;
     }
 
     /**

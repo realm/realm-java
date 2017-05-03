@@ -78,7 +78,7 @@ public class DynamicRealm extends BaseRealm {
      *
      * @param configuration {@link RealmConfiguration} used to open the Realm.
      * @param callback invoked to return the results.
-     * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
+     * @throws IllegalArgumentException if a null {@link RealmConfiguration} or a null {@link Callback} is provided.
      * @throws IllegalStateException if it is called from a non-Looper or {@link android.app.IntentService} thread.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
      * @see Callback for more details.

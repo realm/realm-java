@@ -3843,6 +3843,7 @@ public class RealmTests {
         Realm.getInstanceAsync(realmConfig, new Realm.Callback() {
             @Override
             public void onSuccess(Realm realm) {
+                fail();
             }
         });
     }
@@ -3854,6 +3855,7 @@ public class RealmTests {
         Realm.getInstanceAsync(null, new Realm.Callback() {
             @Override
             public void onSuccess(Realm realm) {
+                fail();
             }
         });
     }
