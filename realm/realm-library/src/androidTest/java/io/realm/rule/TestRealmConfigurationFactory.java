@@ -80,10 +80,6 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
     @Override
     protected void after() {
-        // Waits all async tasks done to ensure successful deleteRealm call.
-        // This will throw when timeout. And the reason of timeout needs to be solved properly.
-        TestHelper.waitRealmThreadExecutorFinish();
-
         try {
             for (RealmConfiguration configuration : configurations) {
                 Realm.deleteRealm(configuration);
