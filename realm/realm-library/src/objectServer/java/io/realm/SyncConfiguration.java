@@ -598,9 +598,9 @@ public class SyncConfiguration extends RealmConfiguration {
          * <p>
          * Since downloading all changes can be an lengthy operation that might block the UI thread, Realms with this
          * setting enabled should only be opened on background threads or with
-         * {@code Realm.getInstanceAsync(config, onSuccess)} on the UI thread.
+         * {@link Realm#getInstanceAsync(RealmConfiguration, Realm.Callback)} on the UI thread.
          * <p>
-         * If this is enabled the Realm will not open until it have talked to the server at least once. This means that
+         * If this is enabled the Realm will not open until it has talked to the server at least once. This means that
          * if a device is offline the Realm will not open.
          * <p>
          * This check is only enforced the first time a Realm is opened on each thread i.e., it will be enforced
