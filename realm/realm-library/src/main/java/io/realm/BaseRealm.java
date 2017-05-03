@@ -754,15 +754,15 @@ abstract class BaseRealm implements Closeable {
      * {@link Realm#getInstanceAsync(RealmConfiguration, Realm.Callback)} or
      * {@link DynamicRealm#getInstanceAsync(RealmConfiguration, DynamicRealm.Callback)}.
      * <p>
-     * Before creating the first Realm instance in a process, there are some initialization work that needs to be done
+     * Before creating the first Realm instance in a process, there are some initialization work that need to be done
      * such as creating or validating schemas, running migration if needed,
      * copy asset file if {@link RealmConfiguration.Builder#assetFile(String)} is supplied and execute the
      * {@link RealmConfiguration.Builder#initialData(Realm.Transaction)} if necessary. This work may take time
      * and block the caller thread for a while. To avoid the {@code getInstance()} call blocking the main thread, the
-     * {@code getInstanceAsync()} can be used instead which will do the initialization work in the background thread and
+     * {@code getInstanceAsync()} can be used instead to do the initialization work in the background thread and
      * deliver a Realm instance to the caller thread.
      * <p>
-     * In general, this method is most useful on the UI thread since that should be blocked as little as possible. On
+     * In general, this method is mostly useful on the UI thread since that should be blocked as little as possible. On
      * any other Looper threads or other threads that don't support callbacks, using the standard {@code getInstance()}
      * should be fine.
      * <p>
@@ -821,8 +821,8 @@ abstract class BaseRealm implements Closeable {
         public abstract void onSuccess(T realm);
 
         /**
-         * Deliver the error happens when creating the Realm instance to the caller thread. The default implementation
-         * will throw the exception on the caller thread.
+         * Deliver an error happens when creating the Realm instance to the caller thread. The default implementation
+         * will throw an exception on the caller thread.
          *
          * @param exception happened while initializing Realm on a background thread.
          */

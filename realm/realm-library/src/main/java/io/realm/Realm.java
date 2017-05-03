@@ -288,7 +288,7 @@ public class Realm extends BaseRealm {
 
     /**
      * The creation of the first Realm instance per {@link RealmConfiguration} in a process can take some time as all
-     * initialization code need to run at that point (Setting up the Realm, validating schemas and creating initial
+     * initialization code need to run at that point (setting up the Realm, validating schemas and creating initial
      * data). This method places the initialization work in a background thread and deliver the Realm instance
      * to the caller thread asynchronously after the initialization is finished.
      *
