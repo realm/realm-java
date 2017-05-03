@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import io.realm.RealmChangeListener;
@@ -97,10 +98,15 @@ public abstract class RealmNotifier implements Closeable {
     // called from java_binding_context.cpp
     void didChange() {
         realmObserverPairs.foreach(onChangeCallBack);
-        for (Runnable runnable : transactionCallbacks) {
+
+        Iterator<Runnable> it = transactionCallbacks.iterator();
+        while (it.hasNext()) {
+            Runnable runnable = it.next();
+            // The callback needs to be removed from list before calling to avoid sync transactions in the callback
+            // triggers it recursively.
+            it.remove();
             runnable.run();
         }
-        transactionCallbacks.clear();
     }
 
     // Called from JavaBindingContext::before_notify.

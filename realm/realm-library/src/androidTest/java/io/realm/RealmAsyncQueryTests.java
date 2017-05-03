@@ -406,6 +406,46 @@ public class RealmAsyncQueryTests {
         }
     }
 
+    // https://github.com/realm/realm-java/issues/4595#issuecomment-298830411
+    // onSuccess might commit another transaction which will call didChange. So before calling async transaction
+    // callbacks, the callback should be cleared.
+    @Test
+    @RunTestInLooperThread
+    public void executeTransactionAsync_callbacksShouldBeClearedBeforeCalling() {
+        final AtomicBoolean callbackCalled = new AtomicBoolean(false);
+        final Realm foregroundRealm = looperThread.getRealm();
+
+        // To reproduce the issue, the posted callback needs to arrived before the Object Store did_change called.
+        // We just disable the auto refresh here then the did_change won't be called.
+        foregroundRealm.setAutoRefresh(false);
+        foregroundRealm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
+                // Delay to post this to ensure the async transaction posted callback will arrive first.
+                looperThread.postRunnableDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Manually call refresh, so the did_change will be triggered.
+                        foregroundRealm.sharedRealm.refresh();
+                        foregroundRealm.setAutoRefresh(true);
+                    }
+                }, 50);
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                assertFalse(callbackCalled.getAndSet(true));
+
+                // This transaction should never trigger the onSuccess.
+                foregroundRealm.beginTransaction();
+                foregroundRealm.createObject(AllTypes.class);
+                foregroundRealm.commitTransaction();
+                looperThread.testComplete();
+            }
+        });
+    }
+
     // ************************************
     // *** promises based async queries ***
     // ************************************
