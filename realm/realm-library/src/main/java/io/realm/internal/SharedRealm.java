@@ -177,7 +177,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     private final RealmConfiguration configuration;
 
     final private long nativePtr;
-    final Context context;
+    final RealmContext context;
     private long lastSchemaVersion;
     private final SchemaVersionListener schemaChangeListener;
 
@@ -193,7 +193,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         this.capabilities = capabilities;
         this.realmNotifier = realmNotifier;
         this.schemaChangeListener = schemaVersionListener;
-        context = new Context();
+        context = new RealmContext();
         context.addReference(this);
         this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
         nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
