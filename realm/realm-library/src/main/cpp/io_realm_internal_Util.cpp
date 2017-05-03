@@ -22,7 +22,6 @@
 #include <realm/string_data.hpp>
 #include <realm/unicode.hpp>
 
-#include "mem_usage.hpp"
 #include "util.hpp"
 
 using std::string;
@@ -76,12 +75,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void*)
         env->DeleteGlobalRef(java_lang_string);
         JniUtils::release();
     }
-}
-
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Util_nativeGetMemUsage(JNIEnv*, jclass)
-{
-    return static_cast<jlong>(GetMemUsage());
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeGetTablePrefix(JNIEnv* env, jclass)

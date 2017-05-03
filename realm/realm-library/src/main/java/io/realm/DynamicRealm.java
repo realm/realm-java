@@ -45,6 +45,10 @@ import rx.Observable;
  */
 public class DynamicRealm extends BaseRealm {
 
+    private DynamicRealm(RealmCache cache) {
+        super(cache);
+    }
+
     private DynamicRealm(RealmConfiguration configuration) {
         super(configuration);
     }
@@ -201,6 +205,15 @@ public class DynamicRealm extends BaseRealm {
 
     /**
      * Creates a {@link DynamicRealm} instance without checking the existence in the {@link RealmCache}.
+     *
+     * @return a {@link DynamicRealm} instance.
+     */
+    static DynamicRealm createInstance(RealmCache cache) {
+        return new DynamicRealm(cache);
+    }
+
+    /**
+     * Create a {@link DynamicRealm} instance without associating it to any RealmCache.
      *
      * @return a {@link DynamicRealm} instance.
      */

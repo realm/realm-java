@@ -714,10 +714,7 @@ public class RealmObjectTests {
                 realm.commitTransaction();
 
                 createLatch.countDown();
-                try {
-                    testEndLatch.await();
-                } catch (InterruptedException ignored) {
-                }
+                TestHelper.awaitOrFail(testEndLatch);
 
                 // 3. Closes Realm in this thread and finishes.
                 realm.close();
@@ -725,7 +722,7 @@ public class RealmObjectTests {
         };
         thread.start();
 
-        createLatch.await();
+        TestHelper.awaitOrFail(createLatch);
         // 2. Sets created object to target.
         realm.beginTransaction();
         try {
@@ -869,10 +866,7 @@ public class RealmObjectTests {
                 realm.commitTransaction();
 
                 createLatch.countDown();
-                try {
-                    testEndLatch.await();
-                } catch (InterruptedException ignored) {
-                }
+                TestHelper.awaitOrFail(testEndLatch);
 
                 // 3. Close Realm in this thread and finishes.
                 realm.close();
@@ -880,7 +874,7 @@ public class RealmObjectTests {
         };
         thread.start();
 
-        createLatch.await();
+        TestHelper.awaitOrFail(createLatch);
         // 2. Sets created object to target.
         realm.beginTransaction();
         try {
@@ -1576,7 +1570,7 @@ public class RealmObjectTests {
     @Test
     @RunTestInLooperThread
     public void addChangeListener_throwOnAddingNullListenerFromLooperThread() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         Dog dog = createManagedDogObjectFromRealmInstance(realm);
 
         try {
@@ -1614,7 +1608,7 @@ public class RealmObjectTests {
     @Test
     @RunTestInLooperThread
     public void changeListener_triggeredWhenObjectIsDeleted() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
@@ -1664,7 +1658,7 @@ public class RealmObjectTests {
     @Test
     @RunTestInLooperThread
     public void addChangeListener_throwInsiderTransaction() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
 
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
@@ -1695,7 +1689,7 @@ public class RealmObjectTests {
     @Test
     @RunTestInLooperThread
     public void removeChangeListener_throwOnRemovingNullListenerFromLooperThread() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         Dog dog = createManagedDogObjectFromRealmInstance(realm);
 
         try {
@@ -1733,7 +1727,7 @@ public class RealmObjectTests {
     @Test
     @RunTestInLooperThread
     public void removeChangeListener_insideTransaction() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final Dog dog = createManagedDogObjectFromRealmInstance(realm);
         RealmChangeListener<Dog> realmChangeListener = new RealmChangeListener<Dog>() {
             @Override
@@ -1762,7 +1756,7 @@ public class RealmObjectTests {
     @Test
     @RunTestInLooperThread
     public void removeAllChangeListeners() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
         dog.setAge(13);
@@ -1793,7 +1787,7 @@ public class RealmObjectTests {
     @Test
     @RunTestInLooperThread
     public void removeAllChangeListeners_thenAdd() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
         dog.setAge(13);
@@ -1866,7 +1860,7 @@ public class RealmObjectTests {
     @Test
     @RunTestInLooperThread
     public void addChangeListener_returnedObjectOfCopyToRealmOrUpdate() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         realm.createObject(AllTypesPrimaryKey.class, 1);
 
@@ -1876,7 +1870,7 @@ public class RealmObjectTests {
         allTypesPrimaryKey = realm.copyToRealmOrUpdate(allTypesPrimaryKey);
         realm.commitTransaction();
 
-        looperThread.keepStrongReference.add(allTypesPrimaryKey);
+        looperThread.keepStrongReference(allTypesPrimaryKey);
         allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
             @Override
             public void onChange(AllTypesPrimaryKey element) {
@@ -1898,14 +1892,14 @@ public class RealmObjectTests {
     @RunTestInLooperThread
     public void addChangeListener_listenerShouldBeCalledIfObjectChangesAfterAsyncReturn() {
         final AtomicInteger listenerCounter = new AtomicInteger(0);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         realm.createObject(AllTypesPrimaryKey.class, 1);
         realm.commitTransaction();
 
         // Step 1
         final AllTypesPrimaryKey allTypesPrimaryKey = realm.where(AllTypesPrimaryKey.class).findFirstAsync();
-        looperThread.keepStrongReference.add(allTypesPrimaryKey);
+        looperThread.keepStrongReference(allTypesPrimaryKey);
         allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
             @Override
             public void onChange(AllTypesPrimaryKey element) {
