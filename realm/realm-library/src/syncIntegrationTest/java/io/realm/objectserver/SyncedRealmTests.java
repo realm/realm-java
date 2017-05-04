@@ -16,6 +16,7 @@
 
 package io.realm.objectserver;
 
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
@@ -23,6 +24,8 @@ import android.support.test.rule.UiThreadTestRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,9 +35,11 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
+import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunInLooperThread;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -52,7 +57,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
 
     @Test
     @UiThreadTest
-    public void waitForServerChanges_mainThreadThrows() {
+    public void waitForInitialRemoteData_mainThreadThrows() {
         final SyncUser user = loginUser();
 
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
@@ -89,7 +94,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
     }
 
     @Test
-    public void waitForServerChanges() {
+    public void waitForInitialRemoteData() {
         // TODO We can improve this test once we got Sync Progress Notifications. Right now we cannot detect
         // when a Realm has been uploaded.
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
@@ -106,6 +111,43 @@ public class SyncedRealmTests extends BaseIntegrationTest {
             if (realm != null) {
                 realm.close();
             }
+        }
+    }
+
+    // This tests will start and cancel getting a Realm 10 times. The Realm should be resilient towards that
+    // We cannot do much better since we cannot control the order of events internally in Realm which would be
+    // needed to correctly test all error paths.
+    @Test
+    public void waitForInitialData_resilientInCaseOfRetries() throws InterruptedException {
+        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+                .waitForInitialRemoteData()
+                .build();
+        Random randomizer = new Random();
+
+        for (int i = 0; i < 10; i++) {
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Realm realm = null;
+                    try {
+                        realm = Realm.getInstance(config);
+                    } catch (DownloadingRealmInterruptedException ignored) {
+                        assertFalse(new File(config.getPath()).exists());
+                    } finally {
+                        if (realm != null) {
+                            realm.close();
+                            Realm.deleteRealm(config);
+                        }
+                    }
+                }
+            });
+
+            t.start();
+            SystemClock.sleep(randomizer.nextInt(5));
+            t.interrupt();
+            t.join();
         }
     }
 }
