@@ -24,13 +24,13 @@ import io.realm.RealmFieldType;
  */
 public class LinkView implements NativeObject {
 
-    private final Context context;
+    private final NativeContext context;
     final Table parent;
     final long columnIndexInParent;
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
-    public LinkView(Context context, Table parent, long columnIndexInParent, long nativeLinkViewPtr) {
+    public LinkView(NativeContext context, Table parent, long columnIndexInParent, long nativeLinkViewPtr) {
         this.context = context;
         this.parent = parent;
         this.columnIndexInParent = columnIndexInParent;

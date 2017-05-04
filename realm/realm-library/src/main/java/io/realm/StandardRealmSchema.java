@@ -36,7 +36,7 @@ import io.realm.internal.Util;
 class StandardRealmSchema extends RealmSchema {
 
     static final String TABLE_PREFIX = Table.TABLE_PREFIX;
-    private static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
+    static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
 
     // Caches Dynamic Class objects given as Strings to Realm Tables
     private final Map<String, Table> dynamicClassToTable = new HashMap<>();
