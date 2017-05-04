@@ -28,6 +28,8 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import java.lang.ref.WeakReference;
+
 import io.realm.Realm;
 import io.realm.examples.threads.model.Score;
 
@@ -56,12 +58,20 @@ public class AsyncTaskFragment extends Fragment {
                     asyncTask.cancel(true);
                 }
 
-                asyncTask = new ImportAsyncTask();
+                asyncTask = new ImportAsyncTask(AsyncTaskFragment.this);
                 asyncTask.execute();
             }
         });
 
         return rootView;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (asyncTask != null) {
+            asyncTask.cancel(false);
+        }
     }
 
     private void showStatus(String txt) {
@@ -80,7 +90,13 @@ public class AsyncTaskFragment extends Fragment {
     // UI thread. This means that it is not possible to reuse RealmObjects or RealmResults created
     // in doInBackground() in the other methods. Nor is it possible to use RealmObjects as Progress
     // or Result objects.
-    private class ImportAsyncTask extends AsyncTask<Void, Integer, Integer> {
+    private static class ImportAsyncTask extends AsyncTask<Void, Integer, Integer> {
+
+        private final WeakReference<AsyncTaskFragment> fragmentRef;
+
+        ImportAsyncTask(AsyncTaskFragment outerFragment) {
+            fragmentRef = new WeakReference<AsyncTaskFragment>(outerFragment);
+        }
 
         @Override
         protected Integer doInBackground(Void... params) {
@@ -106,16 +122,25 @@ public class AsyncTaskFragment extends Fragment {
 
         @Override
         protected void onPreExecute() {
-            logsView.removeAllViews();
-            progressView.setVisibility(View.VISIBLE);
-            showStatus("Starting import");
+            final AsyncTaskFragment fragment = fragmentRef.get();
+            if (fragment == null || fragment.isDetached()) {
+                cancel(false);
+                return;
+            }
+            fragment.logsView.removeAllViews();
+            fragment.progressView.setVisibility(View.VISIBLE);
+            fragment.showStatus("Starting import");
         }
 
         @Override
         protected void onPostExecute(Integer sum) {
-            progressView.setVisibility(View.GONE);
-            showStatus(TEST_OBJECTS + " objects imported.");
-            showStatus("The total score is : " + sum);
+            final AsyncTaskFragment fragment = fragmentRef.get();
+            if (fragment == null || fragment.isDetached()) {
+                return;
+            }
+            fragment.progressView.setVisibility(View.GONE);
+            fragment.showStatus(TEST_OBJECTS + " objects imported.");
+            fragment.showStatus("The total score is : " + sum);
         }
     }
 }

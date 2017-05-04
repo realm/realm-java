@@ -44,7 +44,7 @@ public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeOb
 
     public CollectionChangeSet(long nativePtr) {
         this.nativePtr = nativePtr;
-        Context.dummyContext.addReference(this);
+        NativeContext.dummyContext.addReference(this);
     }
 
     /**
