@@ -248,7 +248,6 @@ public class ClassMetaData {
         if (!checkReferenceTypes()) { return false; }
         if (!checkDefaultConstructor()) { return false; }
         if (!checkForFinalFields()) { return false; }
-        if (!checkForTransientFields()) { return false; }
         if (!checkForVolatileFields()) { return false; }
 
         return true; // Meta data was successfully generated
@@ -347,19 +346,6 @@ public class ClassMetaData {
         return true;
     }
 
-    private boolean checkForTransientFields() {
-        for (VariableElement field : fields) {
-            if (field.getModifiers().contains(Modifier.TRANSIENT)) {
-                Utils.error(String.format(
-                        "Class \"%s\" contains illegal transient field \"%s\".",
-                        className,
-                        field.getSimpleName().toString()));
-                return false;
-            }
-        }
-        return true;
-    }
-
     private boolean checkForVolatileFields() {
         for (VariableElement field : fields) {
             if (field.getModifiers().contains(Modifier.VOLATILE)) {
@@ -374,40 +360,43 @@ public class ClassMetaData {
     }
 
     private boolean categorizeField(Element element) {
-        VariableElement variableElement = (VariableElement) element;
+        VariableElement field = (VariableElement) element;
 
         // completely ignore any static fields
-        if (variableElement.getModifiers().contains(Modifier.STATIC)) { return true; }
+        if (field.getModifiers().contains(Modifier.STATIC)) { return true; }
 
-        if (variableElement.getAnnotation(Ignore.class) != null) { return true; }
-
-        if (variableElement.getAnnotation(Index.class) != null) {
-            if (!categorizeIndexField(element, variableElement)) { return false; }
+        // Ignore fields marked with @Ignore or if they are transient
+        if (field.getAnnotation(Ignore.class) != null || field.getModifiers().contains(Modifier.TRANSIENT)) {
+            return true;
         }
 
-        if (variableElement.getAnnotation(Required.class) != null) {
-            categorizeRequiredField(element, variableElement);
+        if (field.getAnnotation(Index.class) != null) {
+            if (!categorizeIndexField(element, field)) { return false; }
+        }
+
+        if (field.getAnnotation(Required.class) != null) {
+            categorizeRequiredField(element, field);
         } else {
             // The field doesn't have the @Required annotation.
             // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
             // nullableFields.
             // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
-            if (!Utils.isPrimitiveType(variableElement) && !Utils.isRealmList(variableElement)) {
-                nullableFields.add(variableElement);
+            if (!Utils.isPrimitiveType(field) && !Utils.isRealmList(field)) {
+                nullableFields.add(field);
             }
         }
 
-        if (variableElement.getAnnotation(PrimaryKey.class) != null) {
-            if (!categorizePrimaryKeyField(variableElement)) { return false; }
+        if (field.getAnnotation(PrimaryKey.class) != null) {
+            if (!categorizePrimaryKeyField(field)) { return false; }
         }
 
         // Check @LinkingObjects last since it is not allowed to be either @Index, @Required or @PrimaryKey
-        if (variableElement.getAnnotation(LinkingObjects.class) != null) {
-            return categorizeBacklinkField(variableElement);
+        if (field.getAnnotation(LinkingObjects.class) != null) {
+            return categorizeBacklinkField(field);
         }
 
         // Standard field that appear valid (more fine grained checks might fail later).
-        fields.add(variableElement);
+        fields.add(field);
 
         return true;
     }

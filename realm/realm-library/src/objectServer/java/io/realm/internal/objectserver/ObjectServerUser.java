@@ -192,6 +192,10 @@ public class ObjectServerUser {
         return realms.values();
     }
 
+    public boolean isAdmin() {
+        return refreshToken.isAdmin();
+    }
+
     // Wrapper for all Realm data needed by a User that might get serialized.
     public static class AccessDescription {
         public Token accessToken;

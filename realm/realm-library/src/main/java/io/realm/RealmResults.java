@@ -19,6 +19,7 @@ package io.realm;
 
 import android.os.Looper;
 
+import io.realm.internal.CheckedRow;
 import io.realm.internal.Collection;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
@@ -55,16 +56,19 @@ import rx.Observable;
  * @see Realm#executeTransaction(Realm.Transaction)
  */
 public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionImpl<E> {
-    static <T extends RealmModel> RealmResults<T> createBacklinkResults(BaseRealm realm, Row row, Class<T> srcTableType, String srcFieldName) {
-        if (!(row instanceof UncheckedRow)) {
-            throw new IllegalArgumentException("Row is " + row.getClass());
-        }
-        UncheckedRow uncheckedRow = (UncheckedRow) row;
+    static <T extends RealmModel> RealmResults<T> createBacklinkResults(Realm realm, UncheckedRow row, Class<T> srcTableType, String srcFieldName) {
         Table srcTable = realm.getSchema().getTable(srcTableType);
         return new RealmResults<T>(
                 realm,
-                Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
+                Collection.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),
                 srcTableType);
+    }
+
+    static RealmResults<DynamicRealmObject> createBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
+        return new RealmResults<>(
+                realm,
+                Collection.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),
+                Table.tableNameToClassName(srcTable.getName()));
     }
 
 
