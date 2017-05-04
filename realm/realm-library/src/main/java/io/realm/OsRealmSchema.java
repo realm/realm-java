@@ -69,11 +69,6 @@ class OsRealmSchema extends RealmSchema {
         }
 
         @Override
-        long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType... validColumnTypes) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         Table getTable(Class<? extends RealmModel> clazz) {
             throw new UnsupportedOperationException();
         }
@@ -205,14 +200,6 @@ class OsRealmSchema extends RealmSchema {
 
     @Override
     OsRealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Unimplemented.
-     */
-    @Override
-    long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType... validColumnTypes) {
         throw new UnsupportedOperationException();
     }
 

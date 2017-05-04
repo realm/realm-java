@@ -21,6 +21,7 @@ import java.util.List;
 
 import io.realm.RealmFieldType;
 import io.realm.Sort;
+import io.realm.internal.fields.FieldDescriptor;
 
 
 /**
@@ -80,7 +81,7 @@ public class SortDescriptor {
 
         long[][] columnIndices = new long[fieldDescriptions.length][];
         for (int i = 0; i < fieldDescriptions.length; i++) {
-            FieldDescriptor descriptor = new FieldDescriptor(table, fieldDescriptions[i], true, false);
+            FieldDescriptor descriptor = FieldDescriptor.createFieldDescriptor(table, fieldDescriptions[i], FieldDescriptor.OBJECT_LINK_FIELD_TYPE);
             checkFieldTypeForSort(descriptor, fieldDescriptions[i]);
             columnIndices[i] = descriptor.getColumnIndices();
         }
@@ -99,7 +100,7 @@ public class SortDescriptor {
 
         long[][] columnIndices = new long[fieldDescriptions.length][];
         for (int i = 0; i < fieldDescriptions.length; i++) {
-            FieldDescriptor descriptor = new FieldDescriptor(table, fieldDescriptions[i], false, false);
+            FieldDescriptor descriptor = FieldDescriptor.createFieldDescriptor(table, fieldDescriptions[i], FieldDescriptor.NO_LINK_FIELD_TYPE);
             checkFieldTypeForDistinct(descriptor, fieldDescriptions[i]);
             columnIndices[i] = descriptor.getColumnIndices();
         }
@@ -108,18 +109,18 @@ public class SortDescriptor {
     }
 
     private static void checkFieldTypeForSort(FieldDescriptor descriptor, String fieldDescriptions) {
-        if (!validFieldTypesForSort.contains(descriptor.getFieldType())) {
+        if (!validFieldTypesForSort.contains(descriptor.getFinalColumnType())) {
             throw new IllegalArgumentException(String.format(
-                    "Sort is not supported on '%s' field '%s' in '%s'.", descriptor.toString(), descriptor.getFieldName(),
+                    "Sort is not supported on '%s' field '%s' in '%s'.", descriptor.toString(), descriptor.getFinalColumnName(),
                     fieldDescriptions));
         }
     }
 
     private static void checkFieldTypeForDistinct(FieldDescriptor descriptor, String fieldDescriptions) {
-        if (!validFieldTypesForDistinct.contains(descriptor.getFieldType())) {
+        if (!validFieldTypesForDistinct.contains(descriptor.getFinalColumnType())) {
             throw new IllegalArgumentException(String.format(
                     "Distinct is not supported on '%s' field '%s' in '%s'.",
-                    descriptor.getFieldType().toString(), descriptor.getFieldName(), fieldDescriptions));
+                    descriptor.getFinalColumnType().toString(), descriptor.getFinalColumnName(), fieldDescriptions));
         }
     }
 

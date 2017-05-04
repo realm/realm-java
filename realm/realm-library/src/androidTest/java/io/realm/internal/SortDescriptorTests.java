@@ -231,7 +231,7 @@ public class SortDescriptorTests {
         table.addColumnLink(listType, listType.name(), table);
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("is not a supported link field");
+        thrown.expectMessage("Invalid query: field 'LIST' in table 'test_table' is of invalid type 'LIST'.");
         SortDescriptor.getInstanceForSort(table, String.format("%s.%s", listType.name(), type.name()), Sort.ASCENDING);
     }
 
