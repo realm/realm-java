@@ -412,12 +412,30 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void executeTransactionAsync_callbacksShouldBeClearedBeforeCalling() {
-        final AtomicBoolean callbackCalled = new AtomicBoolean(false);
+        final AtomicInteger callbackCounter = new AtomicInteger(0);
         final Realm foregroundRealm = looperThread.getRealm();
 
         // To reproduce the issue, the posted callback needs to arrived before the Object Store did_change called.
         // We just disable the auto refresh here then the did_change won't be called.
         foregroundRealm.setAutoRefresh(false);
+        foregroundRealm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                // This will be called first and only once
+                assertEquals(0, callbackCounter.getAndIncrement());
+
+                // This transaction should never trigger the onSuccess.
+                foregroundRealm.beginTransaction();
+                foregroundRealm.createObject(AllTypes.class);
+                foregroundRealm.commitTransaction();
+            }
+        });
+
         foregroundRealm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -435,12 +453,8 @@ public class RealmAsyncQueryTests {
         }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
-                assertFalse(callbackCalled.getAndSet(true));
-
-                // This transaction should never trigger the onSuccess.
-                foregroundRealm.beginTransaction();
-                foregroundRealm.createObject(AllTypes.class);
-                foregroundRealm.commitTransaction();
+                // This will be called 2nd and only once
+                assertEquals(1, callbackCounter.getAndIncrement());
                 looperThread.testComplete();
             }
         });

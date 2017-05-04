@@ -99,13 +99,14 @@ public abstract class RealmNotifier implements Closeable {
     void didChange() {
         realmObserverPairs.foreach(onChangeCallBack);
 
-        Iterator<Runnable> it = transactionCallbacks.iterator();
-        while (it.hasNext()) {
-            Runnable runnable = it.next();
-            // The callback needs to be removed from list before calling to avoid sync transactions in the callback
+        if (!transactionCallbacks.isEmpty()) {
+            // The callback list needs to be cleared before calling to avoid sync transactions in the callback
             // triggers it recursively.
-            it.remove();
-            runnable.run();
+            List<Runnable> callbacks = transactionCallbacks;
+            transactionCallbacks = new ArrayList<Runnable>();
+            for (Runnable runnable : callbacks) {
+                runnable.run();
+            }
         }
     }
 
