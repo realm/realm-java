@@ -392,11 +392,11 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void failOnTransientFields() throws Exception {
+    public void compileTransientFields() throws Exception {
         ASSERT.about(javaSource())
                 .that(transientModel)
                 .processedWith(new RealmProcessor())
-                .failsToCompile();
+                .compilesWithoutError();
     }
 
     @Test

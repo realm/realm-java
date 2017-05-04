@@ -24,7 +24,7 @@ import io.realm.ObjectServerError;
 /**
  * Base class for all response types from the Realm Authentication Server.
  */
-public class AuthServerResponse {
+public abstract class AuthServerResponse {
 
     protected ObjectServerError error;
 
