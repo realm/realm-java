@@ -56,7 +56,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         final SyncUser user = loginUser();
 
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForServerChanges()
+                .waitForInitialRemoteData()
                 .build();
 
         Realm realm = null;
@@ -95,7 +95,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForServerChanges()
+                .waitForInitialRemoteData()
                 .build();
 
         Realm realm = null;

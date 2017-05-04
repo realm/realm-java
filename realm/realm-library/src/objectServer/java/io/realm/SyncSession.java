@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.os.Looper;
-
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -25,6 +23,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Keep;
 import io.realm.internal.KeepMember;
@@ -63,7 +62,7 @@ public class SyncSession {
     private RealmAsyncTask refreshTokenNetworkRequest;
     private AtomicBoolean onGoingAccessTokenQuery = new AtomicBoolean(false);
     private volatile boolean isClosed = false;
-    private WaitForServerChangesWrapper waitingForServerChanges;
+    private final AtomicReference<WaitForServerChangesWrapper> waitingForServerChanges = new AtomicReference<>(null);
     private final Object waitForChangesMutex = new Object();
 
     SyncSession(SyncConfiguration configuration) {
@@ -129,9 +128,11 @@ public class SyncSession {
     // Be very careful with synchronized blocks.
     // If the native listener was successfully registered, Object Store guarantees that this method will be called at
     // least once, even if the session is closed.
-    void notifyAllChangesDownloaded(Long errorcode, String errorMessage) {
-        if (waitingForServerChanges != null) {
-            waitingForServerChanges.handleResult(errorcode, errorMessage);
+    @SuppressWarnings("unused")
+    private void notifyAllChangesDownloaded(Long errorcode, String errorMessage) {
+        WaitForServerChangesWrapper wrapper = waitingForServerChanges.get();
+        if (wrapper != null) {
+            wrapper.handleResult(errorcode, errorMessage);
         }
     }
 
@@ -144,9 +145,10 @@ public class SyncSession {
      * This method cannot be called before the session has been started.
      *
      * @throws IllegalStateException if called on the Android main thread.
+     * @throws InterruptedException if the thread was interrupted while downloading was in progress.
      */
-    public void downloadAllServerChanges() {
-        checkMainThread("downloadAllServerChanges() cannot be called from the main thread.");
+    public void downloadAllServerChanges() throws InterruptedException {
+        checkIfNotOnMainThread("downloadAllServerChanges() cannot be called from the main thread.");
 
         // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
         // an async listener there and let it callback to the Java Session when done. This feels icky at best, but
@@ -156,26 +158,30 @@ public class SyncSession {
         // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
         synchronized (waitForChangesMutex) {
             if (!isClosed) {
-                waitingForServerChanges = new WaitForServerChangesWrapper();
+                WaitForServerChangesWrapper wrapper = new WaitForServerChangesWrapper();
+                waitingForServerChanges.set(wrapper);
                 boolean listenerRegistered = nativeWaitForDownloadCompletion(configuration.getPath());
                 if (!listenerRegistered) {
-                    waitingForServerChanges = null;
+                    waitingForServerChanges.set(null);
                     throw new ObjectServerError(ErrorCode.UNKNOWN, "It was not possible to download all changes. Has the SyncClient been started?");
                 }
-                waitingForServerChanges.waitForServerChanges();
+                wrapper.waitForServerChanges();
 
                 // This might return after the session was closed. In that case, just ignore any result
-                if (!isClosed) {
-                    if (!waitingForServerChanges.isSuccess()) {
-                        waitingForServerChanges.throwExceptionIfNeeded();
+                try {
+                    if (!isClosed) {
+                        if (!wrapper.isSuccess()) {
+                            wrapper.throwExceptionIfNeeded();
+                        }
                     }
+                } finally {
+                    waitingForServerChanges.set(null);
                 }
-                waitingForServerChanges = null;
             }
         }
     }
 
-    private void checkMainThread(String errorMessage) {
+    private void checkIfNotOnMainThread(String errorMessage) {
         if (new AndroidCapabilities().isMainThread()) {
             throw new IllegalStateException(errorMessage);
         }
@@ -425,13 +431,9 @@ public class SyncSession {
         /**
          * Block until the wait either completes or is terminated for other reasons.
          */
-        public void waitForServerChanges() {
+        public void waitForServerChanges() throws InterruptedException {
             if (!resultReceived) {
-                try {
-                    waitForChanges.await();
-                } catch (InterruptedException e) {
-                    RealmLog.warn("Downloading changes have been interrupted");
-                }
+               waitForChanges.await();
             }
         }
 

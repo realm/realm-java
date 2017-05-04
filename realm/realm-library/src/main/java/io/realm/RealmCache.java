@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Capabilities;
 import io.realm.internal.ColumnIndices;
@@ -281,10 +282,23 @@ final class RealmCache {
 
         if (getTotalGlobalRefCount() == 0) {
             copyAssetFileIfNeeded(configuration);
+            boolean fileExists = new File(configuration.getPath()).exists();
 
             SharedRealm sharedRealm = null;
             try {
                 sharedRealm = SharedRealm.getInstance(configuration);
+
+                // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
+                // before proceeding. We need to open the Realm instance first to start any potential underlying
+                // SyncSession so this will work. TODO: This needs to be decoupled.
+                if (!fileExists) {
+                    try {
+                        ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
+                    } catch (InterruptedException e) {
+                        throw new DownloadingRealmInterruptedException(e);
+                    }
+                }
+
                 if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
                     sharedRealm.beginTransaction();
                     if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
@@ -491,6 +505,8 @@ final class RealmCache {
     /**
      * Copies Realm database file from Android asset directory to the directory given in the {@link RealmConfiguration}.
      * Copy is performed only at the first time when there is no Realm database file.
+     *
+     * WARNING: This method is not thread-safe so external synchronization is required before using it.
      *
      * @param configuration configuration object for Realm instance.
      * @throws RealmFileException if copying the file fails.

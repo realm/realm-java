@@ -132,10 +132,10 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
-    public void downloadServerChangesIfNeeded(RealmConfiguration config) {
+    public void downloadRemoteChanges(RealmConfiguration config) throws InterruptedException {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
-            if (syncConfig.shouldWaitForServerChanges()) {
+            if (syncConfig.shouldWaitForInitialRemoteData()) {
                 SyncSession session = SyncManager.getSession(syncConfig);
                 session.downloadAllServerChanges();
             }

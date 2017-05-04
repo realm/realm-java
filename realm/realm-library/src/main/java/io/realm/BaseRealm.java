@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -100,11 +101,6 @@ abstract class BaseRealm implements Closeable {
                             }
                         }, true);
         this.schema = new StandardRealmSchema(this);
-
-        // If waitForServerChanges() was enabled, we need to make sure that all data is downloaded
-        // before proceeding. We need to open the Realm instance first to start any potential underlying
-        // SyncSession so this will work. TODO: This needs to be decoupled.
-        ObjectServerFacade.getSyncFacadeIfPossible().downloadServerChangesIfNeeded(configuration);
     }
 
     /**
