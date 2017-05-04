@@ -42,9 +42,25 @@ public:
         : m_jobject(env->NewLocalRef(obj))
         , m_env(env){};
 
-    JavaLocalRef(JavaLocalRef&& rhs);
-    JavaLocalRef& operator=(JavaLocalRef&& rhs);
-    ~JavaLocalRef();
+    inline ~JavaLocalRef()
+    {
+        m_env->DeleteLocalRef(m_jobject);
+    }
+
+    JavaLocalRef& operator=(JavaLocalRef&& rhs)
+    {
+        this->~JavaLocalRef();
+        new (this) JavaLocalRef(std::move(rhs));
+        return *this;
+    }
+
+    inline JavaLocalRef(JavaLocalRef&& rhs)
+    {
+        m_env = rhs.m_env;
+        m_jobject = rhs.m_jobject;
+        rhs.m_env = nullptr;
+        rhs.m_jobject = nullptr;
+    }
 
     inline operator bool() const noexcept
     {

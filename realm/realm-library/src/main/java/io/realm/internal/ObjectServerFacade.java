@@ -89,7 +89,7 @@ public class ObjectServerFacade {
     public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
     }
 
-    public void downloadRemoteChanges(RealmConfiguration config) throws InterruptedException {
+    public void downloadRemoteChanges(RealmConfiguration config) {
         // Do nothing
     }
 }

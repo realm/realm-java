@@ -24,15 +24,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Iterator;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Capabilities;
 import io.realm.internal.ColumnIndices;
@@ -294,8 +293,15 @@ final class RealmCache {
                 if (!fileExists) {
                     try {
                         ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
-                    } catch (InterruptedException e) {
-                        throw new DownloadingRealmInterruptedException(e);
+                    } catch (Throwable t) {
+                        // If an error happened while downloading initial data, we need to reset the file so we can
+                        // download it again on the next attempt.
+                        // Realm.deleteRealm() is under the same lock as this method and globalCount is still 0, so
+                        // this should be safe.
+                        sharedRealm.close();
+                        sharedRealm = null;
+                        Realm.deleteRealm(configuration);
+                        throw t;
                     }
                 }
 

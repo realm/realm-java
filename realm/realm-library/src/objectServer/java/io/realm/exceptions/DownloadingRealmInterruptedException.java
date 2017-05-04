@@ -16,8 +16,12 @@
 
 package io.realm.exceptions;
 
+import io.realm.SyncConfiguration;
+
+
 public class DownloadingRealmInterruptedException extends RuntimeException {
-    public DownloadingRealmInterruptedException(Throwable exception) {
-        super("Realm was interrupted while downloading the latest changes from the server.", exception);
+    public DownloadingRealmInterruptedException(SyncConfiguration syncConfig, Throwable exception) {
+        super("Realm was interrupted while downloading the latest changes from the server: %s" + syncConfig.getPath(),
+                exception);
     }
 }
