@@ -15,8 +15,8 @@ package io.realm.internal.fields;
  * limitations under the License.
  */
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import io.realm.RealmFieldType;
 import io.realm.internal.ColumnInfo;
@@ -36,70 +36,23 @@ import io.realm.internal.NativeObject;
 class CachedFieldDescriptor extends FieldDescriptor {
     private final SchemaProxy schema;
     private final String className;
-    private final List<String> fields;
-    private final RealmFieldType[] validColumnTypes;
-
-    private long[] columnIndices;
-    private long[] tableNativePointers;
 
     /**
      * @param schema the associated Realm Schema
      * @param className the starting Table: where(Table.class)
      * @param fieldDescription fieldName or link path to a field name.
-     * @param validColumnTypes valid field type for the last field in a linked field
      */
-    CachedFieldDescriptor(SchemaProxy schema, String className, String fieldDescription, RealmFieldType... validColumnTypes) {
-        this.fields = parseFieldDescription(fieldDescription);
-        int nFields = fields.size();
-        if (nFields <= 0) {
-            throw new IllegalArgumentException("Invalid query: Empty field descriptor");
-        }
-        this.validColumnTypes = validColumnTypes;
+    CachedFieldDescriptor(SchemaProxy schema, String className, String fieldDescription, Set<RealmFieldType> validInternalColumnTypes, Set<RealmFieldType> validFinalColumnTypes) {
+        super(fieldDescription, validInternalColumnTypes, validFinalColumnTypes);
         this.className = className;
         this.schema = schema;
     }
 
-
     @Override
-    public int length() {
-        return fields.size();
-    }
-
-    @Override
-    public long[] getColumnIndices() {
-        if (columnIndices == null) {
-            compileFieldDescription();
-        }
-        return Arrays.copyOf(columnIndices, columnIndices.length);
-    }
-
-    @Override
-    public long[] getNativeTablePointers() {
-        if (tableNativePointers == null) {
-            compileFieldDescription();
-        }
-        return Arrays.copyOf(tableNativePointers, tableNativePointers.length);
-    }
-
-    @Override
-    public RealmFieldType getFieldType() {
-        throw new UnsupportedOperationException("Cached FieldDescriptors do not support getFieldType");
-    }
-
-    @Override
-    public String getFieldName() {
-        throw new UnsupportedOperationException("Cached FieldDescriptors do not support getFieldName");
-    }
-
-    @Override
-    public boolean hasSearchIndex() {
-        throw new UnsupportedOperationException("Cached FieldDescriptors do not support hasSearchIndex");
-    }
-
-    private void compileFieldDescription() {
+    protected void compileFieldDescription(List<String> fields) {
         final int nFields = fields.size();
-        columnIndices = new long[nFields];
-        tableNativePointers = new long[nFields];
+        long[] columnIndices = new long[nFields];
+        long[] tableNativePointers = new long[nFields];
         String currentTable = className;
 
         ColumnInfo tableInfo;
@@ -126,9 +79,8 @@ class CachedFieldDescriptor extends FieldDescriptor {
             }
 
             columnType = tableInfo.getColumnType(columnName);
-            // all but the last field must be a link type
             if (i < nFields - 1) {
-                verifyColumnType(currentTable, columnName, columnType, RealmFieldType.OBJECT, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
+                verifyInternalColumnType(currentTable, columnName, columnType);
                 currentTable = tableInfo.getLinkedTable(columnName);
             }
             columnIndices[i] = columnIndex;
@@ -137,6 +89,6 @@ class CachedFieldDescriptor extends FieldDescriptor {
                     : schema.getNativeTablePtr(currentTable);
         }
 
-        verifyColumnType(className, columnName, columnType, validColumnTypes);
+        setCompilationResults(className, columnName, columnType, columnIndices, tableNativePointers);
     }
 }

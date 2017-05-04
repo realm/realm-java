@@ -16,7 +16,10 @@
 package io.realm.internal.fields;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import io.realm.RealmFieldType;
 import io.realm.internal.ColumnInfo;
@@ -24,7 +27,7 @@ import io.realm.internal.Table;
 
 
 /**
- * Class describing a single field possible several links away.
+ * Class describing a single field, possibly several links away.
  */
 public abstract class FieldDescriptor {
     public interface SchemaProxy {
@@ -35,9 +38,48 @@ public abstract class FieldDescriptor {
         long getNativeTablePtr(String targetTable);
     }
 
-    @Deprecated
-    public static FieldDescriptor createLegacyDescriptor(Table table, String fieldDescription, boolean allowLink, boolean allowList) {
-        return new LegacyFieldDescriptor(table, fieldDescription, allowLink, allowList);
+    public static final Set<RealmFieldType> ALL_LINK_FIELD_TYPES;
+
+    static {
+        Set<RealmFieldType> s = new HashSet<>(3);
+        s.add(RealmFieldType.OBJECT);
+        s.add(RealmFieldType.LIST);
+        s.add(RealmFieldType.LINKING_OBJECTS);
+        ALL_LINK_FIELD_TYPES = Collections.unmodifiableSet(s);
+    }
+
+    public static final Set<RealmFieldType> SIMPLE_LINK_FIELD_TYPES;
+
+    static {
+        Set<RealmFieldType> s = new HashSet<>(2);
+        s.add(RealmFieldType.OBJECT);
+        s.add(RealmFieldType.LIST);
+        SIMPLE_LINK_FIELD_TYPES = Collections.unmodifiableSet(s);
+    }
+
+    public static final Set<RealmFieldType> LIST_LINK_FIELD_TYPE;
+
+    static {
+        Set<RealmFieldType> s = new HashSet<>(1);
+        s.add(RealmFieldType.LIST);
+        LIST_LINK_FIELD_TYPE = Collections.unmodifiableSet(s);
+    }
+
+    public static final Set<RealmFieldType> OBJECT_LINK_FIELD_TYPE;
+
+    static {
+        Set<RealmFieldType> s = new HashSet<>(1);
+        s.add(RealmFieldType.OBJECT);
+        OBJECT_LINK_FIELD_TYPE = Collections.unmodifiableSet(s);
+    }
+
+    public static final Set<RealmFieldType> NO_LINK_FIELD_TYPE = Collections.emptySet();
+
+    public static FieldDescriptor createFieldDescriptor(
+            Table table,
+            String fieldDescription,
+            Set<RealmFieldType> validInternalColumnTypes) {
+        return new DynamicFieldDescriptor(table, fieldDescription, validInternalColumnTypes, null);
     }
 
     /**
@@ -47,21 +89,63 @@ public abstract class FieldDescriptor {
      * ColumnIndices and one that does not and the strategies below should belong to the first
      * and second, respectively.  --gbm
      */
-    public static FieldDescriptor createFieldDescriptor(SchemaProxy schema, Table table, String fieldDescription, RealmFieldType[] validColumnTypes) {
+    public static FieldDescriptor createFieldDescriptor(
+            SchemaProxy schema,
+            Table table,
+            String fieldDescription,
+            RealmFieldType... validFinalColumnTypes) {
+        Set<RealmFieldType> columnTypes = new HashSet<>(Arrays.asList(validFinalColumnTypes));
         return (!schema.hasCache())
-                ? new DynamicFieldDescriptor(table, fieldDescription, validColumnTypes)
-                : new CachedFieldDescriptor(schema, table.getClassName(), fieldDescription, validColumnTypes);
+                ? new DynamicFieldDescriptor(table, fieldDescription, SIMPLE_LINK_FIELD_TYPES, columnTypes)
+                : new CachedFieldDescriptor(schema, table.getClassName(), fieldDescription, ALL_LINK_FIELD_TYPES, columnTypes);
     }
 
 
-    public abstract int length();
+    private final List<String> fields;
+    private final Set<RealmFieldType> validInternalColumnTypes;
+    private final Set<RealmFieldType> validFinalColumnTypes;
+
+    private String finalColumnName;
+    private RealmFieldType finalColumnType;
+    private long[] columnIndices;
+    private long[] tableNativePointers;
+
+    /**
+     * @param fieldDescription fieldName or link path to a field name.
+     * @param validInternalColumnTypes valid internal link types.
+     * @param validFinalColumnTypes valid field types for the last field in a linked field
+     */
+    protected FieldDescriptor(
+            String fieldDescription, Set<RealmFieldType>
+            validInternalColumnTypes,
+            Set<RealmFieldType> validFinalColumnTypes) {
+        this.fields = parseFieldDescription(fieldDescription);
+        int nFields = fields.size();
+        if (nFields <= 0) {
+            throw new IllegalArgumentException("Invalid query: Empty field descriptor");
+        }
+        this.validInternalColumnTypes = validInternalColumnTypes;
+        this.validFinalColumnTypes = validFinalColumnTypes;
+    }
+
+    /**
+     * The number of columnNames in the field description
+     *
+     * @return the number of fields.
+     */
+    public final int length() {
+        return fields.size();
+    }
 
     /**
      * After the field description (@see parseFieldDescription(String) is parsed, this method
      * returns a java array of column indices for the columns named in the description.
-     * If the column is a LinkingObjects column, the index is the index in the <b>source</b>table.
+     * If the column is a LinkingObjects column, the index is the index in the <b>source</b> table.
      */
-    public abstract long[] getColumnIndices();
+    public final long[] getColumnIndices() {
+        compileIfNecessary();
+        return Arrays.copyOf(columnIndices, columnIndices.length);
+    }
 
     /**
      * After the field description (@see parseFieldDescription(String) is parsed, this method
@@ -69,13 +153,71 @@ public abstract class FieldDescriptor {
      * array will contain ativeObject.NULLPTR.  If a column is a LinkingObjects column, however,
      * the array contains the native pointer to the <b>source</b> table.
      */
-    public abstract long[] getNativeTablePointers();
+    public final long[] getNativeTablePointers() {
+        compileIfNecessary();
+        return Arrays.copyOf(tableNativePointers, tableNativePointers.length);
+    }
 
-    public abstract RealmFieldType getFieldType();
+    /**
+     * Getter for the name of the final column in the descriptor.
+     *
+     * @return the name of the final column
+     */
+    public String getFinalColumnName() {
+        compileIfNecessary();
+        return finalColumnName;
+    }
 
-    public abstract String getFieldName();
+    /**
+     * Getter for the type of the final column in the descriptor.
+     *
+     * @return the type of the final column
+     */
+    public RealmFieldType getFinalColumnType() {
+        compileIfNecessary();
+        return finalColumnType;
+    }
 
-    public abstract boolean hasSearchIndex();
+    /**
+     * Subclasses implement this method with a compilation strategy.
+     */
+    protected abstract void compileFieldDescription(List<String> fields);
+
+    /**
+     * Verify that the named link column, in the named table, of the specified type, is one of the legal internal column types.
+     *
+     * @param tableName Name of the table containing the column: used in error messages
+     * @param columnName Name of the column whose type is being tested: used in error messages
+     * @param columnType The type of the column: examined for validity.
+     */
+    protected final void verifyInternalColumnType(String tableName, String columnName, RealmFieldType columnType) {
+        verifyColumnType(tableName, columnName, columnType, validInternalColumnTypes);
+    }
+
+    /**
+     * Store the results of compiling the field description.
+     * Subclasses call this as the last action in
+     *
+     * @param finalClassName the name of the final table in the field description.
+     * @param finalColumnName the name of the final column in the field description.
+     * @param finalColumnType the type of the final column in the field description: MAY NOT BE {@code null}!
+     * @param columnIndices the array of columnIndices.
+     * @param tableNativePointers the array of table pointers
+     */
+    protected final void setCompilationResults(
+            String finalClassName,
+            String finalColumnName,
+            RealmFieldType finalColumnType,
+            long[] columnIndices,
+            long[] tableNativePointers) {
+        if ((validFinalColumnTypes != null) && (validFinalColumnTypes.size() > 0)) {
+            verifyColumnType(finalClassName, finalColumnName, finalColumnType, validFinalColumnTypes);
+        }
+        this.finalColumnName = finalColumnName;
+        this.finalColumnType = finalColumnType;
+        this.columnIndices = columnIndices;
+        this.tableNativePointers = tableNativePointers;
+    }
 
     /**
      * Parse the passed field description into its components.
@@ -84,7 +226,7 @@ public abstract class FieldDescriptor {
      * @param fieldDescription a field description.
      * @return the parse tree: a list of column names
      */
-    protected final List<String> parseFieldDescription(String fieldDescription) {
+    private List<String> parseFieldDescription(String fieldDescription) {
         if (fieldDescription == null || fieldDescription.equals("")) {
             throw new IllegalArgumentException("Invalid query: field name is empty");
         }
@@ -94,27 +236,17 @@ public abstract class FieldDescriptor {
         return Arrays.asList(fieldDescription.split("\\."));
     }
 
-    /**
-     * Verify that the named column, in the named table, of the specified type, is one of the legal column types.
-     *
-     * @param tableName Name of the table containing the column: used in error messages
-     * @param columnName Name of the column whose type is being tested: used in error messages
-     * @param columnType The type of the column: examined for validity.
-     * @param validColumnTypes A list of valid column types
-     */
-    protected final void verifyColumnType(String tableName, String columnName, RealmFieldType columnType, RealmFieldType... validColumnTypes) {
-        if ((validColumnTypes == null) || (validColumnTypes.length <= 0)) {
-            return;
+    private void verifyColumnType(String tableName, String columnName, RealmFieldType columnType, Set<RealmFieldType> validTypes) {
+        if (!validTypes.contains(columnType)) {
+            throw new IllegalArgumentException(String.format(
+                    "Invalid query: field '%s' in table '%s' is of invalid type '%s'.",
+                    columnName, tableName, columnType.toString()));
         }
+    }
 
-        for (int i = 0; i < validColumnTypes.length; i++) {
-            if (validColumnTypes[i] == columnType) {
-                return;
-            }
+    private void compileIfNecessary() {
+        if (finalColumnType == null) {
+            compileFieldDescription(fields);
         }
-
-        throw new IllegalArgumentException(String.format(
-                "Invalid query: field '%s' in table '%s' is of invalid type '%s'.",
-                columnName, tableName, columnType.toString()));
     }
 }
