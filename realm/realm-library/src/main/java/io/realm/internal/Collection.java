@@ -259,7 +259,7 @@ public class Collection implements NativeObject {
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final SharedRealm sharedRealm;
-    private final Context context;
+    private final NativeContext context;
     private final Table table;
     private boolean loaded;
     private boolean isSnapshot = false;
