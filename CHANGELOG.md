@@ -17,7 +17,7 @@
 
 * Use separated locks for different `RealmCache`s ($4551).
 
-## 3.1.4 (YYYY-MM-DD)
+## 3.1.4 (2017-05-04)
 
 ## Bug fixes
 
