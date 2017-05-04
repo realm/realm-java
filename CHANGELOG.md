@@ -1,4 +1,4 @@
-## 3.1.4
+## 3.1.4 (YYYY-MM-DD)
 
 ## Bug fixes
 
