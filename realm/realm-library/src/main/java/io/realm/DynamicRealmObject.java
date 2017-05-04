@@ -937,7 +937,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @param srcFieldName name of the field in the source class that holds a reference to this object.
      *                    Field type must be either {@code io.realm.RealmFieldType.OBJECT} or {@code io.realm.RealmFieldType.LIST}.
      * @return the result.
-     * @throws IllegalArgumentException if the source field name is {@code null}.
+     * @throws IllegalArgumentException if the {@code srcClassName} is {@code null} or does not exist,
+     * the {@code srcFieldName} is {@code null} or does not exist,
+     * type of the source field is not supported.
      */
     public RealmResults<DynamicRealmObject> linkingObjects(String srcClassName, String srcFieldName) {
         final DynamicRealm realm = (DynamicRealm) proxyState.getRealm$realm();
