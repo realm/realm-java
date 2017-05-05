@@ -28,10 +28,9 @@ public class TableQuery implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
-    // Note that this is *NOT* an Android Context. It is an io.realm.internal.Context.
-    // See documentation in that class for an explanation of the use
+    // See documentation in that NativeContext for an explanation of how this is used
     @SuppressWarnings("unused")
-    private final Context context;
+    private final NativeContext context;
 
     private final Table table;
     private final long nativePtr;
@@ -42,7 +41,7 @@ public class TableQuery implements NativeObject {
     private boolean queryValidated = true;
 
     // TODO: Can we protect this?
-    public TableQuery(Context context, Table table, long nativeQueryPtr) {
+    public TableQuery(NativeContext context, Table table, long nativeQueryPtr) {
         if (DEBUG) {
             RealmLog.debug("New TableQuery: ptr=%x", nativeQueryPtr);
         }

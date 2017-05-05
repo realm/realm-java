@@ -63,13 +63,13 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
     private final long nativePtr;
     // The pointer to the native finalize function
     private final long nativeFinalizerPtr;
-    private final Context context;
+    private final NativeContext context;
     private NativeObjectReference prev;
     private NativeObjectReference next;
 
     private static ReferencePool referencePool = new ReferencePool();
 
-    NativeObjectReference(Context context,
+    NativeObjectReference(NativeContext context,
             NativeObject referent,
             ReferenceQueue<? super NativeObject> referenceQueue) {
         super(referent, referenceQueue);
