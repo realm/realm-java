@@ -21,7 +21,6 @@ import android.content.Context;
 import java.lang.reflect.InvocationTargetException;
 
 import io.realm.RealmConfiguration;
-import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 
 
@@ -93,7 +92,7 @@ public class ObjectServerFacade {
     /**
      * Block until all latest changes have been downloaded from the server.
      *
-     * @throws {@link DownloadingRealmInterruptedException}  if the thread was interrupted while blocked waiting for
+     * @throws {@code DownloadingRealmInterruptedException}  if the thread was interrupted while blocked waiting for
      * this to complete.
      */
     public void downloadRemoteChanges(RealmConfiguration config) {
@@ -101,7 +100,7 @@ public class ObjectServerFacade {
     }
 
     /**
-     * Check if an exception is a {@link DownloadingRealmInterruptedException}
+     * Check if an exception is a {@code DownloadingRealmInterruptedException}
      */
     public boolean wasDownloadInterrupted(Throwable throwable) {
         return false;
