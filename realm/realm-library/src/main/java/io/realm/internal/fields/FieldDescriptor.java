@@ -75,14 +75,32 @@ public abstract class FieldDescriptor {
 
     public static final Set<RealmFieldType> NO_LINK_FIELD_TYPE = Collections.emptySet();
 
-    public static FieldDescriptor createFieldDescriptor(
+    /**
+     * Convenience method to allow var-arg specification of valid final column types
+     *
+     * @param schema Proxy to schema info
+     * @param table the start table
+     * @param fieldDescription dot-separated column names
+     * @param validFinalColumnTypes legal types for the last column
+     * @return the Field descriptor
+     */
+    public static FieldDescriptor createStandardFieldDescriptor(
+            SchemaProxy schema,
             Table table,
             String fieldDescription,
-            Set<RealmFieldType> validInternalColumnTypes) {
-        return new DynamicFieldDescriptor(table, fieldDescription, validInternalColumnTypes, null);
+            RealmFieldType... validFinalColumnTypes) {
+        return createFieldDescriptor(schema, table, fieldDescription, null, new HashSet<>(Arrays.asList(validFinalColumnTypes)));
     }
 
     /**
+     * Factory method for field descriptors.
+     *
+     * @param schema Proxy to schema info
+     * @param table the start table
+     * @param fieldDescription dot-separated column names
+     * @param validFinalColumnTypes legal types for the last column
+     * @return the Field descriptor
+     * <p>
      * TODO:
      * I suspect that choosing the parsing strategy based on whether there is a ref to a ColumnIndices
      * around or not, is bad architecture.  Almost certainly, there should be a schema that has
@@ -93,11 +111,11 @@ public abstract class FieldDescriptor {
             SchemaProxy schema,
             Table table,
             String fieldDescription,
-            RealmFieldType... validFinalColumnTypes) {
-        Set<RealmFieldType> columnTypes = new HashSet<>(Arrays.asList(validFinalColumnTypes));
-        return (!schema.hasCache())
-                ? new DynamicFieldDescriptor(table, fieldDescription, SIMPLE_LINK_FIELD_TYPES, columnTypes)
-                : new CachedFieldDescriptor(schema, table.getClassName(), fieldDescription, ALL_LINK_FIELD_TYPES, columnTypes);
+            Set<RealmFieldType> validInternalColumnTypes,
+            Set<RealmFieldType> validFinalColumnTypes) {
+        return ((schema == null) || !schema.hasCache())
+                ? new DynamicFieldDescriptor(table, fieldDescription, (null != validInternalColumnTypes) ? validInternalColumnTypes : SIMPLE_LINK_FIELD_TYPES, validFinalColumnTypes)
+                : new CachedFieldDescriptor(schema, table.getClassName(), fieldDescription, (null != validInternalColumnTypes) ? validInternalColumnTypes : ALL_LINK_FIELD_TYPES, validFinalColumnTypes);
     }
 
 
@@ -108,7 +126,7 @@ public abstract class FieldDescriptor {
     private String finalColumnName;
     private RealmFieldType finalColumnType;
     private long[] columnIndices;
-    private long[] tableNativePointers;
+    private long[] nativeTablePointers;
 
     /**
      * @param fieldDescription fieldName or link path to a field name.
@@ -155,7 +173,7 @@ public abstract class FieldDescriptor {
      */
     public final long[] getNativeTablePointers() {
         compileIfNecessary();
-        return Arrays.copyOf(tableNativePointers, tableNativePointers.length);
+        return Arrays.copyOf(nativeTablePointers, nativeTablePointers.length);
     }
 
     /**
@@ -202,21 +220,21 @@ public abstract class FieldDescriptor {
      * @param finalColumnName the name of the final column in the field description.
      * @param finalColumnType the type of the final column in the field description: MAY NOT BE {@code null}!
      * @param columnIndices the array of columnIndices.
-     * @param tableNativePointers the array of table pointers
+     * @param nativeTablePointers the array of table pointers
      */
     protected final void setCompilationResults(
             String finalClassName,
             String finalColumnName,
             RealmFieldType finalColumnType,
             long[] columnIndices,
-            long[] tableNativePointers) {
+            long[] nativeTablePointers) {
         if ((validFinalColumnTypes != null) && (validFinalColumnTypes.size() > 0)) {
             verifyColumnType(finalClassName, finalColumnName, finalColumnType, validFinalColumnTypes);
         }
         this.finalColumnName = finalColumnName;
         this.finalColumnType = finalColumnType;
         this.columnIndices = columnIndices;
-        this.tableNativePointers = tableNativePointers;
+        this.nativeTablePointers = nativeTablePointers;
     }
 
     /**

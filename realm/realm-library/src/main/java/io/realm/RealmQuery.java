@@ -1493,7 +1493,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmQuery<E> isEmpty(String fieldName) {
         realm.checkIfValid();
 
-        FieldDescriptor fd = schema.getColumnIndices(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST);
+        FieldDescriptor fd = schema.getColumnIndices(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
         this.query.isEmpty(fd.getColumnIndices(), fd.getNativeTablePointers());
 
         return this;
@@ -1510,7 +1510,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmQuery<E> isNotEmpty(String fieldName) {
         realm.checkIfValid();
 
-        FieldDescriptor fd = schema.getColumnIndices(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST);
+        FieldDescriptor fd = schema.getColumnIndices(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
         this.query.isNotEmpty(fd.getColumnIndices(), fd.getNativeTablePointers());
 
         return this;
@@ -1531,7 +1531,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmResults<E> distinct(String fieldName) {
         realm.checkIfValid();
 
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(query.getTable(), fieldName);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), query.getTable(), fieldName);
         return createRealmResults(query, null, distinctDescriptor, true);
     }
 
@@ -1552,7 +1552,7 @@ public class RealmQuery<E extends RealmModel> {
         realm.checkIfValid();
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(query.getTable(), fieldName);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), query.getTable(), fieldName);
         return createRealmResults(query, null, distinctDescriptor, false);
     }
 
@@ -1575,7 +1575,7 @@ public class RealmQuery<E extends RealmModel> {
 
         fieldNames[0] = firstFieldName;
         System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(table, fieldNames);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
         return createRealmResults(query, null, distinctDescriptor, true);
     }
 
@@ -1606,6 +1606,7 @@ public class RealmQuery<E extends RealmModel> {
 
     /**
      * Returns the average of a given field.
+     * Does not support dotted field notation.
      *
      * @param fieldName the field to calculate average on. Only number fields are supported.
      * @return the average for the given field amongst objects in query results. This will be of type double for all
@@ -1769,7 +1770,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
         realm.checkIfValid();
 
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldName, sortOrder);
+        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldName, sortOrder);
         return createRealmResults(query, sortDescriptor, null, true);
     }
 
@@ -1786,7 +1787,7 @@ public class RealmQuery<E extends RealmModel> {
         realm.checkIfValid();
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldName, sortOrder);
+        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldName, sortOrder);
         return createRealmResults(query, sortDescriptor, null, false);
     }
 
@@ -1836,7 +1837,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmResults<E> findAllSorted(String[] fieldNames, Sort[] sortOrders) {
         realm.checkIfValid();
 
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldNames, sortOrders);
+        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
         return createRealmResults(query, sortDescriptor, null, true);
     }
 
@@ -1859,7 +1860,7 @@ public class RealmQuery<E extends RealmModel> {
         realm.checkIfValid();
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldNames, sortOrders);
+        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
         return createRealmResults(query, sortDescriptor, null, false);
     }
 
@@ -1975,5 +1976,9 @@ public class RealmQuery<E extends RealmModel> {
 
     private long getSourceRowIndexForFirstObject() {
         return this.query.find();
+    }
+
+    private SchemaConnector getSchemaConnector() {
+        return new SchemaConnector(realm.getSchema());
     }
 }

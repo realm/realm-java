@@ -33,42 +33,8 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class LinkingObjectsQueryTests extends QueryTests {
 
-    // the basic tests for isEqual and isNotEqual are in RealmQueryTests
+    // All the basic tests for is[Not](Equal|Null) are in RealmQueryTests
 
-    // FIXME!!! FieldDescriptor doesn't know about backlinks.
-    // Distinct works on backlinks
-    // Build a simple object graph.
-    // The test objects are:
-    //             gen1
-    //             / \
-    //         gen2A gen2B
-    //           \\   //
-    //            gen3
-    //  /  = object ref
-    //  // = list ref
-    @Test
-    public void query_distinct() {
-        realm.beginTransaction();
-        AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);
-
-        AllJavaTypes gen2A = realm.createObject(AllJavaTypes.class, 1);
-        gen2A.setFieldObject(gen1);
-
-        AllJavaTypes gen2B = realm.createObject(AllJavaTypes.class, 2);
-        gen2B.setFieldObject(gen1);
-
-        AllJavaTypes gen3 = realm.createObject(AllJavaTypes.class, 3);
-        RealmList<AllJavaTypes> parents = gen3.getFieldList();
-        parents.add(gen2A);
-        parents.add(gen2B);
-
-        realm.commitTransaction();
-
-        RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
-                .distinct(AllJavaTypes.FIELD_LO_OBJECT);
-        assertEquals(1, result.size());
-        assertTrue(result.contains(gen2B));
-    }
 
     // Query on a field descriptor starting with a backlink
     // Build a simple object graph.
@@ -105,7 +71,6 @@ public class LinkingObjectsQueryTests extends QueryTests {
         assertTrue(result.contains(gen1));
     }
 
-    // FIXME!!! Scary broken: contains fieldId:2
     // Query on a field descriptor that has a backlink in the middle
     // Build a simple object graph.
     // The test objects are:
@@ -141,7 +106,6 @@ public class LinkingObjectsQueryTests extends QueryTests {
         assertTrue(result.contains(gen2A));
     }
 
-    // FIXME!!! ???
     // Tests isNotNull on link's nullable field.
     @Test
     public void isNull_object() {
@@ -179,7 +143,6 @@ public class LinkingObjectsQueryTests extends QueryTests {
                 NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_DATE_NULL).count());
     }
 
-    // FIXME!!! ???
     // Tests isNull on link's nullable field.
     @Test
     public void isNull_list() {
@@ -291,9 +254,8 @@ public class LinkingObjectsQueryTests extends QueryTests {
                 NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_DATE_NULL).count());
     }
 
-    // FIXME!!! Fix native isEmpty to handle backlinks.
     @Test
-    public void isEmpty_acrossObjectLink() {
+    public void isEmpty_acrossLinkingObjectObjectLink() {
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
@@ -316,9 +278,8 @@ public class LinkingObjectsQueryTests extends QueryTests {
         }
     }
 
-    // FIXME!!! Fix native isEmpty to handle backlinks.
     @Test
-    public void isEmpty_acrossListLink() {
+    public void isEmpty_acrossLinkingObjectListLink() {
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
@@ -341,9 +302,8 @@ public class LinkingObjectsQueryTests extends QueryTests {
         }
     }
 
-    // FIXME!!! Fix native isEmpty to handle backlinks.
     @Test
-    public void isNotEmpty_acrossObjectLink() {
+    public void isNotEmpty_acrossLinkingObjectObjectLink() {
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
@@ -366,9 +326,8 @@ public class LinkingObjectsQueryTests extends QueryTests {
         }
     }
 
-    // FIXME!!! Fix native isEmpty to handle backlinks.
     @Test
-    public void isNotEmpty_acrossListLink() {
+    public void isNotEmpty_acrossLinkingObjectListLink() {
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {

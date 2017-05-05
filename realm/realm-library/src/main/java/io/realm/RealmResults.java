@@ -251,7 +251,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @Deprecated
     public RealmResults<E> distinct(String fieldName) {
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(collection.getTable(), fieldName);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(new SchemaConnector(realm.getSchema()), collection.getTable(), fieldName);
         Collection distinctCollection = collection.distinct(distinctDescriptor);
         return createLoadedResults(distinctCollection);
     }

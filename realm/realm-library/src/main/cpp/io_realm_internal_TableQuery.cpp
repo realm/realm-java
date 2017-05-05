@@ -66,6 +66,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery(
 // If the corresponding entry in tablesArray is anything other than a nullptr, the link is a backlink.
 // In that case, the tablesArray element is the pointer to the backlink source table and the
 // indicesArray entry is the source column index in the source table.
+// FIXME!!!  This doesn't actually seem to be following backlinks.
 static TableRef getTableForLinkQuery(jlong nativeQueryPtr, JniLongArray& tablesArray, JniLongArray& indicesArray)
 {
     TableRef table_ref = Q(nativeQueryPtr)->get_table();
@@ -93,7 +94,7 @@ static TableRef getTableByArray(jlong nativeQueryPtr, JniLongArray& indicesArray
     return table_ref;
 }
 
-//FIXME!!! this needs a clue.
+// FIXME!!!  This is pretty broken.
 static bool isNullable(JNIEnv* env, Table* src_table_ptr, TableRef table_ref, jlong column_idx)
 {
     // if table_arr is not a nullptr, this is a backlink and not allowed.
@@ -1501,6 +1502,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
             return;
         }
 
+        // FIXME!!!  Support a backlink as the last column in a field descriptor
         int col_type = table_ref->get_column_type(S(column_idx));
         if (arr_len == 1) {
             switch (col_type) {
@@ -1527,6 +1529,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
             }
         }
         else {
+            // FIXME!!!  Support a backlink as an internal column in a field descriptor
             switch (col_type) {
                 case type_Link:
                     ThrowException(env, IllegalArgument, "isNull() by nested query for link field is not supported.");
@@ -1702,6 +1705,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty(JNIEnv* e
         jlong column_idx = index_arr[arr_len - 1];
         TableRef table_ref = getTableByArray(nativeQueryPtr, index_arr);
 
+        // FIXME!!!  Support a backlink as the last column in a field descriptor
         int col_type = table_ref->get_column_type(S(column_idx));
         if (arr_len == 1) {
             // Field queries
@@ -1728,6 +1732,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty(JNIEnv* e
         }
         else {
             // Linked queries
+            // FIXME!!!  Support a backlink as an internal column in a field descriptor
             switch (col_type) {
                 case type_Binary:
                     pQuery->and_query(src_table_ref->column<Binary>(S(column_idx)) == BinaryData("", 0));

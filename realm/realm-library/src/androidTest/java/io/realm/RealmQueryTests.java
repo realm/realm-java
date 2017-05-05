@@ -2944,7 +2944,6 @@ public class RealmQueryTests extends QueryTests {
         assertFalse(query.isValid());
     }
 
-    // FIXME!!! Fix native isEmpty to handle backlinks.
     @Test
     public void isEmpty() {
         createIsEmptyDataSet(realm);
@@ -2969,7 +2968,6 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
-    // FIXME!!! Fix native isEmpty to handle backlinks.
     @Test
     public void isEmpty_acrossLink() {
         createIsEmptyDataSet(realm);
@@ -3039,7 +3037,6 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
-    // FIXME!!! Fix native isEmpty to handle backlinks.
     @Test
     public void isNotEmpty() {
         createIsNotEmptyDataSet(realm);
@@ -3064,7 +3061,6 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
-    // FIXME!!! Fix native isEmpty to handle backlinks.
     @Test
     public void isNotEmpty_acrossLink() {
         createIsNotEmptyDataSet(realm);
@@ -3322,11 +3318,12 @@ public class RealmQueryTests extends QueryTests {
     public void distinct_invalidTypes() {
         populateTestRealm();
 
-        for (String field : new String[] {AllTypes.FIELD_REALMOBJECT, AllTypes.FIELD_REALMLIST, AllTypes.FIELD_DOUBLE, AllTypes.FIELD_FLOAT}) {
+        for (String field : AllJavaTypes.INVALID_FIELDS_FOR_DISTINCT) {
             try {
-                realm.where(AllTypes.class).distinct(field);
-                fail(field);
+                realm.where(AllJavaTypes.class).distinct(field);
+                fail("'Distinct' should not be legal on field: " + field);
             } catch (IllegalArgumentException ignored) {
+                assertTrue(ignored.getMessage().startsWith("Distinct is not supported on"));
             }
         }
     }
