@@ -232,7 +232,7 @@ public final class SharedRealm implements Closeable, NativeObject {
                 syncRealmAuthUrl,
                 syncUserIdentifier,
                 syncRefreshToken,
-                (syncClientValidateSsl == null) ? true : syncClientValidateSsl,
+                (syncClientValidateSsl == null) || syncClientValidateSsl,
                 syncSslTrustCertificatePath);
 
         try {
