@@ -74,15 +74,14 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
             bool listener_registered =
                 session->wait_for_download_completion([java_session_object_ref](std::error_code error) {
                     JNIEnv* env = JniUtils::get_env(true);
-                    JavaLocalRef<jobject> java_error_code_ref(env, nullptr);
-                    JavaLocalRef<jstring> java_error_message_ref(env, nullptr);
-                    if (error) {
-                        java_error_code_ref = JavaLocalRef<jobject>(env, NewLong(env, error.value()));
-                        java_error_message_ref =
-                            JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
+                    jobject java_error_code = nullptr;
+                    jstring java_error_message = nullptr;
+                    if (error != std::error_code{}) {
+                        java_error_code = NewLong(env, error.value());
+                        java_error_message = env->NewStringUTF(error.message().c_str());
                     }
-                    env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method,
-                                        java_error_code_ref.get(), java_error_message_ref.get());
+                    env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method, java_error_code,
+                                        java_error_message);
                 });
 
             return to_jbool(listener_registered);

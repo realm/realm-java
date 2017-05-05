@@ -57,7 +57,7 @@ public:
     inline JavaLocalRef(JavaLocalRef&& rhs)
     {
         m_env = rhs.m_env;
-        m_jobject = rhs.m_jobject;
+        m_jobject = (rhs.m_jobject != nullptr) ? m_env->NewLocalRef(rhs.m_jobject) : nullptr;
         rhs.m_env = nullptr;
         rhs.m_jobject = nullptr;
     }

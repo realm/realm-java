@@ -111,6 +111,7 @@ final class RealmCache {
         public void run() {
             T instance = null;
             try {
+                // First call that will run all schema validation, migrations or initial transactions.
                 instance = createRealmOrGetFromCache(configuration, realmClass);
                 boolean results = notifier.post(new Runnable() {
                     @Override
@@ -128,6 +129,9 @@ final class RealmCache {
                         T instanceToReturn = null;
                         Throwable throwable = null;
                         try {
+                            // This will run on the caller thread, but since the first `createRealmOrGetFromCache`
+                            // should have completed at this point, all expensive initializer functions have already
+                            // run.
                             instanceToReturn = createRealmOrGetFromCache(configuration, realmClass);
                         } catch (Throwable e) {
                             throwable = e;
@@ -152,13 +156,18 @@ final class RealmCache {
             } catch (InterruptedException e) {
                 RealmLog.warn(e, "`CreateRealmRunnable` has been interrupted.");
             } catch (final Throwable e) {
-                RealmLog.error(e, "`CreateRealmRunnable` failed.");
-                notifier.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onError(e);
-                    }
-                });
+                // DownloadingRealmInterruptedException is treated specially.
+                // It async open is canceled, this could interrupt the download, but the user should
+                // not care in this case, so just ignore it.
+                if (!ObjectServerFacade.getSyncFacadeIfPossible().wasDownloadInterrupted(e)) {
+                    RealmLog.error(e, "`CreateRealmRunnable` failed.");
+                    notifier.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onError(e);
+                        }
+                    });
+                }
             } finally {
                 if (instance != null) {
                     instance.close();
@@ -281,7 +290,7 @@ final class RealmCache {
 
         if (getTotalGlobalRefCount() == 0) {
             copyAssetFileIfNeeded(configuration);
-            boolean fileExists = new File(configuration.getPath()).exists();
+            boolean fileExists = configuration.realmExists();
 
             SharedRealm sharedRealm = null;
             try {

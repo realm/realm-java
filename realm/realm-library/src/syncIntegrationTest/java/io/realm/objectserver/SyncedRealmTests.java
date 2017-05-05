@@ -31,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.Realm;
+import io.realm.RealmAsyncTask;
 import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncUser;
@@ -38,6 +39,7 @@ import io.realm.TestHelper;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -134,7 +136,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
                     try {
                         realm = Realm.getInstance(config);
                     } catch (DownloadingRealmInterruptedException ignored) {
-                        assertFalse(new File(config.getPath()).exists());
+                        assertFalse(config.realmExists());
                     } finally {
                         if (realm != null) {
                             realm.close();
@@ -149,5 +151,37 @@ public class SyncedRealmTests extends BaseIntegrationTest {
             t.interrupt();
             t.join();
         }
+    }
+
+    // This tests will start and cancel getting a Realm 10 times. The Realm should be resilient towards that
+    // We cannot do much better since we cannot control the order of events internally in Realm which would be
+    // needed to correctly test all error paths.
+    @Test
+    @RunTestInLooperThread
+    public void waitForInitialData_resilientInCaseOfRetriesAsync() {
+        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+                .waitForInitialRemoteData()
+                .build();
+        Random randomizer = new Random();
+
+        for (int i = 0; i < 10; i++) {
+            final int iteration = i;
+            RealmAsyncTask task = Realm.getInstanceAsync(config, new Realm.Callback() {
+                @Override
+                public void onSuccess(Realm realm) {
+                    fail();
+                }
+
+                @Override
+                public void onError(Throwable exception) {
+                    fail(exception.toString());
+                }
+            });
+            SystemClock.sleep(randomizer.nextInt(5));
+            task.cancel();
+        }
+        looperThread.testComplete();
     }
 }

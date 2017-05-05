@@ -200,8 +200,22 @@ public class RealmConfiguration {
         return schemaMediator.getModelClasses();
     }
 
+    /**
+     * Returns the absolute path to where the Realm file will be saved.
+     *
+     * @return the absolute path to the Realm file defined by this configuration.
+     */
     public String getPath() {
         return canonicalPath;
+    }
+
+    /**
+     * Checks if the Realm file defined by this configuration already exists.
+     *
+     * @return {@code true} if the Realm file exists, {@code false} otherwise.
+     */
+    public boolean realmExists() {
+        return new File(canonicalPath).exists();
     }
 
     /**

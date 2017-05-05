@@ -146,4 +146,9 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             }
         }
     }
+
+    @Override
+    public boolean wasDownloadInterrupted(Throwable throwable) {
+        return (throwable instanceof DownloadingRealmInterruptedException);
+    }
 }
