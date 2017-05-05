@@ -37,6 +37,7 @@ import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
+import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
@@ -411,9 +412,13 @@ public class RealmAsyncQueryTests {
     // callbacks, the callback should be cleared.
     @Test
     @RunTestInLooperThread
-    public void executeTransactionAsync_callbacksShouldBeClearedBeforeCalling() {
+    public void executeTransactionAsync_callbacksShouldBeClearedBeforeCalling()
+            throws NoSuchFieldException, IllegalAccessException {
         final AtomicInteger callbackCounter = new AtomicInteger(0);
         final Realm foregroundRealm = looperThread.getRealm();
+
+        // Use single thread executor
+        TestHelper.replaceRealmThreadExecutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
 
         // To reproduce the issue, the posted callback needs to arrived before the Object Store did_change called.
         // We just disable the auto refresh here then the did_change won't be called.
@@ -451,7 +456,7 @@ public class RealmAsyncQueryTests {
         });
 
         // Wait for all async tasks finish to ensure the async transaction posted callback will arrive first.
-        TestHelper.waitRealmThreadExecutorFinish();
+        TestHelper.resetRealmThreadExecutor();
         looperThread.postRunnable(new Runnable() {
             @Override
             public void run() {
