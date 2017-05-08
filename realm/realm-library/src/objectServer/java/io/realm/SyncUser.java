@@ -44,7 +44,13 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
+import io.realm.permissions.Permission;
+import io.realm.permissions.PermissionChange;
+import io.realm.permissions.ManagementModule;
+import io.realm.permissions.PermissionManager;
 import io.realm.permissions.PermissionModule;
+import io.realm.permissions.PermissionsCallback;
+
 
 /**
  * This class represents a user on the Realm Object Server. The credentials are provided by various 3rd party
@@ -58,37 +64,6 @@ import io.realm.permissions.PermissionModule;
  * as sensitive data.
  */
 public class SyncUser {
-
-    private static class ManagementConfig {
-        private SyncConfiguration managementRealmConfig;
-
-        synchronized SyncConfiguration initAndGetManagementRealmConfig(
-                ObjectServerUser syncUser, final SyncUser user) {
-            if (managementRealmConfig == null) {
-                managementRealmConfig = new SyncConfiguration.Builder(
-                        user, getManagementRealmUrl(syncUser.getAuthenticationUrl()))
-                        .errorHandler(new SyncSession.ErrorHandler() {
-                            @Override
-                            public void onError(SyncSession session, ObjectServerError error) {
-                                if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
-                                    RealmLog.error("Client Reset required for user's management Realm: " + user.toString());
-                                } else {
-                                    RealmLog.error(String.format("Unexpected error with %s's management Realm: %s",
-                                            user.getIdentity(),
-                                            error.toString()));
-                                }
-                            }
-                        })
-                        .modules(new PermissionModule())
-                        .build();
-            }
-
-            return managementRealmConfig;
-        }
-    }
-
-
-    private final ManagementConfig managementConfig = new ManagementConfig();
 
     private final ObjectServerUser syncUser;
 
@@ -201,6 +176,7 @@ public class SyncUser {
                 ObjectServerUser syncUser = new ObjectServerUser(result.getRefreshToken(), authUrl);
                 SyncUser user = new SyncUser(syncUser);
                 RealmLog.info("Succeeded authenticating user.\n%s", user);
+
                 SyncManager.getUserStore().put(user);
                 SyncManager.notifyUserLoggedIn(user);
                 return user;
@@ -418,7 +394,7 @@ public class SyncUser {
      * @see <a href="https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
      */
     public Realm getManagementRealm() {
-        return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(syncUser, this));
+        return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(this));
     }
 
     /**
@@ -430,18 +406,10 @@ public class SyncUser {
         return syncUser.getAuthenticationUrl();
     }
 
-    // Creates the URL to the permission Realm based on the authentication URL.
-    private static String getManagementRealmUrl(URL authUrl) {
-        String scheme = "realm";
-        if (authUrl.getProtocol().equalsIgnoreCase("https")) {
-            scheme = "realms";
-        }
-        try {
-            return new URI(scheme, authUrl.getUserInfo(), authUrl.getHost(), authUrl.getPort(),
-                    "/~/__management", null, null).toString();
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Could not create URL to the management Realm", e);
-        }
+
+    public RealmAsyncTask getPermissionManagerAsync(Callback<PermissionManager> callback) {
+
+
     }
 
     @Override
@@ -478,6 +446,11 @@ public class SyncUser {
 
     public interface Callback {
         void onSuccess(SyncUser user);
+        void onError(ObjectServerError error);
+    }
+
+    public interface RequestCallback<T> {
+        void onSuccess(T t);
         void onError(ObjectServerError error);
     }
 }

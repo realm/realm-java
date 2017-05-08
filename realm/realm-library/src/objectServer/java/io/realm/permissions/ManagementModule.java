@@ -18,7 +18,6 @@ package io.realm.permissions;
 
 import io.realm.annotations.RealmModule;
 
-
-@RealmModule(library = true, classes = { Permission.class })
-public class PermissionModule {
+@RealmModule(library = true, classes = { PermissionChange.class, PermissionOffer.class, PermissionOfferResponse.class })
+public class ManagementModule {
 }
