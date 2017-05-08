@@ -126,7 +126,6 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .waitForInitialRemoteData()
                 .build();
-        Random randomizer = new Random();
 
         for (int i = 0; i < 10; i++) {
             Thread t = new Thread(new Runnable() {
@@ -134,6 +133,8 @@ public class SyncedRealmTests extends BaseIntegrationTest {
                 public void run() {
                     Realm realm = null;
                     try {
+                        // This will cause the download latch called later to immediately throw an InterruptedException.
+                        Thread.currentThread().interrupt();
                         realm = Realm.getInstance(config);
                     } catch (DownloadingRealmInterruptedException ignored) {
                         assertFalse(config.realmExists());
@@ -145,10 +146,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
                     }
                 }
             });
-
             t.start();
-            SystemClock.sleep(randomizer.nextInt(5));
-            t.interrupt();
             t.join();
         }
     }
