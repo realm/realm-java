@@ -38,6 +38,7 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -993,7 +994,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     private RealmList<Dog> prepareRealmListInLooperThread() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         Owner owner = realm.createObject(Owner.class);
         owner.setName("Owner");
@@ -1010,7 +1011,7 @@ public class RealmListTests extends CollectionTests {
     @RunTestInLooperThread
     public void addChangeListener() {
         collection = prepareRealmListInLooperThread();
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final AtomicInteger listenerCalledCount = new AtomicInteger(0);
         collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
             @Override
@@ -1039,7 +1040,7 @@ public class RealmListTests extends CollectionTests {
     @RunTestInLooperThread
     public void removeAllChangeListeners() {
         collection = prepareRealmListInLooperThread();
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final AtomicInteger listenerCalledCount = new AtomicInteger(0);
         collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
             @Override
@@ -1077,7 +1078,7 @@ public class RealmListTests extends CollectionTests {
     @RunTestInLooperThread
     public void removeChangeListener() {
         collection = prepareRealmListInLooperThread();
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final AtomicInteger listenerCalledCount = new AtomicInteger(0);
         RealmChangeListener<RealmList<Dog>> listener1 = new RealmChangeListener<RealmList<Dog>>() {
             @Override
@@ -1104,5 +1105,19 @@ public class RealmListTests extends CollectionTests {
         collection.get(0).setAge(42);
         realm.commitTransaction();
         assertEquals(1, listenerCalledCount.get());
+    }
+
+    // https://github.com/realm/realm-java/issues/4554
+    @Test
+    public void createSnapshot_shouldUseTargetTable() {
+        int sizeBefore = collection.size();
+        OrderedRealmCollectionSnapshot<Dog> snapshot = collection.createSnapshot();
+        realm.beginTransaction();
+        snapshot.get(0).deleteFromRealm();
+        realm.commitTransaction();
+        assertEquals(sizeBefore - 1, collection.size());
+
+        assertNotNull(collection.view);
+        assertEquals(collection.view.getTargetTable().getName(), snapshot.getTable().getName());
     }
 }

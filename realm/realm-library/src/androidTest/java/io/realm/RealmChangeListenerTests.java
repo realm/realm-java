@@ -63,7 +63,7 @@ public class RealmChangeListenerTests {
     @Test
     @RunTestInLooperThread
     public void returnedRealmIsNotNull() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm realm) {
@@ -79,7 +79,7 @@ public class RealmChangeListenerTests {
     @Test
     @RunTestInLooperThread
     public void returnedDynamicRealmIsNotNull() {
-        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
         dynamicRealm.addChangeListener(new RealmChangeListener<DynamicRealm>() {
             @Override
             public void onChange(DynamicRealm dynRealm) {
@@ -96,9 +96,9 @@ public class RealmChangeListenerTests {
     @Test
     @RunTestInLooperThread
     public void returnedRealmResultsIsNotNull() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         RealmResults<Cat> cats = realm.where(Cat.class).findAll();
-        looperThread.keepStrongReference.add(cats);
+        looperThread.keepStrongReference(cats);
         cats.addChangeListener(new RealmChangeListener<RealmResults<Cat>>() {
             @Override
             public void onChange(RealmResults<Cat> result) {
@@ -115,9 +115,9 @@ public class RealmChangeListenerTests {
     @Test
     @RunTestInLooperThread
     public void returnedRealmResultsOfModelIsNotNull() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         RealmResults<AllTypesRealmModel> alltypes = realm.where(AllTypesRealmModel.class).findAll();
-        looperThread.keepStrongReference.add(alltypes);
+        looperThread.keepStrongReference(alltypes);
         alltypes.addChangeListener(new RealmChangeListener<RealmResults<AllTypesRealmModel>>() {
             @Override
             public void onChange(RealmResults<AllTypesRealmModel> result) {
@@ -136,12 +136,12 @@ public class RealmChangeListenerTests {
     @Test
     @RunTestInLooperThread
     public void returnedRealmObjectIsNotNull() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.beginTransaction();
-        Cat cat = looperThread.realm.createObject(Cat.class);
+        Cat cat = realm.createObject(Cat.class);
         realm.commitTransaction();
 
-        looperThread.keepStrongReference.add(cat);
+        looperThread.keepStrongReference(cat);
         cat.addChangeListener(new RealmChangeListener<Cat>() {
             @Override
             public void onChange(Cat object) {
@@ -158,12 +158,12 @@ public class RealmChangeListenerTests {
     @Test
     @RunTestInLooperThread
     public void returnedRealmModelIsNotNull() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         AllTypesRealmModel model = realm.createObject(AllTypesRealmModel.class, 0);
         realm.commitTransaction();
 
-        looperThread.keepStrongReference.add(model);
+        looperThread.keepStrongReference(model);
         RealmObject.addChangeListener(model, new RealmChangeListener<AllTypesRealmModel>() {
             @Override
             public void onChange(AllTypesRealmModel object) {
@@ -180,15 +180,15 @@ public class RealmChangeListenerTests {
     @Test
     @RunTestInLooperThread
     public void returnedDynamicRealmObjectIsNotNull() {
-        Realm realm = Realm.getInstance(looperThread.realmConfiguration);
+        Realm realm = Realm.getInstance(looperThread.getConfiguration());
         realm.close();
 
-        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
         dynamicRealm.beginTransaction();
         DynamicRealmObject allTypes = dynamicRealm.createObject(AllTypes.CLASS_NAME);
         dynamicRealm.commitTransaction();
 
-        looperThread.keepStrongReference.add(allTypes);
+        looperThread.keepStrongReference(allTypes);
         allTypes.addChangeListener(new RealmChangeListener<DynamicRealmObject>() {
             @Override
             public void onChange(DynamicRealmObject object) {
@@ -205,12 +205,12 @@ public class RealmChangeListenerTests {
     @Test
     @RunTestInLooperThread
     public void returnedDynamicRealmResultsIsNotNull() {
-        Realm realm = Realm.getInstance(looperThread.realmConfiguration);
+        Realm realm = Realm.getInstance(looperThread.getConfiguration());
         realm.close();
 
-        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
         RealmResults<DynamicRealmObject> all = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
-        looperThread.keepStrongReference.add(all);
+        looperThread.keepStrongReference(all);
         all.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
             public void onChange(RealmResults<DynamicRealmObject> result) {
