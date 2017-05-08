@@ -61,7 +61,8 @@ public class Table implements TableSchema, NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     private final long nativePtr;
-    private final Context context;
+    private final NativeContext context;
+
     private final SharedRealm sharedRealm;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
 
@@ -70,7 +71,7 @@ public class Table implements TableSchema, NativeObject {
      * allowed only for empty tables. It creates a native reference of the object and keeps a reference to it.
      */
     public Table() {
-        this.context = new Context();
+        this.context = new NativeContext();
         // Native methods work will be initialized here. Generated classes will
         // have nothing to do with the native functions. Generated Java Table
         // classes will work as a wrapper on top of table.

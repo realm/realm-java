@@ -9,6 +9,7 @@
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).
 * Added `Realm.refresh()` and `DynamicRealm.refresh()` (#3476).
 * Added `Realm.getInstanceAsync()` and `DynamicRealm.getInstanceAsync()` (#2299).
+* Added `DynamicRealmObject#linkingObjects(String,String)` to support linking objects on `DynamicRealm` (#4492).
 
 ### Bug Fixes
 
@@ -16,13 +17,14 @@
 
 * Use separated locks for different `RealmCache`s ($4551).
 
-## 3.1.4
+## 3.1.4 (2017-05-04)
 
 ## Bug fixes
 
 * Added missing row validation check in certain cases on invalidated/deleted objects (#4540).
 * Initializing Realm is now more resilient if `Context.getFilesDir()` isn't working correctly (#4493).
 * `OrderedRealmCollectionSnapshot.get()` returned a wrong object (#4554).
+* `onSuccess` callback got triggered infinitely if a synced transaction was committed in the async transaction's `onSuccess` callback (#4594).
 
 ## 3.1.3 (2017-04-20)
 

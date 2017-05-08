@@ -45,6 +45,30 @@ public abstract class QueryTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
+    protected static final List<RealmFieldType> SUPPORTED_IS_EMPTY_TYPES;
+    protected static final List<RealmFieldType> NOT_SUPPORTED_IS_EMPTY_TYPES;
+    protected static final List<RealmFieldType> SUPPORTED_IS_NOT_EMPTY_TYPES;
+    protected static final List<RealmFieldType> NOT_SUPPORTED_IS_NOT_EMPTY_TYPES;
+
+    static {
+        ArrayList<RealmFieldType> list = new ArrayList<>(Arrays.asList(
+                RealmFieldType.STRING,
+                RealmFieldType.BINARY,
+                RealmFieldType.LIST));
+                // TODO: LINKING_OBJECTS should be supported
+        SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
+        SUPPORTED_IS_NOT_EMPTY_TYPES = Collections.unmodifiableList(list);
+
+        list = new ArrayList<>(Arrays.asList(RealmFieldType.values()));
+        list.removeAll(SUPPORTED_IS_EMPTY_TYPES);
+        list.remove(RealmFieldType.UNSUPPORTED_MIXED);
+        list.remove(RealmFieldType.UNSUPPORTED_TABLE);
+        list.remove(RealmFieldType.UNSUPPORTED_DATE);
+        list.remove(RealmFieldType.LINKING_OBJECTS);
+        NOT_SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
+        NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = Collections.unmodifiableList(list);
+    }
+
     protected Realm realm;
 
     @Before
@@ -58,46 +82,6 @@ public abstract class QueryTests {
         if (realm != null) {
             realm.close();
         }
-    }
-
-
-    protected static final List<RealmFieldType> SUPPORTED_IS_EMPTY_TYPES;
-    protected static final List<RealmFieldType> NOT_SUPPORTED_IS_EMPTY_TYPES;
-
-    static {
-        ArrayList<RealmFieldType> list = new ArrayList<>(Arrays.asList(
-                RealmFieldType.STRING,
-                RealmFieldType.BINARY,
-                RealmFieldType.LIST,
-                RealmFieldType.LINKING_OBJECTS));
-        SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
-
-        list = new ArrayList<>(Arrays.asList(RealmFieldType.values()));
-        list.removeAll(SUPPORTED_IS_EMPTY_TYPES);
-        list.remove(RealmFieldType.UNSUPPORTED_MIXED);
-        list.remove(RealmFieldType.UNSUPPORTED_TABLE);
-        list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        NOT_SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
-    }
-
-
-    protected static final List<RealmFieldType> SUPPORTED_IS_NOT_EMPTY_TYPES;
-    protected static final List<RealmFieldType> NOT_SUPPORTED_IS_NOT_EMPTY_TYPES;
-
-    static {
-        ArrayList<RealmFieldType> list = new ArrayList<>(Arrays.asList(
-                RealmFieldType.STRING,
-                RealmFieldType.BINARY,
-                RealmFieldType.LIST,
-                RealmFieldType.LINKING_OBJECTS));
-        SUPPORTED_IS_NOT_EMPTY_TYPES = Collections.unmodifiableList(list);
-
-        list = new ArrayList<>(Arrays.asList(RealmFieldType.values()));
-        list.removeAll(SUPPORTED_IS_NOT_EMPTY_TYPES);
-        list.remove(RealmFieldType.UNSUPPORTED_MIXED);
-        list.remove(RealmFieldType.UNSUPPORTED_TABLE);
-        list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = Collections.unmodifiableList(list);
     }
 
     protected final void createIsEmptyDataSet(Realm realm) {

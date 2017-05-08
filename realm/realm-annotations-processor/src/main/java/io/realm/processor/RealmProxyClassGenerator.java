@@ -78,6 +78,9 @@ public class RealmProxyClassGenerator {
         imports.add("io.realm.internal.Row");
         imports.add("io.realm.internal.Table");
         imports.add("io.realm.internal.SharedRealm");
+        if (!metadata.getBacklinkFields().isEmpty()) {
+            imports.add("io.realm.internal.UncheckedRow");
+        }
         imports.add("io.realm.internal.LinkView");
         imports.add("io.realm.internal.android.JsonUtils");
         imports.add("io.realm.log.RealmLog");

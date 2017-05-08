@@ -168,7 +168,7 @@ public abstract class FieldDescriptor {
     /**
      * After the field description (@see parseFieldDescription(String) is parsed, this method
      * returns a java array.  For most columns the table will be the 'current' table, so this
-     * array will contain ativeObject.NULLPTR.  If a column is a LinkingObjects column, however,
+     * array will contain NativeObject.NULLPTR.  If a column is a LinkingObjects column, however,
      * the array contains the native pointer to the <b>source</b> table.
      */
     public final long[] getNativeTablePointers() {

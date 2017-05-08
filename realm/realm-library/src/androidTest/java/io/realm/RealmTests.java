@@ -3103,38 +3103,28 @@ public class RealmTests {
 
     // Tests if close can be called from Realm change listener when there is no other listeners.
     @Test
+    @RunTestInLooperThread
     public void closeRealmInChangeListener() {
-        realm.close();
-        final CountDownLatch signalTestFinished = new CountDownLatch(1);
-        HandlerThread handlerThread = new HandlerThread("background");
-        handlerThread.start();
-        final Handler handler = new Handler(handlerThread.getLooper());
-        handler.post(new Runnable() {
+        final Realm realm = looperThread.getRealm();
+        final RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
             @Override
-            public void run() {
-                final Realm realm = Realm.getInstance(realmConfig);
-                final RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
-                    @Override
-                    public void onChange(Realm object) {
-                        if (realm.where(AllTypes.class).count() == 1) {
-                            realm.removeChangeListener(this);
-                            realm.close();
-                            signalTestFinished.countDown();
-                        }
-                    }
-                };
+            public void onChange(Realm object) {
+                if (realm.where(AllTypes.class).count() == 1) {
+                    realm.removeChangeListener(this);
+                    realm.close();
+                    looperThread.testComplete();
+                }
+            }
+        };
 
-                realm.addChangeListener(listener);
+        realm.addChangeListener(listener);
 
-                realm.executeTransactionAsync(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        realm.createObject(AllTypes.class);
-                    }
-                });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
             }
         });
-        TestHelper.awaitOrFail(signalTestFinished);
     }
 
     // Tests if close can be called from Realm change listener when there is a listener on empty Realm Object.
