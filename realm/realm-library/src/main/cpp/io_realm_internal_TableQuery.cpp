@@ -94,7 +94,8 @@ static TableRef getTableByArray(jlong nativeQueryPtr, JniLongArray& indicesArray
     return table_ref;
 }
 
-// FIXME!!!  This is pretty broken.
+// FIXME!!!  This is a hasty attempt to fix the nullable queries.
+// I am not at all sure that it is even the right idea, let alone correct code. --gbm
 static bool isNullable(JNIEnv* env, Table* src_table_ptr, TableRef table_ref, jlong column_idx)
 {
     // if table_arr is not a nullptr, this is a backlink and not allowed.

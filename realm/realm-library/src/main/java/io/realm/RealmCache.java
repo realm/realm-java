@@ -87,11 +87,11 @@ final class RealmCache {
     }
 
     private static class CreateRealmRunnable<T extends BaseRealm> implements Runnable {
-        private RealmConfiguration configuration;
-        private BaseRealm.InstanceCallback<T> callback;
-        private Class<T> realmClass;
-        private CountDownLatch canReleaseBackgroundInstanceLatch = new CountDownLatch(1);
-        private RealmNotifier notifier;
+        private final RealmConfiguration configuration;
+        private final BaseRealm.InstanceCallback<T> callback;
+        private final Class<T> realmClass;
+        private final CountDownLatch canReleaseBackgroundInstanceLatch = new CountDownLatch(1);
+        private final RealmNotifier notifier;
         // The Future this runnable belongs to.
         private Future future;
 

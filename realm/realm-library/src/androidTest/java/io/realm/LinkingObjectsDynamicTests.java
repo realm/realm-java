@@ -42,6 +42,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+
 @RunWith(AndroidJUnit4.class)
 public class LinkingObjectsDynamicTests {
 
@@ -173,14 +174,17 @@ public class LinkingObjectsDynamicTests {
         for (RealmFieldType fieldType : RealmFieldType.values()) {
             try {
                 switch (fieldType) {
+                    // skip unsupported types
+                    case UNSUPPORTED_TABLE: // fall-through
+                    case UNSUPPORTED_MIXED: // fall-through
+                    case UNSUPPORTED_DATE:
+                        continue;
                     // skip valid types
                     case OBJECT: // fall-through
                     case LIST:
                         continue;
-                        // skip unsupported types
-                    case UNSUPPORTED_TABLE: // fall-through
-                    case UNSUPPORTED_MIXED: // fall-through
-                    case UNSUPPORTED_DATE:
+                    // skip special case
+                    case LINKING_OBJECTS:
                         continue;
                     case INTEGER:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INT);
@@ -210,6 +214,16 @@ public class LinkingObjectsDynamicTests {
                 fail();
             } catch (IllegalArgumentException expected) {
                 assertTrue(expected.getMessage().startsWith("Unexpected field type"));
+            }
+        }
+
+        // Linking Object fields are implicit and do not exist.
+        for (String field : new String[] {AllJavaTypes.FIELD_LO_OBJECT, AllJavaTypes.FIELD_LO_LIST}) {
+            try {
+                object.linkingObjects(AllJavaTypes.CLASS_NAME, field);
+                fail();
+            } catch (IllegalArgumentException expected) {
+                assertTrue(expected.getMessage().contains("does not exist"));
             }
         }
     }

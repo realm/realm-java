@@ -29,7 +29,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllJavaTypes;
@@ -39,7 +38,6 @@ import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
 import io.realm.entities.BacklinksWrongTypeSourceModule;
 import io.realm.entities.BacklinksWrongTypeTargetModule;
-import io.realm.entities.NullTypes;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.rule.RunInLooperThread;
@@ -150,6 +148,7 @@ public class LinkingObjectsManagedTests {
         // One entry for each reference, so two references from a LinkList will
         // result in two backlinks.
         assertEquals(2, child.getListParents().size());
+
         assertEquals(parent, child.getListParents().first());
         assertEquals(parent, child.getListParents().last());
     }

@@ -17,7 +17,9 @@
 package io.realm;
 
 
+import android.annotation.SuppressLint;
 import android.os.Looper;
+import android.util.Log;
 
 import io.realm.internal.CheckedRow;
 import io.realm.internal.Collection;
@@ -56,21 +58,23 @@ import rx.Observable;
  * @see Realm#executeTransaction(Realm.Transaction)
  */
 public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionImpl<E> {
-    static <T extends RealmModel> RealmResults<T> createBacklinkResults(Realm realm, UncheckedRow row, Class<T> srcTableType, String srcFieldName) {
+    @SuppressLint("unused")
+    static <T extends RealmModel> RealmResults<T> createBacklinkResults(BaseRealm realm, Row row, Class<T> srcTableType, String srcFieldName) {
+        UncheckedRow uncheckedRow = (UncheckedRow) row;
         Table srcTable = realm.getSchema().getTable(srcTableType);
-        return new RealmResults<T>(
+        return new RealmResults<>(
                 realm,
-                Collection.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),
+                Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
                 srcTableType);
     }
 
-    static RealmResults<DynamicRealmObject> createBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
+    static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(BaseRealm realm, Row row, Table srcTable, String srcFieldName) {
+        UncheckedRow uncheckedRow = (UncheckedRow) row;
         return new RealmResults<>(
                 realm,
-                Collection.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),
+                Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
                 Table.getClassNameForTable(srcTable.getName()));
     }
-
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
         super(realm, collection, clazz);

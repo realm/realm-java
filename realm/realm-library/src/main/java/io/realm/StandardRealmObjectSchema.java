@@ -705,6 +705,21 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         }
 
         @Override
+        public RealmFieldType getColumnType(String columnName) {
+            throw new UnsupportedOperationException("DynamicColumnIndices do not support 'getColumnType'");
+        }
+
+        @Override
+        public String getLinkedTable(String columnName) {
+            throw new UnsupportedOperationException("DynamicColumnIndices do not support 'getLinkedTable'");
+        }
+
+        @Override
+        public void copyFrom(ColumnInfo src) {
+            throw new UnsupportedOperationException("DynamicColumnIndices cannot be copied");
+        }
+
+        @Override
         protected ColumnInfo copy(boolean immutable) {
             throw new UnsupportedOperationException("DynamicColumnIndices cannot be copied");
         }

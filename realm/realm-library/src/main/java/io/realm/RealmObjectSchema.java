@@ -19,7 +19,6 @@ package io.realm;
 import java.util.Set;
 
 import io.realm.annotations.Required;
-import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 

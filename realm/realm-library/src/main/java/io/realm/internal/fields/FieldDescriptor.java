@@ -27,7 +27,14 @@ import io.realm.internal.Table;
 
 
 /**
- * Class describing a single field, possibly several links away.
+ * Class describing a single field, possibly several links away, e.g.:
+ * <ul>
+ * </li> "someField"
+ * </li> "someRealmObjectField.someField"
+ * </li> "someRealmListField.someField"
+ * </li> "someLinkingObjectField.someField"
+ * </li> "someRealmObjectField.someRealmListField.someLinkingObjectField.someField"
+ * </ul>
  */
 public abstract class FieldDescriptor {
     public interface SchemaProxy {
@@ -147,7 +154,9 @@ public abstract class FieldDescriptor {
     }
 
     /**
-     * The number of columnNames in the field description
+     * The number of columnNames in the field description.
+     * The returned number is the size of the array returned by
+     * {@code getColumnIndices} and {@code getNativeTablePointers}
      *
      * @return the number of fields.
      */
@@ -156,9 +165,13 @@ public abstract class FieldDescriptor {
     }
 
     /**
-     * After the field description (@see parseFieldDescription(String) is parsed, this method
-     * returns a java array of column indices for the columns named in the description.
-     * If the column is a LinkingObjects column, the index is the index in the <b>source</b> table.
+     * Return a java array of column indices for the columns named in the description.
+     * If the column at ret[i] is a LinkingObjects column, ret[i] (the column index)
+     * is the index for the <b>source</b> column in the <b>source</b> table.
+     *
+     * The return is an array because it will be, immediately, passed to native code
+     *
+     * @return an array of column indices.
      */
     public final long[] getColumnIndices() {
         compileIfNecessary();
@@ -166,10 +179,14 @@ public abstract class FieldDescriptor {
     }
 
     /**
-     * After the field description (@see parseFieldDescription(String) is parsed, this method
-     * returns a java array.  For most columns the table will be the 'current' table, so this
-     * array will contain NativeObject.NULLPTR.  If a column is a LinkingObjects column, however,
-     * the array contains the native pointer to the <b>source</b> table.
+     * Return a java array of native table pointers.  For most columns the table will be identified by
+     * the type of the column: no further information is needed.  In that case, this array will contain
+     * NativeObject.NULLPTR.  If, however, a column is a LinkingObjects column the <b>source</b> table
+     * cannot be inferred, so the returned array contains the native pointer to it.
+     *
+     * The return is an array because it will be, immediately, passed to native code
+     *
+     * @return an array of native table pointers.
      */
     public final long[] getNativeTablePointers() {
         compileIfNecessary();
@@ -181,7 +198,7 @@ public abstract class FieldDescriptor {
      *
      * @return the name of the final column
      */
-    public String getFinalColumnName() {
+    public final String getFinalColumnName() {
         compileIfNecessary();
         return finalColumnName;
     }
@@ -191,7 +208,7 @@ public abstract class FieldDescriptor {
      *
      * @return the type of the final column
      */
-    public RealmFieldType getFinalColumnType() {
+    public final RealmFieldType getFinalColumnType() {
         compileIfNecessary();
         return finalColumnType;
     }

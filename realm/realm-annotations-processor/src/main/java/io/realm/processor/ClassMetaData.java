@@ -117,7 +117,7 @@ public class ClassMetaData {
     }
 
     public Set<Backlink> getBacklinkFields() {
-        return backlinks;
+        return Collections.unmodifiableSet(backlinks);
     }
 
     public String getInternalGetter(String fieldName) {
@@ -129,7 +129,7 @@ public class ClassMetaData {
     }
 
     public List<VariableElement> getIndexedFields() {
-        return indexedFields;
+        return Collections.unmodifiableList(indexedFields);
     }
 
     public boolean hasPrimaryKey() {

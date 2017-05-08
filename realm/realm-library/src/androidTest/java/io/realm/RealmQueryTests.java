@@ -20,6 +20,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -2561,7 +2562,8 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
-    // @Test Disabled because of time consuming.
+    @Ignore("Disabled because it is time consuming")
+    @Test
     public void largeRealmMultipleThreads() throws InterruptedException {
         final int nObjects = 500000;
         final int nThreads = 3;

@@ -32,7 +32,7 @@ import io.realm.internal.fields.FieldDescriptor;
  * That will make it easy to lazily instantiate a singleton should that become advisable.
  */
 class SchemaConnector implements FieldDescriptor.SchemaProxy {
-    private RealmSchema schema;
+    private final RealmSchema schema;
 
     public SchemaConnector(RealmSchema schema) {
         this.schema = schema;

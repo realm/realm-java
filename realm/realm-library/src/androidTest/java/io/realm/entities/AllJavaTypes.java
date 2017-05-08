@@ -49,7 +49,7 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_LO_LIST = "listParents";
 
     public static final String[] INVALID_FIELDS_FOR_DISTINCT
-            = new String[]{FIELD_OBJECT, FIELD_LIST, FIELD_DOUBLE, FIELD_FLOAT, FIELD_LO_OBJECT, FIELD_LO_LIST};
+            = new String[] {FIELD_OBJECT, FIELD_LIST, FIELD_DOUBLE, FIELD_FLOAT, FIELD_LO_OBJECT, FIELD_LO_LIST};
 
     public static final String INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT
             = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY;
@@ -59,9 +59,12 @@ public class AllJavaTypes extends RealmObject {
             FIELD_OBJECT + "." + FIELD_OBJECT,
             FIELD_OBJECT + "." + FIELD_LIST};
 
-    @Ignore private String fieldIgnored;
-    @Index private String fieldString;
-    @PrimaryKey private long fieldId;
+    @Ignore
+    private String fieldIgnored;
+    @Index
+    private String fieldString;
+    @PrimaryKey
+    private long fieldId;
     private long fieldLong;
     private short fieldShort;
     private int fieldInt;
