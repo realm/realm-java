@@ -37,6 +37,7 @@ import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
+import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
@@ -411,9 +412,13 @@ public class RealmAsyncQueryTests {
     // callbacks, the callback should be cleared.
     @Test
     @RunTestInLooperThread
-    public void executeTransactionAsync_callbacksShouldBeClearedBeforeCalling() {
+    public void executeTransactionAsync_callbacksShouldBeClearedBeforeCalling()
+            throws NoSuchFieldException, IllegalAccessException {
         final AtomicInteger callbackCounter = new AtomicInteger(0);
         final Realm foregroundRealm = looperThread.getRealm();
+
+        // Use single thread executor
+        TestHelper.replaceRealmThreadExecutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
 
         // To reproduce the issue, the posted callback needs to arrived before the Object Store did_change called.
         // We just disable the auto refresh here then the did_change won't be called.
@@ -440,15 +445,6 @@ public class RealmAsyncQueryTests {
             @Override
             public void execute(Realm realm) {
                 realm.createObject(AllTypes.class);
-                // Delay to post this to ensure the async transaction posted callback will arrive first.
-                looperThread.postRunnableDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Manually call refresh, so the did_change will be triggered.
-                        foregroundRealm.sharedRealm.refresh();
-                        foregroundRealm.setAutoRefresh(true);
-                    }
-                }, 50);
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override
@@ -456,6 +452,17 @@ public class RealmAsyncQueryTests {
                 // This will be called 2nd and only once
                 assertEquals(1, callbackCounter.getAndIncrement());
                 looperThread.testComplete();
+            }
+        });
+
+        // Wait for all async tasks finish to ensure the async transaction posted callback will arrive first.
+        TestHelper.resetRealmThreadExecutor();
+        looperThread.postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                // Manually call refresh, so the did_change will be triggered.
+                foregroundRealm.sharedRealm.refresh();
+                foregroundRealm.setAutoRefresh(true);
             }
         });
     }
