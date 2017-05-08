@@ -24,13 +24,13 @@ import io.realm.RealmFieldType;
  */
 public class LinkView implements NativeObject {
 
-    private final Context context;
+    private final NativeContext context;
     final Table parent;
     final long columnIndexInParent;
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
-    public LinkView(Context context, Table parent, long columnIndexInParent, long nativeLinkViewPtr) {
+    public LinkView(NativeContext context, Table parent, long columnIndexInParent, long nativeLinkViewPtr) {
         this.context = context;
         this.parent = parent;
         this.columnIndexInParent = columnIndexInParent;
@@ -135,13 +135,6 @@ public class LinkView implements NativeObject {
     }
 
     /**
-     * Returns the {@link Table} which all links point to.
-     */
-    public Table getTable() {
-        return parent;
-    }
-
-    /**
      * Removes all target rows pointed to by links in this link view, and clear this link view.
      */
     public void removeAllTargetRows() {
@@ -159,8 +152,7 @@ public class LinkView implements NativeObject {
 
     public Table getTargetTable() {
         long nativeTablePointer = nativeGetTargetTable(nativePtr);
-        Table table = new Table(this.parent, nativeTablePointer);
-        return table;
+        return new Table(this.parent, nativeTablePointer);
     }
 
     private void checkImmutable() {

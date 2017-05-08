@@ -17,12 +17,14 @@
 package io.realm;
 
 import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -38,6 +40,7 @@ import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
 
 import static io.realm.util.SyncTestUtils.createTestAdminUser;
@@ -56,6 +59,12 @@ public class SyncUserTests {
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
+
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
+
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
 
     @BeforeClass
     public static void initUserStore() {
@@ -267,5 +276,40 @@ public class SyncUserTests {
         } finally {
             SyncManager.setAuthServerImpl(originalServer);
         }
+    }
+
+    @Test
+    public void changePassword_nullThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalArgumentException.class);
+        user.changePassword(null);
+    }
+
+    @Test
+    public void changePasswordAsync_nonLooperThreadThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalStateException.class);
+        user.changePasswordAsync(null, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changePasswordAsync_nullCallbackThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalArgumentException.class);
+        user.changePasswordAsync("new-password", null);
     }
 }

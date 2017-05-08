@@ -195,11 +195,11 @@ public class RealmModelTests {
     @Test
     @RunTestInLooperThread
     public void async_query() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateTestRealm(realm, TEST_DATA_SIZE);
 
         final RealmResults<AllTypesRealmModel> allTypesRealmModels = realm.where(AllTypesRealmModel.class).distinctAsync(AllTypesRealmModel.FIELD_STRING);
-        looperThread.keepStrongReference.add(allTypesRealmModels);
+        looperThread.keepStrongReference(allTypesRealmModels);
         allTypesRealmModels.addChangeListener(new RealmChangeListener<RealmResults<AllTypesRealmModel>>() {
             @Override
             public void onChange(RealmResults<AllTypesRealmModel> object) {
@@ -231,8 +231,8 @@ public class RealmModelTests {
     @Test
     @RunTestInLooperThread
     public void dynamicRealm() {
-        populateTestRealm(looperThread.realm, TEST_DATA_SIZE);
-        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        populateTestRealm(looperThread.getRealm(), TEST_DATA_SIZE);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
 
         dynamicRealm.beginTransaction();
         DynamicRealmObject dog = dynamicRealm.createObject(AllTypesRealmModel.CLASS_NAME, 42);

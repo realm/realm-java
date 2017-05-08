@@ -78,6 +78,9 @@ public class RealmProxyClassGenerator {
         imports.add("io.realm.internal.Row");
         imports.add("io.realm.internal.Table");
         imports.add("io.realm.internal.SharedRealm");
+        if (!metadata.getBacklinkFields().isEmpty()) {
+            imports.add("io.realm.internal.UncheckedRow");
+        }
         imports.add("io.realm.internal.LinkView");
         imports.add("io.realm.internal.android.JsonUtils");
         imports.add("io.realm.log.RealmLog");
@@ -571,7 +574,7 @@ public class RealmProxyClassGenerator {
                 .emitStatement("realm.checkIfValid()")
                 .emitStatement("proxyState.getRow$realm().checkIfAttached()")
                 .beginControlFlow("if (" + cacheFieldName + " == null)")
-                    .emitStatement(cacheFieldName + " = RealmResults.createBacklinkResults(realm, proxyState.getRow$realm(), %s.class, \"%s\")",
+                    .emitStatement(cacheFieldName + " = RealmResults.createBacklinkResults((Realm) realm, (UncheckedRow) proxyState.getRow$realm(), %s.class, \"%s\")",
                         backlink.getSourceClass(), backlink.getSourceField())
                 .endControlFlow()
                 .emitStatement("return " + cacheFieldName)

@@ -736,7 +736,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
             throw new IllegalArgumentException(
-                    String.format("Field name '%s' does not exist on schema for '%s",
+                    String.format("Field name '%s' does not exist on schema for '%s'",
                             fieldName, getClassName()
                     ));
         }

@@ -14,6 +14,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
 import java.io.IOException;
@@ -399,7 +400,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         realm.checkIfValid();
         proxyState.getRow$realm().checkIfAttached();
         if (parentObjectsBacklinks == null) {
-            parentObjectsBacklinks = RealmResults.createBacklinkResults(realm, proxyState.getRow$realm(), some.test.AllTypes.class, "columnObject");
+            parentObjectsBacklinks = RealmResults.createBacklinkResults((Realm) realm, (UncheckedRow) proxyState.getRow$realm(), some.test.AllTypes.class, "columnObject");
         }
         return parentObjectsBacklinks;
     }

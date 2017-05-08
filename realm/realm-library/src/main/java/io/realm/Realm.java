@@ -20,6 +20,7 @@ import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.content.Context;
 import android.os.Build;
+import android.os.SystemClock;
 import android.util.JsonReader;
 
 import org.json.JSONArray;
@@ -126,6 +127,8 @@ import rx.Observable;
  */
 public class Realm extends BaseRealm {
 
+    private static final String NULL_CONFIG_MSG = "A non-null RealmConfiguration must be provided";
+
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
     private static RealmConfiguration defaultConfiguration;
@@ -133,11 +136,11 @@ public class Realm extends BaseRealm {
     /**
      * The constructor is private to enforce the use of the static one.
      *
-     * @param configuration the {@link RealmConfiguration} used to open the Realm.
+     * @param cache the {@link RealmCache} associated to this Realm instance.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
      */
-    Realm(RealmConfiguration configuration) {
-        super(configuration);
+    private Realm(RealmCache cache) {
+        super(cache);
     }
 
     /**
@@ -179,6 +182,7 @@ public class Realm extends BaseRealm {
      *
      * @param context the Application Context.
      * @throws IllegalArgumentException if a {@code null} context is provided.
+     * @throws IllegalStateException if {@link Context#getFilesDir()} could not be found.
      * @see #getDefaultInstance()
      */
     public static synchronized void init(Context context) {
@@ -186,11 +190,64 @@ public class Realm extends BaseRealm {
             if (context == null) {
                 throw new IllegalArgumentException("Non-null context required.");
             }
+            checkFilesDirAvailable(context);
             RealmCore.loadLibrary(context);
             defaultConfiguration = new RealmConfiguration.Builder(context).build();
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             BaseRealm.applicationContext = context.getApplicationContext();
             SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
+        }
+    }
+
+    /**
+     * In some cases, Context.getFilesDir() is not available when the app launches the first time.
+     * This should never happen according to the official Android documentation, but the race condition wasn't fixed
+     * until Android 4.4.
+     * <p>
+     * This method attempts to fix that situation. If this doesn't work an {@link IllegalStateException} will be
+     * thrown.
+     * <p>
+     * See these links for further details:
+     * https://issuetracker.google.com/issues/36918154
+     * https://github.com/realm/realm-java/issues/4493#issuecomment-295349044
+     */
+    private static void checkFilesDirAvailable(Context context) {
+        File filesDir = context.getFilesDir();
+        if (filesDir != null) {
+            if (filesDir.exists()) {
+                return; // Everything is fine. Escape as soon as possible
+            } else {
+                try {
+                    // This was reported as working on some devices, which I really hope is just the race condition
+                    // kicking in, otherwise something is seriously wrong with the permission system on those devices.
+                    // We will try it anyway, since starting a loop will be slower by many magnitudes.
+                    filesDir.mkdirs();
+                } catch (SecurityException ignored) {
+                }
+            }
+        }
+        if (filesDir == null || !filesDir.exists()) {
+            // Wait a "reasonable" amount of time before quitting.
+            // In this case we define reasonable as 200 ms (~12 dropped frames) before giving up (which most likely
+            // will result in the app crashing). This lag would only be seen in worst case scenarios, and then, only
+            // when the app is started the first time.
+            long[] timeoutsMs = new long[]{1, 2, 5, 10, 16}; // Exponential waits, capped at 16 ms;
+            long maxTotalWaitMs = 200;
+            long currentTotalWaitMs = 0;
+            int waitIndex = -1;
+            while (context.getFilesDir() == null || !context.getFilesDir().exists()) {
+                long waitMs = timeoutsMs[Math.min(++waitIndex, timeoutsMs.length - 1)];
+                SystemClock.sleep(waitMs);
+                currentTotalWaitMs += waitMs;
+                if (currentTotalWaitMs > maxTotalWaitMs) {
+                    break;
+                }
+            }
+        }
+
+        // One final check before giving up
+        if (context.getFilesDir() == null || !context.getFilesDir().exists()) {
+            throw new IllegalStateException("Context.getFilesDir() returns " + context.getFilesDir() + " which is not an existing directory. See https://issuetracker.google.com/issues/36918154");
         }
     }
 
@@ -224,9 +281,30 @@ public class Realm extends BaseRealm {
      */
     public static Realm getInstance(RealmConfiguration configuration) {
         if (configuration == null) {
-            throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
+            throw new IllegalArgumentException(NULL_CONFIG_MSG);
         }
         return RealmCache.createRealmOrGetFromCache(configuration, Realm.class);
+    }
+
+    /**
+     * The creation of the first Realm instance per {@link RealmConfiguration} in a process can take some time as all
+     * initialization code need to run at that point (setting up the Realm, validating schemas and creating initial
+     * data). This method places the initialization work in a background thread and deliver the Realm instance
+     * to the caller thread asynchronously after the initialization is finished.
+     *
+     * @param configuration {@link RealmConfiguration} used to open the Realm.
+     * @param callback invoked to return the results.
+     * @throws IllegalArgumentException if a null {@link RealmConfiguration} or a null {@link Callback} is provided.
+     * @throws IllegalStateException if it is called from a non-Looper or {@link IntentService} thread.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @see Callback for more details.
+     */
+    public static RealmAsyncTask getInstanceAsync(RealmConfiguration configuration,
+                                                  Callback callback) {
+        if (configuration == null) {
+            throw new IllegalArgumentException(NULL_CONFIG_MSG);
+        }
+        return RealmCache.createRealmOrGetFromCacheAsync(configuration, callback, Realm.class);
     }
 
     /**
@@ -254,16 +332,13 @@ public class Realm extends BaseRealm {
     /**
      * Creates a {@link Realm} instance without checking the existence in the {@link RealmCache}.
      *
-     * @param configuration {@link RealmConfiguration} used to create the Realm.
-     * @param globalCacheArray if this is not {@code null} and contains an entry for current schema version,
-     * the {@link BaseRealm#schema#columnIndices} will be initialized with the copy of
-     * the entry. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated
-     * from the Realm file.
+     * @param cache the {@link RealmCache} where to create the realm in.
      * @return a {@link Realm} instance.
      */
-    static Realm createInstance(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
+    static Realm createInstance(RealmCache cache) {
+        RealmConfiguration configuration = cache.getConfiguration();
         try {
-            return createAndValidate(configuration, globalCacheArray);
+            return createAndValidateFromCache(cache);
 
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
@@ -279,17 +354,19 @@ public class Realm extends BaseRealm {
                 }
             }
 
-            return createAndValidate(configuration, globalCacheArray);
+            return createAndValidateFromCache(cache);
         }
     }
 
-    private static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
-        Realm realm = new Realm(configuration);
+    private static Realm createAndValidateFromCache(RealmCache cache) {
+        Realm realm = new Realm(cache);
+        RealmConfiguration configuration = realm.configuration;
 
         final long currentVersion = realm.getVersion();
         final long requiredVersion = configuration.getSchemaVersion();
 
-        final ColumnIndices columnIndices = RealmCache.findColumnIndices(globalCacheArray, requiredVersion);
+        final ColumnIndices columnIndices = RealmCache.findColumnIndices(cache.getTypedColumnIndicesArray(),
+                requiredVersion);
 
         if (columnIndices != null) {
             // Copies global cache as a Realm local indices cache.
@@ -1796,6 +1873,25 @@ public class Realm extends BaseRealm {
          */
         interface OnError {
             void onError(Throwable error);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public static abstract class Callback extends InstanceCallback<Realm> {
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public abstract void onSuccess(Realm realm);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void onError(Throwable exception) {
+            super.onError(exception);
         }
     }
 }

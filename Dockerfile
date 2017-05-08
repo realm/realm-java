@@ -53,7 +53,7 @@ RUN mkdir "${ANDROID_HOME}/licenses" && \
     echo -en "\nd23d63a1f23e25e2c7a316e29eb60396e7924281" > "${ANDROID_HOME}/licenses/android-sdk-preview-license"
 RUN echo y | android update sdk --no-ui --all --filter tools > /dev/null
 RUN echo y | android update sdk --no-ui --all --filter platform-tools | grep 'package installed'
-RUN echo y | android update sdk --no-ui --all --filter build-tools-25.0.2 | grep 'package installed'
+RUN echo y | android update sdk --no-ui --all --filter build-tools-25.0.3 | grep 'package installed'
 RUN echo y | android update sdk --no-ui --all --filter extra-android-m2repository | grep 'package installed'
 RUN echo y | android update sdk --no-ui --all --filter android-25 | grep 'package installed'
 

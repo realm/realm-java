@@ -259,7 +259,7 @@ public class Collection implements NativeObject {
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final SharedRealm sharedRealm;
-    private final Context context;
+    private final NativeContext context;
     private final Table table;
     private boolean loaded;
     private boolean isSnapshot = false;
@@ -367,7 +367,7 @@ public class Collection implements NativeObject {
 
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
-        this.table = linkView.getTable();
+        this.table = linkView.getTargetTable();
         this.context.addReference(this);
         // Collection created from LinkView is loaded by default. So that the listener will be triggered first time
         // with empty change set.

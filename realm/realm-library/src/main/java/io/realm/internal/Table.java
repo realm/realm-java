@@ -60,7 +60,7 @@ public class Table implements TableSchema, NativeObject {
 
     private long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
-    final Context context;
+    final NativeContext context;
     private final SharedRealm sharedRealm;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
 
@@ -69,7 +69,7 @@ public class Table implements TableSchema, NativeObject {
      * allowed only for empty tables. It creates a native reference of the object and keeps a reference to it.
      */
     public Table() {
-        this.context = new Context();
+        this.context = new NativeContext();
         // Native methods work will be initialized here. Generated classes will
         // have nothing to do with the native functions. Generated Java Table
         // classes will work as a wrapper on top of table.
@@ -100,10 +100,6 @@ public class Table implements TableSchema, NativeObject {
     @Override
     public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
-    }
-
-    public Table getTable() {
-        return this;
     }
 
     public long getNativeTablePointer() {
@@ -343,27 +339,12 @@ public class Table implements TableSchema, NativeObject {
         return RealmFieldType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
     }
 
-
     /**
-     * Removes a row from the specific index. As of now the entry is simply removed from the table.
+     * Removes a row from the specific index. If it is not the last row in the table, it then moves the last row into
+     * the vacated slot.
      *
      * @param rowIndex the row index (starting with 0)
      */
-    public void remove(long rowIndex) {
-        checkImmutable();
-        nativeRemove(nativePtr, rowIndex);
-    }
-
-    public void removeFirst() {
-        checkImmutable();
-        remove(0);
-    }
-
-    public void removeLast() {
-        checkImmutable();
-        nativeRemoveLast(nativePtr);
-    }
-
     public void moveLastOver(long rowIndex) {
         checkImmutable();
         nativeMoveLastOver(nativePtr, rowIndex);
@@ -714,8 +695,7 @@ public class Table implements TableSchema, NativeObject {
     public Table getLinkTarget(long columnIndex) {
         long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
         // Copies context reference from parent.
-        Table table = new Table(this.sharedRealm, nativeTablePointer);
-        return table;
+        return new Table(this.sharedRealm, nativeTablePointer);
     }
 
     public boolean isNull(long columnIndex, long rowIndex) {
@@ -932,71 +912,6 @@ public class Table implements TableSchema, NativeObject {
     }
 
     //
-    // Aggregate functions
-    //
-
-    // Integers
-    public long sumLong(long columnIndex) {
-        return nativeSumInt(nativePtr, columnIndex);
-    }
-
-    public Long maximumLong(long columnIndex) {
-        return nativeMaximumInt(nativePtr, columnIndex);
-    }
-
-    public Long minimumLong(long columnIndex) {
-        return nativeMinimumInt(nativePtr, columnIndex);
-    }
-
-    public double averageLong(long columnIndex) {
-        return nativeAverageInt(nativePtr, columnIndex);
-    }
-
-    // Floats
-    public double sumFloat(long columnIndex) {
-        return nativeSumFloat(nativePtr, columnIndex);
-    }
-
-    public Float maximumFloat(long columnIndex) {
-        return nativeMaximumFloat(nativePtr, columnIndex);
-    }
-
-    public Float minimumFloat(long columnIndex) {
-        return nativeMinimumFloat(nativePtr, columnIndex);
-    }
-
-    public double averageFloat(long columnIndex) {
-        return nativeAverageFloat(nativePtr, columnIndex);
-    }
-
-    // Doubles
-    public double sumDouble(long columnIndex) {
-        return nativeSumDouble(nativePtr, columnIndex);
-    }
-
-    public Double maximumDouble(long columnIndex) {
-        return nativeMaximumDouble(nativePtr, columnIndex);
-    }
-
-    public Double minimumDouble(long columnIndex) {
-        return nativeMinimumDouble(nativePtr, columnIndex);
-    }
-
-    public double averageDouble(long columnIndex) {
-        return nativeAverageDouble(nativePtr, columnIndex);
-    }
-
-    // Date aggregates
-
-    public Date maximumDate(long columnIndex) {
-        return new Date(nativeMaximumTimestamp(nativePtr, columnIndex));
-    }
-
-    public Date minimumDate(long columnIndex) {
-        return new Date(nativeMinimumTimestamp(nativePtr, columnIndex));
-    }
-
-    //
     // Count
     //
 
@@ -1206,10 +1121,6 @@ public class Table implements TableSchema, NativeObject {
 
     private native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
 
-    private native void nativeRemove(long nativeTablePtr, long rowIndex);
-
-    private native void nativeRemoveLast(long nativeTablePtr);
-
     private native void nativeMoveLastOver(long nativeTablePtr, long rowIndex);
 
     public static native long nativeAddEmptyRow(long nativeTablePtr, long rows);
@@ -1280,34 +1191,6 @@ public class Table implements TableSchema, NativeObject {
     private native boolean nativeIsNullLink(long nativePtr, long columnIndex, long rowIndex);
 
     public static native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
-
-    private native long nativeSumInt(long nativePtr, long columnIndex);
-
-    private native long nativeMaximumInt(long nativePtr, long columnIndex);
-
-    private native long nativeMinimumInt(long nativePtr, long columnIndex);
-
-    private native double nativeAverageInt(long nativePtr, long columnIndex);
-
-    private native double nativeSumFloat(long nativePtr, long columnIndex);
-
-    private native float nativeMaximumFloat(long nativePtr, long columnIndex);
-
-    private native float nativeMinimumFloat(long nativePtr, long columnIndex);
-
-    private native double nativeAverageFloat(long nativePtr, long columnIndex);
-
-    private native double nativeSumDouble(long nativePtr, long columnIndex);
-
-    private native double nativeMaximumDouble(long nativePtr, long columnIndex);
-
-    private native double nativeMinimumDouble(long nativePtr, long columnIndex);
-
-    private native double nativeAverageDouble(long nativePtr, long columnIndex);
-
-    private native long nativeMaximumTimestamp(long nativePtr, long columnIndex);
-
-    private native long nativeMinimumTimestamp(long nativePtr, long columnIndex);
 
     private native long nativeCountLong(long nativePtr, long columnIndex, long value);
 
