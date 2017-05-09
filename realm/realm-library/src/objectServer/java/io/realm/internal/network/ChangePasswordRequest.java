@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,19 +22,21 @@ import org.json.JSONObject;
 import io.realm.internal.objectserver.Token;
 
 /**
- * This class encapsulates a request to log out a user on the Realm Authentication Server. It is responsible for
- * constructing the JSON understood by the Realm Authentication Server.
+ * This class encapsulates a request to change the password for a user on the Realm Authentication Server. It is
+ * responsible for constructing the JSON understood by the Realm Authentication Server.
  */
-public class LogoutRequest {
+public class ChangePasswordRequest {
 
     private final String token;
+    private final String newPassword;
 
-    public static LogoutRequest create(Token userToken) {
-        return new LogoutRequest(userToken.value());
+    public static ChangePasswordRequest create(Token userToken, String newPassword) {
+        return new ChangePasswordRequest(userToken.value(), newPassword);
     }
 
-    private LogoutRequest(String token) {
+    private ChangePasswordRequest(String token, String newPassword) {
         this.token = token;
+        this.newPassword = newPassword;
     }
 
     /**
@@ -44,6 +46,7 @@ public class LogoutRequest {
         try {
             JSONObject request = new JSONObject();
             request.put("token", token);
+            request.put("password", newPassword);
             return request.toString();
         } catch (JSONException e) {
             throw new RuntimeException(e);

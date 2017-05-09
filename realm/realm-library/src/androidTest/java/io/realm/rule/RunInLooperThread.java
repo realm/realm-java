@@ -239,6 +239,10 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     @Override
     protected void after() {
+        // Wait for all async tasks to have completed to ensure a successful deleteRealm call.
+        // If it times out, it will throw.
+        TestHelper.waitRealmThreadExecutorFinish();
+
         super.after();
 
         // probably belt *and* suspenders...

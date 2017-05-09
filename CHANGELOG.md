@@ -1,3 +1,24 @@
+## 3.2.0 (YYYY-MM-DD)
+
+### Deprecated
+
+### Enhancements
+
+* [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
+* [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` (#4423).
+* Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).
+* Added `Realm.refresh()` and `DynamicRealm.refresh()` (#3476).
+* Added `Realm.getInstanceAsync()` and `DynamicRealm.getInstanceAsync()` (#2299).
+* Added `DynamicRealmObject#linkingObjects(String,String)` to support linking objects on `DynamicRealm` (#4492).
+* Changelisteners will now auto-expand variable names to be more descriptive when using Android Studio.
+
+### Bug Fixes
+
+### Internal
+
+* Use separated locks for different `RealmCache`s ($4551).
+
+
 # 3.1.5 (YYYY-MM-DD)
 
 ## Bug fixes
