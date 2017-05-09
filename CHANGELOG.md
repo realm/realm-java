@@ -6,19 +6,27 @@
 
 * [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
 * [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` (#4423).
-* [ObjectServer] Added support for `SyncConfigration.Builder.waitForInitialRemoteData(boolean readOnly)` (#4270).
+* [ObjectServer] Added support for `SyncConfigration.Builder.waitForInitialRemoteData(boolean readOnly)` (#4270/#1147).
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).
 * Added `Realm.refresh()` and `DynamicRealm.refresh()` (#3476).
 * Added `Realm.getInstanceAsync()` and `DynamicRealm.getInstanceAsync()` (#2299).
 * Added `DynamicRealmObject#linkingObjects(String,String)` to support linking objects on `DynamicRealm` (#4492).
-* Changelisteners will now auto-expand variable names to be more descriptive when using Android Studio.
-* Add support for read only Realms when using `RealmConfiguration.Builder.assetFile()` or `SyncConfiguration.Builder.initialRemoteData(RealmConfiguration.readOnly()` (#1147).
+* Added support for read only Realms when using `RealmConfiguration.Builder.assetFile(String path, boolean readOnly)` (#1147).
+* Change listeners will now auto-expand variable names to be more descriptive when using Android Studio.
 
 ### Bug Fixes
 
 ### Internal
 
 * Use separated locks for different `RealmCache`s ($4551).
+
+
+# 3.1.5 (YYYY-MM-DD)
+
+## Bug fixes
+
+* `@LinkingObjects` annotation now also works with Kotlin (#4611).
+
 
 ## 3.1.4 (2017-05-04)
 
