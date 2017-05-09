@@ -564,7 +564,7 @@ public class SyncConfiguration extends RealmConfiguration {
          */
         public Builder initialData(Realm.Transaction transaction) {
             if (readOnly) {
-                throw new IllegalStateException("initialData(Transaction) cannot be combined with readOnly().");
+                throw new IllegalStateException("initialData(Transaction) cannot be combined with read only Realms.");
             }
             initialDataTransaction = transaction;
             return this;
@@ -601,23 +601,6 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Setting this will cause the Realm to become read only and all write transactions made against this Realm will
-         * fail with an {@link IllegalStateException}.
-         * <p>
-         * This in particular mean that {@link #initialData(Realm.Transaction)} will not work in combination with a
-         * read only Realm and setting this will result in a {@link IllegalStateException} being thrown.
-         * </p>
-         * Marking a Realm as read only only applies to the Realm in this process. Other processes or devices can still
-         * write to the Realm.
-         */
-        public Builder readOnly() {
-            if (initialDataTransaction != null) {
-                throw new IllegalStateException("readOnly() cannot be combined with initialData(Transaction).");
-            }
-            this.readOnly = true;
-            return this;
-        }
-
          * Setting this will cause the Realm to download all known changes from the server the first time a Realm is
          * opened. The Realm will not open until all the data has been downloaded. This means that if a device is
          * offline the Realm will not open.
@@ -628,9 +611,17 @@ public class SyncConfiguration extends RealmConfiguration {
          * <p>
          * This check is only enforced the first time a Realm is created. If you otherwise want to make sure a Realm
          * has the latest changes, use {@link SyncSession#downloadAllServerChanges()}.
+         *
+         * @param readOnly if {@code true} no local changes can be made to the Realm once downloaded. All write
+         * transactions will fail with an {@link IllegalStateException}. Marking a Realm as read-only only applies to
+         * the Realm in this process. Other processes or devices can still write to the Realm.
          */
-        public Builder waitForInitialRemoteData() {
+        public Builder waitForInitialRemoteData(boolean readOnly) {
             this.waitForServerChanges = true;
+            if (readOnly && initialDataTransaction != null) {
+                throw new IllegalStateException("readOnly cannot be combined with initialData(Transaction).");
+            }
+            this.readOnly = readOnly;
             return this;
         }
 

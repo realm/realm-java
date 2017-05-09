@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm;
 
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
@@ -28,19 +28,19 @@ import java.io.File;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.Realm;
-import io.realm.RealmAsyncTask;
-import io.realm.SyncConfiguration;
-import io.realm.SyncCredentials;
-import io.realm.SyncUser;
-import io.realm.TestHelper;
+import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
+import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.rule.TestSyncConfigurationFactory;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -57,13 +57,16 @@ public class SyncedRealmTests extends BaseIntegrationTest {
     @Rule
     public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
 
+    @Rule
+    public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
+
     @Test
     @UiThreadTest
     public void waitForInitialRemoteData_mainThreadThrows() {
         final SyncUser user = loginUser();
 
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData()
+                .waitForInitialRemoteData(false)
                 .build();
 
         Realm realm = null;
@@ -102,7 +105,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData()
+                .waitForInitialRemoteData(false)
                 .build();
 
         Realm realm = null;
@@ -124,7 +127,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData()
+                .waitForInitialRemoteData(false)
                 .build();
 
         for (int i = 0; i < 10; i++) {
@@ -137,7 +140,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
                         Thread.currentThread().interrupt();
                         realm = Realm.getInstance(config);
                     } catch (DownloadingRealmInterruptedException ignored) {
-                        assertFalse(config.realmExists());
+                        assertFalse(new File(config.getPath()).exists());
                     } finally {
                         if (realm != null) {
                             realm.close();
@@ -160,7 +163,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData()
+                .waitForInitialRemoteData(false)
                 .build();
         Random randomizer = new Random();
 
@@ -182,4 +185,90 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         }
         looperThread.testComplete();
     }
+
+    @Test
+    public void waitForInitialRemoteData_readOnlyTrue() {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+
+        // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
+        final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .schema(StringOnly.class)
+                .build();
+        Realm realm = Realm.getInstance(configOld);
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                for (int i = 0; i < 10; i++) {
+                    realm.createObject(StringOnly.class).setChars("Foo" + i);
+                }
+            }
+        });
+        SystemClock.sleep(TimeUnit.SECONDS.toMillis(10));  // FIXME: Replace with Sync Progress Notifications once available.
+        realm.close();
+        user.logout();
+        Realm.deleteRealm(configOld);
+
+        // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
+        // download the uploaded changes (pray it managed to do so within the time frame).
+        user = SyncUser.login(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
+        final SyncConfiguration configNew = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .waitForInitialRemoteData(true)
+                .schema(StringOnly.class)
+                .build();
+        assertFalse(configNew.realmExists());
+
+        realm = Realm.getInstance(configNew);
+        assertEquals(10, realm.where(StringOnly.class).count());
+        realm.close();
+        user.logout();
+    }
+
+
+    @Test
+    public void waitForInitialRemoteData_readOnlyTrue_throwsIfWrongServerSchema() {
+        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final SyncConfiguration configNew = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .waitForInitialRemoteData(true)
+                .schema(StringOnly.class)
+                .build();
+        assertFalse(configNew.realmExists());
+
+        Realm realm = null;
+        try {
+            // This will fail, because the server Realm is completely empty and the Client is not allowed to write the
+            // schema.
+            realm = Realm.getInstance(configNew);
+            fail();
+        } catch (RealmMigrationNeededException ignored) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+            user.logout();
+        }
+    }
+
+    @Test
+    public void waitForInitialRemoteData_readOnlyFalse_upgradeSchema() {
+        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .waitForInitialRemoteData(false) // Not readonly so Client should be allowed to write schema
+                .schema(StringOnly.class) // This schema should be written when opening the empty Realm.
+                .schemaVersion(2)
+                .build();
+        assertFalse(config.realmExists());
+
+        Realm realm = Realm.getInstance(config);
+        try {
+            assertEquals(0, realm.where(StringOnly.class).count());
+        } finally {
+            realm.close();
+            user.logout();
+        }
+    }
+
 }

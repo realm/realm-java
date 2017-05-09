@@ -27,7 +27,7 @@ import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
 
-class BaseIntegrationTest {
+public class BaseIntegrationTest {
 
     private static int originalLogLevel;
 

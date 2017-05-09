@@ -241,7 +241,8 @@ public class RealmConfiguration {
     }
 
     /**
-     * Returns whether this Realm is read only or not.
+     * Returns whether this Realm is read only or not. Read-only Realms cannot be modified and will throw an
+     * {@link IllegalStateException} if {@link Realm#beginTransaction()} is called on it.
      *
      * @return {@code true} if this Realm is read only, {@code false} if not.
      */

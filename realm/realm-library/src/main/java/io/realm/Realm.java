@@ -415,6 +415,9 @@ public class Realm extends BaseRealm {
         boolean commitChanges = false;
         try {
             // We need to start a transaction no matter readOnly mode, because it acts as an interprocess lock.
+            // TODO: For proper inter-process support we also need to move e.g copying the asset file under an
+            // interprocess lock. This lock can obviously not be created by a Realm instance so we probably need
+            // to implement it in Object Store. When this happens, the `beginTransaction(true)` can be removed again.
             realm.beginTransaction(true);
             long currentVersion = realm.getVersion();
             boolean unversioned = currentVersion == UNVERSIONED;
@@ -478,7 +481,11 @@ public class Realm extends BaseRealm {
         OsRealmSchema schema = null;
         OsRealmSchema.Creator schemaCreator = null;
         try {
-            realm.beginTransaction();
+            // We need to start a transaction no matter readOnly mode, because it acts as an interprocess lock.
+            // TODO: For proper inter-process support we also need to move e.g copying the asset file under an
+            // interprocess lock. This lock can obviously not be created by a Realm instance so we probably need
+            // to implement it in Object Store. When this happens, the `beginTransaction(true)` can be removed again.
+            realm.beginTransaction(true);
             long currentVersion = realm.getVersion();
             final boolean unversioned = currentVersion == UNVERSIONED;
 
@@ -487,32 +494,34 @@ public class Realm extends BaseRealm {
             final RealmProxyMediator mediator = configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
-            schemaCreator = new OsRealmSchema.Creator();
-            for (Class<? extends RealmModel> modelClass : modelClasses) {
-                mediator.createRealmObjectSchema(modelClass, schemaCreator);
-            }
-
-            // Assumption: When SyncConfiguration then additive schema update mode.
-            schema = new OsRealmSchema(schemaCreator);
-            schemaCreator.close();
-            schemaCreator = null;
-
             long newVersion = configuration.getSchemaVersion();
-            // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
-            // It absolutely breaks encapsulation and needs to be fixed!
-            long schemaNativePointer = schema.getNativePtr();
-            if (realm.sharedRealm.requiresMigration(schemaNativePointer)) {
-                if (currentVersion >= newVersion) {
-                    throw new IllegalArgumentException(String.format(
-                            "The schema was changed but the schema version was not updated. " +
-                                    "The configured schema version (%d) must be greater than the version " +
-                                    " in the Realm file (%d) in order to update the schema.",
-                            newVersion, currentVersion));
+            if (!configuration.isReadOnly()) {
+                schemaCreator = new OsRealmSchema.Creator();
+                for (Class<? extends RealmModel> modelClass : modelClasses) {
+                    mediator.createRealmObjectSchema(modelClass, schemaCreator);
                 }
-                realm.sharedRealm.updateSchema(schemaNativePointer, newVersion);
-                // The OS currently does not handle setting the schema version. We have to do it manually.
-                realm.setVersion(newVersion);
-                commitChanges = true;
+
+                // Assumption: When SyncConfiguration then additive schema update mode.
+                schema = new OsRealmSchema(schemaCreator);
+                schemaCreator.close();
+                schemaCreator = null;
+
+                // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
+                // It absolutely breaks encapsulation and needs to be fixed!
+                long schemaNativePointer = schema.getNativePtr();
+                if (realm.sharedRealm.requiresMigration(schemaNativePointer)) {
+                    if (currentVersion >= newVersion) {
+                        throw new IllegalArgumentException(String.format(
+                                "The schema was changed but the schema version was not updated. " +
+                                        "The configured schema version (%d) must be greater than the version " +
+                                        " in the Realm file (%d) in order to update the schema.",
+                                newVersion, currentVersion));
+                    }
+                    realm.sharedRealm.updateSchema(schemaNativePointer, newVersion);
+                    // The OS currently does not handle setting the schema version. We have to do it manually.
+                    realm.setVersion(newVersion);
+                    commitChanges = true;
+                }
             }
 
             final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
@@ -520,11 +529,9 @@ public class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
-            realm.getSchema().setInitialColumnIndices(
-                    (unversioned) ? newVersion : currentVersion,
-                    columnInfoMap);
+            realm.getSchema().setInitialColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
 
-            if (unversioned) {
+            if (unversioned && !configuration.isReadOnly()) {
                 final Transaction transaction = configuration.getInitialDataTransaction();
                 if (transaction != null) {
                     transaction.execute(realm);
