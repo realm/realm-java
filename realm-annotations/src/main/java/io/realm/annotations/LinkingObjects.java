@@ -92,7 +92,7 @@ import java.lang.annotation.Target;
  * assert fido.owners.size() == 2;
  * }
  */
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.CLASS)
 @Target(ElementType.FIELD)
 @Beta
 public @interface LinkingObjects {
