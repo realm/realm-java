@@ -1,3 +1,10 @@
+# 3.1.5 (YYYY-MM-DD)
+
+## Bug fixes
+
+* `@LinkingObjects` annotation now also works with Kotlin (#4611).
+
+
 ## 3.1.4 (2017-05-04)
 
 ## Bug fixes
