@@ -35,4 +35,10 @@ public interface Capabilities {
      * @param exceptionMessage message which is contained in the exception.
      */
     void checkCanDeliverNotification(String exceptionMessage);
+
+    /**
+     * Multiple threads might be able to deliver notifications, but the Main thread in GUI applications often have
+     * special rules that need to be enforced.
+     */
+    boolean isMainThread();
 }

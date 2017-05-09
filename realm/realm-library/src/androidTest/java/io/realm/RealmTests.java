@@ -60,6 +60,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -1983,10 +1984,7 @@ public class RealmTests {
             public void run() {
                 Realm realm = Realm.getInstance(configuration);
                 bgThreadReadyLatch.countDown();
-                try {
-                    readyToCloseLatch.await();
-                } catch (InterruptedException ignored) {
-                }
+                TestHelper.awaitOrFail(readyToCloseLatch);
                 realm.close();
                 closedLatch.countDown();
             }
@@ -2004,7 +2002,7 @@ public class RealmTests {
         readyToCloseLatch.countDown();
 
         realm.close();
-        closedLatch.await();
+        TestHelper.awaitOrFail(closedLatch);
         // Now we get log files back!
         assertTrue(tempDirRenamed.renameTo(tempDir));
 
@@ -2591,7 +2589,7 @@ public class RealmTests {
         thatThread.start();
 
         // Timeout should never happen.
-        latch.await();
+        TestHelper.awaitOrFail(latch);
         if (threadAssertionError[0] != null) {
             throw threadAssertionError[0];
         }
@@ -2629,7 +2627,7 @@ public class RealmTests {
         thatThread.start();
 
         // Timeout should never happen.
-        latch.await();
+        TestHelper.awaitOrFail(latch);
         if (threadAssertionError[0] != null) {
             throw threadAssertionError[0];
         }
@@ -2705,7 +2703,7 @@ public class RealmTests {
             @Override
             public void run() {
                 try {
-                    startLatch.await();
+                    startLatch.await(TestHelper.STANDARD_WAIT_SECS, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     exception.add(e);
                     return;
@@ -2734,7 +2732,7 @@ public class RealmTests {
             realm = null;
         }
 
-        endLatch.await();
+        TestHelper.awaitOrFail(endLatch);
 
         if (!exception.isEmpty()) {
             throw exception.get(0);
@@ -2761,7 +2759,7 @@ public class RealmTests {
                 Realm realm = Realm.getInstance(realmConfig);
                 realmOpenedInBgLatch.countDown();
                 try {
-                    realmClosedInFgLatch.await();
+                    realmClosedInFgLatch.await(TestHelper.STANDARD_WAIT_SECS, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     exception.add(e);
                     realm.close();
@@ -2772,7 +2770,7 @@ public class RealmTests {
                 realm.beginTransaction();
                 transBeganInBgLatch.countDown();
                 try {
-                    fgFinishedLatch.await();
+                    fgFinishedLatch.await(TestHelper.STANDARD_WAIT_SECS, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     exception.add(e);
                 }
@@ -2784,16 +2782,16 @@ public class RealmTests {
         });
         thread.start();
 
-        realmOpenedInBgLatch.await();
+        TestHelper.awaitOrFail(realmOpenedInBgLatch);
         // Step 3: Closes all realm instances in foreground thread.
         realm.close();
         realmClosedInFgLatch.countDown();
-        transBeganInBgLatch.await();
+        TestHelper.awaitOrFail(transBeganInBgLatch);
 
         // Step 5: Gets a new Realm instance in foreground.
         realm = Realm.getInstance(realmConfig);
         fgFinishedLatch.countDown();
-        bgFinishedLatch.await();
+        TestHelper.awaitOrFail(bgFinishedLatch);
 
         if (!exception.isEmpty()) {
             throw exception.get(0);
@@ -3045,38 +3043,28 @@ public class RealmTests {
 
     // Tests if close can be called from Realm change listener when there is no other listeners.
     @Test
+    @RunTestInLooperThread
     public void closeRealmInChangeListener() {
-        realm.close();
-        final CountDownLatch signalTestFinished = new CountDownLatch(1);
-        HandlerThread handlerThread = new HandlerThread("background");
-        handlerThread.start();
-        final Handler handler = new Handler(handlerThread.getLooper());
-        handler.post(new Runnable() {
+        final Realm realm = looperThread.getRealm();
+        final RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
             @Override
-            public void run() {
-                final Realm realm = Realm.getInstance(realmConfig);
-                final RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
-                    @Override
-                    public void onChange(Realm object) {
-                        if (realm.where(AllTypes.class).count() == 1) {
-                            realm.removeChangeListener(this);
-                            realm.close();
-                            signalTestFinished.countDown();
-                        }
-                    }
-                };
+            public void onChange(Realm object) {
+                if (realm.where(AllTypes.class).count() == 1) {
+                    realm.removeChangeListener(this);
+                    realm.close();
+                    looperThread.testComplete();
+                }
+            }
+        };
 
-                realm.addChangeListener(listener);
+        realm.addChangeListener(listener);
 
-                realm.executeTransactionAsync(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        realm.createObject(AllTypes.class);
-                    }
-                });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
             }
         });
-        TestHelper.awaitOrFail(signalTestFinished);
     }
 
     // Tests if close can be called from Realm change listener when there is a listener on empty Realm Object.
@@ -3837,6 +3825,35 @@ public class RealmTests {
         // Tests if it works when the namedPipeDir and the named pipe files already exist.
         realmOnExternalStorage = Realm.getInstance(config);
         realmOnExternalStorage.close();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void getInstanceAsync_nonLooperThreadShouldThrow() {
+        Realm.getInstanceAsync(realmConfig, new Realm.Callback() {
+            @Override
+            public void onSuccess(Realm realm) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_nullConfigShouldThrow() {
+        thrown.expect(IllegalArgumentException.class);
+        Realm.getInstanceAsync(null, new Realm.Callback() {
+            @Override
+            public void onSuccess(Realm realm) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_nullCallbackShouldThrow() {
+        thrown.expect(IllegalArgumentException.class);
+        Realm.getInstanceAsync(realmConfig, null);
     }
 
     // Verify that the logic for waiting for the users file dir to be come available isn't totally broken

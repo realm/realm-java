@@ -28,7 +28,7 @@ public class TableQuery implements NativeObject {
     protected long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     protected final Table table;
-    private final Context context;
+    private final NativeContext context;
 
     // All actions (find(), findAll(), sum(), etc.) must call validateQuery() before performing
     // the actual action. The other methods must set queryValidated to false in order to enforce
@@ -36,7 +36,7 @@ public class TableQuery implements NativeObject {
     private boolean queryValidated = true;
 
     // TODO: Can we protect this?
-    public TableQuery(Context context, Table table, long nativeQueryPtr) {
+    public TableQuery(NativeContext context, Table table, long nativeQueryPtr) {
         if (DEBUG) {
             System.err.println("++++++ new TableQuery, ptr= " + nativeQueryPtr);
         }
