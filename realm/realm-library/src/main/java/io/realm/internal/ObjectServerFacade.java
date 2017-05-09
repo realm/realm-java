@@ -96,4 +96,21 @@ public class ObjectServerFacade {
     public String getSyncServerCertificateFilePath(RealmConfiguration config) {
         return null;
     }
+
+    /**
+     * Block until all latest changes have been downloaded from the server.
+     *
+     * @throws {@code DownloadingRealmInterruptedException}  if the thread was interrupted while blocked waiting for
+     * this to complete.
+     */
+    public void downloadRemoteChanges(RealmConfiguration config) {
+        // Do nothing
+    }
+
+    /**
+     * Check if an exception is a {@code DownloadingRealmInterruptedException}
+     */
+    public boolean wasDownloadInterrupted(Throwable throwable) {
+        return false;
+    }
 }

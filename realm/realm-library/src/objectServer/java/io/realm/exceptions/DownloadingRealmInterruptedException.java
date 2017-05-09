@@ -14,28 +14,18 @@
  * limitations under the License.
  */
 
-#include "java_global_ref.hpp"
-#include "jni_utils.hpp"
+package io.realm.exceptions;
 
-#include <memory>
+import io.realm.SyncConfiguration;
 
-using namespace realm::jni_util;
 
-JavaGlobalRef::~JavaGlobalRef()
-{
-    if (m_ref) {
-        JniUtils::get_env()->DeleteGlobalRef(m_ref);
+/**
+ * Exception class used when a Realm was interrupted while downloading the initial data set.
+ * This can only happen if {@link SyncConfiguration.Builder#waitForInitialRemoteData()} is set.
+ */
+public class DownloadingRealmInterruptedException extends RuntimeException {
+    public DownloadingRealmInterruptedException(SyncConfiguration syncConfig, Throwable exception) {
+        super("Realm was interrupted while downloading the latest changes from the server: " + syncConfig.getPath(),
+                exception);
     }
-}
-
-JavaGlobalRef& JavaGlobalRef::operator=(JavaGlobalRef&& rhs)
-{
-    this->~JavaGlobalRef();
-    new (this) JavaGlobalRef(std::move(rhs));
-    return *this;
-}
-
-JavaGlobalRef::JavaGlobalRef(JavaGlobalRef& rhs)
-        : m_ref(rhs.m_ref ? jni_util::JniUtils::get_env(true)->NewGlobalRef(rhs.m_ref) : nullptr)
-{
 }

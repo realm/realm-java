@@ -82,6 +82,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final boolean syncClientValidateSsl;
     private final String serverCertificateAssetName;
     private final String serverCertificateFilePath;
+    private final boolean waitForInitialData;
 
     private SyncConfiguration(File directory,
                                 String filename,
@@ -101,7 +102,8 @@ public class SyncConfiguration extends RealmConfiguration {
                                 boolean deleteRealmOnLogout,
                                 boolean syncClientValidateSsl,
                                 String serverCertificateAssetName,
-                                String serverCertificateFilePath
+                                String serverCertificateFilePath,
+                                boolean waitForInitialData
     ) {
         super(directory,
                 filename,
@@ -124,6 +126,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.syncClientValidateSsl = syncClientValidateSsl;
         this.serverCertificateAssetName = serverCertificateAssetName;
         this.serverCertificateFilePath = serverCertificateFilePath;
+        this.waitForInitialData = waitForInitialData;
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -160,10 +163,10 @@ public class SyncConfiguration extends RealmConfiguration {
         if (!serverUrl.equals(that.serverUrl)) return false;
         if (!user.equals(that.user)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
-        if (serverCertificateAssetName != null ? !serverCertificateAssetName.equals(that.serverCertificateAssetName) : that.serverCertificateAssetName != null)
-            return false;
-        return serverCertificateFilePath != null ? serverCertificateFilePath.equals(that.serverCertificateFilePath) : that.serverCertificateFilePath == null;
-
+        if (serverCertificateAssetName != null ? !serverCertificateAssetName.equals(that.serverCertificateAssetName) : that.serverCertificateAssetName != null) return false;
+        if (serverCertificateFilePath != null ? !serverCertificateFilePath.equals(that.serverCertificateFilePath) : that.serverCertificateFilePath != null) return false;
+        if (waitForInitialData != that.waitForInitialData) return false;
+        return true;
     }
 
     @Override
@@ -176,6 +179,7 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + (syncClientValidateSsl ? 1 : 0);
         result = 31 * result + (serverCertificateAssetName != null ? serverCertificateAssetName.hashCode() : 0);
         result = 31 * result + (serverCertificateFilePath != null ? serverCertificateFilePath.hashCode() : 0);
+        result = 31 * result + (waitForInitialData ? 1 : 0);
         return result;
     }
 
@@ -190,6 +194,8 @@ public class SyncConfiguration extends RealmConfiguration {
         stringBuilder.append("errorHandler: " + errorHandler);
         stringBuilder.append("\n");
         stringBuilder.append("deleteRealmOnLogout: " + deleteRealmOnLogout);
+        stringBuilder.append("\n");
+        stringBuilder.append("waitForInitialRemoteData: " + waitForInitialData);
         return stringBuilder.toString();
     }
 
@@ -258,6 +264,17 @@ public class SyncConfiguration extends RealmConfiguration {
         return syncClientValidateSsl;
     }
 
+    /**
+     * Returns {@code true} if the Realm will download all known changes from the remote server before being opened the
+     * first time.
+     *
+     * @return {@code true} if all remote changes will be downloaded before the Realm can be opened. {@code false} if
+     * the Realm can be opened immediately.
+     */
+    public boolean shouldWaitForInitialRemoteData() {
+        return waitForInitialData;
+    }
+
     @Override
     boolean isSyncConfiguration() {
         return true;
@@ -282,6 +299,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private String defaultLocalFileName;
         private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
+        private boolean waitForServerChanges = false;
         // sync specific
         private boolean deleteRealmOnLogout = false;
         private URI serverUrl;
@@ -290,7 +308,6 @@ public class SyncConfiguration extends RealmConfiguration {
         private boolean syncClientValidateSsl = true;
         private String serverCertificateAssetName;
         private String serverCertificateFilePath;
-
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
@@ -663,6 +680,23 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
+        /*
+         * Setting this will cause the Realm to download all known changes from the server the first time a Realm is
+         * opened. The Realm will not open until all the data has been downloaded. This means that if a device is
+         * offline the Realm will not open.
+         * <p>
+         * Since downloading all changes can be an lengthy operation that might block the UI thread, Realms with this
+         * setting enabled should only be opened on background threads or with
+         * {@link Realm#getInstanceAsync(RealmConfiguration, Realm.Callback)} on the UI thread.
+         * <p>
+         * This check is only enforced the first time a Realm is created. If you otherwise want to make sure a Realm
+         * has the latest changes, use {@link SyncSession#downloadAllServerChanges()}.
+         */
+        public Builder waitForInitialRemoteData() {
+            this.waitForServerChanges = true;
+            return this;
+        }
+
         private String MD5(String in) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -788,7 +822,8 @@ public class SyncConfiguration extends RealmConfiguration {
                     deleteRealmOnLogout,
                     syncClientValidateSsl,
                     serverCertificateAssetName,
-                    serverCertificateFilePath
+                    serverCertificateFilePath,
+                    waitForServerChanges
             );
         }
 

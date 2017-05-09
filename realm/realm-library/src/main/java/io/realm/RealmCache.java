@@ -26,12 +26,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Iterator;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmFileException;
@@ -113,6 +113,7 @@ final class RealmCache {
         public void run() {
             T instance = null;
             try {
+                // First call that will run all schema validation, migrations or initial transactions.
                 instance = createRealmOrGetFromCache(configuration, realmClass);
                 boolean results = notifier.post(new Runnable() {
                     @Override
@@ -130,6 +131,9 @@ final class RealmCache {
                         T instanceToReturn = null;
                         Throwable throwable = null;
                         try {
+                            // This will run on the caller thread, but since the first `createRealmOrGetFromCache`
+                            // should have completed at this point, all expensive initializer functions have already
+                            // run.
                             instanceToReturn = createRealmOrGetFromCache(configuration, realmClass);
                         } catch (Throwable e) {
                             throwable = e;
@@ -154,13 +158,18 @@ final class RealmCache {
             } catch (InterruptedException e) {
                 RealmLog.warn(e, "`CreateRealmRunnable` has been interrupted.");
             } catch (final Throwable e) {
-                RealmLog.error(e, "`CreateRealmRunnable` failed.");
-                notifier.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onError(e);
-                    }
-                });
+                // DownloadingRealmInterruptedException is treated specially.
+                // It async open is canceled, this could interrupt the download, but the user should
+                // not care in this case, so just ignore it.
+                if (!ObjectServerFacade.getSyncFacadeIfPossible().wasDownloadInterrupted(e)) {
+                    RealmLog.error(e, "`CreateRealmRunnable` failed.");
+                    notifier.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onError(e);
+                        }
+                    });
+                }
             } finally {
                 if (instance != null) {
                     instance.close();
@@ -283,10 +292,30 @@ final class RealmCache {
 
         if (getTotalGlobalRefCount() == 0) {
             copyAssetFileIfNeeded(configuration);
+            boolean fileExists = configuration.realmExists();
 
             SharedRealm sharedRealm = null;
             try {
                 sharedRealm = SharedRealm.getInstance(configuration);
+
+                // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
+                // before proceeding. We need to open the Realm instance first to start any potential underlying
+                // SyncSession so this will work. TODO: This needs to be decoupled.
+                if (!fileExists) {
+                    try {
+                        ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
+                    } catch (Throwable t) {
+                        // If an error happened while downloading initial data, we need to reset the file so we can
+                        // download it again on the next attempt.
+                        // Realm.deleteRealm() is under the same lock as this method and globalCount is still 0, so
+                        // this should be safe.
+                        sharedRealm.close();
+                        sharedRealm = null;
+                        Realm.deleteRealm(configuration);
+                        throw t;
+                    }
+                }
+
                 if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
                     sharedRealm.beginTransaction();
                     if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
@@ -493,6 +522,8 @@ final class RealmCache {
     /**
      * Copies Realm database file from Android asset directory to the directory given in the {@link RealmConfiguration}.
      * Copy is performed only at the first time when there is no Realm database file.
+     *
+     * WARNING: This method is not thread-safe so external synchronization is required before using it.
      *
      * @param configuration configuration object for Realm instance.
      * @throws RealmFileException if copying the file fails.
