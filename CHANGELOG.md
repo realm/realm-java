@@ -6,7 +6,7 @@
 
 * [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
 * [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` (#4423).
-* [ObjectServer] Added support for `SyncConfigration.Builder.waitForInitialRemoteData(boolean readOnly)` (#4270/#1147).
+* [ObjectServer] Added support for `SyncConfiguration.Builder.waitForInitialRemoteData(boolean readOnly)` (#4270/#1147).
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).
 * Added `Realm.refresh()` and `DynamicRealm.refresh()` (#3476).
 * Added `Realm.getInstanceAsync()` and `DynamicRealm.getInstanceAsync()` (#2299).

@@ -564,7 +564,7 @@ public class SyncConfiguration extends RealmConfiguration {
          */
         public Builder initialData(Realm.Transaction transaction) {
             if (readOnly) {
-                throw new IllegalStateException("initialData(Transaction) cannot be combined with read only Realms.");
+                throw new IllegalStateException("initialData(Transaction) cannot be combined with read-only Realms.");
             }
             initialDataTransaction = transaction;
             return this;

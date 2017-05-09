@@ -214,7 +214,7 @@ public class RealmConfiguration {
 
     /**
      * Checks if the Realm file defined by this configuration already exists.
-     *
+     * <p>
      * WARNING: This method is just a point-in-time check. Unless protected by external synchronization another
      * thread or process might have created or deleted the Realm file right after this method has returned.
      *
@@ -620,6 +620,9 @@ public class RealmConfiguration {
          * @param transaction transaction to execute.
          */
         public Builder initialData(Realm.Transaction transaction) {
+            if (readOnly) {
+                throw new IllegalStateException("This Realm is marked as read-only. Read-only Realms cannot use initialData(Realm.Transaction).");
+            }
             initialDataTransaction = transaction;
             return this;
         }
@@ -630,14 +633,12 @@ public class RealmConfiguration {
          * When opening the Realm for the first time, instead of creating an empty file,
          * the Realm file will be copied from the provided asset file and used instead.
          * <p>
-         * <p>This cannot be configured to clear and recreate schema by calling {@link #deleteRealmIfMigrationNeeded()}
-         * at the same time as doing so will delete the copied asset schema.
-         * <p>
+         * This cannot be combined with {@link #deleteRealmIfMigrationNeeded()} as doing so would just result in the
+         * copied file being deleted.
          * <p>
          * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
          *
          * @param assetFile path to the asset database file.
-         * an {@link IllegalStateException}.
          * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
         public Builder assetFile(final String assetFile) {
@@ -650,15 +651,15 @@ public class RealmConfiguration {
          * When opening the Realm for the first time, instead of creating an empty file,
          * the Realm file will be copied from the provided asset file and used instead.
          * <p>
-         * <p>This cannot be configured to clear and recreate schema by calling {@link #deleteRealmIfMigrationNeeded()}
-         * at the same time as doing so will delete the copied asset schema.
-         * <p>
+         * This cannot be combined with {@link #deleteRealmIfMigrationNeeded()} as doing so would just result in the
+         * copied file being deleted.
          * <p>
          * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
          *
          * @param assetFile path to the asset database file.
-         * @param readOnly if {@code true} no changes can be made to the Realm once copied. All write transactions will
-         * fail with an {@link IllegalStateException}.
+         * @param readOnly if {@code true} no local changes can be made to the Realm once copied. All write
+         * transactions will fail with an {@link IllegalStateException}. Marking a Realm as read-only only applies to
+         * the Realm in this process. Other processes can still write to the Realm.
          * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
         public Builder assetFile(final String assetFile, boolean readOnly) {
@@ -670,6 +671,9 @@ public class RealmConfiguration {
             }
             if (this.deleteRealmIfMigrationNeeded) {
                 throw new IllegalStateException("Realm cannot use an asset file when previously configured to clear its schema in migration by calling deleteRealmIfMigrationNeeded().");
+            }
+            if (readOnly && initialDataTransaction != null) {
+                throw new IllegalStateException("initialData(Realm.Transaction) cannot be combined with read-only Realms");
             }
 
             this.assetFilePath = assetFile;

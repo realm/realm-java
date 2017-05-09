@@ -959,4 +959,42 @@ public class RealmConfigurationTests {
             realm.close();
         }
     }
+
+    @Test
+    public void readOnly_initialTransaction_throws() {
+        // Check assetFile(), then initialTransaction();
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder();
+        config = config.assetFile("foo", true);
+        try {
+            config.initialData(null);
+        } catch (IllegalStateException ignored) {
+        }
+
+        // Check initialTransaction(), then assetFile()
+        config = new RealmConfiguration.Builder();
+        config.initialData(null);
+        try {
+            config = config.assetFile("foo", true);
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    @Test
+    public void readOnly_deleteRealmIfMigrationRequired_throws() {
+        // Check assetFile(), then deleteRealmIfMigrationRequired();
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder();
+        config = config.assetFile("foo", true);
+        try {
+            config.deleteRealmIfMigrationNeeded();
+        } catch (IllegalStateException ignored) {
+        }
+
+        // Check deleteRealmIfMigrationRequired(), then assetFile()
+        config = new RealmConfiguration.Builder();
+        config.deleteRealmIfMigrationNeeded();
+        try {
+            config = config.assetFile("foo", true);
+        } catch (IllegalStateException ignored) {
+        }
+    }
 }
