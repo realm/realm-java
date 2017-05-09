@@ -26,7 +26,7 @@ import io.realm.Sort
 import io.realm.examples.kotlin.model.Cat
 import io.realm.examples.kotlin.model.Dog
 import io.realm.examples.kotlin.model.Person
-import org.jetbrains.anko.async
+import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import kotlin.properties.Delegates
 
@@ -63,11 +63,10 @@ class KotlinExampleActivity : Activity() {
         basicLinkQuery(realm)
 
         // More complex operations can be executed on another thread, for example using
-        // Anko's async extension method.
-        async {
+        // Anko's doAsync extension method.
+        doAsync {
             var info = complexReadWrite()
             info += complexQuery()
-
             uiThread {
                 showStatus(info)
             }
