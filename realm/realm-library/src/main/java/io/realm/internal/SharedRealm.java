@@ -128,6 +128,7 @@ public final class SharedRealm implements Closeable, NativeObject {
 
         @Override
         public int compareTo(@SuppressWarnings("NullableProblems") VersionID another) {
+            //noinspection ConstantConditions
             if (another == null) {
                 throw new IllegalArgumentException("Version cannot be compared to a null value.");
             }
@@ -216,17 +217,18 @@ public final class SharedRealm implements Closeable, NativeObject {
         String syncRefreshToken = (String) syncUserConf[3];
         Boolean syncClientValidateSsl = (Boolean) syncUserConf[4];
         String syncSslTrustCertificatePath = (String) syncUserConf[5];
-        boolean enable_caching = false; // Handled in Java currently
-        boolean disableFormatUpgrade = false; // TODO Double negatives :/
+
+        final boolean enableCaching = false; // Handled in Java currently
+        final boolean enableFormatUpgrade = true;
 
         long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
                 syncRealmUrl != null ? SchemaMode.SCHEMA_MODE_ADDITIVE.getNativeValue() : SchemaMode.SCHEMA_MODE_MANUAL.getNativeValue(),
                 config.getDurability() == Durability.MEM_ONLY,
-                enable_caching,
+                enableCaching,
                 config.getSchemaVersion(),
-                disableFormatUpgrade,
+                enableFormatUpgrade,
                 autoChangeNotifications,
                 syncRealmUrl,
                 syncRealmAuthUrl,
@@ -316,10 +318,6 @@ public final class SharedRealm implements Closeable, NativeObject {
     public SharedRealm.VersionID getVersionID() {
         long[] versionId = nativeGetVersionID(nativePtr);
         return new SharedRealm.VersionID(versionId[0], versionId[1]);
-    }
-
-    public long getLastSnapshotVersion() {
-        return nativeGetSnapshotVersion(nativePtr);
     }
 
     public boolean isClosed() {
@@ -467,7 +465,9 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     // Keep last session as an 'object' to avoid any reference to sync code
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
-            boolean cache, long schemaVersion, boolean disableFormatUpgrade,
+            boolean cache,
+            long schemaVersion,
+            boolean enabledFormatUpgrade,
             boolean autoChangeNotification,
             String syncServerURL,
             String syncServerAuthURL,
@@ -493,8 +493,6 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
 
     private static native long nativeGetVersion(long nativeSharedRealmPtr);
-
-    private static native long nativeGetSnapshotVersion(long nativeSharedRealmPtr);
 
     private static native void nativeSetVersion(long nativeSharedRealmPtr, long version);
 
