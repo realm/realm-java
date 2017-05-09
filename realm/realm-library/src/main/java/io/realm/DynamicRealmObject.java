@@ -967,7 +967,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     RealmFieldType.OBJECT.name(), RealmFieldType.LIST.name()));
         }
 
-        return RealmResults.createDynamicBacklinkResults(realm, proxyState.getRow$realm(), realmObjectSchema.getTable(), srcFieldName);
+        return RealmResults.createDynamicBacklinkResults(realm, (CheckedRow) proxyState.getRow$realm(), realmObjectSchema.getTable(), srcFieldName);
     }
 
     @Override

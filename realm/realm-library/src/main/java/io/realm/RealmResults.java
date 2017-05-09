@@ -58,6 +58,8 @@ import rx.Observable;
  * @see Realm#executeTransaction(Realm.Transaction)
  */
 public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionImpl<E> {
+
+    // Called from Realm Proxy classes
     @SuppressLint("unused")
     static <T extends RealmModel> RealmResults<T> createBacklinkResults(BaseRealm realm, Row row, Class<T> srcTableType, String srcFieldName) {
         UncheckedRow uncheckedRow = (UncheckedRow) row;
@@ -68,11 +70,11 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
                 srcTableType);
     }
 
-    static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(BaseRealm realm, Row row, Table srcTable, String srcFieldName) {
-        UncheckedRow uncheckedRow = (UncheckedRow) row;
+    // Abandon typing information, all ye who enter here
+    static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
         return new RealmResults<>(
                 realm,
-                Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
+                Collection.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),
                 Table.getClassNameForTable(srcTable.getName()));
     }
 
