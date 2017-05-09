@@ -78,6 +78,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final SyncUser user;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
+    private final boolean waitForInitialData;
 
     private SyncConfiguration(File directory,
                                 String filename,
@@ -94,7 +95,9 @@ public class SyncConfiguration extends RealmConfiguration {
                                 SyncUser user,
                                 URI serverUrl,
                                 SyncSession.ErrorHandler errorHandler,
-                                boolean deleteRealmOnLogout
+                                boolean deleteRealmOnLogout,
+                                boolean waitForInitialData
+
     ) {
         super(directory,
                 filename,
@@ -114,6 +117,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.serverUrl = serverUrl;
         this.errorHandler = errorHandler;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
+        this.waitForInitialData = waitForInitialData;
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -149,6 +153,7 @@ public class SyncConfiguration extends RealmConfiguration {
         if (!serverUrl.equals(that.serverUrl)) return false;
         if (!user.equals(that.user)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
+        if (waitForInitialData != that.waitForInitialData) return false;
         return true;
     }
 
@@ -159,6 +164,7 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + user.hashCode();
         result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
         result = 31 * result + errorHandler.hashCode();
+        result = 31 * result + (waitForInitialData ? 1 : 0);
         return result;
     }
 
@@ -173,6 +179,8 @@ public class SyncConfiguration extends RealmConfiguration {
         stringBuilder.append("errorHandler: " + errorHandler);
         stringBuilder.append("\n");
         stringBuilder.append("deleteRealmOnLogout: " + deleteRealmOnLogout);
+        stringBuilder.append("\n");
+        stringBuilder.append("waitForInitialRemoteData: " + waitForInitialData);
         return stringBuilder.toString();
     }
 
@@ -209,6 +217,18 @@ public class SyncConfiguration extends RealmConfiguration {
         return deleteRealmOnLogout;
     }
 
+
+    /**
+     * Returns {@code true} if the Realm will download all known changes from the remote server before being opened the
+     * first time.
+     *
+     * @return {@code true} if all remote changes will be downloaded before the Realm can be opened. {@code false} if
+     * the Realm can be opened immediately.
+     */
+    public boolean shouldWaitForInitialRemoteData() {
+        return waitForInitialData;
+    }
+
     @Override
     boolean isSyncConfiguration() {
         return true;
@@ -237,6 +257,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
         private boolean deleteRealmOnLogout = false;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
+        private boolean waitForServerChanges = false;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
@@ -573,6 +594,23 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
+        /**
+         * Setting this will cause the Realm to download all known changes from the server the first time a Realm is
+         * opened. The Realm will not open until all the data has been downloaded. This means that if a device is
+         * offline the Realm will not open.
+         * <p>
+         * Since downloading all changes can be an lengthy operation that might block the UI thread, Realms with this
+         * setting enabled should only be opened on background threads or with
+         * {@link Realm#getInstanceAsync(RealmConfiguration, Realm.Callback)} on the UI thread.
+         * <p>
+         * This check is only enforced the first time a Realm is created. If you otherwise want to make sure a Realm
+         * has the latest changes, use {@link SyncSession#downloadAllServerChanges()}.
+         */
+        public Builder waitForInitialRemoteData() {
+            this.waitForServerChanges = true;
+            return this;
+        }
+
         private String MD5(String in) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -685,7 +723,8 @@ public class SyncConfiguration extends RealmConfiguration {
                     user,
                     resolvedServerUrl,
                     errorHandler,
-                    deleteRealmOnLogout
+                    deleteRealmOnLogout,
+                    waitForServerChanges
             );
         }
 

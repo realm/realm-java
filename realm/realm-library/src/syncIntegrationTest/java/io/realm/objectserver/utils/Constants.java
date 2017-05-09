@@ -18,6 +18,7 @@ package io.realm.objectserver.utils;
 
 public class Constants {
 
+    public static final String USER_REALM = "realm://127.0.0.1:9080/~/tests";
     public static final String SYNC_SERVER_URL = "realm://127.0.0.1/tests";
     public static final String SYNC_SERVER_URL_2 = "realm://127.0.0.1/tests2";
 

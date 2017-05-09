@@ -25,22 +25,22 @@ import io.realm.internal.Capabilities;
  */
 public class AndroidCapabilities implements Capabilities {
 
-    private final boolean hasLooper;
+    private final Looper looper;
     private final boolean isIntentServiceThread;
 
     public AndroidCapabilities() {
-        hasLooper = Looper.myLooper() != null;
+        looper = Looper.myLooper();
         isIntentServiceThread = isIntentServiceThread();
     }
 
     @Override
     public boolean canDeliverNotification() {
-        return hasLooper && !isIntentServiceThread;
+        return hasLooper() && !isIntentServiceThread;
     }
 
     @Override
     public void checkCanDeliverNotification(String exceptionMessage) {
-        if (!hasLooper) {
+        if (!hasLooper()) {
             throw new IllegalStateException(exceptionMessage == null ? "" : (exceptionMessage + " ") +
                     "Realm cannot be automatically updated on a thread without a looper.");
         }
@@ -48,6 +48,15 @@ public class AndroidCapabilities implements Capabilities {
             throw new IllegalStateException(exceptionMessage == null ? "" : (exceptionMessage + " ") +
                     "Realm cannot be automatically updated on an IntentService thread.");
         }
+    }
+
+    @Override
+    public boolean isMainThread() {
+        return looper != null && looper == Looper.getMainLooper();
+    }
+
+    private boolean hasLooper() {
+        return looper != null;
     }
 
     private static boolean isIntentServiceThread() {

@@ -41,15 +41,24 @@ public:
     inline JavaLocalRef(JNIEnv* env, T obj, NeedToCreateLocalRef) noexcept
         : m_jobject(env->NewLocalRef(obj))
         , m_env(env){};
+
     inline ~JavaLocalRef()
     {
         m_env->DeleteLocalRef(m_jobject);
     }
 
-    JavaLocalRef(const JavaLocalRef&) = delete;
-    JavaLocalRef& operator=(const JavaLocalRef&) = delete;
-    JavaLocalRef(JavaLocalRef&& rhs) = delete;
-    JavaLocalRef& operator=(JavaLocalRef&& rhs) = delete;
+    JavaLocalRef& operator=(JavaLocalRef&& rhs)
+    {
+        this->~JavaLocalRef();
+        new (this) JavaLocalRef(std::move(rhs));
+        return *this;
+    }
+
+    inline JavaLocalRef(JavaLocalRef&& rhs)
+            : m_env(rhs.m_env), m_jobject(rhs.m_jobject)
+    {
+        rhs.m_jobject = nullptr;
+    }
 
     inline operator bool() const noexcept
     {
@@ -59,6 +68,13 @@ public:
     {
         return m_jobject;
     }
+    inline T get() const noexcept
+    {
+        return m_jobject;
+    };
+
+    JavaLocalRef(const JavaLocalRef&) = delete;
+    JavaLocalRef& operator=(const JavaLocalRef&) = delete;
 
 private:
     T m_jobject;

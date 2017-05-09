@@ -27,6 +27,8 @@ import java.lang.reflect.Method;
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
+import io.realm.SyncSession;
+import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
 
@@ -128,5 +130,25 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         } catch (IllegalAccessException e) {
             throw new RealmException("Could not remove session: " + syncConfig.toString(), e);
         }
+    }
+
+    @Override
+    public void downloadRemoteChanges(RealmConfiguration config) {
+        if (config instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) config;
+            if (syncConfig.shouldWaitForInitialRemoteData()) {
+                SyncSession session = SyncManager.getSession(syncConfig);
+                try {
+                    session.downloadAllServerChanges();
+                } catch (InterruptedException e) {
+                    throw new DownloadingRealmInterruptedException(syncConfig, e);
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean wasDownloadInterrupted(Throwable throwable) {
+        return (throwable instanceof DownloadingRealmInterruptedException);
     }
 }
