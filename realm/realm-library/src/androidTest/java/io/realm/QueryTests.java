@@ -1,4 +1,3 @@
-package io.realm;
 /*
  * Copyright 2017 Realm Inc.
  *
@@ -14,7 +13,7 @@ package io.realm;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+package io.realm;
 
 import org.junit.After;
 import org.junit.Before;

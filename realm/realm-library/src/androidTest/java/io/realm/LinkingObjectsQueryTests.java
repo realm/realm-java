@@ -1,4 +1,3 @@
-package io.realm;
 /*
  * Copyright 2017 Realm Inc.
  *
@@ -14,6 +13,7 @@ package io.realm;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
@@ -100,6 +100,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
 
         realm.commitTransaction();
 
+        // TODO: Explain what this test is doing
         RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
                 .lessThan(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_ID, 2)
                 .findAll();
