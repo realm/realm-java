@@ -137,7 +137,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
                         Thread.currentThread().interrupt();
                         realm = Realm.getInstance(config);
                     } catch (DownloadingRealmInterruptedException ignored) {
-                        assertFalse(config.realmExists());
+                        assertFalse(new File(config.getPath()).exists());
                     } finally {
                         if (realm != null) {
                             realm.close();
