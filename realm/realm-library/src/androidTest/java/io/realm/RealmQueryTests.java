@@ -1203,7 +1203,7 @@ public class RealmQueryTests extends QueryTests {
         realm.commitTransaction();
 
         RealmResults<AllTypes> resultList = realm.where(AllTypes.class).like("columnString", "*Α*").findAll();
-         assertEquals(1, resultList.size());
+        assertEquals(1, resultList.size());
 
         resultList = realm.where(AllTypes.class).like("columnString", "*λ*").findAll();
         assertEquals(2, resultList.size());
