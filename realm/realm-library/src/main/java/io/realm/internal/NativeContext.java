@@ -37,7 +37,7 @@ public class NativeContext {
         finalizingThread.start();
     }
 
-    void addReference(NativeObject referent) {
+    public void addReference(NativeObject referent) {
         new NativeObjectReference(this, referent, referenceQueue);
     }
 }
