@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.RealmFieldType;
-import io.realm.exceptions.RealmMigrationNeededException;
 
 
 /**
@@ -119,7 +118,7 @@ public abstract class ColumnInfo {
      *
      * @return true if the instance is mutable
      */
-    public boolean isMutable() {
+    public final boolean isMutable() {
         return mutable;
     }
 
@@ -160,7 +159,7 @@ public abstract class ColumnInfo {
      * {@code src} must not be {@code null}.
      * @throws IllegalArgumentException if {@code other} has different class than this.
      */
-    public final void copyFrom(ColumnInfo src) {
+    public void copyFrom(ColumnInfo src) {
         if (!mutable) {
             throw new UnsupportedOperationException("Attempt to modify an immutable ColumnInfo");
         }
@@ -246,9 +245,9 @@ public abstract class ColumnInfo {
      */
     @SuppressWarnings("unused")
     protected final void addBacklinkDetails(SharedRealm realm, String columnName, String sourceTableName, String sourceColumnName) {
-        Table sourceTable = realm.getTable(Table.getTableNameForClass(sourceTableName));
-        long columnIndex = sourceTable.getColumnIndex(sourceColumnName);
-        indicesMap.put(columnName, new ColumnDetails(columnIndex, RealmFieldType.LINKING_OBJECTS, sourceTableName));
+//        Table sourceTable = realm.getTable(Table.getTableNameForClass(sourceTableName));
+//        long columnIndex = sourceTable.getColumnIndex(sourceColumnName);
+//        indicesMap.put(columnName, new ColumnDetails(columnIndex, RealmFieldType.LINKING_OBJECTS, sourceTableName));
     }
 
     /**

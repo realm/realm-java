@@ -48,10 +48,10 @@ class DynamicFieldDescriptor extends FieldDescriptor {
         long[] columnIndices = new long[nFields];
         Table currentTable = table;
 
+        long columnIndex;
         String tableName = null;
         String columnName = null;
         RealmFieldType columnType = null;
-        long columnIndex = -1;
         for (int i = 0; i < nFields; i++) {
             columnName = fields.get(i);
             if ((columnName == null) || (columnName.length() <= 0)) {

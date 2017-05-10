@@ -66,17 +66,18 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery(
 // If the corresponding entry in tablesArray is anything other than a nullptr, the link is a backlink.
 // In that case, the tablesArray element is the pointer to the backlink source table and the
 // indicesArray entry is the source column index in the source table.
+// FIXME!!!  This doesn't actually seem to be following backlinks.
 static TableRef getTableForLinkQuery(jlong nativeQueryPtr, JniLongArray& tablesArray, JniLongArray& indicesArray)
 {
     TableRef table_ref = Q(nativeQueryPtr)->get_table();
     jsize link_element_count = indicesArray.len() - 1;
     for (int i = 0; i < link_element_count; i++) {
-        auto colIndex = size_t(indicesArray[i]);
-        auto tablePtr = TBL(tablesArray[i]);
-        if (tablePtr == nullptr) {
-            table_ref->link(colIndex);
+        auto col_index = size_t(indicesArray[i]);
+        auto table_ptr = TBL(tablesArray[i]);
+        if (table_ptr == nullptr) {
+            table_ref->link(col_index);
         }  else {
-            table_ref->backlink(*tablePtr, colIndex);
+            table_ref->backlink(*table_ptr, col_index);
         }
     }
     return table_ref;
@@ -91,6 +92,21 @@ static TableRef getTableByArray(jlong nativeQueryPtr, JniLongArray& indicesArray
         table_ref = table_ref->get_link_target(size_t(indicesArray[i]));
     }
     return table_ref;
+}
+
+// FIXME!!!  This is a hasty attempt to fix the nullable queries.
+// I am not at all sure that it is even the right idea, let alone correct code. --gbm
+static bool isNullable(JNIEnv* env, Table* src_table_ptr, TableRef table_ref, jlong column_idx)
+{
+    // if table_arr is not a nullptr, this is a backlink and not allowed.
+    if (src_table_ptr != nullptr) {
+        ThrowException(env, IllegalArgument, "LinkingObject from field " + std::string(src_table_ptr->get_column_name(column_idx)) + " is not nullable.");
+        return false;
+    }
+    if (!TBL_AND_COL_NULLABLE(env, table_ref.get(), column_idx)) {
+        return false;
+    }
+    return true;
 }
 
 template <typename coretype, typename cpptype, typename javatype>
@@ -1482,10 +1498,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
         TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
         jlong column_idx = index_arr[arr_len - 1];
         TableRef table_ref = getTableByArray(nativeQueryPtr, index_arr);
-        if (!TBL_AND_COL_NULLABLE(env, table_ref.get(), column_idx)) {
+
+        if (!isNullable(env, TBL(table_arr[arr_len - 1]), table_ref, column_idx)) {
             return;
         }
 
+        // FIXME!!!  Support a backlink as the last column in a field descriptor
         int col_type = table_ref->get_column_type(S(column_idx));
         if (arr_len == 1) {
             switch (col_type) {
@@ -1512,6 +1530,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
             }
         }
         else {
+            // FIXME!!!  Support a backlink as an internal column in a field descriptor
             switch (col_type) {
                 case type_Link:
                     ThrowException(env, IllegalArgument, "isNull() by nested query for link field is not supported.");
@@ -1592,6 +1611,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery(JN
 }
 
 
+
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv* env, jobject, jlong nativeQueryPtr,
                                                                          jlongArray columnIndexes,
                                                                          jlongArray tablePointers)
@@ -1605,7 +1625,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
         jlong column_idx = index_arr[arr_len - 1];
         TableRef table_ref = getTableByArray(nativeQueryPtr, index_arr);
 
-        if (!TBL_AND_COL_NULLABLE(env, table_ref.get(), column_idx)) {
+        if (!isNullable(env, TBL(table_arr[arr_len - 1]), table_ref, column_idx)) {
             return;
         }
 
@@ -1686,6 +1706,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty(JNIEnv* e
         jlong column_idx = index_arr[arr_len - 1];
         TableRef table_ref = getTableByArray(nativeQueryPtr, index_arr);
 
+        // FIXME!!!  Support a backlink as the last column in a field descriptor
         int col_type = table_ref->get_column_type(S(column_idx));
         if (arr_len == 1) {
             // Field queries
@@ -1712,6 +1733,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty(JNIEnv* e
         }
         else {
             // Linked queries
+            // FIXME!!!  Support a backlink as an internal column in a field descriptor
             switch (col_type) {
                 case type_Binary:
                     pQuery->and_query(src_table_ref->column<Binary>(S(column_idx)) == BinaryData("", 0));

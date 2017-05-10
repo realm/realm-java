@@ -29,7 +29,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllJavaTypes;
@@ -149,6 +148,7 @@ public class LinkingObjectsManagedTests {
         // One entry for each reference, so two references from a LinkList will
         // result in two backlinks.
         assertEquals(2, child.getListParents().size());
+
         assertEquals(parent, child.getListParents().first());
         assertEquals(parent, child.getListParents().last());
     }
@@ -675,111 +675,6 @@ public class LinkingObjectsManagedTests {
         assertTrue(child.getListParents().contains(parent));
     }
 
-    // Query on a field descriptor starting with a backlink
-    // The test objects are:
-    //             gen1
-    //             / \
-    //         gen2A gen2B
-    //           \\   //
-    //            gen3
-    //  /  = object ref
-    //  // = list ref
-    @Ignore("Write test")
-    @Test
-    public void query_startWithBacklink() {
-        realm.beginTransaction();
-        AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);
-
-        AllJavaTypes gen2A = realm.createObject(AllJavaTypes.class, 1);
-        gen2A.setFieldObject(gen1);
-
-        AllJavaTypes gen2B = realm.createObject(AllJavaTypes.class, 2);
-        gen2B.setFieldObject(gen1);
-
-        AllJavaTypes gen3 = realm.createObject(AllJavaTypes.class, 3);
-        RealmList<AllJavaTypes> parents = gen3.getFieldList();
-        parents.add(gen2A);
-        parents.add(gen2B);
-
-        realm.commitTransaction();
-
-        RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
-                .greaterThan("objectParents.fieldId", 1)
-                .findAll();
-        assertEquals(1, result.size());
-        assertTrue(result.contains(gen2B));
-    }
-
-    // Query on a field descriptor that ends with a backlink
-    // The test objects are:
-    //             gen1
-    //             / \
-    //         gen2A gen2B
-    //           \\   //
-    //            gen3
-    //  /  = object ref
-    //  // = list ref
-    @Ignore("Write test")
-    @Test
-    public void query_endWithBacklink() {
-        realm.beginTransaction();
-        AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);
-
-        AllJavaTypes gen2A = realm.createObject(AllJavaTypes.class, 1);
-        gen2A.setFieldObject(gen1);
-
-        AllJavaTypes gen2B = realm.createObject(AllJavaTypes.class, 2);
-        gen2B.setFieldObject(gen1);
-
-        AllJavaTypes gen3 = realm.createObject(AllJavaTypes.class, 3);
-        RealmList<AllJavaTypes> parents = gen3.getFieldList();
-        parents.add(gen2A);
-        parents.add(gen2B);
-
-        realm.commitTransaction();
-
-        RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
-                .isNotNull("objectParents.listParents")
-                .findAll();
-        assertEquals(2, result.size());
-        assertTrue(result.contains(gen2A));
-        assertTrue(result.contains(gen2B));
-    }
-
-    // Query on a field descriptor that has a backlink in the middle
-    // The test objects are:
-    //             gen1
-    //             / \
-    //         gen2A gen2B
-    //           \\   //
-    //            gen3
-    //  /  = object ref
-    //  // = list ref
-    @Ignore("Write test")
-    @Test
-    public void query_backlinkInMiddle() {
-        realm.beginTransaction();
-        AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);
-
-        AllJavaTypes gen2A = realm.createObject(AllJavaTypes.class, 1);
-        gen2A.setFieldObject(gen1);
-
-        AllJavaTypes gen2B = realm.createObject(AllJavaTypes.class, 2);
-        gen2B.setFieldObject(gen1);
-
-        AllJavaTypes gen3 = realm.createObject(AllJavaTypes.class, 3);
-        RealmList<AllJavaTypes> parents = gen3.getFieldList();
-        parents.add(gen2A);
-        parents.add(gen2B);
-
-        realm.commitTransaction();
-
-        RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
-                .lessThan("objectParents.listParents.fieldId", 4)
-                .findAll();
-        assertEquals(2, result.size());
-    }
-
     // Based on a quick conversation with Christian Melchior and Mark Rowe,
     // it appears that notifications are enqueued, briefly, on a non-Java
     // thread.  That makes their delivery onto the looper thread unpredictable.
@@ -809,14 +704,6 @@ public class LinkingObjectsManagedTests {
                         looperThread.testComplete();
                     }
                 });
-    }
-
-    @Test
-    public void query_finalBacklinkIsNull() {
-    }
-
-    @Test
-    public void query_finalBacklinkIsNotNull() {
     }
 }
 

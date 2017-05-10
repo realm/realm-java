@@ -132,7 +132,7 @@ public class CollectionTests {
 
     @Test
     public void constructor_withDistinct() {
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(table, "firstName");
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(null, table, "firstName");
         Collection collection = new Collection(sharedRealm, table.where(), null, distinctDescriptor);
 
         assertEquals(collection.size(), 3);
@@ -183,7 +183,7 @@ public class CollectionTests {
     @Test
     public void sort() {
         Collection collection = new Collection(sharedRealm, table.where().greaterThan(new long[] {2}, oneNullTable, 1));
-        SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
+        SortDescriptor sortDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
 
         Collection collection2 = collection.sort(sortDescriptor);
 
@@ -215,7 +215,7 @@ public class CollectionTests {
 
     @Test
     public void indexOf() {
-        SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
+        SortDescriptor sortDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
 
         Collection collection = new Collection(sharedRealm, table.where(), sortDescriptor);
         UncheckedRow row = table.getUncheckedRow(0);
@@ -224,7 +224,7 @@ public class CollectionTests {
 
     @Test
     public void indexOf_long() {
-        SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
+        SortDescriptor sortDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
 
         Collection collection = new Collection(sharedRealm, table.where(), sortDescriptor);
         assertEquals(3, collection.indexOf(0));
@@ -234,7 +234,7 @@ public class CollectionTests {
     public void distinct() {
         Collection collection = new Collection(sharedRealm, table.where().lessThan(new long[] {2}, oneNullTable, 4));
 
-        SortDescriptor distinctDescriptor = new SortDescriptor(table, new long[] {2});
+        SortDescriptor distinctDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
         Collection collection2 = collection.distinct(distinctDescriptor);
 
         // A new native Results should be created.

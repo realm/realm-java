@@ -918,9 +918,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     sb.append("?");
                     break;
             }
-            sb.append("}, ");
+            sb.append("},");
         }
-        sb.replace(sb.length() - 2, sb.length(), "");
+        sb.replace(sb.length() - 1, sb.length(), "");
         sb.append("]");
         return sb.toString();
     }
@@ -967,7 +967,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     RealmFieldType.OBJECT.name(), RealmFieldType.LIST.name()));
         }
 
-        return RealmResults.createBacklinkResults(realm, (CheckedRow) proxyState.getRow$realm(), realmObjectSchema.getTable(), srcFieldName);
+        return RealmResults.createDynamicBacklinkResults(realm, (CheckedRow) proxyState.getRow$realm(), realmObjectSchema.getTable(), srcFieldName);
     }
 
     @Override

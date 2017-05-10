@@ -23,21 +23,24 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
             " 'OrderedRealmCollectionSnapshot'.";
 
     final BaseRealm realm;
-    Class<E> classSpec;   // Return type
-    String className;     // Class name used by DynamicRealmObjects
+    final Class<E> classSpec;   // Return type
+    final String className;     // Class name used by DynamicRealmObjects
 
     final Collection collection;
 
     OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, Class<E> clazz) {
-        this.realm = realm;
-        this.classSpec = clazz;
-        this.collection = collection;
+        this(realm, collection, clazz, null);
     }
 
     OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, String className) {
+        this(realm, collection, null, className);
+    }
+
+    private OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, Class<E> clazz, String className) {
         this.realm = realm;
-        this.className = className;
         this.collection = collection;
+        this.classSpec = clazz;
+        this.className = className;
     }
 
     Table getTable() {
@@ -254,7 +257,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public RealmResults<E> sort(String fieldName) {
         SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(collection.getTable(), fieldName, Sort.ASCENDING);
+                SortDescriptor.getInstanceForSort(getSchemaConnector(), collection.getTable(), fieldName, Sort.ASCENDING);
 
         Collection sortedCollection = collection.sort(sortDescriptor);
         return createLoadedResults(sortedCollection);
@@ -266,7 +269,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
         SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(collection.getTable(), fieldName, sortOrder);
+                SortDescriptor.getInstanceForSort(getSchemaConnector(), collection.getTable(), fieldName, sortOrder);
 
         Collection sortedCollection = collection.sort(sortDescriptor);
         return createLoadedResults(sortedCollection);
@@ -278,7 +281,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
         SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(collection.getTable(), fieldNames, sortOrders);
+                SortDescriptor.getInstanceForSort(getSchemaConnector(), collection.getTable(), fieldNames, sortOrders);
 
         Collection sortedCollection = collection.sort(sortDescriptor);
         return createLoadedResults(sortedCollection);
@@ -557,5 +560,9 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         }
         results.load();
         return results;
+    }
+
+    private SchemaConnector getSchemaConnector() {
+        return new SchemaConnector(realm.getSchema());
     }
 }

@@ -32,6 +32,11 @@ import io.realm.RealmModel;
  * </ul>
  * Immutable instances of this class protect against the first possiblity by throwing on calls
  * to {@code copyFrom}.  {@see ColumnInfo} for its mutability contract.
+ *
+ * There are two, redundant, lookup methods, for schema members: by Class and by String.
+ * Query lookups must be done by the name of the class and use the String-keyed lookup table.
+ * Although it would be possible to use the same table to look up ColumnInfo by Class, the
+ * class lookup is very fast and on a hot path, so we maintain the redundant table.
  */
 public final class ColumnIndices {
     private final Map<Class<? extends RealmModel>, ColumnInfo> classes;
@@ -40,7 +45,7 @@ public final class ColumnIndices {
     private long schemaVersion;
 
     /**
-     * Create a mutable ColumnIndices initialized the ColumnInfo objects in the passed map.
+     * Create a mutable ColumnIndices initialized with the ColumnInfo objects in the passed map.
      *
      * @param schemaVersion the schema version
      * @param classes a map of table classes to their column info
@@ -48,10 +53,6 @@ public final class ColumnIndices {
      */
     public ColumnIndices(long schemaVersion, Map<Class<? extends RealmModel>, ColumnInfo> classes) {
         this(schemaVersion, new HashMap<>(classes), true);
-
-        // Although query searches need to be done by string,
-        // we keep the map with Class<?> keys because it is very fast
-        // for the code that can use it.
         for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
             ColumnInfo columnInfo = entry.getValue();
             if (mutable != columnInfo.isMutable()) {
@@ -138,22 +139,22 @@ public final class ColumnIndices {
      * <p>
      * NOTE: copying does not change this instance's mutablity state.
      *
-     * @param other the instance to copy.
+     * @param src the instance to copy.
      * @throws UnsupportedOperationException if this instance is immutable.
-     * @throws IllegalStateException if this instance is immutable.
+     * @throws IllegalStateException if this object contains information for a table that the source does not.
      */
-    public void copyFrom(ColumnIndices other) {
+    public void copyFrom(ColumnIndices src) {
         if (!mutable) {
             throw new UnsupportedOperationException("Attempt to modify immutable cache");
         }
         for (Map.Entry<String, ColumnInfo> entry : classesByName.entrySet()) {
-            final ColumnInfo otherColumnInfo = other.classesByName.get(entry.getKey());
+            final ColumnInfo otherColumnInfo = src.classesByName.get(entry.getKey());
             if (otherColumnInfo == null) {
                 throw new IllegalStateException("Failed to copy ColumnIndices cache for class: " + entry.getKey());
             }
             entry.getValue().copyFrom(otherColumnInfo);
         }
-        this.schemaVersion = other.schemaVersion;
+        this.schemaVersion = src.schemaVersion;
     }
 
     @Override

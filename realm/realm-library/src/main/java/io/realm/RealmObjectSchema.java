@@ -19,7 +19,6 @@ package io.realm;
 import java.util.Set;
 
 import io.realm.annotations.Required;
-import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -279,17 +278,6 @@ public abstract class RealmObjectSchema {
     public abstract RealmFieldType getFieldType(String fieldName);
 
     /**
-     * Parses the passed filed description (@see RealmSchema.getColumnIndices(String, RealmFieldType...).
-     * Because this method may have to deal with several different tables, it is the responsibility
-     * of the Schema, not the ObjectSchema.  This method simply delegates to the Schema method with the
-     * same signature.
-     *
-     * @param fieldDescription fieldName or link path to a field name.
-     * @param validColumnTypes valid field type for the last field in a linked field
-     * @return a FieldDescriptor.
-     */
-
-    /**
      * Get a parser for a field descriptor.
      *
      * @param fieldDescription fieldName or link path to a field name.
@@ -297,7 +285,7 @@ public abstract class RealmObjectSchema {
      * @return a FieldDescriptor
      */
     protected final FieldDescriptor getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
-        return FieldDescriptor.createFieldDescriptor(new SchemaProxy(schema), getTable(), fieldDescription, validColumnTypes);
+        return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), fieldDescription, validColumnTypes);
     }
 
     abstract RealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required);
@@ -308,6 +296,10 @@ public abstract class RealmObjectSchema {
 
     abstract Table getTable();
 
+    private SchemaConnector getSchemaConnector() {
+        return new SchemaConnector(schema);
+    }
+
     /**
      * Function interface, used when traversing all objects of the current class and apply a function on each.
      *
@@ -315,28 +307,5 @@ public abstract class RealmObjectSchema {
      */
     public interface Function {
         void apply(DynamicRealmObject obj);
-    }
-
-    private static class SchemaProxy implements FieldDescriptor.SchemaProxy {
-        private RealmSchema schema;
-
-        public SchemaProxy(RealmSchema schema) {
-            this.schema = schema;
-        }
-
-        @Override
-        public boolean hasCache() {
-            return schema.haveColumnInfo();
-        }
-
-        @Override
-        public ColumnInfo getColumnInfo(String tableName) {
-            return schema.getColumnInfo(tableName);
-        }
-
-        @Override
-        public long getNativeTablePtr(String targetTable) {
-            return schema.getTable(targetTable).getNativePtr();
-        }
     }
 }
