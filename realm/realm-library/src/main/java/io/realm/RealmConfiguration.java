@@ -272,6 +272,7 @@ public class RealmConfiguration {
         if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) {
             return false;
         }
+        if (readOnly != that.readOnly) { return false; }
 
         return schemaMediator.equals(that.schemaMediator);
     }
@@ -290,6 +291,7 @@ public class RealmConfiguration {
         result = 31 * result + durability.hashCode();
         result = 31 * result + (rxObservableFactory != null ? rxObservableFactory.hashCode() : 0);
         result = 31 * result + (initialDataTransaction != null ? initialDataTransaction.hashCode() : 0);
+        result = 31 * result + (readOnly ? 1 : 0);
 
         return result;
     }
@@ -628,6 +630,9 @@ public class RealmConfiguration {
         }
 
         /**
+         *
+         * DEPRECATED: Use {@link #assetFile(String, boolean)} instead.
+         *
          * Copies the Realm file from the given asset file path.
          * <p>
          * When opening the Realm for the first time, instead of creating an empty file,
@@ -641,7 +646,8 @@ public class RealmConfiguration {
          * @param assetFile path to the asset database file.
          * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
-        public Builder assetFile(final String assetFile) {
+        @Deprecated
+        public Builder assetFile(String assetFile) {
             return assetFile(assetFile, false);
         }
 
@@ -662,7 +668,7 @@ public class RealmConfiguration {
          * the Realm in this process. Other processes can still write to the Realm.
          * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
-        public Builder assetFile(final String assetFile, boolean readOnly) {
+        public Builder assetFile(String assetFile, boolean readOnly) {
             if (TextUtils.isEmpty(assetFile)) {
                 throw new IllegalArgumentException("A non-empty asset file path must be provided");
             }

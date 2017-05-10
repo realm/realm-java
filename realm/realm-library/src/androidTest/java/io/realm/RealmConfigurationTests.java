@@ -403,6 +403,13 @@ public class RealmConfigurationTests {
     }
 
     @Test
+    public void equals_respectReadOnly() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context).assetFile("foo", false).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context).assetFile("foo", true).build();
+        assertFalse(config1.equals(config2));
+    }
+
+    @Test
     public void equalsWhenRxJavaUnavailable() {
         // Test for https://github.com/realm/realm-java/issues/2416
         RealmConfiguration config1 = new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).build();
