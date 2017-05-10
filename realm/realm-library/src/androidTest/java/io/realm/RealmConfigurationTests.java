@@ -967,6 +967,7 @@ public class RealmConfigurationTests {
         config = config.assetFile("foo", true);
         try {
             config.initialData(null);
+            fail();
         } catch (IllegalStateException ignored) {
         }
 
@@ -975,6 +976,7 @@ public class RealmConfigurationTests {
         config.initialData(null);
         try {
             config = config.assetFile("foo", true);
+            fail();
         } catch (IllegalStateException ignored) {
         }
     }
@@ -986,6 +988,7 @@ public class RealmConfigurationTests {
         config = config.assetFile("foo", true);
         try {
             config.deleteRealmIfMigrationNeeded();
+            fail();
         } catch (IllegalStateException ignored) {
         }
 
@@ -994,6 +997,7 @@ public class RealmConfigurationTests {
         config.deleteRealmIfMigrationNeeded();
         try {
             config = config.assetFile("foo", true);
+            fail();
         } catch (IllegalStateException ignored) {
         }
     }
