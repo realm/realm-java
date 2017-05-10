@@ -168,7 +168,6 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         Random randomizer = new Random();
 
         for (int i = 0; i < 10; i++) {
-            final int iteration = i;
             RealmAsyncTask task = Realm.getInstanceAsync(config, new Realm.Callback() {
                 @Override
                 public void onSuccess(Realm realm) {
