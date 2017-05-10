@@ -622,17 +622,11 @@ public class RealmConfiguration {
          * @param transaction transaction to execute.
          */
         public Builder initialData(Realm.Transaction transaction) {
-            if (readOnly) {
-                throw new IllegalStateException("This Realm is marked as read-only. Read-only Realms cannot use initialData(Realm.Transaction).");
-            }
             initialDataTransaction = transaction;
             return this;
         }
 
         /**
-         *
-         * DEPRECATED: Use {@link #assetFile(String, boolean)} instead.
-         *
          * Copies the Realm file from the given asset file path.
          * <p>
          * When opening the Realm for the first time, instead of creating an empty file,
@@ -646,29 +640,7 @@ public class RealmConfiguration {
          * @param assetFile path to the asset database file.
          * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
-        @Deprecated
         public Builder assetFile(String assetFile) {
-            return assetFile(assetFile, false);
-        }
-
-        /**
-         * Copies the Realm file from the given asset file path.
-         * <p>
-         * When opening the Realm for the first time, instead of creating an empty file,
-         * the Realm file will be copied from the provided asset file and used instead.
-         * <p>
-         * This cannot be combined with {@link #deleteRealmIfMigrationNeeded()} as doing so would just result in the
-         * copied file being deleted.
-         * <p>
-         * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
-         *
-         * @param assetFile path to the asset database file.
-         * @param readOnly if {@code true} no local changes can be made to the Realm once copied. All write
-         * transactions will fail with an {@link IllegalStateException}. Marking a Realm as read-only only applies to
-         * the Realm in this process. Other processes can still write to the Realm.
-         * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
-         */
-        public Builder assetFile(String assetFile, boolean readOnly) {
             if (TextUtils.isEmpty(assetFile)) {
                 throw new IllegalArgumentException("A non-empty asset file path must be provided");
             }
@@ -678,13 +650,23 @@ public class RealmConfiguration {
             if (this.deleteRealmIfMigrationNeeded) {
                 throw new IllegalStateException("Realm cannot use an asset file when previously configured to clear its schema in migration by calling deleteRealmIfMigrationNeeded().");
             }
-            if (readOnly && initialDataTransaction != null) {
-                throw new IllegalStateException("initialData(Realm.Transaction) cannot be combined with read-only Realms");
-            }
-
             this.assetFilePath = assetFile;
-            this.readOnly = readOnly;
 
+            return this;
+        }
+
+        /**
+         * Setting this will cause the Realm to become read only and all write transactions made against this Realm will
+         * fail with an {@link IllegalStateException}.
+         * <p>
+         * This in particular mean that {@link #initialData(Realm.Transaction)} will not work in combination with a
+         * read only Realm and setting this will result in a {@link IllegalStateException} being thrown.
+         * </p>
+         * Marking a Realm as read only only applies to the Realm in this process. Other processes can still
+         * write to the Realm.
+         */
+        public Builder readOnly() {
+            this.readOnly = true;
             return this;
         }
 
@@ -720,6 +702,20 @@ public class RealmConfiguration {
          * @return the created {@link RealmConfiguration}.
          */
         public RealmConfiguration build() {
+            // Check that readOnly() was applied to legal configuration. Right now it should only be allowed if
+            // an assetFile is configured
+            if (readOnly) {
+                if (initialDataTransaction != null) {
+                    throw new IllegalStateException("This Realm is marked as read-only. Read-only Realms cannot use initialData(Realm.Transaction).");
+                }
+                if (assetFilePath == null) {
+                    throw new IllegalStateException("Only Realms provided using 'assetFile(path)' can be marked read-only. No such Realm was provided.");
+                }
+                if (deleteRealmIfMigrationNeeded) {
+                    throw new IllegalStateException("'deleteRealmIfMigrationNeeded()' and read-only Realms cannot be combined");
+                }
+            }
+
             if (rxFactory == null && isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory();
             }

@@ -611,17 +611,24 @@ public class SyncConfiguration extends RealmConfiguration {
          * <p>
          * This check is only enforced the first time a Realm is created. If you otherwise want to make sure a Realm
          * has the latest changes, use {@link SyncSession#downloadAllServerChanges()}.
-         *
-         * @param readOnly if {@code true} no local changes can be made to the Realm once downloaded. All write
-         * transactions will fail with an {@link IllegalStateException}. Marking a Realm as read-only only applies to
-         * the Realm in this process. Other processes or devices can still write to the Realm.
          */
-        public Builder waitForInitialRemoteData(boolean readOnly) {
+        public Builder waitForInitialRemoteData() {
             this.waitForServerChanges = true;
-            if (readOnly && initialDataTransaction != null) {
-                throw new IllegalStateException("readOnly cannot be combined with initialData(Transaction).");
-            }
-            this.readOnly = readOnly;
+            return this;
+        }
+
+        /**
+         * Setting this will cause the Realm to become read only and all write transactions made against this Realm will
+         * fail with an {@link IllegalStateException}.
+         * <p>
+         * This in particular mean that {@link #initialData(Realm.Transaction)} will not work in combination with a
+         * read only Realm and setting this will result in a {@link IllegalStateException} being thrown.
+         * </p>
+         * Marking a Realm as read only only applies to the Realm in this process. Other processes and devices can still
+         * write to the Realm.
+         */
+        public SyncConfiguration.Builder readOnly() {
+            this.readOnly = true;
             return this;
         }
 
@@ -664,6 +671,19 @@ public class SyncConfiguration extends RealmConfiguration {
         public SyncConfiguration build() {
             if (serverUrl == null || user == null) {
                 throw new IllegalStateException("serverUrl() and user() are both required.");
+            }
+
+            // Check that readOnly() was applied to legal configuration. Right now it should only be allowd if
+            // an assetFile is configured
+            if (readOnly) {
+                if (initialDataTransaction != null) {
+                    throw new IllegalStateException("This Realm is marked as read-only. " +
+                            "Read-only Realms cannot use initialData(Realm.Transaction).");
+                }
+                if (!waitForServerChanges) {
+                    throw new IllegalStateException("A read-only Realms must be provided by some source. " +
+                            "'waitForInitialRemoteData()' wasn't enabled which is currently the only supported source.");
+                }
             }
 
             // Check if the user has an identifier, if not, it cannot use /~/.

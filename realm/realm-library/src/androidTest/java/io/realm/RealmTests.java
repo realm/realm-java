@@ -18,8 +18,6 @@ package io.realm;
 
 import android.content.Context;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.support.test.InstrumentationRegistry;
@@ -3998,12 +3996,16 @@ public class RealmTests {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name("readonly.realm")
                 .schema(StringOnly.class)
-                .assetFile("readonly.realm", true)
+                .assetFile("readonly.realm")
+                .readOnly()
                 .build();
         realm = Realm.getInstance(config);
 
-        thrown.expect(IllegalStateException.class);
-        realm.beginTransaction();
+        try {
+            realm.beginTransaction();
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().startsWith("Write transactions cannot be used "));
+        }
     }
 
     @Test
@@ -4011,12 +4013,17 @@ public class RealmTests {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name("readonly.realm")
                 .schema(StringOnly.class, AllJavaTypes.class)
-                .assetFile("readonly.realm", true)
+                .assetFile("readonly.realm")
+                .readOnly()
                 .build();
 
         // This will throw because the Realm doesn't have the correct schema, and a new file cannot be re-created
         // because it is read only.
-        thrown.expect(IllegalStateException.class);
-        realm = Realm.getInstance(config);
+        try {
+            realm = Realm.getInstance(config);
+            fail();
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().startsWith("Write transactions cannot be used "));
+        }
     }
 }

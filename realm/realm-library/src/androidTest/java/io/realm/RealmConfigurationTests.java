@@ -404,8 +404,8 @@ public class RealmConfigurationTests {
 
     @Test
     public void equals_respectReadOnly() {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(context).assetFile("foo", false).build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(context).assetFile("foo", true).build();
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context).assetFile("foo").build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context).assetFile("foo").readOnly().build();
         assertFalse(config1.equals(config2));
     }
 
@@ -970,19 +970,18 @@ public class RealmConfigurationTests {
     @Test
     public void readOnly_initialTransaction_throws() {
         // Check assetFile(), then initialTransaction();
-        RealmConfiguration.Builder config = new RealmConfiguration.Builder();
-        config = config.assetFile("foo", true);
-        try {
-            config.initialData(null);
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder()
+                .assetFile("foo")
+                .readOnly()
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        // Do nothing
+                    }
+                });
 
-        // Check initialTransaction(), then assetFile()
-        config = new RealmConfiguration.Builder();
-        config.initialData(null);
         try {
-            config = config.assetFile("foo", true);
+            config.build();
             fail();
         } catch (IllegalStateException ignored) {
         }
@@ -990,20 +989,15 @@ public class RealmConfigurationTests {
 
     @Test
     public void readOnly_deleteRealmIfMigrationRequired_throws() {
-        // Check assetFile(), then deleteRealmIfMigrationRequired();
-        RealmConfiguration.Builder config = new RealmConfiguration.Builder();
-        config = config.assetFile("foo", true);
         try {
-            config.deleteRealmIfMigrationNeeded();
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
-
-        // Check deleteRealmIfMigrationRequired(), then assetFile()
-        config = new RealmConfiguration.Builder();
-        config.deleteRealmIfMigrationNeeded();
-        try {
-            config = config.assetFile("foo", true);
+            // This test doesn't actually fail on 'deleteRealmIfMigrationNeeded' + 'readOnly' but on
+            // 'assetFile' + 'deleteRealmIfMigrationNeed()'. This test is primarely here to prevent this
+            // case from accidentally parsing in the future.
+            new RealmConfiguration.Builder()
+                    .assetFile("foo")
+                    .readOnly()
+                    .deleteRealmIfMigrationNeeded()
+                    .build();
             fail();
         } catch (IllegalStateException ignored) {
         }

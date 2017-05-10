@@ -63,7 +63,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         final SyncUser user = loginUser();
 
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData(false)
+                .waitForInitialRemoteData()
                 .build();
 
         Realm realm = null;
@@ -102,7 +102,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData(false)
+                .waitForInitialRemoteData()
                 .build();
 
         Realm realm = null;
@@ -124,7 +124,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData(false)
+                .waitForInitialRemoteData()
                 .build();
 
         for (int i = 0; i < 10; i++) {
@@ -160,12 +160,11 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData(false)
+                .waitForInitialRemoteData()
                 .build();
         Random randomizer = new Random();
 
         for (int i = 0; i < 10; i++) {
-            final int iteration = i;
             RealmAsyncTask task = Realm.getInstanceAsync(config, new Realm.Callback() {
                 @Override
                 public void onSuccess(Realm realm) {

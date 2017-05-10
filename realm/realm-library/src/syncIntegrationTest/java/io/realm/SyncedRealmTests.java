@@ -66,7 +66,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         final SyncUser user = loginUser();
 
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData(false)
+                .waitForInitialRemoteData()
                 .build();
 
         Realm realm = null;
@@ -105,7 +105,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData(false)
+                .waitForInitialRemoteData()
                 .build();
 
         Realm realm = null;
@@ -127,7 +127,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData(false)
+                .waitForInitialRemoteData()
                 .build();
 
         for (int i = 0; i < 10; i++) {
@@ -163,7 +163,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData(false)
+                .waitForInitialRemoteData()
                 .build();
         Random randomizer = new Random();
 
@@ -213,7 +213,8 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         // download the uploaded changes (pray it managed to do so within the time frame).
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         final SyncConfiguration configNew = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData(true)
+                .waitForInitialRemoteData()
+                .readOnly()
                 .schema(StringOnly.class)
                 .build();
         assertFalse(configNew.realmExists());
@@ -230,7 +231,8 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration configNew = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData(true)
+                .waitForInitialRemoteData()
+                .readOnly()
                 .schema(StringOnly.class)
                 .build();
         assertFalse(configNew.realmExists());
@@ -255,7 +257,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .waitForInitialRemoteData(false) // Not readonly so Client should be allowed to write schema
+                .waitForInitialRemoteData() // Not readonly so Client should be allowed to write schema
                 .schema(StringOnly.class) // This schema should be written when opening the empty Realm.
                 .schemaVersion(2)
                 .build();
