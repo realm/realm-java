@@ -20,6 +20,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -62,33 +63,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class RealmQueryTests {
-    @Rule
-    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
-    @Rule
-    public final RunInLooperThread looperThread = new RunInLooperThread();
-
-    private final static int TEST_DATA_SIZE = 10;
-    private final static int TEST_NO_PRIMARY_KEY_NULL_TYPES_SIZE = 200;
-
-    private final static long DECADE_MILLIS = 10 * TimeUnit.DAYS.toMillis(365);
-
-    private Realm realm;
-
-    @Before
-    public void setUp() throws Exception {
-        RealmConfiguration realmConfig = configFactory.createConfiguration();
-        realm = Realm.getInstance(realmConfig);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        if (realm != null) {
-            realm.close();
-        }
-    }
+public class RealmQueryTests extends QueryTests {
 
     private void populateTestRealm(Realm testRealm, int dataSize) {
         testRealm.beginTransaction();
@@ -1228,7 +1203,7 @@ public class RealmQueryTests {
         realm.commitTransaction();
 
         RealmResults<AllTypes> resultList = realm.where(AllTypes.class).like("columnString", "*Α*").findAll();
-         assertEquals(1, resultList.size());
+        assertEquals(1, resultList.size());
 
         resultList = realm.where(AllTypes.class).like("columnString", "*λ*").findAll();
         assertEquals(2, resultList.size());
@@ -2587,7 +2562,8 @@ public class RealmQueryTests {
         }
     }
 
-    // @Test Disabled because of time consuming.
+    @Ignore("Disabled because it is time consuming")
+    @Test
     public void largeRealmMultipleThreads() throws InterruptedException {
         final int nObjects = 500000;
         final int nThreads = 3;
@@ -2706,44 +2682,6 @@ public class RealmQueryTests {
         assertFalse(query.isValid());
     }
 
-
-    private static final List<RealmFieldType> SUPPORTED_IS_EMPTY_TYPES = Arrays.asList(
-            RealmFieldType.STRING,
-            RealmFieldType.BINARY,
-            RealmFieldType.LIST);
-
-    private static final List<RealmFieldType> NOT_SUPPORTED_IS_EMPTY_TYPES;
-    static {
-        final ArrayList<RealmFieldType> list = new ArrayList<RealmFieldType>(Arrays.asList(RealmFieldType.values()));
-        list.removeAll(SUPPORTED_IS_EMPTY_TYPES);
-        list.remove(RealmFieldType.UNSUPPORTED_MIXED);
-        list.remove(RealmFieldType.UNSUPPORTED_TABLE);
-        list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        NOT_SUPPORTED_IS_EMPTY_TYPES = list;
-    }
-
-    private void createIsEmptyDataSet(Realm realm) {
-        realm.beginTransaction();
-
-        AllJavaTypes emptyValues = new AllJavaTypes();
-        emptyValues.setFieldId(1);
-        emptyValues.setFieldString("");
-        emptyValues.setFieldBinary(new byte[0]);
-        emptyValues.setFieldObject(emptyValues);
-        emptyValues.setFieldList(new RealmList<AllJavaTypes>());
-        realm.copyToRealm(emptyValues);
-
-        AllJavaTypes nonEmpty = new AllJavaTypes();
-        nonEmpty.setFieldId(2);
-        nonEmpty.setFieldString("Foo");
-        nonEmpty.setFieldBinary(new byte[]{1, 2, 3});
-        nonEmpty.setFieldObject(nonEmpty);
-        nonEmpty.setFieldList(new RealmList<AllJavaTypes>(emptyValues));
-        realm.copyToRealmOrUpdate(nonEmpty);
-
-        realm.commitTransaction();
-    }
-
     @Test
     public void isEmpty() {
         createIsEmptyDataSet(realm);
@@ -2827,44 +2765,6 @@ public class RealmQueryTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
-    }
-
-    // Not-empty test harnesses.
-    private static final List<RealmFieldType> SUPPORTED_IS_NOT_EMPTY_TYPES = Arrays.asList(
-            RealmFieldType.STRING,
-            RealmFieldType.BINARY,
-            RealmFieldType.LIST);
-
-    private static final List<RealmFieldType> NOT_SUPPORTED_IS_NOT_EMPTY_TYPES;
-    static {
-        final ArrayList<RealmFieldType> list = new ArrayList<RealmFieldType>(Arrays.asList(RealmFieldType.values()));
-        list.removeAll(SUPPORTED_IS_NOT_EMPTY_TYPES);
-        list.remove(RealmFieldType.UNSUPPORTED_MIXED);
-        list.remove(RealmFieldType.UNSUPPORTED_TABLE);
-        list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = list;
-    }
-
-    private void createIsNotEmptyDataSet(Realm realm) {
-        realm.beginTransaction();
-
-        AllJavaTypes emptyValues = new AllJavaTypes();
-        emptyValues.setFieldId(1);
-        emptyValues.setFieldString("");
-        emptyValues.setFieldBinary(new byte[0]);
-        emptyValues.setFieldObject(emptyValues);
-        emptyValues.setFieldList(new RealmList<AllJavaTypes>());
-        realm.copyToRealm(emptyValues);
-
-        AllJavaTypes notEmpty = new AllJavaTypes();
-        notEmpty.setFieldId(2);
-        notEmpty.setFieldString("Foo");
-        notEmpty.setFieldBinary(new byte[]{1, 2, 3});
-        notEmpty.setFieldObject(notEmpty);
-        notEmpty.setFieldList(new RealmList<AllJavaTypes>(emptyValues));
-        realm.copyToRealmOrUpdate(notEmpty);
-
-        realm.commitTransaction();
     }
 
     @Test

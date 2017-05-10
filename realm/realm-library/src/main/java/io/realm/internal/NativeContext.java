@@ -27,10 +27,10 @@ import java.lang.ref.ReferenceQueue;
 // test_destructor_thread_safety.cpp. Explicit call of SharedGroup::close() or Table::detach() is also not thread-safe
 // with respect to destruction of other accessors.
 public class NativeContext {
-    private final static ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
-    private final static Thread finalizingThread = new Thread(new FinalizerRunnable(referenceQueue));
+    private static final ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
+    private static final Thread finalizingThread = new Thread(new FinalizerRunnable(referenceQueue));
     // Dummy context which will be used by native objects which's destructors are always thread safe.
-    final static NativeContext dummyContext = new NativeContext();
+    static final NativeContext dummyContext = new NativeContext();
 
     static {
         finalizingThread.setName("RealmFinalizingDaemon");

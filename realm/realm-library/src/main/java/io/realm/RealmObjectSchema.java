@@ -20,6 +20,7 @@ import java.util.Set;
 
 import io.realm.annotations.Required;
 import io.realm.internal.Table;
+import io.realm.internal.fields.FieldDescriptor;
 
 
 /**
@@ -29,6 +30,16 @@ import io.realm.internal.Table;
  * @see io.realm.RealmMigration
  */
 public abstract class RealmObjectSchema {
+    private final RealmSchema schema;
+
+    /**
+     * Create a schema.
+     *
+     * @param schema The parent for this schema: the schema to which this object belongs
+     */
+    protected RealmObjectSchema(RealmSchema schema) {
+        this.schema = schema;
+    }
 
     /**
      * Release the object schema and any of native resources it might hold.
@@ -266,11 +277,28 @@ public abstract class RealmObjectSchema {
      */
     public abstract RealmFieldType getFieldType(String fieldName);
 
-    abstract long[] getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes);
+    /**
+     * Get a parser for a field descriptor.
+     *
+     * @param fieldDescription fieldName or link path to a field name.
+     * @param validColumnTypes valid field type for the last field in a linked field
+     * @return a FieldDescriptor
+     */
+    protected final FieldDescriptor getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
+        return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), fieldDescription, validColumnTypes);
+    }
 
     abstract RealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required);
 
     abstract RealmObjectSchema add(String name, RealmFieldType type, RealmObjectSchema linkedTo);
+
+    abstract long getAndCheckFieldIndex(String fieldName);
+
+    abstract Table getTable();
+
+    private SchemaConnector getSchemaConnector() {
+        return new SchemaConnector(schema);
+    }
 
     /**
      * Function interface, used when traversing all objects of the current class and apply a function on each.
@@ -280,18 +308,4 @@ public abstract class RealmObjectSchema {
     public interface Function {
         void apply(DynamicRealmObject obj);
     }
-
-    // Tuple containing data about each supported Java type.
-    protected static class FieldMetaData {
-        protected final RealmFieldType realmType;
-        protected final boolean defaultNullable;
-
-        protected FieldMetaData(RealmFieldType realmType, boolean defaultNullable) {
-            this.realmType = realmType;
-            this.defaultNullable = defaultNullable;
-        }
-    }
-
-    abstract Table getTable();
-    abstract long getAndCheckFieldIndex(String fieldName);
 }
