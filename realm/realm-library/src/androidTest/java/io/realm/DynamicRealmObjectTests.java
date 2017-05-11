@@ -1220,7 +1220,7 @@ public class DynamicRealmObjectTests {
         // Checks that toString() doesn't crash, and does simple formatting checks. We cannot compare to a set String as
         // eg. the byte array will be allocated each time it is accessed.
         String str = dObjTyped.toString();
-        assertTrue(str.startsWith("AllJavaTypes = dyn["));
+        assertTrue(str.startsWith("AllJavaTypes = dynamic["));
         assertTrue(str.endsWith("}]"));
     }
 
