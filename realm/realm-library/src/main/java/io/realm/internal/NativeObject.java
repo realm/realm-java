@@ -21,7 +21,9 @@ package io.realm.internal;
  * It specifies the operations common to all such objects.
  * All Java classes wrapping a core class should implement NativeObject.
  */
-interface NativeObject {
+public interface NativeObject {
+    long NULLPTR = 0L;
+
     /**
      * Gets the pointer of a native object.
      *

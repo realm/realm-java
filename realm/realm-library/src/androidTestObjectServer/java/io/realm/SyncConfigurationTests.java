@@ -22,6 +22,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -377,18 +378,17 @@ public class SyncConfigurationTests {
         file.delete(); // clean up
     }
 
-    /* FIXME: deleteRealmOnLogout is not supported by now
+    @Ignore("deleteRealmOnLogout is not supported yet")
     @Test
     public void deleteOnLogout() {
-        User user = createTestUser();
+        SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
 
         SyncConfiguration config = new SyncConfiguration.Builder(user, url)
-                .deleteRealmOnLogout()
+                //.deleteRealmOnLogout()
                 .build();
         assertTrue(config.shouldDeleteRealmOnLogout());
     }
-    */
 
     @Test
     public void initialData() {

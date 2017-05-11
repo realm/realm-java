@@ -740,14 +740,14 @@ public class RealmObjectSchemaTests {
         dynamicRealm.beginTransaction();
         StandardRealmObjectSchema objectSchema = (StandardRealmObjectSchema) dynamicRealm.getSchema().create(className);
 
-        assertNull(objectSchema.getFieldIndex(fieldName));
+        assertTrue(objectSchema.getFieldIndex(fieldName) < 0);
 
         objectSchema.addField(fieldName, long.class);
         //noinspection ConstantConditions
         assertTrue(objectSchema.getFieldIndex(fieldName) >= 0);
 
         objectSchema.removeField(fieldName);
-        assertNull(objectSchema.getFieldIndex(fieldName));
+        assertTrue(objectSchema.getFieldIndex(fieldName) < 0);
 
         dynamicRealm.cancelTransaction();
         dynamicRealm.close();

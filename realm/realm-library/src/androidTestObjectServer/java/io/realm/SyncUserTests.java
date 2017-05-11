@@ -22,6 +22,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -188,16 +189,15 @@ public class SyncUserTests {
     }
 
     // Tests that the user store returns the last user to login
-    /* FIXME: This test fails because of wrong JSON string.
+    @Ignore("This test fails because of wrong JSON string.")
     @Test
     public void currentUser_returnsUserAfterLogin() {
         AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
-        when(authServer.loginUser(any(Credentials.class), any(URL.class))).thenReturn(SyncTestUtils.createLoginResponse(Long.MAX_VALUE));
+        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenReturn(SyncTestUtils.createLoginResponse(Long.MAX_VALUE));
 
-        User user = User.login(Credentials.facebook("foo"), "http://bar.com/auth");
-        assertEquals(user, User.currentUser());
+        SyncUser user = SyncUser.login(SyncCredentials.facebook("foo"), "http://bar.com/auth");
+        assertEquals(user, SyncUser.currentUser());
     }
-    */
 
     @Test
     public void getManagementRealm() {
