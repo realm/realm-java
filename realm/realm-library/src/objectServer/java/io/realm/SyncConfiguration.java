@@ -92,6 +92,7 @@ public class SyncConfiguration extends RealmConfiguration {
                                 RealmProxyMediator schemaMediator,
                                 RxObservableFactory rxFactory,
                                 Realm.Transaction initialDataTransaction,
+                                boolean readOnly,
                                 SyncUser user,
                                 URI serverUrl,
                                 SyncSession.ErrorHandler errorHandler,
@@ -110,7 +111,8 @@ public class SyncConfiguration extends RealmConfiguration {
                 durability,
                 schemaMediator,
                 rxFactory,
-                initialDataTransaction
+                initialDataTransaction,
+                readOnly
         );
 
         this.user = user;
@@ -257,6 +259,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
         private boolean deleteRealmOnLogout = false;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
+        private boolean readOnly = false;
         private boolean waitForServerChanges = false;
 
         /**
@@ -611,6 +614,21 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
+        /**
+         * Setting this will cause the Realm to become read only and all write transactions made against this Realm will
+         * fail with an {@link IllegalStateException}.
+         * <p>
+         * This in particular mean that {@link #initialData(Realm.Transaction)} will not work in combination with a
+         * read only Realm and setting this will result in a {@link IllegalStateException} being thrown.
+         * </p>
+         * Marking a Realm as read only only applies to the Realm in this process. Other processes and devices can still
+         * write to the Realm.
+         */
+        public SyncConfiguration.Builder readOnly() {
+            this.readOnly = true;
+            return this;
+        }
+
         private String MD5(String in) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -650,6 +668,19 @@ public class SyncConfiguration extends RealmConfiguration {
         public SyncConfiguration build() {
             if (serverUrl == null || user == null) {
                 throw new IllegalStateException("serverUrl() and user() are both required.");
+            }
+
+            // Check that readOnly() was applied to legal configuration. Right now it should only be allowd if
+            // an assetFile is configured
+            if (readOnly) {
+                if (initialDataTransaction != null) {
+                    throw new IllegalStateException("This Realm is marked as read-only. " +
+                            "Read-only Realms cannot use initialData(Realm.Transaction).");
+                }
+                if (!waitForServerChanges) {
+                    throw new IllegalStateException("A read-only Realms must be provided by some source. " +
+                            "'waitForInitialRemoteData()' wasn't enabled which is currently the only supported source.");
+                }
             }
 
             // Check if the user has an identifier, if not, it cannot use /~/.
@@ -718,6 +749,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
                     initialDataTransaction,
+                    readOnly,
 
                     // Sync Configuration specific
                     user,

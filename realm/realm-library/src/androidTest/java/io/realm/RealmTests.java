@@ -18,8 +18,6 @@ package io.realm;
 
 import android.content.Context;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.support.test.InstrumentationRegistry;
@@ -48,7 +46,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -98,8 +95,10 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.entities.StringOnly;
+import io.realm.entities.StringOnlyReadOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
+import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
@@ -4051,5 +4050,42 @@ public class RealmTests {
         } catch (IllegalStateException ignored) {
         }
         realm.cancelTransaction();
+    }
+
+    @Test
+    public void beginTransaction_readOnlyThrows() {
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .name("readonly.realm")
+                .schema(StringOnlyReadOnly.class)
+                .assetFile("readonly.realm")
+                .readOnly()
+                .build();
+        Realm realm = Realm.getInstance(config);
+        try {
+            realm.beginTransaction();
+            fail();
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().startsWith("Write transactions cannot be used "));
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
+    public void getInstance_wrongSchemaInReadonlyThrows() {
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .name("readonly.realm")
+                .schema(StringOnlyReadOnly.class, AllJavaTypes.class)
+                .assetFile("readonly.realm")
+                .readOnly()
+                .build();
+
+        // This will throw because the Realm doesn't have the correct schema, and a new file cannot be re-created
+        // because it is read only.
+        try {
+            realm = Realm.getInstance(config);
+            fail();
+        } catch (RealmMigrationNeededException ignored) {
+        }
     }
 }

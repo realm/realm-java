@@ -97,6 +97,7 @@ public class RealmConfiguration {
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
+    private final boolean readOnly;
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
@@ -111,7 +112,8 @@ public class RealmConfiguration {
             SharedRealm.Durability durability,
             RealmProxyMediator schemaMediator,
             RxObservableFactory rxObservableFactory,
-            Realm.Transaction initialDataTransaction) {
+            Realm.Transaction initialDataTransaction,
+            boolean readOnly) {
         this.realmDirectory = realmDirectory;
         this.realmFileName = realmFileName;
         this.canonicalPath = canonicalPath;
@@ -124,6 +126,7 @@ public class RealmConfiguration {
         this.schemaMediator = schemaMediator;
         this.rxObservableFactory = rxObservableFactory;
         this.initialDataTransaction = initialDataTransaction;
+        this.readOnly = readOnly;
     }
 
     public File getRealmDirectory() {
@@ -211,7 +214,7 @@ public class RealmConfiguration {
 
     /**
      * Checks if the Realm file defined by this configuration already exists.
-     *
+     * <p>
      * WARNING: This method is just a point-in-time check. Unless protected by external synchronization another
      * thread or process might have created or deleted the Realm file right after this method has returned.
      *
@@ -237,6 +240,16 @@ public class RealmConfiguration {
         return rxObservableFactory;
     }
 
+    /**
+     * Returns whether this Realm is read-only or not. Read-only Realms cannot be modified and will throw an
+     * {@link IllegalStateException} if {@link Realm#beginTransaction()} is called on it.
+     *
+     * @return {@code true} if this Realm is read only, {@code false} if not.
+     */
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) { return true; }
@@ -259,6 +272,7 @@ public class RealmConfiguration {
         if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) {
             return false;
         }
+        if (readOnly != that.readOnly) { return false; }
 
         return schemaMediator.equals(that.schemaMediator);
     }
@@ -277,6 +291,7 @@ public class RealmConfiguration {
         result = 31 * result + durability.hashCode();
         result = 31 * result + (rxObservableFactory != null ? rxObservableFactory.hashCode() : 0);
         result = 31 * result + (initialDataTransaction != null ? initialDataTransaction.hashCode() : 0);
+        result = 31 * result + (readOnly ? 1 : 0);
 
         return result;
     }
@@ -349,6 +364,8 @@ public class RealmConfiguration {
         stringBuilder.append("durability: ").append(durability);
         stringBuilder.append("\n");
         stringBuilder.append("schemaMediator: ").append(schemaMediator);
+        stringBuilder.append("\n");
+        stringBuilder.append("readOnly: ").append(readOnly);
 
         return stringBuilder.toString();
     }
@@ -404,6 +421,7 @@ public class RealmConfiguration {
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
+        private boolean readOnly;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -433,6 +451,7 @@ public class RealmConfiguration {
             this.migration = null;
             this.deleteRealmIfMigrationNeeded = false;
             this.durability = SharedRealm.Durability.FULL;
+            this.readOnly = false;
             if (DEFAULT_MODULE != null) {
                 this.modules.add(DEFAULT_MODULE);
             }
@@ -615,16 +634,15 @@ public class RealmConfiguration {
          * When opening the Realm for the first time, instead of creating an empty file,
          * the Realm file will be copied from the provided asset file and used instead.
          * <p>
-         * <p>This cannot be configured to clear and recreate schema by calling {@link #deleteRealmIfMigrationNeeded()}
-         * at the same time as doing so will delete the copied asset schema.
-         * <p>
+         * This cannot be combined with {@link #deleteRealmIfMigrationNeeded()} as doing so would just result in the
+         * copied file being deleted.
          * <p>
          * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
          *
          * @param assetFile path to the asset database file.
          * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
-        public Builder assetFile(final String assetFile) {
+        public Builder assetFile(String assetFile) {
             if (TextUtils.isEmpty(assetFile)) {
                 throw new IllegalArgumentException("A non-empty asset file path must be provided");
             }
@@ -634,9 +652,23 @@ public class RealmConfiguration {
             if (this.deleteRealmIfMigrationNeeded) {
                 throw new IllegalStateException("Realm cannot use an asset file when previously configured to clear its schema in migration by calling deleteRealmIfMigrationNeeded().");
             }
-
             this.assetFilePath = assetFile;
 
+            return this;
+        }
+
+        /**
+         * Setting this will cause the Realm to become read only and all write transactions made against this Realm will
+         * fail with an {@link IllegalStateException}.
+         * <p>
+         * This in particular mean that {@link #initialData(Realm.Transaction)} will not work in combination with a
+         * read only Realm and setting this will result in a {@link IllegalStateException} being thrown.
+         * </p>
+         * Marking a Realm as read only only applies to the Realm in this process. Other processes can still
+         * write to the Realm.
+         */
+        public Builder readOnly() {
+            this.readOnly = true;
             return this;
         }
 
@@ -672,6 +704,20 @@ public class RealmConfiguration {
          * @return the created {@link RealmConfiguration}.
          */
         public RealmConfiguration build() {
+            // Check that readOnly() was applied to legal configuration. Right now it should only be allowed if
+            // an assetFile is configured
+            if (readOnly) {
+                if (initialDataTransaction != null) {
+                    throw new IllegalStateException("This Realm is marked as read-only. Read-only Realms cannot use initialData(Realm.Transaction).");
+                }
+                if (assetFilePath == null) {
+                    throw new IllegalStateException("Only Realms provided using 'assetFile(path)' can be marked read-only. No such Realm was provided.");
+                }
+                if (deleteRealmIfMigrationNeeded) {
+                    throw new IllegalStateException("'deleteRealmIfMigrationNeeded()' and read-only Realms cannot be combined");
+                }
+            }
+
             if (rxFactory == null && isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory();
             }
@@ -687,7 +733,8 @@ public class RealmConfiguration {
                     durability,
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
-                    initialDataTransaction
+                    initialDataTransaction,
+                    readOnly
             );
         }
 

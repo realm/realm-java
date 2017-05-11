@@ -244,6 +244,15 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     public void beginTransaction() {
+        beginTransaction(false);
+    }
+
+    public void beginTransaction(boolean ignoreReadOnly) {
+        // TODO ReadOnly is also supported by the Object Store Schema, but until we support that we need to enforce it
+        // ourselves.
+        if (!ignoreReadOnly && configuration.isReadOnly()) {
+            throw new IllegalStateException("Write transactions cannot be used when a Realm is marked as read-only.");
+        }
         detachIterators();
         executePendingRowQueries();
         nativeBeginTransaction(nativePtr);

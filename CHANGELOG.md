@@ -11,6 +11,7 @@
 * Added `Realm.refresh()` and `DynamicRealm.refresh()` (#3476).
 * Added `Realm.getInstanceAsync()` and `DynamicRealm.getInstanceAsync()` (#2299).
 * Added `DynamicRealmObject#linkingObjects(String,String)` to support linking objects on `DynamicRealm` (#4492).
+* Added support for read only Realms using `RealmConfiguration.Builder.readOnly()` and `SyncConfiguration.Builder.readOnly()`(#1147).
 * Change listeners will now auto-expand variable names to be more descriptive when using Android Studio.
 
 ### Bug Fixes
