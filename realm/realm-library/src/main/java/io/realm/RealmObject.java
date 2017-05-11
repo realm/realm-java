@@ -316,6 +316,31 @@ public abstract class RealmObject implements RealmModel {
      * Adds a change listener to this RealmObject to get detailed information about changes. The listener will be
      * triggered if any value field or referenced RealmObject field is changed, or the RealmList field itself is
      * changed.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmObject from being garbage collected.
+     * If the RealmObject is garbage collected, the change listener will stop being triggered. To avoid this, keep a
+     * strong reference for as long as appropriate e.g. in a class variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private Person person; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       person = realm.where(Person.class).findFirst();
+     *       person.addChangeListener(new RealmObjectChangeListener<Person>() {
+     *           \@Override
+     *           public void onChange(Person person, ObjectChangeSet changeSet) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
@@ -330,6 +355,31 @@ public abstract class RealmObject implements RealmModel {
     /**
      * Adds a change listener to this RealmObject that will be triggered if any value field or referenced RealmObject
      * field is changed, or the RealmList field itself is changed.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmObject from being garbage collected.
+     * If the RealmObject is garbage collected, the change listener will stop being triggered. To avoid this, keep a
+     * strong reference for as long as appropriate e.g. in a class variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private Person person; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       person = realm.where(Person.class).findFirst();
+     *       person.addChangeListener(new RealmChangeListener<Person>() {
+     *           \@Override
+     *           public void onChange(Person person) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
@@ -345,6 +395,32 @@ public abstract class RealmObject implements RealmModel {
      * Adds a change listener to a RealmObject to get detailed information about the changes. The listener will be
      * triggered if any value field or referenced RealmObject field is changed, or the RealmList field itself is
      * changed.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmObject from being garbage collected.
+     * If the RealmObject is garbage collected, the change listener will stop being triggered. To avoid this, keep a
+     * strong reference for as long as appropriate e.g. in a class variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private Person person; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       person = realm.where(Person.class).findFirst();
+     *       person.addChangeListener(new RealmObjectChangeListener<Person>() {
+     *           \@Override
+     *           public void onChange(Person person, ObjectChangeSet changeSet) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
+     *
      *
      * @param object RealmObject to add listener to.
      * @param listener the change listener to be notified.
@@ -375,6 +451,31 @@ public abstract class RealmObject implements RealmModel {
     /**
      * Adds a change listener to a RealmObject that will be triggered if any value field or referenced RealmObject field
      * is changed, or the RealmList field itself is changed.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmObject from being garbage collected.
+     * If the RealmObject is garbage collected, the change listener will stop being triggered. To avoid this, keep a
+     * strong reference for as long as appropriate e.g. in a class variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private Person person; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       person = realm.where(Person.class).findFirst();
+     *       person.addChangeListener(new RealmChangeListener<Person>() {
+     *           \@Override
+     *           public void onChange(Person person) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param object RealmObject to add listener to.
      * @param listener the change listener to be notified.
