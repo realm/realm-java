@@ -429,7 +429,7 @@ public class Realm extends BaseRealm {
 
             // Only allow creating the schema if not in read-only mode
             if (unversioned) {
-                if (!configuration.isReadOnly()) {
+                if (configuration.isReadOnly()) {
                     throw new IllegalArgumentException("Cannot create the Realm schema in a read-only file.");
                 }
                 realm.setVersion(configuration.getSchemaVersion());
