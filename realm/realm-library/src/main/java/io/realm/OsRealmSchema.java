@@ -34,11 +34,11 @@ import io.realm.internal.Table;
  */
 class OsRealmSchema extends RealmSchema {
     static final class Creator extends RealmSchema {
-        private final Map<String, RealmObjectSchema> schema = new HashMap<>();
+        private final Map<String, OsRealmObjectSchema> schema = new HashMap<>();
 
         @Override
         public void close() {
-            for (Map.Entry<String, RealmObjectSchema> entry : schema.entrySet()) {
+            for (Map.Entry<String, OsRealmObjectSchema> entry : schema.entrySet()) {
                 entry.getValue().close();
             }
             schema.clear();
@@ -52,13 +52,13 @@ class OsRealmSchema extends RealmSchema {
 
         @Override
         public Set<RealmObjectSchema> getAll() {
-            return new LinkedHashSet<>(schema.values());
+            return new LinkedHashSet<RealmObjectSchema>(schema.values());
         }
 
         @Override
         public RealmObjectSchema create(String className) {
             checkEmpty(className);
-            OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(className);
+            OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(this, className);
             schema.put(className, realmObjectSchema);
             return realmObjectSchema;
         }
@@ -103,6 +103,10 @@ class OsRealmSchema extends RealmSchema {
 
     private long nativePtr;
 
+    // TODO:
+    // Because making getAll return Set<? Extends RealmObjectSchema> is a breaking change
+    // Creator.getAll must return Set<RealmObjectSchema> instead of Set<? extends RealmObjectSchema>
+    // That necessitates the cast inside the loop below.
     OsRealmSchema(Creator creator) {
         Set<RealmObjectSchema> realmObjectSchemas = creator.getAll();
         long[] schemaNativePointers = new long[realmObjectSchemas.size()];
@@ -158,7 +162,7 @@ class OsRealmSchema extends RealmSchema {
     public RealmObjectSchema create(String className) {
         // Adding a class is always permitted.
         checkEmpty(className);
-        OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(className);
+        OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(this, className);
         dynamicClassToSchema.put(className, realmObjectSchema);
         return realmObjectSchema;
     }
@@ -204,7 +208,7 @@ class OsRealmSchema extends RealmSchema {
         throw new UnsupportedOperationException();
     }
 
-    static void checkEmpty(String str) {
+    private static void checkEmpty(String str) {
         if (str == null || str.isEmpty()) {
             throw new IllegalArgumentException("Null or empty class names are not allowed");
         }

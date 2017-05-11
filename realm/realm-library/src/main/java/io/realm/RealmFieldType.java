@@ -42,17 +42,16 @@ public enum RealmFieldType {
     FLOAT(9),
     DOUBLE(10),
     OBJECT(12),
-    LIST(13);
-    // BACKLINK(14); Not exposed until needed.
+    LIST(13),
+    LINKING_OBJECTS(14);
 
     // Primitive array for fast mapping between between native values and their Realm type.
-    private static RealmFieldType[] typeList = new RealmFieldType[15];
+    private static final RealmFieldType[] typeList = new RealmFieldType[15];
 
     static {
         RealmFieldType[] columnTypes = values();
         for (int i = 0; i < columnTypes.length; i++) {
-            int v = columnTypes[i].nativeValue;
-            typeList[v] = columnTypes[i];
+            typeList[columnTypes[i].nativeValue] = columnTypes[i];
         }
     }
 
