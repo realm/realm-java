@@ -135,6 +135,31 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
 
     /**
      * Adds a change listener to this {@link RealmResults}.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmResults from being garbage collected.
+     * If the RealmResults is garbage collected, the change listener will stop being triggered. To avoid this, keep a
+     * strong reference for as long as appropriate e.g. in a class variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private RealmResults<Person> results; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       results = realm.where(Person.class).findAllAsync();
+     *       results.addChangeListener(new RealmChangeListener<RealmResults<Person>>() {
+     *           \@Override
+     *           public void onChange(RealmResults<Person> persons) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.
@@ -148,6 +173,31 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
 
     /**
      * Adds a change listener to this {@link RealmResults}.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmResults from being garbage collected.
+     * If the RealmResults is garbage collected, the change listener will stop being triggered. To avoid this, keep a
+     * strong reference for as long as appropriate e.g. in a class variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private RealmResults<Person> results; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       results = realm.where(Person.class).findAllAsync();
+     *       results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Person>>() {
+     *           \@Override
+     *           public void onChange(RealmResults<Person> persons, OrderedCollectionChangeSet changeSet) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.
