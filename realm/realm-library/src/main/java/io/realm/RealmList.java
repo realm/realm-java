@@ -914,9 +914,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      *     protected void onCreate(Bundle savedInstanceState) {
      *       super.onCreate(savedInstanceState);
      *       dogs = realm.where(Person.class).findFirst().getDogs();
-     *       dogs.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
+     *       dogs.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
      *           \@Override
-     *           public void onChange(RealmResults<Dog> dogs, OrderedCollectionChangeSet changeSet) {
+     *           public void onChange(RealmList<Dog> dogs, OrderedCollectionChangeSet changeSet) {
      *               // React to change
      *           }
      *       });
@@ -965,9 +965,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      *     protected void onCreate(Bundle savedInstanceState) {
      *       super.onCreate(savedInstanceState);
      *       dogs = realm.where(Person.class).findFirst().getDogs();
-     *       dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
+     *       dogs.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
      *           \@Override
-     *           public void onChange(RealmResults<Dog> dogs) {
+     *           public void onChange(RealmList<Dog> dogs) {
      *               // React to change
      *           }
      *       });
