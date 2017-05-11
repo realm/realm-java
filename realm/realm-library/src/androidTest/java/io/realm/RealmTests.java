@@ -95,8 +95,10 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.entities.StringOnly;
+import io.realm.entities.StringOnlyReadOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
+import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
@@ -4054,16 +4056,18 @@ public class RealmTests {
     public void beginTransaction_readOnlyThrows() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name("readonly.realm")
-                .schema(StringOnly.class)
+                .schema(StringOnlyReadOnly.class)
                 .assetFile("readonly.realm")
                 .readOnly()
                 .build();
-        realm = Realm.getInstance(config);
-
+        Realm realm = Realm.getInstance(config);
         try {
             realm.beginTransaction();
+            fail();
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().startsWith("Write transactions cannot be used "));
+        } finally {
+            realm.close();
         }
     }
 
@@ -4071,7 +4075,7 @@ public class RealmTests {
     public void getInstance_wrongSchemaInReadonlyThrows() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name("readonly.realm")
-                .schema(StringOnly.class, AllJavaTypes.class)
+                .schema(StringOnlyReadOnly.class, AllJavaTypes.class)
                 .assetFile("readonly.realm")
                 .readOnly()
                 .build();
@@ -4081,8 +4085,7 @@ public class RealmTests {
         try {
             realm = Realm.getInstance(config);
             fail();
-        } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().startsWith("Write transactions cannot be used "));
+        } catch (RealmMigrationNeededException ignored) {
         }
     }
 }

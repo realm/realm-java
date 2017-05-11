@@ -451,7 +451,7 @@ public class Realm extends BaseRealm {
 
             // Finally add any initial data
             final Transaction transaction = configuration.getInitialDataTransaction();
-            if (transaction != null) {
+            if (transaction != null && unversioned) {
                 transaction.execute(realm);
             }
         } catch (Exception e) {
@@ -460,10 +460,8 @@ public class Realm extends BaseRealm {
         } finally {
             if (commitChanges) {
                 realm.commitTransaction();
-            } else {
-                if (realm.isInTransaction()) {
-                    realm.cancelTransaction();
-                }
+            } else if (realm.isInTransaction()) {
+                realm.cancelTransaction();
             }
         }
     }

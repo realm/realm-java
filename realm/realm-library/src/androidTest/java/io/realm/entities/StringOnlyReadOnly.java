@@ -18,7 +18,12 @@ package io.realm.entities;
 
 import io.realm.RealmObject;
 
-public class StringOnly extends RealmObject {
+
+/**
+ * WARNING: This class is used by some `readOnly()` tests. Modifying this class will cause these to fail.
+ * If this class is modified then `/assets/readonly.realm` must be re-created as well.
+ */
+public class StringOnlyReadOnly extends RealmObject {
     private String chars;
 
     public String getChars() {
