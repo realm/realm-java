@@ -424,23 +424,18 @@ public class Realm extends BaseRealm {
             commitChanges = unversioned;
 
             RealmConfiguration configuration = realm.getConfiguration();
+            RealmProxyMediator mediator = configuration.getSchemaMediator();
+            Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
             // Only allow creating the schema if not in read-only mode
-            Set<Class<? extends RealmModel>> modelClasses = Collections.emptySet();
-            RealmProxyMediator mediator = null;
-            if (!configuration.isReadOnly()) {
-                if (unversioned) {
-                    realm.setVersion(configuration.getSchemaVersion());
+            if (unversioned) {
+                if (!configuration.isReadOnly()) {
+                    throw new IllegalArgumentException("Cannot create the Realm schema in a read-only file.");
                 }
-
-                mediator = configuration.getSchemaMediator();
-                modelClasses = mediator.getModelClasses();
-
-                if (unversioned) {
-                    // Create all of the tables.
-                    for (Class<? extends RealmModel> modelClass : modelClasses) {
-                        mediator.createRealmObjectSchema(modelClass, realm.getSchema());
-                    }
+                realm.setVersion(configuration.getSchemaVersion());
+                // Create all of the tables.
+                for (Class<? extends RealmModel> modelClass : modelClasses) {
+                    mediator.createRealmObjectSchema(modelClass, realm.getSchema());
                 }
             }
 
@@ -454,11 +449,10 @@ public class Realm extends BaseRealm {
                     (unversioned) ? configuration.getSchemaVersion() : currentVersion,
                     columnInfoMap);
 
-            if (unversioned && !configuration.isReadOnly()) {
-                final Transaction transaction = configuration.getInitialDataTransaction();
-                if (transaction != null) {
-                    transaction.execute(realm);
-                }
+            // Finally add any initial data
+            final Transaction transaction = configuration.getInitialDataTransaction();
+            if (transaction != null) {
+                transaction.execute(realm);
             }
         } catch (Exception e) {
             commitChanges = false;
@@ -495,6 +489,7 @@ public class Realm extends BaseRealm {
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
             long newVersion = configuration.getSchemaVersion();
+            // Update/create the schema if allowed
             if (!configuration.isReadOnly()) {
                 schemaCreator = new OsRealmSchema.Creator();
                 for (Class<? extends RealmModel> modelClass : modelClasses) {
@@ -524,11 +519,11 @@ public class Realm extends BaseRealm {
                 }
             }
 
+            // Validate the schema in the file
             final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
-
             realm.getSchema().setInitialColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
 
             if (unversioned && !configuration.isReadOnly()) {
@@ -544,7 +539,6 @@ public class Realm extends BaseRealm {
             if (schemaCreator != null) {
                 schemaCreator.close();
             }
-
             if (schema != null) {
                 schema.close();
             }

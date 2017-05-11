@@ -241,7 +241,7 @@ public class RealmConfiguration {
     }
 
     /**
-     * Returns whether this Realm is read only or not. Read-only Realms cannot be modified and will throw an
+     * Returns whether this Realm is read-only or not. Read-only Realms cannot be modified and will throw an
      * {@link IllegalStateException} if {@link Realm#beginTransaction()} is called on it.
      *
      * @return {@code true} if this Realm is read only, {@code false} if not.
@@ -364,6 +364,8 @@ public class RealmConfiguration {
         stringBuilder.append("durability: ").append(durability);
         stringBuilder.append("\n");
         stringBuilder.append("schemaMediator: ").append(schemaMediator);
+        stringBuilder.append("\n");
+        stringBuilder.append("readOnly: ").append(readOnly);
 
         return stringBuilder.toString();
     }
