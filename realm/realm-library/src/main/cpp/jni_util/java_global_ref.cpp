@@ -34,3 +34,8 @@ JavaGlobalRef& JavaGlobalRef::operator=(JavaGlobalRef&& rhs)
     new (this) JavaGlobalRef(std::move(rhs));
     return *this;
 }
+
+JavaGlobalRef::JavaGlobalRef(JavaGlobalRef& rhs)
+        : m_ref(rhs.m_ref ? jni_util::JniUtils::get_env(true)->NewGlobalRef(rhs.m_ref) : nullptr)
+{
+}

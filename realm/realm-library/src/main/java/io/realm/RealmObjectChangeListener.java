@@ -51,8 +51,8 @@ public interface RealmObjectChangeListener<T extends RealmModel> {
      * <p>
      * Changes to {@link LinkingObjects} annotated {@link RealmResults} fields will not be monitored, nor reported
      * through this change listener.
-     * @param object the {@code RealmObject} this listener is registered to.
+     * @param t the {@code RealmObject} this listener is registered to.
      * @param changeSet the detailed information about the changes.
      */
-    void onChange(T object, ObjectChangeSet changeSet);
+    void onChange(T t, ObjectChangeSet changeSet);
 }
