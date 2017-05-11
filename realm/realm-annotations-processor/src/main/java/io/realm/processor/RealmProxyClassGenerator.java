@@ -77,6 +77,7 @@ public class RealmProxyClassGenerator {
         imports.add("io.realm.internal.RealmObjectProxy");
         imports.add("io.realm.internal.Row");
         imports.add("io.realm.internal.Table");
+        imports.add("io.realm.internal.OsObject");
         imports.add("io.realm.internal.SharedRealm");
         if (!metadata.getBacklinkFields().isEmpty()) {
             imports.add("io.realm.internal.UncheckedRow");
@@ -1487,9 +1488,11 @@ public class RealmProxyClassGenerator {
 
             writer.beginControlFlow("if (rowIndex == Table.NO_MATCH)");
             if (Utils.isString(metadata.getPrimaryKey())) {
-                writer.emitStatement("rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false)");
+                writer.emitStatement(
+                        "rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, primaryKeyValue)");
             } else {
-                writer.emitStatement("rowIndex = table.addEmptyRowWithPrimaryKey(((%s) object).%s(), false)",
+                writer.emitStatement(
+                        "rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, ((%s) object).%s())",
                         interfaceName, primaryKeyGetter);
             }
 
@@ -1501,7 +1504,7 @@ public class RealmProxyClassGenerator {
             writer.endControlFlow();
             writer.emitStatement("cache.put(object, rowIndex)");
         } else {
-            writer.emitStatement("long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
+            writer.emitStatement("long rowIndex = OsObject.createRow(realm.sharedRealm, table)");
             writer.emitStatement("cache.put(object, rowIndex)");
         }
     }

@@ -56,7 +56,7 @@ public class Table implements TableSchema, NativeObject {
     private static final long PRIMARY_KEY_CLASS_COLUMN_INDEX = 0;
     private static final String PRIMARY_KEY_FIELD_COLUMN_NAME = "pk_property";
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
-    private static final long NO_PRIMARY_KEY = -2;
+    public static final long NO_PRIMARY_KEY = -2;
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 

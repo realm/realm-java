@@ -19,14 +19,17 @@
 #include <realm/row.hpp>
 #include <object_schema.hpp>
 #include <object.hpp>
+#include <util/format.hpp>
 
 #include "util.hpp"
 
 #include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/java_method.hpp"
+#include "jni_util/java_class.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
+using namespace realm::_impl;
 
 // We need to control the life cycle of Object, weak ref of Java OsObject and the NotificationToken.
 // Wrap all three together, so when the Java object gets GCed, all three of them will be invalidated.
@@ -152,6 +155,87 @@ static void finalize_object(jlong ptr)
     delete reinterpret_cast<ObjectWrapper*>(ptr);
 }
 
+static inline size_t do_create_row(jlong shared_realm_ptr, jlong table_ptr) {
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
+    shared_realm->verify_in_write();
+    return table.add_empty_row();
+}
+
+template <class T>
+static void throw_duplicated_primary_key_exception(JNIEnv* env, T value) {
+    static JavaClass dup_pk_exception(env, "io/realm/exceptions/RealmPrimaryKeyConstraintException");
+    env->ThrowNew(dup_pk_exception, format("Primary key value already exists: %1 .", value).c_str());
+}
+
+static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ptr,
+                                                    jlong pk_column_ndx, jlong pk_value, jboolean is_pk_null)
+{
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
+    shared_realm->verify_in_write(); // throws
+    if (is_pk_null && !TBL_AND_COL_NULLABLE(env, &table, pk_column_ndx)) {
+        return npos;
+    }
+
+    if (is_pk_null) {
+        if (table.find_first_null(pk_column_ndx) != npos) {
+            throw_duplicated_primary_key_exception(env, "'null'");
+            return npos;
+        }
+    }
+    else {
+        if (table.find_first_int(pk_column_ndx, pk_value) != npos) {
+            throw_duplicated_primary_key_exception(env, reinterpret_cast<long long>(pk_value));
+            return npos;
+        }
+    }
+
+    size_t row_ndx = table.add_empty_row();
+
+    if (is_pk_null) {
+        table.set_null_unique(pk_column_ndx, row_ndx);
+    }
+    else {
+        table.set_int_unique(pk_column_ndx, row_ndx, pk_value);
+    }
+    return row_ndx;
+}
+
+static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ptr,
+                                                    jlong pk_column_ndx, jstring pk_value)
+{
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
+    JStringAccessor str_accessor(env, pk_value); // throws
+    shared_realm->verify_in_write(); // throws
+    if (!pk_value && !TBL_AND_COL_NULLABLE(env, &table, pk_column_ndx)) {
+        return npos;
+    }
+
+    if (pk_value) {
+        if (table.find_first_string(pk_column_ndx, str_accessor) != npos) {
+            throw_duplicated_primary_key_exception(env, str_accessor.operator std::string());
+            return npos;
+        }
+    } else {
+        if (table.find_first_null(pk_column_ndx) != npos) {
+            throw_duplicated_primary_key_exception(env, "'null'");
+            return npos;
+        }
+    }
+
+    size_t row_ndx = table.add_empty_row();
+    if (pk_value) {
+        table.set_string_unique(pk_column_ndx, row_ndx, str_accessor);
+    }
+    else {
+        table.set_string_unique(pk_column_ndx, row_ndx, null{});
+    }
+
+    return row_ndx;
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
     TR_ENTER()
@@ -203,4 +287,80 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStopListening(JNIEn
         wrapper->m_notification_token = {};
     }
     CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRow(JNIEnv* env, jclass, jlong shared_realm_ptr,
+                                                                        jlong table_ptr)
+{
+    try {
+        return do_create_row(shared_realm_ptr, table_ptr);
+    }
+    CATCH_STD()
+    return -1;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObject(JNIEnv* env, jclass,
+                                                                              jlong shared_realm_ptr, jlong table_ptr)
+{
+    try {
+        size_t row_ndx = do_create_row(shared_realm_ptr, table_ptr);
+        auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
+        return reinterpret_cast<jlong>(new Row(table[row_ndx]));
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithPrimaryKey__JJJJZ(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong pk_column_ndx, jlong pk_value,
+    jboolean is_pk_null)
+{
+    try {
+        auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
+        size_t row_ndx =
+            do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value, is_pk_null);
+        if (row_ndx != npos) {
+            return reinterpret_cast<jlong>(new Row(table[row_ndx]));
+        }
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithPrimaryKey__JJJJZ(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong pk_column_ndx, jlong pk_value,
+    jboolean is_pk_null)
+{
+    try {
+        return do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value, is_pk_null);
+    }
+    CATCH_STD()
+    return npos;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithPrimaryKey__JJJLjava_lang_String_2(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong pk_column_ndx, jstring pk_value)
+{
+    try {
+        auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
+        size_t row_ndx =
+            do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value);
+        if (row_ndx != npos) {
+            return reinterpret_cast<jlong>(new Row(table[row_ndx]));
+        }
+    }
+    CATCH_STD()
+
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithPrimaryKey__JJJLjava_lang_String_2(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong pk_column_ndx, jstring pk_value)
+{
+    try {
+        return do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value);
+    }
+    CATCH_STD()
+
+    return npos;
 }
