@@ -155,7 +155,8 @@ static void finalize_object(jlong ptr)
     delete reinterpret_cast<ObjectWrapper*>(ptr);
 }
 
-static inline size_t do_create_row(jlong shared_realm_ptr, jlong table_ptr) {
+static inline size_t do_create_row(jlong shared_realm_ptr, jlong table_ptr)
+{
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
     shared_realm->verify_in_write();
@@ -163,7 +164,8 @@ static inline size_t do_create_row(jlong shared_realm_ptr, jlong table_ptr) {
 }
 
 template <class T>
-static void throw_duplicated_primary_key_exception(JNIEnv* env, T value) {
+static void throw_duplicated_primary_key_exception(JNIEnv* env, T value)
+{
     static JavaClass dup_pk_exception(env, "io/realm/exceptions/RealmPrimaryKeyConstraintException");
     env->ThrowNew(dup_pk_exception, format("Primary key value already exists: %1 .", value).c_str());
 }
@@ -208,7 +210,7 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
     JStringAccessor str_accessor(env, pk_value); // throws
-    shared_realm->verify_in_write(); // throws
+    shared_realm->verify_in_write();             // throws
     if (!pk_value && !TBL_AND_COL_NULLABLE(env, &table, pk_column_ndx)) {
         return npos;
     }
@@ -218,7 +220,8 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
             throw_duplicated_primary_key_exception(env, str_accessor.operator std::string());
             return npos;
         }
-    } else {
+    }
+    else {
         if (table.find_first_null(pk_column_ndx) != npos) {
             throw_duplicated_primary_key_exception(env, "'null'");
             return npos;
@@ -243,7 +246,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeGetFinalizerPtr(JN
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreate(JNIEnv*, jclass, jlong shared_realm_ptr,
-                                                                      jlong row_ptr)
+                                                                     jlong row_ptr)
 {
     TR_ENTER_PTR(row_ptr)
 
@@ -260,7 +263,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreate(JNIEnv*, jc
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStartListening(JNIEnv* env, jobject instance,
-                                                                             jlong native_ptr)
+                                                                            jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
 
@@ -343,8 +346,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
 {
     try {
         auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
-        size_t row_ndx =
-            do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value);
+        size_t row_ndx = do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value);
         if (row_ndx != npos) {
             return reinterpret_cast<jlong>(new Row(table[row_ndx]));
         }
