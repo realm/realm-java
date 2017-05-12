@@ -26,10 +26,14 @@
 #include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/java_class.hpp"
+#include "jni_util/java_exception_thrower.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
 using namespace realm::_impl;
+
+static const char* PK_CONSTRAINT_EXCEPTION_CLASS = "io/realm/exceptions/RealmPrimaryKeyConstraintException";
+static const char* PK_EXCEPTION_MSG_FORMAT = "Primary key value already exists: %1 .";
 
 // We need to control the life cycle of Object, weak ref of Java OsObject and the NotificationToken.
 // Wrap all three together, so when the Java object gets GCed, all three of them will be invalidated.
@@ -163,13 +167,6 @@ static inline size_t do_create_row(jlong shared_realm_ptr, jlong table_ptr)
     return table.add_empty_row();
 }
 
-template <class T>
-static void throw_duplicated_primary_key_exception(JNIEnv* env, T value)
-{
-    static JavaClass dup_pk_exception(env, "io/realm/exceptions/RealmPrimaryKeyConstraintException");
-    env->ThrowNew(dup_pk_exception, format("Primary key value already exists: %1 .", value).c_str());
-}
-
 static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ptr,
                                                     jlong pk_column_ndx, jlong pk_value, jboolean is_pk_null)
 {
@@ -181,15 +178,14 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
     }
 
     if (is_pk_null) {
-        if (table.find_first_null(pk_column_ndx) != realm::npos) {
-            throw_duplicated_primary_key_exception(env, "'null'");
-            return realm::npos;
+        if (table.find_first_null(pk_column_ndx) != npos) {
+            throw JavaExceptionThrower(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
     else {
-        if (table.find_first_int(pk_column_ndx, pk_value) != realm::npos) {
-            throw_duplicated_primary_key_exception(env, reinterpret_cast<long long>(pk_value));
-            return realm::npos;
+        if (table.find_first_int(pk_column_ndx, pk_value) != npos) {
+            throw JavaExceptionThrower(env, PK_CONSTRAINT_EXCEPTION_CLASS,
+                                       format(PK_EXCEPTION_MSG_FORMAT, reinterpret_cast<long long>(pk_value)));
         }
     }
 
@@ -216,15 +212,14 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
     }
 
     if (pk_value) {
-        if (table.find_first_string(pk_column_ndx, str_accessor) != realm::npos) {
-            throw_duplicated_primary_key_exception(env, str_accessor.operator std::string());
-            return realm::npos;
+        if (table.find_first_string(pk_column_ndx, str_accessor) != npos) {
+            throw JavaExceptionThrower(env, PK_CONSTRAINT_EXCEPTION_CLASS,
+                                       format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
         }
     }
     else {
-        if (table.find_first_null(pk_column_ndx) != realm::npos) {
-            throw_duplicated_primary_key_exception(env, "'null'");
-            return realm::npos;
+        if (table.find_first_null(pk_column_ndx) != npos) {
+            throw JavaExceptionThrower(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
 
