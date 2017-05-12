@@ -822,12 +822,6 @@ public class Table implements TableSchema, NativeObject {
         }
     }
 
-    private void checkHasPrimaryKey() {
-        if (!hasPrimaryKey()) {
-            throw new IllegalStateException(getName() + " has no primary key defined");
-        }
-    }
-
     //
     // Count
     //
