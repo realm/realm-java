@@ -873,7 +873,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
 
         final String className = Table.tableNameToClassName(proxyState.getRow$realm().getTable().getName());
-        StringBuilder sb = new StringBuilder(className + " = [");
+        StringBuilder sb = new StringBuilder(className + " = dynamic[");
         String[] fields = getFieldNames();
         for (String field : fields) {
             long columnIndex = proxyState.getRow$realm().getColumnIndex(field);
@@ -918,9 +918,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     sb.append("?");
                     break;
             }
-            sb.append("}, ");
+            sb.append("},");
         }
-        sb.replace(sb.length() - 2, sb.length(), "");
+        sb.replace(sb.length() - 1, sb.length(), "");
         sb.append("]");
         return sb.toString();
     }
