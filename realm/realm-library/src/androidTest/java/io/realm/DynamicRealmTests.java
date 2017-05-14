@@ -675,7 +675,36 @@ public class DynamicRealmTests {
         dynamicRealm.commitTransaction();
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Invalid query: field 'nonExisting' does not exist in table 'NoField'.");
+        thrown.expectMessage("Invalid query: field 'nonExisting' not found in table 'NoField'.");
         dynamicRealm.where(className).equalTo("nonExisting", 1);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void getInstanceAsync_nonLooperThreadShouldThrow() {
+        DynamicRealm.getInstanceAsync(defaultConfig, new DynamicRealm.Callback() {
+            @Override
+            public void onSuccess(DynamicRealm realm) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_nullConfigShouldThrow() {
+        thrown.expect(IllegalArgumentException.class);
+        DynamicRealm.getInstanceAsync(null, new DynamicRealm.Callback() {
+            @Override
+            public void onSuccess(DynamicRealm realm) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_nullCallbackShouldThrow() {
+        thrown.expect(IllegalArgumentException.class);
+        DynamicRealm.getInstanceAsync(defaultConfig, null);
     }
 }

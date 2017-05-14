@@ -49,13 +49,12 @@ import io.realm.objectserver.utils.UserFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+
 @RunWith(AndroidJUnit4.class)
 public class ProcessCommitTests extends BaseIntegrationTest {
 
-    // FIXME: Ignore for now. They do still not work. It might be caused by two processes each creating
-    // a Sync Client, but it needs to be investigated.
     @Test
-    @Ignore
+    @Ignore("Failure might be caused by two processes each creating a Sync Client: needs investigation")
     public void expectServerCommit() throws Throwable {
         final Throwable[] exception = new Throwable[1];
         final CountDownLatch testFinished = new CountDownLatch(1);
@@ -109,14 +108,12 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         }
     }
 
-    // FIXME: Ignore for now. They do still not work. It might be caused by two processes each creating
-    // a Sync Client, but it needs to be investigated.
-    //TODO send string from service and match
-    //     replicate integration tests from Cocoa
-    //     add gradle task to start the sh script automatically (create pid file, ==> run or kill existing process
-    //     check the requirement for the issue again
+    // TODO:
+    // - send string from service and match replicate integration tests from Cocoa
+    // - add gradle task to start the sh script automatically (create pid file, ==> run or kill existing process)
+    // - check the requirement for the issue again
     @Test
-    @Ignore
+    @Ignore("Failure might be caused by two processes each creating a Sync Client: needs investigation")
     public void expectALot() throws Throwable {
         final Throwable[] exception = new Throwable[1];
         final CountDownLatch testFinished = new CountDownLatch(1);

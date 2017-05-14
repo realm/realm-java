@@ -49,9 +49,9 @@ import rx.Observable;
  * The types <code>short</code>, <code>int</code>, and <code>long</code> are mapped to <code>long</code> when storing
  * within a Realm.
  * <p>
- * The only restriction a RealmObject has is that fields are not allowed to be final, transient' or volatile.
+ * The only restriction a RealmObject has is that fields are not allowed to be final or volatile.
  * Any method as well as public fields are allowed. When providing custom constructors, a public constructor with
- * no arguments must be declared and be empty.
+ * no arguments must be declared.
  * <p>
  * Fields annotated with {@link io.realm.annotations.Ignore} don't have these restrictions and don't require either a
  * getter or setter.

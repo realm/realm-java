@@ -17,8 +17,11 @@
 package io.realm;
 
 
+import android.annotation.SuppressLint;
 import android.os.Looper;
+import android.util.Log;
 
+import io.realm.internal.CheckedRow;
 import io.realm.internal.Collection;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
@@ -55,18 +58,25 @@ import rx.Observable;
  * @see Realm#executeTransaction(Realm.Transaction)
  */
 public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionImpl<E> {
+
+    // Called from Realm Proxy classes
+    @SuppressLint("unused")
     static <T extends RealmModel> RealmResults<T> createBacklinkResults(BaseRealm realm, Row row, Class<T> srcTableType, String srcFieldName) {
-        if (!(row instanceof UncheckedRow)) {
-            throw new IllegalArgumentException("Row is " + row.getClass());
-        }
         UncheckedRow uncheckedRow = (UncheckedRow) row;
         Table srcTable = realm.getSchema().getTable(srcTableType);
-        return new RealmResults<T>(
+        return new RealmResults<>(
                 realm,
                 Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
                 srcTableType);
     }
 
+    // Abandon typing information, all ye who enter here
+    static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
+        return new RealmResults<>(
+                realm,
+                Collection.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),
+                Table.getClassNameForTable(srcTable.getName()));
+    }
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
         super(realm, collection, clazz);
@@ -301,7 +311,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @Deprecated
     public RealmResults<E> distinct(String fieldName) {
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(collection.getTable(), fieldName);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(new SchemaConnector(realm.getSchema()), collection.getTable(), fieldName);
         Collection distinctCollection = collection.distinct(distinctDescriptor);
         return createLoadedResults(distinctCollection);
     }

@@ -31,113 +31,92 @@ import org.json.JSONObject;
 public class NullTypesRealmProxy extends some.test.NullTypes
         implements RealmObjectProxy, NullTypesRealmProxyInterface {
 
-    static final class NullTypesColumnInfo extends ColumnInfo
-            implements Cloneable {
+    static final class NullTypesColumnInfo extends ColumnInfo {
+        long fieldStringNotNullIndex;
+        long fieldStringNullIndex;
+        long fieldBooleanNotNullIndex;
+        long fieldBooleanNullIndex;
+        long fieldBytesNotNullIndex;
+        long fieldBytesNullIndex;
+        long fieldByteNotNullIndex;
+        long fieldByteNullIndex;
+        long fieldShortNotNullIndex;
+        long fieldShortNullIndex;
+        long fieldIntegerNotNullIndex;
+        long fieldIntegerNullIndex;
+        long fieldLongNotNullIndex;
+        long fieldLongNullIndex;
+        long fieldFloatNotNullIndex;
+        long fieldFloatNullIndex;
+        long fieldDoubleNotNullIndex;
+        long fieldDoubleNullIndex;
+        long fieldDateNotNullIndex;
+        long fieldDateNullIndex;
+        long fieldObjectNullIndex;
 
-        public long fieldStringNotNullIndex;
-        public long fieldStringNullIndex;
-        public long fieldBooleanNotNullIndex;
-        public long fieldBooleanNullIndex;
-        public long fieldBytesNotNullIndex;
-        public long fieldBytesNullIndex;
-        public long fieldByteNotNullIndex;
-        public long fieldByteNullIndex;
-        public long fieldShortNotNullIndex;
-        public long fieldShortNullIndex;
-        public long fieldIntegerNotNullIndex;
-        public long fieldIntegerNullIndex;
-        public long fieldLongNotNullIndex;
-        public long fieldLongNullIndex;
-        public long fieldFloatNotNullIndex;
-        public long fieldFloatNullIndex;
-        public long fieldDoubleNotNullIndex;
-        public long fieldDoubleNullIndex;
-        public long fieldDateNotNullIndex;
-        public long fieldDateNullIndex;
-        public long fieldObjectNullIndex;
+        NullTypesColumnInfo(SharedRealm realm, Table table) {
+            super(21);
+            this.fieldStringNotNullIndex = addColumnDetails(table, "fieldStringNotNull", RealmFieldType.STRING);
+            this.fieldStringNullIndex = addColumnDetails(table, "fieldStringNull", RealmFieldType.STRING);
+            this.fieldBooleanNotNullIndex = addColumnDetails(table, "fieldBooleanNotNull", RealmFieldType.BOOLEAN);
+            this.fieldBooleanNullIndex = addColumnDetails(table, "fieldBooleanNull", RealmFieldType.BOOLEAN);
+            this.fieldBytesNotNullIndex = addColumnDetails(table, "fieldBytesNotNull", RealmFieldType.BINARY);
+            this.fieldBytesNullIndex = addColumnDetails(table, "fieldBytesNull", RealmFieldType.BINARY);
+            this.fieldByteNotNullIndex = addColumnDetails(table, "fieldByteNotNull", RealmFieldType.INTEGER);
+            this.fieldByteNullIndex = addColumnDetails(table, "fieldByteNull", RealmFieldType.INTEGER);
+            this.fieldShortNotNullIndex = addColumnDetails(table, "fieldShortNotNull", RealmFieldType.INTEGER);
+            this.fieldShortNullIndex = addColumnDetails(table, "fieldShortNull", RealmFieldType.INTEGER);
+            this.fieldIntegerNotNullIndex = addColumnDetails(table, "fieldIntegerNotNull", RealmFieldType.INTEGER);
+            this.fieldIntegerNullIndex = addColumnDetails(table, "fieldIntegerNull", RealmFieldType.INTEGER);
+            this.fieldLongNotNullIndex = addColumnDetails(table, "fieldLongNotNull", RealmFieldType.INTEGER);
+            this.fieldLongNullIndex = addColumnDetails(table, "fieldLongNull", RealmFieldType.INTEGER);
+            this.fieldFloatNotNullIndex = addColumnDetails(table, "fieldFloatNotNull", RealmFieldType.FLOAT);
+            this.fieldFloatNullIndex = addColumnDetails(table, "fieldFloatNull", RealmFieldType.FLOAT);
+            this.fieldDoubleNotNullIndex = addColumnDetails(table, "fieldDoubleNotNull", RealmFieldType.DOUBLE);
+            this.fieldDoubleNullIndex = addColumnDetails(table, "fieldDoubleNull", RealmFieldType.DOUBLE);
+            this.fieldDateNotNullIndex = addColumnDetails(table, "fieldDateNotNull", RealmFieldType.DATE);
+            this.fieldDateNullIndex = addColumnDetails(table, "fieldDateNull", RealmFieldType.DATE);
+            this.fieldObjectNullIndex = addColumnDetails(table, "fieldObjectNull", RealmFieldType.OBJECT);
+        }
 
-        NullTypesColumnInfo(String path, Table table) {
-            final Map<String, Long> indicesMap = new HashMap<String, Long>(21);
-            this.fieldStringNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldStringNotNull");
-            indicesMap.put("fieldStringNotNull", this.fieldStringNotNullIndex);
-            this.fieldStringNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldStringNull");
-            indicesMap.put("fieldStringNull", this.fieldStringNullIndex);
-            this.fieldBooleanNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBooleanNotNull");
-            indicesMap.put("fieldBooleanNotNull", this.fieldBooleanNotNullIndex);
-            this.fieldBooleanNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBooleanNull");
-            indicesMap.put("fieldBooleanNull", this.fieldBooleanNullIndex);
-            this.fieldBytesNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBytesNotNull");
-            indicesMap.put("fieldBytesNotNull", this.fieldBytesNotNullIndex);
-            this.fieldBytesNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBytesNull");
-            indicesMap.put("fieldBytesNull", this.fieldBytesNullIndex);
-            this.fieldByteNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldByteNotNull");
-            indicesMap.put("fieldByteNotNull", this.fieldByteNotNullIndex);
-            this.fieldByteNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldByteNull");
-            indicesMap.put("fieldByteNull", this.fieldByteNullIndex);
-            this.fieldShortNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldShortNotNull");
-            indicesMap.put("fieldShortNotNull", this.fieldShortNotNullIndex);
-            this.fieldShortNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldShortNull");
-            indicesMap.put("fieldShortNull", this.fieldShortNullIndex);
-            this.fieldIntegerNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldIntegerNotNull");
-            indicesMap.put("fieldIntegerNotNull", this.fieldIntegerNotNullIndex);
-            this.fieldIntegerNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldIntegerNull");
-            indicesMap.put("fieldIntegerNull", this.fieldIntegerNullIndex);
-            this.fieldLongNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldLongNotNull");
-            indicesMap.put("fieldLongNotNull", this.fieldLongNotNullIndex);
-            this.fieldLongNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldLongNull");
-            indicesMap.put("fieldLongNull", this.fieldLongNullIndex);
-            this.fieldFloatNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldFloatNotNull");
-            indicesMap.put("fieldFloatNotNull", this.fieldFloatNotNullIndex);
-            this.fieldFloatNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldFloatNull");
-            indicesMap.put("fieldFloatNull", this.fieldFloatNullIndex);
-            this.fieldDoubleNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDoubleNotNull");
-            indicesMap.put("fieldDoubleNotNull", this.fieldDoubleNotNullIndex);
-            this.fieldDoubleNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDoubleNull");
-            indicesMap.put("fieldDoubleNull", this.fieldDoubleNullIndex);
-            this.fieldDateNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDateNotNull");
-            indicesMap.put("fieldDateNotNull", this.fieldDateNotNullIndex);
-            this.fieldDateNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDateNull");
-            indicesMap.put("fieldDateNull", this.fieldDateNullIndex);
-            this.fieldObjectNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldObjectNull");
-            indicesMap.put("fieldObjectNull", this.fieldObjectNullIndex);
-
-            setIndicesMap(indicesMap);
+        NullTypesColumnInfo(ColumnInfo src, boolean mutable) {
+            super(src, mutable);
+            copy(src, this);
         }
 
         @Override
-        public final void copyColumnInfoFrom(ColumnInfo other) {
-            final NullTypesColumnInfo otherInfo = (NullTypesColumnInfo) other;
-            this.fieldStringNotNullIndex = otherInfo.fieldStringNotNullIndex;
-            this.fieldStringNullIndex = otherInfo.fieldStringNullIndex;
-            this.fieldBooleanNotNullIndex = otherInfo.fieldBooleanNotNullIndex;
-            this.fieldBooleanNullIndex = otherInfo.fieldBooleanNullIndex;
-            this.fieldBytesNotNullIndex = otherInfo.fieldBytesNotNullIndex;
-            this.fieldBytesNullIndex = otherInfo.fieldBytesNullIndex;
-            this.fieldByteNotNullIndex = otherInfo.fieldByteNotNullIndex;
-            this.fieldByteNullIndex = otherInfo.fieldByteNullIndex;
-            this.fieldShortNotNullIndex = otherInfo.fieldShortNotNullIndex;
-            this.fieldShortNullIndex = otherInfo.fieldShortNullIndex;
-            this.fieldIntegerNotNullIndex = otherInfo.fieldIntegerNotNullIndex;
-            this.fieldIntegerNullIndex = otherInfo.fieldIntegerNullIndex;
-            this.fieldLongNotNullIndex = otherInfo.fieldLongNotNullIndex;
-            this.fieldLongNullIndex = otherInfo.fieldLongNullIndex;
-            this.fieldFloatNotNullIndex = otherInfo.fieldFloatNotNullIndex;
-            this.fieldFloatNullIndex = otherInfo.fieldFloatNullIndex;
-            this.fieldDoubleNotNullIndex = otherInfo.fieldDoubleNotNullIndex;
-            this.fieldDoubleNullIndex = otherInfo.fieldDoubleNullIndex;
-            this.fieldDateNotNullIndex = otherInfo.fieldDateNotNullIndex;
-            this.fieldDateNullIndex = otherInfo.fieldDateNullIndex;
-            this.fieldObjectNullIndex = otherInfo.fieldObjectNullIndex;
-
-            setIndicesMap(otherInfo.getIndicesMap());
+        protected final ColumnInfo copy(boolean mutable) {
+            return new NullTypesColumnInfo(this, mutable);
         }
 
         @Override
-        public final NullTypesColumnInfo clone() {
-            return (NullTypesColumnInfo) super.clone();
+        protected final void copy(ColumnInfo rawSrc, ColumnInfo rawDst) {
+            final NullTypesColumnInfo src = (NullTypesColumnInfo) rawSrc;
+            final NullTypesColumnInfo dst = (NullTypesColumnInfo) rawDst;
+            dst.fieldStringNotNullIndex = src.fieldStringNotNullIndex;
+            dst.fieldStringNullIndex = src.fieldStringNullIndex;
+            dst.fieldBooleanNotNullIndex = src.fieldBooleanNotNullIndex;
+            dst.fieldBooleanNullIndex = src.fieldBooleanNullIndex;
+            dst.fieldBytesNotNullIndex = src.fieldBytesNotNullIndex;
+            dst.fieldBytesNullIndex = src.fieldBytesNullIndex;
+            dst.fieldByteNotNullIndex = src.fieldByteNotNullIndex;
+            dst.fieldByteNullIndex = src.fieldByteNullIndex;
+            dst.fieldShortNotNullIndex = src.fieldShortNotNullIndex;
+            dst.fieldShortNullIndex = src.fieldShortNullIndex;
+            dst.fieldIntegerNotNullIndex = src.fieldIntegerNotNullIndex;
+            dst.fieldIntegerNullIndex = src.fieldIntegerNullIndex;
+            dst.fieldLongNotNullIndex = src.fieldLongNotNullIndex;
+            dst.fieldLongNullIndex = src.fieldLongNullIndex;
+            dst.fieldFloatNotNullIndex = src.fieldFloatNotNullIndex;
+            dst.fieldFloatNullIndex = src.fieldFloatNullIndex;
+            dst.fieldDoubleNotNullIndex = src.fieldDoubleNotNullIndex;
+            dst.fieldDoubleNullIndex = src.fieldDoubleNullIndex;
+            dst.fieldDateNotNullIndex = src.fieldDateNotNullIndex;
+            dst.fieldDateNullIndex = src.fieldDateNullIndex;
+            dst.fieldObjectNullIndex = src.fieldObjectNullIndex;
         }
-
     }
+
     private NullTypesColumnInfo columnInfo;
     private ProxyState<some.test.NullTypes> proxyState;
     private static final List<String> FIELD_NAMES;
@@ -893,7 +872,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             columnTypes.put(table.getColumnName(i), table.getColumnType(i));
         }
 
-        final NullTypesColumnInfo columnInfo = new NullTypesColumnInfo(sharedRealm.getPath(), table);
+        final NullTypesColumnInfo columnInfo = new NullTypesColumnInfo(sharedRealm, table);
 
         if (table.hasPrimaryKey()) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
@@ -1514,7 +1493,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.NullTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
         long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
         cache.put(object, rowIndex);
@@ -1612,7 +1591,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.NullTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
         some.test.NullTypes object = null;
         while (objects.hasNext()) {
@@ -1722,7 +1701,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.NullTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
         long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
         cache.put(object, rowIndex);
@@ -1862,7 +1841,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.NullTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
         some.test.NullTypes object = null;
         while (objects.hasNext()) {
