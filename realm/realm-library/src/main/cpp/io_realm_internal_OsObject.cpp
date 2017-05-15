@@ -314,7 +314,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObject(JN
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithPrimaryKey__JJJJZ(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithLongPrimaryKey(
     JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong pk_column_ndx, jlong pk_value,
     jboolean is_pk_null)
 {
@@ -330,7 +330,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithPrimaryKey__JJJJZ(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithLongPrimaryKey(
     JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong pk_column_ndx, jlong pk_value,
     jboolean is_pk_null)
 {
@@ -341,7 +341,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithPrima
     return npos;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithPrimaryKey__JJJLjava_lang_String_2(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithStringPrimaryKey(
     JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong pk_column_ndx, jstring pk_value)
 {
     try {
@@ -356,7 +356,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithPrimaryKey__JJJLjava_lang_String_2(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithStringPrimaryKey(
     JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong pk_column_ndx, jstring pk_value)
 {
     try {

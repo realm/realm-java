@@ -189,13 +189,13 @@ public class OsObject implements NativeObject {
                 throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
             }
             return new UncheckedRow(sharedRealm.context, table,
-                    nativeCreateNewObjectWithPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+                    nativeCreateNewObjectWithStringPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                             primaryKeyColumnIndex, (String) primaryKeyValue));
 
         } else if (type == RealmFieldType.INTEGER) {
             long value = primaryKeyValue == null ? 0 : Long.parseLong(primaryKeyValue.toString());
             return new UncheckedRow(sharedRealm.context, table,
-                    nativeCreateNewObjectWithPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+                    nativeCreateNewObjectWithLongPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                             primaryKeyColumnIndex, value, primaryKeyValue == null));
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
@@ -217,12 +217,12 @@ public class OsObject implements NativeObject {
             if (primaryKeyValue != null && !(primaryKeyValue instanceof String)) {
                 throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
             }
-            return nativeCreateRowWithPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+            return nativeCreateRowWithStringPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                     primaryKeyColumnIndex, (String) primaryKeyValue);
 
         } else if (type == RealmFieldType.INTEGER) {
             long value = primaryKeyValue == null ? 0 : Long.parseLong(primaryKeyValue.toString());
-            return nativeCreateRowWithPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+            return nativeCreateRowWithLongPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                     primaryKeyColumnIndex, value, primaryKeyValue == null);
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
@@ -249,19 +249,23 @@ public class OsObject implements NativeObject {
     private static native long nativeCreateRow(long sharedRealmPtr, long tablePtr);
 
 
-    private static native long nativeCreateNewObjectWithPrimaryKey(long sharedRealmPtr,
-                                                                   long tablePtr, long pk_column_index,
-                                                                   long primaryKeyValue, boolean isNullValue);
+    // Return a pointer to newly created Row. We may need to return a OsObject pointer in the future.
+    private static native long nativeCreateNewObjectWithLongPrimaryKey(long sharedRealmPtr,
+                                                                       long tablePtr, long pk_column_index,
+                                                                       long primaryKeyValue, boolean isNullValue);
 
-    private static native long nativeCreateRowWithPrimaryKey(long sharedRealmPtr,
-                                                                   long tablePtr, long pk_column_index,
-                                                                   long primaryKeyValue, boolean isNullValue);
+    // Return a index of newly created Row.
+    private static native long nativeCreateRowWithLongPrimaryKey(long sharedRealmPtr,
+                                                                 long tablePtr, long pk_column_index,
+                                                                 long primaryKeyValue, boolean isNullValue);
 
-    private static native long nativeCreateNewObjectWithPrimaryKey(long sharedRealmPtr,
-                                                                   long tablePtr, long pk_column_index,
-                                                                   String primaryKeyValue);
+    // Return a pointer to newly created Row. We may need to return a OsObject pointer in the future.
+    private static native long nativeCreateNewObjectWithStringPrimaryKey(long sharedRealmPtr,
+                                                                         long tablePtr, long pk_column_index,
+                                                                         String primaryKeyValue);
 
-    private static native long nativeCreateRowWithPrimaryKey(long sharedRealmPtr,
+    // Return a index of newly created Row.
+    private static native long nativeCreateRowWithStringPrimaryKey(long sharedRealmPtr,
                                                                    long tablePtr, long pk_column_index,
                                                                    String primaryKeyValue);
 }
