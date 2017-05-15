@@ -1,4 +1,7 @@
 apply plugin: 'com.android.library'
+import io.realm.transformer.RealmTransformer
+android.registerTransform(new RealmTransformer())
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 25
@@ -14,21 +17,33 @@ android {
 
     }
     buildTypes {
+        debug {
+            // https://youtrack.jetbrains.com/issue/KT-11333
+            // Until this is resolved, enabling code coverage will break extension functions
+            // during instrumentation testing.
+            testCoverageEnabled = false
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+        androidTest.java.srcDirs += 'src/androidTest/kotlin'
+    }
 }
 
 dependencies {
-    provided files('../realm-library/build/intermediates/bundles/baseRelease/classes.jar') // Java projects cannot depend on AAR files
+    compile project(path: ':realm-library', configuration: 'baseDebug')
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     androidTestCompile 'junit:junit:4.12'
     androidTestCompile 'com.android.support.test:runner:0.5'
     androidTestCompile 'com.android.support.test:rules:0.5'
+    kaptAndroidTest project(':realm-annotations-processor')
 }
 
-afterEvaluate {
-    compileDebugJavaWithJavac.dependsOn ':realm-library:assembleBaseRelease'
-    compileReleaseJavaWithJavac.dependsOn ':realm-library:assembleBaseRelease'
+repositories {
+    mavenCentral()
 }
