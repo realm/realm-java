@@ -69,7 +69,7 @@ public class JNIQueryTest extends TestCase {
         assertEquals(14+16, cnt);
 
         double avg = query.averageInt(0);
-        assertEquals(15.0, avg);
+        assertEquals(15.0, avg, Double.MIN_NORMAL);
 
         // TODO: Add tests with all parameters
     }
