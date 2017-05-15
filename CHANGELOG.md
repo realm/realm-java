@@ -24,6 +24,10 @@
 
 # 3.1.5 (YYYY-MM-DD)
 
+## Enhancements
+
+* The `toString()` methods for the standard and dynamic proxies now print "proxy", or "dynamic" before the left bracket enclosing the data.
+
 ## Bug fixes
 
 * `@LinkingObjects` annotation now also works with Kotlin (#4611).

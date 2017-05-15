@@ -1216,7 +1216,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (!RealmObject.isValid(this)) {
             return "Invalid object";
         }
-        StringBuilder stringBuilder = new StringBuilder("AllTypes = [");
+        StringBuilder stringBuilder = new StringBuilder("AllTypes = proxy[");
         stringBuilder.append("{columnString:");
         stringBuilder.append(realmGet$columnString() != null ? realmGet$columnString() : "null");
         stringBuilder.append("}");
