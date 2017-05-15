@@ -456,8 +456,9 @@ public class RealmObjectTests {
         realm.beginTransaction();
         CyclicType foo = createCyclicData();
         realm.commitTransaction();
-        String expected = "CyclicType = [{id:0},{name:Foo},{date:null},{object:CyclicType},{otherObject:null},{objects:RealmList<CyclicType>[0]}]";
-        assertEquals(expected, foo.toString());
+        assertEquals(
+                "CyclicType = proxy[{id:0},{name:Foo},{date:null},{object:CyclicType},{otherObject:null},{objects:RealmList<CyclicType>[0]}]",
+                foo.toString());
     }
 
     @Test

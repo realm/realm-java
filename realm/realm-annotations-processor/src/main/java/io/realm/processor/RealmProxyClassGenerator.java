@@ -1741,7 +1741,7 @@ public class RealmProxyClassGenerator {
                 .beginControlFlow("if (!RealmObject.isValid(this))")
                 .emitStatement("return \"Invalid object\"")
                 .endControlFlow();
-        writer.emitStatement("StringBuilder stringBuilder = new StringBuilder(\"%s = [\")", simpleClassName);
+        writer.emitStatement("StringBuilder stringBuilder = new StringBuilder(\"%s = proxy[\")", simpleClassName);
 
         Collection<VariableElement> fields = metadata.getFields();
         int i = fields.size() - 1;
