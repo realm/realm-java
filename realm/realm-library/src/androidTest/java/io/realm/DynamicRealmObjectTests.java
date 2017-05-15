@@ -953,11 +953,11 @@ public class DynamicRealmObjectTests {
                         break;
                     case FLOAT:
                         dObj.set(AllJavaTypes.FIELD_FLOAT, 1.23f);
-                        assertEquals(Float.parseFloat("1.23"), dObj.get(AllJavaTypes.FIELD_FLOAT), Float.MIN_NORMAL);
+                        assertEquals(Float.parseFloat("1.23"), dObj.<Float> get(AllJavaTypes.FIELD_FLOAT), Float.MIN_NORMAL);
                         break;
                     case DOUBLE:
                         dObj.set(AllJavaTypes.FIELD_DOUBLE, 1.234d);
-                        assertEquals(Double.parseDouble("1.234"), dObj.get(AllJavaTypes.FIELD_DOUBLE), Double.MIN_NORMAL);
+                        assertEquals(Double.parseDouble("1.234"), dObj.<Double>get(AllJavaTypes.FIELD_DOUBLE), Double.MIN_NORMAL);
                         break;
                     case STRING:
                         dObj.set(AllJavaTypes.FIELD_STRING, "str");
