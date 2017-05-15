@@ -970,7 +970,7 @@ public class Table implements TableSchema, NativeObject {
     }
 
     private static void throwImmutable() {
-        throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
+        throw new IllegalStateException("Cannot modify managed objects outside of a write transaction.");
     }
 
     /**
