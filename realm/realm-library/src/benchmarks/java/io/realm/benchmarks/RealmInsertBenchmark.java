@@ -62,49 +62,44 @@ public class RealmInsertBenchmark {
             allTypesPrimaryKey.setColumnLong(i);
             pkObjects.add(allTypesPrimaryKey);
         }
+
+        realm.beginTransaction();
     }
 
     @AfterExperiment
     public void after() {
+        realm.cancelTransaction();
         realm.close();
     }
 
     @Benchmark
     public void insertNoPrimaryKey(long reps) {
         AllTypes allTypes = new AllTypes();
-        realm.beginTransaction();
         for (long i = 0; i < reps; i++) {
             realm.insert(allTypes);
         }
-        realm.commitTransaction();
     }
 
     @Benchmark
     public void insertNoPrimaryKeyList(long reps) {
-        realm.beginTransaction();
         for (long i = 0; i < reps; i++) {
             realm.insert(noPkObjects);
         }
-        realm.commitTransaction();
     }
 
     @Benchmark
     public void insertWithPrimaryKey(long reps) {
         AllTypesPrimaryKey allTypesPrimaryKey = new AllTypesPrimaryKey();
-        realm.beginTransaction();
         for (long i = 0; i < reps; i++) {
             allTypesPrimaryKey.setColumnLong(i);
             realm.insertOrUpdate(allTypesPrimaryKey);
         }
-        realm.commitTransaction();
     }
 
     @Benchmark
     public void insertOrUpdateWithPrimaryKeyList(long reps) {
-        realm.beginTransaction();
         for (long i = 0; i < reps; i++) {
             realm.insertOrUpdate(pkObjects);
         }
-        realm.commitTransaction();
     }
 }
