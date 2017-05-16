@@ -19,7 +19,7 @@
 
 #include <jni.h>
 
-#include <util/format.hpp>
+#include <stdexcept>
 
 #include "java_class.hpp"
 
@@ -34,19 +34,9 @@ namespace jni_util {
 class JavaExceptionThrower : public std::runtime_error {
 public:
     JavaExceptionThrower(JNIEnv* env, const char* class_name, std::string message, const char* file_path,
-                         int line_num)
-        : std::runtime_error(std::move(message))
-        , m_exception_class(env, class_name)
-        , m_file_path(file_path)
-        , m_line_num(line_num)
-    {
-    }
+                         int line_num);
 
-    virtual void throw_java_exception(JNIEnv* env)
-    {
-        env->ThrowNew(m_exception_class,
-                      util::format("%1\n(%2:%3)", what(), m_file_path, m_line_num).c_str());
-    }
+    virtual void throw_java_exception(JNIEnv* env);
 
 private:
     JavaClass m_exception_class;
