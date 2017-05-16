@@ -18,6 +18,8 @@ package io.realm;
 
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
+import io.realm.internal.CheckedRow;
+import io.realm.internal.OsObject;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
 import rx.Observable;
@@ -106,8 +108,8 @@ public class DynamicRealm extends BaseRealm {
             throw new RealmException(String.format("'%s' has a primary key, use" +
                     " 'createObject(String, Object)' instead.", className));
         }
-        long rowIndex = table.addEmptyRow();
-        return get(DynamicRealmObject.class, className, rowIndex);
+
+        return new DynamicRealmObject(this, CheckedRow.getFromRow(OsObject.create(sharedRealm, table)));
     }
 
     /**
@@ -123,8 +125,8 @@ public class DynamicRealm extends BaseRealm {
      */
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
         Table table = schema.getTable(className);
-        long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return new DynamicRealmObject(this, table.getCheckedRow(index));
+        return new DynamicRealmObject(this,
+                CheckedRow.getFromRow(OsObject.createWithPrimaryKey(sharedRealm, table, primaryKeyValue)));
     }
 
     /**

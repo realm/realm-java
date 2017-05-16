@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+* Not in transaction illegal state exception message changed to "Cannot modify managed objects outside of a write transaction.".
+
 ### Bug Fixes
 
 ### Internal
