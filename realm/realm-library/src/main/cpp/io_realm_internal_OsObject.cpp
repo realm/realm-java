@@ -177,19 +177,19 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
     auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
     shared_realm->verify_in_write(); // throws
     if (is_pk_null && !TBL_AND_COL_NULLABLE(env, &table, pk_column_ndx)) {
-        return npos;
+        return realm::npos;
     }
 
     if (is_pk_null) {
-        if (table.find_first_null(pk_column_ndx) != npos) {
+        if (table.find_first_null(pk_column_ndx) != realm::npos) {
             throw_duplicated_primary_key_exception(env, "'null'");
-            return npos;
+            return realm::npos;
         }
     }
     else {
-        if (table.find_first_int(pk_column_ndx, pk_value) != npos) {
+        if (table.find_first_int(pk_column_ndx, pk_value) != realm::npos) {
             throw_duplicated_primary_key_exception(env, reinterpret_cast<long long>(pk_value));
-            return npos;
+            return realm::npos;
         }
     }
 
@@ -212,19 +212,19 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
     JStringAccessor str_accessor(env, pk_value); // throws
     shared_realm->verify_in_write();             // throws
     if (!pk_value && !TBL_AND_COL_NULLABLE(env, &table, pk_column_ndx)) {
-        return npos;
+        return realm::npos;
     }
 
     if (pk_value) {
-        if (table.find_first_string(pk_column_ndx, str_accessor) != npos) {
+        if (table.find_first_string(pk_column_ndx, str_accessor) != realm::npos) {
             throw_duplicated_primary_key_exception(env, str_accessor.operator std::string());
-            return npos;
+            return realm::npos;
         }
     }
     else {
-        if (table.find_first_null(pk_column_ndx) != npos) {
+        if (table.find_first_null(pk_column_ndx) != realm::npos) {
             throw_duplicated_primary_key_exception(env, "'null'");
-            return npos;
+            return realm::npos;
         }
     }
 
@@ -322,7 +322,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
         auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
         size_t row_ndx =
             do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value, is_pk_null);
-        if (row_ndx != npos) {
+        if (row_ndx != realm::npos) {
             return reinterpret_cast<jlong>(new Row(table[row_ndx]));
         }
     }
@@ -338,7 +338,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithLongP
         return do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value, is_pk_null);
     }
     CATCH_STD()
-    return npos;
+    return realm::npos;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithStringPrimaryKey(
@@ -347,7 +347,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
     try {
         auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
         size_t row_ndx = do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value);
-        if (row_ndx != npos) {
+        if (row_ndx != realm::npos) {
             return reinterpret_cast<jlong>(new Row(table[row_ndx]));
         }
     }
@@ -364,5 +364,5 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithStrin
     }
     CATCH_STD()
 
-    return npos;
+    return realm::npos;
 }
