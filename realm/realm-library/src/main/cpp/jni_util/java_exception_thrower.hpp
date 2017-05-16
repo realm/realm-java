@@ -19,28 +19,39 @@
 
 #include <jni.h>
 
+#include <util/format.hpp>
+
 #include "java_class.hpp"
 
 namespace realm {
 namespace jni_util {
 
+#define THROW_JAVA_EXCEPTION(env, class_name, message)                                                               \
+    throw realm::jni_util::JavaExceptionThrower(env, class_name, message, __FILE__, __LINE__)
+
 // Class to help throw a Java exception from JNI code.
 // This exception will be called from CATCH_STD and throw a Java exception there.
 class JavaExceptionThrower : public std::runtime_error {
 public:
-    JavaExceptionThrower(JNIEnv* env, const char* class_name, std::string message)
+    JavaExceptionThrower(JNIEnv* env, const char* class_name, std::string message, const char* file_path,
+                         int line_num)
         : std::runtime_error(std::move(message))
         , m_exception_class(env, class_name)
+        , m_file_path(file_path)
+        , m_line_num(line_num)
     {
     }
 
     virtual void throw_java_exception(JNIEnv* env)
     {
-        env->ThrowNew(m_exception_class, what());
+        env->ThrowNew(m_exception_class,
+                      util::format("%1\n(%2:%3)", what(), m_file_path, m_line_num).c_str());
     }
 
 private:
     JavaClass m_exception_class;
+    const char* m_file_path;
+    int m_line_num;
 };
 
 } // namespace realm

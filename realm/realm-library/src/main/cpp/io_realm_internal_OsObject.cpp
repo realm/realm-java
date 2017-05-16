@@ -179,13 +179,13 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
 
     if (is_pk_null) {
         if (table.find_first_null(pk_column_ndx) != npos) {
-            throw JavaExceptionThrower(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
     else {
         if (table.find_first_int(pk_column_ndx, pk_value) != npos) {
-            throw JavaExceptionThrower(env, PK_CONSTRAINT_EXCEPTION_CLASS,
-                                       format(PK_EXCEPTION_MSG_FORMAT, reinterpret_cast<long long>(pk_value)));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
+                                 format(PK_EXCEPTION_MSG_FORMAT, reinterpret_cast<long long>(pk_value)));
         }
     }
 
@@ -213,13 +213,13 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
 
     if (pk_value) {
         if (table.find_first_string(pk_column_ndx, str_accessor) != npos) {
-            throw JavaExceptionThrower(env, PK_CONSTRAINT_EXCEPTION_CLASS,
-                                       format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
+                                 format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
         }
     }
     else {
         if (table.find_first_null(pk_column_ndx) != npos) {
-            throw JavaExceptionThrower(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
 
