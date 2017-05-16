@@ -65,7 +65,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         return temporaryDirectory;
     }
 
-    private volatile static File temporaryDirectory;
+    private static volatile File temporaryDirectory;
 
     public enum Durability {
         FULL(0),
@@ -175,12 +175,13 @@ public final class SharedRealm implements Closeable, NativeObject {
         void onSchemaVersionChanged(long currentVersion);
     }
 
-    private final RealmConfiguration configuration;
-
-    final private long nativePtr;
-    final NativeContext context;
-    private long lastSchemaVersion;
     private final SchemaVersionListener schemaChangeListener;
+    private final RealmConfiguration configuration;
+    private final long nativePtr;
+
+    private long lastSchemaVersion;
+
+    final NativeContext context;
 
     private SharedRealm(long nativeConfigPtr,
             RealmConfiguration configuration,
@@ -247,6 +248,15 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     public void beginTransaction() {
+        beginTransaction(false);
+    }
+
+    public void beginTransaction(boolean ignoreReadOnly) {
+        // TODO ReadOnly is also supported by the Object Store Schema, but until we support that we need to enforce it
+        // ourselves.
+        if (!ignoreReadOnly && configuration.isReadOnly()) {
+            throw new IllegalStateException("Write transactions cannot be used when a Realm is marked as read-only.");
+        }
         detachIterators();
         executePendingRowQueries();
         nativeBeginTransaction(nativePtr);
@@ -346,9 +356,17 @@ public final class SharedRealm implements Closeable, NativeObject {
     /**
      * Updates the underlying schema based on the schema description.
      * Calling this method must be done from inside a write transaction.
+     * <p>
+     * TODO: This method should not require the caller to get the native pointer.
+     * Instead, the signature should be something like:
+     * public <T extends RealmSchema & NativeObject> </T>void updateSchema(T schema, long version)
+     * ... that is: something that is a schema and that wraps a native object.
+     *
+     * @param schemaNativePtr the pointer to a native schema object.
+     * @param version the target version.
      */
-    public void updateSchema(long schemaNativePointer, long version) {
-        nativeUpdateSchema(nativePtr, schemaNativePointer, version);
+    public void updateSchema(long schemaNativePtr, long version) {
+        nativeUpdateSchema(nativePtr, schemaNativePtr, version);
     }
 
     public void setAutoRefresh(boolean enabled) {
@@ -360,8 +378,19 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeIsAutoRefresh(nativePtr);
     }
 
-    public boolean requiresMigration(long schemaNativePointer) {
-        return nativeRequiresMigration(nativePtr, schemaNativePointer);
+    /**
+     * Determine whether the passed schema needs to be updated.
+     * <p>
+     * TODO: This method should not require the caller to get the native pointer.
+     * Instead, the signature should be something like:
+     * public <T extends RealmSchema & NativeObject> </T>void updateSchema(T schema, long version)
+     * ... that is, something that is a schema and that wraps a native object.
+     *
+     * @param schemaNativePtr the pointer to a native schema object.
+     * @return true if it will be necessary to call {@code updateSchema}
+     */
+    public boolean requiresMigration(long schemaNativePtr) {
+        return nativeRequiresMigration(nativePtr, schemaNativePtr);
     }
 
     @Override
@@ -437,7 +466,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     // calling the Object Store begin_transaction to avoid the problem.
     // Add pending row to the list when it is created. It should be called in the PendingRow constructor.
     void addPendingRow(PendingRow pendingRow) {
-       pendingRows.add(new WeakReference<PendingRow>(pendingRow));
+        pendingRows.add(new WeakReference<PendingRow>(pendingRow));
     }
 
     // Remove pending row from the list. It should be called when pending row's query finished.

@@ -51,14 +51,14 @@ import io.realm.annotations.Required;
 public class ClassMetaData {
 
     private final TypeElement classType; // Reference to model class.
-    private String className; // Model class simple name.
+    private final String className; // Model class simple name.
+    private final List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
+    private final List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
+    private final Set<Backlink> backlinks = new HashSet<Backlink>();
+    private final Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
-    private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
-    private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
-    private Set<Backlink> backlinks = new HashSet<Backlink>();
-    private Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
     private boolean containsToString;
     private boolean containsEquals;
     private boolean containsHashCode;
@@ -117,7 +117,7 @@ public class ClassMetaData {
     }
 
     public Set<Backlink> getBacklinkFields() {
-        return backlinks;
+        return Collections.unmodifiableSet(backlinks);
     }
 
     public String getInternalGetter(String fieldName) {
@@ -129,7 +129,7 @@ public class ClassMetaData {
     }
 
     public List<VariableElement> getIndexedFields() {
-        return indexedFields;
+        return Collections.unmodifiableList(indexedFields);
     }
 
     public boolean hasPrimaryKey() {
@@ -182,10 +182,7 @@ public class ClassMetaData {
      * @return {@code true} if a VariableElement is primary key, {@code false} otherwise.
      */
     public boolean isPrimaryKey(VariableElement variableElement) {
-        if (primaryKey == null) {
-            return false;
-        }
-        return primaryKey.equals(variableElement);
+        return primaryKey != null && primaryKey.equals(variableElement);
     }
 
     /**
@@ -195,10 +192,7 @@ public class ClassMetaData {
      */
     public boolean isModelClass() {
         String type = classType.toString();
-        if (type.equals("io.realm.DynamicRealmObject")) {
-            return false;
-        }
-        return (!type.endsWith(".RealmObject") && !type.endsWith("RealmProxy"));
+        return !type.equals("io.realm.DynamicRealmObject") && !type.endsWith(".RealmObject") && !type.endsWith("RealmProxy");
     }
 
     /**
@@ -404,20 +398,20 @@ public class ClassMetaData {
     private boolean categorizeIndexField(Element element, VariableElement variableElement) {
         // The field has the @Index annotation. It's only valid for column types:
         // STRING, DATE, INTEGER, BOOLEAN
-        String elementTypeCanonicalName = variableElement.asType().toString();
-        String columnType = Constants.JAVA_TO_COLUMN_TYPES.get(elementTypeCanonicalName);
-        if (columnType != null &&
-                (columnType.equals("RealmFieldType.STRING") ||
-                        columnType.equals("RealmFieldType.DATE") ||
-                        columnType.equals("RealmFieldType.INTEGER") ||
-                        columnType.equals("RealmFieldType.BOOLEAN"))) {
-            indexedFields.add(variableElement);
-        } else {
-            Utils.error(String.format("Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
-            return false;
+        Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(variableElement.asType().toString());
+        if (realmType != null) {
+            switch (realmType) {
+                case STRING:
+                case DATE:
+                case INTEGER:
+                case BOOLEAN:
+                    indexedFields.add(variableElement);
+                    return true;
+            }
         }
 
-        return true;
+        Utils.error(String.format("Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
+        return false;
     }
 
     // The field has the @Required annotation

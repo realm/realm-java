@@ -45,22 +45,24 @@ public class Table implements TableSchema, NativeObject {
     }
 
     public static final int TABLE_MAX_LENGTH = 56; // Max length of class names without prefix
-    public static final String TABLE_PREFIX = Util.getTablePrefix();
     public static final long INFINITE = -1;
     public static final boolean NULLABLE = true;
     public static final boolean NOT_NULLABLE = false;
     public static final int NO_MATCH = -1;
 
+    private static final String TABLE_PREFIX = Util.getTablePrefix();
     private static final String PRIMARY_KEY_TABLE_NAME = "pk";
     private static final String PRIMARY_KEY_CLASS_COLUMN_NAME = "pk_table";
     private static final long PRIMARY_KEY_CLASS_COLUMN_INDEX = 0;
     private static final String PRIMARY_KEY_FIELD_COLUMN_NAME = "pk_property";
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
-    private static final long NO_PRIMARY_KEY = -2;
+    public static final long NO_PRIMARY_KEY = -2;
 
-    private long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
-    final NativeContext context;
+
+    private final long nativePtr;
+    private final NativeContext context;
+
     private final SharedRealm sharedRealm;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
 
@@ -102,8 +104,8 @@ public class Table implements TableSchema, NativeObject {
         return nativeFinalizerPtr;
     }
 
-    public long getNativeTablePointer() {
-        return nativePtr;
+    public Table getTable() {
+        return this;
     }
 
     /*
@@ -217,13 +219,12 @@ public class Table implements TableSchema, NativeObject {
         // Renames a primary key. At this point, renaming the column name should have been fine.
         if (oldPkColumnIndex == columnIndex) {
             try {
-                String className = tableNameToClassName(getName());
                 Table pkTable = getPrimaryKeyTable();
                 if (pkTable == null) {
                     throw new IllegalStateException(
                             "Table is not created from a SharedRealm, primary key is not available");
                 }
-                long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
+                long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getClassName());
                 if (pkRowIndex != NO_MATCH) {
                     nativeSetString(pkTable.nativePtr, PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newName, false);
                 } else {
@@ -363,89 +364,6 @@ public class Table implements TableSchema, NativeObject {
         return nativeAddEmptyRow(nativePtr, 1);
     }
 
-    /**
-     * Adds an empty row to the table and set the primary key with the given value. Equivalent to call
-     * {@link #addEmptyRowWithPrimaryKey(Object, boolean)} with {@code validation = true}.
-     *
-     * @param primaryKeyValue the primary key value
-     * @return the row index.
-     */
-    public long addEmptyRowWithPrimaryKey(Object primaryKeyValue) {
-        return addEmptyRowWithPrimaryKey(primaryKeyValue, true);
-    }
-
-    /**
-     * Adds an empty row to the table and set the primary key with the given value.
-     *
-     * @param primaryKeyValue the primary key value.
-     * @param validation set to {@code false} to skip all validations. This is currently used by bulk insert which
-     * has its own validations.
-     * @return the row index.
-     */
-    public long addEmptyRowWithPrimaryKey(Object primaryKeyValue, boolean validation) {
-        if (validation) {
-            checkImmutable();
-            checkHasPrimaryKey();
-        }
-
-        long primaryKeyColumnIndex = getPrimaryKey();
-        RealmFieldType type = getColumnType(primaryKeyColumnIndex);
-        long rowIndex;
-
-        // Adds with primary key initially set.
-        if (primaryKeyValue == null) {
-            switch (type) {
-                case STRING:
-                case INTEGER:
-                    if (validation && findFirstNull(primaryKeyColumnIndex) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyException("null");
-                    }
-                    rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                    if (type == RealmFieldType.STRING) {
-                        nativeSetStringUnique(nativePtr, primaryKeyColumnIndex, rowIndex, null);
-                    } else {
-                        nativeSetNullUnique(nativePtr, primaryKeyColumnIndex, rowIndex);
-                    }
-                    break;
-
-                default:
-                    throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
-            }
-
-        } else {
-            switch (type) {
-                case STRING:
-                    if (!(primaryKeyValue instanceof String)) {
-                        throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
-                    }
-                    if (validation && findFirstString(primaryKeyColumnIndex, (String) primaryKeyValue) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyException(primaryKeyValue);
-                    }
-                    rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                    nativeSetStringUnique(nativePtr, primaryKeyColumnIndex, rowIndex, (String) primaryKeyValue);
-                    break;
-
-                case INTEGER:
-                    long pkValue;
-                    try {
-                        pkValue = Long.parseLong(primaryKeyValue.toString());
-                    } catch (RuntimeException e) {
-                        throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
-                    }
-                    if (validation && findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyException(pkValue);
-                    }
-                    rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                    nativeSetLongUnique(nativePtr, primaryKeyColumnIndex, rowIndex, pkValue);
-                    break;
-
-                default:
-                    throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
-            }
-        }
-        return rowIndex;
-    }
-
     @SuppressWarnings("WeakerAccess")
     public long addEmptyRows(long rows) {
         checkImmutable();
@@ -483,7 +401,7 @@ public class Table implements TableSchema, NativeObject {
                     ") does not match the number of columns in the table (" +
                     String.valueOf(columns) + ").");
         }
-        RealmFieldType colTypes[] = new RealmFieldType[columns];
+        RealmFieldType[] colTypes = new RealmFieldType[columns];
         for (int columnIndex = 0; columnIndex < columns; columnIndex++) {
             Object value = values[columnIndex];
             RealmFieldType colType = getColumnType(columnIndex);
@@ -570,8 +488,7 @@ public class Table implements TableSchema, NativeObject {
                 return NO_PRIMARY_KEY; // Free table = No primary key.
             }
 
-            String className = tableNameToClassName(getName());
-            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
+            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getClassName());
             if (rowIndex != NO_MATCH) {
                 String pkColumnName = pkTable.getUncheckedRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
                 cachedPrimaryKeyColumnIndex = getColumnIndex(pkColumnName);
@@ -905,12 +822,6 @@ public class Table implements TableSchema, NativeObject {
         }
     }
 
-    private void checkHasPrimaryKey() {
-        if (!hasPrimaryKey()) {
-            throw new IllegalStateException(getName() + " has no primary key defined");
-        }
-    }
-
     //
     // Count
     //
@@ -1013,6 +924,15 @@ public class Table implements TableSchema, NativeObject {
         return nativeGetName(nativePtr);
     }
 
+    /**
+     * Returns the class name for the table.
+     *
+     * @return Name of the the table or null if it not part of a group.
+     */
+    public String getClassName() {
+        return getClassNameForTable(getName());
+    }
+
     public String toJson() {
         return nativeToJson(nativePtr);
     }
@@ -1050,7 +970,7 @@ public class Table implements TableSchema, NativeObject {
     }
 
     private static void throwImmutable() {
-        throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
+        throw new IllegalStateException("Cannot modify managed objects outside of a write transaction.");
     }
 
     /**
@@ -1084,11 +1004,20 @@ public class Table implements TableSchema, NativeObject {
         return nativeVersion(nativePtr);
     }
 
-    public static String tableNameToClassName(String tableName) {
-        if (!tableName.startsWith(Table.TABLE_PREFIX)) {
-            return tableName;
+    public static String getClassNameForTable(String name) {
+        if (name == null) { return null; }
+        if (!name.startsWith(TABLE_PREFIX)) {
+            return name;
         }
-        return tableName.substring(Table.TABLE_PREFIX.length());
+        return name.substring(TABLE_PREFIX.length());
+    }
+
+    public static String getTableNameForClass(String name) {
+        if (name == null) { return null; }
+        if (name.startsWith(TABLE_PREFIX)) {
+            return name;
+        }
+        return TABLE_PREFIX + name;
     }
 
     protected native long createNative();

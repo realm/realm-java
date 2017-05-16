@@ -476,27 +476,27 @@ public class DynamicRealmTests {
             @Override
             public void onChange(RealmResults<DynamicRealmObject> object) {
                 assertEquals("data 0", realmResults1.get(0).get(AllTypes.FIELD_STRING));
-                assertEquals(3L, realmResults1.get(0).get(AllTypes.FIELD_LONG));
+                assertEquals(3L, realmResults1.get(0).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 0", realmResults1.get(1).get(AllTypes.FIELD_STRING));
-                assertEquals(2L, realmResults1.get(1).get(AllTypes.FIELD_LONG));
+                assertEquals(2L, realmResults1.get(1).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 0", realmResults1.get(2).get(AllTypes.FIELD_STRING));
-                assertEquals(0L, realmResults1.get(2).get(AllTypes.FIELD_LONG));
+                assertEquals(0L, realmResults1.get(2).<Long> get(AllTypes.FIELD_LONG).longValue());
 
                 assertEquals("data 1", realmResults1.get(3).get(AllTypes.FIELD_STRING));
-                assertEquals(4L, realmResults1.get(3).get(AllTypes.FIELD_LONG));
+                assertEquals(4L, realmResults1.get(3).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 1", realmResults1.get(4).get(AllTypes.FIELD_STRING));
-                assertEquals(3L, realmResults1.get(4).get(AllTypes.FIELD_LONG));
+                assertEquals(3L, realmResults1.get(4).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 1", realmResults1.get(5).get(AllTypes.FIELD_STRING));
-                assertEquals(1L, realmResults1.get(5).get(AllTypes.FIELD_LONG));
+                assertEquals(1L, realmResults1.get(5).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 1", realmResults1.get(6).get(AllTypes.FIELD_STRING));
-                assertEquals(0L, realmResults1.get(6).get(AllTypes.FIELD_LONG));
+                assertEquals(0L, realmResults1.get(6).<Long> get(AllTypes.FIELD_LONG).longValue());
 
                 assertEquals("data 2", realmResults1.get(7).get(AllTypes.FIELD_STRING));
-                assertEquals(4L, realmResults1.get(7).get(AllTypes.FIELD_LONG));
+                assertEquals(4L, realmResults1.get(7).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 2", realmResults1.get(8).get(AllTypes.FIELD_STRING));
-                assertEquals(2L, realmResults1.get(8).get(AllTypes.FIELD_LONG));
+                assertEquals(2L, realmResults1.get(8).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 2", realmResults1.get(9).get(AllTypes.FIELD_STRING));
-                assertEquals(1L, realmResults1.get(9).get(AllTypes.FIELD_LONG));
+                assertEquals(1L, realmResults1.get(9).<Long> get(AllTypes.FIELD_LONG).longValue());
 
                 signalCallbackDone.run();
             }
@@ -506,27 +506,27 @@ public class DynamicRealmTests {
             @Override
             public void onChange(RealmResults<DynamicRealmObject> object) {
                 assertEquals("data 2", realmResults2.get(0).get(AllTypes.FIELD_STRING));
-                assertEquals(1L, realmResults2.get(0).get(AllTypes.FIELD_LONG));
+                assertEquals(1L, realmResults2.get(0).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 2", realmResults2.get(1).get(AllTypes.FIELD_STRING));
-                assertEquals(2L, realmResults2.get(1).get(AllTypes.FIELD_LONG));
+                assertEquals(2L, realmResults2.get(1).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 2", realmResults2.get(2).get(AllTypes.FIELD_STRING));
-                assertEquals(4L, realmResults2.get(2).get(AllTypes.FIELD_LONG));
+                assertEquals(4L, realmResults2.get(2).<Long> get(AllTypes.FIELD_LONG).longValue());
 
                 assertEquals("data 1", realmResults2.get(3).get(AllTypes.FIELD_STRING));
-                assertEquals(0L, realmResults2.get(3).get(AllTypes.FIELD_LONG));
+                assertEquals(0L, realmResults2.get(3).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 1", realmResults2.get(4).get(AllTypes.FIELD_STRING));
-                assertEquals(1L, realmResults2.get(4).get(AllTypes.FIELD_LONG));
+                assertEquals(1L, realmResults2.get(4).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 1", realmResults2.get(5).get(AllTypes.FIELD_STRING));
-                assertEquals(3L, realmResults2.get(5).get(AllTypes.FIELD_LONG));
+                assertEquals(3L, realmResults2.get(5).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 1", realmResults2.get(6).get(AllTypes.FIELD_STRING));
-                assertEquals(4L, realmResults2.get(6).get(AllTypes.FIELD_LONG));
+                assertEquals(4L, realmResults2.get(6).<Long> get(AllTypes.FIELD_LONG).longValue());
 
                 assertEquals("data 0", realmResults2.get(7).get(AllTypes.FIELD_STRING));
-                assertEquals(0L, realmResults2.get(7).get(AllTypes.FIELD_LONG));
+                assertEquals(0L, realmResults2.get(7).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 0", realmResults2.get(8).get(AllTypes.FIELD_STRING));
-                assertEquals(2L, realmResults2.get(8).get(AllTypes.FIELD_LONG));
+                assertEquals(2L, realmResults2.get(8).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 0", realmResults2.get(9).get(AllTypes.FIELD_STRING));
-                assertEquals(3L, realmResults2.get(9).get(AllTypes.FIELD_LONG));
+                assertEquals(3L, realmResults2.get(9).<Long> get(AllTypes.FIELD_LONG).longValue());
 
                 signalCallbackDone.run();
             }
@@ -675,7 +675,7 @@ public class DynamicRealmTests {
         dynamicRealm.commitTransaction();
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Invalid query: field 'nonExisting' does not exist in table 'NoField'.");
+        thrown.expectMessage("Invalid query: field 'nonExisting' not found in table 'NoField'.");
         dynamicRealm.where(className).equalTo("nonExisting", 1);
     }
 

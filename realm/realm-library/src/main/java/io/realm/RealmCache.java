@@ -89,16 +89,16 @@ final class RealmCache {
     }
 
     private static class CreateRealmRunnable<T extends BaseRealm> implements Runnable {
-        private RealmConfiguration configuration;
-        private BaseRealm.InstanceCallback<T> callback;
-        private Class<T> realmClass;
-        private CountDownLatch canReleaseBackgroundInstanceLatch = new CountDownLatch(1);
-        private RealmNotifier notifier;
+        private final RealmConfiguration configuration;
+        private final BaseRealm.InstanceCallback<T> callback;
+        private final Class<T> realmClass;
+        private final CountDownLatch canReleaseBackgroundInstanceLatch = new CountDownLatch(1);
+        private final RealmNotifier notifier;
         // The Future this runnable belongs to.
         private Future future;
 
         CreateRealmRunnable(RealmNotifier notifier, RealmConfiguration configuration,
-                            BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
+                BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
             this.configuration = configuration;
             this.realmClass = realmClass;
             this.callback = callback;
@@ -253,7 +253,7 @@ final class RealmCache {
         return cache.doCreateRealmOrGetFromCacheAsync(configuration, callback, realmClass);
     }
 
-    private synchronized  <T extends BaseRealm> RealmAsyncTask doCreateRealmOrGetFromCacheAsync(
+    private synchronized <T extends BaseRealm> RealmAsyncTask doCreateRealmOrGetFromCacheAsync(
             RealmConfiguration configuration, BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
         Capabilities capabilities = new AndroidCapabilities();
         capabilities.checkCanDeliverNotification(ASYNC_NOT_ALLOWED_MSG);
@@ -357,7 +357,7 @@ final class RealmCache {
 
             if (realmClass == Realm.class && refAndCount.globalCount == 0) {
                 // Stores a copy of local ColumnIndices as a global cache.
-                RealmCache.storeColumnIndices(typedColumnIndicesArray, realm.schema.cloneColumnIndices());
+                RealmCache.storeColumnIndices(typedColumnIndicesArray, realm.schema.getImmutableColumnIndicies());
             }
             // This is the first instance in current thread, increase the global count.
             refAndCount.globalCount++;
