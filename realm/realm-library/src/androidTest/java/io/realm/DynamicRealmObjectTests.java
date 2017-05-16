@@ -937,27 +937,27 @@ public class DynamicRealmObjectTests {
                         break;
                     case SHORT:
                         dObj.set(AllJavaTypes.FIELD_SHORT, (short) 42);
-                        assertEquals(Long.parseLong("42"), dObj.get(AllJavaTypes.FIELD_SHORT));
+                        assertEquals(Long.parseLong("42"), dObj.<Long> get(AllJavaTypes.FIELD_SHORT).longValue());
                         break;
                     case INT:
                         dObj.set(AllJavaTypes.FIELD_INT, 42);
-                        assertEquals(Long.parseLong("42"), dObj.get(AllJavaTypes.FIELD_INT));
+                        assertEquals(Long.parseLong("42"), dObj.<Long> get(AllJavaTypes.FIELD_INT).longValue());
                         break;
                     case LONG:
                         dObj.set(AllJavaTypes.FIELD_LONG, 42L);
-                        assertEquals(Long.parseLong("42"), dObj.get(AllJavaTypes.FIELD_LONG));
+                        assertEquals(Long.parseLong("42"), dObj.<Long> get(AllJavaTypes.FIELD_LONG).longValue());
                         break;
                     case BYTE:
                         dObj.set(AllJavaTypes.FIELD_BYTE, (byte) 4);
-                        assertEquals(Long.parseLong("4"), dObj.get(AllJavaTypes.FIELD_BYTE));
+                        assertEquals(Long.parseLong("4"), dObj.<Long> get(AllJavaTypes.FIELD_BYTE).longValue());
                         break;
                     case FLOAT:
                         dObj.set(AllJavaTypes.FIELD_FLOAT, 1.23f);
-                        assertEquals(Float.parseFloat("1.23"), dObj.get(AllJavaTypes.FIELD_FLOAT));
+                        assertEquals(Float.parseFloat("1.23"), dObj.<Float> get(AllJavaTypes.FIELD_FLOAT), Float.MIN_NORMAL);
                         break;
                     case DOUBLE:
                         dObj.set(AllJavaTypes.FIELD_DOUBLE, 1.234d);
-                        assertEquals(Double.parseDouble("1.234"), dObj.get(AllJavaTypes.FIELD_DOUBLE));
+                        assertEquals(Double.parseDouble("1.234"), dObj.<Double>get(AllJavaTypes.FIELD_DOUBLE), Double.MIN_NORMAL);
                         break;
                     case STRING:
                         dObj.set(AllJavaTypes.FIELD_STRING, "str");
