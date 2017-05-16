@@ -493,7 +493,7 @@ public class BooleansRealmProxy extends some.test.Booleans
         if (!RealmObject.isValid(this)) {
             return "Invalid object";
         }
-        StringBuilder stringBuilder = new StringBuilder("Booleans = [");
+        StringBuilder stringBuilder = new StringBuilder("Booleans = proxy[");
         stringBuilder.append("{done:");
         stringBuilder.append(realmGet$done());
         stringBuilder.append("}");

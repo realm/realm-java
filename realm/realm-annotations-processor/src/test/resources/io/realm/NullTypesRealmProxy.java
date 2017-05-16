@@ -2039,7 +2039,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         if (!RealmObject.isValid(this)) {
             return "Invalid object";
         }
-        StringBuilder stringBuilder = new StringBuilder("NullTypes = [");
+        StringBuilder stringBuilder = new StringBuilder("NullTypes = proxy[");
         stringBuilder.append("{fieldStringNotNull:");
         stringBuilder.append(realmGet$fieldStringNotNull());
         stringBuilder.append("}");
