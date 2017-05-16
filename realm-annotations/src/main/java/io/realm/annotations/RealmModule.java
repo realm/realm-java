@@ -23,8 +23,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * By default a Realm can stores all classes extending RealmObject in a project. However, if you want to restrict a
- * Realm to only contain a subset of classes or want to share them between a library project and an app project you must
+ * By default a Realm can store all classes extending RealmObject in a project. However, if you want to restrict a
+ * Realm to only contain a subset of classes or want to share them between a library project and an app project, you must
  * use a RealmModule.
  * <p>
  * A RealmModule is a collection of classes extending RealmObject that can be combined with other RealmModules to create
