@@ -13,6 +13,7 @@
 * Added `DynamicRealmObject#linkingObjects(String,String)` to support linking objects on `DynamicRealm` (#4492).
 * Added support for read only Realms using `RealmConfiguration.Builder.readOnly()` and `SyncConfiguration.Builder.readOnly()`(#1147).
 * Change listeners will now auto-expand variable names to be more descriptive when using Android Studio.
+* Not in transaction illegal state exception message changed to "Cannot modify managed objects outside of a write transaction.".
 
 ### Bug Fixes
 
