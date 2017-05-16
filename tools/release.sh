@@ -93,13 +93,34 @@ prepare_branch() {
     git fetch --all
     git checkout releases
     git reset --hard origin/releases
-    if [[ "$BRANCH_TO_RELEASE" != "releases" ]] ; then
-        echo "Releasing from other branches than 'releases' is not supported right now."
-        exit -1
-    fi
-
     git clean -xfd
     git submodule update --init --recursive
+
+    # Merge the branch to the releases branch and check the CHANGELOG.md
+    if [[ "$BRANCH_TO_RELEASE" != "releases" ]] ; then
+        git merge "origin/$BRANCH_TO_RELEASE"
+
+        while true
+        do
+            read -r -p "Type the command to edit CHANGELOG.md, default(vim):" editor
+            if [ -z "$editor" ] ; then
+                editor="vim"
+            fi
+            "$editor" CHANGELOG.md
+
+            read -r -p "Please merge the unreleased entries in the 'CHANGELOG.md' and then press any key to continue..." _
+            if [ "$(grep -c "YYYY-MM-DD" CHANGELOG.md)" -eq 1 ] ; then
+                break
+            else
+                echo "There are more than one or none unreleased entries in the 'CHANGELOG.md'."
+            fi
+        done
+        # CHANGELOG.md is modified.
+        if ! git diff-index --quiet HEAD CHANGELOG.md ; then
+            git add CHANGELOG.md
+            git commit -m "Merge entries in changelog"
+        fi
+    fi
 
     if ! grep -q "SNAPSHOT" version.txt ; then
         echo "'version.txt' doesn't contain 'SNAPSHOT'."
