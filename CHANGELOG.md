@@ -1,3 +1,13 @@
+## 3.2.1 (YYYY-MM-DD)
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
 ## 3.2.0 (2017-05-16)
 
 ### Deprecated
