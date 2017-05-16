@@ -213,8 +213,9 @@ publish_javadoc() {
         esac
     done
     git clean -xfd ./source/en/docs/java/
+    bundle update
     bundle exec rake generate:java_docs[$VERSION]
-    cp -R "${REALM_JAVA_PATH}/realm/realm-library/build/docs/javadoc/*" ./source/en/docs/java/latest/api/
+    cp -R "${REALM_JAVA_PATH}"/realm/realm-library/build/docs/javadoc/* ./source/en/docs/java/latest/api/
     bundle exec rake generate:inject_ga_latest_java_api
     git add ./source/en/docs/java/
     git commit -m "Release realm-java doc ${VERSION}"

@@ -78,6 +78,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final SyncUser user;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
+    private final boolean waitForInitialData;
 
     private SyncConfiguration(File directory,
                                 String filename,
@@ -91,10 +92,13 @@ public class SyncConfiguration extends RealmConfiguration {
                                 RealmProxyMediator schemaMediator,
                                 RxObservableFactory rxFactory,
                                 Realm.Transaction initialDataTransaction,
+                                boolean readOnly,
                                 SyncUser user,
                                 URI serverUrl,
                                 SyncSession.ErrorHandler errorHandler,
-                                boolean deleteRealmOnLogout
+                                boolean deleteRealmOnLogout,
+                                boolean waitForInitialData
+
     ) {
         super(directory,
                 filename,
@@ -107,13 +111,15 @@ public class SyncConfiguration extends RealmConfiguration {
                 durability,
                 schemaMediator,
                 rxFactory,
-                initialDataTransaction
+                initialDataTransaction,
+                readOnly
         );
 
         this.user = user;
         this.serverUrl = serverUrl;
         this.errorHandler = errorHandler;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
+        this.waitForInitialData = waitForInitialData;
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -149,6 +155,7 @@ public class SyncConfiguration extends RealmConfiguration {
         if (!serverUrl.equals(that.serverUrl)) return false;
         if (!user.equals(that.user)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
+        if (waitForInitialData != that.waitForInitialData) return false;
         return true;
     }
 
@@ -159,6 +166,7 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + user.hashCode();
         result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
         result = 31 * result + errorHandler.hashCode();
+        result = 31 * result + (waitForInitialData ? 1 : 0);
         return result;
     }
 
@@ -173,6 +181,8 @@ public class SyncConfiguration extends RealmConfiguration {
         stringBuilder.append("errorHandler: " + errorHandler);
         stringBuilder.append("\n");
         stringBuilder.append("deleteRealmOnLogout: " + deleteRealmOnLogout);
+        stringBuilder.append("\n");
+        stringBuilder.append("waitForInitialRemoteData: " + waitForInitialData);
         return stringBuilder.toString();
     }
 
@@ -209,6 +219,18 @@ public class SyncConfiguration extends RealmConfiguration {
         return deleteRealmOnLogout;
     }
 
+
+    /**
+     * Returns {@code true} if the Realm will download all known changes from the remote server before being opened the
+     * first time.
+     *
+     * @return {@code true} if all remote changes will be downloaded before the Realm can be opened. {@code false} if
+     * the Realm can be opened immediately.
+     */
+    public boolean shouldWaitForInitialRemoteData() {
+        return waitForInitialData;
+    }
+
     @Override
     boolean isSyncConfiguration() {
         return true;
@@ -237,6 +259,8 @@ public class SyncConfiguration extends RealmConfiguration {
         private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
         private boolean deleteRealmOnLogout = false;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
+        private boolean readOnly = false;
+        private boolean waitForServerChanges = false;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
@@ -573,6 +597,38 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
+        /**
+         * Setting this will cause the Realm to download all known changes from the server the first time a Realm is
+         * opened. The Realm will not open until all the data has been downloaded. This means that if a device is
+         * offline the Realm will not open.
+         * <p>
+         * Since downloading all changes can be an lengthy operation that might block the UI thread, Realms with this
+         * setting enabled should only be opened on background threads or with
+         * {@link Realm#getInstanceAsync(RealmConfiguration, Realm.Callback)} on the UI thread.
+         * <p>
+         * This check is only enforced the first time a Realm is created. If you otherwise want to make sure a Realm
+         * has the latest changes, use {@link SyncSession#downloadAllServerChanges()}.
+         */
+        public Builder waitForInitialRemoteData() {
+            this.waitForServerChanges = true;
+            return this;
+        }
+
+        /**
+         * Setting this will cause the Realm to become read only and all write transactions made against this Realm will
+         * fail with an {@link IllegalStateException}.
+         * <p>
+         * This in particular mean that {@link #initialData(Realm.Transaction)} will not work in combination with a
+         * read only Realm and setting this will result in a {@link IllegalStateException} being thrown.
+         * </p>
+         * Marking a Realm as read only only applies to the Realm in this process. Other processes and devices can still
+         * write to the Realm.
+         */
+        public SyncConfiguration.Builder readOnly() {
+            this.readOnly = true;
+            return this;
+        }
+
         private String MD5(String in) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -612,6 +668,19 @@ public class SyncConfiguration extends RealmConfiguration {
         public SyncConfiguration build() {
             if (serverUrl == null || user == null) {
                 throw new IllegalStateException("serverUrl() and user() are both required.");
+            }
+
+            // Check that readOnly() was applied to legal configuration. Right now it should only be allowd if
+            // an assetFile is configured
+            if (readOnly) {
+                if (initialDataTransaction != null) {
+                    throw new IllegalStateException("This Realm is marked as read-only. " +
+                            "Read-only Realms cannot use initialData(Realm.Transaction).");
+                }
+                if (!waitForServerChanges) {
+                    throw new IllegalStateException("A read-only Realms must be provided by some source. " +
+                            "'waitForInitialRemoteData()' wasn't enabled which is currently the only supported source.");
+                }
             }
 
             // Check if the user has an identifier, if not, it cannot use /~/.
@@ -680,12 +749,14 @@ public class SyncConfiguration extends RealmConfiguration {
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
                     initialDataTransaction,
+                    readOnly,
 
                     // Sync Configuration specific
                     user,
                     resolvedServerUrl,
                     errorHandler,
-                    deleteRealmOnLogout
+                    deleteRealmOnLogout,
+                    waitForServerChanges
             );
         }
 

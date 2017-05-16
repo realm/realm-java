@@ -51,14 +51,14 @@ import io.realm.annotations.Required;
 public class ClassMetaData {
 
     private final TypeElement classType; // Reference to model class.
-    private String className; // Model class simple name.
+    private final String className; // Model class simple name.
+    private final List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
+    private final List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
+    private final Set<Backlink> backlinks = new HashSet<Backlink>();
+    private final Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
-    private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
-    private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
-    private Set<Backlink> backlinks = new HashSet<Backlink>();
-    private Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
     private boolean containsToString;
     private boolean containsEquals;
     private boolean containsHashCode;
@@ -117,7 +117,7 @@ public class ClassMetaData {
     }
 
     public Set<Backlink> getBacklinkFields() {
-        return backlinks;
+        return Collections.unmodifiableSet(backlinks);
     }
 
     public String getInternalGetter(String fieldName) {
@@ -129,7 +129,7 @@ public class ClassMetaData {
     }
 
     public List<VariableElement> getIndexedFields() {
-        return indexedFields;
+        return Collections.unmodifiableList(indexedFields);
     }
 
     public boolean hasPrimaryKey() {
@@ -182,10 +182,7 @@ public class ClassMetaData {
      * @return {@code true} if a VariableElement is primary key, {@code false} otherwise.
      */
     public boolean isPrimaryKey(VariableElement variableElement) {
-        if (primaryKey == null) {
-            return false;
-        }
-        return primaryKey.equals(variableElement);
+        return primaryKey != null && primaryKey.equals(variableElement);
     }
 
     /**
@@ -195,10 +192,7 @@ public class ClassMetaData {
      */
     public boolean isModelClass() {
         String type = classType.toString();
-        if (type.equals("io.realm.DynamicRealmObject")) {
-            return false;
-        }
-        return (!type.endsWith(".RealmObject") && !type.endsWith("RealmProxy"));
+        return !type.equals("io.realm.DynamicRealmObject") && !type.endsWith(".RealmObject") && !type.endsWith("RealmProxy");
     }
 
     /**
@@ -248,7 +242,6 @@ public class ClassMetaData {
         if (!checkReferenceTypes()) { return false; }
         if (!checkDefaultConstructor()) { return false; }
         if (!checkForFinalFields()) { return false; }
-        if (!checkForTransientFields()) { return false; }
         if (!checkForVolatileFields()) { return false; }
 
         return true; // Meta data was successfully generated
@@ -347,19 +340,6 @@ public class ClassMetaData {
         return true;
     }
 
-    private boolean checkForTransientFields() {
-        for (VariableElement field : fields) {
-            if (field.getModifiers().contains(Modifier.TRANSIENT)) {
-                Utils.error(String.format(
-                        "Class \"%s\" contains illegal transient field \"%s\".",
-                        className,
-                        field.getSimpleName().toString()));
-                return false;
-            }
-        }
-        return true;
-    }
-
     private boolean checkForVolatileFields() {
         for (VariableElement field : fields) {
             if (field.getModifiers().contains(Modifier.VOLATILE)) {
@@ -374,40 +354,43 @@ public class ClassMetaData {
     }
 
     private boolean categorizeField(Element element) {
-        VariableElement variableElement = (VariableElement) element;
+        VariableElement field = (VariableElement) element;
 
         // completely ignore any static fields
-        if (variableElement.getModifiers().contains(Modifier.STATIC)) { return true; }
+        if (field.getModifiers().contains(Modifier.STATIC)) { return true; }
 
-        if (variableElement.getAnnotation(Ignore.class) != null) { return true; }
-
-        if (variableElement.getAnnotation(Index.class) != null) {
-            if (!categorizeIndexField(element, variableElement)) { return false; }
+        // Ignore fields marked with @Ignore or if they are transient
+        if (field.getAnnotation(Ignore.class) != null || field.getModifiers().contains(Modifier.TRANSIENT)) {
+            return true;
         }
 
-        if (variableElement.getAnnotation(Required.class) != null) {
-            categorizeRequiredField(element, variableElement);
+        if (field.getAnnotation(Index.class) != null) {
+            if (!categorizeIndexField(element, field)) { return false; }
+        }
+
+        if (field.getAnnotation(Required.class) != null) {
+            categorizeRequiredField(element, field);
         } else {
             // The field doesn't have the @Required annotation.
             // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
             // nullableFields.
             // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
-            if (!Utils.isPrimitiveType(variableElement) && !Utils.isRealmList(variableElement)) {
-                nullableFields.add(variableElement);
+            if (!Utils.isPrimitiveType(field) && !Utils.isRealmList(field)) {
+                nullableFields.add(field);
             }
         }
 
-        if (variableElement.getAnnotation(PrimaryKey.class) != null) {
-            if (!categorizePrimaryKeyField(variableElement)) { return false; }
+        if (field.getAnnotation(PrimaryKey.class) != null) {
+            if (!categorizePrimaryKeyField(field)) { return false; }
         }
 
         // Check @LinkingObjects last since it is not allowed to be either @Index, @Required or @PrimaryKey
-        if (variableElement.getAnnotation(LinkingObjects.class) != null) {
-            return categorizeBacklinkField(variableElement);
+        if (field.getAnnotation(LinkingObjects.class) != null) {
+            return categorizeBacklinkField(field);
         }
 
         // Standard field that appear valid (more fine grained checks might fail later).
-        fields.add(variableElement);
+        fields.add(field);
 
         return true;
     }
@@ -415,20 +398,20 @@ public class ClassMetaData {
     private boolean categorizeIndexField(Element element, VariableElement variableElement) {
         // The field has the @Index annotation. It's only valid for column types:
         // STRING, DATE, INTEGER, BOOLEAN
-        String elementTypeCanonicalName = variableElement.asType().toString();
-        String columnType = Constants.JAVA_TO_COLUMN_TYPES.get(elementTypeCanonicalName);
-        if (columnType != null &&
-                (columnType.equals("RealmFieldType.STRING") ||
-                        columnType.equals("RealmFieldType.DATE") ||
-                        columnType.equals("RealmFieldType.INTEGER") ||
-                        columnType.equals("RealmFieldType.BOOLEAN"))) {
-            indexedFields.add(variableElement);
-        } else {
-            Utils.error(String.format("Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
-            return false;
+        Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(variableElement.asType().toString());
+        if (realmType != null) {
+            switch (realmType) {
+                case STRING:
+                case DATE:
+                case INTEGER:
+                case BOOLEAN:
+                    indexedFields.add(variableElement);
+                    return true;
+            }
         }
 
-        return true;
+        Utils.error(String.format("Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
+        return false;
     }
 
     // The field has the @Required annotation

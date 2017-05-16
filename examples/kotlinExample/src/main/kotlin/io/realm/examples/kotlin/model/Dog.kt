@@ -17,7 +17,11 @@
 package io.realm.examples.kotlin.model
 
 import io.realm.RealmObject
+import io.realm.RealmResults
+import io.realm.annotations.LinkingObjects
 
 open class Dog : RealmObject() {
-    open var name: String? = null
+    var name: String? = null
+    @LinkingObjects("dog")
+    val owners: RealmResults<Person>? = null
 }

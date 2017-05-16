@@ -21,7 +21,6 @@ import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
-import android.util.Log;
 
 import org.junit.Assert;
 
@@ -177,7 +176,7 @@ public class TestHelper {
     /**
      * Returns a RealmLogger that will fail if it is asked to log a message above a certain level.
      *
-     * @param failureLevel {@link Log} level from which the unit test will fail.
+     * @param failureLevel level at which the unit test will fail: {@see Log}.
      * @return RealmLogger implementation
      */
     public static RealmLogger getFailureLogger(final int failureLevel) {
@@ -506,7 +505,7 @@ public class TestHelper {
         NullTypes[] nullTypesArray = new NullTypes[3];
 
         testRealm.beginTransaction();
-        for (int i = 0; i < words.length; i++) {
+        for (int i = 0; i < 3; i++) {
             NullTypes nullTypes = new NullTypes();
             nullTypes.setId(i + 1);
             // 1 String

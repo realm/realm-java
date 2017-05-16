@@ -42,6 +42,6 @@ public interface RealmChangeListener<T> {
     /**
      * Called when a transaction is committed.
      */
-    void onChange(T element);
+    void onChange(T t);
 
 }

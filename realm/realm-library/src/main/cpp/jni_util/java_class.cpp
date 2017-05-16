@@ -36,7 +36,6 @@ JavaGlobalRef JavaClass::get_jclass(JNIEnv* env, const char* class_name)
     jclass cls = env->FindClass(class_name);
     REALM_ASSERT_DEBUG(cls);
 
-    JavaGlobalRef cls_ref(env, cls);
-    env->DeleteLocalRef(cls);
+    JavaGlobalRef cls_ref(env, cls, true);
     return cls_ref;
 }

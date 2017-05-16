@@ -19,7 +19,6 @@ package io.realm.internal.async;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -111,36 +110,6 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     public Future<?> submitTransaction(Runnable task) {
         Future<?> future = super.submit(new BgPriorityRunnable(task));
         return future;
-    }
-
-    /**
-     * Submits a runnable for updating a query.
-     *
-     * @param task the task to submit
-     * @return a future representing pending completion of the task
-     */
-    public Future<?> submitQueryUpdate(Runnable task) {
-        return super.submit(new BgPriorityRunnable(task));
-    }
-
-    /**
-     * Submits a runnable for executing a query.
-     *
-     * @param task the task to submit
-     * @return a future representing pending completion of the task
-     */
-    public <T> Future<T> submitQuery(Callable<T> task) {
-        return super.submit(new BgPriorityCallable<T>(task));
-    }
-
-    /**
-     * Submits a runnable for executing a network request.
-     *
-     * @param task the task to submit
-     * @return a future representing pending completion of the task
-     */
-    public Future<?> submitNetworkRequest(Runnable task) {
-        return super.submit(new BgPriorityRunnable(task));
     }
 
     /**
