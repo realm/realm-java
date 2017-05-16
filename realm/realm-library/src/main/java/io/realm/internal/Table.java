@@ -56,7 +56,7 @@ public class Table implements TableSchema, NativeObject {
     private static final long PRIMARY_KEY_CLASS_COLUMN_INDEX = 0;
     private static final String PRIMARY_KEY_FIELD_COLUMN_NAME = "pk_property";
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
-    private static final long NO_PRIMARY_KEY = -2;
+    public static final long NO_PRIMARY_KEY = -2;
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
@@ -362,89 +362,6 @@ public class Table implements TableSchema, NativeObject {
     public long addEmptyRow() {
         checkImmutable();
         return nativeAddEmptyRow(nativePtr, 1);
-    }
-
-    /**
-     * Adds an empty row to the table and set the primary key with the given value. Equivalent to call
-     * {@link #addEmptyRowWithPrimaryKey(Object, boolean)} with {@code validation = true}.
-     *
-     * @param primaryKeyValue the primary key value
-     * @return the row index.
-     */
-    public long addEmptyRowWithPrimaryKey(Object primaryKeyValue) {
-        return addEmptyRowWithPrimaryKey(primaryKeyValue, true);
-    }
-
-    /**
-     * Adds an empty row to the table and set the primary key with the given value.
-     *
-     * @param primaryKeyValue the primary key value.
-     * @param validation set to {@code false} to skip all validations. This is currently used by bulk insert which
-     * has its own validations.
-     * @return the row index.
-     */
-    public long addEmptyRowWithPrimaryKey(Object primaryKeyValue, boolean validation) {
-        if (validation) {
-            checkImmutable();
-            checkHasPrimaryKey();
-        }
-
-        long primaryKeyColumnIndex = getPrimaryKey();
-        RealmFieldType type = getColumnType(primaryKeyColumnIndex);
-        long rowIndex;
-
-        // Adds with primary key initially set.
-        if (primaryKeyValue == null) {
-            switch (type) {
-                case STRING:
-                case INTEGER:
-                    if (validation && findFirstNull(primaryKeyColumnIndex) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyException("null");
-                    }
-                    rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                    if (type == RealmFieldType.STRING) {
-                        nativeSetStringUnique(nativePtr, primaryKeyColumnIndex, rowIndex, null);
-                    } else {
-                        nativeSetNullUnique(nativePtr, primaryKeyColumnIndex, rowIndex);
-                    }
-                    break;
-
-                default:
-                    throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
-            }
-
-        } else {
-            switch (type) {
-                case STRING:
-                    if (!(primaryKeyValue instanceof String)) {
-                        throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
-                    }
-                    if (validation && findFirstString(primaryKeyColumnIndex, (String) primaryKeyValue) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyException(primaryKeyValue);
-                    }
-                    rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                    nativeSetStringUnique(nativePtr, primaryKeyColumnIndex, rowIndex, (String) primaryKeyValue);
-                    break;
-
-                case INTEGER:
-                    long pkValue;
-                    try {
-                        pkValue = Long.parseLong(primaryKeyValue.toString());
-                    } catch (RuntimeException e) {
-                        throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
-                    }
-                    if (validation && findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyException(pkValue);
-                    }
-                    rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                    nativeSetLongUnique(nativePtr, primaryKeyColumnIndex, rowIndex, pkValue);
-                    break;
-
-                default:
-                    throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
-            }
-        }
-        return rowIndex;
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -905,12 +822,6 @@ public class Table implements TableSchema, NativeObject {
         }
     }
 
-    private void checkHasPrimaryKey() {
-        if (!hasPrimaryKey()) {
-            throw new IllegalStateException(getName() + " has no primary key defined");
-        }
-    }
-
     //
     // Count
     //
@@ -1059,7 +970,7 @@ public class Table implements TableSchema, NativeObject {
     }
 
     private static void throwImmutable() {
-        throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
+        throw new IllegalStateException("Cannot modify managed objects outside of a write transaction.");
     }
 
     /**
