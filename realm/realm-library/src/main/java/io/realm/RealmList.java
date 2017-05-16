@@ -246,7 +246,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             RealmObjectProxy proxy = (RealmObjectProxy) object;
 
             if (proxy instanceof DynamicRealmObject) {
-                String listClassName = StandardRealmSchema.getSchemaForTable(view.getTargetTable());
+                String listClassName = view.getTargetTable().getClassName();
                 if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
                     String objectClassName = ((DynamicRealmObject) object).getType();
                     if (listClassName.equals(objectClassName)) {
@@ -899,6 +899,31 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
 
     /**
      * Adds a change listener to this {@link RealmList}.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmList from being garbage collected.
+     * If the RealmList is garbage collected, the change listener will stop being triggered. To avoid this, keep a
+     * strong reference for as long as appropriate e.g. in a class variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private RealmList<Dog> dogs; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       dogs = realm.where(Person.class).findFirst().getDogs();
+     *       dogs.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
+     *           \@Override
+     *           public void onChange(RealmList<Dog> dogs, OrderedCollectionChangeSet changeSet) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.
@@ -925,6 +950,31 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
 
     /**
      * Adds a change listener to this {@link RealmList}.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmList from being garbage collected.
+     * If the RealmList is garbage collected, the change listener will stop being triggered. To avoid this, keep a
+     * strong reference for as long as appropriate e.g. in a class variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private RealmList<Dog> dogs; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       dogs = realm.where(Person.class).findFirst().getDogs();
+     *       dogs.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
+     *           \@Override
+     *           public void onChange(RealmList<Dog> dogs) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.

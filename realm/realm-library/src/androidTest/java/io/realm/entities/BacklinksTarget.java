@@ -26,7 +26,7 @@ public class BacklinksTarget extends RealmObject {
 
     private int id;
 
-    @LinkingObjects("child")
+    @LinkingObjects(BacklinksSource.FIELD_CHILD)
     private final RealmResults<BacklinksSource> parents = null;
 
     public int getId() {

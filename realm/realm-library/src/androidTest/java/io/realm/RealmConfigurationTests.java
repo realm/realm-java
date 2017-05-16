@@ -403,6 +403,13 @@ public class RealmConfigurationTests {
     }
 
     @Test
+    public void equals_respectReadOnly() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context).assetFile("foo").build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context).assetFile("foo").readOnly().build();
+        assertFalse(config1.equals(config2));
+    }
+
+    @Test
     public void equalsWhenRxJavaUnavailable() {
         // Test for https://github.com/realm/realm-java/issues/2416
         RealmConfiguration config1 = new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).build();
@@ -957,6 +964,42 @@ public class RealmConfigurationTests {
             assertTrue(e.getMessage().contains("The most likely cause is that equals() and hashCode() are not overridden"));
         } finally {
             realm.close();
+        }
+    }
+
+    @Test
+    public void readOnly_initialTransaction_throws() {
+        // Check assetFile(), then initialTransaction();
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder()
+                .assetFile("foo")
+                .readOnly()
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        // Do nothing
+                    }
+                });
+
+        try {
+            config.build();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    @Test
+    public void readOnly_deleteRealmIfMigrationRequired_throws() {
+        try {
+            // This test doesn't actually fail on 'deleteRealmIfMigrationNeeded' + 'readOnly' but on
+            // 'assetFile' + 'deleteRealmIfMigrationNeed()'. This test is primarely here to prevent this
+            // case from accidentally parsing in the future.
+            new RealmConfiguration.Builder()
+                    .assetFile("foo")
+                    .readOnly()
+                    .deleteRealmIfMigrationNeeded()
+                    .build();
+            fail();
+        } catch (IllegalStateException ignored) {
         }
     }
 }
