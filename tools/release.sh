@@ -2,7 +2,6 @@
 
 # Script to make release on the local machine.
 # See https://github.com/realm/realm-wiki/wiki/Java-Release-Checklist for more details.
-# FIXME: Only patch release is supported now.
 
 set -euo pipefail
 IFS=$'\n\t'
