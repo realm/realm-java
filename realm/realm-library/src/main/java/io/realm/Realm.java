@@ -52,6 +52,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.ObjectServerFacade;
+import io.realm.internal.OsObject;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
@@ -986,8 +987,10 @@ public class Realm extends BaseRealm {
             throw new RealmException(String.format("'%s' has a primary key, use" +
                     " 'createObject(Class<E>, Object)' instead.", table.getClassName()));
         }
-        long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex, acceptDefaultValue, excludeFields);
+        return configuration.getSchemaMediator().newInstance(clazz, this,
+                OsObject.create(sharedRealm, table),
+                schema.getColumnInfo(clazz),
+                acceptDefaultValue, excludeFields);
     }
 
     /**
@@ -1030,8 +1033,11 @@ public class Realm extends BaseRealm {
             boolean acceptDefaultValue,
             List<String> excludeFields) {
         Table table = schema.getTable(clazz);
-        long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return get(clazz, rowIndex, acceptDefaultValue, excludeFields);
+
+        return configuration.getSchemaMediator().newInstance(clazz, this,
+                OsObject.createWithPrimaryKey(sharedRealm, table, primaryKeyValue),
+                schema.getColumnInfo(clazz),
+                acceptDefaultValue, excludeFields);
     }
 
     /**
