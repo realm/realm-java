@@ -53,9 +53,6 @@ import io.realm.permissions.PermissionChange;
 import io.realm.permissions.ManagementModule;
 import io.realm.permissions.PermissionManager;
 import io.realm.permissions.PermissionModule;
-import io.realm.permissions.PermissionsCallback;
-
-
 
 /**
  * This class represents a user on the Realm Object Server. The credentials are provided by various 3rd party
@@ -71,10 +68,52 @@ import io.realm.permissions.PermissionsCallback;
 public class SyncUser {
 
     private final ObjectServerUser syncUser;
-
     private SyncUser(ObjectServerUser user) {
         this.syncUser = user;
     }
+    private ThreadLocal<PermissionManager> permissionManager = new ThreadLocal<PermissionManager>() {
+        @Override
+        public PermissionManager get() {
+            PermissionManager pm = super.get();
+            if (pm == null || pm.isClosed()) {
+                pm = new PermissionManager(SyncUser.this);
+                set(pm);
+                return pm;
+            } else {
+                return pm;
+            }
+        }
+    };
+    private static class ManagementConfig {
+        private SyncConfiguration managementRealmConfig;
+
+        synchronized SyncConfiguration initAndGetManagementRealmConfig(final SyncUser user) {
+            if (managementRealmConfig == null) {
+                managementRealmConfig = new SyncConfiguration.Builder(
+                        user, getManagementRealmUrl(user.getAuthenticationUrl()))
+                        .errorHandler(new SyncSession.ErrorHandler() {
+                            @Override
+                            public void onError(SyncSession session, ObjectServerError error) {
+                                if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
+                                    RealmLog.error("Client Reset required for user's management Realm: " + user.toString());
+                                } else {
+                                    RealmLog.error(String.format("Unexpected error with %s's management Realm: %s",
+                                            user.getIdentity(),
+                                            error.toString()));
+                                }
+                            }
+                        })
+                        .modules(new PermissionModule())
+                        .build();
+            }
+
+            return managementRealmConfig;
+        }
+    }
+
+
+    private final ManagementConfig managementConfig = new ManagementConfig();
+
 
     /**
      * Returns the current user that is logged in and still valid.
@@ -424,10 +463,8 @@ public class SyncUser {
         return syncUser.getAuthenticationUrl();
     }
 
-
-    public RealmAsyncTask getPermissionManagerAsync(Callback<PermissionManager> callback) {
-
-
+    public PermissionManager getPermissionManager() {
+        return permissionManager.get();
     }
 
     @Override
@@ -525,14 +562,23 @@ public class SyncUser {
         }
     }
 
+    // Creates the URL to the permission Realm based on the authentication URL.
+    private static String getManagementRealmUrl(URL authUrl) {
+        String scheme = "realm";
+        if (authUrl.getProtocol().equalsIgnoreCase("https")) {
+            scheme = "realms";
+        }
+        try {
+            return new URI(scheme, authUrl.getUserInfo(), authUrl.getHost(), authUrl.getPort(),
+                    "/~/__management", null, null).toString();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Could not create URL to the management Realm", e);
+        }
+    }
+
     public interface Callback {
         void onSuccess(SyncUser user);
 
-        void onError(ObjectServerError error);
-    }
-
-    public interface RequestCallback<T> {
-        void onSuccess(T t);
         void onError(ObjectServerError error);
     }
 }

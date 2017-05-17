@@ -23,6 +23,8 @@ import android.support.test.rule.UiThreadTestRule;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import java.io.File;
 import java.util.Random;
@@ -49,6 +51,7 @@ import static org.junit.Assert.fail;
 /**
  * Catch all class for tests that not naturally fit anywhere else.
  */
+@RunWith(JUnit4.class)
 public class SyncedRealmTests extends BaseIntegrationTest {
 
     @Rule
@@ -251,8 +254,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         realm.close();
         user.logout();
     }
-
-
+    
     @Test
     public void waitForInitialRemoteData_readOnlyTrue_throwsIfWrongServerSchema() {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);

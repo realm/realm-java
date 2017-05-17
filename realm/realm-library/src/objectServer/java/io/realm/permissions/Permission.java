@@ -80,34 +80,17 @@ public class Permission extends RealmObject {
         }
     }
 
-        @PrimaryKey
     @Required
-    private String id = UUID.randomUUID().toString();
-    @Required
-    private Date createdAt = new Date();
-    @Required
-    private Date updatedAt = new Date();
     private String userId;
-    private String realmUrl;
+    @Required
+    private String path;
     private boolean mayRead;
     private boolean mayWrite;
     private boolean mayManage;
+    @Required
+    private Date updatedAt;
 
     public Permission() {
-    }
-
-
-
-    public String getId() {
-        return id;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
     }
 
     public String getUserId() {
@@ -126,11 +109,8 @@ public class Permission extends RealmObject {
         return mayManage;
     }
 
-    public URL getRealmUrl() {
-        try {
-            return new URL(realmUrl);
-        } catch (MalformedURLException e) {
-            throw new IllegalStateException(e);
-        }
+    public String getPath() {
+        return path;
     }
+
 }

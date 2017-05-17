@@ -32,7 +32,7 @@ public class BaseIntegrationTest {
     private static int originalLogLevel;
 
     @BeforeClass
-    public static void setUp () throws Exception {
+    public static void setUp() throws Exception {
         SyncManager.Debug.skipOnlineChecking = true;
         try {
             Realm.init(InstrumentationRegistry.getContext());
@@ -47,7 +47,7 @@ public class BaseIntegrationTest {
     }
 
     @AfterClass
-    public static void tearDown () throws Exception {
+    public static void tearDown() throws Exception {
         try {
             HttpUtils.stopSyncServer();
             RealmLog.setLevel(originalLogLevel);
