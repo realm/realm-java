@@ -145,5 +145,5 @@ public class PermissionManagerTests extends BaseIntegrationTest {
             }
         });
     }
-    
+
 }

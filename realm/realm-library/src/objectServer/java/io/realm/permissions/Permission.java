@@ -21,6 +21,8 @@ import java.net.URL;
 import java.util.Date;
 import java.util.UUID;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
@@ -114,6 +116,7 @@ public class Permission extends RealmObject {
         return mayManage;
     }
 
+    @SuppressFBWarnings({"EI_EXPOSE_REP"})
     public Date getUpdatedAt() {
         return updatedAt;
     }
