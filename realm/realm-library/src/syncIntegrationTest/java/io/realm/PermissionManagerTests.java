@@ -144,9 +144,6 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                 looperThread.testComplete();
             }
         });
-
-
     }
-
-
+    
 }

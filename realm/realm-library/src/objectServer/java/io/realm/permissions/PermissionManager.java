@@ -64,21 +64,23 @@ public class PermissionManager implements Closeable {
         }
     }
 
+    // Used to track the lifecycle of the PermissionManager
     private RealmAsyncTask managementRealmOpenTask;
     private RealmAsyncTask permissionRealmOpenTask;
+    private boolean openInProgress = false;
+    private boolean closed;
+
     private final long threadId;
     private Handler handler = new Handler();
     private final SyncConfiguration managementRealmConfig;
     private final SyncConfiguration permissionRealmConfig;
-    private boolean openInProgress = false;
     private Realm permissionRealm;
     private Realm managementRealm;
-    private boolean closed;
 
-    // Task list used to keep tasks alive until all Realms are available
+    // Task list used to queue tasks until the underlying Realms are done opening (or fail doing so).
     private Deque<PermissionManagerAsyncTask> delayedTasks = new LinkedList<>();
 
-    // List of tasks that are running.
+    // List of tasks that are running. Used to keep strong references for listeners to work.
     // The task must remove itself from this list once it either completes
     // or fails.
     private List<RealmAsyncTask> activeTasks = new ArrayList<>();
@@ -95,6 +97,7 @@ public class PermissionManager implements Closeable {
     private RealmResults<Permission> permissions;
 
     /**
+     * FIXME Javadoc
      * Creates a PermissionManager for the given user.
      *
      * Implementation notes: This class is thread safe since all public methods have thread confined checks in them

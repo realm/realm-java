@@ -463,6 +463,25 @@ public class SyncUser {
         return syncUser.getAuthenticationUrl();
     }
 
+    // Creates the URL to the permission Realm based on the authentication URL.
+    private static String getManagementRealmUrl(URL authUrl) {
+        String scheme = "realm";
+        if (authUrl.getProtocol().equalsIgnoreCase("https")) {
+            scheme = "realms";
+        }
+        try {
+            return new URI(scheme, authUrl.getUserInfo(), authUrl.getHost(), authUrl.getPort(),
+                    "/~/__management", null, null).toString();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Could not create URL to the management Realm", e);
+        }
+    }
+
+    /**
+     * FIXME Javadoc
+     *
+     * @return
+     */
     public PermissionManager getPermissionManager() {
         return permissionManager.get();
     }
@@ -559,20 +578,6 @@ public class SyncUser {
                     }
                 });
             }
-        }
-    }
-
-    // Creates the URL to the permission Realm based on the authentication URL.
-    private static String getManagementRealmUrl(URL authUrl) {
-        String scheme = "realm";
-        if (authUrl.getProtocol().equalsIgnoreCase("https")) {
-            scheme = "realms";
-        }
-        try {
-            return new URI(scheme, authUrl.getUserInfo(), authUrl.getHost(), authUrl.getPort(),
-                    "/~/__management", null, null).toString();
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Could not create URL to the management Realm", e);
         }
     }
 

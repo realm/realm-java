@@ -29,31 +29,32 @@ import io.realm.annotations.Required;
 
 
 /**
- * TODO: Public description of what a a Permission is and how it works
+ * FIXME Javadoc
+ * Public description of what a a Permission is and how it works
  */
 public class Permission extends RealmObject {
 
     /**
-     * TODO: Public description of what a permission is and how it works
+     * FIXME: Public description of what a permission is and how it works
      */
     public enum AccessLevel {
         /**
-         * TODO: add description
+         * FIXME: add description
          */
         NONE(false, false, false),
 
         /**
-         * TODO: add description
+         * FIXME: add description
          */
         READ(true, false, false),
 
         /**
-         * TODO: add description
+         * FIXME: add description
          */
         WRITE(true, true, false),
 
         /**
-         * TODO: add description
+         * FIXME: add description
          */
         ADMIN(true, true, true);
 
@@ -97,11 +98,15 @@ public class Permission extends RealmObject {
         return userId;
     }
 
-    public boolean canRead() {
+    public String getPath() {
+        return path;
+    }
+
+    public boolean isMayRead() {
         return mayRead;
     }
 
-    public boolean canWrite() {
+    public boolean isMayWrite() {
         return mayWrite;
     }
 
@@ -109,8 +114,7 @@ public class Permission extends RealmObject {
         return mayManage;
     }
 
-    public String getPath() {
-        return path;
+    public Date getUpdatedAt() {
+        return updatedAt;
     }
-
 }

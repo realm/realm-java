@@ -18,6 +18,9 @@ package io.realm.permissions;
 
 import io.realm.annotations.RealmModule;
 
+/**
+ * FIXME Javadoc
+ */
 @RealmModule(library = true, classes = { PermissionChange.class, PermissionOffer.class, PermissionOfferResponse.class })
 public class ManagementModule {
 }
