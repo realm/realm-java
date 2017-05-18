@@ -21,7 +21,6 @@ import android.text.TextUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -185,13 +184,12 @@ public class RealmConfiguration {
     }
 
     /**
-     * Returns input stream object to the Realm asset file.
+     * Returns the path to the Realm asset file.
      *
-     * @return input stream to the asset file.
-     * @throws IOException if copying the file fails.
+     * @return absolute path to the asset file.
      */
-    InputStream getAssetFile() throws IOException {
-        return BaseRealm.applicationContext.getAssets().open(assetFilePath);
+    String getAssetFilePath() {
+        return assetFilePath;
     }
 
     /**

@@ -211,11 +211,13 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     public static SharedRealm getInstance(RealmConfiguration config, SchemaVersionListener schemaVersionListener,
             boolean autoChangeNotifications) {
-        String[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
-        String syncUserIdentifier = syncUserConf[0];
-        String syncRealmUrl = syncUserConf[1];
-        String syncRealmAuthUrl = syncUserConf[2];
-        String syncRefreshToken = syncUserConf[3];
+        Object[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
+        String syncUserIdentifier = (String) syncUserConf[0];
+        String syncRealmUrl = (String) syncUserConf[1];
+        String syncRealmAuthUrl = (String) syncUserConf[2];
+        String syncRefreshToken = (String) syncUserConf[3];
+        Boolean syncClientValidateSsl = (Boolean) syncUserConf[4];
+        String syncSslTrustCertificatePath = (String) syncUserConf[5];
 
         final boolean enableCaching = false; // Handled in Java currently
         final boolean enableFormatUpgrade = true;
@@ -232,7 +234,9 @@ public final class SharedRealm implements Closeable, NativeObject {
                 syncRealmUrl,
                 syncRealmAuthUrl,
                 syncUserIdentifier,
-                syncRefreshToken);
+                syncRefreshToken,
+                (syncClientValidateSsl == null) || syncClientValidateSsl,
+                syncSslTrustCertificatePath);
 
         try {
             ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(config);
@@ -497,7 +501,9 @@ public final class SharedRealm implements Closeable, NativeObject {
             String syncServerURL,
             String syncServerAuthURL,
             String syncUserIdentity,
-            String syncRefreshToken);
+            String syncRefreshToken,
+            boolean syncClientValidateSsl,
+            String syncSslTrustCertificatePath);
 
     private static native void nativeCloseConfig(long nativeConfigPtr);
 

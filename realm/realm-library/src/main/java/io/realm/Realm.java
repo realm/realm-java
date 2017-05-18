@@ -503,19 +503,10 @@ public class Realm extends BaseRealm {
 
                 // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
                 // It absolutely breaks encapsulation and needs to be fixed!
-                if (realm.sharedRealm.requiresMigration(schema.getNativePtr())) {
-                    if (currentVersion >= newVersion) {
-                        throw new IllegalArgumentException(String.format(
-                                "The schema was changed but the schema version was not updated. " +
-                                        "The configured schema version (%d) must be greater than the version " +
-                                        " in the Realm file (%d) in order to update the schema.",
-                                newVersion, currentVersion));
-                    }
-                    realm.sharedRealm.updateSchema(schema.getNativePtr(), newVersion);
-                    // The OS currently does not handle setting the schema version. We have to do it manually.
-                    realm.setVersion(newVersion);
-                    commitChanges = true;
-                }
+                realm.sharedRealm.updateSchema(schema.getNativePtr(), newVersion);
+                // The OS currently does not handle setting the schema version. We have to do it manually.
+                realm.setVersion(newVersion); // FIXME Test if this is true
+                commitChanges = true;
             }
 
             // Validate the schema in the file
