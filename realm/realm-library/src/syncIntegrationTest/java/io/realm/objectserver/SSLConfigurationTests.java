@@ -16,6 +16,7 @@
 
 package io.realm.objectserver;
 
+import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Rule;
@@ -24,6 +25,7 @@ import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -59,8 +61,9 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         realm.commitTransaction();
 
         // make sure the changes gets to the server
-        Thread.sleep(1500);
+        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
         realm.close();
+        user.logout();
         Realm.deleteRealm(config);
 
         // now connect again it should bring the previous commit
@@ -93,8 +96,9 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         realm.commitTransaction();
 
         // make sure the changes gets to the server
-        Thread.sleep(1500);
+        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
         realm.close();
+        user.logout();
         Realm.deleteRealm(config);
 
         // now connect again it should not bring the previous commit
@@ -123,8 +127,9 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         realm.commitTransaction();
 
         // make sure the changes gets to the server
-        Thread.sleep(1500);
+        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
         realm.close();
+        user.logout();
         Realm.deleteRealm(config);
 
         // now connect again it should bring the previous commit
