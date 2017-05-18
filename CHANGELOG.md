@@ -8,11 +8,11 @@
 
 ### Bug Fixes
 
+* [ObjectServer] `schemaVersion` was mistakenly required in order to trigger migrations (#4658). 
+
 ### Internal
 
 ## 3.2.0 (2017-05-16)
-
-### Deprecated
 
 ### Enhancements
 
