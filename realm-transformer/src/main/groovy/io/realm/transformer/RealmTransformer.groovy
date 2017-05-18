@@ -67,9 +67,9 @@ class RealmTransformer extends Transform {
     @Override
     Set<Scope> getReferencedScopes() {
         // TODO ↓ should depend on the version of Android Gradle Plugin
-        final boolean supportOld = true;
+        final boolean newScope = true;
 
-        return supportOld ? Sets.immutableEnumSet(Scope.EXTERNAL_LIBRARIES, Scope.SUB_PROJECTS, Scope.TESTED_CODE)
+        return newScope ? Sets.immutableEnumSet(Scope.EXTERNAL_LIBRARIES, Scope.SUB_PROJECTS, Scope.TESTED_CODE)
                 : Sets.immutableEnumSet(Scope.EXTERNAL_LIBRARIES, Scope.PROJECT_LOCAL_DEPS,
                 Scope.SUB_PROJECTS, Scope.SUB_PROJECTS_LOCAL_DEPS, Scope.TESTED_CODE)
     }
