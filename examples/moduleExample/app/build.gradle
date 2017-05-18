@@ -37,5 +37,5 @@ android {
 }
 
 dependencies {
-    compile project(':moduleExample:library')
+    implementation project(':moduleExample:library')
 }
