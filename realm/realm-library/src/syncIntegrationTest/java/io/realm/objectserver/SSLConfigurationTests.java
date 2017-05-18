@@ -18,7 +18,9 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import java.util.UUID;
@@ -36,6 +38,10 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 public class SSLConfigurationTests extends BaseIntegrationTest {
+
+    @Rule
+    public Timeout globalTimeout = Timeout.seconds(10);
+
 
     @Test
     public void trustedRootCA() throws InterruptedException {
