@@ -40,7 +40,11 @@ class Realm implements Plugin<Project> {
         }
 
         def syncEnabledDefault = false
-        project.extensions.create('realm', RealmPluginExtension, project, syncEnabledDefault)
+        // TODO ↓ should depend on the version of Android Gradle Plugin
+        def useNewConfigurationName = true
+        def dependencyConfigurationName = useNewConfigurationName ? "implementation" : "compile"
+        project.extensions.create('realm', RealmPluginExtension,
+                project, syncEnabledDefault, dependencyConfigurationName)
 
         def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
         def isKotlinProject = project.plugins.findPlugin('kotlin-android') != null
@@ -57,7 +61,7 @@ class Realm implements Plugin<Project> {
         project.android.registerTransform(new RealmTransformer(project))
 
         project.repositories.add(project.getRepositories().jcenter())
-        project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
+        project.dependencies.add(dependencyConfigurationName, "io.realm:realm-annotations:${Version.VERSION}")
         if (usesAptPlugin) {
             project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
             project.dependencies.add("androidTestApt", "io.realm:realm-annotations-processor:${Version.VERSION}")
