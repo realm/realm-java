@@ -450,33 +450,6 @@ public class SyncConfigurationTests {
         Realm.compactRealm(config);
     }
 
-    @Test
-    public void schemaVersion_throwsIfLessThanCurrentVersion() throws IOException {
-        SyncUser user = createTestUser();
-        String url = "realm://ros.realm.io/~/default";
-        @SuppressWarnings("unchecked")
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
-                .schema(AllJavaTypes.class, StringOnly.class)
-                .name("schemaversion_v1.realm")
-                .schemaVersion(0)
-                .build();
-
-        // Add v1 of the Realm to the filsystem
-        configFactory.copyRealmFromAssets(context, "schemaversion_v1.realm", config);
-
-        // Opening the Realm should throw an exception since the schema version is less than the one in the file.
-        Realm realm = null;
-        try {
-            realm = Realm.getInstance(config);
-            fail();
-        } catch(IllegalArgumentException ignore) {
-        } finally {
-            if (realm != null) {
-                realm.close();
-            }
-        }
-    }
-
     // Check that it is possible for multiple users to reference the same Realm URL while each user still use their
     // own copy on the filesystem. This is e.g. what happens if a Realm is shared using a PermissionOffer.
     @Test
