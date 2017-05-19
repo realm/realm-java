@@ -28,12 +28,14 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmFileException;
 import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class SSLConfigurationTests extends BaseIntegrationTest {
@@ -159,6 +161,38 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
             assertTrue(realm.isEmpty());
         } finally {
             realm.close();
+        }
+    }
+
+    @Test
+    public void combining_trustedRootCA_and_withoutSSLVerification_willThrow() {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        try {
+            SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM_SECURE)
+                    .schema(StringOnly.class)
+                    .trustedRootCA("trusted_ca.pem")
+                    .withoutSSLVerification()
+                    .build();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    @Test
+    public void trustedRootCA_notExisting_certificate_willThrow() {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM_SECURE)
+                .schema(StringOnly.class)
+                .trustedRootCA("not_existing_file.pem")
+                .build();
+        try {
+            Realm.getInstance(config);
+            fail();
+        } catch (RealmFileException ignored) {
         }
     }
 }
