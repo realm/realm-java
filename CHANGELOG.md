@@ -8,7 +8,12 @@
 
 ### Bug Fixes
 
+* Fixed random crashes which were caused by a race condition in encrypted Realm (#4343).
+
 ### Internal
+
+* Upgraded to Realm Sync 1.8.5.
+* Upgraded to Realm Core 2.8.0.
 
 ## 3.2.0 (2017-05-16)
 
