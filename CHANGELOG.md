@@ -8,6 +8,8 @@
 
 ### Bug Fixes
 
+* [ObjectServer] `schemaVersion` was mistakenly required in order to trigger migrations (#4658). 
+* [ObjectServer] Fields removed from model classes will now correctly be hidden instead of throwing an exception when opening the Realm (#4658). 
 * Fixed random crashes which were caused by a race condition in encrypted Realm (#4343).
 
 ### Internal
@@ -16,8 +18,6 @@
 * Upgraded to Realm Core 2.8.0.
 
 ## 3.2.0 (2017-05-16)
-
-### Deprecated
 
 ### Enhancements
 
