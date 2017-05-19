@@ -69,7 +69,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
-        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM_SECURE)
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .trustedRootCA("trusted_ca.pem")
@@ -110,7 +110,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
-        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM_SECURE)
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .withoutSSLVerification()
@@ -156,12 +156,9 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
                 .build();
         realm = Realm.getInstance(config);
         try {
-//            assertTrue(realm.isEmpty());
+            assertTrue(realm.isEmpty());
         } finally {
             realm.close();
         }
     }
-
-    // TODO add tests file is not present & combining both without & trust CA
-
 }
