@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.internal;
+
+
+import io.realm.RealmFieldType;
 
 
 /**
  * Class for handling properties/fields.
  */
 
-class Property {
+public class Property {
     public static final boolean PRIMARY_KEY = true;
     public static final boolean REQUIRED = true;
     public static final boolean INDEXED = true;
@@ -32,8 +35,8 @@ class Property {
         this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), isPrimary, isIndexed, !isRequired);
     }
 
-    Property(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
-        this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), linkedTo.getClassName());
+    Property(String name, RealmFieldType type, String linkedClassName) {
+        this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), linkedClassName);
     }
 
     protected Property(long nativePtr) {

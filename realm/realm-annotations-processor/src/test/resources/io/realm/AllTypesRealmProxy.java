@@ -5,12 +5,12 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmObjectSchema;
-import io.realm.RealmSchema;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.Property;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
@@ -86,6 +86,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     private AllTypesColumnInfo columnInfo;
     private ProxyState<some.test.AllTypes> proxyState;
+    private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private RealmList<some.test.AllTypes> columnRealmListRealmList;
     private RealmResults<some.test.AllTypes> parentObjectsBacklinks;
     private static final List<String> FIELD_NAMES;
@@ -398,27 +399,22 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return parentObjectsBacklinks;
     }
 
-    public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
-        if (!realmSchema.contains("AllTypes")) {
-            RealmObjectSchema realmObjectSchema = realmSchema.create("AllTypes");
-            realmObjectSchema.add("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, !Property.REQUIRED);
-            realmObjectSchema.add("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            if (!realmSchema.contains("AllTypes")) {
-                AllTypesRealmProxy.createRealmObjectSchema(realmSchema);
-            }
-            realmObjectSchema.add("columnObject", RealmFieldType.OBJECT, realmSchema.get("AllTypes"));
-            if (!realmSchema.contains("AllTypes")) {
-                AllTypesRealmProxy.createRealmObjectSchema(realmSchema);
-            }
-            realmObjectSchema.add("columnRealmList", RealmFieldType.LIST, realmSchema.get("AllTypes"));
-            return realmObjectSchema;
-        }
-        return realmSchema.get("AllTypes");
+    private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
+        OsObjectSchemaInfo info = new OsObjectSchemaInfo("AllTypes");;
+        info.add("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, !Property.REQUIRED);
+        info.add("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        info.add("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        info.add("columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        info.add("columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        info.add("columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        info.add("columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        info.add("columnObject", RealmFieldType.OBJECT, "AllTypes");
+        info.add("columnRealmList", RealmFieldType.LIST, "AllTypes");
+        return info;
+    }
+
+    public static OsObjectSchemaInfo getExpectedObjectSchemaInfo() {
+        return expectedObjectSchemaInfo;
     }
 
     public static AllTypesColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {

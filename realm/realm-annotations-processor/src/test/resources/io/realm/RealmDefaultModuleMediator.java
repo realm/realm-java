@@ -2,14 +2,15 @@ package io.realm;
 
 
 import android.util.JsonReader;
-import io.realm.RealmObjectSchema;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,13 +33,10 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema) {
-        checkClass(clazz);
-
-        if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.createRealmObjectSchema(realmSchema);
-        }
-        throw getMissingProxyClassException(clazz);
+    public List<OsObjectSchemaInfo> getExpectedObjectSchemaInfoList() {
+        List<OsObjectSchemaInfo> infoList = new ArrayList<OsObjectSchemaInfo>();
+        infoList.add(io.realm.AllTypesRealmProxy.getExpectedObjectSchemaInfo());
+        return infoList;
     }
 
     @Override

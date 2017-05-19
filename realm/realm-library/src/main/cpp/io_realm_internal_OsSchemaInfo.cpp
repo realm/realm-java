@@ -15,18 +15,24 @@
  */
 
 #include <jni.h>
-#include "io_realm_OsRealmSchema.h"
+#include "io_realm_internal_OsSchemaInfo.h"
 
 #include <object-store/src/schema.hpp>
 #include <object-store/src/object_schema.hpp>
 #include <object-store/src/property.hpp>
 
 #include "util.hpp"
+
 using namespace realm;
 
+static void finalize_schema(jlong ptr)
+{
+    TR_ENTER_PTR(ptr);
+    delete reinterpret_cast<Schema*>(ptr);
+}
 
-JNIEXPORT jlong JNICALL Java_io_realm_OsRealmSchema_nativeCreateFromList(JNIEnv* env, jclass,
-                                                                       jlongArray objectSchemaPtrs_)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeCreateFromList(JNIEnv* env, jclass,
+                                                                                 jlongArray objectSchemaPtrs_)
 {
     TR_ENTER()
     try {
@@ -42,9 +48,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_OsRealmSchema_nativeCreateFromList(JNIEnv*
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_OsRealmSchema_nativeClose(JNIEnv*, jclass, jlong nativePtr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER_PTR(nativePtr)
-    Schema* schema = reinterpret_cast<Schema*>(nativePtr);
-    delete schema;
+    TR_ENTER()
+    return reinterpret_cast<jlong>(&finalize_schema);
 }

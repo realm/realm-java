@@ -22,6 +22,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,9 +32,8 @@ import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmModel;
-import io.realm.RealmObjectSchema;
-import io.realm.RealmSchema;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
@@ -61,9 +61,12 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema schema) {
-        RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.createRealmObjectSchema(clazz, schema);
+    public List<OsObjectSchemaInfo> getExpectedObjectSchemaInfoList() {
+        List<OsObjectSchemaInfo> infoList = new ArrayList<OsObjectSchemaInfo>();
+        for (RealmProxyMediator mediator : mediators.values()) {
+            infoList.addAll(mediator.getExpectedObjectSchemaInfoList());
+        }
+        return infoList;
     }
 
     @Override

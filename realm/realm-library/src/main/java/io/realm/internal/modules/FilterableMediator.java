@@ -22,6 +22,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -34,6 +35,7 @@ import io.realm.RealmModel;
 import io.realm.RealmObjectSchema;
 import io.realm.RealmSchema;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
@@ -49,6 +51,7 @@ public class FilterableMediator extends RealmProxyMediator {
 
     private final RealmProxyMediator originalMediator;
     private final Set<Class<? extends RealmModel>> allowedClasses;
+    private final Set<String> allowedClasseNames;
 
     /**
      * Creates a filterable {@link RealmProxyMediator}.
@@ -69,16 +72,23 @@ public class FilterableMediator extends RealmProxyMediator {
             }
         }
         this.allowedClasses = Collections.unmodifiableSet(tempAllowedClasses);
-    }
 
-    public RealmProxyMediator getOriginalMediator() {
-        return originalMediator;
+        Set<String> tempAllowedClassNames = new HashSet<String>();
+        for (Class<? extends RealmModel> clazz : this.allowedClasses) {
+            tempAllowedClassNames.add(clazz.getSimpleName());
+        }
+        this.allowedClasseNames = Collections.unmodifiableSet(tempAllowedClassNames);
     }
 
     @Override
-    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema schema) {
-        checkSchemaHasClass(clazz);
-        return originalMediator.createRealmObjectSchema(clazz, schema);
+    public List<OsObjectSchemaInfo> getExpectedObjectSchemaInfoList() {
+        List<OsObjectSchemaInfo> infoList = new ArrayList<OsObjectSchemaInfo>();
+        for (OsObjectSchemaInfo objectSchemaInfo : originalMediator.getExpectedObjectSchemaInfoList()) {
+            if (allowedClasseNames.contains(objectSchemaInfo.getClassName())) {
+                infoList.add(objectSchemaInfo);
+            }
+        }
+        return infoList;
     }
 
     @Override
