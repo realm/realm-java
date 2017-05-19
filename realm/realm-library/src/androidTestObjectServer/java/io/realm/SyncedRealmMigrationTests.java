@@ -221,6 +221,36 @@ public class SyncedRealmMigrationTests {
 //        }
     }
 
+    // Check that indexes are being added if other fields are being added as well
+    @Test
+    public void addingFields_rebuildIndexes() {
+
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .schema(IndexedFields.class)
+                .schemaVersion(42)
+                .build();
+
+        // Setup initial Realm schema (with no indexes)
+        String className = IndexedFields.class.getSimpleName();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
+        RealmSchema schema = dynamicRealm.getSchema();
+        dynamicRealm.beginTransaction();
+        schema.create(className)
+                .addField(IndexedFields.FIELD_INDEXED_STRING, String.class); // No index
+                // .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String.class); // Missing field
+        dynamicRealm.setVersion(41);
+        dynamicRealm.commitTransaction();
+        dynamicRealm.close();
+
+        // Opening at different schema version (42) should add field and rebuild indexes
+        Realm realm = Realm.getInstance(config);
+        try {
+            assertTrue(realm.getSchema().get(className).hasField(IndexedFields.FIELD_NON_INDEXED_STRING));
+            assertTrue(realm.getSchema().get(className).hasIndex(IndexedFields.FIELD_INDEXED_STRING));
+        } finally {
+            realm.close();
+        }
+    }
 
     @Test
     public void schemaVersionUpgradedWhenMigrating() {
