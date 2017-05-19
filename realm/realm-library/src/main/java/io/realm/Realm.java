@@ -501,7 +501,7 @@ public class Realm extends BaseRealm {
                 schemaCreator.close();
                 schemaCreator = null;
 
-                // Object Store handle all update logic
+                // Object Store handles all update logic
                 realm.sharedRealm.updateSchema(schema.getNativePtr(), newVersion);
                 commitChanges = true;
             }
