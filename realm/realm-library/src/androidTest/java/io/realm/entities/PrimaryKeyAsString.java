@@ -24,6 +24,7 @@ public class PrimaryKeyAsString extends RealmObject {
 
     public static final String CLASS_NAME = "PrimaryKeyAsString";
     public static final String FIELD_PRIMARY_KEY = "name";
+    public static final String FIELD_ID = "id";
 
     @PrimaryKey
     private String name;
