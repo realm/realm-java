@@ -35,6 +35,7 @@ import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
+import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
@@ -235,7 +236,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns the name of the certificate stored under the {@code assets}, to be used to validate
+     * Returns the name of certificate stored under the {@code assets}, to be used to validate
      * the TLS connection to the Realm Object Server.
      *
      * @return name of the certificate to be copied from the {@code assets}.
@@ -674,9 +675,9 @@ public class SyncConfiguration extends RealmConfiguration {
          * It is not recommended to use this in production.
          * <p>
          * This might be useful in non-production environments where you use a self-signed certificate
-         * for testing for example.
+         * for testing.
          */
-        public Builder withoutSSLVerification() {
+        public Builder disableSSLVerification() {
             this.syncClientValidateSsl = false;
             return this;
         }
@@ -820,13 +821,15 @@ public class SyncConfiguration extends RealmConfiguration {
             }
 
             if (!TextUtils.isEmpty(serverCertificateAssetName)) {
-                if (!syncClientValidateSsl) {
-                    throw new IllegalStateException("SSL Verification is disable, server certificate should not be provided");
+                if (syncClientValidateSsl) {
+                    // Create the path where the serverCertificateAssetName will be copied
+                    // so we can supply it to the Sync client.
+                    // using getRealmDirectory avoid file collision between same filename from different users (Realms)
+                    String fileName = serverCertificateAssetName.substring(serverCertificateAssetName.lastIndexOf(File.separatorChar) + 1);
+                    serverCertificateFilePath = new File(realmFileDirectory, fileName).getAbsolutePath();
+                } else {
+                    RealmLog.warn("SSL Verification is disable, server certificate provided will not be used");
                 }
-                // Create the path where the serverCertificateAssetName will be copied
-                // so we can supply it to the Sync client
-                String fileName = serverCertificateAssetName.substring(serverCertificateAssetName.lastIndexOf(File.separatorChar) + 1);
-                serverCertificateFilePath = new File(realmFileDirectory, fileName).getAbsolutePath();
             }
 
             return new SyncConfiguration(

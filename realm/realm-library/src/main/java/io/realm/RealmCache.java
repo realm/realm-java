@@ -536,12 +536,10 @@ final class RealmCache {
         }
 
         // Copy Sync Server certificate path if available
-
         String syncServerCertificateAssetName = ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).getSyncServerCertificateAssetName(configuration);
         if (!TextUtils.isEmpty(syncServerCertificateAssetName)) {
             String syncServerCertificateFilePath = ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).getSyncServerCertificateFilePath(configuration);
 
-            // using getRealmDirectory avoid file collision between same filename from different users (Realms)
             File certificateFile = new File(syncServerCertificateFilePath);
             copyFileIfNeeded(syncServerCertificateAssetName, certificateFile);
         }

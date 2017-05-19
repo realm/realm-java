@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmFileException;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.TestSyncConfigurationFactory;
@@ -115,7 +117,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM_SECURE)
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
-                .withoutSSLVerification()
+                .disableSSLVerification()
                 .build();
         realm = Realm.getInstance(config);
 
@@ -169,15 +171,18 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         String username = UUID.randomUUID().toString();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
-        try {
-            SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM_SECURE)
-                    .schema(StringOnly.class)
-                    .trustedRootCA("trusted_ca.pem")
-                    .withoutSSLVerification()
-                    .build();
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
+//        try {
+        TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
+        RealmLog.add(testLogger);
+        RealmLog.setLevel(LogLevel.WARN);
+
+        new SyncConfiguration.Builder(user, Constants.USER_REALM_SECURE)
+                .schema(StringOnly.class)
+                .trustedRootCA("trusted_ca.pem")
+                .disableSSLVerification()
+                .build();
+
+        assertEquals("SSL Verification is disable, server certificate provided will not be used", testLogger.message);
     }
 
     @Test
@@ -189,6 +194,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
                 .schema(StringOnly.class)
                 .trustedRootCA("not_existing_file.pem")
                 .build();
+
         try {
             Realm.getInstance(config);
             fail();

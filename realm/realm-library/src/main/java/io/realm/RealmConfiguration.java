@@ -186,7 +186,7 @@ public class RealmConfiguration {
     /**
      * Returns the path to the Realm asset file.
      *
-     * @return absolute path to the asset file.
+     * @return path to the asset file relative to the asset directory.
      */
     String getAssetFilePath() {
         return assetFilePath;
