@@ -68,7 +68,9 @@ public class SyncedRealmMigrationTests {
     // automatically.
     @Test
     public void addField_worksWithMigrationError() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth").build();
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .schema(StringOnly.class)
+                .build();
 
         // Setup initial Realm schema (with missing fields)
         String className = StringOnly.class.getSimpleName();
@@ -93,7 +95,9 @@ public class SyncedRealmMigrationTests {
     // The underlying field should not be deleted, just hidden.
     @Test
     public void missingFields_hiddenSilently() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth").build();
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .schema(StringOnly.class)
+                .build();
 
         // Setup initial Realm schema (with too many fields)
         String className = StringOnly.class.getSimpleName();
@@ -122,7 +126,9 @@ public class SyncedRealmMigrationTests {
     // Check that a Realm cannot be opened if it contain breaking schema changes, like changing a primary key
     @Test
     public void breakingSchemaChange_throws() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth").build();
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .schema(PrimaryKeyAsString.class)
+                .build();
 
         // Setup initial Realm schema (with a different primary key)
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
@@ -146,6 +152,7 @@ public class SyncedRealmMigrationTests {
     public void sameSchemaVersion_doNotRebuildIndexes() {
 
         SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .schema(IndexedFields.class)
                 .schemaVersion(42)
                 .build();
 
@@ -182,6 +189,7 @@ public class SyncedRealmMigrationTests {
     public void differentSchemaVersions_rebuildIndexes() {
 
         SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .schema(IndexedFields.class)
                 .schemaVersion(42)
                 .build();
 
@@ -213,4 +221,29 @@ public class SyncedRealmMigrationTests {
 //        }
     }
 
+
+    @Test
+    public void schemaVersionUpgradedWhenMigrating() {
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .schemaVersion(42)
+                .build();
+
+        // Setup initial Realm schema (with missing fields)
+        String className = StringOnly.class.getSimpleName();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
+        RealmSchema schema = dynamicRealm.getSchema();
+        dynamicRealm.beginTransaction();
+        schema.create(className); // Create empty class
+        dynamicRealm.setVersion(1);
+        dynamicRealm.commitTransaction();
+        dynamicRealm.close();
+
+        // Open typed Realm, which will validate the schema
+        Realm realm = Realm.getInstance(config);
+        try {
+            assertEquals(42, realm.getVersion());
+        } finally {
+            realm.close();
+        }
+    }
 }

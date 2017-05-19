@@ -501,11 +501,8 @@ public class Realm extends BaseRealm {
                 schemaCreator.close();
                 schemaCreator = null;
 
-                // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
-                // It absolutely breaks encapsulation and needs to be fixed!
+                // Object Store handle all update logic
                 realm.sharedRealm.updateSchema(schema.getNativePtr(), newVersion);
-                // The OS currently does not handle setting the schema version. We have to do it manually.
-                realm.setVersion(newVersion); // FIXME Test if this is true
                 commitChanges = true;
             }
 
