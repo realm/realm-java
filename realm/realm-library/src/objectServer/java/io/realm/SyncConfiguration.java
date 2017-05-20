@@ -17,7 +17,6 @@
 package io.realm;
 
 import android.content.Context;
-import android.text.TextUtils;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -35,6 +34,7 @@ import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
+import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
@@ -820,7 +820,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalStateException("Could not create directory for saving the Realm: " + realmFileDirectory);
             }
 
-            if (!TextUtils.isEmpty(serverCertificateAssetName)) {
+            if (!Util.isEmptyString(serverCertificateAssetName)) {
                 if (syncClientValidateSsl) {
                     // Create the path where the serverCertificateAssetName will be copied
                     // so we can supply it to the Sync client.

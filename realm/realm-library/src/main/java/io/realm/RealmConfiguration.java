@@ -17,7 +17,6 @@
 package io.realm;
 
 import android.content.Context;
-import android.text.TextUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +33,7 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
+import io.realm.internal.Util;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
 import io.realm.rx.RealmObservableFactory;
@@ -180,7 +180,7 @@ public class RealmConfiguration {
      * @return {@code true} if there is asset file, {@code false} otherwise.
      */
     boolean hasAssetFile() {
-        return !TextUtils.isEmpty(assetFilePath);
+        return !Util.isEmptyString(assetFilePath);
     }
 
     /**
@@ -567,7 +567,7 @@ public class RealmConfiguration {
          * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */
         public Builder inMemory() {
-            if (!TextUtils.isEmpty(assetFilePath)) {
+            if (!Util.isEmptyString(assetFilePath)) {
                 throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
             }
 
@@ -641,7 +641,7 @@ public class RealmConfiguration {
          * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
         public Builder assetFile(String assetFile) {
-            if (TextUtils.isEmpty(assetFile)) {
+            if (Util.isEmptyString(assetFile)) {
                 throw new IllegalArgumentException("A non-empty asset file path must be provided");
             }
             if (durability == SharedRealm.Durability.MEM_ONLY) {

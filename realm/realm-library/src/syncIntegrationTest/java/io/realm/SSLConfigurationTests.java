@@ -171,7 +171,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         String username = UUID.randomUUID().toString();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
-        
+
         TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
         RealmLog.add(testLogger);
         RealmLog.setLevel(LogLevel.WARN);

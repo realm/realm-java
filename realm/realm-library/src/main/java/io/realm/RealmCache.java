@@ -15,8 +15,6 @@
  */
 package io.realm;
 
-import android.text.TextUtils;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,6 +39,7 @@ import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmAsyncTaskImpl;
@@ -537,7 +536,7 @@ final class RealmCache {
 
         // Copy Sync Server certificate path if available
         String syncServerCertificateAssetName = ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).getSyncServerCertificateAssetName(configuration);
-        if (!TextUtils.isEmpty(syncServerCertificateAssetName)) {
+        if (!Util.isEmptyString(syncServerCertificateAssetName)) {
             String syncServerCertificateFilePath = ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).getSyncServerCertificateFilePath(configuration);
 
             File certificateFile = new File(syncServerCertificateFilePath);
