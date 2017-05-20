@@ -216,7 +216,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         String syncRealmUrl = (String) syncUserConf[1];
         String syncRealmAuthUrl = (String) syncUserConf[2];
         String syncRefreshToken = (String) syncUserConf[3];
-        boolean syncClientValidateSsl = (syncUserConf[4] == Boolean.TRUE);
+        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncUserConf[4]));
         String syncSslTrustCertificatePath = (String) syncUserConf[5];
 
         final boolean enableCaching = false; // Handled in Java currently
