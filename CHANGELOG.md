@@ -2,7 +2,7 @@
 
 ### Enhancements
 
-* [ObjectServer] Added two options to `SyncConfiguration` to provide a trusted root CA `trustedRootCA` and to disable SSL validation `disableSSLVerification`. fixes (#4371).
+* [ObjectServer] Added two options to `SyncConfiguration` to provide a trusted root CA `trustedRootCA` and to disable SSL validation `disableSSLVerification` (#4371).
 
 ## 3.2.1 (2017-05-19)
 

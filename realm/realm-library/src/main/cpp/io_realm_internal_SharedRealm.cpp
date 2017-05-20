@@ -132,18 +132,16 @@ public:
             user = SyncManager::shared().get_user(user_identity, refresh_token,
                                                   realm::util::Optional<std::string>(realm_auth_url));
         }
+
+        util::Optional<std::string> ssl_trust_certificate_path = util::none;
         if (sync_ssl_trust_certificate_path) {
-            JStringAccessor ssl_trust_certificate_path(env, sync_ssl_trust_certificate_path);
-            m_config.sync_config = std::make_shared<SyncConfig>(
-                SyncConfig{user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler),
-                           std::move(error_handler), nullptr, util::none, sync_client_validate_ssl,
-                           realm::util::Optional<std::string>(ssl_trust_certificate_path)});
+            ssl_trust_certificate_path =
+                realm::util::Optional<std::string>(JStringAccessor(env, sync_ssl_trust_certificate_path));
         }
-        else {
-            m_config.sync_config = std::make_shared<SyncConfig>(
-                SyncConfig{user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler),
-                           std::move(error_handler), nullptr, util::none, sync_client_validate_ssl});
-        }
+        m_config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
+            user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler),
+            nullptr, util::none, sync_client_validate_ssl, ssl_trust_certificate_path});
+
 
 #else
         REALM_UNREACHABLE();
