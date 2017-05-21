@@ -1,3 +1,10 @@
+## 3.2.2 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Fixed Realm Transformer warnings when using Build Tools 3.0.0 (#4659).
+
+
 ## 3.2.1 (2017-05-19)
 
 ### Deprecated

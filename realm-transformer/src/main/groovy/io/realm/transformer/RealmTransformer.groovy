@@ -66,8 +66,17 @@ class RealmTransformer extends Transform {
 
     @Override
     Set<Scope> getReferencedScopes() {
-        return Sets.immutableEnumSet(Scope.EXTERNAL_LIBRARIES, Scope.PROJECT_LOCAL_DEPS,
-                Scope.SUB_PROJECTS, Scope.SUB_PROJECTS_LOCAL_DEPS, Scope.TESTED_CODE)
+        // Some scopes were deprecated in Build Tools 3.0
+        def localDepsDeprecated = Scope.class
+                .getField(Scope.PROJECT_LOCAL_DEPS.name())
+                .isAnnotationPresent(Deprecated.class);
+        def scopes = Sets.newHashSet(Scope.EXTERNAL_LIBRARIES, Scope.SUB_PROJECTS, Scope.TESTED_CODE)
+        if (!localDepsDeprecated) {
+            scopes.add(Scope.PROJECT_LOCAL_DEPS)
+            scopes.add(Scope.SUB_PROJECTS_LOCAL_DEPS)
+        }
+
+        return Sets.immutableEnumSet(scopes)
     }
 
     @Override
