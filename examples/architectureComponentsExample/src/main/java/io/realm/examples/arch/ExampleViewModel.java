@@ -17,11 +17,8 @@
 package io.realm.examples.arch;
 
 import android.arch.lifecycle.ViewModel;
-import android.os.SystemClock;
-import android.support.annotation.MainThread;
 
 import io.realm.Realm;
-import io.realm.RealmResults;
 import io.realm.examples.arch.livemodel.LiveRealmObject;
 import io.realm.examples.arch.model.Person;
 
@@ -30,8 +27,6 @@ public class ExampleViewModel extends ViewModel {
     private final Realm realm;
 
     private final LiveRealmObject<Person> livePerson;
-
-    private volatile Thread thread;
 
     public ExampleViewModel() {
         realm = Realm.getDefaultInstance();
@@ -42,55 +37,8 @@ public class ExampleViewModel extends ViewModel {
         return livePerson;
     }
 
-    @MainThread
-    public void start() {
-        if (thread != null) {
-            // already running
-            return;
-        }
-
-        thread = new IncrementThread();
-        thread.start();
-    }
-
-    @MainThread
-    public void stop() {
-        thread = null;
-    }
-
-    final class IncrementThread extends Thread {
-        IncrementThread() {
-            super("increment thread");
-        }
-
-        @Override
-        public void run() {
-            final Realm realm = Realm.getDefaultInstance();
-            //noinspection TryFinallyCanBeTryWithResources
-            try {
-                final RealmResults<Person> all = realm.where(Person.class).findAll();
-                Realm.Transaction transaction = new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        for (Person person : all) {
-                            person.age = person.age + 1;
-                        }
-                    }
-                };
-
-                while (thread == this) {
-                    realm.executeTransaction(transaction);
-                    SystemClock.sleep(1000L);
-                }
-            } finally {
-                realm.close();
-            }
-        }
-    }
-
     @Override
     protected void onCleared() {
-        stop();
         realm.close();
         super.onCleared();
     }
