@@ -150,7 +150,7 @@ dependencies {
     compileOnly 'io.reactivex:rxjava:1.1.0'
     compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
-    implementation "io.realm:realm-annotations:${version}"
+    api "io.realm:realm-annotations:${version}"
     implementation 'com.getkeepsafe.relinker:relinker:1.2.2'
 
     objectServerAnnotationProcessor project(':realm-annotations-processor')
