@@ -36,7 +36,6 @@ public class LifecycleExampleActivity extends LifecycleActivity {
     private TextView ageView;
 
     private ExampleViewModel exampleViewModel;
-    private Updater updater;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +51,6 @@ public class LifecycleExampleActivity extends LifecycleActivity {
                 updateViews(person);
             }
         });
-
-        updater = ViewModelProviders.of(this).get(Updater.class);
     }
 
     @MainThread
@@ -63,13 +60,13 @@ public class LifecycleExampleActivity extends LifecycleActivity {
         findViewById(R.id.start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updater.start();
+                exampleViewModel.start();
             }
         });
         findViewById(R.id.stop).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updater.stop();
+                exampleViewModel.stop();
             }
         });
     }
