@@ -259,7 +259,7 @@ task checkstyle(type: Checkstyle) {
     source 'src'
     include '*/java/**/*.java'
     exclude 'benchmarks/**'
-    // Ingore tests for now.
+    // Ignore tests for now.
     exclude '*Test*/**'
 
     // empty classpath
@@ -367,7 +367,7 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
 
-            pom.withXml(createPomDependencies(["baseCompile", "compile"]))
+            pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
         }
 
         objectServerPublication(MavenPublication) {
@@ -378,7 +378,7 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
 
-            pom.withXml(createPomDependencies(["objectServerCompile", "compile"]))
+            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
         }
     }
     repositories {
