@@ -1,9 +1,12 @@
 package io.realm;
 
+import android.support.test.runner.AndroidJUnit4;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -25,6 +28,7 @@ import static org.junit.Assert.assertTrue;
  * - looperThread.runAfterTest(Runnable) : This is called when the LooperTest either succeed for fails.
  */
 
+@RunWith(AndroidJUnit4.class)
 public class RunTestInLooperThreadLifeCycleTest {
 
     @Rule
