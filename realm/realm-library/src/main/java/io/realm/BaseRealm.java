@@ -67,7 +67,7 @@ abstract class BaseRealm implements Closeable {
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
-    final long threadId;
+    final Thread creatorThread;
     protected final RealmConfiguration configuration;
     // Which RealmCache is this Realm associated to. It is null if the Realm instance is opened without being put into a
     // cache. It is also null if the Realm is closed.
@@ -84,7 +84,7 @@ abstract class BaseRealm implements Closeable {
 
     // Create a realm instance without associating it to any RealmCache.
     BaseRealm(RealmConfiguration configuration) {
-        this.threadId = Thread.currentThread().getId();
+        this.creatorThread = Thread.currentThread();
         this.configuration = configuration;
         this.realmCache = null;
 
@@ -381,7 +381,7 @@ abstract class BaseRealm implements Closeable {
         }
 
         // Checks if we are in the right thread.
-        if (threadId != Thread.currentThread().getId()) {
+        if (creatorThread != Thread.currentThread()) {
             throw new IllegalStateException(BaseRealm.INCORRECT_THREAD_MESSAGE);
         }
     }
@@ -449,7 +449,7 @@ abstract class BaseRealm implements Closeable {
      */
     @Override
     public void close() {
-        if (this.threadId != Thread.currentThread().getId()) {
+        if (this.creatorThread != Thread.currentThread()) {
             throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
         }
 
@@ -481,7 +481,7 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if attempting to close from another thread.
      */
     public boolean isClosed() {
-        if (this.threadId != Thread.currentThread().getId()) {
+        if (this.creatorThread != Thread.currentThread()) {
             throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
         }
 
