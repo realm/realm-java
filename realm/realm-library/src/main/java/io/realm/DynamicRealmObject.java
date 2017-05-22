@@ -874,7 +874,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
 
         final String className = proxyState.getRow$realm().getTable().getClassName();
-        StringBuilder sb = new StringBuilder(className + " = [");
+        StringBuilder sb = new StringBuilder(className + " = dynamic[");
         String[] fields = getFieldNames();
         for (String field : fields) {
             long columnIndex = proxyState.getRow$realm().getColumnIndex(field);

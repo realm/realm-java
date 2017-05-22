@@ -10,6 +10,7 @@ import io.realm.RealmSchema;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
+import io.realm.internal.OsObject;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
@@ -1495,7 +1496,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
         NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
-        long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+        long rowIndex = OsObject.createRow(realm.sharedRealm, table);
         cache.put(object, rowIndex);
         String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldStringNotNull();
         if (realmGet$fieldStringNotNull != null) {
@@ -1601,7 +1602,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                     cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex());
                     continue;
                 }
-                long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+                long rowIndex = OsObject.createRow(realm.sharedRealm, table);
                 cache.put(object, rowIndex);
                 String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldStringNotNull();
                 if (realmGet$fieldStringNotNull != null) {
@@ -1703,7 +1704,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
         NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
-        long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+        long rowIndex = OsObject.createRow(realm.sharedRealm, table);
         cache.put(object, rowIndex);
         String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldStringNotNull();
         if (realmGet$fieldStringNotNull != null) {
@@ -1851,7 +1852,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                     cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex());
                     continue;
                 }
-                long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+                long rowIndex = OsObject.createRow(realm.sharedRealm, table);
                 cache.put(object, rowIndex);
                 String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldStringNotNull();
                 if (realmGet$fieldStringNotNull != null) {
@@ -2038,7 +2039,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         if (!RealmObject.isValid(this)) {
             return "Invalid object";
         }
-        StringBuilder stringBuilder = new StringBuilder("NullTypes = [");
+        StringBuilder stringBuilder = new StringBuilder("NullTypes = proxy[");
         stringBuilder.append("{fieldStringNotNull:");
         stringBuilder.append(realmGet$fieldStringNotNull());
         stringBuilder.append("}");

@@ -52,6 +52,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.ObjectServerFacade;
+import io.realm.internal.OsObject;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
@@ -500,21 +501,9 @@ public class Realm extends BaseRealm {
                 schemaCreator.close();
                 schemaCreator = null;
 
-                // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
-                // It absolutely breaks encapsulation and needs to be fixed!
-                if (realm.sharedRealm.requiresMigration(schema.getNativePtr())) {
-                    if (currentVersion >= newVersion) {
-                        throw new IllegalArgumentException(String.format(
-                                "The schema was changed but the schema version was not updated. " +
-                                        "The configured schema version (%d) must be greater than the version " +
-                                        " in the Realm file (%d) in order to update the schema.",
-                                newVersion, currentVersion));
-                    }
-                    realm.sharedRealm.updateSchema(schema.getNativePtr(), newVersion);
-                    // The OS currently does not handle setting the schema version. We have to do it manually.
-                    realm.setVersion(newVersion);
-                    commitChanges = true;
-                }
+                // Object Store handles all update logic
+                realm.sharedRealm.updateSchema(schema.getNativePtr(), newVersion);
+                commitChanges = true;
             }
 
             // Validate the schema in the file
@@ -986,8 +975,10 @@ public class Realm extends BaseRealm {
             throw new RealmException(String.format("'%s' has a primary key, use" +
                     " 'createObject(Class<E>, Object)' instead.", table.getClassName()));
         }
-        long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex, acceptDefaultValue, excludeFields);
+        return configuration.getSchemaMediator().newInstance(clazz, this,
+                OsObject.create(sharedRealm, table),
+                schema.getColumnInfo(clazz),
+                acceptDefaultValue, excludeFields);
     }
 
     /**
@@ -1030,8 +1021,11 @@ public class Realm extends BaseRealm {
             boolean acceptDefaultValue,
             List<String> excludeFields) {
         Table table = schema.getTable(clazz);
-        long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return get(clazz, rowIndex, acceptDefaultValue, excludeFields);
+
+        return configuration.getSchemaMediator().newInstance(clazz, this,
+                OsObject.createWithPrimaryKey(sharedRealm, table, primaryKeyValue),
+                schema.getColumnInfo(clazz),
+                acceptDefaultValue, excludeFields);
     }
 
     /**

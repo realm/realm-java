@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,15 @@
 package io.realm.entities;
 
 import io.realm.RealmObject;
+import io.realm.annotations.Index;
 
-public class StringOnly extends RealmObject {
 
-    public static final String FIELD_CHARS = "chars";
+public class IndexedFields extends RealmObject {
 
-    private String chars;
+    public static final String FIELD_INDEXED_STRING = "indexedString";
+    public static final String FIELD_NON_INDEXED_STRING = "nonIndexedString";
 
-    public String getChars() {
-        return chars;
-    }
-
-    public void setChars(String chars) {
-        this.chars = chars;
-    }
+    @Index
+    private String indexedString;
+    private String nonIndexedString;
 }

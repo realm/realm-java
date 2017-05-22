@@ -489,13 +489,11 @@ public class SyncConfiguration extends RealmConfiguration {
         /**
          * Sets the schema version of the Realm.
          * <p>
-         * While synced Realms only support additive schema changes which can be applied without requiring a manual
-         * migration, the schema version must still be incremented as an indication to Realm that the change was
-         * intentional.
-         * <p>
-         * Failing to increment the schema version will cause Realm to throw a {@link io.realm.exceptions.RealmMigrationNeededException}
-         * when the Realm is opened and the changed schema will not be applied.
-         * <p>
+         * Synced Realms only support additive schema changes which can be applied without requiring a manual
+         * migration. The schema version will only be used as an indication to the underlying storage layer to remove
+         * or add indexes. These will be recalculated if the provided schema version differ from the version in the
+         * Realm file.
+         *
          * <b>WARNING:</b> There is no guarantee that the value inserted here is the same returned by {@link Realm#getVersion()}.
          * Due to the nature of synced Realms, the value can both be higher and lower.
          * <ul>

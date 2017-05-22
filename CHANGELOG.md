@@ -1,6 +1,23 @@
-## 3.2.0 (YYYY-MM-DD)
+## 3.2.1 (2017-05-19)
 
 ### Deprecated
+
+### Enhancements
+
+* Not in transaction illegal state exception message changed to "Cannot modify managed objects outside of a write transaction.".
+
+### Bug Fixes
+
+* [ObjectServer] `schemaVersion` was mistakenly required in order to trigger migrations (#4658). 
+* [ObjectServer] Fields removed from model classes will now correctly be hidden instead of throwing an exception when opening the Realm (#4658). 
+* Fixed random crashes which were caused by a race condition in encrypted Realm (#4343).
+
+### Internal
+
+* Upgraded to Realm Sync 1.8.5.
+* Upgraded to Realm Core 2.8.0.
+
+## 3.2.0 (2017-05-16)
 
 ### Enhancements
 
@@ -13,20 +30,15 @@
 * Added `DynamicRealmObject#linkingObjects(String,String)` to support linking objects on `DynamicRealm` (#4492).
 * Added support for read only Realms using `RealmConfiguration.Builder.readOnly()` and `SyncConfiguration.Builder.readOnly()`(#1147).
 * Change listeners will now auto-expand variable names to be more descriptive when using Android Studio.
+* The `toString()` methods for the standard and dynamic proxies now print "proxy", or "dynamic" before the left bracket enclosing the data.
 
 ### Bug Fixes
+
+* `@LinkingObjects` annotation now also works with Kotlin (#4611).
 
 ### Internal
 
 * Use separated locks for different `RealmCache`s ($4551).
-
-
-# 3.1.5 (YYYY-MM-DD)
-
-## Bug fixes
-
-* `@LinkingObjects` annotation now also works with Kotlin (#4611).
-
 
 ## 3.1.4 (2017-05-04)
 

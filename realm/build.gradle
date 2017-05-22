@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.1'
+        classpath 'com.android.tools.build:gradle:2.3.2'
         classpath 'de.undercouch:gradle-download-task:3.1.1'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
         classpath 'com.novoda:gradle-android-command-plugin:1.3.0'
@@ -17,8 +17,8 @@ buildscript {
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
         classpath "io.realm:realm-transformer:${file('../version.txt').text.trim()}"
-        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.9'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.10'
     }
 }
 
