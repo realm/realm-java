@@ -83,6 +83,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     // Access guarded by 'lock'
     private List<Realm> testRealms;
 
+    // List of closable resources that will be automatically closed the the test finishes.
     private List<Closeable> closableResources;
 
     // Runnable guaranteed to trigger after the test either succeeded or failed.
@@ -333,6 +334,10 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     }
 
+    /**
+     * Checks if the current test is considered completed or not.
+     * It is completed if either {@link #testComplete()} was called or an uncaught exception was throw.
+     */
     public boolean isTestComplete() {
         synchronized (lock) {
             return signalTestCompleted.getCount() == 0;
