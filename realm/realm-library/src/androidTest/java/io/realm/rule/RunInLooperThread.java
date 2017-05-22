@@ -333,6 +333,11 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     }
 
+    public boolean isTestComplete() {
+        synchronized (lock) {
+            return signalTestCompleted.getCount() == 0;
+        }
+    }
 
     /**
      * If an implementation of this is supplied with the annotation, the {@link RunnableBefore#run(RealmConfiguration)}
