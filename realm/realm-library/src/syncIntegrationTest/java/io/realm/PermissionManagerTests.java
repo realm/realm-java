@@ -42,9 +42,15 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         RealmLog.error("Username %s", username);
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, "password", true);
         user = SyncUser.login(credentials, Constants.AUTH_URL);
+        looperThread.runAfterTest(new Runnable() {
+            @Override
+            public void run() {
+                user.logout();
+            }
+        });
         // FIXME: Timing issue in ROS. Permission Realm might not be immediately available
         // after login.
-        SystemClock.sleep(2000);
+        SystemClock.sleep(5000);
     }
 
     @Test
@@ -52,7 +58,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     public void getPermissionsAsync_returnLoadedResults() {
         // For a new user, the PermissionManager should contain 1 entry for the __permission Realm
         PermissionManager pm = user.getPermissionManager();
-        looperThread.keepStrongReference(pm);
+        looperThread.closeAfterTest(pm);
         pm.getPermissionsAsync(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
@@ -72,13 +78,16 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @RunTestInLooperThread
     public void getPermissionsAsync_noLongerValidWhenPermissionManagerIsClosed() {
         final PermissionManager pm = user.getPermissionManager();
-        looperThread.keepStrongReference(pm);
         pm.getPermissionsAsync(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
-                assertTrue(permissions.isValid());
-                pm.close();
-                assertFalse(permissions.isValid());
+                try {
+                    assertTrue(permissions.isValid());
+                    pm.close();
+                    assertFalse(permissions.isValid());
+                } finally {
+                    user.logout();
+                }
                 looperThread.testComplete();
             }
 
@@ -93,7 +102,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @RunTestInLooperThread
     public void getPermissionsAsync_updatedWithNewRealms() {
         PermissionManager pm = user.getPermissionManager();
-        looperThread.keepStrongReference(pm);
+        looperThread.closeAfterTest(pm);
         pm.getPermissionsAsync(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
@@ -128,7 +137,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @RunTestInLooperThread
     public void getPermissionsAsync_closed() throws IOException {
         PermissionManager pm = user.getPermissionManager();
-        looperThread.keepStrongReference(pm);
+        looperThread.closeAfterTest(pm);
         pm.close();
 
         pm.getPermissionsAsync(new PermissionManager.Callback<RealmResults<Permission>>() {
