@@ -73,7 +73,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
-        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM_SECURE)
+        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .trustedRootCA("trusted_ca.pem")
@@ -114,7 +114,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
-        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM_SECURE)
+        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .disableSSLVerification()
@@ -155,7 +155,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
-        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM_SECURE)
+        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .schema(StringOnly.class)
                 .build();
         realm = Realm.getInstance(config);
@@ -176,7 +176,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         RealmLog.add(testLogger);
         RealmLog.setLevel(LogLevel.WARN);
 
-        new SyncConfiguration.Builder(user, Constants.USER_REALM_SECURE)
+        configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .schema(StringOnly.class)
                 .trustedRootCA("trusted_ca.pem")
                 .disableSSLVerification()
@@ -190,7 +190,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         String username = UUID.randomUUID().toString();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
-        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM_SECURE)
+        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .schema(StringOnly.class)
                 .trustedRootCA("not_existing_file.pem")
                 .build();

@@ -544,8 +544,8 @@ final class RealmCache {
         }
     }
 
-    private static void copyFileIfNeeded(String assetFileName, File certificateFile) {
-        if (certificateFile.exists()) {
+    private static void copyFileIfNeeded(String assetFileName, File file) {
+        if (file.exists()) {
             return;
         }
 
@@ -559,7 +559,7 @@ final class RealmCache {
                         "Invalid input stream to the asset file: " + assetFileName);
             }
 
-            outputStream = new FileOutputStream(certificateFile);
+            outputStream = new FileOutputStream(file);
             byte[] buf = new byte[4096];
             int bytesRead;
             while ((bytesRead = inputStream.read(buf)) > -1) {

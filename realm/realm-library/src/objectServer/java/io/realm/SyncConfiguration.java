@@ -647,13 +647,13 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Provide the trusted root certificate(s) authority (CA) in {@code PEM} format, that should be used to
+         * Provides the trusted root certificate(s) authority (CA) in {@code PEM} format, that should be used to
          * validate the TLS connections to the Realm Object Server.
          * <p>
          * The file should be stored under {@code assets}, it will be copied at runtime into the internal storage.
          * <p>
          * Note: This is similar to passing the parameter {@code CAfile} to {@code SSL_CTX_load_verify_locations},
-         *       Therefor it is recommended to include only the root CA you trust, and not the entire list of root CA
+         *       Therefore it is recommended to include only the root CA you trust, and not the entire list of root CA
          *       as this file will be loaded at runtime.
          *
          *       It is your responsibility to download and verify the correct {@code PEM} for the root CA you trust.
