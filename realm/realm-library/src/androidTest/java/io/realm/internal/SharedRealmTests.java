@@ -76,11 +76,6 @@ public class SharedRealmTests {
         assertTrue(sharedRealm.hasTable("MyTable"));
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void getTable_createNotInTransactionThrows() {
-        sharedRealm.getTable("NON-EXISTING");
-    }
-
     @Test
     public void getTable() {
         assertFalse(sharedRealm.hasTable("MyTable"));
