@@ -512,9 +512,11 @@ public class Realm extends BaseRealm {
             // Validate the schema in the file
             final Map<Pair<Class<? extends RealmModel>, String>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
+                // For synced Realm, it is allowed the local defined typed Realm Object has less fields.
+                // Also to support stable ID, one extra column is added for every table.
                 String className = Table.getClassNameForTable(mediator.getTableName(modelClass));
                 Pair<Class<? extends RealmModel>, String> key = Pair.<Class<? extends RealmModel>, String>create(modelClass, className);
-                columnInfoMap.put(key, mediator.validateTable(modelClass, realm.sharedRealm, false));
+                columnInfoMap.put(key, mediator.validateTable(modelClass, realm.sharedRealm, true));
             }
             realm.getSchema().setInitialColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
 

@@ -52,6 +52,8 @@ static_assert(SchemaMode::Additive ==
 static_assert(SchemaMode::Manual == static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_MANUAL),
               "");
 
+static const char* c_table_name_exists_exception_msg = "Class already exists: '%1'.";
+
 static void finalize_shared_realm(jlong ptr);
 
 // Wrapper class for SyncConfig. This is required as we need to keep track of the Java session
@@ -438,12 +440,55 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNI
         name_str = name;
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         shared_realm->verify_in_write(); // throws
-        Table* table = LangBindHelper::add_table(shared_realm->read_group(), name); // throws
+        Table* table;
+#if REALM_ENABLE_SYNC
+        auto table_ref = sync::create_table(shared_realm->read_group(), name); // throws
+        table = LangBindHelper::get_table(shared_realm->read_group(), table_ref->get_index_in_group());
+#else
+        table = LangBindHelper::add_table(shared_realm->read_group(), name); // throws
+#endif
         return reinterpret_cast<jlong>(table);
     }
     catch (TableNameInUse& e) {
         // We need to print the table name, so catch the exception here.
-        ThrowException(env, IllegalArgument, format("Class already exists: '%1'.", name_str));
+        std::string class_name_str(name_str.substr(TABLE_PREFIX.length()));
+        ThrowException(env, IllegalArgument, format(c_table_name_exists_exception_msg, class_name_str));
+    }
+    CATCH_STD()
+
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTableWithPrimaryKeyField(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring table_name, jstring field_name, jboolean is_string_type,
+    jboolean is_nullable)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+
+     std::string class_name_str;
+    try {
+        std::string table_name_str(JStringAccessor(env, table_name));
+        class_name_str = std::string(table_name_str.substr(TABLE_PREFIX.length()));
+        JStringAccessor field_name_str(env, field_name); // throws
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        shared_realm->verify_in_write(); // throws
+        DataType pkType = is_string_type ? DataType::type_String : DataType::type_Int;
+        Table* table;
+#if REALM_ENABLE_SYNC
+        auto table_ref = sync::create_table_with_primary_key(
+            shared_realm->read_group(), table_name_str, pkType,
+            field_name_str, is_nullable);
+        table = LangBindHelper::get_table(shared_realm->read_group(), table_ref->get_index_in_group());
+#else
+        table = LangBindHelper::add_table(shared_realm->read_group(), table_name_str);
+        table->add_column(pkType, field_name_str, is_nullable);
+#endif
+        ObjectStore::set_primary_key_for_object(shared_realm->read_group(), class_name_str, field_name_str);
+        return reinterpret_cast<jlong>(table);
+    }
+    catch (TableNameInUse& e) {
+        // We need to print the table name, so catch the exception here.
+        ThrowException(env, IllegalArgument, format(c_table_name_exists_exception_msg, class_name_str));
     }
     CATCH_STD()
 

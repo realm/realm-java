@@ -65,6 +65,21 @@ public abstract class RealmSchema {
     public abstract RealmObjectSchema create(String className);
 
     /**
+     * Adds a new class to the Realm with a primary key field defined.
+     *
+     * @param className           name of the class.
+     * @param primaryKeyFieldName name of the primary key field.
+     * @param fieldType           type of field to add. Only {@code byte}, {@code short}, {@code int}, {@code long}
+     *                            and their boxed types or the {@code String} is supported.
+     * @param attributes          set of attributes for this field. This method implicitly adds
+     *                            {@link FieldAttribute#PRIMARY_KEY} and {@link FieldAttribute#INDEXED} attributes to
+     *                            the field.
+     * @return a Realm schema object for that class.
+     */
+    public abstract RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName,
+                                                                Class<?> fieldType, FieldAttribute... attributes);
+
+    /**
      * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
      * to it will throw an {@link IllegalStateException}. Removes those classes or fields first.
      *

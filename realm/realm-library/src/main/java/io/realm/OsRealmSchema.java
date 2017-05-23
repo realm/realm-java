@@ -64,6 +64,12 @@ class OsRealmSchema extends RealmSchema {
         }
 
         @Override
+        public RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName,
+                                                           Class<?> fieldType, FieldAttribute... attributes) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public boolean contains(String className) {
             return schema.containsKey(className);
         }
@@ -165,6 +171,12 @@ class OsRealmSchema extends RealmSchema {
         OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(this, className);
         dynamicClassToSchema.put(className, realmObjectSchema);
         return realmObjectSchema;
+    }
+
+    @Override
+    public RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName, Class<?> fieldType,
+                                                       FieldAttribute... attributes) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

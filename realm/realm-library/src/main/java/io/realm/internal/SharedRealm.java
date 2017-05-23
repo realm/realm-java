@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.realm.RealmConfiguration;
+import io.realm.RealmFieldType;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
@@ -315,6 +316,23 @@ public final class SharedRealm implements Closeable, NativeObject {
         return new Table(this, nativeCreateTable(nativePtr, name));
     }
 
+    /**
+     * Creates a {@link Table} and adds a primary key field to it. Native assertion will happen if the table with the
+     * same name exists.
+     *
+     * @param tableName the name of table.
+     * @param primaryKeyFieldName the name of primary key field.
+     * @param isStringType if this is true, the primary key field will be create as a string field. Otherwise it will
+     *                     be created as an integer field.
+     * @param isNullable if the primary key field is nullable or not.
+     * @return a creatd {@link Table} object.
+     */
+    public Table createTableWithPrimaryKey(String tableName, String primaryKeyFieldName, boolean isStringType,
+                                           boolean isNullable) {
+        return new Table(this, nativeCreateTableWithPrimaryKeyField(nativePtr, tableName, primaryKeyFieldName,
+                isStringType, isNullable));
+    }
+
     public void renameTable(String oldName, String newName) {
         nativeRenameTable(nativePtr, oldName, newName);
     }
@@ -557,6 +575,12 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     // Throw IAE if the table exists already.
     private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName);
+
+    // Throw IAE if the table exists already.
+    // if isStringType is false, the PK field will be created as an integer PK field.
+    private static native long nativeCreateTableWithPrimaryKeyField(long nativeSharedRealmPtr, String tableName,
+                                                                    String primaryKeyFieldName,
+                                                                    boolean isStringType, boolean isNullable);
 
     private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);
 

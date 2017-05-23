@@ -24,6 +24,8 @@ import java.util.Set;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 
+import static io.realm.StandardRealmObjectSchema.SUPPORTED_SIMPLE_FIELDS;
+
 
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
@@ -102,12 +104,37 @@ class StandardRealmSchema extends RealmSchema {
     public RealmObjectSchema create(String className) {
         // Adding a class is always permitted.
         checkEmpty(className, EMPTY_STRING_MSG);
+        String internalTableName = checkAndGetTableNameFromClassName(className);
 
-        String internalTableName = Table.getTableNameForClass(className);
-        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
-            throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
-        }
         return new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().createTable(internalTableName));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName, Class<?> fieldType,
+                                                       FieldAttribute... attributes) {
+        checkEmpty(className, EMPTY_STRING_MSG);
+        StandardRealmObjectSchema.checkLegalName(primaryKeyFieldName);
+        String internalTableName = checkAndGetTableNameFromClassName(className);
+
+        StandardRealmObjectSchema.FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(fieldType);
+        if (metadata == null || (metadata.realmType != RealmFieldType.STRING &&
+                metadata.realmType != RealmFieldType.INTEGER)) {
+            throw new IllegalArgumentException(String.format("Realm doesn't support primary key field type '%s'.",
+                    fieldType));
+        }
+        boolean isStringField = metadata.realmType == RealmFieldType.STRING;
+
+        boolean nullable = metadata.defaultNullable;
+        if (StandardRealmObjectSchema.containsAttribute(attributes, FieldAttribute.REQUIRED)) {
+            nullable = false;
+        }
+
+        return new StandardRealmObjectSchema(realm, this,
+                realm.getSharedRealm().createTableWithPrimaryKey(internalTableName, primaryKeyFieldName,
+                        isStringField, nullable));
     }
 
     /**
@@ -189,6 +216,14 @@ class StandardRealmSchema extends RealmSchema {
         if (!realm.getSharedRealm().hasTable(internalTableName)) {
             throw new IllegalArgumentException(errorMsg);
         }
+    }
+
+    private String checkAndGetTableNameFromClassName(String className) {
+        String internalTableName = Table.getTableNameForClass(className);
+        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
+        }
+        return internalTableName;
     }
 
     @Override

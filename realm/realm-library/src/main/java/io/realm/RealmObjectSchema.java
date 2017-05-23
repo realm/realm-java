@@ -172,6 +172,7 @@ public abstract class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist, the field cannot be a primary key or it already
      * has a primary key defined.
+     * @throws UnsupportedOperationException if this method is called on a synced Realm.
      */
     public abstract RealmObjectSchema addPrimaryKey(String fieldName);
 
