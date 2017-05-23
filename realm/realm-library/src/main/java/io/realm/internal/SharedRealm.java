@@ -288,8 +288,27 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeHasTable(nativePtr, name);
     }
 
+    /**
+     * Gets a existing {@link Table} with the given name.
+     *
+     * @param name the name of table.
+     * @return a {@link Table} object.
+     * @throws IllegalStateException if the table doesn't exist.
+     */
     public Table getTable(String name) {
-        return new Table(this, nativeGetTable(nativePtr, name));
+        long tablePtr = nativeGetTable(nativePtr, name);
+        return new Table(this, tablePtr);
+    }
+
+    /**
+     * Creates a {@link Table} with then given name. Native assertion will happen if the table with the same name
+     * exists.
+     *
+     * @param name the name of table.
+     * @return a created {@link Table} object.
+     */
+    public Table createTable(String name) {
+        return new Table(this, nativeCreateTable(nativePtr, name));
     }
 
     public void renameTable(String oldName, String newName) {
@@ -527,7 +546,11 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native long[] nativeGetVersionID(long nativeSharedRealmPtr);
 
+    // Throw ISE if the table doesn't exist.
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
+
+    // Native assertion if the table with given name exists.
+    private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName);
 
     private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);
 

@@ -110,7 +110,7 @@ class StandardRealmSchema extends RealmSchema {
         if (realm.getSharedRealm().hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
-        return new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(internalTableName));
+        return new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().createTable(internalTableName));
     }
 
     /**
@@ -200,9 +200,6 @@ class StandardRealmSchema extends RealmSchema {
         Table table = dynamicClassToTable.get(tableName);
         if (table != null) { return table; }
 
-        if (!realm.getSharedRealm().hasTable(tableName)) {
-            throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
-        }
         table = realm.getSharedRealm().getTable(tableName);
         dynamicClassToTable.put(tableName, table);
 
