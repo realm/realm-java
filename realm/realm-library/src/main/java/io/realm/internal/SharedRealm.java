@@ -293,7 +293,7 @@ public final class SharedRealm implements Closeable, NativeObject {
      *
      * @param name the name of table.
      * @return a {@link Table} object.
-     * @throws IllegalStateException if the table doesn't exist.
+     * @throws IllegalArgumentException if the table doesn't exist.
      */
     public Table getTable(String name) {
         long tablePtr = nativeGetTable(nativePtr, name);
@@ -546,7 +546,7 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native long[] nativeGetVersionID(long nativeSharedRealmPtr);
 
-    // Throw ISE if the table doesn't exist.
+    // Throw IAE if the table doesn't exist.
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
 
     // Native assertion if the table with given name exists.

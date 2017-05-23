@@ -93,7 +93,7 @@ public class SharedRealmTests {
         assertTrue(sharedRealm.getTable("MyTable").isValid());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void getTable_throwsIfTableNotExist() {
         sharedRealm.getTable("NON_EXISTING");
     }

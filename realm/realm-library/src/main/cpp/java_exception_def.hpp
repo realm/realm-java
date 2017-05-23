@@ -20,9 +20,12 @@
 namespace realm {
 namespace _impl {
 
+// Definitions of Java exceptions which are used in JNI.
 class JavaExceptionDef {
 public:
+    // Class names
     static const char* IllegalState;
+    static const char* IllegalArgument;
 };
 
 } // namespace realm

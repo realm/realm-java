@@ -402,7 +402,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         if(!shared_realm->read_group().has_table(name)) {
             std::string name_str = name;
-            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
+            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                  format("The class '%1' doesn't exist in this Realm.", name_str));
         }
         Table* table = LangBindHelper::get_table(shared_realm->read_group(), name);
