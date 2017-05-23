@@ -32,6 +32,7 @@ import io.realm.entities.Dog;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.util.Pair;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
@@ -70,11 +71,13 @@ public class ColumnIndicesTests {
         final DogRealmProxy.DogColumnInfo dogColumnInfo;
         catColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
         dogColumnInfo = (DogRealmProxy.DogColumnInfo) mediator.validateTable(Dog.class, realm.sharedRealm, false);
-
+        Pair<Class<? extends RealmModel>, String> catDesc = Pair.<Class<? extends RealmModel>, String>create(Cat.class, "Cat");
+        Pair<Class<? extends RealmModel>, String> dogDesc = Pair.<Class<? extends RealmModel>, String>create(Dog.class, "Dog");
         return new ColumnIndices(schemaVersion,
-                ImmutableMap.<Class<? extends RealmModel>, ColumnInfo>of(
-                        Cat.class, catColumnInfo,
-                        Dog.class, dogColumnInfo));
+                ImmutableMap.<Pair<Class<? extends RealmModel>, String>, ColumnInfo>of(
+                        catDesc, catColumnInfo,
+                        dogDesc, dogColumnInfo)
+        );
     }
 
     @Test
