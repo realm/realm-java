@@ -10,4 +10,4 @@ REALM_SYNC_SHA256=71e70f83b1604672bbfd7c04fcf984ecc8ac683864943ef3de262994c2e7b7
 # /tools/sync_test_server/Dockerfile specify which repo (apt) we should
 # install/use between 'realm' and 'realm-testing', the version below should
 # correspond to an existing version on the *specified* repo.
-REALM_OBJECT_SERVER_DE_VERSION=1.4.0-302
+REALM_OBJECT_SERVER_DE_VERSION=1.6.0-35
