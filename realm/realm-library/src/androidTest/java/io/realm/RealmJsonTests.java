@@ -20,7 +20,6 @@ import android.content.Context;
 import android.os.Build;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.text.TextUtils;
 import android.util.Base64;
 
 import com.google.gson.internal.bind.util.ISO8601Utils;
@@ -54,6 +53,7 @@ import io.realm.entities.NullTypes;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.Util;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -391,7 +391,7 @@ public class RealmJsonTests {
         assertEquals(DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE,
                 managedObj.getFieldIgnored());
         assertEquals(DefaultValueOfField.FIELD_STRING_DEFAULT_VALUE, managedObj.getFieldString());
-        assertFalse(TextUtils.isEmpty(managedObj.getFieldRandomString()));
+        assertFalse(Util.isEmptyString(managedObj.getFieldRandomString()));
         assertEquals(DefaultValueOfField.FIELD_SHORT_DEFAULT_VALUE, managedObj.getFieldShort());
         assertEquals(DefaultValueOfField.FIELD_INT_DEFAULT_VALUE, managedObj.getFieldInt());
         assertEquals(fieldLongPrimaryKeyValue, managedObj.getFieldLongPrimaryKey());

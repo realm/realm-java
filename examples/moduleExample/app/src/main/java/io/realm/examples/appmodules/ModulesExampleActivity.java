@@ -128,7 +128,7 @@ public class ModulesExampleActivity extends Activity {
             }
         });
 
-        showStatus("Number of pigs on the farm : " + farmRealm.where(Pig.class).count());
+        showStatus("Number of unnamed pigs on the farm : " + farmRealm.where(Pig.class).isNull("name").count());
 
         // Each Realm is restricted to only accept the classes in their schema.
         showStatus("Trying to add an unsupported class");

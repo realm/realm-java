@@ -71,26 +71,26 @@ public class SharedRealmTests {
     public void hasTable() {
         assertFalse(sharedRealm.hasTable("MyTable"));
         sharedRealm.beginTransaction();
-        sharedRealm.getTable("MyTable");
+        sharedRealm.createTable("MyTable");
         sharedRealm.commitTransaction();
         assertTrue(sharedRealm.hasTable("MyTable"));
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void getTable_createNotInTransactionThrows() {
-        sharedRealm.getTable("NON-EXISTING");
     }
 
     @Test
     public void getTable() {
         assertFalse(sharedRealm.hasTable("MyTable"));
         sharedRealm.beginTransaction();
-        sharedRealm.getTable("MyTable");
+        sharedRealm.createTable("MyTable");
         sharedRealm.commitTransaction();
         assertTrue(sharedRealm.hasTable("MyTable"));
 
         // Table is existing, no need transaction to create it
-        sharedRealm.getTable("MyTable");
+        assertTrue(sharedRealm.getTable("MyTable").isValid());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getTable_throwsIfTableNotExist() {
+        sharedRealm.getTable("NON_EXISTING");
     }
 
     @Test
@@ -112,7 +112,7 @@ public class SharedRealmTests {
     @Test
     public void removeTable() {
         sharedRealm.beginTransaction();
-        sharedRealm.getTable("TableToRemove");
+        sharedRealm.createTable("TableToRemove");
         assertTrue(sharedRealm.hasTable("TableToRemove"));
         sharedRealm.removeTable("TableToRemove");
         assertFalse(sharedRealm.hasTable("TableToRemove"));
@@ -122,7 +122,7 @@ public class SharedRealmTests {
     @Test
     public void removeTable_notInTransactionThrows() {
         sharedRealm.beginTransaction();
-        sharedRealm.getTable("TableToRemove");
+        sharedRealm.createTable("TableToRemove");
         sharedRealm.commitTransaction();
         thrown.expect(IllegalStateException.class);
         sharedRealm.removeTable("TableToRemove");
@@ -140,7 +140,7 @@ public class SharedRealmTests {
     @Test
     public void renameTable() {
         sharedRealm.beginTransaction();
-        sharedRealm.getTable("OldTable");
+        sharedRealm.createTable("OldTable");
         assertTrue(sharedRealm.hasTable("OldTable"));
         sharedRealm.renameTable("OldTable", "NewTable");
         assertFalse(sharedRealm.hasTable("OldTable"));
@@ -151,7 +151,7 @@ public class SharedRealmTests {
     @Test
     public void renameTable_notInTransactionThrows() {
         sharedRealm.beginTransaction();
-        sharedRealm.getTable("OldTable");
+        sharedRealm.createTable("OldTable");
         sharedRealm.commitTransaction();
         thrown.expect(IllegalStateException.class);
         sharedRealm.renameTable("OldTable", "NewTable");

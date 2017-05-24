@@ -14,7 +14,6 @@ import java.net.URL;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
@@ -192,6 +191,71 @@ public class AuthTests extends BaseIntegrationTest {
 
         assertTrue(userNew.isValid());
         assertEquals(userOld.getIdentity(), userNew.getIdentity());
+    }
+
+    @Test
+    public void changePassword_using_admin() {
+        String username = UUID.randomUUID().toString();
+        String originalPassword = "password";
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, originalPassword, true);
+        SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(userOld.isValid());
+
+        // Login an admin user
+        SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        assertTrue(adminUser.isValid());
+        assertTrue(adminUser.isAdmin());
+
+        // Change password using admin user
+        String newPassword = "new-password";
+        adminUser.changePassword(userOld.getIdentity(), newPassword);
+
+        // Try to log in with new password
+        userOld.logout();
+        credentials = SyncCredentials.usernamePassword(username, newPassword, false);
+        SyncUser userNew = SyncUser.login(credentials, Constants.AUTH_URL);
+
+        assertTrue(userNew.isValid());
+        assertEquals(userOld.getIdentity(), userNew.getIdentity());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changePassword_using_admin_async() {
+        final String username = UUID.randomUUID().toString();
+        final String originalPassword = "password";
+        final SyncCredentials credentials = SyncCredentials.usernamePassword(username, originalPassword, true);
+        final SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(userOld.isValid());
+
+        // Login an admin user
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        assertTrue(adminUser.isValid());
+        assertTrue(adminUser.isAdmin());
+
+        // Change password using admin user
+        final String newPassword = "new-password";
+        adminUser.changePasswordAsync(userOld.getIdentity(), newPassword, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser administratorUser) {
+                assertEquals(adminUser, administratorUser);
+
+                // Try to log in with new password
+                userOld.logout();
+                SyncCredentials credentials = SyncCredentials.usernamePassword(username, newPassword, false);
+                SyncUser userNew = SyncUser.login(credentials, Constants.AUTH_URL);
+
+                assertTrue(userNew.isValid());
+                assertEquals(userOld.getIdentity(), userNew.getIdentity());
+
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.getErrorMessage());
+            }
+        });
     }
 
     @Test
