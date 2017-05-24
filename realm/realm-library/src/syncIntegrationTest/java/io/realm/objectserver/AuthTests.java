@@ -201,7 +201,6 @@ public class AuthTests extends BaseIntegrationTest {
         SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
         assertTrue(userOld.isValid());
 
-
         // Login an admin user
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         assertTrue(adminUser.isValid());
