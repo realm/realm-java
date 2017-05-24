@@ -74,7 +74,7 @@ public class ColumnIndicesTests {
         Pair<Class<? extends RealmModel>, String> catDesc = Pair.<Class<? extends RealmModel>, String>create(Cat.class, "Cat");
         Pair<Class<? extends RealmModel>, String> dogDesc = Pair.<Class<? extends RealmModel>, String>create(Dog.class, "Dog");
         return new ColumnIndices(schemaVersion,
-                ImmutableMap.<Pair<Class<? extends RealmModel>, String>, ColumnInfo>of(
+                ImmutableMap.of(
                         catDesc, catColumnInfo,
                         dogDesc, dogColumnInfo)
         );

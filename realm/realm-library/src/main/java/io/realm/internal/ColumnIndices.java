@@ -64,13 +64,13 @@ public final class ColumnIndices {
                 throw new IllegalArgumentException("ColumnInfo mutability does not match ColumnIndices");
             }
             Pair<Class<? extends RealmModel>, String> classDescription = entry.getKey();
-            this.classes.put(classDescription.first, entry.getValue());
-            this.classesByName.put(classDescription.second, entry.getValue());
+            this.classes.put(classDescription.first, columnInfo);
+            this.classesByName.put(classDescription.second, columnInfo);
         }
     }
 
     /**
-     * Create a copy of the passed ColumnIndices with the specified mutablity.
+     * Create a copy of the passed ColumnIndices with the specified mutability.
      *
      * @param other the ColumnIndices object to copy
      * @param mutable if false the object is effectively final.
@@ -79,8 +79,11 @@ public final class ColumnIndices {
         this(other.schemaVersion, new HashMap<Pair<Class<? extends RealmModel>, String>, ColumnInfo>(other.classesToColumnInfo.size()), mutable);
         for (Map.Entry<Pair<Class<? extends RealmModel>, String>, ColumnInfo> entry : other.classesToColumnInfo.entrySet()) {
             ColumnInfo columnInfo = entry.getValue().copy(mutable);
-            this.classes.put(entry.getKey().first, columnInfo);
-            this.classesByName.put(entry.getKey().second, columnInfo);
+            Pair<Class<? extends RealmModel>, String> oldKey = entry.getKey();
+            Pair<Class<? extends RealmModel>, String> newKey = Pair.<Class<? extends RealmModel>, String>create(oldKey.first, oldKey.second);
+            this.classes.put(newKey.first, columnInfo);
+            this.classesByName.put(newKey.second, columnInfo);
+            this.classesToColumnInfo.put(newKey, columnInfo);
         }
     }
 
