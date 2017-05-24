@@ -38,7 +38,7 @@ import io.realm.Realm;
 import io.realm.log.RealmLog;
 
 /**
- * Helper value for multi-processes support testing.
+ * Helper class for multi-processes support testing.
  */
 public abstract class RemoteTestService extends Service {
     // There is no easy way to dynamically ensure step IDs have same value for different processes. So, use the stupid

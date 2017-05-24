@@ -130,7 +130,7 @@ public class RunWithRemoteService implements TestRule {
         }
     }
 
-
+    @Override
     public Statement apply(final Statement base, Description description) {
         final RunTestWithRemoteService annotation = description.getAnnotation(RunTestWithRemoteService.class);
         if (annotation == null) {
@@ -162,6 +162,7 @@ public class RunWithRemoteService implements TestRule {
         } catch (RemoteException e) {
             fail(e.getMessage());
         }
+        // TODO: Find a way to block caller thread until the service process finishes current step.
     }
 
     // Get the remote process info if it is alive.

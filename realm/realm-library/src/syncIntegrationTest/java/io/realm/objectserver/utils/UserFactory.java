@@ -24,6 +24,7 @@ import io.realm.SyncCredentials;
 import io.realm.SyncUser;
 import io.realm.log.RealmLog;
 
+// Helper class to retrieve users with same IDs even in multi-processes.
 // Must be in `io.realm.objectserver` to work around package protected methods.
 // This require Realm.init() to be called before using this class.
 public class UserFactory {
