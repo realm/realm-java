@@ -353,7 +353,7 @@ public class SyncUserTests {
     public void changePassword_noneAdminThrows() {
         SyncUser user = createTestUser();
 
-        thrown.expect(IllegalArgumentException.class);
+        thrown.expect(IllegalStateException.class);
         user.changePassword("user-id", "new-password");
     }
 }
