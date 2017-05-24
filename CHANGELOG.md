@@ -1,6 +1,11 @@
-## 3.2.1 (2017-05-19)
+## 3.2.2 (YYYY-MM-DD)
 
-### Deprecated
+### Bug Fixes
+
+* Queries on proguarded Realm model classes, failed with "Table not found" (#4673).
+
+
+## 3.2.1 (2017-05-19)
 
 ### Enhancements
 
