@@ -60,6 +60,7 @@ import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmAsyncTaskImpl;
+import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 import rx.Observable;
 
@@ -441,9 +442,11 @@ public class Realm extends BaseRealm {
             }
 
             // Now that they have all been created, validate them.
-            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
+            final Map<Pair<Class<? extends RealmModel>, String>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
-                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
+                String className = Table.getClassNameForTable(mediator.getTableName(modelClass));
+                Pair<Class<? extends RealmModel>, String> key = Pair.<Class<? extends RealmModel>, String>create(modelClass, className);
+                columnInfoMap.put(key, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
             realm.getSchema().setInitialColumnIndices(
@@ -501,27 +504,17 @@ public class Realm extends BaseRealm {
                 schemaCreator.close();
                 schemaCreator = null;
 
-                // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
-                // It absolutely breaks encapsulation and needs to be fixed!
-                if (realm.sharedRealm.requiresMigration(schema.getNativePtr())) {
-                    if (currentVersion >= newVersion) {
-                        throw new IllegalArgumentException(String.format(
-                                "The schema was changed but the schema version was not updated. " +
-                                        "The configured schema version (%d) must be greater than the version " +
-                                        " in the Realm file (%d) in order to update the schema.",
-                                newVersion, currentVersion));
-                    }
-                    realm.sharedRealm.updateSchema(schema.getNativePtr(), newVersion);
-                    // The OS currently does not handle setting the schema version. We have to do it manually.
-                    realm.setVersion(newVersion);
-                    commitChanges = true;
-                }
+                // Object Store handles all update logic
+                realm.sharedRealm.updateSchema(schema.getNativePtr(), newVersion);
+                commitChanges = true;
             }
 
             // Validate the schema in the file
-            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
+            final Map<Pair<Class<? extends RealmModel>, String>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
-                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
+                String className = Table.getClassNameForTable(mediator.getTableName(modelClass));
+                Pair<Class<? extends RealmModel>, String> key = Pair.<Class<? extends RealmModel>, String>create(modelClass, className);
+                columnInfoMap.put(key, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
             realm.getSchema().setInitialColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
 
@@ -1785,7 +1778,7 @@ public class Realm extends BaseRealm {
 
             // Not found in global cache. create it.
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
-            final Map<Class<? extends RealmModel>, ColumnInfo> map;
+            final Map<Pair<Class<? extends RealmModel>, String>, ColumnInfo> map;
             map = new HashMap<>(modelClasses.size());
 
 
@@ -1794,7 +1787,9 @@ public class Realm extends BaseRealm {
             try {
                 for (Class<? extends RealmModel> clazz : modelClasses) {
                     final ColumnInfo columnInfo = mediator.validateTable(clazz, sharedRealm, true);
-                    map.put(clazz, columnInfo);
+                    String className = Table.getClassNameForTable(mediator.getTableName(clazz));
+                    Pair<Class<? extends RealmModel>, String> key = Pair.<Class<? extends RealmModel>, String>create(clazz, className);
+                    map.put(key, columnInfo);
                 }
             } catch (RealmMigrationNeededException e) {
                 throw e;

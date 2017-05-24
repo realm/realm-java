@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,9 @@
  * limitations under the License.
  */
 
-package io.realm.entities;
+#include "java_exception_def.hpp"
 
-import io.realm.RealmObject;
+using namespace realm::_impl;
 
-public class StringOnly extends RealmObject {
-
-    public static final String FIELD_CHARS = "chars";
-
-    private String chars;
-
-    public String getChars() {
-        return chars;
-    }
-
-    public void setChars(String chars) {
-        this.chars = chars;
-    }
-}
+const char* JavaExceptionDef::IllegalState = "java/lang/IllegalStateException";
+const char* JavaExceptionDef::IllegalArgument = "java/lang/IllegalArgumentException";

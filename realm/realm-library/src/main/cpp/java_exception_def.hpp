@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package io.realm.entities;
+#ifndef REALM_JNI_IMPL_EXCEPTION_DEF_HPP
+#define REALM_JNI_IMPL_EXCEPTION_DEF_HPP
 
-import io.realm.RealmObject;
+namespace realm {
+namespace _impl {
 
-public class StringOnly extends RealmObject {
+// Definitions of Java exceptions which are used in JNI.
+class JavaExceptionDef {
+public:
+    // Class names
+    static const char* IllegalState;
+    static const char* IllegalArgument;
+};
 
-    public static final String FIELD_CHARS = "chars";
+} // namespace realm
+} // namespace jni_impl
 
-    private String chars;
-
-    public String getChars() {
-        return chars;
-    }
-
-    public void setChars(String chars) {
-        this.chars = chars;
-    }
-}
+#endif

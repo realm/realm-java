@@ -84,6 +84,7 @@ android {
         }
         androidTestObjectServer {
             java.srcDirs += 'src/syncIntegrationTest/java'
+            assets.srcDirs += ['src/syncIntegrationTest/assets/']
         }
     }
 
