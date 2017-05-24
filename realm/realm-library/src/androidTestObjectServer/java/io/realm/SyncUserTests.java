@@ -287,11 +287,37 @@ public class SyncUserTests {
     }
 
     @Test
+    public void changePassword_admin_nullThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalArgumentException.class);
+        user.changePassword(null, "new-password");
+    }
+
+    @Test
     public void changePasswordAsync_nonLooperThreadThrows() {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalStateException.class);
         user.changePasswordAsync(null, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    public void changePassword_admin_Async_nonLooperThreadThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalStateException.class);
+        user.changePasswordAsync("old", "new", new SyncUser.Callback() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -311,5 +337,23 @@ public class SyncUserTests {
 
         thrown.expect(IllegalArgumentException.class);
         user.changePasswordAsync("new-password", null);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changePassword_admin_Async_nullCallbackThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalArgumentException.class);
+        user.changePasswordAsync("user-id", "new-password", null);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changePassword_noneAdminThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalArgumentException.class);
+        user.changePassword("user-id", "new-password");
     }
 }
