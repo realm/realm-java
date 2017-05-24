@@ -99,9 +99,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     }
 
     @Override
-    public ChangePasswordResponse changePassword(Token adminToken, String userID, String newPassword, URL authenticationUrl) {
+    public ChangePasswordResponse changePassword(Token adminToken, String userId, String newPassword, URL authenticationUrl) {
         try {
-            String requestBody = ChangePasswordRequest.create(adminToken, userID, newPassword).toJson();
+            String requestBody = ChangePasswordRequest.create(adminToken, userId, newPassword).toJson();
             return changePassword(buildActionUrl(authenticationUrl, ACTION_CHANGE_PASSWORD), requestBody);
         } catch (Throwable e) {
             return ChangePasswordResponse.createFailure(new ObjectServerError(ErrorCode.UNKNOWN, e));
