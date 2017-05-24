@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.RealmModel;
+import io.realm.internal.util.Pair;
 
 
 /**
@@ -30,7 +31,7 @@ import io.realm.RealmModel;
  * <li>the {@code copyFrom} method</li>
  * <li>mutating one of the ColumnInfo object to which this instance holds a reference</li>
  * </ul>
- * Immutable instances of this class protect against the first possiblity by throwing on calls
+ * Immutable instances of this class protect against the first possibility by throwing on calls
  * to {@code copyFrom}.  {@see ColumnInfo} for its mutability contract.
  *
  * There are two, redundant, lookup methods, for schema members: by Class and by String.
@@ -39,8 +40,12 @@ import io.realm.RealmModel;
  * class lookup is very fast and on a hot path, so we maintain the redundant table.
  */
 public final class ColumnIndices {
+    // MultiKeyMap of <Class, String> -> ColumnInfo
+    // Right now we maintain 3 copies. One public and 2 internal ones.
+    private final Map<Pair<Class<? extends RealmModel>, String>, ColumnInfo> classesToColumnInfo;
     private final Map<Class<? extends RealmModel>, ColumnInfo> classes;
     private final Map<String, ColumnInfo> classesByName;
+
     private final boolean mutable;
     private long schemaVersion;
 
@@ -48,40 +53,45 @@ public final class ColumnIndices {
      * Create a mutable ColumnIndices initialized with the ColumnInfo objects in the passed map.
      *
      * @param schemaVersion the schema version
-     * @param classes a map of table classes to their column info
+     * @param classesMap a map of table classes to their column info
      * @throws IllegalArgumentException if any of the ColumnInfo object is immutable.
      */
-    public ColumnIndices(long schemaVersion, Map<Class<? extends RealmModel>, ColumnInfo> classes) {
-        this(schemaVersion, new HashMap<>(classes), true);
-        for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
+    public ColumnIndices(long schemaVersion, Map<Pair<Class<? extends RealmModel>, String>, ColumnInfo> classesMap) {
+        this(schemaVersion, new HashMap<>(classesMap), true);
+        for (Map.Entry<Pair<Class<? extends RealmModel>, String>, ColumnInfo> entry : classesMap.entrySet()) {
             ColumnInfo columnInfo = entry.getValue();
             if (mutable != columnInfo.isMutable()) {
                 throw new IllegalArgumentException("ColumnInfo mutability does not match ColumnIndices");
             }
-            this.classesByName.put(entry.getKey().getSimpleName(), entry.getValue());
+            Pair<Class<? extends RealmModel>, String> classDescription = entry.getKey();
+            this.classes.put(classDescription.first, columnInfo);
+            this.classesByName.put(classDescription.second, columnInfo);
         }
     }
 
     /**
-     * Create a copy of the passed ColumnIndices with the specified mutablity.
+     * Create a copy of the passed ColumnIndices with the specified mutability.
      *
      * @param other the ColumnIndices object to copy
      * @param mutable if false the object is effectively final.
      */
     public ColumnIndices(ColumnIndices other, boolean mutable) {
-        this(other.schemaVersion, new HashMap<Class<? extends RealmModel>, ColumnInfo>(other.classes.size()), mutable);
-        for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : other.classes.entrySet()) {
+        this(other.schemaVersion, new HashMap<Pair<Class<? extends RealmModel>, String>, ColumnInfo>(other.classesToColumnInfo.size()), mutable);
+        for (Map.Entry<Pair<Class<? extends RealmModel>, String>, ColumnInfo> entry : other.classesToColumnInfo.entrySet()) {
             ColumnInfo columnInfo = entry.getValue().copy(mutable);
-            this.classes.put(entry.getKey(), columnInfo);
-            this.classesByName.put(entry.getKey().getSimpleName(), columnInfo);
+            Pair<Class<? extends RealmModel>, String> key = entry.getKey();
+            this.classes.put(key.first, columnInfo);
+            this.classesByName.put(key.second, columnInfo);
+            this.classesToColumnInfo.put(key, columnInfo);
         }
     }
 
-    private ColumnIndices(long schemaVersion, Map<Class<? extends RealmModel>, ColumnInfo> classes, boolean mutable) {
+    private ColumnIndices(long schemaVersion, Map<Pair<Class<? extends RealmModel>, String>, ColumnInfo> classesMap, boolean mutable) {
         this.schemaVersion = schemaVersion;
-        this.classes = classes;
+        this.classesToColumnInfo = classesMap;
         this.mutable = mutable;
-        this.classesByName = new HashMap<>(classes.size());
+        this.classes = new HashMap<>(classesMap.size());
+        this.classesByName = new HashMap<>(classesMap.size());
     }
 
     /**
@@ -164,9 +174,9 @@ public final class ColumnIndices {
         buf.append(mutable).append(",");
         if (classes != null) {
             boolean commaNeeded = false;
-            for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
+            for (Map.Entry<String, ColumnInfo> entry : classesByName.entrySet()) {
                 if (commaNeeded) { buf.append(","); }
-                buf.append(entry.getKey().getSimpleName()).append("->").append(entry.getValue());
+                buf.append(entry.getKey()).append("->").append(entry.getValue());
                 commaNeeded = true;
             }
         }
