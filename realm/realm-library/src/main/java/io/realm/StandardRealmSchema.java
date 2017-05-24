@@ -107,9 +107,6 @@ class StandardRealmSchema extends RealmSchema {
         if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
             throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
         }
-        if (realm.getSharedRealm().hasTable(internalTableName)) {
-            throw new IllegalArgumentException("Class already exists: " + className);
-        }
         return new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().createTable(internalTableName));
     }
 

@@ -400,7 +400,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv
     try {
         JStringAccessor name(env, table_name); // throws
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        if(!shared_realm->read_group().has_table(name)) {
+        if (!shared_realm->read_group().has_table(name)) {
             std::string name_str = name;
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                  format("The class '%1' doesn't exist in this Realm.", name_str));
@@ -413,17 +413,24 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNIEnv* env, jclass, jlong shared_realm_ptr,
-                                                                          jstring table_name)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNIEnv* env, jclass,
+                                                                             jlong shared_realm_ptr,
+                                                                             jstring table_name)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
+    std::string name_str;
     try {
         JStringAccessor name(env, table_name); // throws
+        name_str = name;
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         shared_realm->verify_in_write(); // throws
-        Table* table = LangBindHelper::add_table(shared_realm->read_group(), name);
+        Table* table = LangBindHelper::add_table(shared_realm->read_group(), name); // throws
         return reinterpret_cast<jlong>(table);
+    }
+    catch (TableNameInUse& e) {
+        // We need to print the table name, so catch the exception here.
+        ThrowException(env, IllegalArgument, format("Class already exists: '%1'.", name_str));
     }
     CATCH_STD()
 

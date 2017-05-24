@@ -289,7 +289,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     /**
-     * Gets a existing {@link Table} with the given name.
+     * Gets an existing {@link Table} with the given name.
      *
      * @param name the name of table.
      * @return a {@link Table} object.
@@ -549,7 +549,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     // Throw IAE if the table doesn't exist.
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
 
-    // Native assertion if the table with given name exists.
+    // Throw IAE if the table exists already.
     private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName);
 
     private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);
