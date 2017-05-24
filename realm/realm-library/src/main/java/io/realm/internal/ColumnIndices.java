@@ -79,11 +79,10 @@ public final class ColumnIndices {
         this(other.schemaVersion, new HashMap<Pair<Class<? extends RealmModel>, String>, ColumnInfo>(other.classesToColumnInfo.size()), mutable);
         for (Map.Entry<Pair<Class<? extends RealmModel>, String>, ColumnInfo> entry : other.classesToColumnInfo.entrySet()) {
             ColumnInfo columnInfo = entry.getValue().copy(mutable);
-            Pair<Class<? extends RealmModel>, String> oldKey = entry.getKey();
-            Pair<Class<? extends RealmModel>, String> newKey = Pair.<Class<? extends RealmModel>, String>create(oldKey.first, oldKey.second);
-            this.classes.put(newKey.first, columnInfo);
-            this.classesByName.put(newKey.second, columnInfo);
-            this.classesToColumnInfo.put(newKey, columnInfo);
+            Pair<Class<? extends RealmModel>, String> key = entry.getKey();
+            this.classes.put(key.first, columnInfo);
+            this.classesByName.put(key.second, columnInfo);
+            this.classesToColumnInfo.put(key, columnInfo);
         }
     }
 
