@@ -4,6 +4,8 @@
 
 * [ObjectServer] Added two options to `SyncConfiguration` to provide a trusted root CA `trustedRootCA` and to disable SSL validation `disableSSLVerification` (#4371).
 
+* [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` using an admin user (#4588).
+
 ## 3.2.1 (2017-05-19)
 
 ### Deprecated
