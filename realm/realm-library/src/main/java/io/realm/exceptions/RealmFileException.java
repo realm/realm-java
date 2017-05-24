@@ -18,6 +18,7 @@ package io.realm.exceptions;
 import io.realm.internal.Keep;
 import io.realm.internal.SharedRealm;
 
+
 /**
  * Class for reporting problems when accessing the Realm related files.
  */
@@ -33,7 +34,7 @@ public class RealmFileException extends RuntimeException {
          */
         ACCESS_ERROR,
         /**
-         *  Thrown if the history type of the on-disk Realm is unexpected or incompatible.
+         * Thrown if the history type of the on-disk Realm is unexpected or incompatible.
          */
         BAD_HISTORY,
         /**

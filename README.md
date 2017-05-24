@@ -60,7 +60,7 @@ In case you don't want to use the precompiled version, you can build Realm yours
 ### Prerequisites
 
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
- * Download & install the Android SDK **Build-Tools 24.0.0**, **Android N (API 24)** (for example through Android Studio’s **Android SDK Manager**).
+ * Download & install the Android SDK **Build-Tools 25.0.3**, **Android N (API 25)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
 
  * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
@@ -175,11 +175,12 @@ To run these tests you must have a device connected to the build computer and th
 
 1. Connect an Android device and verify that that the command `adb devices` shows a connected device:
 
-        ```sh
-        adb devices
-        List of devices attached
-        004c03eb5615429f	device
-        ```
+	```sh
+	adb devices
+	List of devices attached
+	004c03eb5615429f device
+	```
+   
 2. Run instrumentation tests:
 
 	```sh

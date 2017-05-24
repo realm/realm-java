@@ -22,6 +22,7 @@ import com.opencsv.CSVWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 
 import dk.ilios.spanner.model.Trial;
@@ -31,7 +32,7 @@ import dk.ilios.spanner.output.ResultProcessor;
  * Converts the result of a benchmark to CSV for easier processing by other data/graph programs.
  *
  * Output is the following.
- * methodname, trialNumber, params, measurements, min, max, average, 25pct, 50pct, 75pct
+ * methodname, trialNumber, params, measurements, min, max, average, 25pct, 50pct, 75pct.
  */
 public class CSVResultProcessor implements ResultProcessor {
 
@@ -46,7 +47,7 @@ public class CSVResultProcessor implements ResultProcessor {
         this.resultFile = resultFile;
         this.workFile = new File(resultFile.getPath() + ".tmp");
         try {
-            writer = new CSVWriter(new FileWriter(resultFile));
+            writer = new CSVWriter(Files.newWriter(resultFile, Charset.forName("UTF-8")));
             addLabels();
         } catch (IOException e) {
             throw new RuntimeException(e);

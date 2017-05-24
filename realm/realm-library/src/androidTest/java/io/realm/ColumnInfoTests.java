@@ -30,7 +30,8 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotSame;
-import static junit.framework.Assert.assertSame;
+import static junit.framework.Assert.fail;
+
 
 @RunWith(AndroidJUnit4.class)
 public class ColumnInfoTests {
@@ -40,11 +41,13 @@ public class ColumnInfoTests {
     public final ExpectedException thrown = ExpectedException.none();
 
     private Realm realm;
+    private RealmProxyMediator mediator;
 
     @Before
     public void setUp() {
         RealmConfiguration config = configFactory.createConfiguration();
         realm = Realm.getInstance(config);
+        mediator = realm.getConfiguration().getSchemaMediator();
     }
 
     @After
@@ -56,12 +59,12 @@ public class ColumnInfoTests {
 
     @Test
     public void copyColumnInfoFrom_checkIndex() {
-        final RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
-        final CatRealmProxy.CatColumnInfo sourceColumnInfo, targetColumnInfo;
-        sourceColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
-        targetColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+        CatRealmProxy.CatColumnInfo sourceColumnInfo
+                = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+        CatRealmProxy.CatColumnInfo targetColumnInfo
+                = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
 
-        // check precondition
+        // Checks precondition.
         assertNotSame(sourceColumnInfo, targetColumnInfo);
         assertNotSame(sourceColumnInfo.getIndicesMap(), targetColumnInfo.getIndicesMap());
 
@@ -83,26 +86,22 @@ public class ColumnInfoTests {
         targetColumnInfo.ownerIndex = 0;
         targetColumnInfo.scaredOfDogIndex = 0;
 
-        targetColumnInfo.copyColumnInfoFrom(sourceColumnInfo);
+        targetColumnInfo.copyFrom(sourceColumnInfo);
 
-        assertEquals(1, targetColumnInfo.nameIndex);
-        assertEquals(2, targetColumnInfo.ageIndex);
-        assertEquals(3, targetColumnInfo.heightIndex);
-        assertEquals(4, targetColumnInfo.weightIndex);
-        assertEquals(5, targetColumnInfo.hasTailIndex);
-        assertEquals(6, targetColumnInfo.birthdayIndex);
-        assertEquals(7, targetColumnInfo.ownerIndex);
-        assertEquals(8, targetColumnInfo.scaredOfDogIndex);
-
-        // current implementation shares the indices map.
-        assertSame(sourceColumnInfo.getIndicesMap(), targetColumnInfo.getIndicesMap());
+        assertEquals(sourceColumnInfo.nameIndex, targetColumnInfo.nameIndex);
+        assertEquals(sourceColumnInfo.ageIndex, targetColumnInfo.ageIndex);
+        assertEquals(sourceColumnInfo.heightIndex, targetColumnInfo.heightIndex);
+        assertEquals(sourceColumnInfo.weightIndex, targetColumnInfo.weightIndex);
+        assertEquals(sourceColumnInfo.hasTailIndex, targetColumnInfo.hasTailIndex);
+        assertEquals(sourceColumnInfo.birthdayIndex, targetColumnInfo.birthdayIndex);
+        assertEquals(sourceColumnInfo.ownerIndex, targetColumnInfo.ownerIndex);
+        assertEquals(sourceColumnInfo.scaredOfDogIndex, targetColumnInfo.scaredOfDogIndex);
     }
 
     @Test
-    public void clone_hasSameValue() {
-        final RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
-        final CatRealmProxy.CatColumnInfo columnInfo;
-        columnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+    public void copy_differentInstanceSameValues() {
+        final CatRealmProxy.CatColumnInfo columnInfo
+                = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
 
         columnInfo.nameIndex = 1;
         columnInfo.ageIndex = 2;
@@ -113,9 +112,21 @@ public class ColumnInfoTests {
         columnInfo.ownerIndex = 7;
         columnInfo.scaredOfDogIndex = 8;
 
-        CatRealmProxy.CatColumnInfo copy = columnInfo.clone();
+        CatRealmProxy.CatColumnInfo copy = (CatRealmProxy.CatColumnInfo) columnInfo.copy(true);
 
-        // modify original object
+        // verify that the copy is identical
+        assertNotSame(columnInfo, copy);
+        assertEquals(columnInfo.getIndicesMap(), copy.getIndicesMap());
+        assertEquals(columnInfo.nameIndex, copy.nameIndex);
+        assertEquals(columnInfo.ageIndex, copy.ageIndex);
+        assertEquals(columnInfo.heightIndex, copy.heightIndex);
+        assertEquals(columnInfo.weightIndex, copy.weightIndex);
+        assertEquals(columnInfo.hasTailIndex, copy.hasTailIndex);
+        assertEquals(columnInfo.birthdayIndex, copy.birthdayIndex);
+        assertEquals(columnInfo.ownerIndex, copy.ownerIndex);
+        assertEquals(columnInfo.scaredOfDogIndex, copy.scaredOfDogIndex);
+
+        // Modify original object
         columnInfo.nameIndex = 0;
         columnInfo.ageIndex = 0;
         columnInfo.heightIndex = 0;
@@ -125,8 +136,7 @@ public class ColumnInfoTests {
         columnInfo.ownerIndex = 0;
         columnInfo.scaredOfDogIndex = 0;
 
-        assertNotSame(columnInfo, copy);
-
+        // the copy should not change
         assertEquals(1, copy.nameIndex);
         assertEquals(2, copy.ageIndex);
         assertEquals(3, copy.heightIndex);
@@ -135,8 +145,18 @@ public class ColumnInfoTests {
         assertEquals(6, copy.birthdayIndex);
         assertEquals(7, copy.ownerIndex);
         assertEquals(8, copy.scaredOfDogIndex);
+    }
 
-        // current implementation shares the indices map between copies.
-        assertSame(columnInfo.getIndicesMap(), copy.getIndicesMap());
+    @Test
+    public void copy_immutableThrows() {
+        final CatRealmProxy.CatColumnInfo original
+                = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+
+        CatRealmProxy.CatColumnInfo copy = (CatRealmProxy.CatColumnInfo) original.copy(false);
+        try {
+            copy.copyFrom(original);
+            fail("Attempt to copy to an immutable ColumnInfo should throwS");
+        } catch (UnsupportedOperationException ignore) {
+        }
     }
 }

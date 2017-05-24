@@ -20,23 +20,24 @@ import java.util.Date;
 
 import io.realm.RealmFieldType;
 
+
 /**
  * Wrapper around a Row in Realm Core.
- *
- * IMPORTANT: All access to methods using this class are non-checking. Safety guarantees are given by the annotation
- * processor and {@link RealmProxyMediator#validateTable(Class, SharedRealm)} which is called before the typed
- * API can be used.
- *
+ * <p>
+ * IMPORTANT: All access to methods using this class are non-checking. Safety guarantees are given by the
+ * annotation processor and {@link RealmProxyMediator#validateTable(Class, SharedRealm, boolean)}
+ * which is called before the typed API can be used.
+ * <p>
  * For low-level access to Row data where error checking is required, use {@link CheckedRow}.
  */
 public class UncheckedRow implements NativeObject, Row {
-
-    final Context context; // This is only kept because for now it's needed by the constructor of LinkView
-    private final Table parent;
-    private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
-    UncheckedRow(Context context, Table parent, long nativePtr) {
+    private final NativeContext context; // This is only kept because for now it's needed by the constructor of LinkView
+    private final Table parent;
+    private final long nativePtr;
+
+    UncheckedRow(NativeContext context, Table parent, long nativePtr) {
         this.context = context;
         this.parent = parent;
         this.nativePtr = nativePtr;
@@ -70,8 +71,8 @@ public class UncheckedRow implements NativeObject, Row {
      * @param index the index of the row.
      * @return an instance of Row for the table and index specified.
      */
-    static UncheckedRow getByRowIndex(Context context, Table table, long index) {
-        long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
+    static UncheckedRow getByRowIndex(NativeContext context, Table table, long index) {
+        long nativeRowPointer = table.nativeGetRowPtr(table.getNativePtr(), index);
         return new UncheckedRow(context, table, nativeRowPointer);
     }
 
@@ -83,7 +84,7 @@ public class UncheckedRow implements NativeObject, Row {
      * @param nativeRowPointer pointer of a row.
      * @return an instance of Row for the table and row specified.
      */
-    static UncheckedRow getByRowPointer(Context context, Table table, long nativeRowPointer) {
+    static UncheckedRow getByRowPointer(NativeContext context, Table table, long nativeRowPointer) {
         return new UncheckedRow(context, table, nativeRowPointer);
     }
 
@@ -95,7 +96,7 @@ public class UncheckedRow implements NativeObject, Row {
      * @param index the index of the row.
      * @return an instance of Row for the LinkView and index specified.
      */
-    static UncheckedRow getByRowIndex(Context context, LinkView linkView, long index) {
+    static UncheckedRow getByRowIndex(NativeContext context, LinkView linkView, long index) {
         long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePtr(), index);
         return new UncheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
     }
@@ -225,7 +226,7 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     /**
-     * Set a string value to a row pointer.
+     * Sets a string value to a row pointer.
      *
      * @param columnIndex 0 based index value of the cell column.
      * @param value the value to to a row
@@ -266,7 +267,7 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     /**
-     * Set null to a row pointer.
+     * Sets null to a row pointer.
      *
      * @param columnIndex 0 based index value of the cell column.
      */
@@ -292,37 +293,72 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
+    public void checkIfAttached() {
+        if (!isAttached()) {
+            throw new IllegalStateException("Object is no longer managed by Realm. Has it been deleted?");
+        }
+    }
+
+    @Override
     public boolean hasColumn(String fieldName) {
         return nativeHasColumn(nativePtr, fieldName);
     }
 
     protected native long nativeGetColumnCount(long nativeTablePtr);
+
     protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
+
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
+
     protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
+
     protected native long nativeGetIndex(long nativeRowPtr);
+
     protected native long nativeGetLong(long nativeRowPtr, long columnIndex);
+
     protected native boolean nativeGetBoolean(long nativeRowPtr, long columnIndex);
+
     protected native float nativeGetFloat(long nativeRowPtr, long columnIndex);
+
     protected native double nativeGetDouble(long nativeRowPtr, long columnIndex);
+
     protected native long nativeGetTimestamp(long nativeRowPtr, long columnIndex);
+
     protected native String nativeGetString(long nativePtr, long columnIndex);
+
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
+
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
+
     protected native long nativeGetLinkView(long nativePtr, long columnIndex);
+
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
+
     protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
+
     protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);
+
     protected native long nativeGetLink(long nativeRowPtr, long columnIndex);
+
     protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
+
     protected native void nativeSetTimestamp(long nativeRowPtr, long columnIndex, long dateTimeValue);
+
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
+
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
+
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
+
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
+
     protected native boolean nativeIsAttached(long nativeRowPtr);
+
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
+
     protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
+
     protected native void nativeSetNull(long nativeRowPtr, long columnIndex);
+
     private static native long nativeGetFinalizerPtr();
 }

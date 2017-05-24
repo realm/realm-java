@@ -24,13 +24,21 @@ using namespace realm::jni_util;
 
 static std::unique_ptr<JniUtils> s_instance;
 
-void JniUtils::initialize(JavaVM *vm, jint vm_version) noexcept {
+void JniUtils::initialize(JavaVM* vm, jint vm_version) noexcept
+{
     REALM_ASSERT_DEBUG(!s_instance);
 
     s_instance = std::unique_ptr<JniUtils>(new JniUtils(vm, vm_version));
 }
 
-JNIEnv* JniUtils::get_env(bool attach_if_needed) {
+void JniUtils::release()
+{
+    REALM_ASSERT_DEBUG(s_instance);
+    s_instance.release();
+}
+
+JNIEnv* JniUtils::get_env(bool attach_if_needed)
+{
     REALM_ASSERT_DEBUG(s_instance);
 
     JNIEnv* env;
@@ -38,11 +46,22 @@ JNIEnv* JniUtils::get_env(bool attach_if_needed) {
         if (attach_if_needed) {
             jint ret = s_instance->m_vm->AttachCurrentThread(&env, nullptr);
             REALM_ASSERT_RELEASE(ret == JNI_OK);
-        } else {
+        }
+        else {
             REALM_ASSERT_RELEASE(false);
         }
     }
 
     return env;
+}
+
+void JniUtils::detach_current_thread()
+{
+    s_instance->m_vm->DetachCurrentThread();
+}
+
+void JniUtils::keep_global_ref(JavaGlobalRef& ref)
+{
+    s_instance->m_global_refs.push_back(std::move(ref));
 }
 

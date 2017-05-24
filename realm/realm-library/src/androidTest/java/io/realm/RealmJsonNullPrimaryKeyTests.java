@@ -57,7 +57,7 @@ public class RealmJsonNullPrimaryKeyTests {
         }
     }
 
-    // parameters for testing null primary key value. PrimaryKey field is explicitly null
+    // Parameters for testing null primary key value. PrimaryKey field is explicitly null.
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
@@ -79,7 +79,7 @@ public class RealmJsonNullPrimaryKeyTests {
         this.clazz = clazz;
     }
 
-    // Testing null primary key value for createObjectFromJson()
+    // Tests null primary key value for createObjectFromJson().
     @Test
     public void createObjectFromJson_primaryKey_isNull_fromJsonObject() throws JSONException {
         realm.beginTransaction();
@@ -102,7 +102,7 @@ public class RealmJsonNullPrimaryKeyTests {
         }
     }
 
-    // Testing null primary key value for createOrUpdateObjectFromJson()
+    // Tests null primary key value for createOrUpdateObjectFromJson().
     @Test
     public void createOrUpdateObjectFromJson_primaryKey_isNull_fromJsonObject() throws JSONException {
         realm.beginTransaction();
@@ -125,7 +125,7 @@ public class RealmJsonNullPrimaryKeyTests {
         }
     }
 
-    // Testing null primary key value for createObject() -> createOrUpdateObjectFromJson()
+    // Tests null primary key value for createObject() -> createOrUpdateObjectFromJson().
     @Test
     public void createOrUpdateObjectFromJson_primaryKey_isNull_updateFromJsonObject() throws JSONException {
         realm.beginTransaction();

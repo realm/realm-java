@@ -31,7 +31,6 @@ import java.util.List;
 
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
-import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -84,7 +83,7 @@ public class PrimaryKeyTests {
         return t;
     }
 
-    // Test that primary key constraints are actually removed
+    // Tests that primary key constraints are actually removed.
     @Test
     public void removingPrimaryKeyRemovesConstraint_typeSetters() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
@@ -96,14 +95,14 @@ public class PrimaryKeyTests {
         tbl.addColumn(RealmFieldType.STRING, "name");
         tbl.setPrimaryKey("name");
 
-        // Create first entry with name "Foo"
+        // Creates first entry with name "Foo".
         tbl.setString(0, tbl.addEmptyRow(), "Foo", false);
 
         long rowIndex = tbl.addEmptyRow();
         try {
-            tbl.setString(0, rowIndex, "Foo", false); // Try to create 2nd entry with name Foo
+            tbl.setString(0, rowIndex, "Foo", false); // Tries to create 2nd entry with name Foo.
         } catch (RealmPrimaryKeyConstraintException e1) {
-            tbl.setPrimaryKey(""); // Primary key check worked, now remove it and try again.
+            tbl.setPrimaryKey(""); // Primary key check worked, now removes it and tries again.
             try {
                 tbl.setString(0, rowIndex, "Foo", false);
                 return;
@@ -120,7 +119,7 @@ public class PrimaryKeyTests {
     public void addEmptyRowWithPrimaryKeyWrongTypeStringThrows() {
         Table t = getTableWithStringPrimaryKey();
         try {
-            t.addEmptyRowWithPrimaryKey(42);
+            OsObject.createWithPrimaryKey(sharedRealm, t, 42);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -130,7 +129,7 @@ public class PrimaryKeyTests {
     @Test
     public void addEmptyRowWithPrimaryKeyNullString() {
         Table t = getTableWithStringPrimaryKey();
-        t.addEmptyRowWithPrimaryKey(null);
+        OsObject.createWithPrimaryKey(sharedRealm, t, null);
         assertEquals(1, t.size());
         sharedRealm.cancelTransaction();
     }
@@ -139,7 +138,7 @@ public class PrimaryKeyTests {
     public void addEmptyRowWithPrimaryKeyWrongTypeIntegerThrows() {
         Table t = getTableWithIntegerPrimaryKey();
         try {
-            t.addEmptyRowWithPrimaryKey("Foo");
+            OsObject.createWithPrimaryKey(sharedRealm, t, "Foo");
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -149,18 +148,18 @@ public class PrimaryKeyTests {
     @Test
     public void addEmptyRowWithPrimaryKeyString() {
         Table t = getTableWithStringPrimaryKey();
-        long rowIndex = t.addEmptyRowWithPrimaryKey("Foo");
+        UncheckedRow row = OsObject.createWithPrimaryKey(sharedRealm, t, "Foo");
         assertEquals(1, t.size());
-        assertEquals("Foo", t.getUncheckedRow(rowIndex).getString(0));
+        assertEquals("Foo", row.getString(0));
         sharedRealm.cancelTransaction();
     }
 
     @Test
     public void addEmptyRowWithPrimaryKeyLong() {
         Table t = getTableWithIntegerPrimaryKey();
-        long rowIndex = t.addEmptyRowWithPrimaryKey(42);
+        UncheckedRow row = OsObject.createWithPrimaryKey(sharedRealm, t, 42);
         assertEquals(1, t.size());
-        assertEquals(42L, t.getUncheckedRow(rowIndex).getLong(0));
+        assertEquals(42L, row.getLong(0));
         sharedRealm.cancelTransaction();
     }
 
@@ -190,7 +189,7 @@ public class PrimaryKeyTests {
         assertEquals("AnnotationTypes", sharedRealm.getTable("pk").getString(0, 0));
     }
 
-    // See https://github.com/realm/realm-java/issues/1775 .
+    // See https://github.com/realm/realm-java/issues/1775
     // Before 0.84.2, pk table added prefix "class_" to every class's name.
     // After 0.84.2, the pk table should be migrated automatically to remove the "class_".
     // In 0.84.2, the class names in pk table has been renamed to some incorrect names like "Thclass", "Mclass",
@@ -236,14 +235,14 @@ public class PrimaryKeyTests {
         long classColumn = pkTable.getColumnIndex("pk_table");
         pkTable.removeSearchIndex(classColumn);
 
-        // Try to add a pk for another table
+        // Tries to add a pk for another table.
         Table table2 = sharedRealm.getTable("TestTable2");
         long column2 = table2.addColumn(RealmFieldType.INTEGER, "PKColumn");
         table2.addSearchIndex(column2);
         try {
             table2.setPrimaryKey(column2);
-        } catch (RealmError ignored) {
-            // Column has no search index
+        } catch (IllegalStateException ignored) {
+            // Column has no search index.
         }
 
         assertFalse(pkTable.hasSearchIndex(classColumn));

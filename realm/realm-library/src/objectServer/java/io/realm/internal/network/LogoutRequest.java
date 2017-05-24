@@ -29,7 +29,7 @@ public class LogoutRequest {
 
     private final String token;
 
-    public static LogoutRequest revoke(Token userToken) {
+    public static LogoutRequest create(Token userToken) {
         return new LogoutRequest(userToken.value());
     }
 

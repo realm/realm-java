@@ -1,17 +1,23 @@
 package io.realm.objectserver;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
-import io.realm.SessionState;
 import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncManager;
@@ -21,26 +27,20 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestSyncConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertFalse;
+
 
 @RunWith(AndroidJUnit4.class)
 public class AuthTests extends BaseIntegrationTest {
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
+
     @Rule
-    public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
-
-    @Before
-    public void before() throws Exception {
-        UserFactory.resetInstance();
-    }
-
-    @After
-    public void after() throws Exception {
-    }
+    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void login_userNotExist() {
@@ -73,30 +73,54 @@ public class AuthTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void login_withAccessToken() {
-        SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
-        SyncCredentials credentials = SyncCredentials.accessToken(admin.getAccessToken(), "custom-admin-user");
+    public void login_newUser() {
+        SyncCredentials credentials = SyncCredentials.usernamePassword("myUser", "password", true);
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
             public void onSuccess(SyncUser user) {
-                final SyncConfiguration config =
-                        configFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                assertFalse(user.isAdmin());
+                try {
+                    assertEquals(new URL(Constants.AUTH_URL), user.getAuthenticationUrl());
+                } catch (MalformedURLException e) {
+                    fail(e.toString());
+                }
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void login_withAccessToken() {
+        SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        SyncCredentials credentials = SyncCredentials.accessToken(adminUser.getAccessToken().value(), "custom-admin-user", adminUser.isAdmin());
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                assertTrue(user.isAdmin());
+                final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
                             public void onError(SyncSession session, ObjectServerError error) {
                                 fail("Session failed: " + error);
                             }
-                        }).build();
+                        })
+                        .build();
 
                 final Realm realm = Realm.getInstance(config);
+                looperThread.addTestRealm(realm);
 
                 // FIXME: Right now we have no Java API for detecting when a session is established
                 // So we optimistically assume it has been connected after 1 second.
                 looperThread.postRunnableDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        assertEquals(SessionState.BOUND, SyncManager.getSession(config).getState());
-                        realm.close();
+                        assertTrue(SyncManager.getSession(config).getUser().isValid());
                         looperThread.testComplete();
                     }
                 }, 1000);
@@ -109,31 +133,141 @@ public class AuthTests extends BaseIntegrationTest {
         });
     }
 
-    // The error handler throws an exception but it is ignored (but logged). That means, this test should not
-    // pass and not be stopped by an IllegalArgumentException.
+    @Test
+    public void loginAsync_errorHandlerThrows() throws InterruptedException {
+        final AtomicBoolean errorThrown = new AtomicBoolean(false);
+
+        // Create custom Looper thread to be able to check for errors thrown when processing Looper events.
+        Thread t = new Thread(new Runnable() {
+            private volatile Handler handler;
+            @Override
+            public void run() {
+                Looper.prepare();
+                try {
+                    handler = new Handler();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
+                            SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+                                @Override
+                                public void onSuccess(SyncUser user) {
+                                    fail();
+                                }
+
+                                @Override
+                                public void onError(ObjectServerError error) {
+                                    assertEquals(ErrorCode.INVALID_CREDENTIALS, error.getErrorCode());
+                                    throw new IllegalArgumentException("BOOM");
+                                }
+                            });
+                        }
+                    });
+                    Looper.loop(); //
+                } catch (IllegalArgumentException e) {
+                    errorThrown.set(true);
+                }
+            }
+        });
+        t.start();
+        t.join(TimeUnit.SECONDS.toMillis(10));
+        assertTrue(errorThrown.get());
+    }
+
+    @Test
+    public void changePassword() {
+        String username = UUID.randomUUID().toString();
+        String originalPassword = "password";
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, originalPassword, true);
+        SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(userOld.isValid());
+
+        // Change password and try to log in with new password
+        String newPassword = "new-password";
+        userOld.changePassword(newPassword);
+        userOld.logout();
+        credentials = SyncCredentials.usernamePassword(username, newPassword, false);
+        SyncUser userNew = SyncUser.login(credentials, Constants.AUTH_URL);
+
+        assertTrue(userNew.isValid());
+        assertEquals(userOld.getIdentity(), userNew.getIdentity());
+    }
+
+    @Test
+    public void changePassword_using_admin() {
+        String username = UUID.randomUUID().toString();
+        String originalPassword = "password";
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, originalPassword, true);
+        SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(userOld.isValid());
+
+        // Login an admin user
+        SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        assertTrue(adminUser.isValid());
+        assertTrue(adminUser.isAdmin());
+
+        // Change password using admin user
+        String newPassword = "new-password";
+        adminUser.changePassword(userOld.getIdentity(), newPassword);
+
+        // Try to log in with new password
+        userOld.logout();
+        credentials = SyncCredentials.usernamePassword(username, newPassword, false);
+        SyncUser userNew = SyncUser.login(credentials, Constants.AUTH_URL);
+
+        assertTrue(userNew.isValid());
+        assertEquals(userOld.getIdentity(), userNew.getIdentity());
+    }
+
     @Test
     @RunTestInLooperThread
-    public void loginAsync_errorHandlerThrows() {
-        SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+    public void changePassword_using_admin_async() {
+        final String username = UUID.randomUUID().toString();
+        final String originalPassword = "password";
+        final SyncCredentials credentials = SyncCredentials.usernamePassword(username, originalPassword, true);
+        final SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(userOld.isValid());
+
+        // Login an admin user
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        assertTrue(adminUser.isValid());
+        assertTrue(adminUser.isAdmin());
+
+        // Change password using admin user
+        final String newPassword = "new-password";
+        adminUser.changePasswordAsync(userOld.getIdentity(), newPassword, new SyncUser.Callback() {
             @Override
-            public void onSuccess(SyncUser user) {
-                fail();
+            public void onSuccess(SyncUser administratorUser) {
+                assertEquals(adminUser, administratorUser);
+
+                // Try to log in with new password
+                userOld.logout();
+                SyncCredentials credentials = SyncCredentials.usernamePassword(username, newPassword, false);
+                SyncUser userNew = SyncUser.login(credentials, Constants.AUTH_URL);
+
+                assertTrue(userNew.isValid());
+                assertEquals(userOld.getIdentity(), userNew.getIdentity());
+
+                looperThread.testComplete();
             }
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.INVALID_CREDENTIALS, error.getErrorCode());
-                throw new IllegalArgumentException("BOOM");
+                fail(error.getErrorMessage());
             }
         });
-
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            fail();
-        }
-        looperThread.testComplete();
     }
+
+    @Test
+    public void changePassword_throwWhenUserIsLoggedOut() {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        user.logout();
+
+        thrown.expect(ObjectServerError.class);
+        user.changePassword("new-password");
+    }
+
 }

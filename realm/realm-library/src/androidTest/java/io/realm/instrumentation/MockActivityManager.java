@@ -45,11 +45,11 @@ public class MockActivityManager {
         return new MockActivityManager(realmConfiguration);
     }
 
-    // simulate a configuration change, that should trigger
+    // simulates a configuration change, that should trigger
     // to recreate the Lifecycle component
     public void sendConfigurationChange () {
         instance.onStop();
-        // create a new instance
+        // creates a new instance
         instance = LifecycleComponentFactory.newInstance(realmConfiguration);
         references.add(new WeakReference<Lifecycle>(instance, queue));
 

@@ -32,7 +32,8 @@ std::shared_ptr<AndroidLogger> AndroidLogger::shared()
     return android_logger;
 }
 
-void AndroidLogger::log(Log::Level level, const char* tag, jthrowable, const char* message) {
+void AndroidLogger::log(Log::Level level, const char* tag, jthrowable, const char* message)
+{
     android_LogPriority android_log_priority;
     switch (level) {
         case Log::Level::trace:
@@ -53,7 +54,7 @@ void AndroidLogger::log(Log::Level level, const char* tag, jthrowable, const cha
         case Log::Level::fatal:
             android_log_priority = ANDROID_LOG_FATAL;
             break;
-        default:// Cannot get here.
+        default: // Cannot get here.
             throw std::invalid_argument(format("Invalid log level: %1.", level));
     }
     if (message) {
@@ -74,7 +75,8 @@ void AndroidLogger::print(android_LogPriority priority, const char* tag, const c
             __android_log_write(priority, tag, tmp_str.c_str());
             start += count;
         }
-    } else {
+    }
+    else {
         __android_log_write(priority, tag, log_string);
     }
 }
@@ -86,8 +88,5 @@ std::shared_ptr<JniLogger> get_default_logger()
 {
     return std::static_pointer_cast<JniLogger>(AndroidLogger::shared());
 }
-
 }
 }
-
-

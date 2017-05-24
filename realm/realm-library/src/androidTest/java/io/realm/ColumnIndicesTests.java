@@ -39,6 +39,7 @@ import static junit.framework.Assert.assertNotSame;
 import static junit.framework.Assert.assertSame;
 import static org.junit.Assert.assertNotEquals;
 
+
 @RunWith(AndroidJUnit4.class)
 public class ColumnIndicesTests {
     @Rule
@@ -81,18 +82,20 @@ public class ColumnIndicesTests {
         final long schemaVersion = 100;
 
         final ColumnIndices columnIndices = create(schemaVersion);
-        final ColumnIndices deepCopy = columnIndices.clone();
+        final ColumnIndices deepCopy = new ColumnIndices(columnIndices, true);
+        assertNotSame(columnIndices, deepCopy);
 
         assertEquals(schemaVersion, deepCopy.getSchemaVersion());
-        assertEquals(columnIndices.getColumnIndex(Cat.class, Cat.FIELD_NAME),
-                deepCopy.getColumnIndex(Cat.class, Cat.FIELD_NAME));
-        assertEquals(columnIndices.getColumnIndex(Dog.class, Dog.FIELD_AGE),
-                deepCopy.getColumnIndex(Dog.class, Dog.FIELD_AGE));
 
-        // check if those are different instance.
-        assertNotSame(columnIndices, deepCopy);
-        assertNotSame(columnIndices.getColumnInfo(Cat.class), deepCopy.getColumnInfo(Cat.class));
-        assertNotSame(columnIndices.getColumnInfo(Dog.class), deepCopy.getColumnInfo(Dog.class));
+        ColumnInfo colInfo = columnIndices.getColumnInfo(Cat.class);
+        ColumnInfo colInfoCopy = deepCopy.getColumnInfo(Cat.class);
+        assertNotSame(colInfo, colInfoCopy);
+        assertEquals(colInfo.getColumnIndex(Cat.FIELD_NAME), colInfoCopy.getColumnIndex(Cat.FIELD_NAME));
+
+        colInfo = columnIndices.getColumnInfo(Dog.class);
+        colInfoCopy = deepCopy.getColumnInfo(Dog.class);
+        assertNotSame(colInfo, colInfoCopy);
+        assertEquals(colInfo.getColumnIndex(Dog.FIELD_AGE), colInfoCopy.getColumnIndex(Dog.FIELD_AGE));
     }
 
     @Test
@@ -108,14 +111,15 @@ public class ColumnIndicesTests {
 
         catColumnInfoInSource.nameIndex++;
 
-        // check preconditions
+        // Checks preconditions.
         assertNotEquals(catColumnInfoInSource.nameIndex, catColumnInfoInTarget.nameIndex);
         assertNotSame(catColumnInfoInSource.getIndicesMap(), catColumnInfoInTarget.getIndicesMap());
 
-        target.copyFrom(source,  mediator);
+        target.copyFrom(source);
 
         assertEquals(sourceSchemaVersion, target.getSchemaVersion());
         assertEquals(catColumnInfoInSource.nameIndex, catColumnInfoInTarget.nameIndex);
-        assertSame(catColumnInfoInSource.getIndicesMap(), catColumnInfoInTarget.getIndicesMap());
+        // update, not replace
+        assertSame(catColumnInfoInTarget, target.getColumnInfo(Cat.class));
     }
 }

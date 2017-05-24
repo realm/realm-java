@@ -16,9 +16,6 @@
 
 package io.realm;
 
-import android.os.Handler;
-import android.os.Looper;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,16 +32,21 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import io.realm.internal.RealmNotifier;
 import io.realm.internal.Util;
+import io.realm.internal.android.AndroidCapabilities;
+import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.network.ChangePasswordResponse;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 import io.realm.permissions.PermissionModule;
+
 
 /**
  * This class represents a user on the Realm Object Server. The credentials are provided by various 3rd party
@@ -70,9 +72,13 @@ public class SyncUser {
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
                             public void onError(SyncSession session, ObjectServerError error) {
-                                RealmLog.error(String.format("Unexpected error with %s's management Realm: %s",
-                                        user.getIdentity(),
-                                        error.toString()));
+                                if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
+                                    RealmLog.error("Client Reset required for user's management Realm: " + user.toString());
+                                } else {
+                                    RealmLog.error(String.format("Unexpected error with %s's management Realm: %s",
+                                            user.getIdentity(),
+                                            error.toString()));
+                                }
                             }
                         })
                         .modules(new PermissionModule())
@@ -97,7 +103,7 @@ public class SyncUser {
      * A user is invalidated when he/she logs out or the user's access token expires.
      *
      * @return current {@link SyncUser} that has logged in and is still valid. {@code null} if no user is logged in or the user has
-     *         expired.
+     * expired.
      * @throws IllegalStateException if multiple users are logged in.
      */
     public static SyncUser currentUser() {
@@ -130,7 +136,6 @@ public class SyncUser {
      * Loads a user that has previously been serialized using {@link #toJson()}.
      *
      * @param user JSON string representing the user.
-     *
      * @return the user object.
      * @throws IllegalArgumentException if the JSON couldn't be converted to a valid {@link SyncUser} object.
      */
@@ -167,9 +172,13 @@ public class SyncUser {
      * @throws IllegalArgumentException if the URL is malformed.
      */
     public static SyncUser login(final SyncCredentials credentials, final String authenticationUrl) throws ObjectServerError {
-        final URL authUrl;
+        URL authUrl;
         try {
             authUrl = new URL(authenticationUrl);
+            // If no path segment is provided append `/auth` which is the standard location.
+            if (authUrl.getPath().equals("")) {
+                authUrl = new URL(authUrl.toString() + "/auth");
+            }
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Invalid URL " + authenticationUrl + ".", e);
         }
@@ -183,7 +192,8 @@ public class SyncUser {
                 // the JSON response expected from the server.
                 String userIdentifier = credentials.getUserIdentifier();
                 String token = (String) credentials.getUserInfo().get("_token");
-                result = AuthenticateResponse.createValidResponseWithUser(userIdentifier, token);
+                boolean isAdmin = (Boolean) credentials.getUserInfo().get("_isAdmin");
+                result = AuthenticateResponse.createValidResponseWithUser(userIdentifier, token, isAdmin);
             } else {
                 final AuthenticationServer server = SyncManager.getAuthServer();
                 result = server.loginUser(credentials, authUrl);
@@ -212,55 +222,18 @@ public class SyncUser {
      * @param credentials credentials to use.
      * @param authenticationUrl server that the user is authenticated against.
      * @param callback callback when login has completed or failed. The callback will always happen on the same thread
-     *                 as this this method is called on.
+     * as this this method is called on.
+     * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
     public static RealmAsyncTask loginAsync(final SyncCredentials credentials, final String authenticationUrl, final Callback callback) {
-        if (Looper.myLooper() == null) {
-            throw new IllegalStateException("Asynchronous login is only possible from looper threads.");
-        }
-        final Handler handler = new Handler(Looper.myLooper());
-        ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
-        Future<?> authenticateRequest = networkPoolExecutor.submit(new Runnable() {
+        checkLooperThread("Asynchronous login is only possible from looper threads.");
+        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public void run() {
-                try {
-                    SyncUser user = login(credentials, authenticationUrl);
-                    postSuccess(user);
-                } catch (ObjectServerError e) {
-                    postError(e);
-                }
+            public SyncUser run() throws ObjectServerError {
+                return login(credentials, authenticationUrl);
             }
-
-            private void postError(final ObjectServerError error) {
-                if (callback != null) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                callback.onError(error);
-                            } catch (Exception e) {
-                                RealmLog.info("onError has thrown an exception but is ignoring it: %s",
-                                        Util.getStackTrace(e));
-                            }
-                        }
-                    });
-                }
-            }
-
-            private void postSuccess(final SyncUser user) {
-                if (callback != null) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onSuccess(user);
-                        }
-                    });
-                }
-            }
-        });
-
-        return new RealmAsyncTaskImpl(authenticateRequest, networkPoolExecutor);
+        }.start();
     }
 
     /**
@@ -268,7 +241,7 @@ public class SyncUser {
      * {@link AuthenticationListener} will be notified and user credentials will be deleted from this device.
      *
      * @throws IllegalStateException if any Realms owned by this user is still open. They should be closed before
-     *         logging out.
+     * logging out.
      */
     /* FIXME: Add this back to the javadoc when enable SyncConfiguration.Builder#deleteRealmOnLogout()
      <p>
@@ -293,13 +266,6 @@ public class SyncUser {
                 }
             }
 
-            // Stop all active sessions immediately. If we waited until after talking to the server
-            // there is a high chance errors would be reported from the Sync Client first which would
-            // be confusing.
-            for (SyncSession session : sessions) {
-                session.getOsSession().stop();
-            }
-
             SyncManager.getUserStore().remove(syncUser.getIdentity());
 
             // Delete all Realms if needed.
@@ -322,11 +288,12 @@ public class SyncUser {
             // Finally revoke server token. The local user is logged out in any case.
             final AuthenticationServer server = SyncManager.getAuthServer();
             ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
-            networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
+            //noinspection unused
+            final Future<?> future = networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
 
                 @Override
                 protected LogoutResponse execute() {
-                    return server.logout(userToken, syncUser.getAuthenticationUrl());
+                    return server.logout(userToken, getAuthenticationUrl());
                 }
 
                 @Override
@@ -343,14 +310,133 @@ public class SyncUser {
     }
 
     /**
+     * Changes this user's password. This is done synchronously and involves the network, so calling this method on the
+     * Android UI thread will always crash.
+     * <p>
+     * <b>WARNING:</b> Changing a user's password through an authentication server that doesn't use HTTPS is a major
+     * security flaw, and should only be done while testing.
+     *
+     * @param newPassword the user's new password.
+     * @throws ObjectServerError if the password could not be changed.
+     */
+    public void changePassword(final String newPassword) throws ObjectServerError {
+        if (newPassword == null) {
+            throw new IllegalArgumentException("Not-null 'newPassword' required.");
+        }
+        AuthenticationServer authServer = SyncManager.getAuthServer();
+        ChangePasswordResponse response = authServer.changePassword(getSyncUser().getUserToken(), newPassword, getAuthenticationUrl());
+        if (!response.isValid()) {
+            throw response.getError();
+        }
+    }
+
+    /**
+     * Changes another user's password. This is done synchronously and involves the network, so calling this method on the
+     * Android UI thread will always crash.
+     * <p>
+     * This user needs admin privilege in order to change someone else's password.
+     * <p>
+     * <b>WARNING:</b> Changing a user's password through an authentication server that doesn't use HTTPS is a major
+     * security flaw, and should only be done while testing.
+     *
+     * @param userId identity ({@link #getIdentity()}) of the user we want to change the password for.
+     * @param newPassword the user's new password.
+     * @throws ObjectServerError if the password could not be changed.
+     */
+    public void changePassword(final String userId, final String newPassword) throws ObjectServerError {
+        if (newPassword == null) {
+            throw new IllegalArgumentException("Not-null 'newPassword' required.");
+        }
+
+        if (Util.isEmptyString(userId)) {
+            throw new IllegalArgumentException("None empty 'userId' required.");
+        }
+
+        if (userId.equals(getIdentity())) { // user want's to change his/her own password
+            changePassword(newPassword);
+
+        } else {
+            if (!isAdmin()) {
+                throw new IllegalStateException("User need to be admin in order to change another user's password.");
+            }
+
+            AuthenticationServer authServer = SyncManager.getAuthServer();
+            ChangePasswordResponse response = authServer.changePassword(getSyncUser().getUserToken(), userId, newPassword, getAuthenticationUrl());
+            if (!response.isValid()) {
+                throw response.getError();
+            }
+        }
+    }
+
+    /**
+     * Changes this user's password asynchronously.
+     * <p>
+     * <b>WARNING:</b> Changing a users password using an authentication server that doesn't use HTTPS is a major
+     * security flaw, and should only be done while testing.
+     *
+     * @param newPassword the user's new password.
+     * @param callback callback when login has completed or failed. The callback will always happen on the same thread
+     * as this method is called on.
+     * @return representation of the async task that can be used to cancel it if needed.
+     * @throws IllegalArgumentException if not on a Looper thread.
+     */
+    public RealmAsyncTask changePasswordAsync(final String newPassword, final Callback callback) {
+        checkLooperThread("Asynchronous changing password is only possible from looper threads.");
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
+        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public SyncUser run() {
+                changePassword(newPassword);
+                return SyncUser.this;
+            }
+        }.start();
+    }
+
+    /**
+     * Changes another user's password asynchronously.
+     * <p>
+     * This user needs admin privilege in order to change someone else's password.
+     *
+     * <b>WARNING:</b> Changing a users password using an authentication server that doesn't use HTTPS is a major
+     * security flaw, and should only be done while testing.
+     *
+     * @param userId identity ({@link #getIdentity()}) of the user we want to change the password for.
+     * @param newPassword the user's new password.
+     * @param callback callback when login has completed or failed. The callback will always happen on the same thread
+     * as this method is called on.
+     * @return representation of the async task that can be used to cancel it if needed.
+     * @throws IllegalArgumentException if not on a Looper thread.
+     */
+    public RealmAsyncTask changePasswordAsync(final String userId, final String newPassword, final Callback callback) {
+        checkLooperThread("Asynchronous changing password is only possible from looper threads.");
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
+
+        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public SyncUser run() {
+                changePassword(userId, newPassword);
+                return SyncUser.this;
+            }
+        }.start();
+    }
+
+    private static void checkLooperThread(String errorMessage) {
+        AndroidCapabilities capabilities = new AndroidCapabilities();
+        capabilities.checkCanDeliverNotification(errorMessage);
+    }
+
+    /**
      * Returns a JSON token representing this user.
      * <p>
      * Possession of this JSON token can potentially grant access to data stored on the Realm Object Server, so it
      * should be treated as sensitive data.
      *
      * @return JSON string representing this user. It can be converted back into a real user object using
-     *         {@link #fromJson(String)}.
-     *
+     * {@link #fromJson(String)}.
      * @see #fromJson(String)
      */
     public String toJson() {
@@ -361,7 +447,7 @@ public class SyncUser {
      * Returns {@code true} if the user is logged into the Realm Object Server. If this method returns {@code true} it
      * implies that the user has valid credentials that have not expired.
      * <p>
-     * The user might still be have been logged out by the Realm Object Server which will not be detected before the
+     * The user might still have been logged out by the Realm Object Server which will not be detected before the
      * user tries to actively synchronize a Realm. If a logged out user tries to synchronize a Realm, an error will be
      * reported to the {@link SyncSession.ErrorHandler} defined by
      * {@link SyncConfiguration.Builder#errorHandler(SyncSession.ErrorHandler)}.
@@ -374,11 +460,22 @@ public class SyncUser {
     }
 
     /**
+     * Returns {@code true} if this user is an administrator on the Realm Object Server, {@code false} otherwise.
+     * <p>
+     * Administrators can access all Realms on the server as well as change the permissions of the Realms.
+     *
+     * @return {@code true} if the user is an administrator on the Realm Object Server, {@code false} otherwise.
+     */
+    public boolean isAdmin() {
+        return syncUser.isAdmin();
+    }
+
+    /**
      * Returns the identity of this user on the Realm Object Server. The identity is a guaranteed to be unique
      * among all users on the Realm Object Server.
      *
      * @return identity of the user on the Realm Object Server. If the user has logged out or the login has expired
-     *         {@code null} is returned.
+     * {@code null} is returned.
      */
     public String getIdentity() {
         return syncUser.getIdentity();
@@ -390,9 +487,9 @@ public class SyncUser {
      *
      * @return the user's access token. If this user has logged out or the login has expired {@code null} is returned.
      */
-    public String getAccessToken() {
+    public Token getAccessToken() {
         Token userToken = syncUser.getUserToken();
-        return (userToken != null) ? userToken.value() : null;
+        return (userToken != null) ? userToken : null;
     }
 
     /**
@@ -405,6 +502,15 @@ public class SyncUser {
      */
     public Realm getManagementRealm() {
         return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(syncUser, this));
+    }
+
+    /**
+     * Returns the {@link URL} where this user was authenticated.
+     *
+     * @return {@link URL} where the user was authenticated.
+     */
+    public URL getAuthenticationUrl() {
+        return syncUser.getAuthenticationUrl();
     }
 
     // Creates the URL to the permission Realm based on the authentication URL.
@@ -423,8 +529,8 @@ public class SyncUser {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         SyncUser user = (SyncUser) o;
 
@@ -441,7 +547,7 @@ public class SyncUser {
     public String toString() {
         StringBuilder sb = new StringBuilder("{");
         sb.append("UserId: ").append(syncUser.getIdentity());
-        sb.append(", AuthUrl: ").append(syncUser.getAuthenticationUrl());
+        sb.append(", AuthUrl: ").append(getAuthenticationUrl());
         sb.append(", IsValid: ").append(isValid());
         sb.append(", Sessions: ").append(syncUser.getSessions().size());
         sb.append("}");
@@ -453,8 +559,72 @@ public class SyncUser {
         return syncUser;
     }
 
+    // Class wrapping requests made against the auth server. Is also responsible for calling with success/error on the
+    // correct thread.
+    private static abstract class Request {
+
+        private final Callback callback;
+        private final RealmNotifier handler;
+        private final ThreadPoolExecutor networkPoolExecutor;
+
+        public Request(ThreadPoolExecutor networkPoolExecutor, Callback callback) {
+            this.callback = callback;
+            this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
+            this.networkPoolExecutor = networkPoolExecutor;
+        }
+
+        // Implements the request. Return the current sync user if the request succeeded. Otherwise throw an error.
+        public abstract SyncUser run() throws ObjectServerError;
+
+        // Start the request
+        public RealmAsyncTask start() {
+            Future<?> authenticateRequest = networkPoolExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        postSuccess(Request.this.run());
+                    } catch (ObjectServerError e) {
+                        postError(e);
+                    } catch (Throwable e) {
+                        postError(new ObjectServerError(ErrorCode.UNKNOWN, "Unexpected error", e));
+                    }
+                }
+            });
+            return new RealmAsyncTaskImpl(authenticateRequest, networkPoolExecutor);
+        }
+
+        private void postError(final ObjectServerError error) {
+            boolean errorHandled = false;
+            if (callback != null) {
+                Runnable action = new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onError(error);
+                    }
+                };
+                errorHandled = handler.post(action);
+            }
+
+            if (!errorHandled) {
+                RealmLog.error(error, "An error was thrown, but could not be handled.");
+            }
+        }
+
+        private void postSuccess(final SyncUser user) {
+            if (callback != null) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onSuccess(user);
+                    }
+                });
+            }
+        }
+    }
+
     public interface Callback {
         void onSuccess(SyncUser user);
+
         void onError(ObjectServerError error);
     }
 }

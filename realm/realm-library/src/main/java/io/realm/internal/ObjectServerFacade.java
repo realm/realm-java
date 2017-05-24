@@ -18,8 +18,11 @@ package io.realm.internal;
 
 import android.content.Context;
 
+import java.lang.reflect.InvocationTargetException;
+
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
+
 
 /**
  * Class acting as an mediator between the basic Realm APIs and the Object Server APIs.
@@ -33,43 +36,38 @@ public class ObjectServerFacade {
     static {
         //noinspection TryWithIdenticalCatches
         try {
-            Class syncFacadeClass = Class.forName("io.realm.internal.objectserver.SyncObjectServerFacade");
-            syncFacade = (ObjectServerFacade) syncFacadeClass.newInstance();
+            @SuppressWarnings("LiteralClassName")
+            Class syncFacadeClass = Class.forName("io.realm.internal.SyncObjectServerFacade");
+            //noinspection unchecked
+            syncFacade = (ObjectServerFacade) syncFacadeClass.getDeclaredConstructor().newInstance();
         } catch (ClassNotFoundException ignored) {
         } catch (InstantiationException e) {
             throw new RealmException("Failed to init SyncObjectServerFacade", e);
         } catch (IllegalAccessException e) {
             throw new RealmException("Failed to init SyncObjectServerFacade", e);
+        } catch (NoSuchMethodException e) {
+            throw new RealmException("Failed to init SyncObjectServerFacade", e);
+        } catch (InvocationTargetException e) {
+            throw new RealmException("Failed to init SyncObjectServerFacade", e.getTargetException());
         }
     }
 
     /**
-     * Initialize the Object Server library
+     * Initializes the Object Server library
+     *
      * @param context
      */
     public void init(Context context) {
     }
 
     /**
-     * Notify the session for this configuration that a local commit was made.
-     */
-    public void notifyCommit(RealmConfiguration configuration, long lastSnapshotVersion) {
-    }
-
-    /**
-     * The first instance of this Realm was opened.
+     * The last instance of this Realm was closed (across all Threads).
      */
     public void realmClosed(RealmConfiguration configuration) {
     }
 
-    /**
-     * The last instance of this Realm was closed.
-     */
-    public void realmOpened(RealmConfiguration configuration) {
-    }
-
-    public String[] getUserAndServerUrl(RealmConfiguration config) {
-        return new String[2];
+    public Object[] getUserAndServerUrl(RealmConfiguration config) {
+        return new Object[6];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {
@@ -85,5 +83,34 @@ public class ObjectServerFacade {
             return syncFacade;
         }
         return nonSyncFacade;
+    }
+
+    // If no session yet exists for this path. Wrap a new Java Session around an existing OS one.
+    public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
+    }
+
+    public String getSyncServerCertificateAssetName(RealmConfiguration config) {
+        return null;
+    }
+
+    public String getSyncServerCertificateFilePath(RealmConfiguration config) {
+        return null;
+    }
+
+    /**
+     * Block until all latest changes have been downloaded from the server.
+     *
+     * @throws {@code DownloadingRealmInterruptedException}  if the thread was interrupted while blocked waiting for
+     * this to complete.
+     */
+    public void downloadRemoteChanges(RealmConfiguration config) {
+        // Do nothing
+    }
+
+    /**
+     * Check if an exception is a {@code DownloadingRealmInterruptedException}
+     */
+    public boolean wasDownloadInterrupted(Throwable throwable) {
+        return false;
     }
 }

@@ -8,6 +8,14 @@ buildscript {
     }
 }
 
+allprojects {
+    def props = new Properties()
+    props.load(new FileInputStream("${rootDir}/../realm.properties"))
+    props.each { key, val ->
+        project.ext.set(key, val)
+    }
+}
+
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
@@ -102,4 +110,8 @@ artifactory {
             publications ('realmPublication')
         }
     }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = project.gradleVersion
 }

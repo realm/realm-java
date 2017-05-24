@@ -1,6 +1,211 @@
-## 2.3.0
+## 3.3.0
 
-### Object Server API Changes 
+### Enhancements
+
+* [ObjectServer] Added two options to `SyncConfiguration` to provide a trusted root CA `trustedRootCA` and to disable SSL validation `disableSSLVerification` (#4371).
+* [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` using an admin user (#4588).
+
+## 3.2.1 (2017-05-19)
+
+### Deprecated
+
+### Enhancements
+
+* Not in transaction illegal state exception message changed to "Cannot modify managed objects outside of a write transaction.".
+
+### Bug Fixes
+
+* [ObjectServer] `schemaVersion` was mistakenly required in order to trigger migrations (#4658).
+* [ObjectServer] Fields removed from model classes will now correctly be hidden instead of throwing an exception when opening the Realm (#4658).
+* Fixed random crashes which were caused by a race condition in encrypted Realm (#4343).
+
+### Internal
+
+* Upgraded to Realm Sync 1.8.5.
+* Upgraded to Realm Core 2.8.0.
+
+## 3.2.0 (2017-05-16)
+
+### Enhancements
+
+* [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
+* [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` (#4423).
+* [ObjectServer] Added support for `SyncConfiguration.Builder.waitForInitialRemoteData()` (#4270).
+* Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).
+* Added `Realm.refresh()` and `DynamicRealm.refresh()` (#3476).
+* Added `Realm.getInstanceAsync()` and `DynamicRealm.getInstanceAsync()` (#2299).
+* Added `DynamicRealmObject#linkingObjects(String,String)` to support linking objects on `DynamicRealm` (#4492).
+* Added support for read only Realms using `RealmConfiguration.Builder.readOnly()` and `SyncConfiguration.Builder.readOnly()`(#1147).
+* Change listeners will now auto-expand variable names to be more descriptive when using Android Studio.
+* The `toString()` methods for the standard and dynamic proxies now print "proxy", or "dynamic" before the left bracket enclosing the data.
+
+### Bug Fixes
+
+* `@LinkingObjects` annotation now also works with Kotlin (#4611).
+
+### Internal
+
+* Use separated locks for different `RealmCache`s ($4551).
+
+## 3.1.4 (2017-05-04)
+
+## Bug fixes
+
+* Added missing row validation check in certain cases on invalidated/deleted objects (#4540).
+* Initializing Realm is now more resilient if `Context.getFilesDir()` isn't working correctly (#4493).
+* `OrderedRealmCollectionSnapshot.get()` returned a wrong object (#4554).
+* `onSuccess` callback got triggered infinitely if a synced transaction was committed in the async transaction's `onSuccess` callback (#4594).
+
+## 3.1.3 (2017-04-20)
+
+### Enhancements
+
+* [ObjectServer] Resume synchronization as soon as the connectivity is back (#4141).
+
+### Bug Fixes
+
+* `equals()` and `hashCode()` of managed `RealmObject`s that come from linking objects don't work correctly (#4487).
+* Field name was missing in exception message when `null` was set to required field (#4484).
+* Now throws `IllegalStateException` when a getter of linking objects is called against deleted or not yet loaded `RealmObject`s (#4499).
+* `NullPointerException` caused by local transaction inside the listener of `findFirstAsync()`'s results (#4495).
+* Native crash when adding listeners to `RealmObject` after removing listeners from the same `RealmObject` before (#4502).
+* Native crash with "Invalid argument" error happened on some Android 7.1.1 devices when opening Realm on external storage (#4461).
+* `OrderedRealmCollectionChangeListener` didn't report change ranges correctly when circular link's field changed (#4474).
+
+### Internal
+
+* Upgraded to Realm Sync 1.6.0.
+* Upgraded to Realm Core 2.6.1.
+
+## 3.1.2 (2017-04-12)
+
+### Bug Fixes
+
+* Crash caused by JNI couldn't find `OsObject.notifyChangeListeners` when ProGuard is enabled (#4461).
+* Incompatible return type of `RealmSchema.getAll()` and `BaseRealm.getSchema()` (#4443).
+* Memory leaked when synced Realm was initialized (#4465).
+* An `IllegalStateException` will be thrown when starting iterating `OrderedRealmCollection` if the Realm is closed (#4471).
+
+## 3.1.1 (2017-04-07)
+
+### Bug Fixes
+
+* Crash caused by Listeners on `RealmObject` getting triggered the 2nd time with different changed field (#4437).
+* Unintentionally exposing `StandardRealmSchema` (#4443).
+* Workaround for crashes on specific Samsung devices which are caused by a buggy `memmove` call (#3651).
+
+## 3.1.0 (2017-04-05)
+
+### Breaking Changes
+
+* Updated file format of Realm files. Existing Realm files will automatically be migrated to the new format when they are opened, but older versions of Realm cannot open these files.
+* [ObjectServer] Due to file format changes, Realm Object Server 1.3.0 or later is required.
+
+### Enhancements
+
+* Added support for reverse relationships through the `@LinkingObjects` annotation. See `io.realm.annotations.LinkingObjects` for documentation.  
+  * This feature is in `@Beta`.
+  * Queries on linking objects do not work.  Queries like `where(...).equalTo("field.linkingObjects.id", 7).findAll()` are not yet supported.
+  * Backlink verification is incomplete.  Evil code can cause native crashes.
+* The listener on `RealmObject` will only be triggered if the object changes (#3894).
+* Added `RealmObjectChangeListener` interface that provide detailed information about `RealmObject` field changes.
+* Listeners on `RealmList` and `RealmResults` will be triggered immediately when the transaction is committed on the same thread (#4245).
+* The real `RealmMigrationNeededException` is now thrown instead of `IllegalArgumentException` if no migration is provided for a Realm that requires it.
+* `RealmQuery.distinct()` can be performed on unindexed fields (#2285).
+* `targetSdkVersion` is now 25.
+* [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface (#4080).
+* [ObjectServer] Authentication URLs now automatically append `/auth` if no other path segment is set (#4370).
+
+### Bug Fixes
+
+* Crash with `LogicError` with `Bad version number` on notifier thread (#4369).
+* `Realm.migrateRealm(RealmConfiguration)` now fails correctly with an `IllegalArgumentException` if a `SyncConfiguration` is provided (#4075).
+* Fixed a potential cause for Realm file corruptions (never reported).
+* Add `@Override` annotation to proxy class accessors and stop using raw type in proxy classes in order to remove warnings from javac (#4329).
+* `findFirstAsync()` now returns an invalid object if there is no object matches the query condition instead of running the query repeatedly until it can find one (#4352).
+* [ObjectServer] Changing the log level after starting a session now works correctly (#4337).
+
+### Internal
+
+* Using the Object Store's Session and SyncManager.
+* Upgraded to Realm Sync 1.5.0.
+* Upgraded to Realm Core 2.5.1.
+* Upgraded Gradle to 3.4.1
+
+## 3.0.0 (2017-02-28)
+
+### Breaking Changes
+
+* `RealmResults.distinct()` returns a new `RealmResults` object instead of filtering on the original object (#2947).
+* `RealmResults` is auto-updated continuously. Any transaction on the current thread which may have an impact on the order or elements of the `RealmResults` will change the `RealmResults` immediately instead of change it in the next event loop. The standard `RealmResults.iterator()` will continue to work as normal, which means that you can still delete or modify elements without impacting the iterator. The same is not true for simple for-loops. In some cases a simple for-loop will not work (https://realm.io/docs/java/3.0.0/api/io/realm/OrderedRealmCollection.html#loops), and you must use the new createSnapshot() method.
+* `RealmChangeListener` on `RealmObject` will now also be triggered when the object is deleted. Use `RealmObject.isValid()` to check this state(#3138).
+* `RealmObject.asObservable()` will now emit the object when it is deleted. Use `RealmObject.isValid()` to check this state (#3138).
+* Removed deprecated classes `Logger` and `AndroidLogger` (#4050).
+
+### Deprecated
+
+* `RealmResults.removeChangeListeners()`. Use `RealmResults.removeAllChangeListeners()` instead.
+* `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
+* `RealmResults.distinct()` and `RealmResults.distinctAsync()`. Use `RealmQuery.distinct()` and `RealmQuery.distinctAsync()` instead.
+
+### Enhancements
+
+* Added support for sorting by link's field (#672).
+* Added `OrderedRealmCollectionSnapshot` class and `OrderedRealmCollection.createSnapshot()` method. `OrderedRealmCollectionSnapshot` is useful when changing `RealmResults` or `RealmList` in simple loops.
+* Added `OrderedRealmCollectionChangeListener` interface for supporting fine-grained collection notifications.
+* Added support for ChangeListeners on `RealmList`.
+* Added `RealmList.asObservable()`.
+
+### Bug Fixes
+
+* Element type checking in `DynamicRealmObject#setList()` (#4252).
+* Now throws `IllegalStateException` instead of process crash when any of thread confined methods in `RealmQuery` is called from wrong thread (#4228).
+* Now throws `IllegalStateException` when any of thread confined methods in `DynamicRealmObject` is called from wrong thread (#4258).
+
+### Internal
+
+* Use Object Store's `Results` as the backend for `RealmResults` (#3372).
+  - Use Object Store's notification mechanism to trigger listeners.
+  - Local commits triggers Realm global listener and `RealmObject` listener on current thread immediately instead of in the next event loop.
+
+
+## 2.3.2 (2017-02-27)
+
+### Bug fixes
+
+* Log levels in JNI layer were all reported as "Error" (#4204).
+* Encrypted realms can end up corrupted if many threads are reading and writing at the same time (#4128).
+* "Read-only file system" exception when compacting Realm file on external storage (#4140).
+
+### Internal
+
+* Updated to Realm Sync v1.2.1.
+* Updated to Realm Core v2.3.2.
+
+### Enhancements
+
+* Improved performance of getters and setters in proxy classes.
+
+
+## 2.3.1 (2017-02-07)
+
+### Enhancements
+
+* [ObjectServer] The `serverUrl` given to `SyncConfiguration.Builder()` is now more lenient and will also accept only paths as argument (#4144).
+* [ObjectServer] Add a timer to refresh periodically the access_token.
+
+### Bug fixes
+
+* NPE problem in SharedRealm.finalize() (#3730).
+* `RealmList.contains()` and `RealmResults.contains()` now correctly use custom `equals()` method on Realm model classes.
+* Build error when the project is using Kotlin (#4087).
+* Bug causing classes to be replaced by classes already in Gradle's classpath (#3568).
+* NullPointerException when notifying a single object that it changed (#4086).
+
+
+## 2.3.0 (2017-01-19)
+
+### Object Server API Changes
 
 * Realm Sync v1.0.0 has been released, and Realm Mobile Platform is no longer considered in beta.
 * Breaking change: Location of Realm files are now placed in `getFilesDir()/<userIdentifier>` instead of `getFilesDir()/`.
@@ -31,7 +236,7 @@
 * Updated to Realm Sync v1.0.0.
 * Added a Realm backup when receiving a Sync client reset message from the server.
 
-## 2.2.2
+## 2.2.2 (2017-01-16)
 
 ### Object Server API Changes (In Beta)
 
@@ -57,7 +262,7 @@
 * Upgraded Realm Core to 2.3.0.
 * Upgraded Realm Sync to 1.0.0-BETA-6.5.
 
-## 2.2.1
+## 2.2.1 (2016-11-12)
 
 ### Object Server API Changes (In Beta)
 
@@ -68,7 +273,7 @@
 * Added version number to the native library, preventing ReLinker from accidentally loading old code (#3775).
 * `Realm.getLocalInstanceCount(config)` throwing NullPointerException if called after all Realms have been closed (#3791).
 
-## 2.2.0
+## 2.2.0 (2016-11-12)
 
 ### Object Server API Changes (In Beta)
 
@@ -84,7 +289,7 @@
 
 * Added support for the `annotationProcessor` configuration provided by Android Gradle Plugin 2.2.0 or later. Realm plugin adds its annotation processor to the `annotationProcessor` configuration instead of `apt` configuration if it is available and the `com.neenbedankt.android-apt` plugin is not used. In Kotlin projects, `kapt` is used instead of the `annotationProcessor` configuration (#3026).
 
-## 2.1.1
+## 2.1.1 (2016-10-27)
 
 ### Bug fixes
 
@@ -98,7 +303,7 @@
 
 * ProGuard configuration introduced in 2.1.0 unexpectedly kept classes that did not have the @KeepMember annotation (#3689).
 
-## 2.1.0
+## 2.1.0 (2016-10-25)
 
 ### Breaking changes
 
@@ -142,7 +347,7 @@
 
 * Thanks to Max Furman (@maxfurman) for adding support for `first()` and `last()` default values.
 
-## 2.0.2
+## 2.0.2 (2016-10-06)
 
 This release is not protocol-compatible with previous versions of the Realm Mobile Platform. The base library is still fully compatible.
 
@@ -155,7 +360,7 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 * Upgraded Realm Core to 2.1.0
 * Upgraded Realm Sync to 1.0.0-BETA-2.0.
 
-## 2.0.1
+## 2.0.1 (2016-10-05)
 
 ### Bug fixes
 
@@ -168,7 +373,7 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 
 * Upgraded to Realm Core 2.0.1 / Realm Sync 1.3-BETA
 
-## 2.0.0
+## 2.0.0 (2016-09-27)
 
 This release introduces support for the Realm Mobile Platform!
 See <https://realm.io/news/introducing-realm-mobile-platform/> for an overview of these great new features.
@@ -214,7 +419,7 @@ See <https://realm.io/news/introducing-realm-mobile-platform/> for an overview o
 * Updated Realm Core to 2.0.0.
 * Updated ReLinker to 1.2.2.
 
-## 1.2.0
+## 1.2.0 (2016-08-19)
 
 ### Bug fixes
 
@@ -239,7 +444,7 @@ See <https://realm.io/news/introducing-realm-mobile-platform/> for an overview o
 
 * Thanks to Brenden Kromhout (@bkromhout) for adding binary array support to `equalTo` and `notEqualTo`.
 
-## 1.1.1
+## 1.1.1 (2016-07-01)
 
 ### Bug fixes
 
@@ -265,7 +470,7 @@ See <https://realm.io/news/introducing-realm-mobile-platform/> for an overview o
 * Updated Realm Core to 1.4.2.
 * Improved sorting speed.
 
-## 1.1.0
+## 1.1.0 (2016-06-30)
 
 ### Bug fixes
 
@@ -291,7 +496,7 @@ See <https://realm.io/news/introducing-realm-mobile-platform/> for an overview o
 
 * Updated Realm Core to 1.2.0.
 
-## 1.0.1
+## 1.0.1 (2016-05-25)
 
 ### Bug fixes
 
@@ -309,11 +514,11 @@ See <https://realm.io/news/introducing-realm-mobile-platform/> for an overview o
 
 * Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
 
-## 1.0.0
+## 1.0.0 (2016-05-25)
 
 No changes since 0.91.1.
 
-## 0.91.1
+## 0.91.1 (2016-05-25)
 
 * Updated Realm Core to 1.0.1.
 
@@ -321,7 +526,7 @@ No changes since 0.91.1.
 
 * Fixed a bug when opening a Realm causes a staled memory mapping. Symptoms are error messages like "Bad or incompatible history type", "File format version doesn't match", and "Encrypted interprocess sharing is currently unsupported".
 
-## 0.91.0
+## 0.91.0 (2016-05-20)
 
 * Updated Realm Core to 1.0.0.
 
@@ -489,7 +694,7 @@ No changes since 0.91.1.
 * now DynamicRealmObject.toString() correctly shows null value as "null" and the format is aligned to the String from typed RealmObject (#2439).
 * Fixed an issue occurring while resolving ReLinker in apps using a library based on Realm (#2415).
 
-## 0.88.0
+## 0.88.0 (2016-03-10)
 
 * Updated Realm Core to 0.97.0.
 
@@ -542,16 +747,16 @@ No changes since 0.91.1.
 * Thanks to Bill Best (@wmbest2) for snapshot testing.
 * Thanks to Graham Smith (@grahamsmith) for a detailed bug report (#2200).
 
-## 0.87.5
+## 0.87.5 (2016-01-29)
 * Updated Realm Core to 0.96.2.
   - IllegalStateException won't be thrown anymore in RealmResults.where() if the RealmList which the RealmResults is created on has been deleted. Instead, the RealmResults will be treated as empty forever.
   - Fixed a bug causing a bad version exception, when using findFirstAsync (#2115).
 
-## 0.87.4
+## 0.87.4 (2016-01-28)
 * Updated Realm Core to 0.96.0.
   - Fixed bug causing BadVersionException or crashing core when running async queries.
 
-## 0.87.3
+## 0.87.3 (2016-01-25)
 * IllegalArgumentException is now properly thrown when calling Realm.copyFromRealm() with a DynamicRealmObject (#2058).
 * Fixed a message in IllegalArgumentException thrown by the accessors of DynamicRealmObject (#2141).
 * Fixed RealmList not returning DynamicRealmObjects of the correct underlying type (#2143).
@@ -560,21 +765,21 @@ No changes since 0.91.1.
   - Fixed a bug where undetected deleted object might lead to seg. fault (#1945).
   - Better performance when deleting objects (#2015).
 
-## 0.87.2
+## 0.87.2 (2016-01-08)
 * Removed explicit GC call when committing a transaction (#1925).
 * Fixed a bug when RealmObjectSchema.addField() was called with the PRIMARY_KEY modifier, the field was not set as a required field (#2001).
 * Fixed a bug which could throw a ConcurrentModificationException in RealmObject's or RealmResults' change listener (#1970).
 * Fixed RealmList.set() so it now correctly returns the old element instead of the new (#2044).
 * Fixed the deployment of source and javadoc jars (#1971).
 
-## 0.87.1
+## 0.87.1 (2015-12-23)
 * Upgraded to NDK R10e. Using gcc 4.9 for all architectures.
 * Updated Realm Core to 0.95.6
   - Fixed a bug where an async query can be copied incomplete in rare cases (#1717).
 * Fixed potential memory leak when using async query.
 * Added a check to prevent removing a RealmChangeListener from a non-Looper thread (#1962). (Thank you @hohnamkung)
 
-## 0.87.0
+## 0.87.0 (2015-12-17)
 * Added Realm.asObservable(), RealmResults.asObservable(), RealmObject.asObservable(), DynamicRealm.asObservable() and DynamicRealmObject.asObservable().
 * Added RealmConfiguration.Builder.rxFactory() and RxObservableFactory for custom RxJava observable factory classes.
 * Added Realm.copyFromRealm() for creating detached copies of Realm objects (#931).
@@ -583,7 +788,7 @@ No changes since 0.91.1.
 * Added support for ISO8601 based dates for JSON import. If JSON dates are invalid a RealmException will be thrown (#1213).
 * Added APK splits to gridViewExample (#1834).
 
-## 0.86.1
+## 0.86.1 (2015-12-11)
 * Improved the performance of removing objects (RealmResults.clear() and RealmResults.remove()).
 * Updated Realm Core to 0.95.5.
 * Updated ProGuard configuration (#1904).
@@ -595,7 +800,7 @@ No changes since 0.91.1.
 * Fixed RealmChangeListener never called inside RealmResults (#1894).
 * Fixed crash when calling clear on a RealmList (#1886).
 
-## 0.86.0
+## 0.86.0 (2015-12-03)
 * BREAKING CHANGE: The Migration API has been replaced with a new API.
 * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants have been replaced by Sort.ASCENDING and Sort.DESCENDING enums.
 * BREAKING CHANGE: RealmQuery.CASE_SENSITIVE and RealmQuery.CASE_INSENSITIVE constants have been replaced by Case.SENSITIVE and Case.INSENSITIVE enums.
@@ -612,10 +817,10 @@ No changes since 0.91.1.
   - Fixed a bug where RealmQuery.average(String) returned a wrong value for a nullable Long/Integer/Short/Byte field (#1803).
   - Fixed a bug where RealmQuery.average(String) wrongly counted the null value for average calculation (#1854).
 
-## 0.85.1
+## 0.85.1 (2015-11-23)
 * Fixed a bug which could corrupt primary key information when updating from a Realm version <= 0.84.1 (#1775).
 
-## 0.85.0
+## 0.85.0 (2016-11-19)
 * BREAKING CHANGE: Removed RealmEncryptionNotSupportedException since the encryption implementation changed in Realm's underlying storage engine. Encryption is now supported on all devices.
 * BREAKING CHANGE: Realm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
 * BREAKING CHANGE: RealmQuery.isNull() and RealmQuery.isNotNull() now throw IllegalArgumentException instead of RealmError if the fieldname is a linked field and the last element is a link (#1693).
@@ -633,7 +838,7 @@ No changes since 0.91.1.
 * Fixed a memory leak when using relationships (#1285).
 * Fixed a bug causing cached column indices to be cleared too soon (#1732).
 
-## 0.84.1
+## 0.84.1 (2015-10-28)
 * Updated Realm Core to 0.94.4.
   - Fixed a bug that could cause a crash when running the same query multiple times.
 * Updated ProGuard configuration. See [documentation](https://realm.io/docs/java/latest/#proguard) for more details.
@@ -642,7 +847,7 @@ No changes since 0.91.1.
 * Fixed a bug where simultaneous opening and closing a Realm from different threads might result in a NullPointerException (#1646).
 * Fixed a bug which made it possible to externally modify the encryption key in a RealmConfiguration (#1678).
 
-## 0.84.0
+## 0.84.0 (2015-10-22)
 * Added support for async queries and transactions.
 * Added support for parsing JSON Dates with timezone information. (Thank you @LateralKevin)
 * Added RealmQuery.isEmpty().
@@ -664,12 +869,12 @@ No changes since 0.91.1.
 * Fixed a bug that made it possible to migrate open Realms, which could cause undefined behavior when querying, reading or writing data.
 * Fixed a bug causing column indices to be wrong for some edge cases. See #1611 for details.
 
-## 0.83.1
+## 0.83.1 (2015-10-15)
 * Updated Realm Core to version 0.94.1.
   - Fixed a bug when using Realm.compactRealm() which could make it impossible to open the Realm file again.
   - Fixed a bug, so isNull link queries now always return true if any part is null.
 
-## 0.83
+## 0.83 (2015-10-08)
 * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous versions of Realm.
 * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
 * BREAKING CHANGE: Introduced boxed types Boolean, Byte, Short, Integer, Long, Float and Double. Added null support. Introduced annotation @Required to indicate a field is not nullable. String, Date and byte[] became nullable by default which means a RealmMigrationNeededException will be thrown if an previous version of a Realm file is opened.
@@ -680,7 +885,7 @@ No changes since 0.91.1.
 * Opening a Realm file from one thread will no longer be blocked by a transaction from another thread.
 * Range restrictions of Date fields have been removed. Date fields now accepts any value. Milliseconds are still removed.
 
-## 0.82.2
+## 0.82.2 (2015-09-04)
 * Fixed a bug which might cause failure when loading the native library.
 * Fixed a bug which might trigger a timeout in Context.finalize().
 * Fixed a bug which might cause RealmObject.isValid() to throw an exception if the object is deleted.
@@ -689,12 +894,12 @@ No changes since 0.91.1.
   - Embedded crypto functions into Realm dynamic lib to avoid random issues on some devices.
   - Throw RealmEncryptionNotSupportedException if the device doesn't support Realm encryption. At least one device type (HTC One X) contains system bugs that prevents Realm's encryption from functioning properly. This is now detected, and an exception is thrown when trying to open/create an encrypted Realm file. It's up to the application to catch this and decide if it's OK to proceed without encryption instead.
 
-## 0.82.1
+## 0.82.1 (2015-08-06)
 * Fixed a bug where using the wrong encryption key first caused the right key to be seen as invalid.
 * Fixed a bug where String fields were ignored when updating objects from JSON with null values.
 * Fixed a bug when calling System.exit(0), the process might hang.
 
-## 0.82
+## 0.82 (2015-07-28)
 * BREAKING CHANGE: Fields with annotation @PrimaryKey are indexed automatically now. Older schemas require a migration.
 * RealmConfiguration.setModules() now accept ignore null values which Realm.getDefaultModule() might return.
 * Trying to access a deleted Realm object throw throws a proper IllegalStateException.
@@ -705,10 +910,10 @@ No changes since 0.91.1.
 * Fixed a bug where RealmQuery objects are prematurely garbage collected.
 * Removed RealmQuery.between() for link queries.
 
-## 0.81.1
+## 0.81.1 (2015-06-22)
 * Fixed memory leak causing Realm to never release Realm objects.
 
-## 0.81
+## 0.81 (2015-06-19)
 * Introduced RealmModules for working with custom schemas in libraries and apps.
 * Introduced Realm.getDefaultInstance(), Realm.setDefaultInstance(RealmConfiguration) and Realm.getInstance(RealmConfiguration).
 * Deprecated most constructors. They have been been replaced by Realm.getInstance(RealmConfiguration) and Realm.getDefaultInstance().
@@ -723,7 +928,7 @@ No changes since 0.91.1.
 * Cleaned up examples (remove old test project).
 * Added checking for missing generic type in RealmList fields in annotation processor.
 
-## 0.80.3
+## 0.80.3 (2015-05-22)
 * Calling Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
 * Fixed a bug making it impossible to open Realms created by Realm-Cocoa if a model had a primary key defined.
 * Trying to using Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
@@ -736,14 +941,14 @@ No changes since 0.91.1.
 * Solved ConcurrentModificationException thrown when addChangeListener/removeChangeListener got called in the onChange. (Thanks @beeender)
 * Fixed duplicated listeners in the same realm instance. Trying to add duplicated listeners is ignored now. (Thanks @beeender)
 
-## 0.80.2
+## 0.80.2 (2015-05-04)
 * Trying to use Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
 * RealmMigrationNeedException can now return the path to the Realm that needs to be migrated.
 * Fixed bug where creating a Realm instance with a hashcode collision no longer returned the wrong Realm instance.
 * Updated Realm Core to version 0.89.2
   - fixed bug causing a crash when opening an encrypted Realm file on ARM64 devices.
 
-## 0.80.1
+## 0.80.1 (2015-04-16)
 * Realm.createOrUpdateWithJson() no longer resets fields to their default value if they are not found in the JSON input.
 * Realm.compactRealmFile() now uses Realm Core's compact() method which is more failure resilient.
 * Realm.copyToRealm() now correctly handles referenced child objects that are already in the Realm.
@@ -762,7 +967,7 @@ No changes since 0.91.1.
 * Added RealmQuery.isNull() and RealmQuery.isNotNull() for querying relationships.
 * Fixed a potential NPE in the RealmList constructor.
 
-## 0.80
+## 0.80 (2015-03-11)
 * Queries on relationships can be case sensitive.
 * Fixed bug when importing JSONObjects containing NULL values.
 * Fixed crash when trying to remove last element of a RealmList.
@@ -772,11 +977,11 @@ No changes since 0.91.1.
 * Added support for static fields in RealmObjects.
 * Realm.writeEncryptedCopyTo() has been reenabled.
 
-## 0.79.1
+## 0.79.1 (2015-02-20)
 * copyToRealm() no longer crashes on cyclic data structures.
 * Fixed potential crash when using copyToRealmOrUpdate with an object graph containing a mix of elements with and without primary keys.
 
-## 0.79
+## 0.79 (2015-02-16)
 * Added support for ARM64.
 * Added RealmQuery.not() to negate a query condition.
 * Added copyToRealmOrUpdate() and createOrUpdateFromJson() methods, that works for models with primary keys.
@@ -791,7 +996,7 @@ No changes since 0.91.1.
 * Removed methods deprecated in 0.76. Now Realm.allObjectsSorted() and RealmQuery.findAllSorted() need to be used instead.
 * Reimplemented Realm.allObjectSorted() for better performance.
 
-## 0.78
+## 0.78 (2015-01-22)
 * Added proper support for encryption. Encryption support is now included by default. Keys are now 64 bytes long.
 * Added support to write an encrypted copy of a Realm.
 * Realm no longer incorrectly warns that an instance has been closed too many times.
@@ -799,7 +1004,7 @@ No changes since 0.91.1.
 * Fixed bug causing Realms to be cached during a RealmMigration resulting in invalid realms being returned from Realm.getInstance().
 * Updated core to 0.88.
 
-## 0.77
+## 0.77 (2015-01-16)
 * Added Realm.allObjectsSorted() and RealmQuery.findAllSorted() and extending RealmResults.sort() for multi-field sorting.
 * Added more logging capabilities at the JNI level.
 * Added proper encryption support. NOTE: The key has been increased from 32 bytes to 64 bytes (see example).
@@ -818,7 +1023,7 @@ No changes since 0.91.1.
 * RealmList.remove() now properly returns the removed object.
 * Calling realm.close() no longer prevent updates to other open realm instances on the same thread.
 
-## 0.76.0
+## 0.76.0 (2014-12-19)
 * RealmObjects can now be imported using JSON.
 * Gradle wrapper updated to support Android Studio 1.0.
 * Fixed bug in RealmObject.equals() so it now correctly compares two objects from the same Realm.
@@ -830,13 +1035,13 @@ No changes since 0.91.1.
 * Close the Realm instance after migrations.
 * Added a check to deny the writing of objects outside of a transaction.
 
-## 0.75.1 (03 December 2014)
+## 0.75.1 (2014-12-03)
 * Changed sort to be an in-place method.
 * Renamed SORT_ORDER_DECENDING to SORT_ORDER_DESCENDING.
 * Added sorting functionality to allObjects() and findAll().
 * Fixed bug when querying a date column with equalTo(), it would act as lessThan()
 
-## 0.75.0 (28 Nov 2014)
+## 0.75.0 (2014-11-28)
 * Realm now implements Closeable, allowing better cleanup of native resources.
 * Added writeCopyTo() and compactRealmFile() to write and compact a Realm to a new file.
 * RealmObject.toString(), equals() and hashCode() now support models with cyclic references.
@@ -848,7 +1053,7 @@ No changes since 0.91.1.
 * Fixed bug so Realm no longer throws an Exception when removing the last object.
 * Fixed bug in RealmResults which prevented sub-querying.
 
-## 0.74.0 (19 Nov 2014)
+## 0.74.0 (2014-11-19)
 * Added support for more field/accessors naming conventions.
 * Added case sensitive versions of string comparison operators equalTo and notEqualTo.
 * Added where() to RealmList to initiate queries.
@@ -861,17 +1066,17 @@ No changes since 0.91.1.
 * Consistent handling of UTF-8 strings.
 * removeFromRealm() now calls moveLastOver() which is faster and more reliable when deleting multiple objects.
 
-## 0.73.1 (05 Nov 2014)
+## 0.73.1 (2014-11-05)
 * Fixed a bug that would send infinite notifications in some instances.
 
-## 0.73.0 (04 Nov 2014)
+## 0.73.0 (2014-11-04)
 * Fixed a bug not allowing queries with more than 1024 conditions.
 * Rewritten the notification system. The API did not change but it's now much more reliable.
 * Added support for switching auto-refresh on and off (Realm.setAutoRefresh).
 * Added RealmBaseAdapter and an example using it.
 * Added deleteFromRealm() method to RealmObject.
 
-## 0.72.0 (27 Oct 2014)
+## 0.72.0 (2014-10-27)
 * Extended sorting support to more types: boolean, byte, short, int, long, float, double, Date, and String fields are now supported.
 * Better support for Java 7 and 8 in the annotations processor.
 * Better support for the Eclipse annotations processor.
@@ -881,7 +1086,7 @@ No changes since 0.91.1.
 * Faster implementation of RealmQuery.findFirst().
 * Upgraded core to 0.85.1 (deep copying of strings in queries; preparation for link queries).
 
-## 0.71.0 (07 Oct 2014)
+## 0.71.0 (2014-10-07)
 * Simplified the release artifact to a single Jar file.
 * Added support for Eclipse.
 * Added support for deploying to Maven.
@@ -894,9 +1099,9 @@ No changes since 0.91.1.
 * Added a new example about concurrency.
 * Upgraded to core 0.84.0.
 
-## 0.70.1 (30 Sep 2014)
+## 0.70.1 (2014-09-30)
 * Enabled unit testing for the realm project.
 * Fixed handling of camel-cased field names.
 
-## 0.70.0 (29 Sep 2014)
+## 0.70.0 (2014-09-29)
 * This is the first public beta release.

@@ -21,6 +21,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import io.realm.RealmAsyncTask;
 
+
 public final class RealmAsyncTaskImpl implements RealmAsyncTask {
     private final Future<?> pendingTask;
     private final ThreadPoolExecutor service;
@@ -34,6 +35,7 @@ public final class RealmAsyncTaskImpl implements RealmAsyncTask {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void cancel() {
         pendingTask.cancel(true);
         isCancelled = true;
@@ -53,6 +55,7 @@ public final class RealmAsyncTaskImpl implements RealmAsyncTask {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isCancelled() {
         return isCancelled;
     }

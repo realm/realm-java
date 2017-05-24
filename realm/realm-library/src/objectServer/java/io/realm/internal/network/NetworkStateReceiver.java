@@ -77,6 +77,7 @@ public class NetworkStateReceiver extends BroadcastReceiver {
     }
 
 
+    @Override
     public void onReceive(Context context, Intent intent) {
         boolean connected = isOnline(context);
         for (ConnectionListener listener : listeners) {

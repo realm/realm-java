@@ -29,13 +29,13 @@
 #include "realm/util/logger.hpp"
 #include "util/format.hpp"
 
-#define TR_ENTER() \
-    if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) { \
-        realm::jni_util::Log::t(" --> %1", __FUNCTION__); \
+#define TR_ENTER()                                                                                                   \
+    if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) {                                              \
+        realm::jni_util::Log::t(" --> %1", __FUNCTION__);                                                            \
     }
-#define TR_ENTER_PTR(ptr) \
-    if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) { \
-        realm::jni_util::Log::t(" --> %1 %2", __FUNCTION__, static_cast<int64_t>(ptr)); \
+#define TR_ENTER_PTR(ptr)                                                                                            \
+    if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) {                                              \
+        realm::jni_util::Log::t(" --> %1 %2", __FUNCTION__, static_cast<int64_t>(ptr));                              \
     }
 
 namespace realm {
@@ -73,7 +73,8 @@ public:
     void register_default_logger();
 
     void set_level(Level level);
-    inline Level get_level() {
+    inline Level get_level()
+    {
         return s_level;
     };
 
@@ -87,19 +88,19 @@ public:
     // Helper functions for logging with REALM_JNI tag.
     inline static void t(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, message);
+        shared().log(trace, REALM_JNI_TAG, nullptr, message);
     }
     inline static void d(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, message);
+        shared().log(debug, REALM_JNI_TAG, nullptr, message);
     }
     inline static void i(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, message);
+        shared().log(info, REALM_JNI_TAG, nullptr, message);
     }
     inline static void w(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, message);
+        shared().log(warn, REALM_JNI_TAG, nullptr, message);
     }
     inline static void e(const char* message)
     {
@@ -107,38 +108,41 @@ public:
     }
     inline static void f(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, message);
+        shared().log(fatal, REALM_JNI_TAG, nullptr, message);
     }
 
-    template<typename... Args>
+    template <typename... Args>
     inline static void t(const char* fmt, Args&&... args)
     {
         shared().log(trace, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
-    template<typename... Args>
+    template <typename... Args>
     inline static void d(const char* fmt, Args&&... args)
     {
         shared().log(debug, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
-    template<typename... Args>
+    template <typename... Args>
     inline static void i(const char* fmt, Args&&... args)
     {
         shared().log(info, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
-    template<typename... Args>
+    template <typename... Args>
     inline static void w(const char* fmt, Args&&... args)
     {
         shared().log(warn, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
-    template<typename... Args>
+    template <typename... Args>
     inline static void e(const char* fmt, Args&&... args)
     {
         shared().log(error, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
-    template<typename... Args>
-    inline static void f(const char* fmt, Args&&... args) {
+    template <typename... Args>
+    inline static void f(const char* fmt, Args&&... args)
+    {
         shared().log(fatal, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
+
+    static realm::util::RootLogger::Level convert_to_core_log_level(Level level);
 
     // Get the shared Log instance.
     static Log& shared();
@@ -147,6 +151,7 @@ public:
     // Accessing to this var won't be thread safe and it is not necessary to be. Changing log level concurrently
     // won't be a critical issue for commons cases.
     static Level s_level;
+
 private:
     Log();
 
@@ -154,7 +159,6 @@ private:
     std::mutex m_mutex;
     // Log tag for generic Realm JNI.
     static const char* REALM_JNI_TAG;
-
 };
 
 // Base Logger class.
@@ -176,15 +180,26 @@ protected:
 // Implement this function to return the default logger which will be registered during initialization.
 extern std::shared_ptr<JniLogger> get_default_logger();
 
+// Do NOT call set_level_threshold on the bridge to set the log level. Instead, call the Log::set_level which will
+// set all logger levels.
 class CoreLoggerBridge : public realm::util::RootLogger {
 public:
+    CoreLoggerBridge(std::string tag);
+    ~CoreLoggerBridge();
+    CoreLoggerBridge(CoreLoggerBridge&&) = delete;
+    CoreLoggerBridge(CoreLoggerBridge&) = delete;
+    CoreLoggerBridge operator=(CoreLoggerBridge&&) = delete;
+    CoreLoggerBridge operator=(CoreLoggerBridge&) = delete;
     void do_log(Logger::Level, std::string msg) override;
-    static CoreLoggerBridge& shared();
 
 private:
-    CoreLoggerBridge() {};
-    // Log tag for Realm core & sync.
-    static const char* TAG;
+    // Set log level for all logger bridges.
+    static void set_levels(Log::Level level);
+    friend class Log;
+
+    const std::string m_tag;
+    static std::vector<CoreLoggerBridge*> s_bridges;
+    static std::mutex s_mutex;
 };
 
 } // namespace jni_util

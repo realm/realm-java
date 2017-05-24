@@ -34,7 +34,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.examples.newsreader.R;
 import io.realm.examples.newsreader.model.Model;
@@ -43,10 +43,10 @@ import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
 public class MainActivity extends AppCompatActivity {
 
-    @Bind(R.id.refresh_view) SwipeRefreshLayout refreshView;
-    @Bind(R.id.list_view) ListView listView;
-    @Bind(R.id.progressbar) MaterialProgressBar progressBar;
-    @Bind(R.id.spinner) Spinner spinner;
+    @BindView(R.id.refresh_view) SwipeRefreshLayout refreshView;
+    @BindView(R.id.list_view) ListView listView;
+    @BindView(R.id.progressbar) MaterialProgressBar progressBar;
+    @BindView(R.id.spinner) Spinner spinner;
 
     MainPresenter presenter = new MainPresenter(this, Model.getInstance());
     private ArrayAdapter<NYTimesStory> adapter;
@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         static class ViewHolder {
-            @Bind(android.R.id.text1) TextView titleView;
+            @BindView(android.R.id.text1) TextView titleView;
             public ViewHolder(View view) {
                 ButterKnife.bind(this, view);
             }

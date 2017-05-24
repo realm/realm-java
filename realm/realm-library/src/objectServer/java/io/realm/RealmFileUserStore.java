@@ -24,9 +24,6 @@ import java.util.Collections;
  * A User Store backed by a Realm file to store user.
  */
 public class RealmFileUserStore implements UserStore {
-    protected RealmFileUserStore(String path) {
-        nativeConfigureMetaDataSystem(path);
-    }
 
     /**
      * {@inheritDoc}
@@ -35,7 +32,7 @@ public class RealmFileUserStore implements UserStore {
     public void put(SyncUser user) {
         String userJson = user.toJson();
         // create or update token (userJson) using identity
-        nativeUpdateOrCreateUser(user.getIdentity(), userJson, user.getSyncUser().getAuthenticationUrl().toString());
+        nativeUpdateOrCreateUser(user.getIdentity(), userJson, user.getSyncUser().getAuthenticationUrl().toString(), user.isAdmin());
     }
 
     /**
@@ -87,9 +84,6 @@ public class RealmFileUserStore implements UserStore {
         return SyncUser.fromJson(userJson);
     }
 
-    // init and load the Metadata Realm containing SyncUsers
-    protected static native void nativeConfigureMetaDataSystem(String baseFile);
-
     // returns json data (token) of the current logged in user
     protected static native String nativeGetCurrentUser();
 
@@ -98,11 +92,7 @@ public class RealmFileUserStore implements UserStore {
 
     protected static native String[] nativeGetAllUsers();
 
-    protected static native void nativeUpdateOrCreateUser(String identity, String jsonToken, String url);
+    protected static native void nativeUpdateOrCreateUser(String identity, String jsonToken, String url, boolean isAdmin);
 
     protected static native void nativeLogoutUser(String identity);
-
-    // Should only be called for tests
-    static native void nativeResetForTesting();
-
 }

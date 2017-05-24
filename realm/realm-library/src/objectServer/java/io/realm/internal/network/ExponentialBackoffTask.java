@@ -30,7 +30,7 @@ public abstract class ExponentialBackoffTask<T extends AuthServerResponse> imple
 
     // Check if the task was successful
     protected boolean isSuccess(T result) {
-        return result.isValid();
+        return result != null && result.isValid();
     }
 
     // Return true if based on the task result that this task will never complete
@@ -44,7 +44,7 @@ public abstract class ExponentialBackoffTask<T extends AuthServerResponse> imple
         }
     }
 
-    // Callback when task is have succeeded
+    // Callback when task have succeeded
     protected abstract void onSuccess(T response);
 
     // Callback when task has failed

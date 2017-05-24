@@ -10,11 +10,12 @@ import io.realm.RealmSchema;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
+import io.realm.internal.OsObject;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
 import java.io.IOException;
@@ -32,68 +33,61 @@ import org.json.JSONObject;
 public class AllTypesRealmProxy extends some.test.AllTypes
         implements RealmObjectProxy, AllTypesRealmProxyInterface {
 
-    static final class AllTypesColumnInfo extends ColumnInfo
-            implements Cloneable {
+    static final class AllTypesColumnInfo extends ColumnInfo {
+        long columnStringIndex;
+        long columnLongIndex;
+        long columnFloatIndex;
+        long columnDoubleIndex;
+        long columnBooleanIndex;
+        long columnDateIndex;
+        long columnBinaryIndex;
+        long columnObjectIndex;
+        long columnRealmListIndex;
 
-        public long columnStringIndex;
-        public long columnLongIndex;
-        public long columnFloatIndex;
-        public long columnDoubleIndex;
-        public long columnBooleanIndex;
-        public long columnDateIndex;
-        public long columnBinaryIndex;
-        public long columnObjectIndex;
-        public long columnRealmListIndex;
+        AllTypesColumnInfo(SharedRealm realm, Table table) {
+            super(9);
+            this.columnStringIndex = addColumnDetails(table, "columnString", RealmFieldType.STRING);
+            this.columnLongIndex = addColumnDetails(table, "columnLong", RealmFieldType.INTEGER);
+            this.columnFloatIndex = addColumnDetails(table, "columnFloat", RealmFieldType.FLOAT);
+            this.columnDoubleIndex = addColumnDetails(table, "columnDouble", RealmFieldType.DOUBLE);
+            this.columnBooleanIndex = addColumnDetails(table, "columnBoolean", RealmFieldType.BOOLEAN);
+            this.columnDateIndex = addColumnDetails(table, "columnDate", RealmFieldType.DATE);
+            this.columnBinaryIndex = addColumnDetails(table, "columnBinary", RealmFieldType.BINARY);
+            this.columnObjectIndex = addColumnDetails(table, "columnObject", RealmFieldType.OBJECT);
+            this.columnRealmListIndex = addColumnDetails(table, "columnRealmList", RealmFieldType.LIST);
+            addBacklinkDetails(realm, "parentObjects", "AllTypes", "columnObject");
+        }
 
-        AllTypesColumnInfo(String path, Table table) {
-            final Map<String, Long> indicesMap = new HashMap<String, Long>(9);
-            this.columnStringIndex = getValidColumnIndex(path, table, "AllTypes", "columnString");
-            indicesMap.put("columnString", this.columnStringIndex);
-            this.columnLongIndex = getValidColumnIndex(path, table, "AllTypes", "columnLong");
-            indicesMap.put("columnLong", this.columnLongIndex);
-            this.columnFloatIndex = getValidColumnIndex(path, table, "AllTypes", "columnFloat");
-            indicesMap.put("columnFloat", this.columnFloatIndex);
-            this.columnDoubleIndex = getValidColumnIndex(path, table, "AllTypes", "columnDouble");
-            indicesMap.put("columnDouble", this.columnDoubleIndex);
-            this.columnBooleanIndex = getValidColumnIndex(path, table, "AllTypes", "columnBoolean");
-            indicesMap.put("columnBoolean", this.columnBooleanIndex);
-            this.columnDateIndex = getValidColumnIndex(path, table, "AllTypes", "columnDate");
-            indicesMap.put("columnDate", this.columnDateIndex);
-            this.columnBinaryIndex = getValidColumnIndex(path, table, "AllTypes", "columnBinary");
-            indicesMap.put("columnBinary", this.columnBinaryIndex);
-            this.columnObjectIndex = getValidColumnIndex(path, table, "AllTypes", "columnObject");
-            indicesMap.put("columnObject", this.columnObjectIndex);
-            this.columnRealmListIndex = getValidColumnIndex(path, table, "AllTypes", "columnRealmList");
-            indicesMap.put("columnRealmList", this.columnRealmListIndex);
-
-            setIndicesMap(indicesMap);
+        AllTypesColumnInfo(ColumnInfo src, boolean mutable) {
+            super(src, mutable);
+            copy(src, this);
         }
 
         @Override
-        public final void copyColumnInfoFrom(ColumnInfo other) {
-            final AllTypesColumnInfo otherInfo = (AllTypesColumnInfo) other;
-            this.columnStringIndex = otherInfo.columnStringIndex;
-            this.columnLongIndex = otherInfo.columnLongIndex;
-            this.columnFloatIndex = otherInfo.columnFloatIndex;
-            this.columnDoubleIndex = otherInfo.columnDoubleIndex;
-            this.columnBooleanIndex = otherInfo.columnBooleanIndex;
-            this.columnDateIndex = otherInfo.columnDateIndex;
-            this.columnBinaryIndex = otherInfo.columnBinaryIndex;
-            this.columnObjectIndex = otherInfo.columnObjectIndex;
-            this.columnRealmListIndex = otherInfo.columnRealmListIndex;
-
-            setIndicesMap(otherInfo.getIndicesMap());
+        protected final ColumnInfo copy(boolean mutable) {
+            return new AllTypesColumnInfo(this, mutable);
         }
 
         @Override
-        public final AllTypesColumnInfo clone() {
-            return (AllTypesColumnInfo) super.clone();
+        protected final void copy(ColumnInfo rawSrc, ColumnInfo rawDst) {
+            final AllTypesColumnInfo src = (AllTypesColumnInfo) rawSrc;
+            final AllTypesColumnInfo dst = (AllTypesColumnInfo) rawDst;
+            dst.columnStringIndex = src.columnStringIndex;
+            dst.columnLongIndex = src.columnLongIndex;
+            dst.columnFloatIndex = src.columnFloatIndex;
+            dst.columnDoubleIndex = src.columnDoubleIndex;
+            dst.columnBooleanIndex = src.columnBooleanIndex;
+            dst.columnDateIndex = src.columnDateIndex;
+            dst.columnBinaryIndex = src.columnBinaryIndex;
+            dst.columnObjectIndex = src.columnObjectIndex;
+            dst.columnRealmListIndex = src.columnRealmListIndex;
         }
-
     }
+
     private AllTypesColumnInfo columnInfo;
     private ProxyState<some.test.AllTypes> proxyState;
     private RealmList<some.test.AllTypes> columnRealmListRealmList;
+    private RealmResults<some.test.AllTypes> parentObjectsBacklinks;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -110,39 +104,32 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     AllTypesRealmProxy() {
-        if (proxyState == null) {
-            injectObjectContext();
-        }
         proxyState.setConstructionFinished();
     }
 
-    private void injectObjectContext() {
+    @Override
+    public void realm$injectObjectContext() {
+        if (this.proxyState != null) {
+            return;
+        }
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (AllTypesColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState<some.test.AllTypes>(some.test.AllTypes.class, this);
+        this.proxyState = new ProxyState<some.test.AllTypes>(this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
         proxyState.setExcludeFields$realm(context.getExcludeFields());
     }
 
+    @Override
     @SuppressWarnings("cast")
     public String realmGet$columnString() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.columnStringIndex);
     }
 
+    @Override
     public void realmSet$columnString(String value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             // default value of the primary key is always ignored.
             return;
@@ -152,23 +139,15 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         throw new io.realm.exceptions.RealmException("Primary key field 'columnString' cannot be changed after object was created.");
     }
 
+    @Override
     @SuppressWarnings("cast")
     public long realmGet$columnLong() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (long) proxyState.getRow$realm().getLong(columnInfo.columnLongIndex);
     }
 
+    @Override
     public void realmSet$columnLong(long value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -182,23 +161,15 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setLong(columnInfo.columnLongIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public float realmGet$columnFloat() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (float) proxyState.getRow$realm().getFloat(columnInfo.columnFloatIndex);
     }
 
+    @Override
     public void realmSet$columnFloat(float value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -212,23 +183,15 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setFloat(columnInfo.columnFloatIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public double realmGet$columnDouble() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (double) proxyState.getRow$realm().getDouble(columnInfo.columnDoubleIndex);
     }
 
+    @Override
     public void realmSet$columnDouble(double value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -242,23 +205,15 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setDouble(columnInfo.columnDoubleIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public boolean realmGet$columnBoolean() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.columnBooleanIndex);
     }
 
+    @Override
     public void realmSet$columnBoolean(boolean value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -272,23 +227,15 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setBoolean(columnInfo.columnBooleanIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public Date realmGet$columnDate() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (java.util.Date) proxyState.getRow$realm().getDate(columnInfo.columnDateIndex);
     }
 
+    @Override
     public void realmSet$columnDate(Date value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -308,23 +255,15 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setDate(columnInfo.columnDateIndex, value);
     }
 
+    @Override
     @SuppressWarnings("cast")
     public byte[] realmGet$columnBinary() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         return (byte[]) proxyState.getRow$realm().getBinaryByteArray(columnInfo.columnBinaryIndex);
     }
 
+    @Override
     public void realmSet$columnBinary(byte[] value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -344,12 +283,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setBinaryByteArray(columnInfo.columnBinaryIndex, value);
     }
 
+    @Override
     public some.test.AllTypes realmGet$columnObject() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNullLink(columnInfo.columnObjectIndex)) {
             return null;
@@ -357,12 +292,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return proxyState.getRealm$realm().get(some.test.AllTypes.class, proxyState.getRow$realm().getLink(columnInfo.columnObjectIndex), false, Collections.<String>emptyList());
     }
 
+    @Override
     public void realmSet$columnObject(some.test.AllTypes value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -403,12 +334,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRow$realm().setLink(columnInfo.columnObjectIndex, ((RealmObjectProxy)value).realmGet$proxyState().getRow$realm().getIndex());
     }
 
+    @Override
     public RealmList<some.test.AllTypes> realmGet$columnRealmList() {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         proxyState.getRealm$realm().checkIfValid();
         // use the cached value if available
         if (columnRealmListRealmList != null) {
@@ -420,12 +347,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
     }
 
+    @Override
     public void realmSet$columnRealmList(RealmList<some.test.AllTypes> value) {
-        if (proxyState == null) {
-            // Called from model's constructor. Inject context.
-            injectObjectContext();
-        }
-
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -464,179 +387,186 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
     }
 
+    @Override
+    public RealmResults<some.test.AllTypes> realmGet$parentObjects() {
+        BaseRealm realm = proxyState.getRealm$realm();
+        realm.checkIfValid();
+        proxyState.getRow$realm().checkIfAttached();
+        if (parentObjectsBacklinks == null) {
+            parentObjectsBacklinks = RealmResults.createBacklinkResults(realm, proxyState.getRow$realm(), some.test.AllTypes.class, "columnObject");
+        }
+        return parentObjectsBacklinks;
+    }
+
     public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
         if (!realmSchema.contains("AllTypes")) {
             RealmObjectSchema realmObjectSchema = realmSchema.create("AllTypes");
-            realmObjectSchema.add(new Property("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, !Property.REQUIRED));
-            realmObjectSchema.add(new Property("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
-            realmObjectSchema.add(new Property("columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, !Property.REQUIRED);
+            realmObjectSchema.add("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+            realmObjectSchema.add("columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
             if (!realmSchema.contains("AllTypes")) {
                 AllTypesRealmProxy.createRealmObjectSchema(realmSchema);
             }
-            realmObjectSchema.add(new Property("columnObject", RealmFieldType.OBJECT, realmSchema.get("AllTypes")));
+            realmObjectSchema.add("columnObject", RealmFieldType.OBJECT, realmSchema.get("AllTypes"));
             if (!realmSchema.contains("AllTypes")) {
                 AllTypesRealmProxy.createRealmObjectSchema(realmSchema);
             }
-            realmObjectSchema.add(new Property("columnRealmList", RealmFieldType.LIST, realmSchema.get("AllTypes")));
+            realmObjectSchema.add("columnRealmList", RealmFieldType.LIST, realmSchema.get("AllTypes"));
             return realmObjectSchema;
         }
         return realmSchema.get("AllTypes");
     }
 
-    public static Table initTable(SharedRealm sharedRealm) {
-        if (!sharedRealm.hasTable("class_AllTypes")) {
-            Table table = sharedRealm.getTable("class_AllTypes");
-            table.addColumn(RealmFieldType.STRING, "columnString", Table.NULLABLE);
-            table.addColumn(RealmFieldType.INTEGER, "columnLong", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.FLOAT, "columnFloat", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.DOUBLE, "columnDouble", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.BOOLEAN, "columnBoolean", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.DATE, "columnDate", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.BINARY, "columnBinary", Table.NOT_NULLABLE);
-            if (!sharedRealm.hasTable("class_AllTypes")) {
-                AllTypesRealmProxy.initTable(sharedRealm);
-            }
-            table.addColumnLink(RealmFieldType.OBJECT, "columnObject", sharedRealm.getTable("class_AllTypes"));
-            if (!sharedRealm.hasTable("class_AllTypes")) {
-                AllTypesRealmProxy.initTable(sharedRealm);
-            }
-            table.addColumnLink(RealmFieldType.LIST, "columnRealmList", sharedRealm.getTable("class_AllTypes"));
-            table.addSearchIndex(table.getColumnIndex("columnString"));
-            table.setPrimaryKey("columnString");
-            return table;
-        }
-        return sharedRealm.getTable("class_AllTypes");
-    }
-
     public static AllTypesColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
-        if (sharedRealm.hasTable("class_AllTypes")) {
-            Table table = sharedRealm.getTable("class_AllTypes");
-            final long columnCount = table.getColumnCount();
-            if (columnCount != 9) {
-                if (columnCount < 9) {
-                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 9 but was " + columnCount);
-                }
-                if (allowExtraColumns) {
-                    RealmLog.debug("Field count is more than expected - expected 9 but was %1$d", columnCount);
-                } else {
-                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 9 but was " + columnCount);
-                }
-            }
-            Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
-            for (long i = 0; i < columnCount; i++) {
-                columnTypes.put(table.getColumnName(i), table.getColumnType(i));
-            }
-
-            final AllTypesColumnInfo columnInfo = new AllTypesColumnInfo(sharedRealm.getPath(), table);
-
-            if (!table.hasPrimaryKey()) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary key not defined for field 'columnString' in existing Realm file. @PrimaryKey was added.");
-            } else {
-                if (table.getPrimaryKey() != columnInfo.columnStringIndex) {
-                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key annotation definition was changed, from field " + table.getColumnName(table.getPrimaryKey()) + " to field columnString");
-                }
-            }
-
-            if (!columnTypes.containsKey("columnString")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnString' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-            }
-            if (columnTypes.get("columnString") != RealmFieldType.STRING) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'String' for field 'columnString' in existing Realm file.");
-            }
-            if (!table.isColumnNullable(columnInfo.columnStringIndex)) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(),"@PrimaryKey field 'columnString' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.");
-            }
-            if (!table.hasSearchIndex(table.getColumnIndex("columnString"))) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Index not defined for field 'columnString' in existing Realm file. Either set @Index or migrate using io.realm.internal.Table.removeSearchIndex().");
-            }
-            if (!columnTypes.containsKey("columnLong")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnLong' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-            }
-            if (columnTypes.get("columnLong") != RealmFieldType.INTEGER) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'long' for field 'columnLong' in existing Realm file.");
-            }
-            if (table.isColumnNullable(columnInfo.columnLongIndex)) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnLong' does support null values in the existing Realm file. Use corresponding boxed type for field 'columnLong' or migrate using RealmObjectSchema.setNullable().");
-            }
-            if (!columnTypes.containsKey("columnFloat")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnFloat' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-            }
-            if (columnTypes.get("columnFloat") != RealmFieldType.FLOAT) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'float' for field 'columnFloat' in existing Realm file.");
-            }
-            if (table.isColumnNullable(columnInfo.columnFloatIndex)) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnFloat' does support null values in the existing Realm file. Use corresponding boxed type for field 'columnFloat' or migrate using RealmObjectSchema.setNullable().");
-            }
-            if (!columnTypes.containsKey("columnDouble")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnDouble' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-            }
-            if (columnTypes.get("columnDouble") != RealmFieldType.DOUBLE) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'double' for field 'columnDouble' in existing Realm file.");
-            }
-            if (table.isColumnNullable(columnInfo.columnDoubleIndex)) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnDouble' does support null values in the existing Realm file. Use corresponding boxed type for field 'columnDouble' or migrate using RealmObjectSchema.setNullable().");
-            }
-            if (!columnTypes.containsKey("columnBoolean")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnBoolean' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-            }
-            if (columnTypes.get("columnBoolean") != RealmFieldType.BOOLEAN) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'boolean' for field 'columnBoolean' in existing Realm file.");
-            }
-            if (table.isColumnNullable(columnInfo.columnBooleanIndex)) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnBoolean' does support null values in the existing Realm file. Use corresponding boxed type for field 'columnBoolean' or migrate using RealmObjectSchema.setNullable().");
-            }
-            if (!columnTypes.containsKey("columnDate")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnDate' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-            }
-            if (columnTypes.get("columnDate") != RealmFieldType.DATE) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Date' for field 'columnDate' in existing Realm file.");
-            }
-            if (table.isColumnNullable(columnInfo.columnDateIndex)) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnDate' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'columnDate' or migrate using RealmObjectSchema.setNullable().");
-            }
-            if (!columnTypes.containsKey("columnBinary")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnBinary' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-            }
-            if (columnTypes.get("columnBinary") != RealmFieldType.BINARY) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'byte[]' for field 'columnBinary' in existing Realm file.");
-            }
-            if (table.isColumnNullable(columnInfo.columnBinaryIndex)) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnBinary' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'columnBinary' or migrate using RealmObjectSchema.setNullable().");
-            }
-            if (!columnTypes.containsKey("columnObject")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnObject' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-            }
-            if (columnTypes.get("columnObject") != RealmFieldType.OBJECT) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'AllTypes' for field 'columnObject'");
-            }
-            if (!sharedRealm.hasTable("class_AllTypes")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing class 'class_AllTypes' for field 'columnObject'");
-            }
-            Table table_7 = sharedRealm.getTable("class_AllTypes");
-            if (!table.getLinkTarget(columnInfo.columnObjectIndex).hasSameSchema(table_7)) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid RealmObject for field 'columnObject': '" + table.getLinkTarget(columnInfo.columnObjectIndex).getName() + "' expected - was '" + table_7.getName() + "'");
-            }
-            if (!columnTypes.containsKey("columnRealmList")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnRealmList'");
-            }
-            if (columnTypes.get("columnRealmList") != RealmFieldType.LIST) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'AllTypes' for field 'columnRealmList'");
-            }
-            if (!sharedRealm.hasTable("class_AllTypes")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing class 'class_AllTypes' for field 'columnRealmList'");
-            }
-            Table table_8 = sharedRealm.getTable("class_AllTypes");
-            if (!table.getLinkTarget(columnInfo.columnRealmListIndex).hasSameSchema(table_8)) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid RealmList type for field 'columnRealmList': '" + table.getLinkTarget(columnInfo.columnRealmListIndex).getName() + "' expected - was '" + table_8.getName() + "'");
-            }
-            return columnInfo;
-        } else {
+        if (!sharedRealm.hasTable("class_AllTypes")) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "The 'AllTypes' class is missing from the schema for this Realm.");
         }
+        Table table = sharedRealm.getTable("class_AllTypes");
+        final long columnCount = table.getColumnCount();
+        if (columnCount != 9) {
+            if (columnCount < 9) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 9 but was " + columnCount);
+            }
+            if (allowExtraColumns) {
+                RealmLog.debug("Field count is more than expected - expected 9 but was %1$d", columnCount);
+            } else {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 9 but was " + columnCount);
+            }
+        }
+        Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
+        for (long i = 0; i < columnCount; i++) {
+            columnTypes.put(table.getColumnName(i), table.getColumnType(i));
+        }
+
+        final AllTypesColumnInfo columnInfo = new AllTypesColumnInfo(sharedRealm, table);
+
+        if (!table.hasPrimaryKey()) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary key not defined for field 'columnString' in existing Realm file. @PrimaryKey was added.");
+        } else {
+            if (table.getPrimaryKey() != columnInfo.columnStringIndex) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key annotation definition was changed, from field " + table.getColumnName(table.getPrimaryKey()) + " to field columnString");
+            }
+        }
+
+        if (!columnTypes.containsKey("columnString")) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnString' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
+        }
+        if (columnTypes.get("columnString") != RealmFieldType.STRING) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'String' for field 'columnString' in existing Realm file.");
+        }
+        if (!table.isColumnNullable(columnInfo.columnStringIndex)) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(),"@PrimaryKey field 'columnString' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.");
+        }
+        if (!table.hasSearchIndex(table.getColumnIndex("columnString"))) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Index not defined for field 'columnString' in existing Realm file. Either set @Index or migrate using io.realm.internal.Table.removeSearchIndex().");
+        }
+        if (!columnTypes.containsKey("columnLong")) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnLong' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
+        }
+        if (columnTypes.get("columnLong") != RealmFieldType.INTEGER) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'long' for field 'columnLong' in existing Realm file.");
+        }
+        if (table.isColumnNullable(columnInfo.columnLongIndex)) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnLong' does support null values in the existing Realm file. Use corresponding boxed type for field 'columnLong' or migrate using RealmObjectSchema.setNullable().");
+        }
+        if (!columnTypes.containsKey("columnFloat")) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnFloat' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
+        }
+        if (columnTypes.get("columnFloat") != RealmFieldType.FLOAT) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'float' for field 'columnFloat' in existing Realm file.");
+        }
+        if (table.isColumnNullable(columnInfo.columnFloatIndex)) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnFloat' does support null values in the existing Realm file. Use corresponding boxed type for field 'columnFloat' or migrate using RealmObjectSchema.setNullable().");
+        }
+        if (!columnTypes.containsKey("columnDouble")) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnDouble' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
+        }
+        if (columnTypes.get("columnDouble") != RealmFieldType.DOUBLE) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'double' for field 'columnDouble' in existing Realm file.");
+        }
+        if (table.isColumnNullable(columnInfo.columnDoubleIndex)) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnDouble' does support null values in the existing Realm file. Use corresponding boxed type for field 'columnDouble' or migrate using RealmObjectSchema.setNullable().");
+        }
+        if (!columnTypes.containsKey("columnBoolean")) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnBoolean' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
+        }
+        if (columnTypes.get("columnBoolean") != RealmFieldType.BOOLEAN) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'boolean' for field 'columnBoolean' in existing Realm file.");
+        }
+        if (table.isColumnNullable(columnInfo.columnBooleanIndex)) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnBoolean' does support null values in the existing Realm file. Use corresponding boxed type for field 'columnBoolean' or migrate using RealmObjectSchema.setNullable().");
+        }
+        if (!columnTypes.containsKey("columnDate")) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnDate' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
+        }
+        if (columnTypes.get("columnDate") != RealmFieldType.DATE) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Date' for field 'columnDate' in existing Realm file.");
+        }
+        if (table.isColumnNullable(columnInfo.columnDateIndex)) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnDate' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'columnDate' or migrate using RealmObjectSchema.setNullable().");
+        }
+        if (!columnTypes.containsKey("columnBinary")) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnBinary' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
+        }
+        if (columnTypes.get("columnBinary") != RealmFieldType.BINARY) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'byte[]' for field 'columnBinary' in existing Realm file.");
+        }
+        if (table.isColumnNullable(columnInfo.columnBinaryIndex)) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnBinary' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'columnBinary' or migrate using RealmObjectSchema.setNullable().");
+        }
+        if (!columnTypes.containsKey("columnObject")) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnObject' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
+        }
+        if (columnTypes.get("columnObject") != RealmFieldType.OBJECT) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'AllTypes' for field 'columnObject'");
+        }
+        if (!sharedRealm.hasTable("class_AllTypes")) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing class 'class_AllTypes' for field 'columnObject'");
+        }
+        Table table_7 = sharedRealm.getTable("class_AllTypes");
+        if (!table.getLinkTarget(columnInfo.columnObjectIndex).hasSameSchema(table_7)) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid RealmObject for field 'columnObject': '" + table.getLinkTarget(columnInfo.columnObjectIndex).getName() + "' expected - was '" + table_7.getName() + "'");
+        }
+        if (!columnTypes.containsKey("columnRealmList")) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnRealmList'");
+        }
+        if (columnTypes.get("columnRealmList") != RealmFieldType.LIST) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'AllTypes' for field 'columnRealmList'");
+        }
+        if (!sharedRealm.hasTable("class_AllTypes")) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing class 'class_AllTypes' for field 'columnRealmList'");
+        }
+        Table table_8 = sharedRealm.getTable("class_AllTypes");
+        if (!table.getLinkTarget(columnInfo.columnRealmListIndex).hasSameSchema(table_8)) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid RealmList type for field 'columnRealmList': '" + table.getLinkTarget(columnInfo.columnRealmListIndex).getName() + "' expected - was '" + table_8.getName() + "'");
+        }
+
+        long backlinkFieldIndex;
+        Table backlinkSourceTable;
+        Table backlinkTargetTable;
+        RealmFieldType backlinkFieldType;
+        if (!sharedRealm.hasTable("class_AllTypes")) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Cannot find source class 'some.test.AllTypes' for @LinkingObjects field 'some.test.AllTypes.parentObjects'");
+        }
+        backlinkSourceTable = sharedRealm.getTable("class_AllTypes");
+        backlinkFieldIndex = backlinkSourceTable.getColumnIndex("columnObject");
+        if (backlinkFieldIndex == Table.NO_MATCH) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Cannot find source field 'some.test.AllTypes.columnObject' for @LinkingObjects field 'some.test.AllTypes.parentObjects'");
+        }
+        backlinkFieldType = backlinkSourceTable.getColumnType(backlinkFieldIndex);
+        if ((backlinkFieldType != RealmFieldType.OBJECT) && (backlinkFieldType != RealmFieldType.LIST)) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Source field 'some.test.AllTypes.columnObject' for @LinkingObjects field 'some.test.AllTypes.parentObjects' is not a RealmObject type");
+        }
+        backlinkTargetTable = backlinkSourceTable.getLinkTarget(backlinkFieldIndex);
+        if (!table.hasSameSchema(backlinkTargetTable)) {
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Source field 'some.test.AllTypes.columnObject' for @LinkingObjects field 'some.test.AllTypes.parentObjects' has wrong type '" + backlinkTargetTable.getName() + "'");
+        }
+
+        return columnInfo;
     }
 
     public static String getTableName() {
@@ -655,13 +585,13 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (update) {
             Table table = realm.getTable(some.test.AllTypes.class);
             long pkColumnIndex = table.getPrimaryKey();
-            long rowIndex = TableOrView.NO_MATCH;
+            long rowIndex = Table.NO_MATCH;
             if (json.isNull("columnString")) {
                 rowIndex = table.findFirstNull(pkColumnIndex);
             } else {
                 rowIndex = table.findFirstString(pkColumnIndex, json.getString("columnString"));
             }
-            if (rowIndex != TableOrView.NO_MATCH) {
+            if (rowIndex != Table.NO_MATCH) {
                 final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
                 try {
                     objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), false, Collections.<String> emptyList());
@@ -767,7 +697,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
-            if (name.equals("columnString")) {
+            if (false) {
+            } else if (name.equals("columnString")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
                     ((AllTypesRealmProxyInterface) obj).realmSet$columnString(null);
@@ -873,13 +804,13 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 Table table = realm.getTable(some.test.AllTypes.class);
                 long pkColumnIndex = table.getPrimaryKey();
                 String value = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
-                long rowIndex = TableOrView.NO_MATCH;
+                long rowIndex = Table.NO_MATCH;
                 if (value == null) {
                     rowIndex = table.findFirstNull(pkColumnIndex);
                 } else {
                     rowIndex = table.findFirstString(pkColumnIndex, value);
                 }
-                if (rowIndex != TableOrView.NO_MATCH) {
+                if (rowIndex != Table.NO_MATCH) {
                     try {
                         objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), false, Collections.<String> emptyList());
                         realmObject = new io.realm.AllTypesRealmProxy();
@@ -950,18 +881,18 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.AllTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.schema.getColumnInfo(some.test.AllTypes.class);
         long pkColumnIndex = table.getPrimaryKey();
         String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
-        long rowIndex = TableOrView.NO_MATCH;
+        long rowIndex = Table.NO_MATCH;
         if (primaryKeyValue == null) {
             rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
         } else {
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
-        if (rowIndex == TableOrView.NO_MATCH) {
-            rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false);
+        if (rowIndex == Table.NO_MATCH) {
+            rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, primaryKeyValue);
         } else {
             Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
         }
@@ -1005,7 +936,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.AllTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.schema.getColumnInfo(some.test.AllTypes.class);
         long pkColumnIndex = table.getPrimaryKey();
         some.test.AllTypes object = null;
@@ -1017,14 +948,14 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     continue;
                 }
                 String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
-                long rowIndex = TableOrView.NO_MATCH;
+                long rowIndex = Table.NO_MATCH;
                 if (primaryKeyValue == null) {
                     rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
                 } else {
                     rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
                 }
-                if (rowIndex == TableOrView.NO_MATCH) {
-                    rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false);
+                if (rowIndex == Table.NO_MATCH) {
+                    rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, primaryKeyValue);
                 } else {
                     Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
                 }
@@ -1072,18 +1003,18 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.AllTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.schema.getColumnInfo(some.test.AllTypes.class);
         long pkColumnIndex = table.getPrimaryKey();
         String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
-        long rowIndex = TableOrView.NO_MATCH;
+        long rowIndex = Table.NO_MATCH;
         if (primaryKeyValue == null) {
             rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
         } else {
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
-        if (rowIndex == TableOrView.NO_MATCH) {
-            rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false);
+        if (rowIndex == Table.NO_MATCH) {
+            rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, primaryKeyValue);
         }
         cache.put(object, rowIndex);
         Table.nativeSetLong(tableNativePtr, columnInfo.columnLongIndex, rowIndex, ((AllTypesRealmProxyInterface)object).realmGet$columnLong(), false);
@@ -1132,7 +1063,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.AllTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.schema.getColumnInfo(some.test.AllTypes.class);
         long pkColumnIndex = table.getPrimaryKey();
         some.test.AllTypes object = null;
@@ -1144,14 +1075,14 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     continue;
                 }
                 String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
-                long rowIndex = TableOrView.NO_MATCH;
+                long rowIndex = Table.NO_MATCH;
                 if (primaryKeyValue == null) {
                     rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
                 } else {
                     rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
                 }
-                if (rowIndex == TableOrView.NO_MATCH) {
-                    rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false);
+                if (rowIndex == Table.NO_MATCH) {
+                    rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, primaryKeyValue);
                 }
                 cache.put(object, rowIndex);
                 Table.nativeSetLong(tableNativePtr, columnInfo.columnLongIndex, rowIndex, ((AllTypesRealmProxyInterface)object).realmGet$columnLong(), false);
@@ -1281,11 +1212,12 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     @Override
+    @SuppressWarnings("ArrayToString")
     public String toString() {
         if (!RealmObject.isValid(this)) {
             return "Invalid object";
         }
-        StringBuilder stringBuilder = new StringBuilder("AllTypes = [");
+        StringBuilder stringBuilder = new StringBuilder("AllTypes = proxy[");
         stringBuilder.append("{columnString:");
         stringBuilder.append(realmGet$columnString() != null ? realmGet$columnString() : "null");
         stringBuilder.append("}");
@@ -1326,7 +1258,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     @Override
-    public ProxyState realmGet$proxyState() {
+    public ProxyState<?> realmGet$proxyState() {
         return proxyState;
     }
 

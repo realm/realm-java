@@ -20,6 +20,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -122,7 +123,7 @@ public class RealmSchemaTests {
     public void rename_invalidArgumentThrows() {
         String[] illegalNames = new String[] { null, "" };
 
-        // Test as first parameter
+        // Tests as first parameter.
         for (String illegalName : illegalNames) {
             try {
                 realmSchema.rename(illegalName, AllJavaTypes.CLASS_NAME);
@@ -131,7 +132,7 @@ public class RealmSchemaTests {
             }
         }
 
-        // Test as last parameters
+        // Tests as last parameters.
         for (String illegalName : illegalNames) {
             try {
                 realmSchema.rename(AllJavaTypes.CLASS_NAME, illegalName);
@@ -152,12 +153,12 @@ public class RealmSchemaTests {
 
         assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, objectSchema.getPrimaryKey());
 
-        // Create an object with the old name, and the PK should not exist after created.
+        // Creates an object with the old name, and the PK should not exist after created.
         RealmObjectSchema oldObjectSchema = realmSchema.create(PrimaryKeyAsString.CLASS_NAME);
         oldObjectSchema.addField(PrimaryKeyAsString.FIELD_PRIMARY_KEY, String.class);
 
         try {
-            // It should not have primary key anymore at this point
+            // It should not have primary key anymore at this point.
             oldObjectSchema.getPrimaryKey();
             fail();
         } catch (IllegalStateException ignored) {
@@ -190,8 +191,7 @@ public class RealmSchemaTests {
 
     // Test that it if { A -> B  && B -> A } you should remove the individual fields first before removing the entire
     // class. This also include transitive dependencies.
-    // FIXME: Disabled until https://github.com/realm/realm-core/pull/1475#issuecomment-185192434 is fixed.
-    // @Test
+    @Test
     public void remove_classWithReferencesThrows() {
         try {
             realmSchema.remove("Cat");
@@ -217,7 +217,7 @@ public class RealmSchemaTests {
         objectSchema.addField(PrimaryKeyAsString.FIELD_PRIMARY_KEY, String.class);
 
         try {
-            // It should not have primary key anymore at this point
+            // It should not have primary key anymore at this point.
             objectSchema.getPrimaryKey();
             fail();
         } catch (IllegalStateException ignored) {

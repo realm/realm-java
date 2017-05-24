@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 import io.realm.exceptions.RealmException;
 
+
 public class JsonUtils {
 
     private static Pattern jsonDate = Pattern.compile("/Date\\((\\d*)(?:[+-]\\d*)?\\)/");
@@ -42,16 +43,16 @@ public class JsonUtils {
      * @throws NumberFormatException if date is not a proper long or has an illegal format.
      */
     public static Date stringToDate(String date) {
-        if (date == null || date.length() == 0) return null;
+        if (date == null || date.length() == 0) { return null; }
 
-        // Check for JSON date
+        // Checks for JSON date.
         Matcher matcher = jsonDate.matcher(date);
         if (matcher.find()) {
             String dateMatch = matcher.group(1);
             return new Date(Long.parseLong(dateMatch));
         }
 
-        // Check for millisecond based date
+        // Checks for millisecond based date.
         if (numericOnly.matcher(date).matches()) {
             try {
                 return new Date(Long.parseLong(date));
@@ -60,9 +61,9 @@ public class JsonUtils {
             }
         }
 
-        // Try for ISO8601 date
+        // Tries for ISO8601 date.
         try {
-            parsePosition.setIndex(0); // reset the position each time
+            parsePosition.setIndex(0); // Resets the position each time.
             return ISO8601Utils.parse(date, parsePosition);
         } catch (ParseException e) {
             throw new RealmException(e.getMessage(), e);
@@ -76,7 +77,7 @@ public class JsonUtils {
      * @return the Byte array or empty byte array.
      */
     public static byte[] stringToBytes(String str) {
-        if (str == null || str.length() == 0) return new byte[0];
+        if (str == null || str.length() == 0) { return new byte[0]; }
         return Base64.decode(str, Base64.DEFAULT);
     }
 }

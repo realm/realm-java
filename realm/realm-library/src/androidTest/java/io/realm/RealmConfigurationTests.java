@@ -225,7 +225,7 @@ public class RealmConfigurationTests {
 
     @Test
     public void constructBuilder_versionEqualWhenSchemaChangesThrows() {
-        // Create initial Realm
+        // Creates initial Realm.
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
                 .schemaVersion(42)
@@ -233,7 +233,7 @@ public class RealmConfigurationTests {
                 .build();
         Realm.getInstance(config).close();
 
-        // Create new instance with a configuration containing another schema
+        // Creates new instance with a configuration containing another schema.
         try {
             config = new RealmConfiguration.Builder(context)
                     .directory(configFactory.getRoot())
@@ -271,14 +271,14 @@ public class RealmConfigurationTests {
 
     @Test
     public void modules_nonRealmModulesThrows() {
-        // Test first argument
+        // Tests first argument.
         try {
             new RealmConfiguration.Builder(context).modules(new Object());
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
-        // Test second argument
+        // Tests second argument.
         try {
             new RealmConfiguration.Builder(context).modules(Realm.getDefaultModule(), new Object());
             fail();
@@ -334,7 +334,7 @@ public class RealmConfigurationTests {
 
     @Test
     public void deleteRealmIfMigrationNeeded() {
-        // Populate v0 of a Realm with an object
+        // Populates v0 of a Realm with an object.
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
                 .schema(Dog.class)
@@ -348,7 +348,7 @@ public class RealmConfigurationTests {
         assertEquals(1, realm.where(Dog.class).count());
         realm.close();
 
-        // Change schema and verify that Realm has been cleared
+        // Changes schema and verifies that Realm has been cleared.
         config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
                 .schema(Owner.class, Dog.class)
@@ -363,7 +363,7 @@ public class RealmConfigurationTests {
     public void deleteRealmIfMigrationNeeded_failsWhenAssetFileProvided() {
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
 
-        // have a builder instance to isolate codepath
+        // Has a builder instance to isolate codepath.
         RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
         try {
             builder
@@ -391,7 +391,7 @@ public class RealmConfigurationTests {
             fail();
         } catch (RealmMigrationNeededException expected) {
             // And it should come with a cause.
-            assertNotNull(expected.getCause());
+            assertEquals("Realm on disk need to migrate from v0 to v42", expected.getMessage());
         }
     }
 
@@ -403,8 +403,15 @@ public class RealmConfigurationTests {
     }
 
     @Test
+    public void equals_respectReadOnly() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context).assetFile("foo").build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context).assetFile("foo").readOnly().build();
+        assertFalse(config1.equals(config2));
+    }
+
+    @Test
     public void equalsWhenRxJavaUnavailable() {
-        // test for https://github.com/realm/realm-java/issues/2416
+        // Test for https://github.com/realm/realm-java/issues/2416
         RealmConfiguration config1 = new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).build();
         TestHelper.emulateRxJavaUnavailable(config1);
         RealmConfiguration config2 = new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).build();
@@ -535,7 +542,7 @@ public class RealmConfigurationTests {
         }
     }
 
-    // Creating Realm instances with same name but different durabilities is not allowed.
+    // Creates Realm instances with same name but different durabilities is not allowed.
     @Test
     public void inMemory_differentDurabilityThrows() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(context)
@@ -546,7 +553,7 @@ public class RealmConfigurationTests {
                 .directory(configFactory.getRoot())
                 .build();
 
-        // Create In-memory Realm first.
+        // Creates In-memory Realm first.
         Realm realm1 = Realm.getInstance(config1);
         try {
             // On-disk Realm then. Not allowed!
@@ -557,7 +564,7 @@ public class RealmConfigurationTests {
             realm1.close();
         }
 
-        // Create on-disk Realm first.
+        // Creates on-disk Realm first.
         realm1 = Realm.getInstance(config2);
         try {
             // In-memory Realm then. Not allowed!
@@ -569,7 +576,7 @@ public class RealmConfigurationTests {
         }
     }
 
-    // It is allowed to create multiple Realm with same name but in different directory
+    // It is allowed to create multiple Realm with same name but in different directory.
     @Test
     public void constructBuilder_differentDirSameName() throws IOException {
         RealmConfiguration config1 = new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).build();
@@ -583,7 +590,7 @@ public class RealmConfigurationTests {
 
     @Test
     public void encryptionKey_keyStorage() throws Exception {
-        // Generate a key and use it in a RealmConfiguration
+        // Generates a key and uses it in a RealmConfiguration.
         byte[] oldKey = TestHelper.getRandomKey(12345);
         byte[] key = oldKey;
         RealmConfiguration config = new RealmConfiguration.Builder(context)
@@ -591,13 +598,13 @@ public class RealmConfigurationTests {
                 .encryptionKey(key)
                 .build();
 
-        // Generate a different key and assign it to the same variable
+        // Generates a different key and assigns it to the same variable.
         byte[] newKey = TestHelper.getRandomKey(67890);
         MoreAsserts.assertNotEqual(key, newKey);
         key = newKey;
         MoreAsserts.assertEquals(key, newKey);
 
-        // Ensure that the stored key did not change
+        // Ensures that the stored key did not change.
         MoreAsserts.assertEquals(oldKey, config.getEncryptionKey());
     }
 
@@ -609,7 +616,7 @@ public class RealmConfigurationTests {
 
         assertTrue(realmClasses.contains(AllTypes.class));
 
-        // tests returned Set is unmodifiable.
+        // Tests returned Set is unmodifiable.
         try {
             realmClasses.add(AllTypes.class);
             fail();
@@ -631,7 +638,7 @@ public class RealmConfigurationTests {
         assertTrue(realmClasses.contains(CatOwner.class));
         assertFalse(realmClasses.contains(Cat.class));
 
-        // tests returned Set is unmodifiable.
+        // Tests returned Set is unmodifiable.
         try {
             realmClasses.add(AllTypes.class);
             fail();
@@ -653,7 +660,7 @@ public class RealmConfigurationTests {
         assertTrue(realmClasses.contains(CatOwner.class));
         assertTrue(realmClasses.contains(Cat.class));
 
-        // tests returned Set is unmodifiable.
+        // Tests returned Set is unmodifiable.
         try {
             realmClasses.add(AllTypes.class);
             fail();
@@ -676,7 +683,7 @@ public class RealmConfigurationTests {
         assertTrue(realmClasses.contains(CatOwner.class));
         assertFalse(realmClasses.contains(Cat.class));
 
-        // tests returned Set is unmodifiable.
+        // Tests returned Set is unmodifiable.
         try {
             realmClasses.add(AllTypes.class);
             fail();
@@ -774,7 +781,7 @@ public class RealmConfigurationTests {
 
     @Test
     public void initialDataTransactionNotNull() {
-        // Remove default instance
+        // Removes default instance.
         Realm.deleteRealm(defaultConfig);
 
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
@@ -788,7 +795,7 @@ public class RealmConfigurationTests {
 
         realm = Realm.getInstance(configuration);
 
-        // First time check for initial data
+        // First time check for initial data.
         assertEquals(1, realm.where(AllTypes.class).count());
         assertEquals(1, realm.where(Owner.class).count());
         assertEquals(1, realm.where(Cat.class).count());
@@ -801,7 +808,7 @@ public class RealmConfigurationTests {
 
         realm.close();
         realm = Realm.getInstance(configuration);
-        // Check if there is still the same data
+        // Checks if there is still the same data.
         assertEquals(0, realm.where(AllTypes.class).count());
         assertEquals(1, realm.where(Owner.class).count());
         assertEquals(1, realm.where(Cat.class).count());
@@ -809,7 +816,7 @@ public class RealmConfigurationTests {
 
     @Test
     public void initialDataTransactionExecutionCount() {
-        // Remove default instance
+        // Removes default instance.
         Realm.deleteRealm(defaultConfig);
 
         Realm.Transaction transaction = mock(Realm.Transaction.class);
@@ -828,7 +835,7 @@ public class RealmConfigurationTests {
 
     @Test
     public void initialDataTransactionAssetFile() throws IOException {
-        // Remove default instance
+        // Removes default instance.
         Realm.deleteRealm(defaultConfig);
 
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
@@ -863,7 +870,7 @@ public class RealmConfigurationTests {
 
     @Test
     public void assetFileWithInMemoryConfig() {
-        // Ensure that there is no data
+        // Ensures that there is no data.
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
         try {
@@ -875,7 +882,7 @@ public class RealmConfigurationTests {
 
     @Test
     public void assetFileFakeFile() {
-        // Ensure that there is no data
+        // Ensures that there is no data.
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
         RealmConfiguration configuration = new RealmConfiguration.Builder(context).assetFile("no_file").build();
@@ -889,7 +896,7 @@ public class RealmConfigurationTests {
 
     @Test
     public void assetFileValidFile() throws IOException {
-        // Ensure that there is no data
+        // Ensures that there is no data.
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
         RealmConfiguration configuration = new RealmConfiguration
@@ -905,13 +912,13 @@ public class RealmConfigurationTests {
         realm = Realm.getInstance(configuration);
         assertTrue(realmFile.exists());
 
-        // Asset file has 10 Owners and 10 Cats, check if data is present
+        // Asset file has 10 Owners and 10 Cats, checks if data is present.
         assertEquals(10, realm.where(Owner.class).count());
         assertEquals(10, realm.where(Cat.class).count());
 
         realm.close();
 
-        // Copy original file to another location
+        // Copies original file to another location.
         configFactory.copyRealmFromAssets(context, "asset_file.realm", "asset_file_copy.realm");
         File copyFromAsset = new File(configFactory.getRoot(), "asset_file_copy.realm");
         assertTrue(copyFromAsset.exists());
@@ -924,7 +931,7 @@ public class RealmConfigurationTests {
     public void assetFile_failsWhenDeleteRealmIfMigrationNeededConfigured() {
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
 
-        // have a builder instance to isolate codepath
+        // Has a builder instance to isolate codepath.
         RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
         try {
             builder
@@ -940,7 +947,7 @@ public class RealmConfigurationTests {
     private static class MigrationWithNoEquals implements RealmMigration {
         @Override
         public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-            // Do nothing
+            // Does nothing.
         }
     }
 
@@ -957,6 +964,42 @@ public class RealmConfigurationTests {
             assertTrue(e.getMessage().contains("The most likely cause is that equals() and hashCode() are not overridden"));
         } finally {
             realm.close();
+        }
+    }
+
+    @Test
+    public void readOnly_initialTransaction_throws() {
+        // Check assetFile(), then initialTransaction();
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder()
+                .assetFile("foo")
+                .readOnly()
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        // Do nothing
+                    }
+                });
+
+        try {
+            config.build();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    @Test
+    public void readOnly_deleteRealmIfMigrationRequired_throws() {
+        try {
+            // This test doesn't actually fail on 'deleteRealmIfMigrationNeeded' + 'readOnly' but on
+            // 'assetFile' + 'deleteRealmIfMigrationNeed()'. This test is primarely here to prevent this
+            // case from accidentally parsing in the future.
+            new RealmConfiguration.Builder()
+                    .assetFile("foo")
+                    .readOnly()
+                    .deleteRealmIfMigrationNeeded()
+                    .build();
+            fail();
+        } catch (IllegalStateException ignored) {
         }
     }
 }
