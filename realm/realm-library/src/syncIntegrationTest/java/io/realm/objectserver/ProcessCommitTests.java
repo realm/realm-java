@@ -61,7 +61,6 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
     @Before
     public void before() throws Exception {
-        SyncManager.Debug.skipOnlineChecking = true;
         UserFactory.resetInstance();
     }
 
@@ -71,6 +70,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
             @Override
             protected void run() {
+                SyncManager.Debug.skipOnlineChecking = true;
                 user = UserFactory.getInstance().loginWithDefaultUser(Constants.AUTH_URL);
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
@@ -147,6 +147,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
             @Override
             protected void run() {
+                SyncManager.Debug.skipOnlineChecking = true;
                 user = UserFactory.getInstance().loginWithDefaultUser(Constants.AUTH_URL);
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
