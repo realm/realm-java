@@ -118,12 +118,12 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                 .build();
         final Realm realm = Realm.getInstance(syncConfig);
         final RealmResults<ProcessInfo> all = realm.where(ProcessInfo.class).findAll();
+        looperThread.keepStrongReference(all);
         all.addChangeListener(new RealmChangeListener<RealmResults<ProcessInfo>>() {
             @Override
             public void onChange(RealmResults<ProcessInfo> element) {
                 assertEquals(1, all.size());
                 assertEquals("Background_Process1", all.get(0).getName());
-                // FIXME: Doesn't work
                 realm.close();
                 user.logout();
 
@@ -202,6 +202,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                 .build();
         final Realm realm = Realm.getInstance(syncConfig);
         final RealmResults<TestObject> all = realm.where(TestObject.class).findAllSorted("intProp");
+        looperThread.keepStrongReference(all);
         final AtomicInteger listenerCalledCounter = new AtomicInteger(0);
         all.addChangeListener(new RealmChangeListener<RealmResults<TestObject>>() {
             @Override
