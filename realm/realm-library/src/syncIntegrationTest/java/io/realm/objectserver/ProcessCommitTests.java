@@ -32,6 +32,7 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
+import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.log.LogLevel;
@@ -60,6 +61,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
     @Before
     public void before() throws Exception {
+        SyncManager.Debug.skipOnlineChecking = true;
         UserFactory.resetInstance();
     }
 
