@@ -17,24 +17,34 @@ package io.realm;
 
 
 public final class RealmInteger extends Number implements Comparable<RealmInteger> {
-    private long val;
+    private long value;
 
-    public RealmInteger(String val) {
-        this.val = Long.parseLong(val);
+    /**
+     * Create a new realm integer, with the specified initial value.
+     *
+     * @param value initial value
+     */
+    public RealmInteger(long value) {
+        this.value = value;
     }
 
-    public RealmInteger(long val) {
-        this.val = val;
+    /**
+     * Create a new realm integer, with the specified initial value.
+     *
+     * @param value initial value: parsed by {@code Long.parseLong}
+     */
+    public RealmInteger(String value) {
+        this.value = Long.parseLong(value);
     }
 
     /**
      * Set the RealmInteger value.
      * This obliterates any distributed counters and forces the value.
      *
-     * @param newVal
+     * @param newValue new value
      */
-    public void set(long newVal) {
-        val = newVal;
+    public void set(long newValue) {
+        value = newValue;
     }
 
     /**
@@ -44,7 +54,7 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      * @param inc quantity to be added to the counter
      */
     public void increment(long inc) {
-        val += inc;
+        value += inc;
     }
 
     /**
@@ -54,7 +64,7 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      * @param dec quantity to be subtracted from the counter
      */
     public void decrement(long dec) {
-        val -= dec;
+        value -= dec;
     }
 
     /**
@@ -62,7 +72,7 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      */
     @Override
     public byte byteValue() {
-        return (byte) val;
+        return (byte) value;
     }
 
     /**
@@ -70,7 +80,7 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      */
     @Override
     public double doubleValue() {
-        return (double) val;
+        return (double) value;
     }
 
     /**
@@ -78,7 +88,7 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      */
     @Override
     public float floatValue() {
-        return (float) val;
+        return (float) value;
     }
 
     /**
@@ -86,7 +96,7 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      */
     @Override
     public int intValue() {
-        return (int) val;
+        return (int) value;
     }
 
     /**
@@ -94,7 +104,7 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      */
     @Override
     public long longValue() {
-        return val;
+        return value;
     }
 
     /**
@@ -102,7 +112,7 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      */
     @Override
     public short shortValue() {
-        return (short) val;
+        return (short) value;
     }
 
     /**
@@ -110,8 +120,8 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      */
     @Override
     public int compareTo(RealmInteger o) {
-        long otherVal = o.val;
-        return (val == otherVal) ? 0 : ((val > otherVal) ? 1 : -1);
+        long otherValue = o.value;
+        return (value == otherValue) ? 0 : ((value > otherValue) ? 1 : -1);
     }
 
     /**
@@ -119,7 +129,7 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      */
     @Override
     public String toString() {
-        return String.valueOf(val);
+        return String.valueOf(value);
     }
 
     /**
@@ -127,7 +137,7 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      */
     @Override
     public int hashCode() {
-        return (int) (val ^ (val >>> 32));
+        return (int) (value ^ (value >>> 32));
     }
 
     /**
@@ -138,6 +148,6 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
         if (o == this) { return true; }
         if (!(o instanceof RealmInteger)) { return false; }
         RealmInteger other = (RealmInteger) o;
-        return other.val == val;
+        return other.value == value;
     }
 }

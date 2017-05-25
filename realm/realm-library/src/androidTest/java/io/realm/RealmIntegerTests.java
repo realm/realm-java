@@ -60,7 +60,7 @@ public class RealmIntegerTests {
     }
 
     @Test
-    public void testBasic() {
+    public void basic() {
         RealmInteger ri1 = new RealmInteger(10);
         RealmInteger ri2 = new RealmInteger("10");
         assertEquals(ri1, ri2);
@@ -72,7 +72,7 @@ public class RealmIntegerTests {
     }
 
     @Test
-    public void testGetters() {
+    public void getters() {
         RealmInteger ri = new RealmInteger(0x04433332211L);
 
         // positive
@@ -95,9 +95,21 @@ public class RealmIntegerTests {
         assertEquals(ri.doubleValue(), -8.6085556266690468E18);
     }
 
+    @Test
+    public void compareTo() {
+        RealmInteger ri1 = new RealmInteger(10);
+        RealmInteger ri2 = new RealmInteger("11");
+
+        assertEquals(ri1.compareTo(ri2), -1);
+        ri2.decrement(1);
+        assertEquals(ri1.compareTo(ri2), 0);
+        ri2.decrement(1);
+        assertEquals(ri1.compareTo(ri2), 1);
+    }
+
     @Ignore("not yet implemented")
     @Test
-    public void testImport() {
+    public void importedInteger() {
         final RealmInteger ri = new RealmInteger(5);
 
         realm.executeTransaction(
@@ -121,7 +133,7 @@ public class RealmIntegerTests {
 
     @Ignore("not yet implemented")
     @Test
-    public void testExport() {
+    public void exportedInteger() {
         realm.beginTransaction();
         AllTypes allTypes = realm.createObject(AllTypes.class);
         allTypes.setColumnRealmInteger(new RealmInteger(5));
@@ -144,7 +156,7 @@ public class RealmIntegerTests {
 
     @Ignore("not yet implemented")
     @Test
-    public void testCopyTo() {
+    public void copyTo() {
         final AllTypes allTypes = new AllTypes();
         RealmInteger ri = new RealmInteger(5);
         allTypes.setColumnRealmInteger(ri);
@@ -170,7 +182,7 @@ public class RealmIntegerTests {
 
     @Ignore("not yet implemented")
     @Test
-    public void testCopyFrom() {
+    public void copyFrom() {
         realm.executeTransaction(
                 new Realm.Transaction() {
                     @Override
@@ -196,7 +208,7 @@ public class RealmIntegerTests {
 
     @Ignore("not yet implemented")
     @Test
-    public void testUpdateManagedOutsideTransactionFails() {
+    public void updateManagedOutsideTransactionFails() {
         realm.executeTransaction(
                 new Realm.Transaction() {
                     @Override
