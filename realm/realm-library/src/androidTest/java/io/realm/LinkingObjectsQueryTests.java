@@ -17,7 +17,6 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -30,7 +29,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@Ignore
+//@Ignore
 @RunWith(AndroidJUnit4.class)
 public class LinkingObjectsQueryTests extends QueryTests {
 
@@ -104,7 +103,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
         RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
                 .lessThan(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_ID, 2)
                 .findAll();
-        assertEquals(1, result.size());
+        assertEquals(2, result.size());
         assertTrue(result.contains(gen2A));
     }
 
@@ -393,13 +392,14 @@ public class LinkingObjectsQueryTests extends QueryTests {
     @Test
     public void isEmpty_acrossLinkingObjectListLink() {
         createIsEmptyDataSet(realm);
+        assertEquals(2, realm.where(AllJavaTypes.class).findAll().size());
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
                 case STRING:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_STRING).count());
+                    assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_STRING).count());
                     break;
                 case BINARY:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BINARY).count());
+                    assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BINARY).count());
                     break;
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LIST).count());
@@ -472,6 +472,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
     @Test
     public void isNotEmpty_acrossLinkingObjectListLink() {
         createIsEmptyDataSet(realm);
+        assertEquals(2, realm.where(AllJavaTypes.class).findAll().size());
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
                 case STRING:
@@ -497,13 +498,13 @@ public class LinkingObjectsQueryTests extends QueryTests {
     // Creates 3 NullTypes objects. The objects are self-referenced (link) in
     // order to test link queries.
     //
-    // +-+--------+------+---------+--------+--------------------+
-    // | | string | link | numeric | binary | numeric (not null) |
-    // +-+--------+------+---------+--------+--------------------+
-    // |0| Fish   |    0 |       1 |    {0} |                  1 |
-    // |1| null   | null |    null |   null |                  0 |
-    // |2| Horse  |    1 |       3 |  {1,2} |                  3 |
-    // +-+--------+------+---------+--------+--------------------+
+    // +-+--------+------+---------+--------+--------------------+----------+
+    // | | string | link | numeric | binary | numeric (not null) | linklist |
+    // +-+--------+------+---------+--------+--------------------+----------+
+    // |0| Fish   |    0 |       1 |    {0} |                  1 |      [0] |
+    // |1| null   |    2 |    null |   null |                  0 |      [2] |
+    // |2| Horse  | null |       3 |  {1,2} |                  3 |     null |
+    // +-+--------+------+---------+--------+--------------------+----------+
     private void populateTestRealmForNullTests(Realm testRealm) {
         // 1 String
         String[] words = {"Fish", null, "Horse"};
@@ -565,8 +566,12 @@ public class LinkingObjectsQueryTests extends QueryTests {
             nullTypesArray[i] = testRealm.copyToRealm(nullTypes);
         }
         nullTypesArray[0].setFieldObjectNull(nullTypesArray[0]);
-        nullTypesArray[1].setFieldObjectNull(null);
-        nullTypesArray[2].getFieldListNull().add(nullTypesArray[1]);
+        nullTypesArray[1].setFieldObjectNull(nullTypesArray[2]);
+        nullTypesArray[2].setFieldObjectNull(null);
+
+        nullTypesArray[0].getFieldListNull().add(nullTypesArray[1]);
+        nullTypesArray[1].getFieldListNull().add(nullTypesArray[2]);
+        nullTypesArray[2].getFieldListNull().clear(); // just to be sure
         testRealm.commitTransaction();
     }
 }
