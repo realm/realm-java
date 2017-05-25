@@ -16,7 +16,6 @@
 
 package io.realm.objectserver;
 
-import android.annotation.SuppressLint;
 import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -68,7 +67,6 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
             @Override
             protected void run() {
-                Realm.init(RemoteTestService.thiz.getApplicationContext());
                 user = UserFactory.getInstance().loginWithDefaultUser(Constants.AUTH_URL);
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
@@ -144,7 +142,6 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
             @Override
             protected void run() {
-                Realm.init(RemoteTestService.thiz.getApplicationContext());
                 user = UserFactory.getInstance().loginWithDefaultUser(Constants.AUTH_URL);
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
