@@ -34,6 +34,8 @@ import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.utils.Constants;
@@ -103,6 +105,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     @RunTestWithRemoteService(SimpleCommitRemoteService.class)
     @RunTestInLooperThread
     public void expectSimpleCommit() {
+        RealmLog.setLevel(LogLevel.ALL);
         remoteService.createHandler(Looper.myLooper());
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);

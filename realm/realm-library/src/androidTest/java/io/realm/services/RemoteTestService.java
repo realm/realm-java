@@ -111,7 +111,7 @@ public abstract class RemoteTestService extends Service {
         rootFolder.mkdir();
 
         Realm.init(getApplicationContext());
-        RealmLog.setLevel(LogLevel.DEBUG);
+        RealmLog.setLevel(LogLevel.ALL);
     }
 
     public File getRoot() {
