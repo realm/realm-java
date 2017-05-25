@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.Realm;
+import io.realm.SyncManager;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 
@@ -110,6 +111,7 @@ public abstract class RemoteTestService extends Service {
         //noinspection ResultOfMethodCallIgnored
         rootFolder.mkdir();
 
+        SyncManager.Debug.skipOnlineChecking = true;
         Realm.init(getApplicationContext());
         RealmLog.setLevel(LogLevel.ALL);
     }
