@@ -27,19 +27,16 @@ import org.junit.runner.RunWith;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
-import io.realm.SyncSession;
 import io.realm.SyncUser;
-import io.realm.log.LogLevel;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.utils.Constants;
+import io.realm.objectserver.utils.RemoteIntegrationTestService;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -48,7 +45,6 @@ import io.realm.rule.RunWithRemoteService;
 import io.realm.services.RemoteTestService;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 
 @RunWith(AndroidJUnit4.class)
@@ -64,13 +60,12 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         UserFactory.resetInstance();
     }
 
-    public static class SimpleCommitRemoteService extends RemoteTestService {
+    public static class SimpleCommitRemoteService extends RemoteIntegrationTestService {
         private static SyncUser user;
         public static final Step stepA_openRealmAndCreateOneObject = new Step(RemoteTestService.BASE_SIMPLE_COMMIT, 1) {
 
             @Override
             protected void run() {
-                SyncManager.Debug.skipOnlineChecking = true;
                 user = UserFactory.getInstance().loginWithDefaultUser(Constants.AUTH_URL);
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
@@ -107,19 +102,12 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     @RunTestWithRemoteService(SimpleCommitRemoteService.class)
     @RunTestInLooperThread
     public void expectSimpleCommit() {
-        RealmLog.setLevel(LogLevel.ALL);
         remoteService.createHandler(Looper.myLooper());
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
                 .directory(looperThread.getRoot())
-                .errorHandler(new SyncSession.ErrorHandler() {
-                    @Override
-                    public void onError(SyncSession session, ObjectServerError error) {
-                        fail("Sync failure: " + error);
-                    }
-                })
                 .build();
         final Realm realm = Realm.getInstance(syncConfig);
         final RealmResults<ProcessInfo> all = realm.where(ProcessInfo.class).findAll();
@@ -141,13 +129,12 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         remoteService.triggerServiceStep(SimpleCommitRemoteService.stepA_openRealmAndCreateOneObject);
     }
 
-    public static class ALotCommitsRemoteService extends RemoteTestService {
+    public static class ALotCommitsRemoteService extends RemoteIntegrationTestService {
         private static SyncUser user;
         public static final Step stepA_openRealm = new Step(RemoteTestService.BASE_A_LOT_COMMITS, 1) {
 
             @Override
             protected void run() {
-                SyncManager.Debug.skipOnlineChecking = true;
                 user = UserFactory.getInstance().loginWithDefaultUser(Constants.AUTH_URL);
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
@@ -199,12 +186,6 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
                 .directory(looperThread.getRoot())
-                .errorHandler(new SyncSession.ErrorHandler() {
-                    @Override
-                    public void onError(SyncSession session, ObjectServerError error) {
-                        fail("Sync failure: " + error);
-                    }
-                })
                 .build();
         final Realm realm = Realm.getInstance(syncConfig);
         final RealmResults<TestObject> all = realm.where(TestObject.class).findAllSorted("intProp");
