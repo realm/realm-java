@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.Realm;
-import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 
 /**
@@ -111,7 +110,6 @@ public abstract class RemoteTestService extends Service {
         rootFolder.mkdir();
 
         Realm.init(getApplicationContext());
-        RealmLog.setLevel(LogLevel.ALL);
     }
 
     public File getRoot() {
