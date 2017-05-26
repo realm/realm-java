@@ -27,13 +27,13 @@
           Figure out why. For now place services here
           -->
         <service
-            android:name="io.realm.objectserver.ProcessCommitTests$SimpleCommitRemoteService"
+            android:name="io.realm.objectserver.integrationtest.ProcessCommitTests$SimpleCommitRemoteService"
             android:enabled="true"
             android:exported="true"
             android:process=":remote">
         </service>
         <service
-            android:name="io.realm.objectserver.ProcessCommitTests$ALotCommitsRemoteService"
+            android:name="io.realm.objectserver.integrationtest.ProcessCommitTests$ALotCommitsRemoteService"
             android:enabled="true"
             android:exported="true"
             android:process=":remote">

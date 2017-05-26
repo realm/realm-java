@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm.objectserver.integrationtest;
 
 import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
@@ -32,6 +32,7 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
 import io.realm.SyncUser;
+import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.utils.Constants;
@@ -175,7 +176,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     // B. Create 100 objects.
     // 2. Check if the 100 objects are received.
     // #. Repeat B/2 10 times.
-    @Test
+    //@Test
     @RunTestWithRemoteService(ALotCommitsRemoteService.class)
     @RunTestInLooperThread
     public void expectALot() throws Throwable {
