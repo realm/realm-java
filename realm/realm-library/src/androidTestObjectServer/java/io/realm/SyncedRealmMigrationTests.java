@@ -276,4 +276,27 @@ public class SyncedRealmMigrationTests {
             realm.close();
         }
     }
+
+    // The remote Realm containing more field than the local typed Realm defined is allowed.
+    @Test
+    public void moreFieldsThanExpectedIsAllowed() {
+        SyncConfiguration config = configFactory
+                .createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .schema(StringOnly.class)
+                .build();
+
+        // Initialize schema
+        Realm realm = Realm.getInstance(config);
+        realm.beginTransaction();
+        RealmObjectSchema objectSchema = realm.getSchema().getSchemaForClass(StringOnly.class);
+        // Add one extra field which doesn't exist in the typed Realm.
+        objectSchema.addField("oneMoreField", int.class);
+        realm.commitTransaction();
+        // Clear column indices cache.
+        realm.close();
+
+        // Verify schema again.
+        realm = Realm.getInstance(config);
+        realm.close();
+    }
 }
