@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -37,6 +38,40 @@ import javax.tools.JavaFileObject;
 
 public class RealmProxyClassGenerator {
     private static final String BACKLINKS_FIELD_EXTENSION = "Backlinks";
+
+    private static final List<String> IMPORTS;
+    static {
+        List<String> l = new ArrayList<String>();
+        l.add("android.annotation.TargetApi");
+        l.add("android.os.Build");
+        l.add("android.util.JsonReader");
+        l.add("android.util.JsonToken");
+        l.add("io.realm.RealmObjectSchema");
+        l.add("io.realm.exceptions.RealmMigrationNeededException");
+        l.add("io.realm.internal.ColumnInfo");
+        l.add("io.realm.internal.LinkView");
+        l.add("io.realm.internal.OsObject");
+        l.add("io.realm.internal.RealmObjectProxy");
+        l.add("io.realm.internal.Row");
+        l.add("io.realm.internal.SharedRealm");
+        l.add("io.realm.internal.Table");
+        l.add("io.realm.internal.UncheckedRow");
+        l.add("io.realm.internal.android.JsonUtils");
+        l.add("io.realm.internal.counters.ManagedRealmInteger");
+        l.add("io.realm.log.RealmLog");
+        l.add("java.io.IOException");
+        l.add("java.util.ArrayList");
+        l.add("java.util.Collections");
+        l.add("java.util.List");
+        l.add("java.util.Iterator");
+        l.add("java.util.Date");
+        l.add("java.util.Map");
+        l.add("java.util.HashMap");
+        l.add("org.json.JSONObject");
+        l.add("org.json.JSONException");
+        l.add("org.json.JSONArray");
+        IMPORTS = Collections.unmodifiableList(l);
+    }
 
     private final ProcessingEnvironment processingEnvironment;
     private final ClassMetaData metadata;
@@ -65,39 +100,7 @@ public class RealmProxyClassGenerator {
         writer.emitPackage(Constants.REALM_PACKAGE_NAME)
                 .emitEmptyLine();
 
-        ArrayList<String> imports = new ArrayList<String>();
-        imports.add("android.annotation.TargetApi");
-        imports.add("android.os.Build");
-        imports.add("android.util.JsonReader");
-        imports.add("android.util.JsonToken");
-        imports.add("io.realm.RealmObjectSchema");
-        imports.add("io.realm.RealmSchema");
-        imports.add("io.realm.exceptions.RealmMigrationNeededException");
-        imports.add("io.realm.internal.ColumnInfo");
-        imports.add("io.realm.internal.RealmObjectProxy");
-        imports.add("io.realm.internal.Row");
-        imports.add("io.realm.internal.Table");
-        imports.add("io.realm.internal.OsObject");
-        imports.add("io.realm.internal.SharedRealm");
-        if (!metadata.getBacklinkFields().isEmpty()) {
-            imports.add("io.realm.internal.UncheckedRow");
-        }
-        imports.add("io.realm.internal.LinkView");
-        imports.add("io.realm.internal.android.JsonUtils");
-        imports.add("io.realm.log.RealmLog");
-        imports.add("java.io.IOException");
-        imports.add("java.util.ArrayList");
-        imports.add("java.util.Collections");
-        imports.add("java.util.List");
-        imports.add("java.util.Iterator");
-        imports.add("java.util.Date");
-        imports.add("java.util.Map");
-        imports.add("java.util.HashMap");
-        imports.add("org.json.JSONObject");
-        imports.add("org.json.JSONException");
-        imports.add("org.json.JSONArray");
-
-        writer.emitImports(imports)
+        writer.emitImports(IMPORTS)
                 .emitEmptyLine();
 
         // Begin the class definition
@@ -259,6 +262,8 @@ public class RealmProxyClassGenerator {
 
             if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
                 emitPrimitiveType(writer, field, fieldName, fieldTypeCanonicalName);
+            } else if (Utils.isRealmInteger(field)) {
+                emitRealmInteger(writer, field, fieldName, fieldTypeCanonicalName);
             } else if (Utils.isRealmModel(field)) {
                 emitRealmModel(writer, field, fieldName, fieldTypeCanonicalName);
             } else if (Utils.isRealmList(field)) {
@@ -367,6 +372,18 @@ public class RealmProxyClassGenerator {
                     fieldJavaType, fieldIndexVariableReference(field));
         }
         writer.endMethod();
+    }
+
+    private void emitRealmInteger(JavaWriter writer, VariableElement field, String fieldName, String fieldTypeCanonicalName) throws IOException {
+        writer.emitAnnotation("Override");
+        writer.beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
+                .emitStatement("return new ManagedRealmInteger(0)")
+                .endMethod()
+                .emitEmptyLine();
+
+        writer.beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
+                .endMethod()
+                .emitEmptyLine();
     }
 
     /**
@@ -761,8 +778,7 @@ public class RealmProxyClassGenerator {
                 "Either remove field or migrate using io.realm.internal.Table.addColumn()." +
                 "\")", fieldName);
         writer.endControlFlow();
-        writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)",
-                fieldName, getRealmTypeChecked(field).getRealmType());
+        writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)", fieldName, getRealmTypeChecked(field).getRealmType());
         emitMigrationNeededException(writer, "\"Invalid type '%s' for field '%s' in existing Realm file.\")",
                 Utils.getFieldTypeSimpleName(field), fieldName);
         writer.endControlFlow();
@@ -1042,6 +1058,17 @@ public class RealmProxyClassGenerator {
                 || "java.lang.Byte".equals(fieldType)) {
             writer
                     .emitStatement("Number %s = ((%s)object).%s()", getter, interfaceName, getter)
+                    .beginControlFlow("if (%s != null)", getter)
+                    .emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sIndex, rowIndex, %s.longValue(), false)", fieldName, getter);
+            if (isUpdate) {
+                writer.nextControlFlow("else")
+                        .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex, false)", fieldName);
+            }
+            writer.endControlFlow();
+
+        } else if ("io.realm.RealmInteger".equals(fieldType)) {
+            writer
+                    .emitStatement("io.realm.RealmInteger %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
                     .emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sIndex, rowIndex, %s.longValue(), false)", fieldName, getter);
             if (isUpdate) {
@@ -2072,6 +2099,9 @@ public class RealmProxyClassGenerator {
         Constants.RealmFieldType type = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
         if (type != null) {
             return type;
+        }
+        if (Utils.isRealmInteger(field)) {
+            return Constants.RealmFieldType.COUNTER;
         }
         if (Utils.isRealmModel(field)) {
             return Constants.RealmFieldType.OBJECT;

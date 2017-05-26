@@ -16,22 +16,23 @@
 package io.realm;
 
 import io.realm.annotations.Beta;
+import io.realm.internal.ManagableObject;
+import io.realm.internal.counters.UnmanagedRealmInteger;
 
 
 /**
  * TODO: document the behaviour of this object, as soon as the implementation defines it.
  */
 @Beta
-public final class RealmInteger extends Number implements Comparable<RealmInteger> {
-    private long value;
+public abstract class RealmInteger extends Number implements Comparable<RealmInteger>, ManagableObject {
 
     /**
      * Creates a new {@code RealmInteger}, with the specified initial value.
      *
      * @param value initial value.
      */
-    public RealmInteger(long value) {
-        this.value = value;
+    public static RealmInteger valueOf(long value) {
+        return new UnmanagedRealmInteger(value);
     }
 
     /**
@@ -39,8 +40,8 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      *
      * @param value initial value: parsed by {@code Long.parseLong}.
      */
-    public RealmInteger(String value) {
-        this.value = Long.parseLong(value);
+    public static RealmInteger valueOf(String value) {
+        return new UnmanagedRealmInteger(Long.parseLong(value));
     }
 
     /**
@@ -50,9 +51,7 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      *
      * @param newValue new value.
      */
-    public void set(long newValue) {
-        value = newValue;
-    }
+    public abstract void set(long newValue);
 
     /**
      * Increments the {@code RealmInteger}, adding the value of the argument.
@@ -60,9 +59,7 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      *
      * @param inc quantity to be added to the counter.
      */
-    public void increment(long inc) {
-        value += inc;
-    }
+    public abstract void increment(long inc);
 
     /**
      * Decrements the {@code RealmInteger}, subtracting the value of the argument.
@@ -70,91 +67,54 @@ public final class RealmInteger extends Number implements Comparable<RealmIntege
      *
      * @param dec quantity to be subtracted from the counter.
      */
-    public void decrement(long dec) {
-        value -= dec;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public byte byteValue() {
-        return (byte) value;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public double doubleValue() {
-        return (double) value;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public float floatValue() {
-        return (float) value;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int intValue() {
-        return (int) value;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long longValue() {
-        return value;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public short shortValue() {
-        return (short) value;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int compareTo(RealmInteger o) {
-        long otherValue = o.value;
-        return (value == otherValue) ? 0 : ((value > otherValue) ? 1 : -1);
-    }
+    public abstract void decrement(long dec);
 
     /**
      * {@inheritDoc}
      */
     @Override
     public String toString() {
-        return String.valueOf(value);
+        return String.valueOf(longValue());
     }
 
     /**
-     * {@inheritDoc}
+     * RealmIntegers compare strictly by their values.
+     * Final to ensure contract over all subclasses
+     *
+     * @param o the compare target
+     * @return -1, 0, or 1, depending on whether this object's value is &gt;, =, or &lt; the target's.
      */
     @Override
-    public int hashCode() {
-        return (int) (value ^ (value >>> 32));
+    public final int compareTo(RealmInteger o) {
+        long otherValue = o.longValue();
+        long thisValue = longValue();
+
+        return (thisValue == otherValue) ? 0 : ((thisValue > otherValue) ? 1 : -1);
     }
 
     /**
-     * {@inheritDoc}
+     * A RealmInteger's hash code depends only on its value.
+     * Must be final to ensure contract over all subclasses
+     *
+     * @return true if the target has the same value.
      */
     @Override
-    public boolean equals(Object o) {
+    public final int hashCode() {
+        long thisValue = longValue();
+        return (int) (thisValue ^ (thisValue >>> 32));
+    }
+
+    /**
+     * Two RealmIntegers are {@code .equals} if and only if their longValues are equal.
+     * Must be final to ensure contract over all subclasses
+     *
+     * @param o compare target
+     * @return true if the target has the same value.
+     */
+    @Override
+    public final boolean equals(Object o) {
         if (o == this) { return true; }
         if (!(o instanceof RealmInteger)) { return false; }
-        RealmInteger other = (RealmInteger) o;
-        return other.value == value;
+        return longValue() == ((RealmInteger) o).longValue();
     }
 }

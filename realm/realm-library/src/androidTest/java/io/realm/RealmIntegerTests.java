@@ -63,8 +63,8 @@ public class RealmIntegerTests {
      */
     @Test
     public void basic() {
-        RealmInteger ri1 = new RealmInteger(10);
-        RealmInteger ri2 = new RealmInteger("10");
+        RealmInteger ri1 = RealmInteger.valueOf(10);
+        RealmInteger ri2 = RealmInteger.valueOf("10");
         assertEquals(ri1, ri2);
 
         ri1.set(15);
@@ -83,7 +83,7 @@ public class RealmIntegerTests {
      */
     @Test
     public void getters() {
-        RealmInteger ri = new RealmInteger(0x5555444433332211L);
+        RealmInteger ri = RealmInteger.valueOf(0x5555444433332211L);
 
         // positive
         assertEquals(0x5555444433332211L, ri.longValue());
@@ -110,8 +110,8 @@ public class RealmIntegerTests {
      */
     @Test
     public void compareTo() {
-        RealmInteger ri1 = new RealmInteger(10);
-        RealmInteger ri2 = new RealmInteger("11");
+        RealmInteger ri1 = RealmInteger.valueOf(10);
+        RealmInteger ri2 = RealmInteger.valueOf("11");
 
         assertEquals(-1, ri1.compareTo(ri2));
         ri2.decrement(1);
@@ -125,15 +125,15 @@ public class RealmIntegerTests {
      */
     @Test
     public void increment_underFlowAndOverflow() {
-        RealmInteger ri = new RealmInteger(Long.MAX_VALUE);
+        RealmInteger ri = RealmInteger.valueOf(Long.MAX_VALUE);
         ri.increment(1);
         assertEquals(Long.MIN_VALUE, ri.longValue());
 
-        ri = new RealmInteger(1);
+        ri = RealmInteger.valueOf(1);
         ri.increment(Long.MAX_VALUE);
         assertEquals(Long.MIN_VALUE, ri.longValue());
 
-        ri = new RealmInteger(-1);
+        ri = RealmInteger.valueOf(-1);
         ri.increment(Long.MIN_VALUE);
         assertEquals(Long.MAX_VALUE, ri.longValue());
     }
@@ -143,15 +143,15 @@ public class RealmIntegerTests {
      */
     @Test
     public void decrement_underFlowAndOverflow() {
-        RealmInteger ri = new RealmInteger(Long.MIN_VALUE);
+        RealmInteger ri = RealmInteger.valueOf(Long.MIN_VALUE);
         ri.decrement(1);
         assertEquals(Long.MAX_VALUE, ri.longValue());
 
-        ri = new RealmInteger(0);
+        ri = RealmInteger.valueOf(0);
         ri.decrement(Long.MIN_VALUE);
         assertEquals(Long.MIN_VALUE, ri.longValue());
 
-        ri = new RealmInteger(-2);
+        ri = RealmInteger.valueOf(-2);
         ri.decrement(Long.MAX_VALUE);
         assertEquals(Long.MAX_VALUE, ri.longValue());
     }
@@ -162,7 +162,7 @@ public class RealmIntegerTests {
     @Ignore("not yet implemented")
     @Test
     public void isLive() {
-        RealmInteger unmanagedRI = new RealmInteger(5);
+        RealmInteger unmanagedRI = RealmInteger.valueOf(5);
 
         realm.beginTransaction();
         realm.createObject(AllTypes.class).setColumnRealmInteger(unmanagedRI);
@@ -188,7 +188,7 @@ public class RealmIntegerTests {
     @Test
     public void copyToisLive() {
         AllTypes at = realm.createObject(AllTypes.class);
-        at.setColumnRealmInteger(new RealmInteger(5));
+        at.setColumnRealmInteger(RealmInteger.valueOf(5));
         RealmInteger unmanagedRI = at.getColumnRealmInteger();
 
         realm.beginTransaction();
@@ -214,7 +214,7 @@ public class RealmIntegerTests {
     @Test
     public void copyFromIsNotLive() {
         realm.beginTransaction();
-        realm.createObject(AllTypes.class).setColumnRealmInteger(new RealmInteger(5));
+        realm.createObject(AllTypes.class).setColumnRealmInteger(RealmInteger.valueOf(5));
         realm.commitTransaction();
 
         AllTypes at = realm.where(AllTypes.class).findFirst();
@@ -239,7 +239,7 @@ public class RealmIntegerTests {
     @Test
     public void updateOutsideTransactionThrows() {
         realm.beginTransaction();
-        realm.createObject(AllTypes.class).setColumnRealmInteger(new RealmInteger(5));
+        realm.createObject(AllTypes.class).setColumnRealmInteger(RealmInteger.valueOf(5));
         realm.commitTransaction();
 
         RealmInteger managedRI = realm.where(AllTypes.class).findFirst().getColumnRealmInteger();
@@ -273,11 +273,11 @@ public class RealmIntegerTests {
     public void assignOutsideTransactionThrows() {
         realm.beginTransaction();
         AllTypes managedAllTypes = realm.createObject(AllTypes.class);
-        managedAllTypes.setColumnRealmInteger(new RealmInteger(5));
+        managedAllTypes.setColumnRealmInteger(RealmInteger.valueOf(5));
         realm.commitTransaction();
 
         try {
-            managedAllTypes.setColumnRealmInteger(new RealmInteger(7));
+            managedAllTypes.setColumnRealmInteger(RealmInteger.valueOf(7));
             fail("Assigning a managed RealmInteger outside a transaction should fail");
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("must be in a transaction"));

@@ -23,6 +23,7 @@ public class Utils {
 
     public static Types typeUtils;
     private static Messager messager;
+    private static TypeMirror realmInteger;
     private static DeclaredType realmList;
     private static DeclaredType realmResults;
     private static DeclaredType markerInterface;
@@ -31,10 +32,11 @@ public class Utils {
     public static void initialize(ProcessingEnvironment env) {
         typeUtils = env.getTypeUtils();
         messager = env.getMessager();
-        realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"),
-                typeUtils.getWildcardType(null, null));
-        realmResults = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmResults"),
-                typeUtils.getWildcardType(null, null));
+        realmInteger = env.getElementUtils().getTypeElement("io.realm.RealmInteger").asType();
+        realmList = typeUtils.getDeclaredType(
+                env.getElementUtils().getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
+        realmResults = typeUtils.getDeclaredType(
+                env.getElementUtils().getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null));
         realmModel = env.getElementUtils().getTypeElement("io.realm.RealmModel").asType();
         markerInterface = env.getTypeUtils().getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmModel"));
     }
@@ -144,6 +146,13 @@ public class Utils {
      */
     public static boolean isImplementingMarkerInterface(Element classElement) {
         return typeUtils.isAssignable(classElement.asType(), markerInterface);
+    }
+
+    /**
+     * @return {@code true} if a given field type is {@code RealmInteger}, {@code false} otherwise.
+     */
+    public static boolean isRealmInteger(VariableElement field) {
+        return typeUtils.isAssignable(field.asType(), realmInteger);
     }
 
     /**
