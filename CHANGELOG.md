@@ -1,4 +1,4 @@
-## 3.3.2 (YYYY-MM-DD)
+## 3.4.0 (YYYY-MM-DD)
 
 ### Breaking Changes
 
