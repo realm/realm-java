@@ -15,6 +15,10 @@
  */
 package io.realm.internal;
 
+/**
+ * This internal interface represents a java object that corresponds to data managed in the Realm core.
+ * It specifies the operations common to all such objects.
+ */
 public interface ManagedObject {
 
     /**
