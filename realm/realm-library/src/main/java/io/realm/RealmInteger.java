@@ -15,53 +15,56 @@
  */
 package io.realm;
 
-
+/**
+ * TODO: document the behaviour of this object, as soon as the implementation defines it.
+ */
 public final class RealmInteger extends Number implements Comparable<RealmInteger> {
     private long value;
 
     /**
-     * Create a new realm integer, with the specified initial value.
+     * Creates a new {@code RealmInteger}, with the specified initial value.
      *
-     * @param value initial value
+     * @param value initial value.
      */
     public RealmInteger(long value) {
         this.value = value;
     }
 
     /**
-     * Create a new realm integer, with the specified initial value.
+     * Creates a new realm integer, with the specified initial value.
      *
-     * @param value initial value: parsed by {@code Long.parseLong}
+     * @param value initial value: parsed by {@code Long.parseLong}.
      */
     public RealmInteger(String value) {
         this.value = Long.parseLong(value);
     }
 
     /**
-     * Set the RealmInteger value.
-     * This obliterates any distributed counters and forces the value.
+     * Sets the {@code RealmInteger} value.
+     * Calling set() forcibly sets the RealmInteger to the provided value. Doing this means that
+     * {@link #increment} and {@link #decrement} changes from other devices might be overridden.
      *
-     * @param newValue new value
+     * @param newValue new value.
      */
     public void set(long newValue) {
         value = newValue;
     }
 
     /**
-     * Increment the CRDT counter by adding the value of the argument.
+     * Increments the {@code RealmInteger}, adding the value of the argument.
      * Increment/decrement from all devices are reflected in the new value, which is guaranteed to converge.
      *
-     * @param inc quantity to be added to the counter
+     * @param inc quantity to be added to the counter.
      */
     public void increment(long inc) {
         value += inc;
     }
 
     /**
-     * Decrement the CRDT counter by subtracting the value of the argument.
+     * Decrements the {@code RealmInteger}, subtracting the value of the argument.
      * Increment/decrement from all devices are reflected in the new value, which is guaranteed to converge.
      *
-     * @param dec quantity to be subtracted from the counter
+     * @param dec quantity to be subtracted from the counter.
      */
     public void decrement(long dec) {
         value -= dec;
