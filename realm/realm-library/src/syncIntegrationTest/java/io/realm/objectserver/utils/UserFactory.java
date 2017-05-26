@@ -90,7 +90,6 @@ public class UserFactory {
     public static synchronized UserFactory getInstance() {
         if (instance == null)  {
             Realm realm = Realm.getInstance(configuration);
-            RealmLog.error("TTT " + realm.getPath());
             UserFactoryStore store = realm.where(UserFactoryStore.class).findFirst();
             if (store == null || store.getUserName() == null) {
                 throw new IllegalStateException("Current user has not been set. Call resetInstance() first.");
@@ -99,6 +98,7 @@ public class UserFactory {
             instance = new UserFactory(store.getUserName());
             realm.close();
         }
+        RealmLog.debug("UserFactory.getInstance, the default user is " + instance.userName + " .");
         return instance;
     }
 }
