@@ -20,6 +20,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 
+import io.realm.internal.ManagedObject;
+
 
 /**
  * {@code RealmCollection} is the root of the collection hierarchy that Realm supports. It defines operations on data
@@ -31,7 +33,7 @@ import java.util.Date;
  *
  * @param <E> type of {@link RealmObject} stored in the collection.
  */
-public interface RealmCollection<E extends RealmModel> extends Collection<E> {
+public interface RealmCollection<E extends RealmModel> extends Collection<E>, ManagedObject {
 
     /**
      * Returns a {@link RealmQuery}, which can be used to query for specific objects from this collection.
@@ -144,6 +146,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      *
      * @return {@code true} if it is still valid to use or an unmanaged collection, {@code false} otherwise.
      */
+    @Override
     boolean isValid();
 
     /**
@@ -159,6 +162,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      *
      * @return {@code true} if this is a managed {@link RealmCollection}, {@code false} otherwise.
      */
+    @Override
     boolean isManaged();
 
     /**

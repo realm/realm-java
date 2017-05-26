@@ -20,6 +20,7 @@ import android.app.IntentService;
 
 import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.ManagedObject;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import rx.Observable;
@@ -66,7 +67,7 @@ import rx.Observable;
  */
 
 @RealmClass
-public abstract class RealmObject implements RealmModel {
+public abstract class RealmObject implements RealmModel, ManagedObject {
 
     /**
      * Deletes the object from the Realm it is currently associated to.
@@ -128,6 +129,7 @@ public abstract class RealmObject implements RealmModel {
      * @return {@code true} if the object is still accessible or an unmanaged object, {@code false} otherwise.
      * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">Examples using Realm with RxJava</a>
      */
+    @Override
     public final boolean isValid() {
         return RealmObject.isValid(this);
     }
@@ -256,6 +258,7 @@ public abstract class RealmObject implements RealmModel {
      *
      * @return {@code true} if the object is managed, {@code false} if it is unmanaged.
      */
+    @Override
     public boolean isManaged() {
         return isManaged(this);
     }
