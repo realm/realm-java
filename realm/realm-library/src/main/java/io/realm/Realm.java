@@ -514,7 +514,7 @@ public class Realm extends BaseRealm {
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 String className = Table.getClassNameForTable(mediator.getTableName(modelClass));
                 Pair<Class<? extends RealmModel>, String> key = Pair.<Class<? extends RealmModel>, String>create(modelClass, className);
-                columnInfoMap.put(key, mediator.validateTable(modelClass, realm.sharedRealm, false));
+                columnInfoMap.put(key, mediator.validateTable(modelClass, realm.sharedRealm, true));
             }
             realm.getSchema().setInitialColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
 
