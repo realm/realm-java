@@ -31,7 +31,6 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
-import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.model.TestObject;
@@ -164,7 +163,6 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         public static final Step stepC_closeRealm = new Step(RemoteTestService.BASE_A_LOT_COMMITS, 3) {
             @Override
             protected void run() {
-                // FIXME: Doesn't work
                 getService().realm.close();
                 user.logout();
             }
@@ -205,8 +203,8 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                 assertEquals("Str" + (counter * 100 -1), all.last().getStringProp());
                 if (counter == 10) {
                     remoteService.triggerServiceStep(ALotCommitsRemoteService.stepC_closeRealm);
-                    // FIXME: Doesn't work
-                    //user.logout();
+                    realm.close();
+                    user.logout();
                     looperThread.testComplete();
                 } else {
                     remoteService.triggerServiceStep(ALotCommitsRemoteService.stepB_createObjects);
