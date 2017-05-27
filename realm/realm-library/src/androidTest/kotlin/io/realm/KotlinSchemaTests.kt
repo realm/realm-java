@@ -19,6 +19,7 @@ import android.support.test.runner.AndroidJUnit4
 import io.realm.entities.AllKotlinTypes
 import io.realm.rule.TestRealmConfigurationFactory
 import org.junit.After
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -51,12 +52,20 @@ class KotlinSchemaTests {
     fun kotlinTypeNonNull() {
         val objSchema = realm.getSchema().get(AllKotlinTypes::class.simpleName)
 
-        AllKotlinTypes::class.memberProperties
-                .filter { it.name.startsWith("nonNull") }
-                .forEach({
-                    // Document current nullability
-                    // TODO We should fix this. Tracked by https://github.com/realm/realm-java/issues/4701
-                    assertTrue("Field ${it.name} was not nullable as expected", objSchema.isNullable(it.name))
-                })
+        // Document current nullability. Ideally all should be non-nullable. This is currently
+        // not the case.
+        // TODO We should fix this. Tracked by https://github.com/realm/realm-java/issues/4701
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nonNullBinary.name));
+        assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullBoolean.name));
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nonNullString.name));
+        assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullLong.name));
+        assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullInt.name));
+        assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullShort.name));
+        assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullByte.name));
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nonNullDate.name));
+        assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullDouble.name));
+        assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullFloat.name));
+        assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullList.name));
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nonNullObject.name));
     }
 }
