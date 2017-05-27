@@ -79,9 +79,6 @@ android {
     }
 
     sourceSets {
-        androidTest {
-            java.srcDirs += 'src/benchmarks/java'
-        }
         androidTestObjectServer {
             java.srcDirs += 'src/syncIntegrationTest/java'
             assets.srcDirs += ['src/syncIntegrationTest/assets/']
@@ -162,8 +159,6 @@ dependencies {
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
-    androidTestCompile 'com.opencsv:opencsv:3.4'
-    androidTestCompile 'dk.ilios:spanner:0.6.0'
 }
 
 task sourcesJar(type: Jar) {
@@ -255,7 +250,6 @@ task checkstyle(type: Checkstyle) {
 
     source 'src'
     include '*/java/**/*.java'
-    exclude 'benchmarks/**'
     // Ingore tests for now.
     exclude '*Test*/**'
 
@@ -274,24 +268,6 @@ checkstyle {
     ignoreFailures = true
 }
 check.dependsOn tasks.checkstyle
-
-// Configuration options can be found here:
-// http://developer.android.com/reference/android/support/test/runner/AndroidJUnitRunner.html
-task connectedBenchmarks(type: GradleBuild) {
-    description = 'Run all benchmarks on connected devices'
-    group = 'Verification'
-    buildFile = file("${projectDir}/build.gradle")
-    startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.package', 'io.realm.benchmarks')
-    tasks = ['connectedCheck']
-}
-
-task connectedUnitTests(type: GradleBuild) {
-    description = 'Run all unit tests on connected devices'
-    group = 'Verification'
-    buildFile = file("${projectDir}/build.gradle")
-    startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.notPackage', 'io.realm.benchmarks')
-    tasks = ['connectedAndroidTest']
-}
 
 install {
     repositories.mavenInstaller {
