@@ -84,9 +84,11 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     private List<Realm> testRealms;
 
     // List of closable resources that will be automatically closed the the test finishes.
+    // Access guarded by 'lock'
     private List<Closeable> closableResources;
 
     // Runnable guaranteed to trigger after the test either succeeded or failed.
+    // Access guarded by 'lock'
     private Runnable runAfterTestIsComplete;
 
     /**
