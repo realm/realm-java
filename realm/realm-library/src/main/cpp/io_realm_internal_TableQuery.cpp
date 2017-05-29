@@ -1508,8 +1508,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
             return;
         }
 
+        // FIXME: Support a backlink as the last column in a field descriptor
         TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
-        // FIXME!!!  Support a backlink as the last column in a field descriptor
         int col_type = src_table_ref->get_column_type(S(column_idx));
         if (arr_len == 1) {
             switch (col_type) {
@@ -1712,7 +1712,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty(JNIEnv* e
         TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
         jlong column_idx = index_arr[arr_len - 1];
 
-        // FIXME!!!  Support a backlink as the last column in a field descriptor
+        // Support a backlink as the last column in a field descriptor
+        Table* last = TBL(table_arr[arr_len-1]);
+        if (last != nullptr) {
+            pQuery->and_query(src_table_ref->column<BackLink>(*last, S(column_idx)).count() == 0);
+            return;
+        }
+
         int col_type = src_table_ref->get_column_type(S(column_idx));
         if (arr_len == 1) {
             // Field queries
@@ -1777,7 +1783,13 @@ Java_io_realm_internal_TableQuery_nativeIsNotEmpty(JNIEnv *env, jobject, jlong n
         TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
         jlong column_idx = index_arr[arr_len - 1];
 
-        // FIXME!!!  Support a backlink as the last column in a field descriptor
+        // Support a backlink as the last column in a field descriptor
+        Table* last = TBL(table_arr[arr_len-1]);
+        if (last != nullptr) {
+            pQuery->and_query(src_table_ref->column<BackLink>(*last, S(column_idx)).count() != 0);
+            return;
+        }
+
         int col_type = src_table_ref->get_column_type(S(column_idx));
         if (arr_len == 1) {
             // Field queries

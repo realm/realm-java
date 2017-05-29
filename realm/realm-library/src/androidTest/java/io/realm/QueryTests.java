@@ -53,8 +53,8 @@ public abstract class QueryTests {
         ArrayList<RealmFieldType> list = new ArrayList<>(Arrays.asList(
                 RealmFieldType.STRING,
                 RealmFieldType.BINARY,
-                RealmFieldType.LIST));
-                // TODO: LINKING_OBJECTS should be supported
+                RealmFieldType.LIST,
+                RealmFieldType.LINKING_OBJECTS));
         SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
         SUPPORTED_IS_NOT_EMPTY_TYPES = Collections.unmodifiableList(list);
 
@@ -63,7 +63,6 @@ public abstract class QueryTests {
         list.remove(RealmFieldType.UNSUPPORTED_MIXED);
         list.remove(RealmFieldType.UNSUPPORTED_TABLE);
         list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        list.remove(RealmFieldType.LINKING_OBJECTS);
         NOT_SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
         NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = Collections.unmodifiableList(list);
     }
