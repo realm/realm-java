@@ -20,6 +20,7 @@ import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
+import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,14 +45,13 @@ import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 
 /**
  * Catch all class for tests that not naturally fit anywhere else.
  */
-@RunWith(JUnit4.class)
+@RunWith(AndroidJUnit4.class)
 public class SyncedRealmTests extends BaseIntegrationTest {
 
     @Rule

@@ -39,6 +39,7 @@ import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmAsyncTaskImpl;
@@ -528,55 +529,69 @@ final class RealmCache {
      * @throws RealmFileException if copying the file fails.
      */
     private static void copyAssetFileIfNeeded(RealmConfiguration configuration) {
-        IOException exceptionWhenClose = null;
         if (configuration.hasAssetFile()) {
             File realmFile = new File(configuration.getRealmDirectory(), configuration.getRealmFileName());
-            if (realmFile.exists()) {
-                return;
+
+            copyFileIfNeeded(configuration.getAssetFilePath(), realmFile);
+        }
+
+        // Copy Sync Server certificate path if available
+        String syncServerCertificateAssetName = ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).getSyncServerCertificateAssetName(configuration);
+        if (!Util.isEmptyString(syncServerCertificateAssetName)) {
+            String syncServerCertificateFilePath = ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).getSyncServerCertificateFilePath(configuration);
+
+            File certificateFile = new File(syncServerCertificateFilePath);
+            copyFileIfNeeded(syncServerCertificateAssetName, certificateFile);
+        }
+    }
+
+    private static void copyFileIfNeeded(String assetFileName, File file) {
+        if (file.exists()) {
+            return;
+        }
+
+        IOException exceptionWhenClose = null;
+        InputStream inputStream = null;
+        FileOutputStream outputStream = null;
+        try {
+            inputStream = BaseRealm.applicationContext.getAssets().open(assetFileName);
+            if (inputStream == null) {
+                throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
+                        "Invalid input stream to the asset file: " + assetFileName);
             }
 
-            InputStream inputStream = null;
-            FileOutputStream outputStream = null;
-            try {
-                inputStream = configuration.getAssetFile();
-                if (inputStream == null) {
-                    throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
-                            "Invalid input stream to asset file.");
+            outputStream = new FileOutputStream(file);
+            byte[] buf = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buf)) > -1) {
+                outputStream.write(buf, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
+                    "Could not resolve the path to the asset file: " + assetFileName, e);
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    exceptionWhenClose = e;
                 }
-
-                outputStream = new FileOutputStream(realmFile);
-                byte[] buf = new byte[4096];
-                int bytesRead;
-                while ((bytesRead = inputStream.read(buf)) > -1) {
-                    outputStream.write(buf, 0, bytesRead);
-                }
-            } catch (IOException e) {
-                throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
-                        "Could not resolve the path to the Realm asset file.", e);
-            } finally {
-                if (inputStream != null) {
-                    try {
-                        inputStream.close();
-                    } catch (IOException e) {
+            }
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    // Ignores this one if there was an exception when close inputStream.
+                    if (exceptionWhenClose == null) {
                         exceptionWhenClose = e;
                     }
                 }
-                if (outputStream != null) {
-                    try {
-                        outputStream.close();
-                    } catch (IOException e) {
-                        // Ignores this one if there was an exception when close inputStream.
-                        if (exceptionWhenClose == null) {
-                            exceptionWhenClose = e;
-                        }
-                    }
-                }
             }
+        }
 
-            // No other exception has been thrown, only the exception when close. So, throw it.
-            if (exceptionWhenClose != null) {
-                throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR, exceptionWhenClose);
-            }
+        // No other exception has been thrown, only the exception when close. So, throw it.
+        if (exceptionWhenClose != null) {
+            throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR, exceptionWhenClose);
         }
     }
 

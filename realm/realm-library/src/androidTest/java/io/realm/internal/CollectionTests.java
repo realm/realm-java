@@ -79,7 +79,7 @@ public class CollectionTests {
 
     private void populateData() {
         sharedRealm.beginTransaction();
-        table = sharedRealm.getTable("test_table");
+        table = sharedRealm.createTable("test_table");
         // Specify the column types and names
         long columnIdx = table.addColumn(RealmFieldType.STRING, "firstName");
         table.addSearchIndex(columnIdx);

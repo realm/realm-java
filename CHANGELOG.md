@@ -1,6 +1,34 @@
-## 3.2.1 (2017-05-19)
+## 3.4.0 (YYYY-MM-DD)
 
-### Deprecated
+### Breaking Changes
+
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+
+## 3.3.1 (2017-05-26)
+
+### Bug Fixes
+
+* Accept extra columns against synced Realm (#4706).
+
+
+## 3.3.0 (2017-05-24)
+
+### Enhancements
+
+* [ObjectServer] Added two options to `SyncConfiguration` to provide a trusted root CA `trustedRootCA` and to disable SSL validation `disableSSLVerification` (#4371).
+* [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` using an admin user (#4588).
+
+### Bug Fixes
+
+* Queries on proguarded Realm model classes, failed with "Table not found" (#4673).
+
+
+## 3.2.1 (2017-05-19)
 
 ### Enhancements
 
@@ -8,8 +36,8 @@
 
 ### Bug Fixes
 
-* [ObjectServer] `schemaVersion` was mistakenly required in order to trigger migrations (#4658). 
-* [ObjectServer] Fields removed from model classes will now correctly be hidden instead of throwing an exception when opening the Realm (#4658). 
+* [ObjectServer] `schemaVersion` was mistakenly required in order to trigger migrations (#4658).
+* [ObjectServer] Fields removed from model classes will now correctly be hidden instead of throwing an exception when opening the Realm (#4658).
 * Fixed random crashes which were caused by a race condition in encrypted Realm (#4343).
 
 ### Internal
