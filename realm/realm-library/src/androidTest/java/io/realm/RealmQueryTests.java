@@ -18,21 +18,13 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -52,9 +44,7 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -2696,6 +2686,10 @@ public class RealmQueryTests extends QueryTests {
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LIST).count());
                     break;
+                case LINKING_OBJECTS:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST).count());
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -2715,6 +2709,10 @@ public class RealmQueryTests extends QueryTests {
                     break;
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
+                    break;
+                case LINKING_OBJECTS:
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
+                    assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2781,6 +2779,10 @@ public class RealmQueryTests extends QueryTests {
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LIST).count());
                     break;
+                case LINKING_OBJECTS:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST).count());
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -2800,6 +2802,10 @@ public class RealmQueryTests extends QueryTests {
                     break;
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
+                    break;
+                case LINKING_OBJECTS:
+                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
