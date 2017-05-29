@@ -312,7 +312,7 @@ public class JNITableTest {
 
             // Writes transaction must be run so we are sure a db exists with the correct table.
             sharedRealm.beginTransaction();
-            sharedRealm.getTable(TABLE_NAME);
+            sharedRealm.createTable(TABLE_NAME);
             sharedRealm.commitTransaction();
 
             Table table = sharedRealm.getTable(TABLE_NAME);
@@ -600,7 +600,7 @@ public class JNITableTest {
         //noinspection TryFinallyCanBeTryWithResources
         try {
             sharedRealm.beginTransaction();
-            final Table table = sharedRealm.getTable(Table.getTableNameForClass("DefaultValueTest"));
+            final Table table = sharedRealm.createTable(Table.getTableNameForClass("DefaultValueTest"));
             sharedRealm.commitTransaction();
 
             List<Pair<RealmFieldType, Object>> columnInfoList = Arrays.asList(
@@ -723,7 +723,7 @@ public class JNITableTest {
         //noinspection TryFinallyCanBeTryWithResources
         try {
             sharedRealm.beginTransaction();
-            final Table table = sharedRealm.getTable(Table.getTableNameForClass("DefaultValueTest"));
+            final Table table = sharedRealm.createTable(Table.getTableNameForClass("DefaultValueTest"));
             sharedRealm.commitTransaction();
 
             List<Pair<RealmFieldType, Object>> columnInfoList = Arrays.asList(
@@ -855,7 +855,7 @@ public class JNITableTest {
         //noinspection TryFinallyCanBeTryWithResources
         try {
             sharedRealm.beginTransaction();
-            final Table table = sharedRealm.getTable(Table.getTableNameForClass("DefaultValueTest"));
+            final Table table = sharedRealm.createTable(Table.getTableNameForClass("DefaultValueTest"));
             sharedRealm.commitTransaction();
 
             List<Pair<RealmFieldType, Object>> columnInfoList = Arrays.asList(

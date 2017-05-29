@@ -22,6 +22,7 @@ import java.util.Set;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
+import io.realm.internal.util.Pair;
 
 
 /**
@@ -114,7 +115,7 @@ public abstract class RealmSchema {
      * @param version the schema version
      * @param columnInfoMap the column info map
      */
-    final void setInitialColumnIndices(long version, Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap) {
+    final void setInitialColumnIndices(long version, Map<Pair<Class<? extends RealmModel>, String>, ColumnInfo> columnInfoMap) {
         if (this.columnIndices != null) {
             throw new IllegalStateException("An instance of ColumnIndices is already set.");
         }

@@ -55,7 +55,7 @@ public class SortDescriptorTests {
         RealmConfiguration config = configFactory.createConfiguration();
         sharedRealm = SharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
-        table = sharedRealm.getTable("test_table");
+        table = sharedRealm.createTable("test_table");
     }
 
     @After

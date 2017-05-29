@@ -16,9 +16,6 @@
 
 package io.realm;
 
-import android.os.Handler;
-import android.os.Looper;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -316,13 +313,13 @@ public class SyncUser {
      * Changes this user's password. This is done synchronously and involves the network, so calling this method on the
      * Android UI thread will always crash.
      * <p>
-     * <b>WARNING:</b> Changing a users password using an authentication server that doesn't use HTTPS is a major
+     * <b>WARNING:</b> Changing a user's password through an authentication server that doesn't use HTTPS is a major
      * security flaw, and should only be done while testing.
      *
      * @param newPassword the user's new password.
      * @throws ObjectServerError if the password could not be changed.
      */
-    public void changePassword(String newPassword) throws ObjectServerError {
+    public void changePassword(final String newPassword) throws ObjectServerError {
         if (newPassword == null) {
             throw new IllegalArgumentException("Not-null 'newPassword' required.");
         }
@@ -330,6 +327,44 @@ public class SyncUser {
         ChangePasswordResponse response = authServer.changePassword(getSyncUser().getUserToken(), newPassword, getAuthenticationUrl());
         if (!response.isValid()) {
             throw response.getError();
+        }
+    }
+
+    /**
+     * Changes another user's password. This is done synchronously and involves the network, so calling this method on the
+     * Android UI thread will always crash.
+     * <p>
+     * This user needs admin privilege in order to change someone else's password.
+     * <p>
+     * <b>WARNING:</b> Changing a user's password through an authentication server that doesn't use HTTPS is a major
+     * security flaw, and should only be done while testing.
+     *
+     * @param userId identity ({@link #getIdentity()}) of the user we want to change the password for.
+     * @param newPassword the user's new password.
+     * @throws ObjectServerError if the password could not be changed.
+     */
+    public void changePassword(final String userId, final String newPassword) throws ObjectServerError {
+        if (newPassword == null) {
+            throw new IllegalArgumentException("Not-null 'newPassword' required.");
+        }
+
+        if (Util.isEmptyString(userId)) {
+            throw new IllegalArgumentException("None empty 'userId' required.");
+        }
+
+        if (userId.equals(getIdentity())) { // user want's to change his/her own password
+            changePassword(newPassword);
+
+        } else {
+            if (!isAdmin()) {
+                throw new IllegalStateException("User need to be admin in order to change another user's password.");
+            }
+
+            AuthenticationServer authServer = SyncManager.getAuthServer();
+            ChangePasswordResponse response = authServer.changePassword(getSyncUser().getUserToken(), userId, newPassword, getAuthenticationUrl());
+            if (!response.isValid()) {
+                throw response.getError();
+            }
         }
     }
 
@@ -354,6 +389,36 @@ public class SyncUser {
             @Override
             public SyncUser run() {
                 changePassword(newPassword);
+                return SyncUser.this;
+            }
+        }.start();
+    }
+
+    /**
+     * Changes another user's password asynchronously.
+     * <p>
+     * This user needs admin privilege in order to change someone else's password.
+     *
+     * <b>WARNING:</b> Changing a users password using an authentication server that doesn't use HTTPS is a major
+     * security flaw, and should only be done while testing.
+     *
+     * @param userId identity ({@link #getIdentity()}) of the user we want to change the password for.
+     * @param newPassword the user's new password.
+     * @param callback callback when login has completed or failed. The callback will always happen on the same thread
+     * as this method is called on.
+     * @return representation of the async task that can be used to cancel it if needed.
+     * @throws IllegalArgumentException if not on a Looper thread.
+     */
+    public RealmAsyncTask changePasswordAsync(final String userId, final String newPassword, final Callback callback) {
+        checkLooperThread("Asynchronous changing password is only possible from looper threads.");
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
+
+        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public SyncUser run() {
+                changePassword(userId, newPassword);
                 return SyncUser.this;
             }
         }.start();

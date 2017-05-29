@@ -90,6 +90,15 @@ public class Util {
                 || "google_sdk".equals(Build.PRODUCT);
     }
 
+    public static boolean isEmptyString(String str) {
+        if (str == null || str.length() == 0) {
+            return true;
+
+        } else {
+            return false;
+        }
+    }
+
     public static boolean deleteRealm(String canonicalPath, File realmFolder, String realmFileName) {
         boolean realmDeleted = true;
         final String management = ".management";

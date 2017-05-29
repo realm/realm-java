@@ -211,11 +211,13 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     public static SharedRealm getInstance(RealmConfiguration config, SchemaVersionListener schemaVersionListener,
             boolean autoChangeNotifications) {
-        String[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
-        String syncUserIdentifier = syncUserConf[0];
-        String syncRealmUrl = syncUserConf[1];
-        String syncRealmAuthUrl = syncUserConf[2];
-        String syncRefreshToken = syncUserConf[3];
+        Object[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
+        String syncUserIdentifier = (String) syncUserConf[0];
+        String syncRealmUrl = (String) syncUserConf[1];
+        String syncRealmAuthUrl = (String) syncUserConf[2];
+        String syncRefreshToken = (String) syncUserConf[3];
+        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncUserConf[4]));
+        String syncSslTrustCertificatePath = (String) syncUserConf[5];
 
         final boolean enableCaching = false; // Handled in Java currently
         final boolean enableFormatUpgrade = true;
@@ -232,7 +234,9 @@ public final class SharedRealm implements Closeable, NativeObject {
                 syncRealmUrl,
                 syncRealmAuthUrl,
                 syncUserIdentifier,
-                syncRefreshToken);
+                syncRefreshToken,
+                syncClientValidateSsl,
+                syncSslTrustCertificatePath);
 
         try {
             ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(config);
@@ -288,8 +292,27 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeHasTable(nativePtr, name);
     }
 
+    /**
+     * Gets an existing {@link Table} with the given name.
+     *
+     * @param name the name of table.
+     * @return a {@link Table} object.
+     * @throws IllegalArgumentException if the table doesn't exist.
+     */
     public Table getTable(String name) {
-        return new Table(this, nativeGetTable(nativePtr, name));
+        long tablePtr = nativeGetTable(nativePtr, name);
+        return new Table(this, tablePtr);
+    }
+
+    /**
+     * Creates a {@link Table} with then given name. Native assertion will happen if the table with the same name
+     * exists.
+     *
+     * @param name the name of table.
+     * @return a created {@link Table} object.
+     */
+    public Table createTable(String name) {
+        return new Table(this, nativeCreateTable(nativePtr, name));
     }
 
     public void renameTable(String oldName, String newName) {
@@ -497,7 +520,9 @@ public final class SharedRealm implements Closeable, NativeObject {
             String syncServerURL,
             String syncServerAuthURL,
             String syncUserIdentity,
-            String syncRefreshToken);
+            String syncRefreshToken,
+            boolean syncClientValidateSsl,
+            String syncSslTrustCertificatePath);
 
     private static native void nativeCloseConfig(long nativeConfigPtr);
 
@@ -527,7 +552,11 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native long[] nativeGetVersionID(long nativeSharedRealmPtr);
 
+    // Throw IAE if the table doesn't exist.
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
+
+    // Throw IAE if the table exists already.
+    private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName);
 
     private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);
 

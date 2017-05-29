@@ -753,6 +753,12 @@ public class Table implements TableSchema, NativeObject {
         if (sharedRealm == null) {
             return null;
         }
+
+        // FIXME: The PK table creation should be handle by Object Store after integration of OS Schema.
+        if (!sharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
+            sharedRealm.createTable(PRIMARY_KEY_TABLE_NAME);
+        }
+
         Table pkTable = sharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
         if (pkTable.getColumnCount() == 0) {
             checkImmutable();
