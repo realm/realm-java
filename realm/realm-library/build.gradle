@@ -721,8 +721,6 @@ task ojoUpload() {
     }
     group = 'Publishing'
 }
-buildscript {
-}
 
 def checkNdk(String ndkPath) {
     def detectedNdkVersion

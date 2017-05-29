@@ -59,8 +59,8 @@ open class AllKotlinTypes : RealmObject() {
     var nullDate: Date? = null
     var nonNullDate: Date = Date()
 
-    var nullBinary: ByteArray = ByteArray(0)
-    var nonNullBinary: ByteArray? = null
+    var nullBinary: ByteArray? = null
+    var nonNullBinary: ByteArray = ByteArray(0)
 
 // This turns into Byte[] which we dont support for some reason?
 //    var nullBoxedBinary: Array<Byte>? = null
