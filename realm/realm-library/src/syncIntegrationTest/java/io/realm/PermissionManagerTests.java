@@ -31,7 +31,6 @@ import io.realm.log.RealmLog;
 import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
 import io.realm.permissions.Permission;
-import io.realm.permissions.PermissionManager;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;

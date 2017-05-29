@@ -45,10 +45,6 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
-import io.realm.permissions.Permission;
-import io.realm.permissions.PermissionChange;
-import io.realm.permissions.ManagementModule;
-import io.realm.permissions.PermissionManager;
 import io.realm.permissions.PermissionModule;
 
 /**

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.permissions;
+package io.realm;
 
 import android.os.Handler;
 import android.os.SystemClock;
@@ -39,6 +39,9 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.log.RealmLog;
+import io.realm.permissions.ManagementModule;
+import io.realm.permissions.Permission;
+import io.realm.permissions.PermissionModule;
 
 
 /**
@@ -105,8 +108,7 @@ public class PermissionManager implements Closeable {
      *
      * @param user user to create manager for.
      */
-    // FIXME This shouldn't be public
-    public PermissionManager(final SyncUser user) {
+    PermissionManager(final SyncUser user) {
         threadId = Thread.currentThread().getId();
         managementRealmConfig = new SyncConfiguration.Builder(
                 user, getRealmUrl(RealmType.MANAGEMENT_REALM, user.getAuthenticationUrl()))
