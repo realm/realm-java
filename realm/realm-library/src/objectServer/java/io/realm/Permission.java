@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.permissions;
+package io.realm;
 
 import java.net.MalformedURLException;
 import java.net.URL;

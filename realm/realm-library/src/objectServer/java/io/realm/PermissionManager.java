@@ -17,10 +17,8 @@
 package io.realm;
 
 import android.os.Handler;
-import android.os.SystemClock;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -29,19 +27,9 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
-import io.realm.Realm;
-import io.realm.RealmAsyncTask;
-import io.realm.RealmChangeListener;
-import io.realm.RealmResults;
-import io.realm.SyncConfiguration;
-import io.realm.SyncSession;
-import io.realm.SyncUser;
 import io.realm.log.RealmLog;
-import io.realm.permissions.ManagementModule;
-import io.realm.permissions.Permission;
-import io.realm.permissions.PermissionModule;
+import io.realm.internal.permissions.ManagementModule;
+import io.realm.internal.permissions.PermissionModule;
 
 
 /**

@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.permissions;
+package io.realm.internal.permissions;
 
 import java.util.Date;
 import java.util.UUID;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
-import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 /**
- * This model is used for offering permission changes to other users.
+ * This model is used to apply permission changes defined in the permission offer
+ * object represented by the specified token, which was created by another user's
+ * {@link PermissionOffer} object.
+ *
  * It should be used in conjunction with an {@link io.realm.SyncUser}'s management Realm.
  *
  * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
  * documentation.
  */
-public class PermissionOffer extends RealmObject {
+public class PermissionOfferResponse extends RealmObject {
 
     // Base fields
     @PrimaryKey
@@ -44,39 +46,32 @@ public class PermissionOffer extends RealmObject {
     private Integer statusCode; // nil=not processed, 0=success, >0=error
     private String statusMessage;
 
-    // Offer fields
-    @Index
-    private String token;
+    // Request fields
     @Required
+    private String token;
     private String realmUrl;
-    private boolean mayRead;
-    private boolean mayWrite;
-    private boolean mayManage;
-    private Date expiresAt;
 
-    public PermissionOffer() {
+    public PermissionOfferResponse() {
         // No args constructor required by Realm
     }
 
     /**
-     * Construct a permission offer object used to offer permission changes to other users.
+     * Construct a permission offer response object used to apply permission changes
+     * defined in the permission offer object represented by the specified token,
+     * which was created by another user's {@link PermissionOffer} object.
      *
-     * @param url The URL to the Realm on which to apply these permission changes to, once the offer is accepted.
-     * @param mayRead Grant or revoke read access.
-     * @param mayWrite Grant or revoked read-write access.
-     * @param mayManage Grant or revoke administrative access.
-     * @param expiresAt When this token will expire and become invalid. Pass {@code null} if this offer should not expire.
+     * @param token The received token which uniquely identifies another user's
+     *              {@link PermissionOffer}.
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public PermissionOffer(String url, boolean mayRead, boolean mayWrite, boolean mayManage, Date expiresAt) {
-        if (url == null) {
-            throw new IllegalArgumentException("Non-null 'url' required.");
+    public PermissionOfferResponse(String token) {
+        if (token == null) {
+            throw new IllegalArgumentException("Non-null 'token' required.");
         }
-        this.realmUrl = url;
-        this.mayRead = mayRead;
-        this.mayWrite= mayWrite;
-        this.mayManage = mayManage;
-        this.expiresAt = expiresAt;
+        this.token = token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public String getId() {
@@ -122,22 +117,5 @@ public class PermissionOffer extends RealmObject {
 
     public String getRealmUrl() {
         return realmUrl;
-    }
-
-    public boolean isMayRead() {
-        return mayRead;
-    }
-
-    public boolean isMayWrite() {
-        return mayWrite;
-    }
-
-    public boolean isMayManage() {
-        return mayManage;
-    }
-
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public Date getExpiresAt() {
-        return expiresAt;
     }
 }

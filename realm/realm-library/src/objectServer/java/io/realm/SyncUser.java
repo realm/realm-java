@@ -45,7 +45,7 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
-import io.realm.permissions.PermissionModule;
+import io.realm.internal.permissions.PermissionModule;
 
 /**
  * This class represents a user on the Realm Object Server. The credentials are provided by various 3rd party
