@@ -56,6 +56,8 @@ import static junit.framework.Assert.fail;
  * {@link RunWithRemoteService#createHandler(Looper)}.
  * 7. Trigger your first step in the remote service process by calling
  * {@link RunWithRemoteService#triggerServiceStep(RemoteTestService.Step)}.
+ * 8. Name steps in the foreground process with step1, step2 ... stepN.
+ *    Name steps in the remote process with stepA, stepB ... stepZ.
  *
  * See the existing test cases for examples.
  */
@@ -73,11 +75,13 @@ public class RunWithRemoteService implements TestRule {
             Bundle bundle = msg.getData();
             String error = bundle.getString(RemoteTestService.BUNDLE_KEY_ERROR);
             if (error != null) {
-                // Assert and show error from value process
+                // Assert and show error from remote process
                 fail(error);
             }
         }
     }
+
+    private static final String REMOTE_PROCESS_POSTFIX = ":remote";
 
     private Messenger remoteMessenger;
     private Messenger localMessenger;
@@ -100,7 +104,7 @@ public class RunWithRemoteService implements TestRule {
     };
 
     private void before(Class<?> serviceClass) throws Throwable {
-        // Start the testing value
+        // Start the testing remote process.
         serviceStartLatch = new CountDownLatch(1);
         Intent intent = new Intent(getContext(), serviceClass);
         getContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
@@ -119,7 +123,7 @@ public class RunWithRemoteService implements TestRule {
         int counter = 10;
         while (getRemoteProcessInfo() != null) {
             if (counter == 0) {
-                assertTrue("The remote value process is still alive.", false);
+                assertTrue("The remote process is still alive.", false);
             }
             try {
                 Thread.sleep(300);
@@ -153,7 +157,7 @@ public class RunWithRemoteService implements TestRule {
         new InterprocessHandler(looper);
     }
 
-    // Call this to trigger the next step of value process
+    // Call this to trigger the next step of remote process
     public void triggerServiceStep(RemoteTestService.Step step) {
         Message msg = Message.obtain(null, step.message);
         msg.replyTo = localMessenger;
@@ -170,7 +174,7 @@ public class RunWithRemoteService implements TestRule {
         ActivityManager manager = (ActivityManager)getContext().getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningAppProcessInfo> processInfoList = manager.getRunningAppProcesses();
         for (ActivityManager.RunningAppProcessInfo info : processInfoList) {
-            if (info.processName.equals(getContext().getPackageName() + ":remote")) {
+            if (info.processName.equals(getContext().getPackageName() + REMOTE_PROCESS_POSTFIX)) {
                 return info;
             }
         }

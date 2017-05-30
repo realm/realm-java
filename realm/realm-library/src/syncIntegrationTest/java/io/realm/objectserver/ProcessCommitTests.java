@@ -74,8 +74,8 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                 final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
                         .directory(getService().getRoot())
                         .build();
-                getService().realm = Realm.getInstance(syncConfig);
-                Realm realm = getService().realm;
+                getService().setRealm(Realm.getInstance(syncConfig));
+                Realm realm = getService().getRealm();
 
                 realm.beginTransaction();
                 ProcessInfo processInfo = realm.createObject(ProcessInfo.class);
@@ -85,13 +85,18 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                 realm.commitTransaction();
                 // FIXME: If we close the Realm here, the data won't be able to synced to the main process. Is it a bug
                 // in sync client which stops too early?
+                // Realm is currently configured with stop_immediately. This means the sync session is closed as soon as
+                // the last realm instance is closed. Not doing this would make the Realm lifecycle really
+                // unpredictable. We should have an easy way to wait for all changes to be uploaded though.
+                // Perhaps SyncSession.uploadAllLocalChanges() or something similar to
+                // SyncSesson.downloadAllServerChanges()
             }
         };
 
         public static final Step stepB_closeRealmAndLogOut = new Step(RemoteTestService.BASE_SIMPLE_COMMIT, 2) {
             @Override
             protected void run() {
-                getService().realm.close();
+                getService().getRealm().close();
                 user.logout();
             }
         };
@@ -142,14 +147,14 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                         .directory(getService().getRoot())
                         .name(UUID.randomUUID().toString() + ".realm")
                         .build();
-                getService().realm = Realm.getInstance(syncConfig);
+                getService().setRealm(Realm.getInstance(syncConfig));
             }
         };
 
         public static final Step stepB_createObjects = new Step(RemoteTestService.BASE_A_LOT_COMMITS, 2) {
             @Override
             protected void run() {
-                Realm realm = getService().realm;
+                Realm realm = getService().getRealm();
                 realm.beginTransaction();
                 for (int i = 0; i < 100; i++) {
                     Number max = realm.where(TestObject.class).findAll().max("intProp");
@@ -164,7 +169,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         public static final Step stepC_closeRealm = new Step(RemoteTestService.BASE_A_LOT_COMMITS, 3) {
             @Override
             protected void run() {
-                getService().realm.close();
+                getService().getRealm().close();
                 user.logout();
             }
         };

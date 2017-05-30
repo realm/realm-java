@@ -35,10 +35,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.Realm;
+import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 
 /**
  * Helper class for multi-processes support testing.
+ * @see io.realm.rule.RunWithRemoteService
  */
 public abstract class RemoteTestService extends Service {
     // There is no easy way to dynamically ensure step IDs have same value for different processes. So, use the stupid
@@ -85,7 +87,7 @@ public abstract class RemoteTestService extends Service {
     private final Messenger messenger = new Messenger(new IncomingHandler());
     private Messenger client;
     private File rootFolder;
-    public Realm realm;
+    private Realm realm;
 
     public RemoteTestService() {
         if (thiz != null) {
@@ -149,10 +151,7 @@ public abstract class RemoteTestService extends Service {
                     throwable = t;
                 } finally {
                     if (throwable != null) {
-                        StringWriter sw = new StringWriter();
-                        throwable.printStackTrace(new PrintWriter(sw));
-                        String exceptionAsString = sw.toString();
-                        step.response(throwable.getMessage() + "\n" + exceptionAsString);
+                        step.response(throwable.getMessage() + "\n" + Util.getStackTrace(throwable));
                     } else {
                         step.response(null);
                     }
@@ -172,5 +171,13 @@ public abstract class RemoteTestService extends Service {
         }
         //noinspection ResultOfMethodCallIgnored
         file.delete();
+    }
+
+    public Realm getRealm() {
+        return realm;
+    }
+
+    public void setRealm(Realm realm) {
+        this.realm = realm;
     }
 }
