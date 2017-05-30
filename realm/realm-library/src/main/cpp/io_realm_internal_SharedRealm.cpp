@@ -430,7 +430,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNIEnv* env, jclass,
                                                                              jlong shared_realm_ptr,
-                                                                             jstring table_name)
+                                                                             jstring table_name,
+                                                                             jboolean is_pk_table)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
@@ -441,18 +442,24 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNI
         shared_realm->verify_in_write(); // throws
         Table* table;
         auto& group = shared_realm->read_group();
-#if REALM_ENABLE_SYNC
-        // Sync doesn't throw when table exists.
-        if (group.has_table(table_name_str)) {
-            THROW_JAVA_EXCEPTION(
-                env, JavaExceptionDef::IllegalArgument,
-                format(c_table_name_exists_exception_msg, table_name_str.substr(TABLE_PREFIX.length())));
+        if (is_pk_table) {
+            // sync::create_table() will add an extra column for stable ID which is not allowed for pk table.
+            table = LangBindHelper::add_table(group, table_name_str); // throws
         }
-        auto table_ref = sync::create_table(group, table_name_str); // throws
-        table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
+        else {
+#if REALM_ENABLE_SYNC
+            // Sync doesn't throw when table exists.
+            if (group.has_table(table_name_str)) {
+                THROW_JAVA_EXCEPTION(
+                    env, JavaExceptionDef::IllegalArgument,
+                    format(c_table_name_exists_exception_msg, table_name_str.substr(TABLE_PREFIX.length())));
+            }
+            auto table_ref = sync::create_table(group, table_name_str); // throws
+            table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
 #else
-        table = LangBindHelper::add_table(group, table_name_str); // throws
+            table = LangBindHelper::add_table(group, table_name_str); // throws
 #endif
+        }
         return reinterpret_cast<jlong>(table);
     }
     catch (TableNameInUse& e) {

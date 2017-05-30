@@ -313,7 +313,20 @@ public final class SharedRealm implements Closeable, NativeObject {
      * @return a created {@link Table} object.
      */
     public Table createTable(String name) {
-        return new Table(this, nativeCreateTable(nativePtr, name));
+        return new Table(this, nativeCreateTable(nativePtr, name, false));
+    }
+
+    /**
+     * Creates a primary key table with then given name. Native assertion will happen if the table with the same name
+     * exists. This function is different from {@link #createTable(String)} which will call {@code create_table()} from
+     * sync to do the creation. This will always call the core's {@code add_table()} to avoid creating the stable id
+     * column for pk table.
+     *
+     * @param name the name of table.
+     * @return a created {@link Table} object.
+     */
+    public Table createPkTable(String name) {
+        return new Table(this, nativeCreateTable(nativePtr, name, true));
     }
 
     /**
@@ -574,7 +587,9 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
 
     // Throw IAE if the table exists already.
-    private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName);
+    // FIXME: isPkTable should be removed after integration with OS schema. All the meta tables should be handled in
+    // the Object Store.
+    private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName, boolean isPkTable);
 
     // Throw IAE if the table exists already.
     // if isStringType is false, the PK field will be created as an integer PK field.
