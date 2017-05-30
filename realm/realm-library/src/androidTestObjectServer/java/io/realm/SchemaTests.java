@@ -149,7 +149,7 @@ public class SchemaTests {
     @Test
     public void addPrimaryKey_notAllowed() {
         String className = "StringOnly";
-        DynamicRealm realm = DynamicRealm.getInstance(config);
+        Realm realm = Realm.getInstance(config);
 
         realm.beginTransaction();
         RealmObjectSchema objectSchema = realm.getSchema().get(className);
@@ -168,7 +168,7 @@ public class SchemaTests {
     @Test
     public void addField_withPrimaryKeyModifier_notAllowed() {
         String className = "StringOnly";
-        DynamicRealm realm = DynamicRealm.getInstance(config);
+        Realm realm = Realm.getInstance(config);
 
         realm.beginTransaction();
         RealmObjectSchema objectSchema = realm.getSchema().get(className);
