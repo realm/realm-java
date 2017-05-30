@@ -78,8 +78,8 @@ public class RealmIntegerTests {
      * Expected behaviour is that gets of smaller sized quantities should truncate on the left:
      * that they should return exactly the rightmost N bits of the underlying value.
      * <p>
-     * Caution.  The assertion functions will cast back up to int
-     * if either arg is an int.  That will cause sign extension.
+     * Caution. The assertion functions will cast back up to int
+     * if either arg is an int. That will cause sign extension.
      */
     @Test
     public void getters() {
@@ -113,11 +113,11 @@ public class RealmIntegerTests {
         RealmInteger ri1 = new RealmInteger(10);
         RealmInteger ri2 = new RealmInteger("11");
 
-        assertEquals(ri1.compareTo(ri2), -1);
+        assertEquals(-1, ri1.compareTo(ri2));
         ri2.decrement(1);
-        assertEquals(ri1.compareTo(ri2), 0);
+        assertEquals(0, ri1.compareTo(ri2));
         ri2.decrement(1);
-        assertEquals(ri1.compareTo(ri2), 1);
+        assertEquals(1, ri1.compareTo(ri2));
     }
 
     /**
@@ -177,8 +177,8 @@ public class RealmIntegerTests {
         ri.decrement(7);
         realm.commitTransaction();
 
-        assertEquals(unmanagedRI.longValue(), 5);
-        assertEquals(managedRI.longValue(), 47);
+        assertEquals(5, unmanagedRI.longValue());
+        assertEquals(47, managedRI.longValue());
     }
 
     /**
@@ -202,8 +202,8 @@ public class RealmIntegerTests {
         ri.decrement(7);
         realm.commitTransaction();
 
-        assertEquals(unmanagedRI.longValue(), 5);
-        assertEquals(managedRI.longValue(), 47);
+        assertEquals(5, unmanagedRI.longValue());
+        assertEquals(47, managedRI.longValue());
     }
 
 
@@ -228,8 +228,8 @@ public class RealmIntegerTests {
         ri.decrement(7);
         realm.commitTransaction();
 
-        assertEquals(unmanagedRI.longValue(), 5);
-        assertEquals(managedRI.longValue(), 47);
+        assertEquals(5, unmanagedRI.longValue());
+        assertEquals(47, managedRI.longValue());
     }
 
     /**
