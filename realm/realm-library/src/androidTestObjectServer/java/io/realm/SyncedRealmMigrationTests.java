@@ -29,8 +29,10 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import io.realm.entities.IndexedFields;
+import io.realm.entities.PrimaryKeyAsInteger;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -280,5 +282,20 @@ public class SyncedRealmMigrationTests {
         } finally {
             realm.close();
         }
+    }
+
+    // The stable_id_migration.realm is created with sync v1.8.5 with one object created for each object schema.
+    @Test
+    @Ignore("Not supported by sync right now.")
+    public void stableIDMigrationCauseClientReset() throws IOException {
+        SyncConfiguration config = configFactory
+                .createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .schema(StringOnly.class, PrimaryKeyAsString.class, PrimaryKeyAsInteger.class)
+                .name("stable_id_migration.realm")
+                .build();
+        configFactory.copyRealmFromAssets(InstrumentationRegistry.getContext(), "stable_id_migration.realm", config);
+        Realm realm = Realm.getInstance(config);
+        // TODO: Should the local realm be cleaned? It contains one object for each object schema in the realm.
+        realm.close();
     }
 }
