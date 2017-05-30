@@ -526,7 +526,10 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         int columnCount = (int) table.getColumnCount();
         Set<String> columnNames = new LinkedHashSet<>(columnCount);
         for (int i = 0; i < columnCount; i++) {
-            columnNames.add(table.getColumnName(i));
+            String name = table.getColumnName(i);
+            if (!name.equals(Table.OBJECT_ID_COLUMN_NAME)) { // Filter out stable ID column
+                columnNames.add(name);
+            }
         }
         return columnNames;
     }

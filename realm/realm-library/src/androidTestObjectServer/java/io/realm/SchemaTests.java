@@ -25,6 +25,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Set;
+
 import io.realm.entities.StringOnly;
 import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
@@ -181,5 +183,18 @@ public class SchemaTests {
             realm.commitTransaction();
             realm.close();
         }
+    }
+
+    // Special column "__OID" should be hidden from users.
+    @Test
+    public void getFieldNames_stableIdColumnShouldBeHidden() {
+        String className = "StringOnly";
+        Realm realm = Realm.getInstance(config);
+
+        RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        Set<String> names = objectSchema.getFieldNames();
+        assertEquals(1, names.size());
+        assertEquals(StringOnly.FIELD_CHARS, names.iterator().next());
+        realm.close();
     }
 }
