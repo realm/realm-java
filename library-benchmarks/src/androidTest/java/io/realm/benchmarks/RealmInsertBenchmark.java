@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ import android.support.test.InstrumentationRegistry;
 
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import dk.ilios.spanner.AfterExperiment;
 import dk.ilios.spanner.BeforeExperiment;
 import dk.ilios.spanner.Benchmark;
@@ -29,55 +32,75 @@ import dk.ilios.spanner.junit.SpannerRunner;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.benchmarks.config.BenchmarkConfig;
-import io.realm.entities.AllTypes;
+import io.realm.benchmarks.entities.AllTypes;
+import io.realm.benchmarks.entities.AllTypesPrimaryKey;
+
 
 @RunWith(SpannerRunner.class)
-public class RealmBenchmarks {
+public class RealmInsertBenchmark {
 
     @BenchmarkConfiguration
     public SpannerConfig configuration = BenchmarkConfig.getConfiguration(this.getClass().getCanonicalName());
 
     private Realm realm;
-    private AllTypes readObject;
-    private RealmConfiguration coldConfig;
+    private static final int COLLECTION_SIZE = 100;
+    private List<AllTypes> noPkObjects = new ArrayList<>(COLLECTION_SIZE);
+    private List<AllTypesPrimaryKey> pkObjects = new ArrayList<>(COLLECTION_SIZE);
 
     @BeforeExperiment
     public void before() {
         Realm.init(InstrumentationRegistry.getTargetContext());
-        coldConfig = new RealmConfiguration.Builder().name("cold").build();
         RealmConfiguration config = new RealmConfiguration.Builder().build();
-        Realm.deleteRealm(coldConfig);
         Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                readObject = realm.createObject(AllTypes.class);
-                readObject.setColumnString("Foo");
-                readObject.setColumnLong(42);
-                readObject.setColumnDouble(1.234D);
-            }
-        });
+
+        for (int i = 0; i < COLLECTION_SIZE; i++) {
+            noPkObjects.add(new AllTypes());
+        }
+
+        for (int i = 0; i < COLLECTION_SIZE; i++) {
+            AllTypesPrimaryKey allTypesPrimaryKey = new AllTypesPrimaryKey();
+            allTypesPrimaryKey.setColumnLong(i);
+            pkObjects.add(allTypesPrimaryKey);
+        }
+
+        realm.beginTransaction();
     }
 
     @AfterExperiment
     public void after() {
+        realm.cancelTransaction();
         realm.close();
     }
 
     @Benchmark
-    public void coldCreateAndClose(long reps) {
+    public void insertNoPrimaryKey(long reps) {
+        AllTypes allTypes = new AllTypes();
         for (long i = 0; i < reps; i++) {
-            Realm realm = Realm.getInstance(coldConfig);
-            realm.close();
+            realm.insert(allTypes);
         }
     }
 
     @Benchmark
-    public void emptyTransaction(long reps) {
+    public void insertNoPrimaryKeyList(long reps) {
         for (long i = 0; i < reps; i++) {
-            realm.beginTransaction();
-            realm.commitTransaction();
+            realm.insert(noPkObjects);
+        }
+    }
+
+    @Benchmark
+    public void insertWithPrimaryKey(long reps) {
+        AllTypesPrimaryKey allTypesPrimaryKey = new AllTypesPrimaryKey();
+        for (long i = 0; i < reps; i++) {
+            allTypesPrimaryKey.setColumnLong(i);
+            realm.insertOrUpdate(allTypesPrimaryKey);
+        }
+    }
+
+    @Benchmark
+    public void insertOrUpdateWithPrimaryKeyList(long reps) {
+        for (long i = 0; i < reps; i++) {
+            realm.insertOrUpdate(pkObjects);
         }
     }
 }

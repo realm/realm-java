@@ -9,6 +9,13 @@
 ### Internal
 
 
+## 3.3.1 (2017-05-26)
+
+### Bug Fixes
+
+* Accept extra columns against synced Realm (#4706).
+
+
 ## 3.3.0 (2017-05-24)
 
 ### Enhancements
