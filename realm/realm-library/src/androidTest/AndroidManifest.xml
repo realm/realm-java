@@ -8,7 +8,6 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
-    <uses-sdk tools:overrideLibrary="dk.ilios.spanner"/>
     <uses-sdk
         android:minSdkVersion="9"
         android:targetSdkVersion="22"/>
