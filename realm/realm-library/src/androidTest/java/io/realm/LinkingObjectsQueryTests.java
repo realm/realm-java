@@ -341,7 +341,9 @@ public class LinkingObjectsQueryTests extends QueryTests {
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
                 case LINKING_OBJECTS:
+                    // Both rows have a link/backlink so no empty backlinks
                     assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT).count());
+                    // Only row 1 has a linklist (and a backlink)
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
@@ -358,6 +360,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
                 case LINKING_OBJECTS:
                     // All rows skipped as they are linked to another row through FIELD_OBJECT
                     assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
+                    // Row 1 has a linklist (and a backlink)
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
@@ -381,7 +384,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
-                    // Both row 1 and 2 have a link/backlink so none are empty
+                    // Both row 0 and 1 have a link/backlink so none are empty
                     assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
                     break;
@@ -410,11 +413,11 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
 
                     // Step 1:
-                    //  Row 1 skipped; FIELD_LO_LIST.count > 0
-                    //  Row 2 included; FIELD_LO_LIST.count() == 0
+                    //  Row 0 skipped; FIELD_LO_LIST.count > 0
+                    //  Row 1 included; FIELD_LO_LIST.count() == 0
                     //
                     // Step 2: now checking Row 2
-                    // Row 1 included: goes to Row 2 where FIELD_LO_LIST.count() == 0
+                    // Row 0 included: goes to Row 1 where FIELD_LO_LIST.count() == 0
                     assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
@@ -429,7 +432,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
         for (RealmFieldType type : SUPPORTED_IS_NOT_EMPTY_TYPES) {
             switch (type) {
                 case LINKING_OBJECTS:
-                    // Row 1 and 2 have a link/backlink so no row is empty
+                    // Row 0 and 1 have a link/backlink so no row is empty
                     assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT).count());
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST).count());
                     break;
@@ -473,7 +476,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
-                    // Both row 1 and 2 have a link/backlink
+                    // Both row 0 and 1 have a link/backlink
                     assertEquals(2, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
                     break;
