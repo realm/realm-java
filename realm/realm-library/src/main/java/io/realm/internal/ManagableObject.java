@@ -16,10 +16,10 @@
 package io.realm.internal;
 
 /**
- * This internal interface represents a java object that corresponds to data managed in the Realm core.
- * It specifies the operations common to all such objects.
+ * This internal interface represents a java object that corresponds to data
+ * that may be managed in the Realm core. It specifies the operations common to all such objects.
  */
-public interface ManagedObject {
+public interface ManagableObject {
 
     /**
      * Checks to see if this object is managed by Realm..
@@ -29,8 +29,9 @@ public interface ManagedObject {
     boolean isManaged();
 
     /**
-     * Checks tos see if the RealmObject is still valid to use i.e., the RealmObject hasn't been deleted nor has the
-     * {@link io.realm.Realm} been closed. It will always return {@code true} for unmanaged objects.
+     * Checks to see if the managed object is still valid to use.
+     * That is if it that it hasn't been deleted nor has the {@link io.realm.Realm} been closed.
+     * It will always return {@code true} for unmanaged objects.
      *
      * @return {@code true} if this object is unmanaged or is still valid for use, {@code false} otherwise.
      */

@@ -20,7 +20,7 @@ import android.app.IntentService;
 
 import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.ManagedObject;
+import io.realm.internal.ManagableObject;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import rx.Observable;
@@ -67,7 +67,7 @@ import rx.Observable;
  */
 
 @RealmClass
-public abstract class RealmObject implements RealmModel, ManagedObject {
+public abstract class RealmObject implements RealmModel, ManagableObject {
 
     /**
      * Deletes the object from the Realm it is currently associated to.

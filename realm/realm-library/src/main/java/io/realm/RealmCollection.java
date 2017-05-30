@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 
-import io.realm.internal.ManagedObject;
+import io.realm.internal.ManagableObject;
 
 
 /**
@@ -33,7 +33,7 @@ import io.realm.internal.ManagedObject;
  *
  * @param <E> type of {@link RealmObject} stored in the collection.
  */
-public interface RealmCollection<E extends RealmModel> extends Collection<E>, ManagedObject {
+public interface RealmCollection<E extends RealmModel> extends Collection<E>, ManagableObject {
 
     /**
      * Returns a {@link RealmQuery}, which can be used to query for specific objects from this collection.
