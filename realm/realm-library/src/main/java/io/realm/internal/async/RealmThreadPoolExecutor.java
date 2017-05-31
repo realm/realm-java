@@ -19,7 +19,6 @@ package io.realm.internal.async;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +26,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 
 /**
  * Custom thread pool settings, instances of this executor can be paused, and resumed, this will also set
@@ -66,7 +66,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
      *
      * @return the number of threads to be allocated for the executor pool
      */
-    @SuppressWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
+    @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private static int calculateCorePoolSize() {
         int cpus = countFilesInDir(SYS_CPU_DIR, "cpu[0-9]+");
         if (cpus <= 0) {
@@ -113,36 +113,6 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
     /**
-     * Submits a runnable for updating a query.
-     *
-     * @param task the task to submit
-     * @return a future representing pending completion of the task
-     */
-    public Future<?> submitQueryUpdate(Runnable task) {
-        return super.submit(new BgPriorityRunnable(task));
-    }
-
-    /**
-     * Submits a runnable for executing a query.
-     *
-     * @param task the task to submit
-     * @return a future representing pending completion of the task
-     */
-    public <T> Future<T> submitQuery(Callable<T> task) {
-        return super.submit(new BgPriorityCallable<T>(task));
-    }
-
-    /**
-     * Submits a runnable for executing a network request.
-     *
-     * @param task the task to submit
-     * @return a future representing pending completion of the task
-     */
-    public Future<?> submitNetworkRequest(Runnable task) {
-        return super.submit(new BgPriorityRunnable(task));
-    }
-
-    /**
      * Method invoked prior to executing the given Runnable to pause execution of the thread.
      *
      * @param t the thread that will run task r
@@ -153,7 +123,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
         super.beforeExecute(t, r);
         pauseLock.lock();
         try {
-            while (isPaused) unpaused.await();
+            while (isPaused) { unpaused.await(); }
         } catch (InterruptedException ie) {
             t.interrupt();
         } finally {

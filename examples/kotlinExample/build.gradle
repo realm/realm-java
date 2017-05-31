@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.0.6'
+    ext.kotlin_version = '1.1.2-4'
     repositories {
         jcenter()
         mavenCentral()
@@ -39,11 +39,6 @@ android {
         events 2000
     }
 
-    // Incremental builds currently doesn't work with Kotlin
-    dexOptions {
-        incremental false
-    }
-
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
@@ -51,5 +46,5 @@ android {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}"
-    compile 'org.jetbrains.anko:anko-sdk15:0.8.2'
+    compile 'org.jetbrains.anko:anko-sdk15:0.9.1'
 }

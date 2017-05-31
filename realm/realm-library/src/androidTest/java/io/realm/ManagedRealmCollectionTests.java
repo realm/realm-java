@@ -499,11 +499,11 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         // See setUp() for values of fields.
         // N = TEST_DATA_SIZE
 
-        // Type: double; a = 3.1415
+        // Type: double; a = Math.PI
         // a, a+1, ..., a+i, ..., a+N-1
-        // sum = 3.1415*N + N*(N-1)/2
-        // average = sum/N = 3.1415+(N-1)/2
-        double average = 3.1415 + (N - 1.0) * 0.5;
+        // sum = Math.PI*N + N*(N-1)/2
+        // average = sum/N = Math.PI+(N-1)/2
+        double average = Math.PI + (N - 1.0) * 0.5;
         assertEquals(average, collection.average(AllJavaTypes.FIELD_DOUBLE), 0.0001);
 
         // Type: long
@@ -575,7 +575,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertEquals(sizeAfterRemove - 1, collection.max(AllJavaTypes.FIELD_LONG).intValue());
         // Sum of numbers 0 to M-1: (M-1)*M/2
         assertEquals((sizeAfterRemove - 1) * sizeAfterRemove / 2, collection.sum(AllJavaTypes.FIELD_LONG).intValue());
-        double average = 3.1415 + (sizeAfterRemove - 1.0) * 0.5;
+        double average = Math.PI + (sizeAfterRemove - 1.0) * 0.5;
         assertEquals(average, collection.average(AllJavaTypes.FIELD_DOUBLE), 0.0001);
         assertEquals(new Date(YEAR_MILLIS * 20 * (sizeAfterRemove / 2 - 1)), collection.maxDate(AllJavaTypes.FIELD_DATE));
         assertEquals(new Date(-YEAR_MILLIS * 20 * TEST_SIZE / 2), collection.minDate(AllJavaTypes.FIELD_DATE));
@@ -760,13 +760,16 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                     case REMOVE_ALL:
                     case RETAIN_ALL:
                         expected = UnsupportedOperationException.class;
+                        break;
+                    default:
+                        // use default exception
                 }
             }
 
             try {
                 switch (method) {
                     case DELETE_ALL: collection.deleteAllFromRealm(); break;
-                    case ADD_OBJECT: collection.add(new AllJavaTypes());
+                    case ADD_OBJECT: collection.add(new AllJavaTypes()); break;
                     case ADD_ALL_OBJECTS: collection.addAll(Collections.singletonList(new AllJavaTypes())); break;
                     case CLEAR: collection.clear(); break;
                     case REMOVE_OBJECT: collection.remove(new AllJavaTypes()); break;
@@ -847,6 +850,9 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         case REMOVE_ALL:
                         case RETAIN_ALL:
                             expected = UnsupportedOperationException.class;
+                            break;
+                        default:
+                            // use default exception
                     }
                 }
 
@@ -854,8 +860,8 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                     switch (method) {
                         case ADD_OBJECT: collection.add(new AllJavaTypes()); break;
                         case ADD_ALL_OBJECTS: collection.addAll(Collections.singletonList(new AllJavaTypes())); break;
-                        case CLEAR: collection.clear();
-                        case CONTAINS:
+                        case CLEAR: collection.clear(); break;
+                        case CONTAINS: collection.contains(tempObject); break;
                         case CONTAINS_ALL: collection.containsAll(Collections.singletonList(tempObject)); break;
                         case EQUALS:
                             //noinspection ResultOfMethodCallIgnored

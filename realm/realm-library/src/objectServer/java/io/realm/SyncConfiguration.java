@@ -34,8 +34,8 @@ import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
-import io.realm.internal.syncpolicy.AutomaticSyncPolicy;
-import io.realm.internal.syncpolicy.SyncPolicy;
+import io.realm.internal.Util;
+import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
@@ -62,7 +62,6 @@ import io.realm.rx.RxObservableFactory;
  *
  * <ul>
  *     <li>{@code deleteRealmIfMigrationNeeded()}</li>
- *     <li>{@code schemaVersion(long version)}</li>
  *     <li>{@code migration(Migration)}</li>
  * </ul>
  *
@@ -73,15 +72,18 @@ public class SyncConfiguration extends RealmConfiguration {
 
     // The FAT file system has limitations of length. Also, not all characters are permitted.
     // https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx
-    public static final int MAX_FULL_PATH_LENGTH = 256;
-    public static final int MAX_FILE_NAME_LENGTH = 255;
+    static final int MAX_FULL_PATH_LENGTH = 256;
+    static final int MAX_FILE_NAME_LENGTH = 255;
     private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
 
     private final URI serverUrl;
     private final SyncUser user;
-    private final SyncPolicy syncPolicy;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
+    private final boolean syncClientValidateSsl;
+    private final String serverCertificateAssetName;
+    private final String serverCertificateFilePath;
+    private final boolean waitForInitialData;
 
     private SyncConfiguration(File directory,
                                 String filename,
@@ -95,11 +97,15 @@ public class SyncConfiguration extends RealmConfiguration {
                                 RealmProxyMediator schemaMediator,
                                 RxObservableFactory rxFactory,
                                 Realm.Transaction initialDataTransaction,
+                                boolean readOnly,
                                 SyncUser user,
                                 URI serverUrl,
-                                SyncPolicy syncPolicy,
                                 SyncSession.ErrorHandler errorHandler,
-                                boolean deleteRealmOnLogout
+                                boolean deleteRealmOnLogout,
+                                boolean syncClientValidateSsl,
+                                String serverCertificateAssetName,
+                                String serverCertificateFilePath,
+                                boolean waitForInitialData
     ) {
         super(directory,
                 filename,
@@ -112,14 +118,18 @@ public class SyncConfiguration extends RealmConfiguration {
                 durability,
                 schemaMediator,
                 rxFactory,
-                initialDataTransaction
+                initialDataTransaction,
+                readOnly
         );
 
         this.user = user;
         this.serverUrl = serverUrl;
-        this.syncPolicy = syncPolicy;
         this.errorHandler = errorHandler;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
+        this.syncClientValidateSsl = syncClientValidateSsl;
+        this.serverCertificateAssetName = serverCertificateAssetName;
+        this.serverCertificateFilePath = serverCertificateFilePath;
+        this.waitForInitialData = waitForInitialData;
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -152,10 +162,13 @@ public class SyncConfiguration extends RealmConfiguration {
         SyncConfiguration that = (SyncConfiguration) o;
 
         if (deleteRealmOnLogout != that.deleteRealmOnLogout) return false;
+        if (syncClientValidateSsl != that.syncClientValidateSsl) return false;
         if (!serverUrl.equals(that.serverUrl)) return false;
         if (!user.equals(that.user)) return false;
-        if (!syncPolicy.equals(that.syncPolicy)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
+        if (serverCertificateAssetName != null ? !serverCertificateAssetName.equals(that.serverCertificateAssetName) : that.serverCertificateAssetName != null) return false;
+        if (serverCertificateFilePath != null ? !serverCertificateFilePath.equals(that.serverCertificateFilePath) : that.serverCertificateFilePath != null) return false;
+        if (waitForInitialData != that.waitForInitialData) return false;
         return true;
     }
 
@@ -164,9 +177,12 @@ public class SyncConfiguration extends RealmConfiguration {
         int result = super.hashCode();
         result = 31 * result + serverUrl.hashCode();
         result = 31 * result + user.hashCode();
-        result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
-        result = 31 * result + syncPolicy.hashCode();
         result = 31 * result + errorHandler.hashCode();
+        result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
+        result = 31 * result + (syncClientValidateSsl ? 1 : 0);
+        result = 31 * result + (serverCertificateAssetName != null ? serverCertificateAssetName.hashCode() : 0);
+        result = 31 * result + (serverCertificateFilePath != null ? serverCertificateFilePath.hashCode() : 0);
+        result = 31 * result + (waitForInitialData ? 1 : 0);
         return result;
     }
 
@@ -178,17 +194,12 @@ public class SyncConfiguration extends RealmConfiguration {
         stringBuilder.append("\n");
         stringBuilder.append("user: " + user);
         stringBuilder.append("\n");
-        stringBuilder.append("syncPolicy: " + syncPolicy);
-        stringBuilder.append("\n");
         stringBuilder.append("errorHandler: " + errorHandler);
         stringBuilder.append("\n");
         stringBuilder.append("deleteRealmOnLogout: " + deleteRealmOnLogout);
+        stringBuilder.append("\n");
+        stringBuilder.append("waitForInitialRemoteData: " + waitForInitialData);
         return stringBuilder.toString();
-    }
-
-    // Keeping this package protected for now. The API might still be subject to change.
-    SyncPolicy getSyncPolicy() {
-        return syncPolicy;
     }
 
     /**
@@ -224,6 +235,49 @@ public class SyncConfiguration extends RealmConfiguration {
         return deleteRealmOnLogout;
     }
 
+    /**
+     * Returns the name of certificate stored under the {@code assets}, to be used to validate
+     * the TLS connection to the Realm Object Server.
+     *
+     * @return name of the certificate to be copied from the {@code assets}.
+     * @see #getServerCertificateFilePath()
+     */
+    public String getServerCertificateAssetName() {
+        return serverCertificateAssetName;
+    }
+
+    /**
+     * Returns the name of the certificate copied from {@code assets} into internal storage, so it
+     * can be used to validate the TLS connection to the Realm Object Server.
+     *
+     * @return absolute path to the certificate.
+     * @see #getServerCertificateAssetName()
+     */
+    public String getServerCertificateFilePath() {
+        return serverCertificateFilePath;
+    }
+
+    /**
+     * Whether the Realm Object Server certificate should be validated in order
+     * to establish a valid TLS connection.
+     *
+     * @return {@code true} to validate the remote certificate, or {@code false} to bypass certificate validation.
+     */
+    public boolean syncClientValidateSsl() {
+        return syncClientValidateSsl;
+    }
+
+    /**
+     * Returns {@code true} if the Realm will download all known changes from the remote server before being opened the
+     * first time.
+     *
+     * @return {@code true} if all remote changes will be downloaded before the Realm can be opened. {@code false} if
+     * the Realm can be opened immediately.
+     */
+    public boolean shouldWaitForInitialRemoteData() {
+        return waitForInitialData;
+    }
+
     @Override
     boolean isSyncConfiguration() {
         return true;
@@ -244,16 +298,20 @@ public class SyncConfiguration extends RealmConfiguration {
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
-        private URI serverUrl;
-        private SyncUser user = null;
-        private SyncPolicy syncPolicy = new AutomaticSyncPolicy();
-        private SyncSession.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
         private File defaultFolder;
         private String defaultLocalFileName;
         private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
-        private boolean deleteRealmOnLogout = false;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
-
+        private boolean readOnly = false;
+        private boolean waitForServerChanges = false;
+        // sync specific
+        private boolean deleteRealmOnLogout = false;
+        private URI serverUrl;
+        private SyncUser user = null;
+        private SyncSession.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
+        private boolean syncClientValidateSsl = true;
+        private String serverCertificateAssetName;
+        private String serverCertificateFilePath;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
@@ -480,8 +538,23 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the schema version of the Realm. This must be equal to or higher than the schema version of the existing
-         * Realm file, if any. If the schema version is higher than the already existing Realm, a migration is needed.
+         * Sets the schema version of the Realm.
+         * <p>
+         * Synced Realms only support additive schema changes which can be applied without requiring a manual
+         * migration. The schema version will only be used as an indication to the underlying storage layer to remove
+         * or add indexes. These will be recalculated if the provided schema version differ from the version in the
+         * Realm file.
+         *
+         * <b>WARNING:</b> There is no guarantee that the value inserted here is the same returned by {@link Realm#getVersion()}.
+         * Due to the nature of synced Realms, the value can both be higher and lower.
+         * <ul>
+         *     <li>It will be lower if another client with a lesser {@code schemaVersion} connected to the server for
+         *         the first time after this schemaVersion was used.
+     *         </li>
+         *     <li>It will be higher if another client with a higher {@code schemaVersion} connected to the server after
+         *         this Realm was created.
+     *         </li>
+         * </ul>
          *
          * @param schemaVersion the schema version.
          * @throws IllegalArgumentException if schema version is invalid.
@@ -557,20 +630,6 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the {@link SyncPolicy} used to control when changes should be synchronized with the remote Realm.
-         * The default policy is {@link AutomaticSyncPolicy}.
-         *
-         * @param syncPolicy policy to use.
-         *
-         * @see SyncSession
-         */
-        Builder syncPolicy(SyncPolicy syncPolicy) {
-            // Package protected until SyncPolicy API is more stable.
-            this.syncPolicy = syncPolicy;
-            return this;
-        }
-
-        /**
          * Sets the error handler used by this configuration. This will override any handler set by calling
          * {@link SyncManager#setDefaultSessionErrorHandler(SyncSession.ErrorHandler)}.
          * <p>
@@ -584,6 +643,74 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("Non-null 'errorHandler' required.");
             }
             this.errorHandler = errorHandler;
+            return this;
+        }
+
+        /**
+         * Provides the trusted root certificate(s) authority (CA) in {@code PEM} format, that should be used to
+         * validate the TLS connections to the Realm Object Server.
+         * <p>
+         * The file should be stored under {@code assets}, it will be copied at runtime into the internal storage.
+         * <p>
+         * Note: This is similar to passing the parameter {@code CAfile} to {@code SSL_CTX_load_verify_locations},
+         *       Therefore it is recommended to include only the root CA you trust, and not the entire list of root CA
+         *       as this file will be loaded at runtime.
+         *
+         *       It is your responsibility to download and verify the correct {@code PEM} for the root CA you trust.
+         *       An existing list by Mozilla exist that could be used https://mozillacaprogram.secure.force.com/CA/IncludedCACertificateReportPEMCSV
+         *
+         * @param filename the path under {@code assets} to the root CA.
+         * @see <a href="https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_load_verify_locations.html">SSL_CTX_load_verify_locations</a>
+         */
+        public Builder trustedRootCA(String filename) {
+            if (filename == null || filename.isEmpty()) {
+                throw new IllegalArgumentException("A non-empty filename must be provided");
+            }
+            this.serverCertificateAssetName = filename;
+            return this;
+        }
+
+        /**
+         * This will disable TLS certificate verification for the remote Realm Object Server.
+         * It is not recommended to use this in production.
+         * <p>
+         * This might be useful in non-production environments where you use a self-signed certificate
+         * for testing.
+         */
+        public Builder disableSSLVerification() {
+            this.syncClientValidateSsl = false;
+            return this;
+        }
+
+        /*
+         * Setting this will cause the Realm to download all known changes from the server the first time a Realm is
+         * opened. The Realm will not open until all the data has been downloaded. This means that if a device is
+         * offline the Realm will not open.
+         * <p>
+         * Since downloading all changes can be an lengthy operation that might block the UI thread, Realms with this
+         * setting enabled should only be opened on background threads or with
+         * {@link Realm#getInstanceAsync(RealmConfiguration, Realm.Callback)} on the UI thread.
+         * <p>
+         * This check is only enforced the first time a Realm is created. If you otherwise want to make sure a Realm
+         * has the latest changes, use {@link SyncSession#downloadAllServerChanges()}.
+         */
+        public Builder waitForInitialRemoteData() {
+            this.waitForServerChanges = true;
+            return this;
+        }
+
+        /**
+         * Setting this will cause the Realm to become read only and all write transactions made against this Realm will
+         * fail with an {@link IllegalStateException}.
+         * <p>
+         * This in particular mean that {@link #initialData(Realm.Transaction)} will not work in combination with a
+         * read only Realm and setting this will result in a {@link IllegalStateException} being thrown.
+         * </p>
+         * Marking a Realm as read only only applies to the Realm in this process. Other processes and devices can still
+         * write to the Realm.
+         */
+        public SyncConfiguration.Builder readOnly() {
+            this.readOnly = true;
             return this;
         }
 
@@ -626,6 +753,19 @@ public class SyncConfiguration extends RealmConfiguration {
         public SyncConfiguration build() {
             if (serverUrl == null || user == null) {
                 throw new IllegalStateException("serverUrl() and user() are both required.");
+            }
+
+            // Check that readOnly() was applied to legal configuration. Right now it should only be allowd if
+            // an assetFile is configured
+            if (readOnly) {
+                if (initialDataTransaction != null) {
+                    throw new IllegalStateException("This Realm is marked as read-only. " +
+                            "Read-only Realms cannot use initialData(Realm.Transaction).");
+                }
+                if (!waitForServerChanges) {
+                    throw new IllegalStateException("A read-only Realms must be provided by some source. " +
+                            "'waitForInitialRemoteData()' wasn't enabled which is currently the only supported source.");
+                }
             }
 
             // Check if the user has an identifier, if not, it cannot use /~/.
@@ -680,6 +820,18 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalStateException("Could not create directory for saving the Realm: " + realmFileDirectory);
             }
 
+            if (!Util.isEmptyString(serverCertificateAssetName)) {
+                if (syncClientValidateSsl) {
+                    // Create the path where the serverCertificateAssetName will be copied
+                    // so we can supply it to the Sync client.
+                    // using getRealmDirectory avoid file collision between same filename from different users (Realms)
+                    String fileName = serverCertificateAssetName.substring(serverCertificateAssetName.lastIndexOf(File.separatorChar) + 1);
+                    serverCertificateFilePath = new File(realmFileDirectory, fileName).getAbsolutePath();
+                } else {
+                    RealmLog.warn("SSL Verification is disable, server certificate provided will not be used");
+                }
+            }
+
             return new SyncConfiguration(
                     // Realm Configuration options
                     realmFileDirectory,
@@ -694,13 +846,17 @@ public class SyncConfiguration extends RealmConfiguration {
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
                     initialDataTransaction,
+                    readOnly,
 
                     // Sync Configuration specific
                     user,
                     resolvedServerUrl,
-                    syncPolicy,
                     errorHandler,
-                    deleteRealmOnLogout
+                    deleteRealmOnLogout,
+                    syncClientValidateSsl,
+                    serverCertificateAssetName,
+                    serverCertificateFilePath,
+                    waitForServerChanges
             );
         }
 

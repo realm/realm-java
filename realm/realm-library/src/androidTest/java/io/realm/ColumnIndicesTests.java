@@ -18,8 +18,6 @@ package io.realm;
 import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.google.common.collect.ImmutableMap;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,17 +25,22 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.util.Collections;
+import java.util.HashMap;
+
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.util.Pair;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotSame;
 import static junit.framework.Assert.assertSame;
 import static org.junit.Assert.assertNotEquals;
+
 
 @RunWith(AndroidJUnit4.class)
 public class ColumnIndicesTests {
@@ -69,11 +72,13 @@ public class ColumnIndicesTests {
         final DogRealmProxy.DogColumnInfo dogColumnInfo;
         catColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
         dogColumnInfo = (DogRealmProxy.DogColumnInfo) mediator.validateTable(Dog.class, realm.sharedRealm, false);
+        Pair<Class<? extends RealmModel>, String> catDesc = Pair.<Class<? extends RealmModel>, String>create(Cat.class, "Cat");
+        Pair<Class<? extends RealmModel>, String> dogDesc = Pair.<Class<? extends RealmModel>, String>create(Dog.class, "Dog");
 
-        return new ColumnIndices(schemaVersion,
-                ImmutableMap.<Class<? extends RealmModel>, ColumnInfo>of(
-                        Cat.class, catColumnInfo,
-                        Dog.class, dogColumnInfo));
+        HashMap<Pair<Class<? extends RealmModel>, String>, ColumnInfo> map = new HashMap<>();
+        map.put(catDesc, catColumnInfo);
+        map.put(dogDesc, dogColumnInfo);
+        return new ColumnIndices(schemaVersion, Collections.unmodifiableMap(map));
     }
 
     @Test
@@ -81,18 +86,20 @@ public class ColumnIndicesTests {
         final long schemaVersion = 100;
 
         final ColumnIndices columnIndices = create(schemaVersion);
-        final ColumnIndices deepCopy = columnIndices.clone();
+        final ColumnIndices deepCopy = new ColumnIndices(columnIndices, true);
+        assertNotSame(columnIndices, deepCopy);
 
         assertEquals(schemaVersion, deepCopy.getSchemaVersion());
-        assertEquals(columnIndices.getColumnIndex(Cat.class, Cat.FIELD_NAME),
-                deepCopy.getColumnIndex(Cat.class, Cat.FIELD_NAME));
-        assertEquals(columnIndices.getColumnIndex(Dog.class, Dog.FIELD_AGE),
-                deepCopy.getColumnIndex(Dog.class, Dog.FIELD_AGE));
 
-        // Checks if those are different instance.
-        assertNotSame(columnIndices, deepCopy);
-        assertNotSame(columnIndices.getColumnInfo(Cat.class), deepCopy.getColumnInfo(Cat.class));
-        assertNotSame(columnIndices.getColumnInfo(Dog.class), deepCopy.getColumnInfo(Dog.class));
+        ColumnInfo colInfo = columnIndices.getColumnInfo(Cat.class);
+        ColumnInfo colInfoCopy = deepCopy.getColumnInfo(Cat.class);
+        assertNotSame(colInfo, colInfoCopy);
+        assertEquals(colInfo.getColumnIndex(Cat.FIELD_NAME), colInfoCopy.getColumnIndex(Cat.FIELD_NAME));
+
+        colInfo = columnIndices.getColumnInfo(Dog.class);
+        colInfoCopy = deepCopy.getColumnInfo(Dog.class);
+        assertNotSame(colInfo, colInfoCopy);
+        assertEquals(colInfo.getColumnIndex(Dog.FIELD_AGE), colInfoCopy.getColumnIndex(Dog.FIELD_AGE));
     }
 
     @Test
@@ -112,10 +119,11 @@ public class ColumnIndicesTests {
         assertNotEquals(catColumnInfoInSource.nameIndex, catColumnInfoInTarget.nameIndex);
         assertNotSame(catColumnInfoInSource.getIndicesMap(), catColumnInfoInTarget.getIndicesMap());
 
-        target.copyFrom(source,  mediator);
+        target.copyFrom(source);
 
         assertEquals(sourceSchemaVersion, target.getSchemaVersion());
         assertEquals(catColumnInfoInSource.nameIndex, catColumnInfoInTarget.nameIndex);
-        assertSame(catColumnInfoInSource.getIndicesMap(), catColumnInfoInTarget.getIndicesMap());
+        // update, not replace
+        assertSame(catColumnInfoInTarget, target.getColumnInfo(Cat.class));
     }
 }

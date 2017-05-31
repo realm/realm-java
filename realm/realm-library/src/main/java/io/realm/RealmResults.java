@@ -17,11 +17,18 @@
 package io.realm;
 
 
+import android.annotation.SuppressLint;
 import android.os.Looper;
+import android.util.Log;
 
+import io.realm.internal.CheckedRow;
 import io.realm.internal.Collection;
+import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
+import io.realm.internal.Table;
+import io.realm.internal.UncheckedRow;
 import rx.Observable;
+
 
 /**
  * This class holds all the matches of a {@link RealmQuery} for a given Realm. The objects are not copied from
@@ -52,6 +59,25 @@ import rx.Observable;
  */
 public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionImpl<E> {
 
+    // Called from Realm Proxy classes
+    @SuppressLint("unused")
+    static <T extends RealmModel> RealmResults<T> createBacklinkResults(BaseRealm realm, Row row, Class<T> srcTableType, String srcFieldName) {
+        UncheckedRow uncheckedRow = (UncheckedRow) row;
+        Table srcTable = realm.getSchema().getTable(srcTableType);
+        return new RealmResults<>(
+                realm,
+                Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
+                srcTableType);
+    }
+
+    // Abandon typing information, all ye who enter here
+    static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
+        return new RealmResults<>(
+                realm,
+                Collection.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),
+                Table.getClassNameForTable(srcTable.getName()));
+    }
+
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
         super(realm, collection, clazz);
     }
@@ -75,7 +101,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @Override
     public RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
-        return sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
+        return sort(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
     /**
@@ -84,6 +110,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @return {@code true} if the query has completed and the data is available, {@code false} if the query is still
      * running in the background.
      */
+    @Override
     public boolean isLoaded() {
         realm.checkIfValid();
         return collection.isLoaded();
@@ -95,6 +122,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
+    @Override
     public boolean load() {
         // The Collection doesn't have to be loaded before accessing it if the query has not returned.
         // Instead, accessing the Collection will just trigger the execution of query if needed. We add this flag is
@@ -107,6 +135,31 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
 
     /**
      * Adds a change listener to this {@link RealmResults}.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmResults from being garbage collected.
+     * If the RealmResults is garbage collected, the change listener will stop being triggered. To avoid this, keep a
+     * strong reference for as long as appropriate e.g. in a class variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private RealmResults<Person> results; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       results = realm.where(Person.class).findAllAsync();
+     *       results.addChangeListener(new RealmChangeListener<RealmResults<Person>>() {
+     *           \@Override
+     *           public void onChange(RealmResults<Person> persons) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.
@@ -120,6 +173,31 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
 
     /**
      * Adds a change listener to this {@link RealmResults}.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmResults from being garbage collected.
+     * If the RealmResults is garbage collected, the change listener will stop being triggered. To avoid this, keep a
+     * strong reference for as long as appropriate e.g. in a class variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private RealmResults<Person> results; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       results = realm.where(Person.class).findAllAsync();
+     *       results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Person>>() {
+     *           \@Override
+     *           public void onChange(RealmResults<Person> persons, OrderedCollectionChangeSet changeSet) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.
@@ -189,11 +267,11 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
      * subscribed to. RealmResults will continually be emitted as the RealmResults are updated -
      * {@code onComplete} will never be called.
-     *
+     * <p>
      * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
-     *
-     *<pre>
+     * <p>
+     * <pre>
      * {@code
      * realm.where(Foo.class).findAllAsync().asObservable()
      *      .filter(results -> results.isLoaded())
@@ -201,7 +279,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      *      .subscribe( ... ) // You only get the results once
      * }
      * </pre>
-     *
+     * <p>
      * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
      * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
      * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
@@ -233,7 +311,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @Deprecated
     public RealmResults<E> distinct(String fieldName) {
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(collection.getTable(), fieldName);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(new SchemaConnector(realm.getSchema()), collection.getTable(), fieldName);
         Collection distinctCollection = collection.distinct(distinctDescriptor);
         return createLoadedResults(distinctCollection);
     }

@@ -19,17 +19,32 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmFileException;
+import io.realm.internal.Capabilities;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.ObjectServerFacade;
+import io.realm.internal.RealmNotifier;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
+import io.realm.internal.android.AndroidCapabilities;
+import io.realm.internal.android.AndroidRealmNotifier;
+import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
-import io.realm.internal.ObjectServerFacade;
+
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.
@@ -50,12 +65,13 @@ final class RealmCache {
 
     private static class RefAndCount {
         // The Realm instance in this thread.
-        private final ThreadLocal<BaseRealm> localRealm = new ThreadLocal<BaseRealm>();
+        private final ThreadLocal<BaseRealm> localRealm = new ThreadLocal<>();
         // How many references to this Realm instance in this thread.
-        private final ThreadLocal<Integer> localCount = new ThreadLocal<Integer>();
+        private final ThreadLocal<Integer> localCount = new ThreadLocal<>();
         // How many threads have instances refer to this configuration.
         private int globalCount = 0;
     }
+
     private enum RealmCacheType {
         TYPED_REALM,
         DYNAMIC_REALM;
@@ -70,29 +86,188 @@ final class RealmCache {
             throw new IllegalArgumentException(WRONG_REALM_CLASS_MESSAGE);
         }
     }
+
+    private static class CreateRealmRunnable<T extends BaseRealm> implements Runnable {
+        private final RealmConfiguration configuration;
+        private final BaseRealm.InstanceCallback<T> callback;
+        private final Class<T> realmClass;
+        private final CountDownLatch canReleaseBackgroundInstanceLatch = new CountDownLatch(1);
+        private final RealmNotifier notifier;
+        // The Future this runnable belongs to.
+        private Future future;
+
+        CreateRealmRunnable(RealmNotifier notifier, RealmConfiguration configuration,
+                BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
+            this.configuration = configuration;
+            this.realmClass = realmClass;
+            this.callback = callback;
+            this.notifier = notifier;
+        }
+
+        public void setFuture(Future future) {
+            this.future = future;
+        }
+
+        @Override
+        public void run() {
+            T instance = null;
+            try {
+                // First call that will run all schema validation, migrations or initial transactions.
+                instance = createRealmOrGetFromCache(configuration, realmClass);
+                boolean results = notifier.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        // If the RealmAsyncTask.cancel() is called before, we just return without creating the Realm
+                        // instance on the caller thread.
+                        // Thread.isInterrupted() cannot be used for checking here since CountDownLatch.await() will
+                        // will clear interrupted status.
+                        // Using the future to check which this runnable belongs to is to ensure if it is canceled from
+                        // the caller thread before, the callback will never be delivered.
+                        if (future == null || future.isCancelled()) {
+                            canReleaseBackgroundInstanceLatch.countDown();
+                            return;
+                        }
+                        T instanceToReturn = null;
+                        Throwable throwable = null;
+                        try {
+                            // This will run on the caller thread, but since the first `createRealmOrGetFromCache`
+                            // should have completed at this point, all expensive initializer functions have already
+                            // run.
+                            instanceToReturn = createRealmOrGetFromCache(configuration, realmClass);
+                        } catch (Throwable e) {
+                            throwable = e;
+                        } finally {
+                            canReleaseBackgroundInstanceLatch.countDown();
+                        }
+                        if (instanceToReturn != null) {
+                            callback.onSuccess(instanceToReturn);
+                        } else {
+                            callback.onError(throwable);
+                        }
+                    }
+                });
+                if (!results) {
+                    canReleaseBackgroundInstanceLatch.countDown();
+                }
+                // There is a small chance that the posted runnable cannot be executed because of the thread terminated
+                // before the runnable gets fetched from the event queue.
+                if (!canReleaseBackgroundInstanceLatch.await(2, TimeUnit.SECONDS)) {
+                    RealmLog.warn("Timeout for creating Realm instance in foreground thread in `CreateRealmRunnable` ");
+                }
+            } catch (InterruptedException e) {
+                RealmLog.warn(e, "`CreateRealmRunnable` has been interrupted.");
+            } catch (final Throwable e) {
+                // DownloadingRealmInterruptedException is treated specially.
+                // It async open is canceled, this could interrupt the download, but the user should
+                // not care in this case, so just ignore it.
+                if (!ObjectServerFacade.getSyncFacadeIfPossible().wasDownloadInterrupted(e)) {
+                    RealmLog.error(e, "`CreateRealmRunnable` failed.");
+                    notifier.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onError(e);
+                        }
+                    });
+                }
+            } finally {
+                if (instance != null) {
+                    instance.close();
+                }
+            }
+        }
+    }
+
+    private static final String ASYNC_NOT_ALLOWED_MSG =
+            "Realm instances cannot be loaded asynchronously on a non-looper thread.";
+    private static final String ASYNC_CALLBACK_NULL_MSG =
+            "The callback cannot be null.";
+
     // Separated references and counters for typed Realm and dynamic Realm.
     private final EnumMap<RealmCacheType, RefAndCount> refAndCountMap;
 
-    final private RealmConfiguration configuration;
+    // Path to the Realm file to identify this cache.
+    private final String realmPath;
+
+    // This will be only valid if getTotalGlobalRefCount() > 0.
+    // NOTE: We do reset this when globalCount reaches 0, but if exception thrown in doCreateRealmOrGetFromCache at the
+    // first time when globalCount == 0, this could have a non-null value but it will be reset when the next
+    // doCreateRealmOrGetFromCache is called with globalCount == 0.
+    private RealmConfiguration configuration;
 
     // Column indices are cached to speed up opening typed Realm. If a Realm instance is created in one thread, creating
     // Realm instances in other threads doesn't have to initialize the column indices again.
     private static final int MAX_ENTRIES_IN_TYPED_COLUMN_INDICES_ARRAY = 4;
     private final ColumnIndices[] typedColumnIndicesArray = new ColumnIndices[MAX_ENTRIES_IN_TYPED_COLUMN_INDICES_ARRAY];
 
-    // Realm path will be used as the key to store different RealmCaches. Different Realm configurations with same path
-    // are not allowed and an exception will be thrown when trying to add it to the cache map.
-    private static Map<String, RealmCache> cachesMap = new HashMap<String, RealmCache>();
+    // Realm path will be used to identify different RealmCaches. Different Realm configurations with same path
+    // are not allowed and an exception will be thrown when trying to add it to the cache list.
+    // A weak ref is used to hold the RealmCache instance. The weak ref entry will be cleared if and only if there
+    // is no Realm instance holding a strong ref to it and there is no Realm instance associated it is BEING created.
+    private static final List<WeakReference<RealmCache>> cachesList = new LinkedList<WeakReference<RealmCache>>();
+
+    // See leak()
+    // isLeaked flag is used to avoid adding strong ref multiple times without iterating the list.
+    private final AtomicBoolean isLeaked = new AtomicBoolean(false);
+    // Keep strong ref to the leaked RealmCache
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    private static final Collection<RealmCache> leakedCaches = new ConcurrentLinkedQueue<RealmCache>();
 
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
     private static final String WRONG_REALM_CLASS_MESSAGE = "The type of Realm class must be Realm or DynamicRealm.";
 
-    private RealmCache(RealmConfiguration config) {
-        configuration = config;
-        refAndCountMap = new EnumMap<RealmCacheType, RefAndCount>(RealmCacheType.class);
+    private RealmCache(String path) {
+        realmPath = path;
+        refAndCountMap = new EnumMap<>(RealmCacheType.class);
         for (RealmCacheType type : RealmCacheType.values()) {
             refAndCountMap.put(type, new RefAndCount());
         }
+    }
+
+    private static RealmCache getCache(String realmPath, boolean createIfNotExist) {
+        RealmCache cacheToReturn = null;
+        synchronized (cachesList) {
+            Iterator<WeakReference<RealmCache>> it = cachesList.iterator();
+
+            while (it.hasNext()) {
+                RealmCache cache = it.next().get();
+                if (cache == null) {
+                    // Clear the entry if there is no one holding the RealmCache.
+                    it.remove();
+                } else if (cache.realmPath.equals(realmPath)) {
+                    cacheToReturn = cache;
+                }
+            }
+
+            if (cacheToReturn == null && createIfNotExist) {
+                cacheToReturn = new RealmCache(realmPath);
+                cachesList.add(new WeakReference<RealmCache>(cacheToReturn));
+            }
+        }
+        return cacheToReturn;
+    }
+
+    static <T extends BaseRealm> RealmAsyncTask createRealmOrGetFromCacheAsync(
+            RealmConfiguration configuration, BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
+        RealmCache cache = getCache(configuration.getPath(), true);
+        return cache.doCreateRealmOrGetFromCacheAsync(configuration, callback, realmClass);
+    }
+
+    private synchronized <T extends BaseRealm> RealmAsyncTask doCreateRealmOrGetFromCacheAsync(
+            RealmConfiguration configuration, BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
+        Capabilities capabilities = new AndroidCapabilities();
+        capabilities.checkCanDeliverNotification(ASYNC_NOT_ALLOWED_MSG);
+        if (callback == null) {
+            throw new IllegalArgumentException(ASYNC_CALLBACK_NULL_MSG);
+        }
+
+        // Always create a Realm instance in the background thread even when there are instances existing on current
+        // thread. This to ensure that onSuccess will always be called in the following event loop but not current one.
+        CreateRealmRunnable<T> createRealmRunnable = new CreateRealmRunnable<T>(
+                new AndroidRealmNotifier(null, capabilities), configuration, callback, realmClass);
+        Future<?> future = BaseRealm.asyncTaskExecutor.submitTransaction(createRealmRunnable);
+        createRealmRunnable.setFuture(future);
+
+        return new RealmAsyncTaskImpl(future, BaseRealm.asyncTaskExecutor);
     }
 
     /**
@@ -102,81 +277,96 @@ final class RealmCache {
      * @param realmClass class of {@link Realm} or {@link DynamicRealm} to be created in or gotten from the cache.
      * @return the {@link Realm} or {@link DynamicRealm} instance.
      */
-    static synchronized <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration,
-                                                        Class<E> realmClass) {
-        boolean isCacheInMap = true;
-        RealmCache cache = cachesMap.get(configuration.getPath());
-        if (cache == null) {
-            // Creates a new cache.
-            cache = new RealmCache(configuration);
-            // The new cache should be added to the map later.
-            isCacheInMap = false;
+    static <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration,
+            Class<E> realmClass) {
+        RealmCache cache = getCache(configuration.getPath(), true);
 
+        return cache.doCreateRealmOrGetFromCache(configuration, realmClass);
+    }
+
+    private synchronized <E extends BaseRealm> E doCreateRealmOrGetFromCache(RealmConfiguration configuration,
+            Class<E> realmClass) {
+
+        RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.valueOf(realmClass));
+
+        if (getTotalGlobalRefCount() == 0) {
             copyAssetFileIfNeeded(configuration);
-        } else {
-            // Throws the exception if validation failed.
-            cache.validateConfiguration(configuration);
-        }
+            boolean fileExists = configuration.realmExists();
 
-        RefAndCount refAndCount = cache.refAndCountMap.get(RealmCacheType.valueOf(realmClass));
+            SharedRealm sharedRealm = null;
+            try {
+                sharedRealm = SharedRealm.getInstance(configuration);
 
-        if (refAndCount.globalCount == 0) {
-            SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
-            if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
-                sharedRealm.beginTransaction();
-                if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
-                    sharedRealm.commitTransaction();
-                } else {
-                    sharedRealm.cancelTransaction();
+                // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
+                // before proceeding. We need to open the Realm instance first to start any potential underlying
+                // SyncSession so this will work. TODO: This needs to be decoupled.
+                if (!fileExists) {
+                    try {
+                        ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
+                    } catch (Throwable t) {
+                        // If an error happened while downloading initial data, we need to reset the file so we can
+                        // download it again on the next attempt.
+                        // Realm.deleteRealm() is under the same lock as this method and globalCount is still 0, so
+                        // this should be safe.
+                        sharedRealm.close();
+                        sharedRealm = null;
+                        Realm.deleteRealm(configuration);
+                        throw t;
+                    }
+                }
+
+                if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
+                    sharedRealm.beginTransaction();
+                    if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
+                        sharedRealm.commitTransaction();
+                    } else {
+                        sharedRealm.cancelTransaction();
+                    }
+                }
+
+            } finally {
+                if (sharedRealm != null) {
+                    sharedRealm.close();
                 }
             }
-            sharedRealm.close();
+
+            // We are holding the lock, and we can set the invalidated configuration since there is no global ref to it.
+            this.configuration = configuration;
+        } else {
+            // Throws exception if validation failed.
+            validateConfiguration(configuration);
         }
 
         if (refAndCount.localRealm.get() == null) {
             // Creates a new local Realm instance
             BaseRealm realm;
 
-
             if (realmClass == Realm.class) {
                 // RealmMigrationNeededException might be thrown here.
-                realm = Realm.createInstance(configuration, cache.typedColumnIndicesArray);
+                realm = Realm.createInstance(this);
             } else if (realmClass == DynamicRealm.class) {
-                realm = DynamicRealm.createInstance(configuration);
+                realm = DynamicRealm.createInstance(this);
             } else {
                 throw new IllegalArgumentException(WRONG_REALM_CLASS_MESSAGE);
             }
 
             // The Realm instance has been created without exceptions. Cache and reference count can be updated now.
-
-            // The cache is not in the map yet. Add it to the map after the Realm instance created successfully.
-            if (!isCacheInMap) {
-                cachesMap.put(configuration.getPath(), cache);
-            }
             refAndCount.localRealm.set(realm);
             refAndCount.localCount.set(0);
-        }
 
-        Integer refCount = refAndCount.localCount.get();
-        if (refCount == 0) {
             if (realmClass == Realm.class && refAndCount.globalCount == 0) {
-                final BaseRealm realm = refAndCount.localRealm.get();
                 // Stores a copy of local ColumnIndices as a global cache.
-                RealmCache.storeColumnIndices(cache.typedColumnIndicesArray, realm.schema.columnIndices.clone());
+                RealmCache.storeColumnIndices(typedColumnIndicesArray, realm.schema.getImmutableColumnIndicies());
             }
             // This is the first instance in current thread, increase the global count.
             refAndCount.globalCount++;
         }
+
+        Integer refCount = refAndCount.localCount.get();
         refAndCount.localCount.set(refCount + 1);
 
-        @SuppressWarnings("unchecked")
-        E realm = (E) refAndCount.localRealm.get();
-
-        // Notifies SyncPolicy that the Realm has been opened for the first time
-        if (refAndCount.globalCount == 1) {
-            ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).realmOpened(configuration);
-        }
-        return realm;
+        //noinspection unchecked
+        return (E) refAndCount.localRealm.get();
     }
 
     /**
@@ -185,22 +375,16 @@ final class RealmCache {
      *
      * @param realm Realm instance to be released from cache.
      */
-    static synchronized void release(BaseRealm realm) {
+    synchronized void release(BaseRealm realm) {
         String canonicalPath = realm.getPath();
-        RealmCache cache = cachesMap.get(canonicalPath);
-        Integer refCount = null;
-        RefAndCount refAndCount = null;
-
-        if (cache != null) {
-            refAndCount = cache.refAndCountMap.get(RealmCacheType.valueOf(realm.getClass()));
-            refCount = refAndCount.localCount.get();
-        }
+        RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.valueOf(realm.getClass()));
+        Integer refCount = refAndCount.localCount.get();
         if (refCount == null) {
             refCount = 0;
         }
 
         if (refCount <= 0) {
-            RealmLog.warn("%s has been closed already.", canonicalPath);
+            RealmLog.warn("%s has been closed already. refCount is %s", canonicalPath, refCount);
             return;
         }
 
@@ -224,20 +408,18 @@ final class RealmCache {
             // Clears the column indices cache if needed.
             if (realm instanceof Realm && refAndCount.globalCount == 0) {
                 // All typed Realm instances of this file are cleared from cache.
-                Arrays.fill(cache.typedColumnIndicesArray, null);
-            }
-
-            int totalRefCount = 0;
-            for (RealmCacheType type : RealmCacheType.values()) {
-                totalRefCount += cache.refAndCountMap.get(type).globalCount;
+                Arrays.fill(typedColumnIndicesArray, null);
             }
 
             // No more local reference to this Realm in current thread, close the instance.
             realm.doClose();
 
-            // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
-            if (totalRefCount == 0) {
-                cachesMap.remove(canonicalPath);
+            // No more instance of typed Realm and dynamic Realm.
+            if (getTotalGlobalRefCount() == 0) {
+                // We keep the cache in the caches list even when its global counter reaches 0. It will be reused when
+                // next time a Realm instance with the same path is opened. By not removing it, the lock on
+                // cachesList is not needed here.
+                configuration = null;
                 ObjectServerFacade.getFacade(realm.getConfiguration().isSyncConfiguration())
                         .realmClosed(realm.getConfiguration());
             }
@@ -267,10 +449,10 @@ final class RealmCache {
             // Tries to detect this problem specifically so we can throw a better error message.
             RealmMigration newMigration = newConfiguration.getMigration();
             RealmMigration oldMigration = configuration.getMigration();
-            if (oldMigration != null 
-                && newMigration != null 
-                && oldMigration.getClass().equals(newMigration.getClass())
-                && !newMigration.equals(oldMigration)) {
+            if (oldMigration != null
+                    && newMigration != null
+                    && oldMigration.getClass().equals(newMigration.getClass())
+                    && !newMigration.equals(oldMigration)) {
                 throw new IllegalArgumentException("Configurations cannot be different if used to open the same file. " +
                         "The most likely cause is that equals() and hashCode() are not overridden in the " +
                         "migration class: " + newConfiguration.getMigration().getClass().getCanonicalName());
@@ -289,17 +471,23 @@ final class RealmCache {
      * @param configuration the {@link RealmConfiguration} of {@link Realm} or {@link DynamicRealm}.
      * @param callback the callback will be executed with the global reference count.
      */
-    static synchronized void invokeWithGlobalRefCount(RealmConfiguration configuration, Callback callback) {
-        RealmCache cache = cachesMap.get(configuration.getPath());
-        if (cache == null) {
-            callback.onResult(0);
-            return;
+    static void invokeWithGlobalRefCount(RealmConfiguration configuration, Callback callback) {
+        // NOTE: Although getCache is locked on the cacheMap, this whole method needs to be lock with it as
+        // well. Since we need to ensure there is no Realm instance can be opened when this method is called (for
+        // deleteRealm).
+        // Recursive lock cannot be avoided here.
+        synchronized (cachesList) {
+            RealmCache cache = getCache(configuration.getPath(), false);
+            if (cache == null) {
+                callback.onResult(0);
+                return;
+            }
+            cache.doInvokeWithGlobalRefCount(callback);
         }
-        int totalRefCount = 0;
-        for (RealmCacheType type : RealmCacheType.values()) {
-            totalRefCount += cache.refAndCountMap.get(type).globalCount;
-        }
-        callback.onResult(totalRefCount);
+    }
+
+    private synchronized void doInvokeWithGlobalRefCount(Callback callback) {
+        callback.onResult(getTotalGlobalRefCount());
     }
 
     /**
@@ -307,31 +495,26 @@ final class RealmCache {
      *
      * @param realm the instance that contains the schema cache to be updated.
      */
-    static synchronized void updateSchemaCache(Realm realm) {
-        final RealmCache cache = cachesMap.get(realm.getPath());
-        if (cache == null) {
-            // Called during initialization. just skip it.
-            return;
-        }
-        final RefAndCount refAndCount = cache.refAndCountMap.get(RealmCacheType.TYPED_REALM);
+    synchronized void updateSchemaCache(Realm realm) {
+        final RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.TYPED_REALM);
         if (refAndCount.localRealm.get() == null) {
             // Called during initialization. just skip it.
             // We can reach here if the DynamicRealm instance is initialized first.
             return;
         }
-        final ColumnIndices[] globalCacheArray = cache.typedColumnIndicesArray;
+        final ColumnIndices[] globalCacheArray = typedColumnIndicesArray;
         final ColumnIndices createdCacheEntry = realm.updateSchemaCache(globalCacheArray);
         if (createdCacheEntry != null) {
             RealmCache.storeColumnIndices(globalCacheArray, createdCacheEntry);
         }
     }
 
-   /**
+    /**
      * Runs the callback function with synchronization on {@link RealmCache}.
      *
      * @param callback the callback will be executed.
      */
-    static synchronized void invokeWithLock(Callback0 callback) {
+    synchronized void invokeWithLock(Callback0 callback) {
         callback.onCall();
     }
 
@@ -339,74 +522,91 @@ final class RealmCache {
      * Copies Realm database file from Android asset directory to the directory given in the {@link RealmConfiguration}.
      * Copy is performed only at the first time when there is no Realm database file.
      *
+     * WARNING: This method is not thread-safe so external synchronization is required before using it.
+     *
      * @param configuration configuration object for Realm instance.
      * @throws RealmFileException if copying the file fails.
      */
     private static void copyAssetFileIfNeeded(RealmConfiguration configuration) {
-        IOException exceptionWhenClose = null;
         if (configuration.hasAssetFile()) {
             File realmFile = new File(configuration.getRealmDirectory(), configuration.getRealmFileName());
-            if (realmFile.exists()) {
-                return;
+
+            copyFileIfNeeded(configuration.getAssetFilePath(), realmFile);
+        }
+
+        // Copy Sync Server certificate path if available
+        String syncServerCertificateAssetName = ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).getSyncServerCertificateAssetName(configuration);
+        if (!Util.isEmptyString(syncServerCertificateAssetName)) {
+            String syncServerCertificateFilePath = ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).getSyncServerCertificateFilePath(configuration);
+
+            File certificateFile = new File(syncServerCertificateFilePath);
+            copyFileIfNeeded(syncServerCertificateAssetName, certificateFile);
+        }
+    }
+
+    private static void copyFileIfNeeded(String assetFileName, File file) {
+        if (file.exists()) {
+            return;
+        }
+
+        IOException exceptionWhenClose = null;
+        InputStream inputStream = null;
+        FileOutputStream outputStream = null;
+        try {
+            inputStream = BaseRealm.applicationContext.getAssets().open(assetFileName);
+            if (inputStream == null) {
+                throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
+                        "Invalid input stream to the asset file: " + assetFileName);
             }
 
-            InputStream inputStream = null;
-            FileOutputStream outputStream = null;
-            try {
-                inputStream = configuration.getAssetFile();
-                if (inputStream == null) {
-                    throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
-                            "Invalid input stream to asset file.");
+            outputStream = new FileOutputStream(file);
+            byte[] buf = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buf)) > -1) {
+                outputStream.write(buf, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
+                    "Could not resolve the path to the asset file: " + assetFileName, e);
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    exceptionWhenClose = e;
                 }
-
-                outputStream = new FileOutputStream(realmFile);
-                byte[] buf = new byte[4096];
-                int bytesRead;
-                while ((bytesRead = inputStream.read(buf)) > -1) {
-                    outputStream.write(buf, 0, bytesRead);
-                }
-            } catch (IOException e) {
-                throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
-                        "Could not resolve the path to the Realm asset file.", e);
-            } finally {
-                if (inputStream != null) {
-                    try {
-                        inputStream.close();
-                    } catch (IOException e) {
+            }
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    // Ignores this one if there was an exception when close inputStream.
+                    if (exceptionWhenClose == null) {
                         exceptionWhenClose = e;
                     }
                 }
-                if (outputStream != null) {
-                    try {
-                        outputStream.close();
-                    } catch (IOException e) {
-                        // Ignores this one if there was an exception when close inputStream.
-                        if (exceptionWhenClose == null) {
-                            exceptionWhenClose = e;
-                        }
-                    }
-                }
             }
+        }
 
-            // No other exception has been thrown, only the exception when close. So, throw it.
-            if (exceptionWhenClose != null) {
-                throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR, exceptionWhenClose);
-            }
+        // No other exception has been thrown, only the exception when close. So, throw it.
+        if (exceptionWhenClose != null) {
+            throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR, exceptionWhenClose);
         }
     }
 
     static int getLocalThreadCount(RealmConfiguration configuration) {
-        RealmCache cache = cachesMap.get(configuration.getPath());
+        RealmCache cache = getCache(configuration.getPath(), false);
         if (cache == null) {
             return 0;
-        } else {
-            int totalRefCount = 0;
-            for (RealmCacheType type : RealmCacheType.values()) {
-                Integer localCount = cache.refAndCountMap.get(type).localCount.get();
-                totalRefCount += (localCount != null) ? localCount : 0;
-            }
-            return totalRefCount;
         }
+
+        // Access local ref count only, no need to by synchronized.
+        int totalRefCount = 0;
+        for (RefAndCount refAndCount : cache.refAndCountMap.values()) {
+            Integer localCount = refAndCount.localCount.get();
+            totalRefCount += (localCount != null) ? localCount : 0;
+        }
+        return totalRefCount;
     }
 
     /**
@@ -416,7 +616,7 @@ final class RealmCache {
      * @param schemaVersion requested version of the schema.
      * @return {@link ColumnIndices} instance for specified schema version. {@code null} if not found.
      */
-    public static ColumnIndices findColumnIndices(ColumnIndices[] array, long schemaVersion) {
+    static ColumnIndices findColumnIndices(ColumnIndices[] array, long schemaVersion) {
         for (int i = array.length - 1; 0 <= i; i--) {
             final ColumnIndices candidate = array[i];
             if (candidate != null && candidate.getSchemaVersion() == schemaVersion) {
@@ -454,5 +654,35 @@ final class RealmCache {
         }
         array[candidateIndex] = columnIndices;
         return candidateIndex;
+    }
+
+    public RealmConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    public ColumnIndices[] getTypedColumnIndicesArray() {
+        return typedColumnIndicesArray;
+    }
+
+    /**
+     * @return the total global ref count.
+     */
+    private int getTotalGlobalRefCount() {
+        int totalRefCount = 0;
+        for (RefAndCount refAndCount : refAndCountMap.values()) {
+            totalRefCount += refAndCount.globalCount;
+        }
+
+        return totalRefCount;
+    }
+
+    /**
+     * If a Realm instance is GCed but `Realm.close()` is not called before, we still want to track the cache for
+     * debugging. Adding them to the list to keep the strong ref of the cache to prevent the cache gets GCed.
+     */
+    void leak() {
+        if (!isLeaked.getAndSet(true)) {
+            leakedCaches.add(this);
+        }
     }
 }

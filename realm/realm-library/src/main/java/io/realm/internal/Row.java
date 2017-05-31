@@ -20,6 +20,7 @@ import java.util.Date;
 
 import io.realm.RealmFieldType;
 
+
 /**
  * Interface for Row objects that act as wrappers around the Realm Core Row object.
  * <p>
@@ -27,7 +28,6 @@ import io.realm.RealmFieldType;
  * interface always validate their parameters and throw an appropriate exception if invalid.
  * For example, methods which accept a column name check the existence of the column and throw
  * {@link IllegalArgumentException} if not found.
- *
  */
 public interface Row {
 
@@ -109,6 +109,11 @@ public interface Row {
      * @return {@code true} if the row is still valid and attached to the underlying data. {@code false} otherwise.
      */
     boolean isAttached();
+
+    /**
+     * Throws {@link IllegalStateException} if the row is not attached.
+     */
+    void checkIfAttached();
 
     /**
      * Returns {@code true} if the field name exists.

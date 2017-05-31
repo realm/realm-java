@@ -28,14 +28,16 @@ import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
 
+
 /**
  * Class that wraps a normal RealmObject in order to allow dynamic access instead of a typed interface.
  * Using a DynamicRealmObject is slower than using the regular RealmObject class.
  */
 @SuppressWarnings("WeakerAccess")
 public class DynamicRealmObject extends RealmObject implements RealmObjectProxy {
+    static final String MSG_LINK_QUERY_NOT_SUPPORTED = "Queries across relationships are not supported";
 
-    private final ProxyState proxyState = new ProxyState(this);
+    private final ProxyState<DynamicRealmObject> proxyState = new ProxyState<>(this);
 
     /**
      * Creates a dynamic Realm object based on an existing object.
@@ -68,7 +70,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         proxyState.setConstructionFinished();
     }
 
-    // row must not be an instance of UncheckedRow
+    // row must be an instance of CheckedRow or InvalidRow
     DynamicRealmObject(BaseRealm realm, Row row) {
         proxyState.setRealm$realm(realm);
         proxyState.setRow$realm(row);
@@ -82,22 +84,31 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @return the field value.
      * @throws ClassCastException if the field doesn't contain a field of the defined return type.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
     public <E> E get(String fieldName) {
         proxyState.getRealm$realm().checkIfValid();
 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         RealmFieldType type = proxyState.getRow$realm().getColumnType(columnIndex);
         switch (type) {
-            case BOOLEAN: return (E) Boolean.valueOf(proxyState.getRow$realm().getBoolean(columnIndex));
-            case INTEGER: return (E) Long.valueOf(proxyState.getRow$realm().getLong(columnIndex));
-            case FLOAT: return (E) Float.valueOf(proxyState.getRow$realm().getFloat(columnIndex));
-            case DOUBLE: return (E) Double.valueOf(proxyState.getRow$realm().getDouble(columnIndex));
-            case STRING: return (E) proxyState.getRow$realm().getString(columnIndex);
-            case BINARY: return (E) proxyState.getRow$realm().getBinaryByteArray(columnIndex);
-            case DATE: return (E) proxyState.getRow$realm().getDate(columnIndex);
-            case OBJECT: return (E) getObject(fieldName);
-            case LIST: return (E) getList(fieldName);
+            case BOOLEAN:
+                return (E) Boolean.valueOf(proxyState.getRow$realm().getBoolean(columnIndex));
+            case INTEGER:
+                return (E) Long.valueOf(proxyState.getRow$realm().getLong(columnIndex));
+            case FLOAT:
+                return (E) Float.valueOf(proxyState.getRow$realm().getFloat(columnIndex));
+            case DOUBLE:
+                return (E) Double.valueOf(proxyState.getRow$realm().getDouble(columnIndex));
+            case STRING:
+                return (E) proxyState.getRow$realm().getString(columnIndex);
+            case BINARY:
+                return (E) proxyState.getRow$realm().getBinaryByteArray(columnIndex);
+            case DATE:
+                return (E) proxyState.getRow$realm().getDate(columnIndex);
+            case OBJECT:
+                return (E) getObject(fieldName);
+            case LIST:
+                return (E) getList(fieldName);
             case UNSUPPORTED_TABLE:
             case UNSUPPORTED_MIXED:
             default:
@@ -333,8 +344,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
             LinkView linkView = proxyState.getRow$realm().getLinkList(columnIndex);
-            String className = RealmSchema.getSchemaForTable(linkView.getTargetTable());
-            return new RealmList<DynamicRealmObject>(className, linkView, proxyState.getRealm$realm());
+            String className = linkView.getTargetTable().getClassName();
+            return new RealmList<>(className, linkView, proxyState.getRealm$realm());
         } catch (IllegalArgumentException e) {
             checkFieldType(fieldName, columnIndex, RealmFieldType.LIST);
             throw e;
@@ -405,11 +416,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
     /**
      * Sets the value for the given field. This method will automatically try to convert numbers and
-     * booleans that are given as {@code String} to their appropriate type. For example {@code "10"} 
+     * booleans that are given as {@code String} to their appropriate type. For example {@code "10"}
      * will be converted to {@code 10} if the field type is {@code int}.
      * <p>
      * Using the typed setters will be faster than using this method.
-     * 
+     *
      * @throws IllegalArgumentException if field name doesn't exist or if the input value cannot be converted
      * to the appropriate input type.
      * @throws NumberFormatException if a String based number cannot be converted properly.
@@ -426,12 +437,22 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         RealmFieldType type = proxyState.getRow$realm().getColumnType(columnIndex);
         if (isString && type != RealmFieldType.STRING) {
-            switch(type) {
-                case BOOLEAN: value = Boolean.parseBoolean(strValue); break;
-                case INTEGER: value = Long.parseLong(strValue); break;
-                case FLOAT: value = Float.parseFloat(strValue); break;
-                case DOUBLE: value = Double.parseDouble(strValue); break;
-                case DATE: value = JsonUtils.stringToDate(strValue); break;
+            switch (type) {
+                case BOOLEAN:
+                    value = Boolean.parseBoolean(strValue);
+                    break;
+                case INTEGER:
+                    value = Long.parseLong(strValue);
+                    break;
+                case FLOAT:
+                    value = Float.parseFloat(strValue);
+                    break;
+                case DOUBLE:
+                    value = Double.parseDouble(strValue);
+                    break;
+                case DATE:
+                    value = JsonUtils.stringToDate(strValue);
+                    break;
                 default:
                     throw new IllegalArgumentException(String.format("Field %s is not a String field, " +
                             "and the provide value could not be automatically converted: %s. Use a typed" +
@@ -684,7 +705,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         LinkView links = proxyState.getRow$realm().getLinkList(columnIndex);
         Table linkTargetTable = links.getTargetTable();
-        final String linkTargetTableName = Table.tableNameToClassName(linkTargetTable.getName());
+        final String linkTargetTableName = linkTargetTable.getClassName();
 
         boolean typeValidated;
         if (list.className == null && list.clazz == null) {
@@ -693,11 +714,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             typeValidated = false;
         } else {
             String listType = list.className != null ? list.className
-                    : Table.tableNameToClassName(proxyState.getRealm$realm().schema.getTable(list.clazz).getName());
+                    : proxyState.getRealm$realm().getSchema().getTable(list.clazz).getClassName();
             if (!linkTargetTableName.equals(listType)) {
                 throw new IllegalArgumentException(String.format(Locale.ENGLISH,
                         "The elements in the list are not the proper type. " +
-                        "Was %s expected %s.", listType, linkTargetTableName));
+                                "Was %s expected %s.", listType, linkTargetTableName));
             }
             typeValidated = true;
         }
@@ -715,7 +736,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                         "Element at index %d is not the proper type. " +
                                 "Was '%s' expected '%s'.",
                         i,
-                        Table.tableNameToClassName(obj.realmGet$proxyState().getRow$realm().getTable().getName()),
+                        obj.realmGet$proxyState().getRow$realm().getTable().getClassName(),
                         linkTargetTableName));
             }
             indices[i] = obj.realmGet$proxyState().getRow$realm().getIndex();
@@ -756,7 +777,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     public String getType() {
         proxyState.getRealm$realm().checkIfValid();
 
-        return RealmSchema.getSchemaForTable(proxyState.getRow$realm().getTable());
+        return proxyState.getRow$realm().getTable().getClassName();
     }
 
     /**
@@ -797,8 +818,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * other threads. This means that a hash code value of the object is not stable, and the value
      * should be neither used as a key in HashMap nor saved in HashSet.
      *
-     * @return  a hash code value for the object.
-     * @see     #equals
+     * @return a hash code value for the object.
+     * @see #equals
      */
     @Override
     public int hashCode() {
@@ -852,8 +873,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             return "Invalid object";
         }
 
-        final String className = Table.tableNameToClassName(proxyState.getRow$realm().getTable().getName());
-        StringBuilder sb = new StringBuilder(className + " = [");
+        final String className = proxyState.getRow$realm().getTable().getClassName();
+        StringBuilder sb = new StringBuilder(className + " = dynamic[");
         String[] fields = getFieldNames();
         for (String field : fields) {
             long columnIndex = proxyState.getRow$realm().getColumnIndex(field);
@@ -885,12 +906,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 case OBJECT:
                     sb.append(proxyState.getRow$realm().isNullLink(columnIndex)
                             ? "null"
-                            : Table.tableNameToClassName(proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getName()));
+                            : proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName());
                     break;
                 case LIST:
-                    final String tableName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getName();
-                    String targetType = Table.tableNameToClassName(tableName);
-                    sb.append(String.format("RealmList<%s>[%s]", targetType, proxyState.getRow$realm().getLinkList(columnIndex).size()));
+                    String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName();
+                    sb.append(String.format("RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getLinkList(columnIndex).size()));
                     break;
                 case UNSUPPORTED_TABLE:
                 case UNSUPPORTED_MIXED:
@@ -898,11 +918,56 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     sb.append("?");
                     break;
             }
-            sb.append("}, ");
+            sb.append("},");
         }
-        sb.replace(sb.length() - 2, sb.length(), "");
+        sb.replace(sb.length() - 1, sb.length(), "");
         sb.append("]");
         return sb.toString();
+    }
+
+    /**
+     * Returns {@link RealmResults} containing all {@code srcClassName} class objects that have a relationship
+     * to this object from {@code srcFieldName} field.
+     * <p>
+     * An entry is added for each reference, e.g. if the same reference is in a list multiple times,
+     * the src object will show up here multiple times.
+     *
+     * @param srcClassName name of the class returned objects belong to.
+     * @param srcFieldName name of the field in the source class that holds a reference to this object.
+     *                    Field type must be either {@code io.realm.RealmFieldType.OBJECT} or {@code io.realm.RealmFieldType.LIST}.
+     * @return the result.
+     * @throws IllegalArgumentException if the {@code srcClassName} is {@code null} or does not exist,
+     * the {@code srcFieldName} is {@code null} or does not exist,
+     * type of the source field is not supported.
+     */
+    public RealmResults<DynamicRealmObject> linkingObjects(String srcClassName, String srcFieldName) {
+        final DynamicRealm realm = (DynamicRealm) proxyState.getRealm$realm();
+        realm.checkIfValid();
+        proxyState.getRow$realm().checkIfAttached();
+
+        final RealmSchema schema = realm.getSchema();
+        final RealmObjectSchema realmObjectSchema = schema.get(srcClassName);
+        if (realmObjectSchema == null) {
+            throw new IllegalArgumentException("Class not found: " + srcClassName);
+        }
+
+        if (srcFieldName == null) {
+            throw new IllegalArgumentException("Non-null 'srcFieldName' required.");
+        }
+        if (srcFieldName.contains(".")) {
+            throw new IllegalArgumentException(MSG_LINK_QUERY_NOT_SUPPORTED);
+        }
+
+        final RealmFieldType fieldType = realmObjectSchema.getFieldType(srcFieldName); // throws IAE if not found
+        if (fieldType != RealmFieldType.OBJECT && fieldType != RealmFieldType.LIST) {
+            throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                    "Unexpected field type: %1$s. Field type should be either %2$s.%3$s or %2$s.%4$s.",
+                    fieldType.name(),
+                    RealmFieldType.class.getSimpleName(),
+                    RealmFieldType.OBJECT.name(), RealmFieldType.LIST.name()));
+        }
+
+        return RealmResults.createDynamicBacklinkResults(realm, (CheckedRow) proxyState.getRow$realm(), realmObjectSchema.getTable(), srcFieldName);
     }
 
     @Override

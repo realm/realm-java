@@ -19,6 +19,7 @@ package io.realm.internal;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 
+
 /**
  * This class is used for holding the reference to the native pointers present in NativeObjects.
  * This is required as phantom references cannot access the original objects for this value.
@@ -62,15 +63,15 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
     private final long nativePtr;
     // The pointer to the native finalize function
     private final long nativeFinalizerPtr;
-    private final Context context;
+    private final NativeContext context;
     private NativeObjectReference prev;
     private NativeObjectReference next;
 
     private static ReferencePool referencePool = new ReferencePool();
 
-    NativeObjectReference(Context context,
-                          NativeObject referent,
-                          ReferenceQueue<? super NativeObject> referenceQueue) {
+    NativeObjectReference(NativeContext context,
+            NativeObject referent,
+            ReferenceQueue<? super NativeObject> referenceQueue) {
         super(referent, referenceQueue);
         this.nativePtr = referent.getNativePtr();
         this.nativeFinalizerPtr = referent.getNativeFinalizerPtr();
@@ -90,7 +91,7 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
     }
 
     /**
-     *  Calls the native finalizer function to free the given native pointer.
+     * Calls the native finalizer function to free the given native pointer.
      */
     private static native void nativeCleanUp(long nativeFinalizer, long nativePointer);
 }

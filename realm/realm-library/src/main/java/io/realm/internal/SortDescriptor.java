@@ -17,10 +17,14 @@
 package io.realm.internal;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import io.realm.RealmFieldType;
 import io.realm.Sort;
+import io.realm.internal.fields.FieldDescriptor;
+
 
 /**
  * Java class to present the same name core class in Java. This can be converted to a cpp realm::SortDescriptor object
@@ -29,26 +33,89 @@ import io.realm.Sort;
  * NOTE: Since the column indices are determined when constructing the object with the given table's status, the indices
  * could be wrong when schema changes. Always create and consume the instance when needed, DON'T store a SortDescriptor
  * and use it whenever the ShareGroup can be in different versions.
+ * <p>
+ * Sort descriptors do not support Linking Objects, either internally or as terminal types.
  */
 @KeepMember
 public class SortDescriptor {
-
-    private final long[][] columnIndices;
-    private final boolean[] ascendings;
-    private final Table table;
-
-    final static List<RealmFieldType> validFieldTypesForSort = Arrays.asList(
+    //@VisibleForTesting
+    final static Set<RealmFieldType> SORT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.FLOAT, RealmFieldType.DOUBLE,
-            RealmFieldType.STRING, RealmFieldType.DATE);
-    final static List<RealmFieldType> validFieldTypesForDistinct = Arrays.asList(
-            RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.STRING, RealmFieldType.DATE);
+            RealmFieldType.STRING, RealmFieldType.DATE)));
 
-    // Internal use only. For JNI testing.
-    SortDescriptor(Table table, long[] columnIndices) {
-        this(table, new long[][] {columnIndices}, null);
+    //@VisibleForTesting
+    final static Set<RealmFieldType> DISTINCT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.STRING, RealmFieldType.DATE)));
+
+    public static SortDescriptor getInstanceForSort(FieldDescriptor.SchemaProxy proxy, Table table, String fieldDescription, Sort sortOrder) {
+        return getInstanceForSort(proxy, table, new String[] {fieldDescription}, new Sort[] {sortOrder});
     }
 
+    public static SortDescriptor getInstanceForSort(FieldDescriptor.SchemaProxy proxy, Table table, String[] fieldDescriptions, Sort[] sortOrders) {
+        if (sortOrders == null || sortOrders.length == 0) {
+            throw new IllegalArgumentException("You must provide at least one sort order.");
+        }
+        if (fieldDescriptions.length != sortOrders.length) {
+            throw new IllegalArgumentException("Number of fields and sort orders do not match.");
+        }
+        return getInstance(proxy, table, fieldDescriptions, sortOrders, FieldDescriptor.OBJECT_LINK_FIELD_TYPE, SORT_VALID_FIELD_TYPES, "Sort is not supported");
+    }
+
+    public static SortDescriptor getInstanceForDistinct(FieldDescriptor.SchemaProxy proxy, Table table, String fieldDescription) {
+        return getInstanceForDistinct(proxy, table, new String[] {fieldDescription});
+    }
+
+    public static SortDescriptor getInstanceForDistinct(FieldDescriptor.SchemaProxy proxy, Table table, String[] fieldDescriptions) {
+        return getInstance(proxy, table, fieldDescriptions, null, FieldDescriptor.NO_LINK_FIELD_TYPE, DISTINCT_VALID_FIELD_TYPES, "Distinct is not supported");
+    }
+
+    static SortDescriptor getInstance(
+            FieldDescriptor.SchemaProxy proxy,
+            Table table,
+            String[] fieldDescriptions,
+            Sort[] sortOrders,
+            Set<RealmFieldType> legalInternalTypes,
+            Set<RealmFieldType> legalTerminalTypes,
+            String message) {
+
+        if (fieldDescriptions == null || fieldDescriptions.length == 0) {
+            throw new IllegalArgumentException("You must provide at least one field name.");
+        }
+
+        long[][] columnIndices = new long[fieldDescriptions.length][];
+
+        // Force aggressive parsing of the FieldDescriptors, so that only valid SortDescriptor objects are created.
+        for (int i = 0; i < fieldDescriptions.length; i++) {
+            FieldDescriptor descriptor = FieldDescriptor.createFieldDescriptor(proxy, table, fieldDescriptions[i], legalInternalTypes, null);
+            checkFieldType(descriptor, legalTerminalTypes, message, fieldDescriptions[i]);
+            columnIndices[i] = descriptor.getColumnIndices();
+        }
+
+        return new SortDescriptor(table, columnIndices, sortOrders);
+    }
+
+    // Internal use only. For JNI testing.
+    //@VisibleForTesting
+    static SortDescriptor getTestInstance(Table table, long[] columnIndices) {
+        return new SortDescriptor(table, new long[][] {columnIndices}, null);
+    }
+
+    // could do this in the field descriptor, but this provides a better error message
+    private static void checkFieldType(FieldDescriptor descriptor, Set<RealmFieldType> legalTerminalTypes, String message, String fieldDescriptions) {
+        if (!legalTerminalTypes.contains(descriptor.getFinalColumnType())) {
+            throw new IllegalArgumentException(String.format(
+                    "%s on '%s' field '%s' in '%s'.", message, descriptor.getFinalColumnType(), descriptor.getFinalColumnName(), fieldDescriptions));
+        }
+    }
+
+
+    private final Table table;
+    private final long[][] columnIndices;
+    private final boolean[] ascendings;
+
     private SortDescriptor(Table table, long[][] columnIndices, Sort[] sortOrders) {
+        this.table = table;
+        this.columnIndices = columnIndices;
         if (sortOrders != null) {
             ascendings = new boolean[sortOrders.length];
             for (int i = 0; i < sortOrders.length; i++) {
@@ -57,84 +124,18 @@ public class SortDescriptor {
         } else {
             ascendings = null;
         }
-
-        this.columnIndices = columnIndices;
-        this.table = table;
-    }
-
-    public static SortDescriptor getInstanceForSort(Table table, String fieldDescription, Sort sortOrder) {
-        return getInstanceForSort(table, new String[] {fieldDescription}, new Sort[] {sortOrder});
-    }
-
-    public static SortDescriptor getInstanceForSort(Table table, String[] fieldDescriptions, Sort[] sortOrders) {
-        if (fieldDescriptions == null || fieldDescriptions.length == 0) {
-            throw new IllegalArgumentException("You must provide at least one field name.");
-        }
-        if (sortOrders == null || sortOrders.length == 0) {
-            throw new IllegalArgumentException("You must provide at least one sort order.");
-        }
-        if (fieldDescriptions.length != sortOrders.length) {
-            throw new IllegalArgumentException("Number of fields and sort orders do not match.");
-        }
-
-        long[][] columnIndices = new long[fieldDescriptions.length][];
-        for (int i = 0; i < fieldDescriptions.length; i++) {
-            FieldDescriptor descriptor = new FieldDescriptor(table, fieldDescriptions[i], true, false);
-            checkFieldTypeForSort(descriptor, fieldDescriptions[i]);
-            columnIndices[i] = descriptor.getColumnIndices();
-        }
-
-        return new SortDescriptor(table, columnIndices, sortOrders);
-    }
-
-    public static SortDescriptor getInstanceForDistinct(Table table, String fieldDescription) {
-        return getInstanceForDistinct(table, new String[] {fieldDescription});
-    }
-
-    public static SortDescriptor getInstanceForDistinct(Table table, String[] fieldDescriptions) {
-        if (fieldDescriptions == null || fieldDescriptions.length == 0) {
-            throw new IllegalArgumentException("You must provide at least one field name.");
-        }
-
-        long[][] columnIndices = new long[fieldDescriptions.length][];
-        for (int i = 0; i < fieldDescriptions.length; i++) {
-            FieldDescriptor descriptor = new FieldDescriptor(table, fieldDescriptions[i], false, false);
-            checkFieldTypeForDistinct(descriptor, fieldDescriptions[i]);
-            columnIndices[i] = descriptor.getColumnIndices();
-        }
-
-        return new SortDescriptor(table, columnIndices, null);
-    }
-
-    private static void checkFieldTypeForSort(FieldDescriptor descriptor, String fieldDescriptions) {
-        if (!validFieldTypesForSort.contains(descriptor.getFieldType())) {
-            throw new IllegalArgumentException(String.format(
-                    "Sort is not supported on '%s' field '%s' in '%s'.", descriptor.toString(), descriptor.getFieldName(),
-                    fieldDescriptions));
-        }
-    }
-
-    private static void checkFieldTypeForDistinct(FieldDescriptor descriptor, String fieldDescriptions) {
-        if (!validFieldTypesForDistinct.contains(descriptor.getFieldType())) {
-            throw new IllegalArgumentException(String.format(
-                    "Distinct is not supported on '%s' field '%s' in '%s'.",
-                    descriptor.getFieldType().toString(), descriptor.getFieldName(), fieldDescriptions));
-        }
-        if (!descriptor.hasSearchIndex()) {
-            throw new IllegalArgumentException(String.format(
-                    "Field '%s' in '%s' must be indexed in order to use it for distinct queries.",
-                    descriptor.getFieldName(), fieldDescriptions));
-        }
     }
 
     // Called by JNI.
     @KeepMember
+    @SuppressWarnings("unused")
     long[][] getColumnIndices() {
         return columnIndices;
     }
 
     // Called by JNI.
     @KeepMember
+    @SuppressWarnings("unused")
     boolean[] getAscendings() {
         return ascendings;
     }
@@ -143,6 +144,6 @@ public class SortDescriptor {
     @KeepMember
     @SuppressWarnings("unused")
     private long getTablePtr() {
-       return table.getNativePtr();
+        return table.getNativePtr();
     }
 }

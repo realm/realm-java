@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 import io.realm.exceptions.RealmException;
 
+
 public class JsonUtils {
 
     private static Pattern jsonDate = Pattern.compile("/Date\\((\\d*)(?:[+-]\\d*)?\\)/");
@@ -42,7 +43,7 @@ public class JsonUtils {
      * @throws NumberFormatException if date is not a proper long or has an illegal format.
      */
     public static Date stringToDate(String date) {
-        if (date == null || date.length() == 0) return null;
+        if (date == null || date.length() == 0) { return null; }
 
         // Checks for JSON date.
         Matcher matcher = jsonDate.matcher(date);
@@ -76,7 +77,7 @@ public class JsonUtils {
      * @return the Byte array or empty byte array.
      */
     public static byte[] stringToBytes(String str) {
-        if (str == null || str.length() == 0) return new byte[0];
+        if (str == null || str.length() == 0) { return new byte[0]; }
         return Base64.decode(str, Base64.DEFAULT);
     }
 }

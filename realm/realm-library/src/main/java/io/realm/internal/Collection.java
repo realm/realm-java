@@ -24,6 +24,7 @@ import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
 
+
 /**
  * Java wrapper of Object Store Results class.
  * It is the backend of binding's query results, link lists and back links.
@@ -31,7 +32,10 @@ import io.realm.RealmChangeListener;
 @Keep
 public class Collection implements NativeObject {
 
-    private class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
+    private static final String CLOSED_REALM_MESSAGE =
+            "This Realm instance has already been closed, making it unusable.";
+
+    private static class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
         public CollectionObserverPair(T observer, Object listener) {
             super(observer, listener);
         }
@@ -39,10 +43,10 @@ public class Collection implements NativeObject {
         public void onChange(T observer, OrderedCollectionChangeSet changes) {
             if (listener instanceof OrderedRealmCollectionChangeListener) {
                 //noinspection unchecked
-                ((OrderedRealmCollectionChangeListener<T>)listener).onChange(observer, changes);
+                ((OrderedRealmCollectionChangeListener<T>) listener).onChange(observer, changes);
             } else if (listener instanceof RealmChangeListener) {
                 //noinspection unchecked
-                ((RealmChangeListener<T>)listener).onChange(observer);
+                ((RealmChangeListener<T>) listener).onChange(observer);
             } else {
                 throw new RuntimeException("Unsupported listener type: " + listener);
             }
@@ -93,6 +97,10 @@ public class Collection implements NativeObject {
         protected int pos = -1;
 
         public Iterator(Collection collection) {
+            if (collection.sharedRealm.isClosed()) {
+                throw new IllegalStateException(CLOSED_REALM_MESSAGE);
+            }
+
             this.iteratorCollection = collection;
 
             if (collection.isSnapshot) {
@@ -135,6 +143,7 @@ public class Collection implements NativeObject {
          *
          * @throws UnsupportedOperationException
          */
+        @Override
         @Deprecated
         public void remove() {
             throw new UnsupportedOperationException("remove() is not supported by RealmResults iterators.");
@@ -153,7 +162,7 @@ public class Collection implements NativeObject {
         }
 
         void checkValid() {
-            if (iteratorCollection == null)  {
+            if (iteratorCollection == null) {
                 throw new ConcurrentModificationException(
                         "No outside changes to a Realm is allowed while iterating a living Realm collection.");
             }
@@ -250,7 +259,7 @@ public class Collection implements NativeObject {
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final SharedRealm sharedRealm;
-    private final Context context;
+    private final NativeContext context;
     private final Table table;
     private boolean loaded;
     private boolean isSnapshot = false;
@@ -266,6 +275,7 @@ public class Collection implements NativeObject {
     public static final byte AGGREGATE_FUNCTION_AVERAGE = 3;
     @SuppressWarnings("WeakerAccess")
     public static final byte AGGREGATE_FUNCTION_SUM = 4;
+
     public enum Aggregate {
         MINIMUM(AGGREGATE_FUNCTION_MINIMUM),
         MAXIMUM(AGGREGATE_FUNCTION_MAXIMUM),
@@ -293,6 +303,7 @@ public class Collection implements NativeObject {
     public static final byte MODE_LINKVIEW = 3;
     @SuppressWarnings("WeakerAccess")
     public static final byte MODE_TABLEVIEW = 4;
+
     public enum Mode {
         EMPTY,          // Backed by nothing (for missing tables)
         TABLE,          // Backed directly by a Table
@@ -301,9 +312,9 @@ public class Collection implements NativeObject {
         TABLEVIEW;      // Backed by a TableView created from a Query
 
         static Mode getByValue(byte value) {
-            switch (value)  {
+            switch (value) {
                 case MODE_EMPTY:
-                   return EMPTY;
+                    return EMPTY;
                 case MODE_TABLE:
                     return TABLE;
                 case MODE_QUERY:
@@ -318,8 +329,17 @@ public class Collection implements NativeObject {
         }
     }
 
+    public static Collection createBacklinksCollection(SharedRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
+        long backlinksPtr = nativeCreateResultsFromBacklinks(
+                realm.getNativePtr(),
+                row.getNativePtr(),
+                srcTable.getNativePtr(),
+                srcTable.getColumnIndex(srcFieldName));
+        return new Collection(realm, srcTable, backlinksPtr, true);
+    }
+
     public Collection(SharedRealm sharedRealm, TableQuery query,
-                      SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
+            SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
         query.validateQuery();
 
         this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
@@ -347,7 +367,7 @@ public class Collection implements NativeObject {
 
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
-        this.table = linkView.getTable();
+        this.table = linkView.getTargetTable();
         this.context.addReference(this);
         // Collection created from LinkView is loaded by default. So that the listener will be triggered first time
         // with empty change set.
@@ -355,12 +375,16 @@ public class Collection implements NativeObject {
     }
 
     private Collection(SharedRealm sharedRealm, Table table, long nativePtr) {
+        this(sharedRealm, table, nativePtr, false);
+    }
+
+    private Collection(SharedRealm sharedRealm, Table table, long nativePtr, boolean loaded) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.table = table;
         this.nativePtr = nativePtr;
         this.context.addReference(this);
-        this.loaded = false;
+        this.loaded = loaded;
     }
 
     public Collection createSnapshot() {
@@ -505,7 +529,7 @@ public class Collection implements NativeObject {
         // So it is possible it deliver a non-empty change set for the first async query returns. In this case, we
         // return an empty change set to user since it is considered as the first time async query returns.
         observerPairs.foreach(new Callback(nativeChangeSetPtr == 0 || !wasLoaded ?
-                        null : new CollectionChangeSet(nativeChangeSetPtr)));
+                null : new CollectionChangeSet(nativeChangeSetPtr)));
     }
 
     public Mode getMode() {
@@ -535,29 +559,53 @@ public class Collection implements NativeObject {
     }
 
     private static native long nativeGetFinalizerPtr();
+
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
-                                                   SortDescriptor sortDesc, SortDescriptor distinctDesc);
+            SortDescriptor sortDesc, SortDescriptor distinctDesc);
+
     private static native long nativeCreateResultsFromLinkView(long sharedRealmNativePtr, long linkViewPtr,
-                                                   SortDescriptor sortDesc);
+            SortDescriptor sortDesc);
+
     private static native long nativeCreateSnapshot(long nativePtr);
+
     private static native long nativeGetRow(long nativePtr, int index);
+
     private static native long nativeFirstRow(long nativePtr);
+
     private static native long nativeLastRow(long nativePtr);
+
     private static native boolean nativeContains(long nativePtr, long nativeRowPtr);
+
     private static native void nativeClear(long nativePtr);
+
     private static native long nativeSize(long nativePtr);
+
     private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
+
     private static native long nativeSort(long nativePtr, SortDescriptor sortDesc);
+
     private static native long nativeDistinct(long nativePtr, SortDescriptor distinctDesc);
+
     private static native boolean nativeDeleteFirst(long nativePtr);
+
     private static native boolean nativeDeleteLast(long nativePtr);
+
     private static native void nativeDelete(long nativePtr, long index);
+
     // Non-static, we need this Collection object in JNI.
     private native void nativeStartListening(long nativePtr);
+
     private native void nativeStopListening(long nativePtr);
+
     private static native long nativeWhere(long nativePtr);
+
     private static native long nativeIndexOf(long nativePtr, long rowNativePtr);
+
     private static native long nativeIndexOfBySourceRowIndex(long nativePtr, long sourceRowIndex);
+
     private static native boolean nativeIsValid(long nativePtr);
+
     private static native byte nativeGetMode(long nativePtr);
+
+    private static native long nativeCreateResultsFromBacklinks(long sharedRealmNativePtr, long rowNativePtr, long srcTableNativePtr, long srColIndex);
 }

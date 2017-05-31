@@ -41,27 +41,32 @@ public class SyncTestUtils {
                 UUID.randomUUID().toString(),
                 UUID.randomUUID().toString(),
                 DEFAULT_AUTH_URL,
-                Long.MAX_VALUE);
+                Long.MAX_VALUE,
+                false);
+    }
+
+    public static SyncUser createTestAdminUser() {
+        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER, DEFAULT_AUTH_URL, Long.MAX_VALUE, true);
     }
 
     public static SyncUser createTestUser() {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER, DEFAULT_AUTH_URL, Long.MAX_VALUE);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER, DEFAULT_AUTH_URL, Long.MAX_VALUE, false);
     }
 
     public static SyncUser createTestUser(long expires) {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER,  DEFAULT_AUTH_URL, expires);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER,  DEFAULT_AUTH_URL, expires, false);
     }
 
     public static SyncUser createTestUser(String authUrl) {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER,  authUrl, Long.MAX_VALUE);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER,  authUrl, Long.MAX_VALUE, false);
     }
 
     public static SyncUser createNamedTestUser(String userIdentifier) {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, userIdentifier, DEFAULT_AUTH_URL, Long.MAX_VALUE);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, userIdentifier, DEFAULT_AUTH_URL, Long.MAX_VALUE, false);
     }
 
-    public static SyncUser createTestUser(String userTokenValue, String realmTokenValue, String userIdentifier, String authUrl, long expires) {
-        Token userToken = new Token(userTokenValue, userIdentifier, null, expires, null);
+    public static SyncUser createTestUser(String userTokenValue, String realmTokenValue, String userIdentifier, String authUrl, long expires, boolean isAdmin) {
+        Token userToken = new Token(userTokenValue, userIdentifier, null, expires, null, isAdmin);
         Token accessToken = new Token(realmTokenValue, userIdentifier, "/foo", expires, new Token.Permission[] {Token.Permission.DOWNLOAD });
         ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(accessToken, "/data/data/myapp/files/default", false);
 
@@ -83,12 +88,12 @@ public class SyncTestUtils {
     }
 
     public static AuthenticateResponse createLoginResponse(long expires) {
-        return createLoginResponse(USER_TOKEN, "JohnDoe", expires);
+        return createLoginResponse(USER_TOKEN, "JohnDoe", expires, false);
     }
 
-    public static AuthenticateResponse createLoginResponse(String userTokenValue, String userIdentity, long expires) {
+    public static AuthenticateResponse createLoginResponse(String userTokenValue, String userIdentity, long expires, boolean isAdmin) {
         try {
-            Token userToken = new Token(userTokenValue, userIdentity, null, expires, null);
+            Token userToken = new Token(userTokenValue, userIdentity, null, expires, null, isAdmin);
             JSONObject response = new JSONObject();
             response.put("refresh_token", userToken.toJson());
             return AuthenticateResponse.from(response.toString());

@@ -18,9 +18,12 @@ package io.realm;
 
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
+import io.realm.internal.CheckedRow;
+import io.realm.internal.OsObject;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
 import rx.Observable;
+
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -44,6 +47,10 @@ import rx.Observable;
  */
 public class DynamicRealm extends BaseRealm {
 
+    private DynamicRealm(RealmCache cache) {
+        super(cache);
+    }
+
     private DynamicRealm(RealmConfiguration configuration) {
         super(configuration);
     }
@@ -54,15 +61,36 @@ public class DynamicRealm extends BaseRealm {
      * DynamicRealm will never trigger a migration.
      *
      * @return the DynamicRealm defined by the configuration.
-     * @see RealmConfiguration for details on how to configure a Realm.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if {@code configuration} argument is {@code null}.
+     * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static DynamicRealm getInstance(RealmConfiguration configuration) {
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
         return RealmCache.createRealmOrGetFromCache(configuration, DynamicRealm.class);
+    }
+
+    /**
+     * The creation of the first Realm instance per {@link RealmConfiguration} in a process can take some time as all
+     * initialization code need to run at that point (Setting up the Realm, validating schemas and creating initial
+     * data). This method places the initialization work in a background thread and deliver the Realm instance
+     * to the caller thread asynchronously after the initialization is finished.
+     *
+     * @param configuration {@link RealmConfiguration} used to open the Realm.
+     * @param callback invoked to return the results.
+     * @throws IllegalArgumentException if a null {@link RealmConfiguration} or a null {@link Callback} is provided.
+     * @throws IllegalStateException if it is called from a non-Looper or {@link android.app.IntentService} thread.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @see Callback for more details.
+     */
+    public static RealmAsyncTask getInstanceAsync(RealmConfiguration configuration,
+                                                  Callback callback) {
+        if (configuration == null) {
+            throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
+        }
+        return RealmCache.createRealmOrGetFromCacheAsync(configuration, callback, DynamicRealm.class);
     }
 
     /**
@@ -80,8 +108,8 @@ public class DynamicRealm extends BaseRealm {
             throw new RealmException(String.format("'%s' has a primary key, use" +
                     " 'createObject(String, Object)' instead.", className));
         }
-        long rowIndex = table.addEmptyRow();
-        return get(DynamicRealmObject.class, className, rowIndex);
+
+        return new DynamicRealmObject(this, CheckedRow.getFromRow(OsObject.create(sharedRealm, table)));
     }
 
     /**
@@ -93,12 +121,12 @@ public class DynamicRealm extends BaseRealm {
      * @throws RealmException if object could not be created due to the primary key being invalid.
      * @throws IllegalStateException if the model clazz does not have an primary key defined.
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
-     *                                  expected value.
+     * expected value.
      */
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
         Table table = schema.getTable(className);
-        long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return new DynamicRealmObject(this, table.getCheckedRow(index));
+        return new DynamicRealmObject(this,
+                CheckedRow.getFromRow(OsObject.createWithPrimaryKey(sharedRealm, table, primaryKeyValue)));
     }
 
     /**
@@ -106,12 +134,12 @@ public class DynamicRealm extends BaseRealm {
      *
      * @param className the class of the object which is to be queried.
      * @return a RealmQuery, which can be used to query for specific objects of provided type.
-     * @see io.realm.RealmQuery
      * @throws IllegalArgumentException if the class doesn't exist.
+     * @see io.realm.RealmQuery
      */
     public RealmQuery<DynamicRealmObject> where(String className) {
         checkIfValid();
-        if (!sharedRealm.hasTable(Table.TABLE_PREFIX + className)) {
+        if (!sharedRealm.hasTable(Table.getTableNameForClass(className))) {
             throw new IllegalArgumentException("Class does not exist in the Realm and cannot be queried: " + className);
         }
         return RealmQuery.createDynamicQuery(this, className);
@@ -203,6 +231,15 @@ public class DynamicRealm extends BaseRealm {
      *
      * @return a {@link DynamicRealm} instance.
      */
+    static DynamicRealm createInstance(RealmCache cache) {
+        return new DynamicRealm(cache);
+    }
+
+    /**
+     * Create a {@link DynamicRealm} instance without associating it to any RealmCache.
+     *
+     * @return a {@link DynamicRealm} instance.
+     */
     static DynamicRealm createInstance(RealmConfiguration configuration) {
         return new DynamicRealm(configuration);
     }
@@ -224,6 +261,25 @@ public class DynamicRealm extends BaseRealm {
      */
     public interface Transaction {
         void execute(DynamicRealm realm);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public static abstract class Callback extends InstanceCallback<DynamicRealm> {
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public abstract void onSuccess(DynamicRealm realm);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void onError(Throwable exception) {
+            super.onError(exception);
+        }
     }
 }
 

@@ -17,12 +17,15 @@
 package io.realm;
 
 import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -36,11 +39,15 @@ import java.util.UUID;
 
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
 
+import static io.realm.util.SyncTestUtils.createTestAdminUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -54,6 +61,12 @@ public class SyncUserTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
+
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
+
     @BeforeClass
     public static void initUserStore() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
@@ -63,7 +76,7 @@ public class SyncUserTests {
 
     @After
     public void tearDown() {
-        RealmFileUserStore.nativeResetForTesting();
+        SyncManager.reset();
     }
 
     @Test
@@ -89,6 +102,7 @@ public class SyncUserTests {
         AuthenticationServer originalAuthServer = SyncManager.getAuthServer();
         AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
         SyncManager.setAuthServerImpl(authServer);
+
         try {
             // 1. Login two random users
             when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenAnswer(new Answer<AuthenticateResponse>() {
@@ -115,7 +129,7 @@ public class SyncUserTests {
     private AuthenticateResponse getNewRandomUser() {
         String identity = UUID.randomUUID().toString();
         String userTokenValue = UUID.randomUUID().toString();
-        return SyncTestUtils.createLoginResponse(userTokenValue, identity, Long.MAX_VALUE);
+        return SyncTestUtils.createLoginResponse(userTokenValue, identity, Long.MAX_VALUE, false);
     }
 
     // Test that current user is cleared if it is logged out
@@ -153,17 +167,37 @@ public class SyncUserTests {
         assertTrue(users.entrySet().iterator().next().getValue().isValid());
     }
 
+    @Test
+    public void isAdmin() {
+        SyncUser user1 = createTestUser();
+        assertFalse(user1.isAdmin());
+
+        SyncUser user2 = createTestAdminUser();
+        assertTrue(user2.isAdmin());
+    }
+
+    @Test
+    public void isAdmin_allUsers() {
+        UserStore userStore = SyncManager.getUserStore();
+        SyncUser user = SyncTestUtils.createTestAdminUser();
+        assertTrue(user.isAdmin());
+        userStore.put(user);
+
+        Map <String, SyncUser> users = SyncUser.all();
+        assertEquals(1, users.size());
+        assertTrue(users.entrySet().iterator().next().getValue().isAdmin());
+    }
+
     // Tests that the user store returns the last user to login
-    /* FIXME: This test fails because of wrong JSON string.
+    @Ignore("This test fails because of wrong JSON string.")
     @Test
     public void currentUser_returnsUserAfterLogin() {
         AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
-        when(authServer.loginUser(any(Credentials.class), any(URL.class))).thenReturn(SyncTestUtils.createLoginResponse(Long.MAX_VALUE));
+        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenReturn(SyncTestUtils.createLoginResponse(Long.MAX_VALUE));
 
-        User user = User.login(Credentials.facebook("foo"), "http://bar.com/auth");
-        assertEquals(user, User.currentUser());
+        SyncUser user = SyncUser.login(SyncCredentials.facebook("foo"), "http://bar.com/auth");
+        assertEquals(user, SyncUser.currentUser());
     }
-    */
 
     @Test
     public void getManagementRealm() {
@@ -211,5 +245,115 @@ public class SyncUserTests {
         } finally {
             SyncManager.setAuthServerImpl(originalServer);
         }
+    }
+
+    // Checks that `/auth` is correctly added to any URL without a path
+    @Test
+    public void login_appendAuthSegment() {
+        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        AuthenticationServer originalServer = SyncManager.getAuthServer();
+        SyncManager.setAuthServerImpl(authServer);
+        String[][] urls = {
+                {"http://ros.realm.io", "http://ros.realm.io/auth"},
+                {"http://ros.realm.io:8080", "http://ros.realm.io:8080/auth"},
+                {"http://ros.realm.io/", "http://ros.realm.io/"},
+                {"http://ros.realm.io/?foo=bar", "http://ros.realm.io/?foo=bar"},
+                {"http://ros.realm.io/auth", "http://ros.realm.io/auth"},
+                {"http://ros.realm.io/auth/", "http://ros.realm.io/auth/"},
+                {"http://ros.realm.io/custom-path/", "http://ros.realm.io/custom-path/"}
+        };
+
+        try {
+            for (String[] url : urls) {
+                RealmLog.error(url[0]);
+                String input = url[0];
+                String normalizedInput = url[1];
+                SyncCredentials credentials = SyncCredentials.accessToken("token", UUID.randomUUID().toString());
+                SyncUser user = SyncUser.login(credentials, input);
+                assertEquals(normalizedInput, user.getAuthenticationUrl().toString());
+                user.logout();
+            }
+        } finally {
+            SyncManager.setAuthServerImpl(originalServer);
+        }
+    }
+
+    @Test
+    public void changePassword_nullThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalArgumentException.class);
+        user.changePassword(null);
+    }
+
+    @Test
+    public void changePassword_admin_nullThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalArgumentException.class);
+        user.changePassword(null, "new-password");
+    }
+
+    @Test
+    public void changePasswordAsync_nonLooperThreadThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalStateException.class);
+        user.changePasswordAsync(null, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    public void changePassword_admin_Async_nonLooperThreadThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalStateException.class);
+        user.changePasswordAsync("user-id", "new", new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changePasswordAsync_nullCallbackThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalArgumentException.class);
+        user.changePasswordAsync("new-password", null);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changePassword_admin_Async_nullCallbackThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalArgumentException.class);
+        user.changePasswordAsync("user-id", "new-password", null);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changePassword_noneAdminThrows() {
+        SyncUser user = createTestUser();
+
+        thrown.expect(IllegalStateException.class);
+        user.changePassword("user-id", "new-password");
     }
 }

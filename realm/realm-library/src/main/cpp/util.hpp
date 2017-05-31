@@ -29,7 +29,6 @@
 #include <realm.hpp>
 #include <realm/lang_bind_helper.hpp>
 #include <realm/timestamp.hpp>
-#include <realm/util/meta.hpp>
 #include <realm/util/safe_int_ops.hpp>
 
 #include <util/format.hpp>
@@ -344,7 +343,7 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColTy
     int colType = pTable->get_column_type(col);
     if (colType != expectColType) {
         realm::jni_util::Log::e("Expected columnType %1, but got %2.", expectColType, pTable->get_column_type(col));
-        ThrowException(env, IllegalArgument, "ColumnType invalid.");
+        ThrowException(env, IllegalArgument, "ColumnType of '" + std::string(pTable->get_column_name(col)) + "' is invalid.");
         return false;
     }
     return true;
@@ -361,7 +360,8 @@ inline bool TypeIsLinkLike(JNIEnv* env, T* pTable, jlong columnIndex)
 
     realm::jni_util::Log::e("Expected columnType %1 or %2, but got %3", realm::type_Link, realm::type_LinkList,
                             colType);
-    ThrowException(env, IllegalArgument, "ColumnType invalid: expected type_Link or type_LinkList");
+    ThrowException(env, IllegalArgument, "ColumnType of '" + std::string(pTable->get_column_name(col)) + "' is invalid:"
+                                         " expected type_Link or type_LinkList");
     return false;
 }
 
@@ -375,7 +375,7 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
     }
 
     if (colType == realm::type_LinkList) {
-        ThrowException(env, IllegalArgument, "RealmList is not nullable.");
+        ThrowException(env, IllegalArgument, "RealmList(" + std::string(pTable->get_column_name(col)) + ") is not nullable.");
         return false;
     }
 
@@ -384,7 +384,7 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
     }
 
     realm::jni_util::Log::e("Expected nullable column type");
-    ThrowException(env, IllegalArgument, "This field is not nullable.");
+    ThrowException(env, IllegalArgument, "This field(" + std::string(pTable->get_column_name(col)) + ") is not nullable.");
     return false;
 }
 
@@ -703,10 +703,6 @@ extern jclass java_lang_string;
 extern jmethodID java_lang_double_init;
 extern jclass java_util_date;
 extern jmethodID java_util_date_init;
-
-// FIXME Move to own library
-extern jclass session_class_ref;
-extern jmethodID session_error_handler;
 
 inline jobject NewLong(JNIEnv* env, int64_t value)
 {

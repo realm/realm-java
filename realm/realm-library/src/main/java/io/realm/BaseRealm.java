@@ -26,13 +26,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.ObjectServerFacade;
-import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
@@ -41,6 +40,7 @@ import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
 import rx.Observable;
+
 
 /**
  * Base class for all Realm instances.
@@ -62,30 +62,43 @@ abstract class BaseRealm implements Closeable {
     static final String LISTENER_NOT_ALLOWED_MESSAGE = "Listeners cannot be used on current thread.";
 
 
-    volatile static Context applicationContext;
+    static volatile Context applicationContext;
 
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
     final long threadId;
-    protected RealmConfiguration configuration;
+    protected final RealmConfiguration configuration;
+    // Which RealmCache is this Realm associated to. It is null if the Realm instance is opened without being put into a
+    // cache. It is also null if the Realm is closed.
+    private RealmCache realmCache;
     protected SharedRealm sharedRealm;
 
-    RealmSchema schema;
+    protected final RealmSchema schema;
 
-    protected BaseRealm(RealmConfiguration configuration) {
+    // Create a realm instance and associate it to a RealmCache.
+    BaseRealm(RealmCache cache) {
+        this(cache.getConfiguration());
+        this.realmCache = cache;
+    }
+
+    // Create a realm instance without associating it to any RealmCache.
+    BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
+        this.realmCache = null;
 
         this.sharedRealm = SharedRealm.getInstance(configuration,
                 !(this instanceof Realm) ? null :
-                new SharedRealm.SchemaVersionListener() {
-                    @Override
-                    public void onSchemaVersionChanged(long currentVersion) {
-                        RealmCache.updateSchemaCache((Realm) BaseRealm.this);
-                    }
-                }, true);
-        this.schema = new RealmSchema(this);
+                        new SharedRealm.SchemaVersionListener() {
+                            @Override
+                            public void onSchemaVersionChanged(long currentVersion) {
+                                if (realmCache != null) {
+                                    realmCache.updateSchemaCache((Realm) BaseRealm.this);
+                                }
+                            }
+                        }, true);
+        this.schema = new StandardRealmSchema(this);
     }
 
     /**
@@ -111,6 +124,24 @@ abstract class BaseRealm implements Closeable {
      */
     public boolean isAutoRefresh() {
         return sharedRealm.isAutoRefresh();
+    }
+
+    /**
+     * Refreshes the Realm instance and all the RealmResults and RealmObjects instances coming from it.
+     * It also calls any listeners associated with the Realm if neeeded.
+     * <p>
+     * WARNING: Calling this on a thread with async queries will turn those queries into synchronous queries.
+     * In most cases it is better to use {@link RealmChangeListener}s to be notified about changes to the
+     * Realm on a given thread than it is to use this method.
+     *
+     * @throws IllegalStateException if attempting to refresh from within a transaction.
+     */
+    public void refresh() {
+        checkIfValid();
+        if (isInTransaction()) {
+            throw new IllegalStateException("Cannot refresh a Realm instance inside a transaction.");
+        }
+        sharedRealm.refresh();
     }
 
     /**
@@ -158,7 +189,7 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * If you would like the {@code asObservable()} to stop emitting items, you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
-     *
+     * <p>
      * <pre>
      * {@code
      * realm.asObservable().first().subscribe( ... ) // You only get the results once
@@ -259,16 +290,20 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if the {@link io.realm.Realm} instance has already been closed.
      */
     public void stopWaitForChange() {
-        RealmCache.invokeWithLock(new RealmCache.Callback0() {
-            @Override
-            public void onCall() {
-                // Checks if the Realm instance has been closed.
-                if (sharedRealm == null || sharedRealm.isClosed()) {
-                    throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+        if (realmCache != null) {
+            realmCache.invokeWithLock(new RealmCache.Callback0() {
+                @Override
+                public void onCall() {
+                    // Checks if the Realm instance has been closed.
+                    if (sharedRealm == null || sharedRealm.isClosed()) {
+                        throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+                    }
+                    sharedRealm.stopWaitForChange();
                 }
-                sharedRealm.stopWaitForChange();
-            }
-        });
+            });
+        } else {
+            throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+        }
     }
 
     /**
@@ -305,8 +340,12 @@ abstract class BaseRealm implements Closeable {
      * incompatible schema changes.
      */
     public void beginTransaction() {
+        beginTransaction(false);
+    }
+
+    void beginTransaction(boolean ignoreReadOnly) {
         checkIfValid();
-        sharedRealm.beginTransaction();
+        sharedRealm.beginTransaction(ignoreReadOnly);
     }
 
     /**
@@ -318,13 +357,6 @@ abstract class BaseRealm implements Closeable {
     public void commitTransaction() {
         checkIfValid();
         sharedRealm.commitTransaction();
-        if (!isClosed()) {
-            // FIXME: The checking is because the global listener is being called in commitTransaction from object
-            // store. The Realm could be closed inside the listener. In this case, we have no way to handle it. Moving
-            // SyncManger to Object Store will solve this.
-            ObjectServerFacade.getFacade(configuration.isSyncConfiguration())
-                    .notifyCommit(configuration, sharedRealm.getLastSnapshotVersion());
-        }
     }
 
     /**
@@ -421,13 +453,18 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
         }
 
-        RealmCache.release(this);
+        if (realmCache != null) {
+            realmCache.release(this);
+        } else {
+            doClose();
+        }
     }
 
     /**
      * Closes the Realm instances and all its resources without checking the {@link RealmCache}.
      */
     void doClose() {
+        realmCache = null;
         if (sharedRealm != null) {
             sharedRealm.close();
             sharedRealm = null;
@@ -486,21 +523,16 @@ abstract class BaseRealm implements Closeable {
             result = (E) new DynamicRealmObject(this, CheckedRow.getFromRow(row));
         } else {
             result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
-                    false, Collections.<String> emptyList());
+                    false, Collections.<String>emptyList());
         }
-        RealmObjectProxy proxy = (RealmObjectProxy) result;
-        proxy.realmGet$proxyState().setTableVersion$realm();
         return result;
     }
 
     <E extends RealmModel> E get(Class<E> clazz, long rowIndex, boolean acceptDefaultValue, List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
-        E result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
+        return configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
                 acceptDefaultValue, excludeFields);
-        RealmObjectProxy proxy = (RealmObjectProxy) result;
-        proxy.realmGet$proxyState().setTableVersion$realm();
-        return result;
     }
 
     // Used by RealmList/RealmResults
@@ -519,12 +551,7 @@ abstract class BaseRealm implements Closeable {
         } else {
             result = configuration.getSchemaMediator().newInstance(clazz, this,
                     (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE,
-                    schema.getColumnInfo(clazz), false, Collections.<String> emptyList());
-        }
-
-        RealmObjectProxy proxy = (RealmObjectProxy) result;
-        if (rowIndex != Table.NO_MATCH) {
-            proxy.realmGet$proxyState().setTableVersion$realm();
+                    schema.getColumnInfo(clazz), false, Collections.<String>emptyList());
         }
 
         return result;
@@ -581,7 +608,7 @@ abstract class BaseRealm implements Closeable {
      * Migrates the Realm file defined by the given configuration using the provided migration block.
      *
      * @param configuration configuration for the Realm that should be migrated. If this is a SyncConfiguration this
-     *                      method does nothing.
+     * method does nothing.
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}.
      * @param callback callback for specific Realm type behaviors.
      * @param cause which triggers this migration.
@@ -589,7 +616,7 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalArgumentException if the provided configuration is a {@link SyncConfiguration}.
      */
     protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
-                                       final MigrationCallback callback, final RealmMigrationNeededException cause)
+            final MigrationCallback callback, final RealmMigrationNeededException cause)
             throws FileNotFoundException {
 
         if (configuration == null) {
@@ -621,7 +648,9 @@ abstract class BaseRealm implements Closeable {
                 RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
                 DynamicRealm realm = null;
                 try {
-                    realm = DynamicRealm.getInstance(configuration);
+                    // Create a DynamicRealm WITHOUT putting it into a RealmCache to avoid recursive locks and call init
+                    // steps multiple times (copy asset file / initialData transaction).
+                    realm = DynamicRealm.createInstance(configuration);
                     realm.beginTransaction();
                     long currentVersion = realm.getVersion();
                     realmMigration.migrate(realm, currentVersion, configuration.getSchemaVersion());
@@ -654,8 +683,15 @@ abstract class BaseRealm implements Closeable {
                     "Realm %s is being finalized without being closed, " +
                     "this can lead to running out of native memory.", configuration.getPath()
             );
+            if (realmCache != null) {
+                realmCache.leak();
+            }
         }
         super.finalize();
+    }
+
+    SharedRealm getSharedRealm() {
+        return sharedRealm;
     }
 
     // Internal delegate for migrations.
@@ -671,7 +707,7 @@ abstract class BaseRealm implements Closeable {
         private List<String> excludeFields;
 
         public void set(BaseRealm realm, Row row, ColumnInfo columnInfo,
-                        boolean acceptDefaultValue, List<String> excludeFields) {
+                boolean acceptDefaultValue, List<String> excludeFields) {
             this.realm = realm;
             this.row = row;
             this.columnInfo = columnInfo;
@@ -679,7 +715,7 @@ abstract class BaseRealm implements Closeable {
             this.excludeFields = excludeFields;
         }
 
-        public BaseRealm getRealm() {
+        BaseRealm getRealm() {
             return realm;
         }
 
@@ -707,6 +743,8 @@ abstract class BaseRealm implements Closeable {
             excludeFields = null;
         }
     }
+
+    // FIXME: This stuff doesn't appear to be used.  It should either be explained or deleted.
     static final class ThreadLocalRealmObjectContext extends ThreadLocal<RealmObjectContext> {
         @Override
         protected RealmObjectContext initialValue() {
@@ -715,4 +753,86 @@ abstract class BaseRealm implements Closeable {
     }
 
     public static final ThreadLocalRealmObjectContext objectContext = new ThreadLocalRealmObjectContext();
+
+    /**
+     * The Callback used when reporting back the result of loading a Realm asynchronously using either
+     * {@link Realm#getInstanceAsync(RealmConfiguration, Realm.Callback)} or
+     * {@link DynamicRealm#getInstanceAsync(RealmConfiguration, DynamicRealm.Callback)}.
+     * <p>
+     * Before creating the first Realm instance in a process, there are some initialization work that need to be done
+     * such as creating or validating schemas, running migration if needed,
+     * copy asset file if {@link RealmConfiguration.Builder#assetFile(String)} is supplied and execute the
+     * {@link RealmConfiguration.Builder#initialData(Realm.Transaction)} if necessary. This work may take time
+     * and block the caller thread for a while. To avoid the {@code getInstance()} call blocking the main thread, the
+     * {@code getInstanceAsync()} can be used instead to do the initialization work in the background thread and
+     * deliver a Realm instance to the caller thread.
+     * <p>
+     * In general, this method is mostly useful on the UI thread since that should be blocked as little as possible. On
+     * any other Looper threads or other threads that don't support callbacks, using the standard {@code getInstance()}
+     * should be fine.
+     * <p>
+     * Here is an example of using {@code getInstanceAsync()} when the app starts the first activity:
+     * <pre>
+     * public class MainActivity extends Activity {
+     *
+     *   private Realm realm = null;
+     *   private RealmAsyncTask realmAsyncTask;
+     *
+     *   \@Override
+     *   protected void onCreate(Bundle savedInstanceState) {
+     *     super.onCreate(savedInstanceState);
+     *     setContentView(R.layout.layout_main);
+     *     realmAsyncTask = Realm.getDefaultInstanceAsync(new Callback() {
+     *         \@Override
+     *         public void onSuccess(Realm realm) {
+     *             if (isDestroyed()) {
+     *                 // If the activity is destroyed, the Realm instance should be closed immediately to avoid leaks.
+     *                 // Or you can call realmAsyncTask.cancel() in onDestroy() to stop callback delivery.
+     *                 realm.close();
+     *             } else {
+     *                 MainActivity.this.realm = realm;
+     *                 // Remove the spinner and start the real UI.
+     *             }
+     *         }
+     *     });
+     *
+     *     // Show a spinner before Realm instance returned by the callback.
+     *   }
+     *
+     *   \@Override
+     *   protected void onDestroy() {
+     *     super.onDestroy();
+     *     if (realm != null) {
+     *         realm.close();
+     *         realm = null;
+     *     } else {
+     *         // Calling cancel() on the thread where getInstanceAsync was called on to stop the callback delivery.
+     *         // Otherwise you need to check if the activity is destroyed to close in the onSuccess() properly.
+     *         realmAsyncTask.cancel();
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
+     * @param <T> {@link Realm} or {@link DynamicRealm}.
+     */
+    public abstract static class InstanceCallback<T extends BaseRealm> {
+
+        /**
+         * Deliver a Realm instance to the caller thread.
+         *
+         * @param realm the Realm instance for the caller thread.
+         */
+        public abstract void onSuccess(T realm);
+
+        /**
+         * Deliver an error happens when creating the Realm instance to the caller thread. The default implementation
+         * will throw an exception on the caller thread.
+         *
+         * @param exception happened while initializing Realm on a background thread.
+         */
+        public void onError(Throwable exception) {
+            throw new RealmException("Exception happens when initializing Realm in the background thread.", exception);
+        }
+    }
 }

@@ -22,8 +22,6 @@ import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +29,7 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.ObjectServerError;
@@ -45,24 +44,23 @@ import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.service.SendOneCommit;
 import io.realm.objectserver.service.SendsALot;
 import io.realm.objectserver.utils.Constants;
-import io.realm.objectserver.utils.HttpUtils;
 import io.realm.objectserver.utils.UserFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+
 @RunWith(AndroidJUnit4.class)
 public class ProcessCommitTests extends BaseIntegrationTest {
 
-    // FIXME: Ignore for now. They do still not work. It might be caused by two processes each creating
-    // a Sync Client, but it needs to be investigated.
     @Test
-    @Ignore
+    @Ignore("Failure might be caused by two processes each creating a Sync Client: needs investigation")
     public void expectServerCommit() throws Throwable {
         final Throwable[] exception = new Throwable[1];
         final CountDownLatch testFinished = new CountDownLatch(1);
         ExecutorService service = Executors.newSingleThreadExecutor();
-        service.submit(new Runnable() {
+        //noinspection unused
+        final Future<?> future = service.submit(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -110,19 +108,18 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         }
     }
 
-    // FIXME: Ignore for now. They do still not work. It might be caused by two processes each creating
-    // a Sync Client, but it needs to be investigated.
-    //TODO send string from service and match
-    //     replicate integration tests from Cocoa
-    //     add gradle task to start the sh script automatically (create pid file, ==> run or kill existing process
-    //     check the requirement for the issue again
+    // TODO:
+    // - send string from service and match replicate integration tests from Cocoa
+    // - add gradle task to start the sh script automatically (create pid file, ==> run or kill existing process)
+    // - check the requirement for the issue again
     @Test
-    @Ignore
+    @Ignore("Failure might be caused by two processes each creating a Sync Client: needs investigation")
     public void expectALot() throws Throwable {
         final Throwable[] exception = new Throwable[1];
         final CountDownLatch testFinished = new CountDownLatch(1);
         ExecutorService service = Executors.newSingleThreadExecutor();
-        service.submit(new Runnable() {
+        //noinspection unused
+        final Future<?> future = service.submit(new Runnable() {
             @Override
             public void run() {
                 try {

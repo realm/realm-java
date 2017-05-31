@@ -16,16 +16,14 @@
 
 package io.realm;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
-import io.realm.internal.Util;
+import io.realm.internal.util.Pair;
+
 
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
@@ -33,69 +31,15 @@ import io.realm.internal.Util;
  * <p>
  * All changes must happen inside a write transaction for the particular Realm.
  *
- * @see io.realm.RealmMigration
+ * @see RealmMigration
  */
-public class RealmSchema {
-
-    private static final String TABLE_PREFIX = Table.TABLE_PREFIX;
-    private static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
-
-    // Caches Dynamic Class objects given as Strings to Realm Tables
-    private final Map<String, Table> dynamicClassToTable = new HashMap<String, Table>();
-    // Caches Class objects (both model classes and proxy classes) to Realm Tables
-    private final Map<Class<? extends RealmModel>, Table> classToTable = new HashMap<Class<? extends RealmModel>, Table>();
-    // Caches Class objects (both model classes and proxy classes) to their Schema object
-    private final Map<Class<? extends RealmModel>, RealmObjectSchema> classToSchema = new HashMap<Class<? extends RealmModel>, RealmObjectSchema>();
-    // Caches Class Strings to their Schema object
-    private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<String, RealmObjectSchema>();
-
-    private final BaseRealm realm;
-    private long nativePtr;
-    ColumnIndices columnIndices; // Cached field look up
+public abstract class RealmSchema {
+    private ColumnIndices columnIndices; // Cached field look up
 
     /**
-     * Creates a wrapper to easily manipulate the current schema of a Realm.
+     * Release the schema and any of native resources it might hold.
      */
-    RealmSchema(BaseRealm realm) {
-        this.realm = realm;
-        this.nativePtr = 0;
-    }
-
-    /**
-     * Creates a wrappor to easily manipulate Object Store schemas. This constructor should only be called by
-     * proxy classes during validation of schema.
-     */
-    RealmSchema() {
-        // This is the case where the schema is created from the proxy classes.
-        // dynamicClassToSchema is used to keep track of which model classes have been processed.
-        this.realm = null;
-        this.nativePtr = 0;
-        // TODO: create a Object Store realm::Schema object and store the native pointer
-    }
-
-
-    RealmSchema(ArrayList<RealmObjectSchema> realmObjectSchemas) {
-        long list[] = new long[realmObjectSchemas.size()];
-        for (int i = 0; i < realmObjectSchemas.size(); i++) {
-            list[i] = realmObjectSchemas.get(i).getNativePtr();
-        }
-        this.nativePtr = nativeCreateFromList(list);
-        this.realm = null;
-    }
-
-    public long getNativePtr() {
-        return this.nativePtr;
-    }
-
-    public void close() {
-        if (nativePtr != 0) {
-            Set<RealmObjectSchema> schemas = getAll();
-            for (RealmObjectSchema schema : schemas) {
-                schema.close();
-            }
-            nativeClose(nativePtr);
-        }
-    }
+    public abstract void close();
 
     /**
      * Returns the Realm schema for a given class.
@@ -103,54 +47,14 @@ public class RealmSchema {
      * @param className name of the class
      * @return schema object for that class or {@code null} if the class doesn't exists.
      */
-    public RealmObjectSchema get(String className) {
-        checkEmpty(className, EMPTY_STRING_MSG);
-        if (realm == null) {
-            if (contains(className)) {
-                return dynamicClassToSchema.get(className);
-            } else {
-                return null;
-            }
-        } else {
-            String internalClassName = TABLE_PREFIX + className;
-            if (realm.sharedRealm.hasTable(internalClassName)) {
-                Table table = realm.sharedRealm.getTable(internalClassName);
-                RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-                return new RealmObjectSchema(realm, table, columnIndices);
-            } else {
-                return null;
-            }
-        }
-    }
+    public abstract RealmObjectSchema get(String className);
 
     /**
-     * Returns the {@link RealmObjectSchema} for all RealmObject classes that can be saved in this Realm.
+     * Returns the {@link RealmObjectSchema}s for all RealmObject classes that can be saved in this Realm.
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
-    public Set<RealmObjectSchema> getAll() {
-        if (realm == null) {
-            long[] ptrs = nativeGetAll(nativePtr);
-            Set<RealmObjectSchema> schemas = new LinkedHashSet<>(ptrs.length);
-            for (int i = 0; i < ptrs.length; i++) {
-                schemas.add(new RealmObjectSchema(ptrs[i]));
-            }
-            return schemas;
-        } else {
-            int tableCount = (int) realm.sharedRealm.size();
-            Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
-            for (int i = 0; i < tableCount; i++) {
-                String tableName = realm.sharedRealm.getTableName(i);
-                if (!Table.isModelTable(tableName)) {
-                    continue;
-                }
-                Table table = realm.sharedRealm.getTable(tableName);
-                RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-                schemas.add(new RealmObjectSchema(realm, table, columnIndices));
-            }
-            return schemas;
-        }
-    }
+    public abstract Set<RealmObjectSchema> getAll();
 
     /**
      * Adds a new class to the Realm.
@@ -158,26 +62,7 @@ public class RealmSchema {
      * @param className name of the class.
      * @return a Realm schema object for that class.
      */
-    public RealmObjectSchema create(String className) {
-        // Adding a class is always permitted.
-        checkEmpty(className, EMPTY_STRING_MSG);
-        if (realm == null) {
-            RealmObjectSchema realmObjectSchema = new RealmObjectSchema(className);
-            dynamicClassToSchema.put(className, realmObjectSchema);
-            return realmObjectSchema;
-        } else {
-            String internalTableName = TABLE_PREFIX + className;
-            if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
-                throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
-            }
-            if (realm.sharedRealm.hasTable(internalTableName)) {
-                throw new IllegalArgumentException("Class already exists: " + className);
-            }
-            Table table = realm.sharedRealm.getTable(internalTableName);
-            RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-            return new RealmObjectSchema(realm, table, columnIndices);
-        }
-    }
+    public abstract RealmObjectSchema create(String className);
 
     /**
      * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
@@ -185,17 +70,7 @@ public class RealmSchema {
      *
      * @param className name of the class to remove.
      */
-    public void remove(String className) {
-        realm.checkNotInSync(); // Destructive modifications are not permitted.
-        checkEmpty(className, EMPTY_STRING_MSG);
-        String internalTableName = TABLE_PREFIX + className;
-        checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
-        Table table = getTable(className);
-        if (table.hasPrimaryKey()) {
-            table.setPrimaryKey(null);
-        }
-        realm.sharedRealm.removeTable(internalTableName);
-    }
+    public abstract void remove(String className);
 
     /**
      * Renames a class already in the Realm.
@@ -204,36 +79,7 @@ public class RealmSchema {
      * @param newClassName new class name.
      * @return a schema object for renamed class.
      */
-    public RealmObjectSchema rename(String oldClassName, String newClassName) {
-        realm.checkNotInSync(); // Destructive modifications are not permitted.
-        checkEmpty(oldClassName, "Class names cannot be empty or null");
-        checkEmpty(newClassName, "Class names cannot be empty or null");
-        String oldInternalName = TABLE_PREFIX + oldClassName;
-        String newInternalName = TABLE_PREFIX + newClassName;
-        checkHasTable(oldClassName, "Cannot rename class because it doesn't exist in this Realm: " + oldClassName);
-        if (realm.sharedRealm.hasTable(newInternalName)) {
-            throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
-        }
-
-        // Checks if there is a primary key defined for the old class.
-        Table oldTable = getTable(oldClassName);
-        String pkField = null;
-        if (oldTable.hasPrimaryKey()) {
-            pkField = oldTable.getColumnName(oldTable.getPrimaryKey());
-            oldTable.setPrimaryKey(null);
-        }
-
-        realm.sharedRealm.renameTable(oldInternalName, newInternalName);
-        Table table = realm.sharedRealm.getTable(newInternalName);
-
-        // Sets the primary key for the new class if necessary.
-        if (pkField != null) {
-            table.setPrimaryKey(pkField);
-        }
-
-        RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-        return new RealmObjectSchema(realm, table, columnIndices);
-    }
+    public abstract RealmObjectSchema rename(String oldClassName, String newClassName);
 
     /**
      * Checks if a given class already exists in the schema.
@@ -241,114 +87,91 @@ public class RealmSchema {
      * @param className class name to check.
      * @return {@code true} if the class already exists. {@code false} otherwise.
      */
-    public boolean contains(String className) {
-        if (realm == null) {
-            return dynamicClassToSchema.containsKey(className);
-        } else {
-            return realm.sharedRealm.hasTable(Table.TABLE_PREFIX + className);
+    public abstract boolean contains(String className);
+
+    abstract Table getTable(Class<? extends RealmModel> clazz);
+
+    abstract Table getTable(String className);
+
+    abstract RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz);
+
+    abstract RealmObjectSchema getSchemaForClass(String className);
+
+    /**
+     * Set the column index cache for this schema.
+     *
+     * @param columnIndices the column index cache
+     */
+    final void setInitialColumnIndices(ColumnIndices columnIndices) {
+        if (this.columnIndices != null) {
+            throw new IllegalStateException("An instance of ColumnIndices is already set.");
+        }
+        this.columnIndices = new ColumnIndices(columnIndices, true);
+    }
+
+    /**
+     * Set the column index cache for this schema.
+     *
+     * @param version the schema version
+     * @param columnInfoMap the column info map
+     */
+    final void setInitialColumnIndices(long version, Map<Pair<Class<? extends RealmModel>, String>, ColumnInfo> columnInfoMap) {
+        if (this.columnIndices != null) {
+            throw new IllegalStateException("An instance of ColumnIndices is already set.");
+        }
+        columnIndices = new ColumnIndices(version, columnInfoMap);
+    }
+
+    /**
+     * Updates all {@link ColumnInfo} elements in {@code columnIndices}.
+     * <p>
+     * The ColumnInfo elements are shared between all {@link RealmObject}s created by the Realm instance
+     * which owns this RealmSchema. Updating them also means updating indices information in those {@link RealmObject}s.
+     *
+     * @param schemaVersion new schema version.
+     */
+    void updateColumnIndices(ColumnIndices schemaVersion) {
+        columnIndices.copyFrom(schemaVersion);
+    }
+
+    final boolean isProxyClass(Class<? extends RealmModel> modelClass, Class<? extends RealmModel> testee) {
+        return modelClass.equals(testee);
+    }
+
+    /**
+     * Sometimes you need ColumnIndicies that can be passed between threads.
+     * Setting the mutable flag false creates an instance that is effectively final.
+     *
+     * @return a new, thread-safe copy of this Schema's ColumnIndices.
+     * @see ColumnIndices for the effectively final contract.
+     */
+    final ColumnIndices getImmutableColumnIndicies() {
+        checkIndices();
+        return new ColumnIndices(columnIndices, false);
+    }
+
+    final boolean haveColumnInfo() {
+        return columnIndices != null;
+    }
+
+    final long getSchemaVersion() {
+        checkIndices();
+        return columnIndices.getSchemaVersion();
+    }
+
+    final ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
+        checkIndices();
+        return columnIndices.getColumnInfo(clazz);
+    }
+
+    protected final ColumnInfo getColumnInfo(String className) {
+        checkIndices();
+        return columnIndices.getColumnInfo(className);
+    }
+
+    private void checkIndices() {
+        if (!haveColumnInfo()) {
+            throw new IllegalStateException("Attempt to use column index before set.");
         }
     }
-
-    private void checkEmpty(String str, String error) {
-        if (str == null || str.isEmpty()) {
-            throw new IllegalArgumentException(error);
-        }
-    }
-
-    private void checkHasTable(String className, String errorMsg) {
-        String internalTableName = TABLE_PREFIX + className;
-        if (!realm.sharedRealm.hasTable(internalTableName)) {
-            throw new IllegalArgumentException(errorMsg);
-        }
-    }
-
-    ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
-        final ColumnInfo columnInfo = columnIndices.getColumnInfo(clazz);
-        if (columnInfo == null) {
-            throw new IllegalStateException("No validated schema information found for " + realm.configuration.getSchemaMediator().getTableName(clazz));
-        }
-        return columnInfo;
-    }
-
-    Table getTable(String className) {
-        className = Table.TABLE_PREFIX + className;
-        Table table = dynamicClassToTable.get(className);
-        if (table == null) {
-            if (!realm.sharedRealm.hasTable(className)) {
-                throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
-            }
-            table = realm.sharedRealm.getTable(className);
-            dynamicClassToTable.put(className, table);
-        }
-        return table;
-    }
-
-    Table getTable(Class<? extends RealmModel> clazz) {
-        Table table = classToTable.get(clazz);
-        if (table == null) {
-            Class<? extends RealmModel> originalClass = Util.getOriginalModelClass(clazz);
-            if (isProxyClass(originalClass, clazz)) {
-                // If passed 'clazz' is the proxy, try again with model class.
-                table = classToTable.get(originalClass);
-            }
-            if (table == null) {
-                table = realm.sharedRealm.getTable(realm.configuration.getSchemaMediator().getTableName(originalClass));
-                classToTable.put(originalClass, table);
-            }
-            if (isProxyClass(originalClass, clazz)) {
-                // 'clazz' is the proxy class for 'originalClass'.
-                classToTable.put(clazz, table);
-            }
-        }
-        return table;
-    }
-
-    RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
-        RealmObjectSchema classSchema = classToSchema.get(clazz);
-        if (classSchema == null) {
-            Class<? extends RealmModel> originalClass = Util.getOriginalModelClass(clazz);
-            if (isProxyClass(originalClass, clazz)) {
-                // If passed 'clazz' is the proxy, try again with model class.
-                classSchema = classToSchema.get(originalClass);
-            }
-            if (classSchema == null) {
-                Table table = getTable(clazz);
-                classSchema = new RealmObjectSchema(realm, table, columnIndices.getColumnInfo(originalClass).getIndicesMap());
-                classToSchema.put(originalClass, classSchema);
-            }
-            if (isProxyClass(originalClass, clazz)) {
-                // 'clazz' is the proxy class for 'originalClass'.
-                classToSchema.put(clazz, classSchema);
-            }
-        }
-        return classSchema;
-    }
-
-    private static boolean isProxyClass(Class<? extends RealmModel> modelClass,
-                                        Class<? extends RealmModel> testee) {
-        return modelClass != testee;
-    }
-
-    RealmObjectSchema getSchemaForClass(String className) {
-        className = Table.TABLE_PREFIX + className;
-        RealmObjectSchema dynamicSchema = dynamicClassToSchema.get(className);
-        if (dynamicSchema == null) {
-            if (!realm.sharedRealm.hasTable(className)) {
-                throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
-            }
-            Table table = realm.sharedRealm.getTable(className);
-            RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-            dynamicSchema = new RealmObjectSchema(realm, table, columnIndices);
-            dynamicClassToSchema.put(className, dynamicSchema);
-        }
-        return dynamicSchema;
-    }
-
-    static String getSchemaForTable(Table table) {
-        return table.getName().substring(Table.TABLE_PREFIX.length());
-    }
-
-    static native long nativeCreateFromList(long[] objectSchemaPtrs);
-    static native void nativeClose(long nativePtr);
-    static native long[] nativeGetAll(long nativePtr);
 }

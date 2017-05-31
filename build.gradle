@@ -94,7 +94,18 @@ task connectedUnitTests(type:GradleBuild) {
     description = 'Run the Android unit tests of the Realm project'
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
-    tasks = ['connectedUnitTests']
+    tasks = ['connectedAndroidTest']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+}
+
+task connectedBenchmarks(type:GradleBuild) {
+    group = 'Test'
+    description = 'Run all the benchmark tests for the library '
+    dependsOn installTransformer
+    buildFile = file('library-benchmarks/build.gradle')
+    tasks = ['connectedAndroidTest']
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
     }
@@ -195,6 +206,7 @@ task distributionPackage(type:Zip) {
     from('changelog.txt')
     from('LICENSE')
     from('version.txt')
+    from('realm.properties')
     from('realm/realm-library/build/libs') {
         include 'realm-android-${currentVersion}-javadoc.jar'
         into 'docs'
@@ -264,6 +276,37 @@ task clean {
     cleanLocalMavenRepos.dependsOn cleanGradlePlugin
     cleanLocalMavenRepos.dependsOn cleanExamples
     dependsOn cleanLocalMavenRepos
+}
+
+task manualClean {
+    description = 'Clean build files without using clean tasks defined in sub projects'
+    group = 'Clean'
+
+    doLast {
+        // clean 'build' directories
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'find', '.', '-type', 'd', '-name', 'build', '-print', '-exec', 'rm', '-rf', '{}', ';', '-prune'
+        }
+
+        // clean '.externalNativeBuild' directories
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'find', '.', '-type', 'd', '-name', '.externalNativeBuild', '-print', '-exec', 'rm', '-rf', '{}', ';', '-prune'
+        }
+
+        // clean '.gradle' directories except one in the root
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'find', '.', '-mindepth', '2', '-type', 'd', '-name', '.gradle', '-print', '-exec', 'rm', '-rf', '{}', ';', '-prune'
+        }
+
+        // clean ${System.env.HOME}/.m2/repository/io/realm
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'sh', '-c', "echo \"${System.env.HOME}/.m2/repository/io/realm\" && rm -rf \"${System.env.HOME}/.m2/repository/io/realm\""
+        }
+    }
 }
 
 task uploadDistributionPackage {

@@ -13,6 +13,7 @@ import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 
+
 /**
  * General implementation for {@link OrderedRealmCollection} which is based on the {@code Collection}.
  */
@@ -22,21 +23,24 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
             " 'OrderedRealmCollectionSnapshot'.";
 
     final BaseRealm realm;
-    Class<E> classSpec;   // Return type
-    String className;     // Class name used by DynamicRealmObjects
+    final Class<E> classSpec;   // Return type
+    final String className;     // Class name used by DynamicRealmObjects
 
     final Collection collection;
 
     OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, Class<E> clazz) {
-        this.realm = realm;
-        this.classSpec = clazz;
-        this.collection = collection;
+        this(realm, collection, clazz, null);
     }
 
     OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, String className) {
+        this(realm, collection, null, className);
+    }
+
+    private OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, Class<E> clazz, String className) {
         this.realm = realm;
-        this.className = className;
         this.collection = collection;
+        this.classSpec = clazz;
+        this.className = className;
     }
 
     Table getTable() {
@@ -71,7 +75,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      *
      * @param object the object to search for.
      * @return {@code true} if {@code object} is an element of this {@code OrderedRealmCollection},
-     *         {@code false} otherwise.
+     * {@code false} otherwise.
      */
     @Override
     public boolean contains(Object object) {
@@ -253,7 +257,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public RealmResults<E> sort(String fieldName) {
         SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(collection.getTable(), fieldName, Sort.ASCENDING);
+                SortDescriptor.getInstanceForSort(getSchemaConnector(), collection.getTable(), fieldName, Sort.ASCENDING);
 
         Collection sortedCollection = collection.sort(sortDescriptor);
         return createLoadedResults(sortedCollection);
@@ -265,7 +269,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
         SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(collection.getTable(), fieldName, sortOrder);
+                SortDescriptor.getInstanceForSort(getSchemaConnector(), collection.getTable(), fieldName, sortOrder);
 
         Collection sortedCollection = collection.sort(sortDescriptor);
         return createLoadedResults(sortedCollection);
@@ -277,7 +281,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
         SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(collection.getTable(), fieldNames, sortOrders);
+                SortDescriptor.getInstanceForSort(getSchemaConnector(), collection.getTable(), fieldNames, sortOrders);
 
         Collection sortedCollection = collection.sort(sortDescriptor);
         return createLoadedResults(sortedCollection);
@@ -288,7 +292,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      */
     @Override
     public RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
-        return sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
+        return sort(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
     // Aggregates
@@ -341,7 +345,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      * Finds the maximum date.
      *
      * @param fieldName the field to look for the maximum date. If fieldName is not of Date type, an exception is
-     *                  thrown.
+     * thrown.
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
      * will be returned. Otherwise the maximum date is returned. When determining the maximum date, objects with
      * {@code null} values are ignored.
@@ -499,7 +503,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     @Deprecated
     public boolean addAll(int location,
-                          @SuppressWarnings("NullableProblems") java.util.Collection<? extends E> collection) {
+            @SuppressWarnings("NullableProblems") java.util.Collection<? extends E> collection) {
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
@@ -556,5 +560,9 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         }
         results.load();
         return results;
+    }
+
+    private SchemaConnector getSchemaConnector() {
+        return new SchemaConnector(realm.getSchema());
     }
 }

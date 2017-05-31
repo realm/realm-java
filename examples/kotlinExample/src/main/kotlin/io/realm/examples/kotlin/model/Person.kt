@@ -21,8 +21,7 @@ import io.realm.RealmObject
 import io.realm.annotations.Ignore
 import io.realm.annotations.PrimaryKey
 
-// Your model has to extend RealmObject. Furthermore, the class and all of the
-// properties must be annotated with open (Kotlin classes and methods are final
+// Your model has to extend RealmObject. Furthermore, the class must be annotated with open (Kotlin classes are final
 // by default).
 open class Person(
         // You can put properties in the constructor as long as all of them are initialized with
@@ -30,20 +29,20 @@ open class Person(
         // All properties are by default persisted.
         // Properties can be annotated with PrimaryKey or Index.
         // If you use non-nullable types, properties must be initialized with non-null values.
-        @PrimaryKey open var id: Long = 0,
+        @PrimaryKey var id: Long = 0,
 
-        open var name: String = "",
+        var name: String = "",
 
-        open var age: Int = 0,
+        var age: Int = 0,
 
         // Other objects in a one-to-one relation must also subclass RealmObject
-        open var dog: Dog? = null,
+        var dog: Dog? = null,
 
         // One-to-many relations is simply a RealmList of the objects which also subclass RealmObject
-        open var cats: RealmList<Cat> = RealmList(),
+        var cats: RealmList<Cat> = RealmList(),
 
         // You can instruct Realm to ignore a field and not persist it.
-        @Ignore open var tempReference: Int = 0
+        @Ignore var tempReference: Int = 0
 
 ) : RealmObject() {
     // The Kotlin compiler generates standard getters and setters.

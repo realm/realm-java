@@ -38,6 +38,7 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -591,6 +592,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
+    @SuppressWarnings("CollectionIncompatibleType")
     public void removeAll_managedMode_wrongClass() {
         realm.beginTransaction();
         //noinspection SuspiciousMethodCalls
@@ -598,6 +600,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
+    @SuppressWarnings("CollectionIncompatibleType")
     public void removeAll_unmanaged_wrongClass() {
         RealmList<Dog> list = createUnmanagedDogList();
         //noinspection SuspiciousMethodCalls
@@ -746,8 +749,8 @@ public class RealmListTests extends CollectionTests {
                     case SORT: results.sort(CyclicType.FIELD_NAME); break;
                     case SORT_FIELD: results.sort(CyclicType.FIELD_NAME, Sort.ASCENDING); break;
                     case SORT_2FIELDS: results.sort(CyclicType.FIELD_NAME, Sort.ASCENDING, CyclicType.FIELD_DATE, Sort.DESCENDING); break;
-                    case SORT_MULTI: results.sort(new String[] { CyclicType.FIELD_NAME, CyclicType.FIELD_DATE }, new Sort[] { Sort.ASCENDING, Sort.DESCENDING});
-                    case CREATE_SNAPSHOT: results.createSnapshot();
+                    case SORT_MULTI: results.sort(new String[] { CyclicType.FIELD_NAME, CyclicType.FIELD_DATE }, new Sort[] { Sort.ASCENDING, Sort.DESCENDING}); break;
+                    case CREATE_SNAPSHOT: results.createSnapshot(); break;
                 }
                 fail(method + " should have thrown an Exception");
             } catch (IllegalStateException ignored) {
@@ -991,7 +994,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     private RealmList<Dog> prepareRealmListInLooperThread() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         Owner owner = realm.createObject(Owner.class);
         owner.setName("Owner");
@@ -1008,7 +1011,7 @@ public class RealmListTests extends CollectionTests {
     @RunTestInLooperThread
     public void addChangeListener() {
         collection = prepareRealmListInLooperThread();
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final AtomicInteger listenerCalledCount = new AtomicInteger(0);
         collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
             @Override
@@ -1037,7 +1040,7 @@ public class RealmListTests extends CollectionTests {
     @RunTestInLooperThread
     public void removeAllChangeListeners() {
         collection = prepareRealmListInLooperThread();
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final AtomicInteger listenerCalledCount = new AtomicInteger(0);
         collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
             @Override
@@ -1051,24 +1054,31 @@ public class RealmListTests extends CollectionTests {
                 fail();
             }
         });
+
+        collection.removeAllChangeListeners();
+
+        // This one is added after removal, so it should be triggered.
+        collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> element) {
+                listenerCalledCount.incrementAndGet();
+                looperThread.testComplete();
+            }
+        });
+
+        // This should trigger the listener if there is any.
         realm.beginTransaction();
         collection.get(0).setAge(42);
         realm.commitTransaction();
 
-        collection.removeAllChangeListeners();
-
-        // This should trigger the listener if there is any.
-        realm.beginTransaction();
-        realm.cancelTransaction();
-        assertEquals(0, listenerCalledCount.get());
-        looperThread.testComplete();
+        assertEquals(1, listenerCalledCount.get());
     }
 
     @Test
     @RunTestInLooperThread
     public void removeChangeListener() {
         collection = prepareRealmListInLooperThread();
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final AtomicInteger listenerCalledCount = new AtomicInteger(0);
         RealmChangeListener<RealmList<Dog>> listener1 = new RealmChangeListener<RealmList<Dog>>() {
             @Override
@@ -1081,21 +1091,33 @@ public class RealmListTests extends CollectionTests {
                     @Override
                     public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
                         assertEquals(0, listenerCalledCount.getAndIncrement());
+                        looperThread.testComplete();
                     }
                 };
 
         collection.addChangeListener(listener1);
         collection.addChangeListener(listener2);
-        realm.beginTransaction();
-        collection.get(0).setAge(42);
-        realm.commitTransaction();
 
         collection.removeChangeListener(listener1);
 
         // This should trigger the listener if there is any.
         realm.beginTransaction();
-        realm.cancelTransaction();
+        collection.get(0).setAge(42);
+        realm.commitTransaction();
         assertEquals(1, listenerCalledCount.get());
-        looperThread.testComplete();
+    }
+
+    // https://github.com/realm/realm-java/issues/4554
+    @Test
+    public void createSnapshot_shouldUseTargetTable() {
+        int sizeBefore = collection.size();
+        OrderedRealmCollectionSnapshot<Dog> snapshot = collection.createSnapshot();
+        realm.beginTransaction();
+        snapshot.get(0).deleteFromRealm();
+        realm.commitTransaction();
+        assertEquals(sizeBefore - 1, collection.size());
+
+        assertNotNull(collection.view);
+        assertEquals(collection.view.getTargetTable().getName(), snapshot.getTable().getName());
     }
 }

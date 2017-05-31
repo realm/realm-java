@@ -72,7 +72,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void executeTransactionAsync() throws Throwable {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         assertEquals(0, realm.where(Owner.class).count());
 
         realm.executeTransactionAsync(new Realm.Transaction() {
@@ -100,7 +100,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void executeTransactionAsync_onSuccess() throws Throwable {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         assertEquals(0, realm.where(Owner.class).count());
 
         realm.executeTransactionAsync(new Realm.Transaction() {
@@ -122,7 +122,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void executeTransactionAsync_onSuccessCallerRealmClosed() throws Throwable {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         assertEquals(0, realm.where(Owner.class).count());
 
         realm.executeTransactionAsync(new Realm.Transaction() {
@@ -135,9 +135,10 @@ public class RealmAsyncQueryTests {
             @Override
             public void onSuccess() {
                 assertTrue(realm.isClosed());
-                Realm newRealm = Realm.getInstance(looperThread.realmConfiguration);
+                Realm newRealm = Realm.getInstance(looperThread.getConfiguration());
                 assertEquals(1, newRealm.where(Owner.class).count());
                 assertEquals("Owner", newRealm.where(Owner.class).findFirst().getName());
+                newRealm.close();
                 looperThread.testComplete();
             }
         });
@@ -147,7 +148,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void executeTransactionAsync_onError() throws Throwable {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RuntimeException runtimeException = new RuntimeException("Oh! What a Terrible Failure");
         assertEquals(0, realm.where(Owner.class).count());
 
@@ -170,7 +171,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void executeTransactionAsync_onErrorCallerRealmClosed() throws Throwable {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RuntimeException runtimeException = new RuntimeException("Oh! What a Terrible Failure");
         assertEquals(0, realm.where(Owner.class).count());
 
@@ -183,10 +184,11 @@ public class RealmAsyncQueryTests {
             @Override
             public void onError(Throwable error) {
                 assertTrue(realm.isClosed());
-                Realm newRealm = Realm.getInstance(looperThread.realmConfiguration);
+                Realm newRealm = Realm.getInstance(looperThread.getConfiguration());
                 assertEquals(0, newRealm.where(Owner.class).count());
                 assertNull(newRealm.where(Owner.class).findFirst());
                 assertEquals(runtimeException, error);
+                newRealm.close();
                 looperThread.testComplete();
             }
         });
@@ -196,7 +198,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void executeTransactionAsync_NoCallbacks() throws Throwable {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         assertEquals(0, realm.where(Owner.class).count());
 
         realm.executeTransactionAsync(new Realm.Transaction() {
@@ -222,7 +224,7 @@ public class RealmAsyncQueryTests {
         final TestHelper.TestLogger testLogger = new TestHelper.TestLogger(LogLevel.DEBUG);
         RealmLog.add(testLogger);
 
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         assertEquals(0, realm.where(Owner.class).count());
 
@@ -256,7 +258,7 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void executeTransactionAsync_realmClosedOnSuccess() {
         final AtomicInteger counter = new AtomicInteger(100);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmCache.Callback cacheCallback = new RealmCache.Callback() {
             @Override
             public void onResult(int count) {
@@ -295,7 +297,7 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void executeTransaction_async_realmClosedOnError() {
         final AtomicInteger counter = new AtomicInteger(100);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmCache.Callback cacheCallback = new RealmCache.Callback() {
             @Override
             public void onResult(int count) {
@@ -336,7 +338,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void executeTransactionAsync_asyncQuery() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         assertEquals(0, results.size());
 
@@ -369,30 +371,98 @@ public class RealmAsyncQueryTests {
     public void executeTransactionAsync_onSuccessOnNonLooperThreadThrows() {
         Realm realm = Realm.getInstance(configFactory.createConfiguration());
         thrown.expect(IllegalStateException.class);
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
+        try {
+            realm.executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
 
-            }
-        }, new Realm.Transaction.OnSuccess() {
-            @Override
-            public void onSuccess() {
-            }
-        });
+                }
+            }, new Realm.Transaction.OnSuccess() {
+                @Override
+                public void onSuccess() {
+                }
+            });
+        } finally {
+            realm.close();
+        }
     }
 
     @Test
     public void executeTransactionAsync_onErrorOnNonLooperThreadThrows() {
         Realm realm = Realm.getInstance(configFactory.createConfiguration());
         thrown.expect(IllegalStateException.class);
-        realm.executeTransactionAsync(new Realm.Transaction() {
+        try {
+            realm.executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+
+                }
+            }, new Realm.Transaction.OnError() {
+                @Override
+                public void onError(Throwable error) {
+                }
+            });
+        } finally {
+            realm.close();
+        }
+    }
+
+    // https://github.com/realm/realm-java/issues/4595#issuecomment-298830411
+    // onSuccess might commit another transaction which will call didChange. So before calling async transaction
+    // callbacks, the callback should be cleared.
+    @Test
+    @RunTestInLooperThread
+    public void executeTransactionAsync_callbacksShouldBeClearedBeforeCalling()
+            throws NoSuchFieldException, IllegalAccessException {
+        final AtomicInteger callbackCounter = new AtomicInteger(0);
+        final Realm foregroundRealm = looperThread.getRealm();
+
+        // Use single thread executor
+        TestHelper.replaceRealmThreadExecutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
+
+        // To reproduce the issue, the posted callback needs to arrived before the Object Store did_change called.
+        // We just disable the auto refresh here then the did_change won't be called.
+        foregroundRealm.setAutoRefresh(false);
+        foregroundRealm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-
+                realm.createObject(AllTypes.class);
             }
-        }, new Realm.Transaction.OnError() {
+        }, new Realm.Transaction.OnSuccess() {
             @Override
-            public void onError(Throwable error) {
+            public void onSuccess() {
+                // This will be called first and only once
+                assertEquals(0, callbackCounter.getAndIncrement());
+
+                // This transaction should never trigger the onSuccess.
+                foregroundRealm.beginTransaction();
+                foregroundRealm.createObject(AllTypes.class);
+                foregroundRealm.commitTransaction();
+            }
+        });
+
+        foregroundRealm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                // This will be called 2nd and only once
+                assertEquals(1, callbackCounter.getAndIncrement());
+                looperThread.testComplete();
+            }
+        });
+
+        // Wait for all async tasks finish to ensure the async transaction posted callback will arrive first.
+        TestHelper.resetRealmThreadExecutor();
+        looperThread.postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                // Manually call refresh, so the did_change will be triggered.
+                foregroundRealm.sharedRealm.refresh();
+                foregroundRealm.setAutoRefresh(true);
             }
         });
     }
@@ -405,7 +475,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void findAllAsync() throws Throwable {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);
         final RealmResults<AllTypes> results = realm.where(AllTypes.class)
                 .between("columnLong", 0, 4)
@@ -414,7 +484,7 @@ public class RealmAsyncQueryTests {
         assertFalse(results.isLoaded());
         assertEquals(0, results.size());
 
-        looperThread.keepStrongReference.add(results);
+        looperThread.keepStrongReference(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
@@ -429,7 +499,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void accessingRealmListOnUnloadedRealmObjectShouldThrow() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);
         final AllTypes results = realm.where(AllTypes.class)
                 .equalTo("columnLong", 0)
@@ -472,7 +542,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void findAllAsync_withNotification() throws Throwable {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);
         final RealmResults<AllTypes> results = realm.where(AllTypes.class)
                 .between("columnLong", 0, 4)
@@ -487,7 +557,7 @@ public class RealmAsyncQueryTests {
                 looperThread.testComplete();
             }
         });
-        looperThread.keepStrongReference.add(results);
+        looperThread.keepStrongReference(results);
 
         assertFalse(results.isLoaded());
         assertEquals(0, results.size());
@@ -498,13 +568,13 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void findAllAsync_forceLoad() throws Throwable {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);
         final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
                 .between("columnLong", 0, 4)
                 .findAllAsync();
 
-        looperThread.keepStrongReference.add(realmResults);
+        looperThread.keepStrongReference(realmResults);
         // Notification should be called as well.
         realmResults.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
@@ -534,13 +604,13 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void findFirstAsync() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);
 
         final AllTypes asyncObj = realm.where(AllTypes.class).findFirstAsync();
         assertFalse(asyncObj.isValid());
         assertFalse(asyncObj.isLoaded());
-        looperThread.keepStrongReference.add(asyncObj);
+        looperThread.keepStrongReference(asyncObj);
         asyncObj.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object) {
@@ -551,47 +621,39 @@ public class RealmAsyncQueryTests {
         });
     }
 
+    // When there is no object match the query condition, findFirstAsync should return with an invalid row.
     @Test
     @RunTestInLooperThread
-    public void findFirstAsync_initalEmptyRow() throws Throwable {
-        Realm realm = looperThread.realm;
+    public void findFirstAsync_initialEmptyRow() throws Throwable {
+        Realm realm = looperThread.getRealm();
         final AllTypes firstAsync = realm.where(AllTypes.class).findFirstAsync();
-        looperThread.keepStrongReference.add(firstAsync);
+        looperThread.keepStrongReference(firstAsync);
         firstAsync.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object) {
-                assertTrue(firstAsync.load());
                 assertTrue(firstAsync.isLoaded());
-                assertTrue(firstAsync.isValid());
-                assertEquals(0, firstAsync.getColumnLong());
+                assertFalse(firstAsync.isValid());
                 looperThread.testComplete();
             }
         });
-
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class).setColumnLong(0);
-        realm.commitTransaction();
-
-        assertTrue(firstAsync.load());
-        assertTrue(firstAsync.isLoaded());
     }
 
     @Test
     @RunTestInLooperThread
-    public void findFirstAsync_updatedIfsyncRealmObjectIsUpdated() throws Throwable {
-        populateTestRealm(looperThread.realm, 1);
-        AllTypes firstSync = looperThread.realm.where(AllTypes.class).findFirst();
+    public void findFirstAsync_updatedIfSyncRealmObjectIsUpdated() throws Throwable {
+        populateTestRealm(looperThread.getRealm(), 1);
+        AllTypes firstSync = looperThread.getRealm().where(AllTypes.class).findFirst();
         assertEquals(0, firstSync.getColumnLong());
         assertEquals("test data 0", firstSync.getColumnString());
 
-        final AllTypes firstAsync = looperThread.realm.where(AllTypes.class).findFirstAsync();
+        final AllTypes firstAsync = looperThread.getRealm().where(AllTypes.class).findFirstAsync();
         assertTrue(firstAsync.load());
         assertTrue(firstAsync.isLoaded());
         assertTrue(firstAsync.isValid());
         assertEquals(0, firstAsync.getColumnLong());
         assertEquals("test data 0", firstAsync.getColumnString());
 
-        looperThread.keepStrongReference.add(firstAsync);
+        looperThread.keepStrongReference(firstAsync);
         firstAsync.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object) {
@@ -600,9 +662,9 @@ public class RealmAsyncQueryTests {
             }
         });
 
-        looperThread.realm.beginTransaction();
+        looperThread.getRealm().beginTransaction();
         firstSync.setColumnString("Galacticon");
-        looperThread.realm.commitTransaction();
+        looperThread.getRealm().commitTransaction();
     }
 
     // Finds elements [0-4] asynchronously then waits for the promise to be loaded
@@ -610,13 +672,13 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void findFirstAsync_withNotification() throws Throwable {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);
         final AllTypes realmResults = realm.where(AllTypes.class)
                 .between("columnLong", 4, 9)
                 .findFirstAsync();
 
-        looperThread.keepStrongReference.add(realmResults);
+        looperThread.keepStrongReference(realmResults);
         realmResults.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override
             public void onChange(AllTypes object) {
@@ -636,23 +698,66 @@ public class RealmAsyncQueryTests {
         }
     }
 
-    // Similar UC as #testForceLoadAsync using 'findFirst'.
+    // load should trigger the listener with empty change set.
     @Test
     @RunTestInLooperThread
     public void findFirstAsync_forceLoad() throws Throwable {
-        Realm Realm = looperThread.realm;
-        populateTestRealm(Realm, 10);
-        final AllTypes realmResults = Realm.where(AllTypes.class)
+        final AtomicBoolean listenerCalled = new AtomicBoolean(false);
+        Realm realm = looperThread.getRealm();
+        populateTestRealm(realm, 10);
+        final AllTypes realmResults = realm.where(AllTypes.class)
                 .between("columnLong", 4, 9)
                 .findFirstAsync();
 
         assertFalse(realmResults.isLoaded());
 
+        realmResults.addChangeListener(new RealmObjectChangeListener<RealmModel>() {
+            @Override
+            public void onChange(RealmModel object, ObjectChangeSet changeSet) {
+                assertNull(changeSet);
+                assertFalse(listenerCalled.get());
+                listenerCalled.set(true);
+            }
+        });
+
         assertTrue(realmResults.load());
         assertTrue(realmResults.isLoaded());
         assertEquals("test data 4", realmResults.getColumnString());
 
+        assertTrue(listenerCalled.get());
         looperThread.testComplete();
+    }
+
+    // For issue https://github.com/realm/realm-java/issues/4495
+    @Test
+    @RunTestInLooperThread
+    public void findFirstAsync_twoListenersOnSameInvalidObjectsCauseNPE() {
+        final Realm realm = looperThread.getRealm();
+        final AllTypes allTypes = realm.where(AllTypes.class).findFirstAsync();
+        final AtomicBoolean firstListenerCalled = new AtomicBoolean(false);
+
+        allTypes.addChangeListener(new RealmChangeListener<AllTypes>() {
+            @Override
+            public void onChange(AllTypes element) {
+                allTypes.removeChangeListener(this);
+                assertFalse(firstListenerCalled.getAndSet(true));
+                if (!element.isValid()) {
+                    realm.beginTransaction();
+                    realm.createObject(AllTypes.class);
+                    realm.commitTransaction();
+                }
+            }
+        });
+
+        allTypes.addChangeListener(new RealmChangeListener<AllTypes>() {
+            @Override
+            public void onChange(AllTypes element) {
+                allTypes.removeChangeListener(this);
+                assertTrue(firstListenerCalled.get());
+                assertFalse(element.isValid());
+                looperThread.testComplete();
+            }
+        });
     }
 
     // **************************************
@@ -663,7 +768,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void findAllSortedAsync() throws Throwable {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);
 
         final RealmResults<AllTypes> results = realm.where(AllTypes.class)
@@ -673,7 +778,7 @@ public class RealmAsyncQueryTests {
         assertFalse(results.isLoaded());
         assertEquals(0, results.size());
 
-        looperThread.keepStrongReference.add(results);
+        looperThread.keepStrongReference(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
@@ -691,9 +796,9 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void combiningAsyncAndSync() {
-        populateTestRealm(looperThread.realm, 10);
+        populateTestRealm(looperThread.getRealm(), 10);
 
-        final RealmResults<AllTypes> allTypesAsync = looperThread.realm.where(AllTypes.class).greaterThan("columnLong", 5).findAllAsync();
+        final RealmResults<AllTypes> allTypesAsync = looperThread.getRealm().where(AllTypes.class).greaterThan("columnLong", 5).findAllAsync();
         final RealmResults<AllTypes> allTypesSync = allTypesAsync.where().greaterThan("columnLong", 3).findAll();
 
         // Call where() on an async results will load query. But to maintain the pre version 2.4.0 behaviour of
@@ -708,7 +813,7 @@ public class RealmAsyncQueryTests {
                 looperThread.testComplete();
             }
         });
-        looperThread.keepStrongReference.add(allTypesAsync);
+        looperThread.keepStrongReference(allTypesAsync);
     }
 
     // Keeps advancing the Realm by sending 1 commit for each frame (16ms).
@@ -726,7 +831,7 @@ public class RealmAsyncQueryTests {
             @Override
             public void run() {
                 Random random = new Random(System.currentTimeMillis());
-                Realm backgroundThreadRealm = Realm.getInstance(looperThread.realm.getConfiguration());
+                Realm backgroundThreadRealm = Realm.getInstance(looperThread.getRealm().getConfiguration());
                 for (int i = 0; i < NUMBER_OF_COMMITS; i++) {
                     backgroundThreadRealm.beginTransaction();
                     AllTypes object = backgroundThreadRealm.createObject(AllTypes.class);
@@ -744,13 +849,13 @@ public class RealmAsyncQueryTests {
             }
         };
 
-        final RealmResults<AllTypes> allAsync = looperThread.realm.where(AllTypes.class).findAllAsync();
+        final RealmResults<AllTypes> allAsync = looperThread.getRealm().where(AllTypes.class).findAllAsync();
         allAsync.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
                 assertTrue(allAsync.isLoaded());
                 if (allAsync.size() == NUMBER_OF_COMMITS) {
-                    AllTypes lastInserted = looperThread.realm.where(AllTypes.class)
+                    AllTypes lastInserted = looperThread.getRealm().where(AllTypes.class)
                             .equalTo("columnLong", latestLongValue[0])
                             .equalTo("columnFloat", latestFloatValue[0])
                             .findFirst();
@@ -760,7 +865,7 @@ public class RealmAsyncQueryTests {
                 }
             }
         });
-        looperThread.keepStrongReference.add(allAsync);
+        looperThread.keepStrongReference(allAsync);
 
         looperThread.postRunnableDelayed(new Runnable() {
             @Override
@@ -773,7 +878,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void distinctAsync() throws Throwable {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
@@ -809,10 +914,10 @@ public class RealmAsyncQueryTests {
             }
         };
 
-        looperThread.keepStrongReference.add(distinctBool);
-        looperThread.keepStrongReference.add(distinctLong);
-        looperThread.keepStrongReference.add(distinctDate);
-        looperThread.keepStrongReference.add(distinctString);
+        looperThread.keepStrongReference(distinctBool);
+        looperThread.keepStrongReference(distinctLong);
+        looperThread.keepStrongReference(distinctDate);
+        looperThread.keepStrongReference(distinctString);
         distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
             public void onChange(RealmResults<AnnotationIndexTypes> object) {
@@ -849,7 +954,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread()
     public void distinctAsync_rememberQueryParams() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         final int TEST_SIZE = 10;
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -874,26 +979,87 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void distinctAsync_notIndexedFields() throws Throwable {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
-            try {
-                realm.where(AnnotationIndexTypes.class).distinctAsync("notIndex" + fieldName);
-                fail("notIndex" + fieldName);
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
+        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class)
+                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_BOOL);
+        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class)
+                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_LONG);
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class)
+                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_DATE);
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class)
+                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
 
-        looperThread.testComplete();
+        assertFalse(distinctBool.isLoaded());
+        assertTrue(distinctBool.isValid());
+        assertTrue(distinctBool.isEmpty());
+
+        assertFalse(distinctLong.isLoaded());
+        assertTrue(distinctLong.isValid());
+        assertTrue(distinctLong.isEmpty());
+
+        assertFalse(distinctDate.isLoaded());
+        assertTrue(distinctDate.isValid());
+        assertTrue(distinctDate.isEmpty());
+
+        assertFalse(distinctString.isLoaded());
+        assertTrue(distinctString.isValid());
+        assertTrue(distinctString.isEmpty());
+
+        final Runnable changeListenerDone = new Runnable() {
+            final AtomicInteger signalCallbackFinished = new AtomicInteger(4);
+            @Override
+            public void run() {
+                if (signalCallbackFinished.decrementAndGet() == 0) {
+                    looperThread.testComplete();
+                }
+            }
+        };
+
+        looperThread.keepStrongReference(distinctBool);
+        looperThread.keepStrongReference(distinctLong);
+        looperThread.keepStrongReference(distinctDate);
+        looperThread.keepStrongReference(distinctString);
+        distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(2, distinctBool.size());
+                changeListenerDone.run();
+            }
+        });
+
+        distinctLong.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(numberOfBlocks, distinctLong.size());
+                changeListenerDone.run();
+            }
+        });
+
+        distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(numberOfBlocks, distinctDate.size());
+                changeListenerDone.run();
+            }
+        });
+
+        distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(numberOfBlocks, distinctString.size());
+                changeListenerDone.run();
+            }
+        });
     }
 
     @Test
     @RunTestInLooperThread
     public void distinctAsync_noneExistingField() throws Throwable {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
@@ -909,7 +1075,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void batchUpdateDifferentTypeOfQueries() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         for (int i = 0; i < 5; ) {
             AllTypes allTypes = realm.createObject(AllTypes.class);
@@ -931,10 +1097,10 @@ public class RealmAsyncQueryTests {
                 new Sort[]{Sort.ASCENDING, Sort.DESCENDING});
         RealmResults<AnnotationIndexTypes> findDistinct = realm.where(AnnotationIndexTypes.class).distinctAsync("indexString");
 
-        looperThread.keepStrongReference.add(findAllAsync);
-        looperThread.keepStrongReference.add(findAllSorted);
-        looperThread.keepStrongReference.add(findAllSortedMulti);
-        looperThread.keepStrongReference.add(findDistinct);
+        looperThread.keepStrongReference(findAllAsync);
+        looperThread.keepStrongReference(findAllSorted);
+        looperThread.keepStrongReference(findAllSortedMulti);
+        looperThread.keepStrongReference(findDistinct);
 
         final CountDownLatch queriesCompleted = new CountDownLatch(4);
         final CountDownLatch bgRealmClosedLatch = new CountDownLatch(1);
@@ -1021,20 +1187,16 @@ public class RealmAsyncQueryTests {
         new Thread() {
             @Override
             public void run() {
-                try {
-                    queriesCompleted.await();
-                    Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+                TestHelper.awaitOrFail(queriesCompleted);
+                Realm bgRealm = Realm.getInstance(realm.getConfiguration());
 
-                    bgRealm.beginTransaction();
-                    bgRealm.createObject(AllTypes.class);
-                    bgRealm.createObject(AnnotationIndexTypes.class);
-                    bgRealm.commitTransaction();
+                bgRealm.beginTransaction();
+                bgRealm.createObject(AllTypes.class);
+                bgRealm.createObject(AnnotationIndexTypes.class);
+                bgRealm.commitTransaction();
 
-                    bgRealm.close();
-                    bgRealmClosedLatch.countDown();
-                } catch (InterruptedException e) {
-                    fail(e.getMessage());
-                }
+                bgRealm.close();
+                bgRealmClosedLatch.countDown();
             }
         }.start();
     }
@@ -1044,10 +1206,10 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void queryingLinkHandover() throws Throwable {
         final AtomicInteger numberOfInvocations = new AtomicInteger(0);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         final RealmResults<Dog> allAsync = realm.where(Dog.class).equalTo("owner.name", "kiba").findAllAsync();
-        looperThread.keepStrongReference.add(allAsync);
+        looperThread.keepStrongReference(allAsync);
         allAsync.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
             public void onChange(RealmResults<Dog> object) {
@@ -1097,11 +1259,11 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void badVersion_syncTransaction() throws NoSuchFieldException, IllegalAccessException {
         final AtomicInteger listenerCount = new AtomicInteger(0);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
 
         // 1. Makes sure that async query is not started.
         final RealmResults<AllTypes> result = realm.where(AllTypes.class).findAllSortedAsync(AllTypes.FIELD_STRING);
-        looperThread.keepStrongReference.add(result);
+        looperThread.keepStrongReference(result);
         result.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
@@ -1145,7 +1307,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void batchUpdate_localRefIsDeletedInLoopOfNativeBatchUpdateQueries() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         // For Android, the size of local ref map is 512. Uses 1024 for more pressure.
         final int TEST_COUNT = 1024;
         final AtomicBoolean updatesTriggered = new AtomicBoolean(false);
@@ -1179,7 +1341,7 @@ public class RealmAsyncQueryTests {
                         // Step 2: Creates 2nd - TEST_COUNT queries.
                         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
                         results.addChangeListener(this);
-                        looperThread.keepStrongReference.add(results);
+                        looperThread.keepStrongReference(results);
                     }
                 }
             }
@@ -1187,7 +1349,7 @@ public class RealmAsyncQueryTests {
         // Step 1. Creates first async to kick the test start.
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         results.addChangeListener(listener);
-        looperThread.keepStrongReference.add(results);
+        looperThread.keepStrongReference(results);
     }
 
     // *** Helper methods ***
@@ -1201,7 +1363,7 @@ public class RealmAsyncQueryTests {
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date());
-            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnDouble(Math.PI);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -1222,11 +1384,11 @@ public class RealmAsyncQueryTests {
                 AnnotationIndexTypes obj = realm.createObject(AnnotationIndexTypes.class);
                 obj.setIndexBoolean(j % 2 == 0);
                 obj.setIndexLong(j);
-                obj.setIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setIndexDate(withNull ? null : new Date(1000L * j));
                 obj.setIndexString(withNull ? null : "Test " + j);
                 obj.setNotIndexBoolean(j % 2 == 0);
                 obj.setNotIndexLong(j);
-                obj.setNotIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setNotIndexDate(withNull ? null : new Date(1000L * j));
                 obj.setNotIndexString(withNull ? null : "Test " + j);
             }
         }

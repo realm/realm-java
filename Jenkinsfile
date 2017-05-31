@@ -80,7 +80,7 @@ try {
                 try {
                   backgroundPid = startLogCatCollector()
                   forwardAdbPorts()
-                  gradle('realm', 'connectedUnitTests')
+                  gradle('realm', 'connectedAndroidTest')
                   archiveLog = false;
                 } finally {
                   stopLogCatCollector(backgroundPid, archiveLog)
@@ -136,7 +136,7 @@ try {
 }
 
 def forwardAdbPorts() {
-  sh ''' adb reverse tcp:9080 tcp:9080 &&
+  sh ''' adb reverse tcp:9080 tcp:9080 && adb reverse tcp:9443 tcp:9443 &&
       adb reverse tcp:8888 tcp:8888
   '''
 }

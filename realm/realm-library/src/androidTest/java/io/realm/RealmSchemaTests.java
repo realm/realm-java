@@ -20,8 +20,10 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
@@ -45,6 +47,8 @@ public class RealmSchemaTests {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     private DynamicRealm realm;
     private RealmSchema realmSchema;
@@ -97,6 +101,13 @@ public class RealmSchemaTests {
             }
             assertFalse(String.format("'%s' failed", name), realmSchema.contains(name));
         }
+    }
+
+    @Test
+    public void create_duplicatedNameThrows() {
+        realmSchema.create("Foo");
+        thrown.expect(IllegalArgumentException.class);
+        realmSchema.create("Foo");
     }
 
     @Test
@@ -190,8 +201,7 @@ public class RealmSchemaTests {
 
     // Test that it if { A -> B  && B -> A } you should remove the individual fields first before removing the entire
     // class. This also include transitive dependencies.
-    // FIXME: Disabled until https://github.com/realm/realm-core/pull/1475#issuecomment-185192434 is fixed.
-    // @Test
+    @Test
     public void remove_classWithReferencesThrows() {
         try {
             realmSchema.remove("Cat");

@@ -1,21 +1,157 @@
-## 3.0.1 (YYYY-MM-DD)
+## 3.3.2 (YYYY-MM-DD)
+
+### Breaking Changes
 
 ### Enhancements
 
-* Now `targetSdkVersion` is 25.
-
 ### Bug Fixes
-
-* `Realm.migrateRealm(RealmConfiguration)` now fails correctly with an `IllegalArgumentException` if a `SyncConfiguration` is provided (#4075).
-* Fixed a potential cause for Realm file corruptions (never reported).
-
-### Deprecated
 
 ### Internal
 
-* Upgraded to Realm Sync 1.3.2.
-* Upgraded to Realm Core 2.4.0.
 
+## 3.3.1 (2017-05-26)
+
+### Bug Fixes
+
+* Accept extra columns against synced Realm (#4706).
+
+
+## 3.3.0 (2017-05-24)
+
+### Enhancements
+
+* [ObjectServer] Added two options to `SyncConfiguration` to provide a trusted root CA `trustedRootCA` and to disable SSL validation `disableSSLVerification` (#4371).
+* [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` using an admin user (#4588).
+
+### Bug Fixes
+
+* Queries on proguarded Realm model classes, failed with "Table not found" (#4673).
+
+
+## 3.2.1 (2017-05-19)
+
+### Enhancements
+
+* Not in transaction illegal state exception message changed to "Cannot modify managed objects outside of a write transaction.".
+
+### Bug Fixes
+
+* [ObjectServer] `schemaVersion` was mistakenly required in order to trigger migrations (#4658).
+* [ObjectServer] Fields removed from model classes will now correctly be hidden instead of throwing an exception when opening the Realm (#4658).
+* Fixed random crashes which were caused by a race condition in encrypted Realm (#4343).
+
+### Internal
+
+* Upgraded to Realm Sync 1.8.5.
+* Upgraded to Realm Core 2.8.0.
+
+## 3.2.0 (2017-05-16)
+
+### Enhancements
+
+* [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
+* [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` (#4423).
+* [ObjectServer] Added support for `SyncConfiguration.Builder.waitForInitialRemoteData()` (#4270).
+* Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).
+* Added `Realm.refresh()` and `DynamicRealm.refresh()` (#3476).
+* Added `Realm.getInstanceAsync()` and `DynamicRealm.getInstanceAsync()` (#2299).
+* Added `DynamicRealmObject#linkingObjects(String,String)` to support linking objects on `DynamicRealm` (#4492).
+* Added support for read only Realms using `RealmConfiguration.Builder.readOnly()` and `SyncConfiguration.Builder.readOnly()`(#1147).
+* Change listeners will now auto-expand variable names to be more descriptive when using Android Studio.
+* The `toString()` methods for the standard and dynamic proxies now print "proxy", or "dynamic" before the left bracket enclosing the data.
+
+### Bug Fixes
+
+* `@LinkingObjects` annotation now also works with Kotlin (#4611).
+
+### Internal
+
+* Use separated locks for different `RealmCache`s ($4551).
+
+## 3.1.4 (2017-05-04)
+
+## Bug fixes
+
+* Added missing row validation check in certain cases on invalidated/deleted objects (#4540).
+* Initializing Realm is now more resilient if `Context.getFilesDir()` isn't working correctly (#4493).
+* `OrderedRealmCollectionSnapshot.get()` returned a wrong object (#4554).
+* `onSuccess` callback got triggered infinitely if a synced transaction was committed in the async transaction's `onSuccess` callback (#4594).
+
+## 3.1.3 (2017-04-20)
+
+### Enhancements
+
+* [ObjectServer] Resume synchronization as soon as the connectivity is back (#4141).
+
+### Bug Fixes
+
+* `equals()` and `hashCode()` of managed `RealmObject`s that come from linking objects don't work correctly (#4487).
+* Field name was missing in exception message when `null` was set to required field (#4484).
+* Now throws `IllegalStateException` when a getter of linking objects is called against deleted or not yet loaded `RealmObject`s (#4499).
+* `NullPointerException` caused by local transaction inside the listener of `findFirstAsync()`'s results (#4495).
+* Native crash when adding listeners to `RealmObject` after removing listeners from the same `RealmObject` before (#4502).
+* Native crash with "Invalid argument" error happened on some Android 7.1.1 devices when opening Realm on external storage (#4461).
+* `OrderedRealmCollectionChangeListener` didn't report change ranges correctly when circular link's field changed (#4474).
+
+### Internal
+
+* Upgraded to Realm Sync 1.6.0.
+* Upgraded to Realm Core 2.6.1.
+
+## 3.1.2 (2017-04-12)
+
+### Bug Fixes
+
+* Crash caused by JNI couldn't find `OsObject.notifyChangeListeners` when ProGuard is enabled (#4461).
+* Incompatible return type of `RealmSchema.getAll()` and `BaseRealm.getSchema()` (#4443).
+* Memory leaked when synced Realm was initialized (#4465).
+* An `IllegalStateException` will be thrown when starting iterating `OrderedRealmCollection` if the Realm is closed (#4471).
+
+## 3.1.1 (2017-04-07)
+
+### Bug Fixes
+
+* Crash caused by Listeners on `RealmObject` getting triggered the 2nd time with different changed field (#4437).
+* Unintentionally exposing `StandardRealmSchema` (#4443).
+* Workaround for crashes on specific Samsung devices which are caused by a buggy `memmove` call (#3651).
+
+## 3.1.0 (2017-04-05)
+
+### Breaking Changes
+
+* Updated file format of Realm files. Existing Realm files will automatically be migrated to the new format when they are opened, but older versions of Realm cannot open these files.
+* [ObjectServer] Due to file format changes, Realm Object Server 1.3.0 or later is required.
+
+### Enhancements
+
+* Added support for reverse relationships through the `@LinkingObjects` annotation. See `io.realm.annotations.LinkingObjects` for documentation.  
+  * This feature is in `@Beta`.
+  * Queries on linking objects do not work.  Queries like `where(...).equalTo("field.linkingObjects.id", 7).findAll()` are not yet supported.
+  * Backlink verification is incomplete.  Evil code can cause native crashes.
+* The listener on `RealmObject` will only be triggered if the object changes (#3894).
+* Added `RealmObjectChangeListener` interface that provide detailed information about `RealmObject` field changes.
+* Listeners on `RealmList` and `RealmResults` will be triggered immediately when the transaction is committed on the same thread (#4245).
+* The real `RealmMigrationNeededException` is now thrown instead of `IllegalArgumentException` if no migration is provided for a Realm that requires it.
+* `RealmQuery.distinct()` can be performed on unindexed fields (#2285).
+* `targetSdkVersion` is now 25.
+* [ObjectServer] In case of a Client Reset, information about the location of the backed up Realm file is now reported through the `ErrorHandler` interface (#4080).
+* [ObjectServer] Authentication URLs now automatically append `/auth` if no other path segment is set (#4370).
+
+### Bug Fixes
+
+* Crash with `LogicError` with `Bad version number` on notifier thread (#4369).
+* `Realm.migrateRealm(RealmConfiguration)` now fails correctly with an `IllegalArgumentException` if a `SyncConfiguration` is provided (#4075).
+* Fixed a potential cause for Realm file corruptions (never reported).
+* Add `@Override` annotation to proxy class accessors and stop using raw type in proxy classes in order to remove warnings from javac (#4329).
+* `findFirstAsync()` now returns an invalid object if there is no object matches the query condition instead of running the query repeatedly until it can find one (#4352).
+* [ObjectServer] Changing the log level after starting a session now works correctly (#4337).
+
+### Internal
+
+* Using the Object Store's Session and SyncManager.
+* Upgraded to Realm Sync 1.5.0.
+* Upgraded to Realm Core 2.5.1.
+* Upgraded Gradle to 3.4.1
 
 ## 3.0.0 (2017-02-28)
 
@@ -37,7 +173,7 @@
 
 * Added support for sorting by link's field (#672).
 * Added `OrderedRealmCollectionSnapshot` class and `OrderedRealmCollection.createSnapshot()` method. `OrderedRealmCollectionSnapshot` is useful when changing `RealmResults` or `RealmList` in simple loops.
-* Added `OrderedRealmCollectionChangeListener` interface for supporting fine-grained collection notifications. 
+* Added `OrderedRealmCollectionChangeListener` interface for supporting fine-grained collection notifications.
 * Added support for ChangeListeners on `RealmList`.
 * Added `RealmList.asObservable()`.
 
@@ -121,7 +257,7 @@
 * Updated to Realm Sync v1.0.0.
 * Added a Realm backup when receiving a Sync client reset message from the server.
 
-## 2.2.2 (2016-01-16)
+## 2.2.2 (2017-01-16)
 
 ### Object Server API Changes (In Beta)
 
