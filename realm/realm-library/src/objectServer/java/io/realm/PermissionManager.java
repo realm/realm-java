@@ -140,7 +140,7 @@ public class PermissionManager implements Closeable {
     public RealmAsyncTask getPermissions(final Callback<RealmResults<Permission>> callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
-        return addTask(new GetPermissionsAsyncTask(callback));
+        return addTask(new GetPermissionsAsyncTask(this, callback));
     }
 
     // Queue the task if the underlying Realms are not ready yet, otherwise
@@ -312,8 +312,8 @@ public class PermissionManager implements Closeable {
         // Prevent permissions from being GC'ed until fully loaded.
         private RealmResults<Permission> loadingPermissions;
 
-        GetPermissionsAsyncTask(Callback<RealmResults<Permission>> callback) {
-            super(callback);
+        GetPermissionsAsyncTask(PermissionManager permissionManager, Callback<RealmResults<Permission>> callback) {
+            super(permissionManager, callback);
         }
 
         @Override
@@ -345,13 +345,16 @@ public class PermissionManager implements Closeable {
 
     // Class encapsulating all async tasks exposed by the PermissionManager.
     // All subclasses are responsible for removing themselves from the activeTaskList when done.
-    private abstract class PermissionManagerAsyncTask<T> implements RealmAsyncTask, Runnable {
+    // Made package protected instead of private to facilitate testing
+    abstract static class PermissionManagerAsyncTask<T> implements RealmAsyncTask, Runnable {
 
         private final Callback<T> callback;
+        private final PermissionManager permissionManager;
         private volatile boolean canceled = false;
 
-        public PermissionManagerAsyncTask(Callback<T> callback) {
+        public PermissionManagerAsyncTask(PermissionManager permissionManager, Callback<T> callback) {
             this.callback = callback;
+            this.permissionManager = permissionManager;
         }
 
         @Override
@@ -378,7 +381,7 @@ public class PermissionManager implements Closeable {
          */
         protected final boolean checkAndReportInvalidState() {
             if (isCancelled()) { return true; }
-            if (isClosed()) {
+            if (permissionManager.isClosed()) {
                 ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN,
                         new IllegalStateException("PermissionManager has been closed"));
                 notifyCallbackError(error);
@@ -392,12 +395,12 @@ public class PermissionManager implements Closeable {
             boolean permissionErrorHappened;
             ObjectServerError managementError;
             ObjectServerError permissionError;
-            synchronized (errorLock) {
+            synchronized (permissionManager.errorLock) {
                 // Only hold lock while making a safe copy of current error state
-                managementErrorHappened = (managementRealmError != null);
-                permissionErrorHappened = (permissionRealmError != null);
-                managementError = managementRealmError;
-                permissionError = permissionRealmError;
+                managementErrorHappened = (permissionManager.managementRealmError != null);
+                permissionErrorHappened = (permissionManager.permissionRealmError != null);
+                managementError = permissionManager.managementRealmError;
+                permissionError = permissionManager.permissionRealmError;
             }
 
             if (permissionErrorHappened && !managementErrorHappened) {
@@ -422,12 +425,12 @@ public class PermissionManager implements Closeable {
 
         protected final void notifyCallbackWithSuccess(T result) {
             callback.onSuccess(result);
-            activeTasks.remove(this);
+            permissionManager.activeTasks.remove(this);
         }
 
         protected final void notifyCallbackError(ObjectServerError e) {
             callback.onError(e);
-            activeTasks.remove(this);
+            permissionManager.activeTasks.remove(this);
         }
 
         // Combine error messages. If they have the same ErrorCode, it will be re-used, otherwise
