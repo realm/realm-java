@@ -151,7 +151,6 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @RunTestInLooperThread
     public void getPermissionsAsync_closed() throws IOException {
         PermissionManager pm = user.getPermissionManager();
-        looperThread.closeAfterTest(pm);
         pm.close();
 
         pm.getPermissionsAsync(new PermissionManager.Callback<RealmResults<Permission>>() {
@@ -168,5 +167,4 @@ public class PermissionManagerTests extends BaseIntegrationTest {
             }
         });
     }
-
 }

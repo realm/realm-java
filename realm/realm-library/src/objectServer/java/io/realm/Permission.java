@@ -94,6 +94,7 @@ public class Permission extends RealmObject {
     private Date updatedAt;
 
     public Permission() {
+
     }
 
     public String getUserId() {
@@ -104,15 +105,15 @@ public class Permission extends RealmObject {
         return path;
     }
 
-    public boolean isMayRead() {
+    public boolean mayRead() {
         return mayRead;
     }
 
-    public boolean isMayWrite() {
+    public boolean mayWrite() {
         return mayWrite;
     }
 
-    public boolean isMayManage() {
+    public boolean mayManage() {
         return mayManage;
     }
 
