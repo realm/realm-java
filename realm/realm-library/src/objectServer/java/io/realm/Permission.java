@@ -53,7 +53,7 @@ public class Permission extends RealmObject {
         /**
          * FIXME: add description
          */
-        WRITE(true, true, false),
+        READ_WRITE(true, true, false),
 
         /**
          * FIXME: add description
@@ -96,26 +96,57 @@ public class Permission extends RealmObject {
     public Permission() {
     }
 
+    /**
+     * FIXME: JAvadoc
+     *
+     * @return
+     */
     public String getUserId() {
         return userId;
     }
 
+
+    /**
+     * FIXME: JAvadoc
+     *
+     * @return
+     */
     public String getPath() {
         return path;
     }
 
-    public boolean isMayRead() {
+    /**
+     * FIXME: JAvadoc
+     *
+     * @return
+     */
+    public boolean mayRead() {
         return mayRead;
     }
 
-    public boolean isMayWrite() {
+    /**
+     * FIXME: JAvadoc
+     *
+     * @return
+     */
+    public boolean mayWrite() {
         return mayWrite;
     }
 
-    public boolean isMayManage() {
+    /**
+     * FIXME: JAvadoc
+     *
+     * @return
+     */
+    public boolean mayManage() {
         return mayManage;
     }
 
+    /**
+     * FIXME: JAvadoc
+     *
+     * @return
+     */
     @SuppressFBWarnings({"EI_EXPOSE_REP"})
     public Date getUpdatedAt() {
         return updatedAt;
