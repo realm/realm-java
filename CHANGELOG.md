@@ -10,6 +10,7 @@
 
 ### Internal
 
+* Factor out internal interface ManagedObject
 
 ## 3.3.1 (2017-05-26)
 
