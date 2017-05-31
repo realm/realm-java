@@ -6,6 +6,8 @@
 
 ### Bug Fixes
 
+* [ObjectServer] Fixed a crash when an authentication error happend (#4726).
+
 ### Internal
 
 
@@ -13,7 +15,7 @@
 
 ### Bug Fixes
 
-* Accept extra columns against synced Realm (#4706).
+* [ObjectServer] Accepted extra columns against synced Realm (#4706).
 
 
 ## 3.3.0 (2017-05-24)
@@ -66,7 +68,7 @@
 
 ### Internal
 
-* Use separated locks for different `RealmCache`s ($4551).
+* Use separated locks for different `RealmCache`s (#4551).
 
 ## 3.1.4 (2017-05-04)
 
