@@ -466,6 +466,21 @@ public class RealmQuery<E extends RealmModel> {
     }
 
     /**
+     * In comparison. This allows you to test if objects match any value in a list of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values list of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, List<String> values) {
+        if(values == null || values.size() < 1) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        return in(fieldName, values.toArray(new String[0]), Case.SENSITIVE);
+    }
+    
+    /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
