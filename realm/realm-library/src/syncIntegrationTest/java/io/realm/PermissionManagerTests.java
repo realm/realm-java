@@ -250,7 +250,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.CONNECTION_CLOSED, error);
+                assertEquals(ErrorCode.CONNECTION_CLOSED, error.getErrorCode());
                 assertTrue(error.toString().contains("Boom1"));
                 assertTrue(error.toString().contains("Boom2"));
                 looperThread.testComplete();
@@ -281,7 +281,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.UNKNOWN, error);
+                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
                 assertTrue(error.toString().contains(ErrorCode.CONNECTION_CLOSED.toString()));
                 assertTrue(error.toString().contains(ErrorCode.SESSION_CLOSED.toString()));
                 looperThread.testComplete();
