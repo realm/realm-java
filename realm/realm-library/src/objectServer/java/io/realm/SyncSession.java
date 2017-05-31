@@ -324,7 +324,8 @@ public class SyncSession {
             @Override
             protected void onError(AuthenticateResponse response) {
                 onGoingAccessTokenQuery.set(false);
-                RealmLog.debug("Session[%s]: Failed to get access token (%d)", configuration.getPath(), response.getError().getErrorCode());
+                RealmLog.debug("Session[%s]: Failed to get access token (%s)", configuration.getPath(),
+                        response.getError().getErrorCode());
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
                     errorHandler.onError(SyncSession.this, response.getError());
                 }
