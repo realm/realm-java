@@ -369,5 +369,6 @@ public class SyncUserTests {
         assertFalse(pm1.isClosed());
         pm1.close();
         assertTrue(pm1.isClosed());
+        looperThread.testComplete();
     }
 }
