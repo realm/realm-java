@@ -1,0 +1,60 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.3.2'
+        classpath "io.realm:realm-gradle-plugin:${file("${rootDir}/../version.txt").text.trim()}"
+    }
+}
+
+allprojects {
+    def props = new Properties()
+    props.load(new FileInputStream("${rootDir}/../realm.properties"))
+    props.each { key, val ->
+        project.ext.set(key, val)
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = project.gradleVersion
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'realm-android'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.3"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 22 // Below 23 to avoid new permission system introduced in M
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled = false
+            // Running with DEBUG = true will disable the JIT
+            debuggable = false
+        }
+    }
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.android.support.test:rules:0.5'
+    androidTestCompile 'junit:junit:4.12'
+    androidTestCompile 'dk.ilios:spanner:0.6.0'
+    androidTestCompile 'com.opencsv:opencsv:3.4'
+    androidTestCompile 'junit:junit:4.12'
+}
