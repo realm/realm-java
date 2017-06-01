@@ -4,7 +4,8 @@
 
 ### Enhancements
 
-* Added support for inverse relationships which can be declared by the `@LinkingObjects` annotation (#607).
+* Added support for querying inverse relationships (#2904).
+* Moved inverse relationships out of beta stage.
 
 ### Bug Fixes
 
