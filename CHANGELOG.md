@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+* Added support for querying inverse relationships (#2904).
+* Moved inverse relationships out of beta stage.
 * Added `Realm.getDefaultConfiguration()` (#4725).
 
 ### Bug Fixes
