@@ -4,6 +4,9 @@
 
 ### Enhancements
 
+* Added support for querying inverse relationships (#2904).
+* Moved inverse relationships out of beta stage.
+
 ### Bug Fixes
 
 * [ObjectServer] Fixed a crash when an authentication error happend (#4726).
