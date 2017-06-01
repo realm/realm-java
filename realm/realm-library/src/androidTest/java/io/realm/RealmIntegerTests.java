@@ -283,4 +283,8 @@ public class RealmIntegerTests {
             assertTrue(e.getMessage().contains("must be in a transaction"));
         }
     }
+
+    // FIXME!!! Need to test direct field access, as well as access through getter/setter.
+
+    // FIXME!!! Need JSON tests.
 }
