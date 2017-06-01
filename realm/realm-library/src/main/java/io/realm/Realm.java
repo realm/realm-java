@@ -339,8 +339,7 @@ public class Realm extends BaseRealm {
     /**
      * Returns the default configuration for {@link #getDefaultInstance()}.
      *
-     * @return default configuration object or {@code null} if {@link #init(Context)} was not called yet
-     * or {@link #removeDefaultConfiguration()} was called recently.
+     * @return default configuration object or {@code null} if no default configuration is specified.
      */
     public static RealmConfiguration getDefaultConfiguration() {
         synchronized (defaultConfigurationLock) {
