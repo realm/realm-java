@@ -26,9 +26,12 @@
 #include "object_store.hpp"
 #include "java_binding_context.hpp"
 #include "util.hpp"
+#include "java_exception_def.hpp"
 
 #include "jni_util/java_method.hpp"
 #include "jni_util/java_class.hpp"
+#include "jni_util/java_exception_thrower.hpp"
+
 
 using namespace realm;
 using namespace realm::_impl;
@@ -71,7 +74,9 @@ public:
     // Sync constructor
     JniConfigWrapper(REALM_UNUSED JNIEnv* env, REALM_UNUSED Realm::Config& config,
                      REALM_UNUSED jstring sync_realm_url, REALM_UNUSED jstring sync_realm_auth_url,
-                     REALM_UNUSED jstring sync_user_identity, REALM_UNUSED jstring sync_refresh_token)
+                     REALM_UNUSED jstring sync_user_identity, REALM_UNUSED jstring sync_refresh_token,
+                     REALM_UNUSED jboolean sync_client_validate_ssl,
+                     REALM_UNUSED jstring sync_ssl_trust_certificate_path)
         : m_config(std::move(config))
     {
 #if REALM_ENABLE_SYNC
@@ -131,8 +136,14 @@ public:
                                                   realm::util::Optional<std::string>(realm_auth_url));
         }
 
+        util::Optional<std::string> ssl_trust_certificate_path = util::none;
+        if (sync_ssl_trust_certificate_path) {
+            ssl_trust_certificate_path =
+                realm::util::Optional<std::string>(JStringAccessor(env, sync_ssl_trust_certificate_path));
+        }
         m_config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
-            user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler)});
+            user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler),
+            nullptr, util::none, sync_client_validate_ssl, ssl_trust_certificate_path});
 
         if (!m_config.encryption_key.empty()) {
             auto& sync_encryption_key = m_config.sync_config->realm_encryption_key;
@@ -173,7 +184,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
     JNIEnv* env, jclass, jstring realm_path, jbyteArray key, jbyte schema_mode, jboolean in_memory, jboolean cache,
     jlong /* schema_version */, jboolean enable_format_upgrade, jboolean auto_change_notification,
     REALM_UNUSED jstring sync_server_url, REALM_UNUSED jstring sync_server_auth_url,
-    REALM_UNUSED jstring sync_user_identity, REALM_UNUSED jstring sync_refresh_token)
+    REALM_UNUSED jstring sync_user_identity, REALM_UNUSED jstring sync_refresh_token,
+    REALM_UNUSED jboolean sync_client_validate_ssl, REALM_UNUSED jstring sync_ssl_trust_certificate_path)
 {
     TR_ENTER()
 
@@ -190,8 +202,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
         config.disable_format_upgrade = !enable_format_upgrade;
         config.automatic_change_notifications = auto_change_notification;
         if (sync_server_url) {
-            return reinterpret_cast<jlong>(new JniConfigWrapper(env, config, sync_server_url, sync_server_auth_url,
-                                                                sync_user_identity, sync_refresh_token));
+            return reinterpret_cast<jlong>(
+                new JniConfigWrapper(env, config, sync_server_url, sync_server_auth_url, sync_user_identity,
+                                     sync_refresh_token, sync_client_validate_ssl, sync_ssl_trust_certificate_path));
         }
         else {
             return reinterpret_cast<jlong>(new JniConfigWrapper(env, config));
@@ -404,18 +417,41 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv
     try {
         JStringAccessor name(env, table_name); // throws
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        if (!shared_realm->read_group().has_table(name) && !shared_realm->is_in_transaction()) {
-            std::ostringstream ss;
-            ss << "Class " << name << " doesn't exist and the shared Realm is not in transaction.";
-            ThrowException(env, IllegalState, ss.str());
-            return static_cast<jlong>(NULL);
+        if (!shared_realm->read_group().has_table(name)) {
+            std::string name_str = name;
+            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
+                                 format("The class '%1' doesn't exist in this Realm.", name_str));
         }
-        Table* pTable = LangBindHelper::get_or_add_table(shared_realm->read_group(), name);
-        return reinterpret_cast<jlong>(pTable);
+        Table* table = LangBindHelper::get_table(shared_realm->read_group(), name);
+        return reinterpret_cast<jlong>(table);
     }
     CATCH_STD()
 
-    return static_cast<jlong>(NULL);
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNIEnv* env, jclass,
+                                                                             jlong shared_realm_ptr,
+                                                                             jstring table_name)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+
+    std::string name_str;
+    try {
+        JStringAccessor name(env, table_name); // throws
+        name_str = name;
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        shared_realm->verify_in_write(); // throws
+        Table* table = LangBindHelper::add_table(shared_realm->read_group(), name); // throws
+        return reinterpret_cast<jlong>(table);
+    }
+    catch (TableNameInUse& e) {
+        // We need to print the table name, so catch the exception here.
+        ThrowException(env, IllegalArgument, format("Class already exists: '%1'.", name_str));
+    }
+    CATCH_STD()
+
+    return reinterpret_cast<jlong>(nullptr);
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedRealm_nativeGetTableName(JNIEnv* env, jclass,

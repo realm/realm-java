@@ -34,6 +34,8 @@ import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
+import io.realm.internal.Util;
+import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
@@ -78,6 +80,9 @@ public class SyncConfiguration extends RealmConfiguration {
     private final SyncUser user;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
+    private final boolean syncClientValidateSsl;
+    private final String serverCertificateAssetName;
+    private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
 
     private SyncConfiguration(File directory,
@@ -97,8 +102,10 @@ public class SyncConfiguration extends RealmConfiguration {
                                 URI serverUrl,
                                 SyncSession.ErrorHandler errorHandler,
                                 boolean deleteRealmOnLogout,
+                                boolean syncClientValidateSsl,
+                                String serverCertificateAssetName,
+                                String serverCertificateFilePath,
                                 boolean waitForInitialData
-
     ) {
         super(directory,
                 filename,
@@ -119,6 +126,9 @@ public class SyncConfiguration extends RealmConfiguration {
         this.serverUrl = serverUrl;
         this.errorHandler = errorHandler;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
+        this.syncClientValidateSsl = syncClientValidateSsl;
+        this.serverCertificateAssetName = serverCertificateAssetName;
+        this.serverCertificateFilePath = serverCertificateFilePath;
         this.waitForInitialData = waitForInitialData;
     }
 
@@ -152,9 +162,12 @@ public class SyncConfiguration extends RealmConfiguration {
         SyncConfiguration that = (SyncConfiguration) o;
 
         if (deleteRealmOnLogout != that.deleteRealmOnLogout) return false;
+        if (syncClientValidateSsl != that.syncClientValidateSsl) return false;
         if (!serverUrl.equals(that.serverUrl)) return false;
         if (!user.equals(that.user)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
+        if (serverCertificateAssetName != null ? !serverCertificateAssetName.equals(that.serverCertificateAssetName) : that.serverCertificateAssetName != null) return false;
+        if (serverCertificateFilePath != null ? !serverCertificateFilePath.equals(that.serverCertificateFilePath) : that.serverCertificateFilePath != null) return false;
         if (waitForInitialData != that.waitForInitialData) return false;
         return true;
     }
@@ -164,8 +177,11 @@ public class SyncConfiguration extends RealmConfiguration {
         int result = super.hashCode();
         result = 31 * result + serverUrl.hashCode();
         result = 31 * result + user.hashCode();
-        result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
         result = 31 * result + errorHandler.hashCode();
+        result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
+        result = 31 * result + (syncClientValidateSsl ? 1 : 0);
+        result = 31 * result + (serverCertificateAssetName != null ? serverCertificateAssetName.hashCode() : 0);
+        result = 31 * result + (serverCertificateFilePath != null ? serverCertificateFilePath.hashCode() : 0);
         result = 31 * result + (waitForInitialData ? 1 : 0);
         return result;
     }
@@ -219,6 +235,37 @@ public class SyncConfiguration extends RealmConfiguration {
         return deleteRealmOnLogout;
     }
 
+    /**
+     * Returns the name of certificate stored under the {@code assets}, to be used to validate
+     * the TLS connection to the Realm Object Server.
+     *
+     * @return name of the certificate to be copied from the {@code assets}.
+     * @see #getServerCertificateFilePath()
+     */
+    public String getServerCertificateAssetName() {
+        return serverCertificateAssetName;
+    }
+
+    /**
+     * Returns the name of the certificate copied from {@code assets} into internal storage, so it
+     * can be used to validate the TLS connection to the Realm Object Server.
+     *
+     * @return absolute path to the certificate.
+     * @see #getServerCertificateAssetName()
+     */
+    public String getServerCertificateFilePath() {
+        return serverCertificateFilePath;
+    }
+
+    /**
+     * Whether the Realm Object Server certificate should be validated in order
+     * to establish a valid TLS connection.
+     *
+     * @return {@code true} to validate the remote certificate, or {@code false} to bypass certificate validation.
+     */
+    public boolean syncClientValidateSsl() {
+        return syncClientValidateSsl;
+    }
 
     /**
      * Returns {@code true} if the Realm will download all known changes from the remote server before being opened the
@@ -251,16 +298,20 @@ public class SyncConfiguration extends RealmConfiguration {
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
-        private URI serverUrl;
-        private SyncUser user = null;
-        private SyncSession.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
         private File defaultFolder;
         private String defaultLocalFileName;
         private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
-        private boolean deleteRealmOnLogout = false;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
         private boolean readOnly = false;
         private boolean waitForServerChanges = false;
+        // sync specific
+        private boolean deleteRealmOnLogout = false;
+        private URI serverUrl;
+        private SyncUser user = null;
+        private SyncSession.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
+        private boolean syncClientValidateSsl = true;
+        private String serverCertificateAssetName;
+        private String serverCertificateFilePath;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
@@ -596,6 +647,42 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Provides the trusted root certificate(s) authority (CA) in {@code PEM} format, that should be used to
+         * validate the TLS connections to the Realm Object Server.
+         * <p>
+         * The file should be stored under {@code assets}, it will be copied at runtime into the internal storage.
+         * <p>
+         * Note: This is similar to passing the parameter {@code CAfile} to {@code SSL_CTX_load_verify_locations},
+         *       Therefore it is recommended to include only the root CA you trust, and not the entire list of root CA
+         *       as this file will be loaded at runtime.
+         *
+         *       It is your responsibility to download and verify the correct {@code PEM} for the root CA you trust.
+         *       An existing list by Mozilla exist that could be used https://mozillacaprogram.secure.force.com/CA/IncludedCACertificateReportPEMCSV
+         *
+         * @param filename the path under {@code assets} to the root CA.
+         * @see <a href="https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_load_verify_locations.html">SSL_CTX_load_verify_locations</a>
+         */
+        public Builder trustedRootCA(String filename) {
+            if (filename == null || filename.isEmpty()) {
+                throw new IllegalArgumentException("A non-empty filename must be provided");
+            }
+            this.serverCertificateAssetName = filename;
+            return this;
+        }
+
+        /**
+         * This will disable TLS certificate verification for the remote Realm Object Server.
+         * It is not recommended to use this in production.
+         * <p>
+         * This might be useful in non-production environments where you use a self-signed certificate
+         * for testing.
+         */
+        public Builder disableSSLVerification() {
+            this.syncClientValidateSsl = false;
+            return this;
+        }
+
+        /*
          * Setting this will cause the Realm to download all known changes from the server the first time a Realm is
          * opened. The Realm will not open until all the data has been downloaded. This means that if a device is
          * offline the Realm will not open.
@@ -733,6 +820,18 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalStateException("Could not create directory for saving the Realm: " + realmFileDirectory);
             }
 
+            if (!Util.isEmptyString(serverCertificateAssetName)) {
+                if (syncClientValidateSsl) {
+                    // Create the path where the serverCertificateAssetName will be copied
+                    // so we can supply it to the Sync client.
+                    // using getRealmDirectory avoid file collision between same filename from different users (Realms)
+                    String fileName = serverCertificateAssetName.substring(serverCertificateAssetName.lastIndexOf(File.separatorChar) + 1);
+                    serverCertificateFilePath = new File(realmFileDirectory, fileName).getAbsolutePath();
+                } else {
+                    RealmLog.warn("SSL Verification is disabled, the provided server certificate will not be used.");
+                }
+            }
+
             return new SyncConfiguration(
                     // Realm Configuration options
                     realmFileDirectory,
@@ -754,6 +853,9 @@ public class SyncConfiguration extends RealmConfiguration {
                     resolvedServerUrl,
                     errorHandler,
                     deleteRealmOnLogout,
+                    syncClientValidateSsl,
+                    serverCertificateAssetName,
+                    serverCertificateFilePath,
                     waitForServerChanges
             );
         }

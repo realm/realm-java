@@ -98,6 +98,16 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         }
     }
 
+    @Override
+    public ChangePasswordResponse changePassword(Token adminToken, String userId, String newPassword, URL authenticationUrl) {
+        try {
+            String requestBody = ChangePasswordRequest.create(adminToken, userId, newPassword).toJson();
+            return changePassword(buildActionUrl(authenticationUrl, ACTION_CHANGE_PASSWORD), requestBody);
+        } catch (Throwable e) {
+            return ChangePasswordResponse.createFailure(new ObjectServerError(ErrorCode.UNKNOWN, e));
+        }
+    }
+
     // Builds the URL for a specific auth endpoint
     private static URL buildActionUrl(URL authenticationUrl, String action) {
         final String baseUrlString = authenticationUrl.toExternalForm();

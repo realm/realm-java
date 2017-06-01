@@ -28,35 +28,34 @@ import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.junit.SpannerRunner;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.RealmResults;
-import io.realm.Sort;
 import io.realm.benchmarks.config.BenchmarkConfig;
-import io.realm.entities.AllTypes;
+import io.realm.benchmarks.entities.AllTypes;
+
 
 @RunWith(SpannerRunner.class)
-public class RealmQueryBenchmarks {
-
-    private static final int DATA_SIZE = 1000;
+public class RealmObjectReadBenchmarks {
 
     @BenchmarkConfiguration
     public SpannerConfig configuration = BenchmarkConfig.getConfiguration(this.getClass().getCanonicalName());
 
     private Realm realm;
+    private AllTypes readObject;
 
     @BeforeExperiment
     public void before() {
+        Realm.init(InstrumentationRegistry.getTargetContext());
         RealmConfiguration config = new RealmConfiguration.Builder().build();
         Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
-        realm.beginTransaction();
-        for (int i = 0; i < DATA_SIZE; i++) {
-            AllTypes obj = realm.createObject(AllTypes.class);
-            obj.setColumnLong(i);
-            obj.setColumnBoolean(i % 2 == 0);
-            obj.setColumnString("Foo " + i);
-            obj.setColumnDouble(i + 1.234D);
-        }
-        realm.commitTransaction();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                readObject = realm.createObject(AllTypes.class);
+                readObject.setColumnString("Foo");
+                readObject.setColumnLong(42);
+                readObject.setColumnDouble(1.234D);
+            }
+        });
     }
 
     @AfterExperiment
@@ -65,30 +64,23 @@ public class RealmQueryBenchmarks {
     }
 
     @Benchmark
-    public void containsQuery(long reps) {
+    public void readString(long reps) {
         for (long i = 0; i < reps; i++) {
-            RealmResults<AllTypes> realmResults = realm.where(AllTypes.class).contains(AllTypes.FIELD_STRING, "Foo 1").findAll();
+            String value = readObject.getColumnString();
         }
     }
 
     @Benchmark
-    public void count(long reps) {
+    public void readLong(long reps) {
         for (long i = 0; i < reps; i++) {
-            long size = realm.where(AllTypes.class).count();
+            long value = readObject.getColumnLong();
         }
     }
 
     @Benchmark
-    public void findAll(long reps) {
+    public void readDouble(long reps) {
         for (long i = 0; i < reps; i++) {
-            RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
-        }
-    }
-
-    @Benchmark
-    public void findAllSortedOneField(long reps) {
-        for (long i = 0; i < reps; i++) {
-            RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_STRING, Sort.ASCENDING);
+            double value = readObject.getColumnDouble();
         }
     }
 }

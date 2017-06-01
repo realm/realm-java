@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
@@ -46,6 +47,8 @@ public class RealmSchemaTests {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     private DynamicRealm realm;
     private RealmSchema realmSchema;
@@ -98,6 +101,13 @@ public class RealmSchemaTests {
             }
             assertFalse(String.format("'%s' failed", name), realmSchema.contains(name));
         }
+    }
+
+    @Test
+    public void create_duplicatedNameThrows() {
+        realmSchema.create("Foo");
+        thrown.expect(IllegalArgumentException.class);
+        realmSchema.create("Foo");
     }
 
     @Test
