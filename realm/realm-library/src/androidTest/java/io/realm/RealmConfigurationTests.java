@@ -103,15 +103,10 @@ public class RealmConfigurationTests {
 
     @Test
     public void getDefaultConfiguration_returnsTheSameObjectThatSetDefaultConfigurationSet() {
-        final RealmConfiguration defaultConfiguration = Realm.getDefaultConfiguration();
-        try {
-            final RealmConfiguration config = new RealmConfiguration.Builder().build();
-            Realm.setDefaultConfiguration(config);
+        final RealmConfiguration config = new RealmConfiguration.Builder().build();
+        Realm.setDefaultConfiguration(config);
 
-            assertSame(config, Realm.getDefaultConfiguration());
-        } finally {
-            Realm.setDefaultConfiguration(defaultConfiguration);
-        }
+        assertSame(config, Realm.getDefaultConfiguration());
     }
 
     @Test
@@ -123,7 +118,8 @@ public class RealmConfigurationTests {
             assertNull(Realm.getDefaultConfiguration());
         } finally {
             Realm.setDefaultConfiguration(defaultConfiguration);
-        }}
+        }
+    }
 
     @Test
     public void getInstance_nullConfigThrows() {
@@ -316,16 +312,15 @@ public class RealmConfigurationTests {
 
     @Test
     public void setDefaultConfiguration() {
-        Realm.removeDefaultConfiguration();
         Realm.setDefaultConfiguration(defaultConfig);
         realm = Realm.getDefaultInstance();
-        assertEquals(realm.getPath(), defaultConfig.getPath());
+        assertEquals(defaultConfig, realm.getConfiguration());
     }
 
     @Test
     public void getInstance() {
         realm = Realm.getInstance(defaultConfig);
-        assertEquals(realm.getPath(), defaultConfig.getPath());
+        assertEquals(defaultConfig, realm.getConfiguration());
     }
 
     @Test
