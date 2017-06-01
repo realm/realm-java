@@ -7,6 +7,7 @@
 ### Bug Fixes
 
 * [ObjectServer] Fixed a crash when an authentication error happend (#4726).
+* [ObjectServer] Fixed race condition with `waitForInitialRemoteData` that could result in `RealmMigrationNeededExceptions` to be thrown.
 
 ### Internal
 
