@@ -182,7 +182,8 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
                 .disableSSLVerification()
                 .build();
 
-        assertEquals("SSL Verification is disable, server certificate provided will not be used", testLogger.message);
+        assertEquals("SSL Verification is disabled, the provided server certificate will not be used.",
+                testLogger.message);
     }
 
     @Test
