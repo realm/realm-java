@@ -291,6 +291,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return new ManagedRealmInteger(0);
     }
 
+    @Override
     public void realmSet$columnCounter(RealmInteger value) {
     }
 

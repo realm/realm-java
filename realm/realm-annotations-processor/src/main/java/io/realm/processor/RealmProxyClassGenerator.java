@@ -380,6 +380,7 @@ public class RealmProxyClassGenerator {
                 .endMethod()
                 .emitEmptyLine();
 
+        writer.emitAnnotation("Override");
         writer.beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
                 .endMethod();
     }
