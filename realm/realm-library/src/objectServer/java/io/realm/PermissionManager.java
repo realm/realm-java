@@ -69,10 +69,10 @@ public class PermissionManager implements Closeable {
     private Realm permissionRealm;
     private Realm managementRealm;
 
-    // Task list used to queue tasks until the underlying Realms are done opening (or fail doing so).
+    // Task list used to queue tasks until the underlying Realms are done opening (or failed doing so).
     private Deque<PermissionManagerAsyncTask> delayedTasks = new LinkedList<>();
 
-    // List of tasks that are running. Used to keep strong references for listeners to work.
+    // List of tasks that are being processed. Used to keep strong references for listeners to work.
     // The task must remove itself from this list once it either completes
     // or fails.
     private List<RealmAsyncTask> activeTasks = new ArrayList<>();
@@ -252,22 +252,21 @@ public class PermissionManager implements Closeable {
     public void close() {
         checkIfValidThread();
         // If Realms are still being opened, abort that task
-        if (openInProgress) {
-            if (managementRealmOpenTask != null) {
-                managementRealmOpenTask.cancel();
-                managementRealmOpenTask = null;
-            }
-            if (permissionRealmOpenTask != null) {
-                permissionRealmOpenTask.cancel();
-                permissionRealmOpenTask = null;
-            }
-        } else {
-            if (managementRealm != null) {
-                managementRealm.close();
-            }
-            if (permissionRealm != null) {
-                permissionRealm.close();
-            }
+        if (managementRealmOpenTask != null) {
+            managementRealmOpenTask.cancel();
+            managementRealmOpenTask = null;
+        }
+        if (permissionRealmOpenTask != null) {
+            permissionRealmOpenTask.cancel();
+            permissionRealmOpenTask = null;
+        }
+
+        // If Realms are opened. Close them.
+        if (managementRealm != null) {
+            managementRealm.close();
+        }
+        if (permissionRealm != null) {
+            permissionRealm.close();
         }
         closed = true;
     }
@@ -284,11 +283,11 @@ public class PermissionManager implements Closeable {
 
     @Override
     protected void finalize() throws Throwable {
-        super.finalize();
         if (managementRealm != null || permissionRealm != null) {
             RealmLog.error("PermissionManager was not correctly closed before being finalized.");
             close();
         }
+        super.finalize();
     }
 
     // Creates the URL to the permission/management Realm based on the authentication URL.
