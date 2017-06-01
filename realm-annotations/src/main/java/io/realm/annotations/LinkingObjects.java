@@ -91,6 +91,11 @@ import java.lang.annotation.Target;
  * assert john.dogs.size() == 2;
  * assert fido.owners.size() == 2;
  * }
+ * <p>
+ * Querying inverse relationship is like querying any {@code RealmResults}. This means that ain inverse relationship
+ * cannot be {@code null} but it can be empty (length is 0). It is possible to query field in the source class. This is
+ * equivalent to link queries. Please read {@link https://realm.io/docs/java/latest/#link-queries} for more
+ * information.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.FIELD)

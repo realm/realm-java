@@ -29,7 +29,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-//@Ignore
 @RunWith(AndroidJUnit4.class)
 public class LinkingObjectsQueryTests extends QueryTests {
 
@@ -64,6 +63,11 @@ public class LinkingObjectsQueryTests extends QueryTests {
 
         realm.commitTransaction();
 
+        // row 0: backlink to rows 1 and 2; row 1 link to row 0, included
+        // row 1: no backlink, not included
+        // row 2: no backlink, not included
+        // row 3: no backlink, not included
+        // summary: 1 row (gen1)
         RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
                 .greaterThan(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_ID, 1)
                 .findAll();
@@ -99,12 +103,17 @@ public class LinkingObjectsQueryTests extends QueryTests {
 
         realm.commitTransaction();
 
-        // TODO: Explain what this test is doing
+        // row 0: no link, not included
+        // row 1: link to row 0, backlink to rows 1 and 2, row 2 has id < 2, included
+        // row 2: link to row 0, backlink to rows 1 and 2, row 2 has id < 2, included
+        // row 3: no link, not included
+        // summary: 2 rows (gen2A and gen2B)
         RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
                 .lessThan(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_ID, 2)
                 .findAll();
         assertEquals(2, result.size());
         assertTrue(result.contains(gen2A));
+        assertTrue(result.contains(gen2B));
     }
 
     // Tests isNotNull on link's nullable field.
@@ -341,8 +350,10 @@ public class LinkingObjectsQueryTests extends QueryTests {
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
                 case LINKING_OBJECTS:
-                    // Both rows have a link/backlink so no empty backlinks
-                    assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT).count());
+                    // Row 0: backlink to row 0; not included
+                    // Row 1: backlink to row 1; not included
+                    // Row 2: no backlink; included
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT).count());
                     // Only row 1 has a linklist (and a backlink)
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST).count());
                     break;
@@ -358,9 +369,12 @@ public class LinkingObjectsQueryTests extends QueryTests {
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
                 case LINKING_OBJECTS:
-                    // All rows skipped as they are linked to another row through FIELD_OBJECT
-                    assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
-                    // Row 1 has a linklist (and a backlink)
+                    // Rows 0 and 1 are not included as they are linked to another row through FIELD_OBJECT
+                    // Row 2 is included (no link)
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
+                    // Row 0 has link to row 0 which has a backlink (list); not included
+                    // Row 1 has link to row 1 which has a backlink (list); not included
+                    // Row 2 has no link; included
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
@@ -381,11 +395,15 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_BINARY).count());
                     break;
                 case LIST:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
+                    // Row 0: backlink to row 0, linklist is empty; included
+                    // Row 1: backlink to row 1, linklist to row 0; not included
+                    // Row 2: no backlink; included
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
-                    // Both row 0 and 1 have a link/backlink so none are empty
-                    assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
+                    // Both row 0 and 1 have a link/backlink; not included
+                    // row 2 has no link/backlink and an empty list; included
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
@@ -397,20 +415,25 @@ public class LinkingObjectsQueryTests extends QueryTests {
     @Test
     public void isEmpty_acrossLinkingObjectListLink() {
         createIsEmptyDataSet(realm);
-        assertEquals(2, realm.where(AllJavaTypes.class).findAll().size());
+        assertEquals(3, realm.where(AllJavaTypes.class).findAll().size());
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
                 case STRING:
-                    assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_STRING).count());
+                    // Row 2 included (has no backlink)
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_STRING).count());
                     break;
                 case BINARY:
-                    assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BINARY).count());
+                    // Row 2 included (has no backlink)
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BINARY).count());
                     break;
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
+                    // Row 0: Backlink (list) to row 1, row 1 backlink to row 1; not included
+                    // Row 1: Backlink (list) to row 2, row 2 no backlink; included
+                    // Row 2: No backlink (list); included
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
 
                     // Step 1:
                     //  Row 0 skipped; FIELD_LO_LIST.count > 0
@@ -478,7 +501,11 @@ public class LinkingObjectsQueryTests extends QueryTests {
                 case LINKING_OBJECTS:
                     // Both row 0 and 1 have a link/backlink
                     assertEquals(2, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
-                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
+
+                    // Row 0: Backlink to row 0, backlink list to row 1; included
+                    // Row 1: Backlink to row 1, backlink list to row 2; included
+                    // Row 2: No backlink; not empty
+                    assertEquals(2, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -489,27 +516,31 @@ public class LinkingObjectsQueryTests extends QueryTests {
     @Test
     public void isNotEmpty_acrossLinkingObjectListLink() {
         createIsEmptyDataSet(realm);
-        assertEquals(2, realm.where(AllJavaTypes.class).findAll().size());
+        assertEquals(3, realm.where(AllJavaTypes.class).findAll().size());
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
                 case STRING:
+                    // Row 0: Backlink list to row 1, string not empty ("Foo"); included
+                    // Row 1: Backlink list to row 2, string is empty; not included
+                    // Row 2: No backlink list; not included
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_STRING).count());
                     break;
                 case BINARY:
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BINARY).count());
                     break;
                 case LIST:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LIST).count());
+                    // Row 0: Backlink list to row 1, list to row 0; included
+                    // Row 1: Backlink list to row 2, list to row 1; included
+                    // Row 2: No backlink list; not included
+                    assertEquals(2, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
 
-                    // Step 1:
-                    //  Row 0 selected (has FIELD_LO_LIST.count() > 0)
-                    //  Row 1 skipped
-                    // Step 2
-                    //  Row 0 goes to Row 1 which has no backlink
-                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LO_LIST).count());
+                    // Row 0: Backlink list to row 1, backlink list to row 2; included
+                    // Row 1: Backlink list to row 2, empty backlink list; not included
+                    // Row 2: Empty backlink list; not included
+                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
                     fail("Unknown type: " + type);

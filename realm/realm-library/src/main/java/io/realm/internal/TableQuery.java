@@ -741,7 +741,6 @@ public class TableQuery implements NativeObject {
 
     private native void nativeIsNotEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
 
-
     private native long nativeFind(long nativeQueryPtr, long fromTableRow);
 
     private native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
