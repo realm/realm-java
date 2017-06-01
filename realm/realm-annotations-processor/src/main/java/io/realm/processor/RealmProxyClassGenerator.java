@@ -46,7 +46,6 @@ public class RealmProxyClassGenerator {
         l.add("android.os.Build");
         l.add("android.util.JsonReader");
         l.add("android.util.JsonToken");
-        l.add("io.realm.RealmObjectSchema");
         l.add("io.realm.exceptions.RealmMigrationNeededException");
         l.add("io.realm.internal.ColumnInfo");
         l.add("io.realm.internal.LinkView");
@@ -382,8 +381,7 @@ public class RealmProxyClassGenerator {
                 .emitEmptyLine();
 
         writer.beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
-                .endMethod()
-                .emitEmptyLine();
+                .endMethod();
     }
 
     /**
@@ -2037,6 +2035,15 @@ public class RealmProxyClassGenerator {
                         ((DeclaredType) field.asType()).getTypeArguments().get(0).toString(),
                         Utils.getProxyClassSimpleName(field),
                         writer);
+
+            } else if (Utils.isRealmInteger(field)) {
+                RealmJsonTypeHelper.emitFillRealmIntegerFromStream(
+                        interfaceName,
+                        metadata.getInternalGetter(fieldName),
+                        metadata.getInternalSetter(fieldName),
+                        fieldName,
+                        writer
+                );
 
             } else {
                 RealmJsonTypeHelper.emitFillJavaTypeFromStream(
