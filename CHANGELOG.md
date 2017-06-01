@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+* Added support for inverse relationships which can be declared by the `@LinkingObjects` annotation (#607).
+
 ### Bug Fixes
 
 * [ObjectServer] Fixed a crash when an authentication error happend (#4726).

@@ -92,14 +92,13 @@ import java.lang.annotation.Target;
  * assert fido.owners.size() == 2;
  * }
  * <p>
- * Querying inverse relationship is like querying any {@code RealmResults}. This means that ain inverse relationship
- * cannot be {@code null} but it can be empty (length is 0). It is possible to query field in the source class. This is
+ * Querying inverse relationship is like querying any {@code RealmResults}. This means that an inverse relationship
+ * cannot be {@code null} but it can be empty (length is 0). It is possible to query fields in the source class. This is
  * equivalent to link queries. Please read {@link https://realm.io/docs/java/latest/#link-queries} for more
  * information.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.FIELD)
-@Beta
 public @interface LinkingObjects {
     /**
      * The name of a field that contains a relation to an instance of the
