@@ -4,8 +4,6 @@
 
 ### Enhancements
 
-* Added `Realm.getDefaultConfiguration()` (#4725).
-
 ### Bug Fixes
 
 * [ObjectServer] Fixed a crash when an authentication error happend (#4726).
