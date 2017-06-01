@@ -64,18 +64,6 @@ public class SyncUser {
     private SyncUser(ObjectServerUser user) {
         this.syncUser = user;
     }
-    private ThreadLocal<PermissionManager> permissionManager = new ThreadLocal<PermissionManager>() {
-        @Override
-        public PermissionManager get() {
-            PermissionManager pm = super.get();
-            if (pm != null && !pm.isClosed()) {
-                return pm;
-            }
-            pm = new PermissionManager(SyncUser.this);
-            set(pm);
-            return pm;
-        }
-    };
     private static class ManagementConfig {
         private SyncConfiguration managementRealmConfig;
 
@@ -543,7 +531,7 @@ public class SyncUser {
      * @return
      */
     public PermissionManager getPermissionManager() {
-        return permissionManager.get();
+        return PermissionManager.getInstance(this);
     }
 
     @Override

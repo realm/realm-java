@@ -39,6 +39,37 @@ import io.realm.log.RealmLog;
  */
 public class PermissionManager implements Closeable {
 
+    // Reference counted cache equivalent to how Realm instances work.
+    private static ThreadLocal<PermissionManager> permissionManager = new ThreadLocal<PermissionManager>() {
+        @Override
+        protected PermissionManager initialValue() {
+            return null;
+        }
+    };
+
+    private static ThreadLocal<Integer> permissionManagerInstanceCounter = new ThreadLocal<Integer>() {
+        @Override
+        protected Integer initialValue() {
+            return 0;
+        }
+    };
+
+    /**
+     * Return a thread confined, reference counted instance of the PermissionManager.
+     *
+     * @param syncUser user to create the PermissionManager for.
+     * @return a thread confined PermissionManager instance for the provided user.
+     */
+    static synchronized PermissionManager getInstance(SyncUser syncUser) {
+        PermissionManager pm = permissionManager.get();
+        if (pm == null) {
+            pm = new PermissionManager(syncUser);
+            permissionManager.set(pm);
+        }
+        permissionManagerInstanceCounter.set(permissionManagerInstanceCounter.get() + 1);
+        return pm;
+    }
+
     private enum RealmType {
         PERMISSION_REALM("__permission"),
         MANAGEMENT_REALM("__management");
@@ -97,7 +128,7 @@ public class PermissionManager implements Closeable {
      *
      * @param user user to create manager for.
      */
-    PermissionManager(final SyncUser user) {
+    private PermissionManager(final SyncUser user) {
         this.user = user;
         threadId = Thread.currentThread().getId();
         managementRealmConfig = new SyncConfiguration.Builder(
@@ -251,6 +282,18 @@ public class PermissionManager implements Closeable {
     @Override
     public void close() {
         checkIfValidThread();
+
+        // Multiple instances open, just decrement the reference count
+        Integer instanceCount = permissionManagerInstanceCounter.get();
+        if (instanceCount > 1) {
+            permissionManagerInstanceCounter.set(instanceCount - 1);
+            return;
+        }
+
+        // Only one instance open. Do a full close
+        permissionManagerInstanceCounter.set(0);
+        permissionManager.set(null);
+
         // If Realms are still being opened, abort that task
         if (managementRealmOpenTask != null) {
             managementRealmOpenTask.cancel();
