@@ -36,7 +36,7 @@ import static org.junit.Assert.assertTrue;
 
 
 /**
- * Meta test. Checking the lifecycle of `@RunTestInLooperThreadTest does the right thing.
+ * Meta test. Checking the lifecycle of @RunTestInLooperThreadTest does the right thing.
  *
  * Current order is:
  * - @RunTestInLooperThread(before = <classRef>)
