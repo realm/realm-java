@@ -195,8 +195,8 @@ public class PermissionManager implements Closeable {
                 public void onError(Throwable exception) {
                     synchronized (errorLock) {
                         managementRealmError = new ObjectServerError(ErrorCode.UNKNOWN, exception);
+                        checkIfRealmsAreOpened();
                     }
-                    checkIfRealmsAreOpened();
                 }
             });
             permissionRealmOpenTask = Realm.getInstanceAsync(permissionRealmConfig, new Realm.Callback() {
@@ -210,8 +210,8 @@ public class PermissionManager implements Closeable {
                 public void onError(Throwable exception) {
                     synchronized (errorLock) {
                         permissionRealmError = new ObjectServerError(ErrorCode.UNKNOWN, exception);
+                        checkIfRealmsAreOpened();
                     }
-                    checkIfRealmsAreOpened();
                 }
             });
         }

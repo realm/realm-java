@@ -68,13 +68,12 @@ public class SyncUser {
         @Override
         public PermissionManager get() {
             PermissionManager pm = super.get();
-            if (pm == null || pm.isClosed()) {
-                pm = new PermissionManager(SyncUser.this);
-                set(pm);
-                return pm;
-            } else {
+            if (pm != null && !pm.isClosed()) {
                 return pm;
             }
+            pm = new PermissionManager(SyncUser.this);
+            set(pm);
+            return pm;
         }
     };
     private static class ManagementConfig {
