@@ -828,7 +828,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     String fileName = serverCertificateAssetName.substring(serverCertificateAssetName.lastIndexOf(File.separatorChar) + 1);
                     serverCertificateFilePath = new File(realmFileDirectory, fileName).getAbsolutePath();
                 } else {
-                    RealmLog.warn("SSL Verification is disable, server certificate provided will not be used");
+                    RealmLog.warn("SSL Verification is disabled, the provided server certificate will not be used.");
                 }
             }
 

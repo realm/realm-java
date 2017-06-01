@@ -61,4 +61,9 @@ public interface AuthenticationServer {
      * Changes a user's password.
      */
     ChangePasswordResponse changePassword(Token userToken, String newPassword, URL authenticationUrl);
+
+    /**
+     * Changes a user's password using admin account.
+     */
+    ChangePasswordResponse changePassword(Token adminToken, String userID, String newPassword, URL authenticationUrl);
 }

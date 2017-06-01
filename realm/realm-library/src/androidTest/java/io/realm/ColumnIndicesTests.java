@@ -18,8 +18,6 @@ package io.realm;
 import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.google.common.collect.ImmutableMap;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,11 +25,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.util.Collections;
+import java.util.HashMap;
+
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.util.Pair;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
@@ -70,11 +72,13 @@ public class ColumnIndicesTests {
         final DogRealmProxy.DogColumnInfo dogColumnInfo;
         catColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
         dogColumnInfo = (DogRealmProxy.DogColumnInfo) mediator.validateTable(Dog.class, realm.sharedRealm, false);
+        Pair<Class<? extends RealmModel>, String> catDesc = Pair.<Class<? extends RealmModel>, String>create(Cat.class, "Cat");
+        Pair<Class<? extends RealmModel>, String> dogDesc = Pair.<Class<? extends RealmModel>, String>create(Dog.class, "Dog");
 
-        return new ColumnIndices(schemaVersion,
-                ImmutableMap.<Class<? extends RealmModel>, ColumnInfo>of(
-                        Cat.class, catColumnInfo,
-                        Dog.class, dogColumnInfo));
+        HashMap<Pair<Class<? extends RealmModel>, String>, ColumnInfo> map = new HashMap<>();
+        map.put(catDesc, catColumnInfo);
+        map.put(dogDesc, dogColumnInfo);
+        return new ColumnIndices(schemaVersion, Collections.unmodifiableMap(map));
     }
 
     @Test

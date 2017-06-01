@@ -29,14 +29,25 @@ public class ChangePasswordRequest {
 
     private final String token;
     private final String newPassword;
+    private String userID; //optional, used to change the password when using the admin account.
 
     public static ChangePasswordRequest create(Token userToken, String newPassword) {
         return new ChangePasswordRequest(userToken.value(), newPassword);
     }
 
+    public static ChangePasswordRequest create(Token adminToken, String userID, String newPassword) {
+        return new ChangePasswordRequest(adminToken.value(), newPassword, userID);
+    }
+
     private ChangePasswordRequest(String token, String newPassword) {
         this.token = token;
         this.newPassword = newPassword;
+    }
+
+    private ChangePasswordRequest(String token, String newPassword, String userID) {
+        this.token = token;
+        this.newPassword = newPassword;
+        this.userID = userID;
     }
 
     /**
@@ -47,6 +58,9 @@ public class ChangePasswordRequest {
             JSONObject request = new JSONObject();
             request.put("token", token);
             request.put("password", newPassword);
+            if (userID != null) {
+                request.put("user_id", userID);
+            }
             return request.toString();
         } catch (JSONException e) {
             throw new RuntimeException(e);
