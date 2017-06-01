@@ -133,8 +133,8 @@ public class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
-    private static final Object monitorForDefaultConfiguration = new Object();
-    // guarded by `monitorForDefaultConfiguration`
+    private static final Object defaultConfigurationLock = new Object();
+    // guarded by `defaultConfigurationLock`
     private static RealmConfiguration defaultConfiguration;
 
     /**
@@ -331,7 +331,7 @@ public class Realm extends BaseRealm {
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
-        synchronized (monitorForDefaultConfiguration) {
+        synchronized (defaultConfigurationLock) {
             defaultConfiguration = configuration;
         }
     }
@@ -343,7 +343,7 @@ public class Realm extends BaseRealm {
      * or {@link #removeDefaultConfiguration()} was called recently.
      */
     public static RealmConfiguration getDefaultConfiguration() {
-        synchronized (monitorForDefaultConfiguration) {
+        synchronized (defaultConfigurationLock) {
             return defaultConfiguration;
         }
     }
@@ -353,7 +353,7 @@ public class Realm extends BaseRealm {
      * fail until a new default configuration has been set using {@link #setDefaultConfiguration(RealmConfiguration)}.
      */
     public static void removeDefaultConfiguration() {
-        synchronized (monitorForDefaultConfiguration) {
+        synchronized (defaultConfigurationLock) {
             defaultConfiguration = null;
         }
     }
