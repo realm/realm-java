@@ -13,58 +13,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.internal.counters;
+package io.realm.internal.datatypes.realminteger;
 
 import io.realm.RealmInteger;
 
 
 /**
  * TODO: document the behaviour of this object, as soon as the implementation defines it.
+ *
+ * Note that {@link io.realm.RealmInteger#compareTo(io.realm.RealmInteger)},
+ * {@link io.realm.RealmInteger#equals} and {@link RealmInteger#hashCode()} are final
+ * in the superclass, to assure the reflexive contract.
  */
-public final class UnmanagedRealmInteger extends RealmInteger {
-    private long value;
+public final class ManagedRealmInteger extends RealmInteger {
 
     /**
-     * Creates a new {@code UnmanagedRealmInteger}, with the specified initial value.
+     * Creates a new {@code ManagedRealmInteger}, with the specified initial value.
      *
      * @param value initial value.
      */
-    public UnmanagedRealmInteger(long value) {
-        this.value = value;
+    public ManagedRealmInteger(long value) {
+
     }
 
     /**
-     * Sets the {@code UnmanagedRealmInteger} value.
-     * Calling set() forcibly sets the UnmanagedRealmInteger to the provided value. Doing this means that
+     * Sets the {@code ManagedRealmInteger} value.
+     * Calling set() forcibly sets the ManagedRealmInteger to the provided value. Doing this means that
      * {@link #increment} and {@link #decrement} changes from other devices might be overridden.
      *
      * @param newValue new value.
      */
     @Override
     public void set(long newValue) {
-        value = newValue;
+
     }
 
     /**
-     * Increments the {@code UnmanagedRealmInteger}, adding the value of the argument.
+     * Increments the {@code ManagedRealmInteger}, adding the value of the argument.
      * Increment/decrement from all devices are reflected in the new value, which is guaranteed to converge.
      *
      * @param inc quantity to be added to the counter.
      */
     @Override
     public void increment(long inc) {
-        value += inc;
+
     }
 
     /**
-     * Decrements the {@code UnmanagedRealmInteger}, subtracting the value of the argument.
+     * Decrements the {@code ManagedRealmInteger}, subtracting the value of the argument.
      * Increment/decrement from all devices are reflected in the new value, which is guaranteed to converge.
      *
      * @param dec quantity to be subtracted from the counter.
      */
     @Override
     public void decrement(long dec) {
-        value -= dec;
+
     }
 
     /**
@@ -72,14 +75,6 @@ public final class UnmanagedRealmInteger extends RealmInteger {
      */
     @Override
     public boolean isManaged() {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isValid() {
         return true;
     }
 
@@ -87,8 +82,16 @@ public final class UnmanagedRealmInteger extends RealmInteger {
      * {@inheritDoc}
      */
     @Override
+    public boolean isValid() {
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public long longValue() {
-        return value;
+        return 0L;
     }
 
     /**
@@ -96,7 +99,7 @@ public final class UnmanagedRealmInteger extends RealmInteger {
      */
     @Override
     public int intValue() {
-        return (int) value;
+        return (int) 0L;
     }
 
     /**
@@ -104,7 +107,7 @@ public final class UnmanagedRealmInteger extends RealmInteger {
      */
     @Override
     public double doubleValue() {
-        return (double) value;
+        return (double) 0L;
     }
 
     /**
@@ -112,6 +115,6 @@ public final class UnmanagedRealmInteger extends RealmInteger {
      */
     @Override
     public float floatValue() {
-        return (float) value;
+        return (float) 0L;
     }
 }

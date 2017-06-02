@@ -54,9 +54,7 @@ public class RealmProxyClassGenerator {
         l.add("io.realm.internal.Row");
         l.add("io.realm.internal.SharedRealm");
         l.add("io.realm.internal.Table");
-        l.add("io.realm.internal.UncheckedRow");
         l.add("io.realm.internal.android.JsonUtils");
-        l.add("io.realm.internal.counters.ManagedRealmInteger");
         l.add("io.realm.log.RealmLog");
         l.add("java.io.IOException");
         l.add("java.util.ArrayList");
@@ -99,11 +97,19 @@ public class RealmProxyClassGenerator {
         writer.emitPackage(Constants.REALM_PACKAGE_NAME)
                 .emitEmptyLine();
 
-        writer.emitImports(IMPORTS)
+        List<String> imports = new ArrayList<String>(IMPORTS);
+        if (!metadata.getBacklinkFields().isEmpty()) {
+            imports.add("io.realm.internal.UncheckedRow");
+        }
+        if (metadata.containsRealmInteger()) {
+            imports.add("io.realm.internal.datatypes.realminteger.ManagedRealmInteger");
+        }
+        writer.emitImports(imports)
                 .emitEmptyLine();
 
         // Begin the class definition
-        writer.beginType(
+        writer.emitAnnotation("SuppressWarnings(\"all\")")
+                .beginType(
                 qualifiedGeneratedClassName, // full qualified name of the item to generate
                 "class",                     // the type of the item
                 EnumSet.of(Modifier.PUBLIC), // modifiers to apply
@@ -382,6 +388,7 @@ public class RealmProxyClassGenerator {
 
         writer.emitAnnotation("Override");
         writer.beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
+                .emitStatement("throw new IllegalStateException(\"Cannot assign to a managed RealmInteger\")")
                 .endMethod();
     }
 

@@ -13,9 +13,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
-import io.realm.internal.counters.ManagedRealmInteger;
 import io.realm.log.RealmLog;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,6 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+@SuppressWarnings("all")
 public class NullTypesRealmProxy extends some.test.NullTypes
         implements RealmObjectProxy, NullTypesRealmProxyInterface {
 

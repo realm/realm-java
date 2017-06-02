@@ -83,7 +83,7 @@ public class RealmIntegerTests {
      * if either arg is an int. That will cause sign extension.
      */
     @Test
-    public void unmanaged_getters() {
+    public void getters_unmanaged() {
         RealmInteger ri = RealmInteger.valueOf(0x5555444433332211L);
 
         // positive
@@ -109,8 +109,9 @@ public class RealmIntegerTests {
     /**
      * Same test as above, but a managed object
      */
+    @Ignore("Not yet implemented")
     @Test
-    public void managed_getters() {
+    public void getters_managed() {
         realm.beginTransaction();
         RealmInteger ri = realm.createObject(Counters.class).getColumnRealmInteger();
         ri.set(0x5555444433332211L);
@@ -140,7 +141,7 @@ public class RealmIntegerTests {
      * Be absolutely certain that we can actually compare two longs.
      */
     @Test
-    public void unmanaged_compareTo() {
+    public void compareTo_unmanaged() {
         RealmInteger ri1 = RealmInteger.valueOf(0);
         RealmInteger ri2 = RealmInteger.valueOf(Long.MAX_VALUE);
         assertEquals(-1, ri1.compareTo(ri2));
@@ -155,8 +156,9 @@ public class RealmIntegerTests {
     /**
      * Be absolutely certain that we can actually compare two longs.
      */
+    @Ignore("Not yet implemented")
     @Test
-    public void managed_compareTo() {
+    public void compareTo_managed() {
         realm.beginTransaction();
         RealmInteger ri1 = realm.createObject(Counters.class).getColumnRealmInteger();
         ri1.set(0);
@@ -180,7 +182,7 @@ public class RealmIntegerTests {
      * Be absolutely certain that this overflows like a long, part I.
      */
     @Test
-    public void unmanaged_incrementUnderFlowAndOverflow() {
+    public void incrementUnderFlowAndOverflow_unmanaged() {
         RealmInteger ri = RealmInteger.valueOf(Long.MAX_VALUE);
         ri.increment(1);
         assertEquals(Long.MIN_VALUE, ri.longValue());
@@ -198,7 +200,7 @@ public class RealmIntegerTests {
      * Be absolutely certain that this overflows like a long, part II.
      */
     @Test
-    public void unmanaged_decrementUnderFlowAndOverflow() {
+    public void decrementUnderFlowAndOverflow_unmanaged() {
         RealmInteger ri = RealmInteger.valueOf(Long.MIN_VALUE);
         ri.decrement(1);
         assertEquals(Long.MAX_VALUE, ri.longValue());
@@ -215,12 +217,13 @@ public class RealmIntegerTests {
     /**
      * Be absolutely certain that this overflows like a long, part III.
      */
+    @Ignore("Not yet implemented")
     @Test
-    public void managed_incrementUnderFlowAndOverflow() {
+    public void incrementUnderFlowAndOverflow_managed() {
         realm.beginTransaction();
         RealmInteger ri = realm.createObject(Counters.class).getColumnRealmInteger();
 
-        ri.set(Long.MIN_VALUE);
+        ri.set(Long.MAX_VALUE);
         ri.increment(1);
         assertEquals(Long.MIN_VALUE, ri.longValue());
 
@@ -238,8 +241,9 @@ public class RealmIntegerTests {
     /**
      * Be absolutely certain that this overflows like a long, part IV.
      */
+    @Ignore("Not yet implemented")
     @Test
-    public void managed_decrementUnderFlowAndOverflow() {
+    public void decrementUnderFlowAndOverflow_managed() {
         realm.beginTransaction();
         RealmInteger ri = realm.createObject(Counters.class).getColumnRealmInteger();
 
@@ -260,10 +264,11 @@ public class RealmIntegerTests {
     /**
      * Assure that an attempt to change the value of a managed RealmInteger, outside a transaction, fails.
      */
+    @Ignore("Not yet implemented")
     @Test
     public void updateOutsideTransactionThrows() {
         realm.beginTransaction();
-        realm.createObject(Counters.class).setColumnRealmInteger(RealmInteger.valueOf(5));
+        realm.createObject(Counters.class).getColumnRealmInteger().set(42);
         realm.commitTransaction();
 
         RealmInteger managedRI = realm.where(Counters.class).findFirst().getColumnRealmInteger();
@@ -292,12 +297,11 @@ public class RealmIntegerTests {
     /**
      * Assure that changes to a RealmInteger acquired from a managed object are reflected in the object.
      */
+    @Ignore("Not yet implemented")
     @Test
     public void isLive() {
-        RealmInteger unmanagedRI = RealmInteger.valueOf(5);
-
         realm.beginTransaction();
-        realm.createObject(Counters.class).setColumnRealmInteger(unmanagedRI);
+        realm.createObject(Counters.class).getColumnRealmInteger().set(42);
         realm.commitTransaction();
 
         RealmInteger managedRI = realm.where(Counters.class).findFirst().getColumnRealmInteger();
@@ -309,21 +313,22 @@ public class RealmIntegerTests {
         ri.decrement(7);
         realm.commitTransaction();
 
-        assertEquals(5, unmanagedRI.longValue());
-        assertEquals(47, managedRI.longValue());
+        assertEquals(47L, managedRI.longValue());
     }
 
     /**
      * Assure that changes to a RealmInteger acquired from a managed object are reflected in the object.
      */
+    @Ignore("Not yet implemented")
     @Test
     public void copyToisLive() {
-        Counters at = realm.createObject(Counters.class);
-        at.setColumnRealmInteger(RealmInteger.valueOf(5));
-        RealmInteger unmanagedRI = at.getColumnRealmInteger();
+        Counters obj = new Counters();
+        obj.setColumnRealmInteger(RealmInteger.valueOf(42));
+
+        RealmInteger unmanagedRI = obj.getColumnRealmInteger();
 
         realm.beginTransaction();
-        RealmInteger managedRI = realm.copyToRealm(at).getColumnRealmInteger();
+        RealmInteger managedRI = realm.copyToRealm(obj).getColumnRealmInteger();
         realm.commitTransaction();
 
         realm.beginTransaction();
@@ -333,23 +338,24 @@ public class RealmIntegerTests {
         ri.decrement(7);
         realm.commitTransaction();
 
-        assertEquals(5, unmanagedRI.longValue());
-        assertEquals(47, managedRI.longValue());
+        assertEquals(42L, unmanagedRI.longValue());
+        assertEquals(47L, managedRI.longValue());
     }
 
 
     /**
      * Assure that a RealmInteger acquired from an unmanaged object is not affected by changes in the DB.
      */
+    @Ignore("Not yet implemented")
     @Test
     public void copyFromIsNotLive() {
         realm.beginTransaction();
-        realm.createObject(Counters.class).setColumnRealmInteger(RealmInteger.valueOf(5));
+        realm.createObject(Counters.class).getColumnRealmInteger().set(42);
         realm.commitTransaction();
 
-        Counters at = realm.where(Counters.class).findFirst();
-        RealmInteger managedRI = at.getColumnRealmInteger();
-        RealmInteger unmanagedRI = realm.copyFromRealm(at).getColumnRealmInteger();
+        Counters obj = realm.where(Counters.class).findFirst();
+        RealmInteger managedRI = obj.getColumnRealmInteger();
+        RealmInteger unmanagedRI = realm.copyFromRealm(obj).getColumnRealmInteger();
 
         realm.beginTransaction();
         RealmInteger ri = realm.where(Counters.class).findFirst().getColumnRealmInteger();
@@ -358,34 +364,17 @@ public class RealmIntegerTests {
         ri.decrement(7);
         realm.commitTransaction();
 
-        assertEquals(5, unmanagedRI.longValue());
-        assertEquals(47, managedRI.longValue());
+        assertEquals(42L, unmanagedRI.longValue());
+        assertEquals(47L, managedRI.longValue());
     }
 
     /**
-     * Assure that an attempt to assign a RealmInteger field, outside a transaction, fails.
-     */
-    @Test
-    public void assignOutsideTransactionThrows() {
-        realm.beginTransaction();
-        Counters managedCounters = realm.createObject(Counters.class);
-        managedCounters.setColumnRealmInteger(RealmInteger.valueOf(5));
-        realm.commitTransaction();
-
-        try {
-            managedCounters.setColumnRealmInteger(RealmInteger.valueOf(7));
-            fail("Assigning a managed RealmInteger outside a transaction should fail");
-        } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains("must be in a transaction"));
-        }
-    }
-
-    /**
-     * Semantics definition from #4266.
+     * Test the semantic definition.
+     * @see <a href="https://github.com/realm/realm-java/issues/4266"/>
      */
     @Test
     @SuppressWarnings("ReferenceEquality")
-    public void unmanaged_semantics() {
+    public void unmanagedRealmIntegers_semantics() {
         Counters obj1 = new Counters();
         obj1.columnRealmInteger = RealmInteger.valueOf(0);
 
@@ -396,23 +385,25 @@ public class RealmIntegerTests {
 
         obj2.columnRealmInteger = obj1.columnRealmInteger;
 
-        assertEquals(1, obj2.columnRealmInteger);
+        assertEquals(1L, obj2.columnRealmInteger.longValue());
         assertTrue(obj1.columnRealmInteger.equals(obj2.columnRealmInteger));
         assertTrue(obj1.columnRealmInteger == obj2.columnRealmInteger);
     }
 
     /**
-     * Semantics definition from #4266.
+     * Test the semantic definition.
+     * @see <a href="https://github.com/realm/realm-java/issues/4266"/>
      */
+    @Ignore("Not yet implemented")
     @Test
     @SuppressWarnings("ReferenceEquality")
-    public void mixed_semantics() {
+    public void mixedManagedUnmanagedRealmIntegers_semantics() {
         realm.beginTransaction();
         Counters obj1 = realm.createObject(Counters.class);
         realm.commitTransaction();
 
         Counters obj2 = new Counters();
-        obj1.columnRealmInteger = RealmInteger.valueOf(30);
+        obj2.columnRealmInteger = RealmInteger.valueOf(30);
 
         try {
             obj1.columnRealmInteger.increment(1);
@@ -434,7 +425,7 @@ public class RealmIntegerTests {
 
         obj2.columnRealmInteger.set(obj1.columnRealmInteger.longValue());
 
-        assertEquals(1, obj2.columnRealmInteger);
+        assertEquals(1L, obj2.columnRealmInteger.longValue());
         assertTrue(obj1.columnRealmInteger.equals(obj2.columnRealmInteger));
         assertFalse(obj1.columnRealmInteger == obj2.columnRealmInteger);
 
@@ -450,17 +441,19 @@ public class RealmIntegerTests {
         obj1.columnRealmInteger.set(obj2.columnRealmInteger.longValue());
         realm.commitTransaction();
 
-        assertEquals(2, obj2.columnRealmInteger);
+        assertEquals(2L, obj2.columnRealmInteger.longValue());
         assertTrue(obj1.columnRealmInteger.equals(obj2.columnRealmInteger));
         assertFalse(obj1.columnRealmInteger == obj2.columnRealmInteger);
     }
 
     /**
-     * Semantics definition from #4266.
+     * Test the semantic definition.
+     * @see <a href="https://github.com/realm/realm-java/issues/4266"/>
      */
+    @Ignore("Not yet implemented")
     @Test
     @SuppressWarnings("ReferenceEquality")
-    public void managed_semantics() {
+    public void managedRealmIntegers_semantics() {
         realm.beginTransaction();
         Counters obj1 = realm.createObject(Counters.class);
         Counters obj2 = realm.createObject(Counters.class);
@@ -471,14 +464,14 @@ public class RealmIntegerTests {
             obj2.columnRealmInteger = obj1.columnRealmInteger;
             fail("Assignment to a managed RealmInteger should fail");
         } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains("cannot be assigned"));
+            assertTrue(e.getMessage().contains("Cannot assign to a managed RealmInteger"));
         }
 
         realm.beginTransaction();
         obj1.columnRealmInteger.set(obj2.columnRealmInteger.longValue());
         realm.commitTransaction();
 
-        assertEquals(1, obj2.columnRealmInteger);
+        assertEquals(1L, obj2.columnRealmInteger.longValue());
         assertTrue(obj1.columnRealmInteger.equals(obj2.columnRealmInteger));
         assertFalse(obj1.columnRealmInteger == obj2.columnRealmInteger);
     }
