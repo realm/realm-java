@@ -6,8 +6,8 @@
 
 ### Bug Fixes
 
-* [ObjectServer] Fixed a crash when an authentication error happend (#4726).
-* [ObjectServer] Enable encryption with Sync (#4561).
+* [ObjectServer] Fixed a crash when an authentication error happens (#4726).
+* [ObjectServer] Enabled encryption with Sync (#4561).
 
 ### Internal
 
