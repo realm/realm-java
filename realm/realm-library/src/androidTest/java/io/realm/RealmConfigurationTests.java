@@ -43,6 +43,8 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
+import io.realm.entities.StringAndInt;
+import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -229,7 +231,7 @@ public class RealmConfigurationTests {
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
                 .schemaVersion(42)
-                .schema(Dog.class)
+                .schema(StringOnly.class)
                 .build();
         Realm.getInstance(config).close();
 
@@ -238,7 +240,7 @@ public class RealmConfigurationTests {
             config = new RealmConfiguration.Builder(context)
                     .directory(configFactory.getRoot())
                     .schemaVersion(42)
-                    .schema(AllTypesPrimaryKey.class)
+                    .schema(StringAndInt.class)
                     .build();
             realm = Realm.getInstance(config);
             fail("A migration should be required");
@@ -337,26 +339,26 @@ public class RealmConfigurationTests {
         // Populates v0 of a Realm with an object.
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(Dog.class)
+                .schema(StringOnly.class)
                 .schemaVersion(0)
                 .build();
         Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
         realm.beginTransaction();
-        realm.copyToRealm(new Dog("Foo"));
+        realm.copyToRealm(new StringOnly());
         realm.commitTransaction();
-        assertEquals(1, realm.where(Dog.class).count());
+        assertEquals(1, realm.where(StringOnly.class).count());
         realm.close();
 
         // Changes schema and verifies that Realm has been cleared.
         config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(Owner.class, Dog.class)
+                .schema(StringOnly.class, StringAndInt.class)
                 .schemaVersion(1)
                 .deleteRealmIfMigrationNeeded()
                 .build();
         realm = Realm.getInstance(config);
-        assertEquals(0, realm.where(Dog.class).count());
+        assertEquals(0, realm.where(StringOnly.class).count());
     }
 
     @Test
@@ -526,11 +528,11 @@ public class RealmConfigurationTests {
     public void schema_differentSchemasThrows() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         RealmConfiguration config2 = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(CyclicType.class).build();
+                .schema(StringAndInt.class).build();
 
         Realm realm1 = Realm.getInstance(config1);
         try {
