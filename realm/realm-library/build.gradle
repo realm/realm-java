@@ -1,6 +1,7 @@
 import java.security.MessageDigest
 
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
@@ -80,7 +81,7 @@ android {
 
     sourceSets {
         androidTest {
-            java.srcDirs += 'src/benchmarks/java'
+            java.srcDirs += 'src/androidTest/kotlin'
         }
         androidTestObjectServer {
             java.srcDirs += 'src/syncIntegrationTest/java'
@@ -144,6 +145,7 @@ android.registerTransform(new RealmTransformer())
 
 repositories {
     maven { url "https://jitpack.io" }
+    mavenCentral()
 }
 
 dependencies {
@@ -154,10 +156,10 @@ dependencies {
     api "io.realm:realm-annotations:${version}"
     implementation 'com.getkeepsafe.relinker:relinker:1.2.2'
 
-    objectServerAnnotationProcessor project(':realm-annotations-processor')
+    kaptObjectServer project(':realm-annotations-processor')
     objectServerImplementation 'com.squareup.okhttp3:okhttp:3.4.1'
 
-    androidTestAnnotationProcessor project(':realm-annotations-processor')
+    kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
     androidTestImplementation 'io.reactivex:rxjava:1.1.0'
     androidTestImplementation 'com.android.support:support-annotations:25.3.1'
@@ -166,8 +168,8 @@ dependencies {
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
     androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
-    androidTestImplementation 'com.opencsv:opencsv:3.4'
-    androidTestImplementation 'dk.ilios:spanner:0.6.0'
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
 
 task sourcesJar(type: Jar) {
@@ -259,7 +261,6 @@ task checkstyle(type: Checkstyle) {
 
     source 'src'
     include '*/java/**/*.java'
-    exclude 'benchmarks/**'
     // Ignore tests for now.
     exclude '*Test*/**'
 
@@ -278,24 +279,6 @@ checkstyle {
     ignoreFailures = true
 }
 check.dependsOn tasks.checkstyle
-
-// Configuration options can be found here:
-// http://developer.android.com/reference/android/support/test/runner/AndroidJUnitRunner.html
-task connectedBenchmarks(type: GradleBuild) {
-    description = 'Run all benchmarks on connected devices'
-    group = 'Verification'
-    buildFile = file("${projectDir}/build.gradle")
-    startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.package', 'io.realm.benchmarks')
-    tasks = ['connectedCheck']
-}
-
-task connectedUnitTests(type: GradleBuild) {
-    description = 'Run all unit tests on connected devices'
-    group = 'Verification'
-    buildFile = file("${projectDir}/build.gradle")
-    startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.notPackage', 'io.realm.benchmarks')
-    tasks = ['connectedAndroidTest']
-}
 
 install {
     repositories.mavenInstaller {
