@@ -152,11 +152,11 @@ class BytecodeModifier {
 
     private static CtMethod createSetter(String methodName, CtField field) {
         CtMethod setter = CtNewMethod.setter(methodName, field)
-//        if ("io.realm.RealmInteger".equals(field.getType().getClass().getName())) {
-//            getter.insertBefore(
-//                    'if (!($1 instanceof io.realm.internal.counters.UnmanagedRealmInteger))' +
-//                    'throw new IllegalStateException("Cannot assign a managed RealmInteger to an unmanaged object")');
-//        }
+        if ("io.realm.RealmInteger".equals(field.getType().getName())) {
+            setter.insertBefore(
+                    'if (!($1 instanceof io.realm.internal.datatypes.realminteger.UnmanagedRealmInteger))' +
+                    'throw new IllegalStateException("Cannot assign a managed RealmInteger to an unmanaged object");');
+        }
         return setter;
     }
 }

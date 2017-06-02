@@ -17,11 +17,16 @@ package io.realm;
 
 import io.realm.annotations.Beta;
 import io.realm.internal.ManagableObject;
-import io.realm.internal.counters.UnmanagedRealmInteger;
+import io.realm.internal.datatypes.realminteger.UnmanagedRealmInteger;
 
 
 /**
- * TODO: document the behaviour of this object, as soon as the implementation defines it.
+ * A RealmInteger is a mutable, {@link java.lang.Long}-like numeric quantity.
+ *
+ * It wraps an internal CRDT counter:
+ * @see <a href="https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type"></a>
+ *
+ * TODO: More complete docs, including examples of use.
  */
 @Beta
 public abstract class RealmInteger extends Number implements Comparable<RealmInteger>, ManagableObject {
@@ -79,7 +84,6 @@ public abstract class RealmInteger extends Number implements Comparable<RealmInt
 
     /**
      * RealmIntegers compare strictly by their values.
-     * Final to ensure contract over all subclasses
      *
      * @param o the compare target
      * @return -1, 0, or 1, depending on whether this object's value is &gt;, =, or &lt; the target's.
@@ -94,7 +98,6 @@ public abstract class RealmInteger extends Number implements Comparable<RealmInt
 
     /**
      * A RealmInteger's hash code depends only on its value.
-     * Must be final to ensure contract over all subclasses
      *
      * @return true if the target has the same value.
      */
@@ -106,7 +109,6 @@ public abstract class RealmInteger extends Number implements Comparable<RealmInt
 
     /**
      * Two RealmIntegers are {@code .equals} if and only if their longValues are equal.
-     * Must be final to ensure contract over all subclasses
      *
      * @param o compare target
      * @return true if the target has the same value.

@@ -13,23 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.internal.counters;
+package io.realm.internal.datatypes.realminteger;
 
 import io.realm.RealmInteger;
 
 
 /**
  * TODO: document the behaviour of this object, as soon as the implementation defines it.
+ *
+ * Note that {@link io.realm.RealmInteger#compareTo(io.realm.RealmInteger)},
+ * {@link io.realm.RealmInteger#equals} and {@link RealmInteger#hashCode()} are final
+ * in the superclass, to assure the reflexive contract.
  */
-public final class ManagedRealmInteger extends RealmInteger {
+public final class UnmanagedRealmInteger extends RealmInteger {
+    private long value;
 
     /**
      * Creates a new {@code UnmanagedRealmInteger}, with the specified initial value.
      *
      * @param value initial value.
      */
-    public ManagedRealmInteger(long value) {
-
+    public UnmanagedRealmInteger(long value) {
+        this.value = value;
     }
 
     /**
@@ -41,7 +46,7 @@ public final class ManagedRealmInteger extends RealmInteger {
      */
     @Override
     public void set(long newValue) {
-
+        value = newValue;
     }
 
     /**
@@ -52,7 +57,7 @@ public final class ManagedRealmInteger extends RealmInteger {
      */
     @Override
     public void increment(long inc) {
-
+        value += inc;
     }
 
     /**
@@ -63,7 +68,7 @@ public final class ManagedRealmInteger extends RealmInteger {
      */
     @Override
     public void decrement(long dec) {
-
+        value -= dec;
     }
 
     /**
@@ -71,14 +76,6 @@ public final class ManagedRealmInteger extends RealmInteger {
      */
     @Override
     public boolean isManaged() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isValid() {
         return false;
     }
 
@@ -86,8 +83,16 @@ public final class ManagedRealmInteger extends RealmInteger {
      * {@inheritDoc}
      */
     @Override
+    public boolean isValid() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public long longValue() {
-        return 0L;
+        return value;
     }
 
     /**
@@ -95,7 +100,7 @@ public final class ManagedRealmInteger extends RealmInteger {
      */
     @Override
     public int intValue() {
-        return (int) 0L;
+        return (int) value;
     }
 
     /**
@@ -103,7 +108,7 @@ public final class ManagedRealmInteger extends RealmInteger {
      */
     @Override
     public double doubleValue() {
-        return (double) 0L;
+        return (double) value;
     }
 
     /**
@@ -111,6 +116,6 @@ public final class ManagedRealmInteger extends RealmInteger {
      */
     @Override
     public float floatValue() {
-        return (float) 0L;
+        return (float) value;
     }
 }
