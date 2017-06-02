@@ -20,7 +20,6 @@ import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +28,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.UUID;
 
-import io.realm.log.RealmLog;
 import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunInLooperThread;
@@ -55,7 +53,6 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @Before
     public void setUpTest() {
         String username = UUID.randomUUID().toString();
-        RealmLog.error("Username %s", username);
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, "password", true);
         user = SyncUser.login(credentials, Constants.AUTH_URL);
         looperThread.runAfterTest(new Runnable() {
@@ -98,7 +95,6 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
-                RealmLog.error("OnSuccess");
                 try {
                     assertTrue(permissions.isValid());
                     pm.close();
@@ -111,7 +107,6 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
-                RealmLog.error("onError");
                 fail(error.toString());
             }
         });
@@ -300,7 +295,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     }
 
     private void runTask(final PermissionManager pm, final PermissionManager.Callback<Void> callback) {
-        new PermissionManager.PermissionManagerAsyncTask<Void>(pm, callback) {
+        new PermissionManager.AsyncTask<Void>(pm, callback) {
             @Override
             public void run() {
                 if (!checkAndReportInvalidState()) {
