@@ -339,7 +339,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     /**
      * Checks if the current test is considered completed or not.
-     * It is completed if either {@link #testComplete()} was called or an uncaught exception was throw.
+     * It is completed if either {@link #testComplete()} was called or an uncaught exception was thrown.
      */
     public boolean isTestComplete() {
         synchronized (lock) {
