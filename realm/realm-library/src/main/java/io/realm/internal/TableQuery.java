@@ -396,7 +396,9 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery isNotEmpty(long[] columnIndices, long[] tablePtrs) {
-        return not().isEmpty(columnIndices, tablePtrs);
+        nativeIsNotEmpty(nativePtr, columnIndices, tablePtrs);
+        queryValidated = false;
+        return this;
     }
 
     // Searching methods.
@@ -736,6 +738,8 @@ public class TableQuery implements NativeObject {
     private native void nativeContains(long nativeQueryPtr, long[] columnIndices, long[] tablePtrs, String value, boolean caseSensitive);
 
     private native void nativeIsEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
+
+    private native void nativeIsNotEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
 
     private native long nativeFind(long nativeQueryPtr, long fromTableRow);
 
