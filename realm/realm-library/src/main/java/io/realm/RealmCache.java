@@ -303,6 +303,9 @@ final class RealmCache {
                 if (!fileExists) {
                     try {
                         ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
+                        // Data is downloaded on background thread, so we need to make sure to advance
+                        // to latest version before continuing.
+                        sharedRealm.refresh();
                     } catch (Throwable t) {
                         // If an error happened while downloading initial data, we need to reset the file so we can
                         // download it again on the next attempt.
