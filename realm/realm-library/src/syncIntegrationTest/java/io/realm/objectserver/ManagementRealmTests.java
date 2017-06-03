@@ -53,17 +53,24 @@ public class ManagementRealmTests extends BaseIntegrationTest {
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
 
-
-
-
+    // This is primarily a test making sure that an admin user actually connects correctly to ROS.
+    // See https://github.com/realm/realm-java/issues/4750
     @Test
     @RunTestInLooperThread
-    public void adminUser_writePermissionOffer() {
-        SyncUser user = UserFactory.createAdminUser(Constants.AUTH_URL);
+    public void adminUser_writeInvalidPermissionOffer() {
+        final SyncUser user = UserFactory.createAdminUser(Constants.AUTH_URL);
         assertTrue(user.isValid());
         Realm realm = user.getManagementRealm();
+        looperThread.closeAfterTest(realm);
+        looperThread.runAfterTest(new Runnable() {
+            @Override
+            public void run() {
+                user.logout();
+            }
+        });
         realm.beginTransaction();
-        realm.copyToRealm(new PermissionOffer("", true, true, true, null));
+        // Invalid Permission offer
+        realm.copyToRealm(new PermissionOffer("*", true, true, false, null));
         realm.commitTransaction();
         RealmResults <PermissionOffer> results = realm.where(PermissionOffer.class).findAllAsync();
         looperThread.keepStrongReference(results);
@@ -71,11 +78,11 @@ public class ManagementRealmTests extends BaseIntegrationTest {
             @Override
             public void onChange(RealmResults <PermissionOffer> offers) {
                 if (offers.size() > 0) {
-                    if (offers.first().isSuccessful()) {
-                        RealmLog.error("Write successful");
+                    PermissionOffer offer = offers.first();
+                    Integer statusCode = offer.getStatusCode();
+                    if (statusCode != null && statusCode > 0) {
+                        assertTrue(offer.getStatusMessage().contains("The path is invalid or current user has no access."));
                         looperThread.testComplete();
-                    } else {
-                        RealmLog.error("Status " + offers.first().getStatusMessage());
                     }
                 }
             }
