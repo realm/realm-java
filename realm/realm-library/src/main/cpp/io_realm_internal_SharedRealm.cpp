@@ -143,11 +143,16 @@ public:
             ssl_trust_certificate_path =
                 realm::util::Optional<std::string>(JStringAccessor(env, sync_ssl_trust_certificate_path));
         }
+
+        util::Optional<std::array<char, 64>> sync_encryption_key(util::none);
+        if (!m_config.encryption_key.empty()) {
+            sync_encryption_key = std::array<char, 64>();
+            std::copy_n(m_config.encryption_key.begin(), 64, sync_encryption_key->begin());
+        }
+
         m_config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
             user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler),
-            nullptr, util::none, sync_client_validate_ssl, ssl_trust_certificate_path});
-
-
+            nullptr, sync_encryption_key, sync_client_validate_ssl, ssl_trust_certificate_path});
 #else
         REALM_UNREACHABLE();
 #endif
