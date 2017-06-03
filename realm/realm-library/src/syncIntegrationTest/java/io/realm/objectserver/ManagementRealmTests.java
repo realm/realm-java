@@ -31,6 +31,7 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
+import io.realm.SyncCredentials;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.entities.Dog;
@@ -43,6 +44,7 @@ import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -51,7 +53,35 @@ public class ManagementRealmTests extends BaseIntegrationTest {
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
 
-    @Ignore("TODO: Test is currently flaky. See https://github.com/realm/realm-java/pull/4066")
+
+
+
+    @Test
+    @RunTestInLooperThread
+    public void adminUser_writePermissionOffer() {
+        SyncUser user = UserFactory.createAdminUser(Constants.AUTH_URL);
+        assertTrue(user.isValid());
+        Realm realm = user.getManagementRealm();
+        realm.beginTransaction();
+        realm.copyToRealm(new PermissionOffer("", true, true, true, null));
+        realm.commitTransaction();
+        RealmResults <PermissionOffer> results = realm.where(PermissionOffer.class).findAllAsync();
+        looperThread.keepStrongReference(results);
+        results.addChangeListener(new RealmChangeListener <RealmResults <PermissionOffer>>() {
+            @Override
+            public void onChange(RealmResults <PermissionOffer> offers) {
+                if (offers.size() > 0) {
+                    if (offers.first().isSuccessful()) {
+                        RealmLog.error("Write successful");
+                        looperThread.testComplete();
+                    } else {
+                        RealmLog.error("Status " + offers.first().getStatusMessage());
+                    }
+                }
+            }
+        });
+    }
+
     @Test
     @RunTestInLooperThread
     public void create_acceptOffer() {
