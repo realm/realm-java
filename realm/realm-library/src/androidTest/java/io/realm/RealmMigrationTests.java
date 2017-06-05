@@ -121,7 +121,7 @@ public class RealmMigrationTests {
         // V1 config
         RealmConfiguration v1Config = configFactory.createConfigurationBuilder()
                 .name(MIGRATED_REALM)
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .schemaVersion(1)
                 .build();
         Realm oldRealm = Realm.getInstance(v1Config);
@@ -140,7 +140,7 @@ public class RealmMigrationTests {
 
         RealmConfiguration v2Config = configFactory.createConfigurationBuilder()
                 .name(MIGRATED_REALM)
-                .schema(AllTypes.class, FieldOrder.class)
+                .schema(StringOnly.class, FieldOrder.class)
                 .schemaVersion(2)
                 .migration(migration)
                 .build();
@@ -151,7 +151,7 @@ public class RealmMigrationTests {
         RealmConfiguration newConfig = configFactory.createConfigurationBuilder()
                 .name(NEW_REALM)
                 .schemaVersion(2)
-                .schema(AllTypes.class, FieldOrder.class)
+                .schema(StringOnly.class, FieldOrder.class)
                 .build();
         Realm newRealm = Realm.getInstance(newConfig);
         newRealm.close();
@@ -166,7 +166,7 @@ public class RealmMigrationTests {
 
         // Creates v0 of the Realm.
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -184,7 +184,7 @@ public class RealmMigrationTests {
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(StringOnly.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
         try {
@@ -718,7 +718,7 @@ public class RealmMigrationTests {
     public void settingPrimaryKeyWithObjectSchema() {
         // Creates v0 of the Realm.
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -738,7 +738,7 @@ public class RealmMigrationTests {
         // Creates v1 of the Realm.
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(StringOnly.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
 
@@ -789,7 +789,7 @@ public class RealmMigrationTests {
 
         // Creates v0 of the Realm.
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -806,7 +806,7 @@ public class RealmMigrationTests {
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(StringOnly.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
 
