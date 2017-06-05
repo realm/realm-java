@@ -57,7 +57,7 @@ public class Updater extends ViewModel {
 
         @Override
         public void run() {
-            final Realm realm = Realm.getDefaultInstance();
+            Realm realm = Realm.getDefaultInstance();
             //noinspection TryFinallyCanBeTryWithResources
             try {
                 final RealmResults<Person> all = realm.where(Person.class).findAll();

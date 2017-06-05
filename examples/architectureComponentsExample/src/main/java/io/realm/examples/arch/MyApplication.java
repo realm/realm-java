@@ -30,10 +30,10 @@ public class MyApplication extends Application {
         super.onCreate();
 
         Realm.init(this);
-        final RealmConfiguration defaultConfig = new RealmConfiguration.Builder().initialData(new Realm.Transaction() {
+        RealmConfiguration defaultConfig = new RealmConfiguration.Builder().initialData(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                final Person p = realm.createObject(Person.class);
+                Person p = realm.createObject(Person.class);
                 p.name = "Makoto";
                 p.age = 10;
             }

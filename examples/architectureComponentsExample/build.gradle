@@ -4,7 +4,7 @@ apply plugin: 'realm-android'
 
 repositories {
     maven {
-      url 'https://maven.google.com'
+        url 'https://maven.google.com'
     }
 }
 

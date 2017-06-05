@@ -21,6 +21,7 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.TextView;
@@ -76,11 +77,15 @@ public class LifecycleExampleActivity extends LifecycleActivity {
 
     @MainThread
     private void updateViews(@Nullable Person person) {
+        ageView.setText(formatPerson(person));
+    }
+
+    @NonNull
+    private static String formatPerson(@Nullable Person person) {
         if (person == null) {
-            ageView.setText("");
-        } else {
-            ageView.setText(String.format(Locale.ENGLISH, "%1$s: %2$d", person.name, person.age));
+            return "";
         }
+        return String.format(Locale.ENGLISH, "%1$s: %2$d", person.name, person.age);
     }
 
     @Override
