@@ -2,6 +2,8 @@
 
 ### Breaking Changes
 
+* [ObejctServer] Update protocol version to 18 which is only compatible with ROS > 1.6.0.
+
 ### Enhancements
 
 * Added support for querying inverse relationships (#2904).
@@ -16,6 +18,8 @@
 ### Internal
 
 * Factor out internal interface ManagedObject
+* Upgraded to Realm Sync 1.10.0.
+* Upgraded to Realm Core 2.8.2.
 
 ## 3.3.1 (2017-05-26)
 
