@@ -1,8 +1,12 @@
-## 3.3.2 (YYYY-MM-DD)
+## 3.4.0 (YYYY-MM-DD)
 
 ### Breaking Changes
 
 ### Enhancements
+
+* Added support for querying inverse relationships (#2904).
+* Moved inverse relationships out of beta stage.
+* Added `Realm.getDefaultConfiguration()` (#4725).
 
 ### Bug Fixes
 
