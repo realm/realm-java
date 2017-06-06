@@ -25,6 +25,12 @@
 
 using namespace realm;
 
+static void finalize_property(jlong ptr)
+{
+    TR_ENTER_PTR(ptr);
+    delete reinterpret_cast<Property*>(ptr);
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateProperty__Ljava_lang_String_2IZZZ(
     JNIEnv* env, jclass, jstring name_, jint type, jboolean is_primary, jboolean is_indexed, jboolean is_nullable)
 {
@@ -63,12 +69,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateProperty__Lj
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Property_nativeClose(JNIEnv* env, jclass, jlong property_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER_PTR(property_ptr)
-    try {
-        Property* property = reinterpret_cast<Property*>(property_ptr);
-        delete property;
-    }
-    CATCH_STD()
+    TR_ENTER()
+    return reinterpret_cast<jlong>(&finalize_property);
 }

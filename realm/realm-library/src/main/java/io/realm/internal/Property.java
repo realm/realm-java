@@ -24,39 +24,41 @@ import io.realm.RealmFieldType;
  * Class for handling properties/fields.
  */
 
-public class Property {
+public class Property implements NativeObject {
     public static final boolean PRIMARY_KEY = true;
     public static final boolean REQUIRED = true;
     public static final boolean INDEXED = true;
 
     private long nativePtr;
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     Property(String name, RealmFieldType type, boolean isPrimary, boolean isIndexed, boolean isRequired) {
         this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), isPrimary, isIndexed, !isRequired);
+        NativeContext.dummyContext.addReference(this);
     }
 
     Property(String name, RealmFieldType type, String linkedClassName) {
         this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), linkedClassName);
+        NativeContext.dummyContext.addReference(this);
     }
 
     protected Property(long nativePtr) {
         this.nativePtr = nativePtr;
     }
 
-    protected long getNativePtr() {
+    @Override
+    public long getNativePtr() {
         return nativePtr;
     }
 
-    public void close() {
-        if (nativePtr != 0) {
-            nativeClose(nativePtr);
-            nativePtr = 0L;
-        }
+    @Override
+    public long getNativeFinalizerPtr() {
+        return nativeFinalizerPtr;
     }
 
     private static native long nativeCreateProperty(String name, int type, boolean isPrimary, boolean isIndexed, boolean isNullable);
 
     private static native long nativeCreateProperty(String name, int type, String linkedToName);
 
-    private static native void nativeClose(long nativePtr);
+    private static native long nativeGetFinalizerPtr();
 }

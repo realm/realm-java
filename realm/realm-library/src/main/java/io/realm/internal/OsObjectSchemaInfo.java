@@ -62,11 +62,7 @@ public class OsObjectSchemaInfo implements NativeObject {
      */
     public OsObjectSchemaInfo add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         final Property property = new Property(name, type, primary, indexed, required);
-        try {
-            nativeAddProperty(nativePtr, property.getNativePtr());
-        } finally {
-            property.close();
-        }
+        nativeAddProperty(nativePtr, property.getNativePtr());
         return this;
     }
 
@@ -79,11 +75,7 @@ public class OsObjectSchemaInfo implements NativeObject {
      */
     public OsObjectSchemaInfo add(String name, RealmFieldType type, String linkedClassName) {
         final Property property = new Property(name, type, linkedClassName);
-        try {
-            nativeAddProperty(nativePtr, property.getNativePtr());
-        } finally {
-            property.close();
-        }
+        nativeAddProperty(nativePtr, property.getNativePtr());
         return this;
     }
 
