@@ -175,17 +175,6 @@ public final class SharedRealm implements Closeable, NativeObject {
         void onSchemaVersionChanged(long currentVersion);
     }
 
-    @KeepMember
-    public abstract class MigrationCallback {
-        abstract void migrate(SharedRealm oldRealm, SharedRealm realm);
-
-        @KeepMember
-        private void doMigrate(long oldRealmPtr, long realmPtr) {
-            migrate(new SharedRealm(oldRealmPtr, SharedRealm.this.configuration),
-                    new SharedRealm(realmPtr, SharedRealm.this.configuration));
-        }
-    }
-
     private final SchemaVersionListener schemaChangeListener;
     private final RealmConfiguration configuration;
     private final long nativePtr;
@@ -209,23 +198,6 @@ public final class SharedRealm implements Closeable, NativeObject {
         context = new NativeContext();
         context.addReference(this);
         this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
-        nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
-    }
-
-    private SharedRealm(long nativePtr,
-            RealmConfiguration configuration) {
-        Capabilities capabilities = new AndroidCapabilities();
-        RealmNotifier realmNotifier = new AndroidRealmNotifier(this, capabilities);
-
-        this.nativePtr = nativePtr;
-        this.configuration = configuration;
-
-        this.capabilities = capabilities;
-        this.realmNotifier = realmNotifier;
-        this.schemaChangeListener = null;
-        context = new NativeContext();
-        context.addReference(this);
-        this.lastSchemaVersion = -1L;
         nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
     }
 
@@ -401,27 +373,14 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     /**
-     * Updates the underlying schema based on the schema description.
-     * If migration is required, the migration object is used.
-     */
-    public void updateSchema(OsSchemaInfo schemaInfo, long version, MigrationCallback migrationCallback) {
-        nativeUpdateSchema(nativePtr, schemaInfo.getNativePtr(), version, migrationCallback);
-    }
-
-    /**
-     * Updates the underlying schema based on the schema description.
+     * Initializes the underlying schema based on the schema description.
      * Calling this method must be done from inside a write transaction.
-     * <p>
-     * TODO: This method should not require the caller to get the native pointer.
-     * Instead, the signature should be something like:
-     * public <T extends RealmSchema & NativeObject> </T>void updateSchema(T schema, long version)
-     * ... that is: something that is a schema and that wraps a native object.
      *
-     * @param schemaNativePtr the pointer to a native schema object.
+     * @param schemaInfo the expected schema.
      * @param version the target version.
      */
     public void updateSchema(OsSchemaInfo schemaInfo, long version) {
-        nativeUpdateSchema(nativePtr, schemaInfo.getNativePtr(), version, null);
+        nativeUpdateSchema(nativePtr, schemaInfo.getNativePtr(), version);
     }
 
     public void setAutoRefresh(boolean enabled) {
@@ -612,8 +571,7 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
 
-    private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version,
-            Object migrationCallback);
+    private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version);
 
     private static native void nativeSetAutoRefresh(long nativePtr, boolean enabled);
 

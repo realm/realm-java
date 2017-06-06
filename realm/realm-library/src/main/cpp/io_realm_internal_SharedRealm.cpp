@@ -597,27 +597,13 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeCompact(JNIE
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv* env, jclass,
                                                                              jlong shared_realm_ptr, jlong schema_ptr,
-                                                                             jlong version,
-                                                                             jobject migration_callback)
+                                                                             jlong version)
 {
     TR_ENTER_PTR(shared_realm_ptr)
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         auto* schema = reinterpret_cast<Schema*>(schema_ptr);
-
-        if (migration_callback == nullptr) {
-            shared_realm->update_schema(std::move(*schema), static_cast<uint64_t>(version), nullptr, true);
-        }
-        else {
-            Realm::MigrationFunction callback = [=](SharedRealm old_realm, SharedRealm realm, Schema &) {
-                static JavaMethod do_migrate_method(env, migration_callback, "doMigrate", "(JJ)V");
-                SharedRealm* old_realm_ptr = new SharedRealm(old_realm);
-                SharedRealm* realm_ptr = new SharedRealm(realm);
-
-                env->CallVoidMethod(migration_callback, do_migrate_method, old_realm_ptr, realm_ptr);
-            };
-            shared_realm->update_schema(std::move(*schema), static_cast<uint64_t>(version), std::move(callback));
-        }
+        shared_realm->update_schema(*schema, static_cast<uint64_t>(version), nullptr, true);
     }
     CATCH_STD()
 }
