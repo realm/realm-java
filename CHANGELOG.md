@@ -2,6 +2,8 @@
 
 ### Breaking Changes
 
+* An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required object schemas (#3398).
+
 ### Enhancements
 
 * Added support for querying inverse relationships (#2904).
@@ -15,7 +17,8 @@
 
 ### Internal
 
-* Factor out internal interface ManagedObject
+* Factor out internal interface ManagedObject.
+* Use Object Store to do table initialization.
 
 ## 3.3.1 (2017-05-26)
 
