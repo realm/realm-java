@@ -85,18 +85,17 @@ public class BaseIntegrationTest {
     // previous tests are being accessed.
     private static void deleteRosFiles() throws IOException {
         File rosFiles = new File(InstrumentationRegistry.getContext().getFilesDir(),"realm-object-server");
-        if (rosFiles.isDirectory()) {
-            deleteFile(rosFiles);
-        }
+        deleteFile(rosFiles);
     }
 
     private static void deleteFile(File file) throws IOException {
         if (file.isDirectory()) {
-            for (File c : file.listFiles())
+            for (File c : file.listFiles()) {
                 deleteFile(c);
+            }
         }
         if (!file.delete()) {
-            throw new FileNotFoundException("Failed to delete file: " + file);
+            throw new IllegalStateException("Failed to delete file or directory: " + file.getAbsolutePath());
         }
     }
 }
