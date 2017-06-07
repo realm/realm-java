@@ -257,7 +257,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
                         throw new IllegalArgumentException(String.format("The object has a different type from list's." +
                                 " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
                     }
-                } else if (realm.threadId == proxy.realmGet$proxyState().getRealm$realm().threadId) {
+                } else if (realm.creatorThread == proxy.realmGet$proxyState().getRealm$realm().creatorThread) {
                     // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
                     // you have to run a full schema validation for each object.
                     // And copying from another Realm instance pointed to the same Realm file is not supported as well.
