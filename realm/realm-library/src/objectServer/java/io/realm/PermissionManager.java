@@ -158,7 +158,7 @@ public class PermissionManager implements Closeable {
                 })
                 .modules(new PermissionModule())
                 .waitForInitialRemoteData()
-                .readOnly() // FIXME: Something is seriously wrong with the Permission Realm. It doesn't seem to exist on the server. Making it impossible to mark it read only
+                // .readOnly() // FIXME: Something is seriously wrong with the Permission Realm. It doesn't seem to exist on the server. Making it impossible to mark it read only
                 .build();
     }
 
@@ -374,12 +374,18 @@ public class PermissionManager implements Closeable {
                 loadingPermissions.addChangeListener(new RealmChangeListener <RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults <Permission> loadedPermissions) {
-                        loadingPermissions.removeChangeListener(this);
-                        if (checkAndReportInvalidState()) { return; }
-                        if (permissions == null) {
-                            permissions = loadedPermissions;
+                        // FIXME Until we can figure out why `waitForInitialRemoteData` sometimes
+                        // doesn't work for the permission Realm use the size as a heuristic for
+                        // when the Realm is downloaded. One permission should always be available
+                        // for the Management Realm.
+                        if (loadedPermissions.size() > 0) {
+                            loadingPermissions.removeChangeListener(this);
+                            if (checkAndReportInvalidState()) { return; }
+                            if (permissions == null) {
+                                permissions = loadedPermissions;
+                            }
+                            notifyCallbackWithSuccess(permissions);
                         }
-                        notifyCallbackWithSuccess(permissions);
                     }
                 });
             }

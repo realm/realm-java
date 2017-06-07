@@ -30,6 +30,7 @@ import java.util.UUID;
 
 import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
@@ -52,18 +53,13 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Before
     public void setUpTest() {
-        String username = UUID.randomUUID().toString();
-        SyncCredentials credentials = SyncCredentials.usernamePassword(username, "password", true);
-        user = SyncUser.login(credentials, Constants.AUTH_URL);
+        user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         looperThread.runAfterTest(new Runnable() {
             @Override
             public void run() {
                 user.logout();
             }
         });
-        // FIXME: Timing issue in ROS. Permission Realm might not be immediately available
-        // after login.
-        SystemClock.sleep(5000);
     }
 
     @Test
