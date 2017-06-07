@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm;
 
 import android.support.test.InstrumentationRegistry;
 
@@ -25,8 +25,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import io.realm.Realm;
-import io.realm.SyncManager;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
@@ -40,6 +38,7 @@ public class BaseIntegrationTest {
         SyncManager.Debug.skipOnlineChecking = true;
         try {
             deleteRosFiles();
+            BaseRealm.applicationContext = null; // Make it possible to re-initialize file system
             Realm.init(InstrumentationRegistry.getContext());
             originalLogLevel = RealmLog.getLevel();
             RealmLog.setLevel(LogLevel.DEBUG);

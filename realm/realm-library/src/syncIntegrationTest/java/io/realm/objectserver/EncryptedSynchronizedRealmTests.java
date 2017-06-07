@@ -11,6 +11,7 @@ import org.junit.rules.Timeout;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.BaseIntegrationTest;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmResults;
