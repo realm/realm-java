@@ -119,7 +119,9 @@ public:
             jstring access_token_string = (jstring)env->CallStaticObjectMethod(
                 sync_manager_class, java_bind_session_method, to_jstring(env, path.c_str()));
             if (access_token_string) {
-                // reusing cached valid token
+                // Reuse cached valid token
+                // If null is returned, the Java binding is responsible for fetching a new token
+                // and manually call refresh_access_token once it becomes available.
                 JStringAccessor access_token(env, access_token_string);
                 session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url));
             }
