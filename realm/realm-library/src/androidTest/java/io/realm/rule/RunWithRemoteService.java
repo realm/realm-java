@@ -100,6 +100,7 @@ public class RunWithRemoteService implements TestRule {
                 serviceStartLatch.countDown();
             }
             serviceStartLatch = null;
+            remoteMessenger = null;
         }
     };
 
@@ -113,7 +114,6 @@ public class RunWithRemoteService implements TestRule {
 
     public void after() {
         getContext().unbindService(serviceConnection);
-        remoteMessenger = null;
 
         // Kill the remote process.
         ActivityManager.RunningAppProcessInfo info = getRemoteProcessInfo();
@@ -123,7 +123,7 @@ public class RunWithRemoteService implements TestRule {
         int counter = 10;
         while (getRemoteProcessInfo() != null) {
             if (counter == 0) {
-                assertTrue("The remote process is still alive.", false);
+                fail("The remote process is still alive.");
             }
             try {
                 Thread.sleep(300);

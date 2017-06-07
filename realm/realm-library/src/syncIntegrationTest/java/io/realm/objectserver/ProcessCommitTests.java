@@ -103,7 +103,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     }
 
     // 1. Open a sync Realm and listen to changes.
-    // A. Open the same sync Realm and add on object.
+    // A. Open the same sync Realm and add one object.
     // 2. Get the notification, check if the change in A is received.
     @Test
     @RunTestWithRemoteService(SimpleCommitRemoteService.class)
@@ -203,8 +203,8 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                     return;
                 }
                 assertEquals(0, size % 100); // Added 100 objects every time.
-                assertEquals(counter * 100 -1, all.last().getIntProp());
-                assertEquals("Str" + (counter * 100 -1), all.last().getStringProp());
+                assertEquals(counter * 100 - 1, all.last().getIntProp());
+                assertEquals("Str" + (counter * 100 - 1), all.last().getStringProp());
                 if (counter == 10) {
                     remoteService.triggerServiceStep(ALotCommitsRemoteService.stepC_closeRealm);
                     realm.close();

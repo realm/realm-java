@@ -64,7 +64,7 @@ public abstract class RemoteTestService extends Service {
         }
 
         // Pass a null to tell main process that everything is OK.
-        // Otherwise, pass a error String which will be used by assertion in main process.
+        // Otherwise, pass an error String which will be used by assertion in main process.
         private void response(String error) {
             try {
                 Message msg = Message.obtain(null, message);

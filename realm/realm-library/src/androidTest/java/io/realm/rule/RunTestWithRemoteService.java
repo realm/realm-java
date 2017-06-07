@@ -25,7 +25,7 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * This should used along with {@link RunWithRemoteService}. See comments there for usage.
+ * This should be used along with {@link RunWithRemoteService}. See comments there for usage.
  */
 @Target(METHOD)
 @Retention(RUNTIME)
