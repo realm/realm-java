@@ -25,11 +25,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.UUID;
 
-import io.realm.log.RealmLog;
 import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
@@ -52,28 +53,22 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Before
     public void setUpTest() {
-        String username = UUID.randomUUID().toString();
-        RealmLog.error("Username %s", username);
-        SyncCredentials credentials = SyncCredentials.usernamePassword(username, "password", true);
-        user = SyncUser.login(credentials, Constants.AUTH_URL);
+        user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         looperThread.runAfterTest(new Runnable() {
             @Override
             public void run() {
                 user.logout();
             }
         });
-        // FIXME: Timing issue in ROS. Permission Realm might not be immediately available
-        // after login.
-        SystemClock.sleep(5000);
     }
 
     @Test
     @RunTestInLooperThread
-    public void getPermissionsAsync_returnLoadedResults() {
+    public void getPermissions_returnLoadedResults() {
         // For a new user, the PermissionManager should contain 1 entry for the __permission Realm
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
-        pm.getPermissionsAsync(new PermissionManager.Callback<RealmResults<Permission>>() {
+        pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
                 assertTrue(permissions.isLoaded());
@@ -90,9 +85,10 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void getPermissionsAsync_noLongerValidWhenPermissionManagerIsClosed() {
+    public void getPermissions_noLongerValidWhenPermissionManagerIsClosed() {
         final PermissionManager pm = user.getPermissionManager();
-        pm.getPermissionsAsync(new PermissionManager.Callback<RealmResults<Permission>>() {
+        looperThread.closeAfterTest(pm);
+        pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
                 try {
@@ -114,10 +110,10 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void getPermissionsAsync_updatedWithNewRealms() {
+    public void getPermissions_updatedWithNewRealms() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
-        pm.getPermissionsAsync(new PermissionManager.Callback<RealmResults<Permission>>() {
+        pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
                 assertTrue(permissions.isLoaded());
@@ -149,11 +145,11 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void getPermissionsAsync_closed() throws IOException {
+    public void getPermissions_closed() throws IOException {
         PermissionManager pm = user.getPermissionManager();
         pm.close();
 
-        pm.getPermissionsAsync(new PermissionManager.Callback<RealmResults<Permission>>() {
+        pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
                 fail();
@@ -167,4 +163,140 @@ public class PermissionManagerTests extends BaseIntegrationTest {
             }
         });
     }
+    @Test
+    @RunTestInLooperThread
+    public void permissionManagerAsyncTask_handlePermissionRealmError() throws NoSuchFieldException, IllegalAccessException {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        // Simulate error in the permission Realm
+        Field permissionConfigField = pm.getClass().getDeclaredField("permissionRealmError");
+        permissionConfigField.setAccessible(true);
+        final ObjectServerError expectedError = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
+        permissionConfigField.set(pm, expectedError);
+
+        PermissionManager.Callback <Void> callback = new PermissionManager.Callback <Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(expectedError, error);
+                looperThread.testComplete();
+            }
+        };
+
+        // Create dummy task that can trigger the error reporting
+        runTask(pm, callback);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void permissionManagerAsyncTask_handleManagementRealmError() throws NoSuchFieldException, IllegalAccessException {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        // Simulate error in the permission Realm
+        final ObjectServerError expectedError = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
+        setRealmError(pm, "managementRealmError", expectedError);
+
+        PermissionManager.Callback <Void> callback = new PermissionManager.Callback <Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(expectedError, error);
+                looperThread.testComplete();
+            }
+        };
+
+        // Create dummy task that can trigger the error reporting
+        runTask(pm, callback);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void permissionManagerAsyncTask_handleTwoErrorsSameErrorCode() throws NoSuchFieldException, IllegalAccessException {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        // Simulate error in the permission Realm
+        setRealmError(pm, "managementRealmError", new ObjectServerError(ErrorCode.CONNECTION_CLOSED, "Boom1"));
+
+        // Simulate error in the management Realm
+        setRealmError(pm, "permissionRealmError", new ObjectServerError(ErrorCode.CONNECTION_CLOSED, "Boom2"));
+
+        PermissionManager.Callback <Void> callback = new PermissionManager.Callback <Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.CONNECTION_CLOSED, error.getErrorCode());
+                assertTrue(error.toString().contains("Boom1"));
+                assertTrue(error.toString().contains("Boom2"));
+                looperThread.testComplete();
+            }
+        };
+
+        // Create dummy task that can trigger the error reporting
+        runTask(pm, callback);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void permissionManagerAsyncTask_handleTwoErrorsDifferentErrorCode() throws NoSuchFieldException, IllegalAccessException {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        // Simulate error in the permission Realm
+        setRealmError(pm, "managementRealmError", new ObjectServerError(ErrorCode.CONNECTION_CLOSED, "Boom1"));
+
+        // Simulate error in the management Realm
+        setRealmError(pm, "permissionRealmError", new ObjectServerError(ErrorCode.SESSION_CLOSED, "Boom2"));
+
+        PermissionManager.Callback <Void> callback = new PermissionManager.Callback <Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
+                assertTrue(error.toString().contains(ErrorCode.CONNECTION_CLOSED.toString()));
+                assertTrue(error.toString().contains(ErrorCode.SESSION_CLOSED.toString()));
+                looperThread.testComplete();
+            }
+        };
+
+        // Create dummy task that can trigger the error reporting
+        runTask(pm, callback);
+    }
+
+    private void setRealmError(PermissionManager pm, String fieldName, ObjectServerError error) throws NoSuchFieldException,
+            IllegalAccessException {
+        Field managementRealmErrorField = pm.getClass().getDeclaredField(fieldName);
+        managementRealmErrorField.setAccessible(true);
+        managementRealmErrorField.set(pm, error);
+    }
+
+    private void runTask(final PermissionManager pm, final PermissionManager.Callback<Void> callback) {
+        new PermissionManager.AsyncTask<Void>(pm, callback) {
+            @Override
+            public void run() {
+                if (!checkAndReportInvalidState()) {
+                    fail();
+                }
+            }
+        }.run();
+    }
+
 }

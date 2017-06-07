@@ -24,6 +24,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.rule.RunInLooperThread;
@@ -34,14 +36,14 @@ import static org.junit.Assert.assertTrue;
 
 
 /**
- * Meta test. Checking the lifecycle of `@RunTestInLooperThreadTest does the right thing.
+ * Meta test. Checking the lifecycle of @RunTestInLooperThreadTest does the right thing.
  *
  * Current order is:
  * - @RunTestInLooperThread(before = <classRef>)
  * - @Before()
  * - @RunTestInLooperThread/@Test
- * - @After : This is called when exiting the test method
- * - looperThread.runAfterTest(Runnable) : This is called when the LooperTest either succeed for fails.
+ * - @After : This is called when exiting the test method. Warning: Looper test is still running.
+ * - looperThread.runAfterTest(Runnable) : This is called when the LooperTest either succeed or fails.
  */
 
 @RunWith(AndroidJUnit4.class)
@@ -55,12 +57,21 @@ public class RunTestInLooperThreadLifeCycleTest {
     private static AtomicBoolean testExited = new AtomicBoolean(false);
     private static AtomicBoolean beforeRunnableCalled = new AtomicBoolean(false);
     private static AtomicBoolean afterRunnableCalled = new AtomicBoolean(false);
+    private static AtomicBoolean closableClosed = new AtomicBoolean(false);
 
     @Before
     public void before() {
         assertTrue(beforeCalled.compareAndSet(false, true));
         assertTrue(beforeRunnableCalled.get());
 
+        looperThread.closeAfterTest(new Closeable() {
+            @Override
+            public void close() throws IOException {
+                assertTrue(testExited.get());
+                assertFalse(afterRunnableCalled.get());
+                assertTrue(closableClosed.compareAndSet(false, true));
+            }
+        });
         looperThread.runAfterTest(new Runnable() {
             @Override
             public void run() {

@@ -83,7 +83,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     // Access guarded by 'lock'
     private List<Realm> testRealms;
 
-    // List of closable resources that will be automatically closed the the test finishes.
+    // List of closable resources that will be automatically closed when the test finishes.
     // Access guarded by 'lock'
     private List<Closeable> closableResources;
 
@@ -140,8 +140,10 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     }
 
     /**
-     * FIXME
-     * @param closeable
+     * Add a closable resource which this test will guarantee to call {@link Closeable#close()} on
+     * when the tests is done.
+     *
+     * @param closeable {@link Closeable} to close.
      */
     public void closeAfterTest(Closeable closeable) {
         synchronized (lock) {
@@ -333,12 +335,11 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                 cr.close();
             }
         }
-
     }
 
     /**
      * Checks if the current test is considered completed or not.
-     * It is completed if either {@link #testComplete()} was called or an uncaught exception was throw.
+     * It is completed if either {@link #testComplete()} was called or an uncaught exception was thrown.
      */
     public boolean isTestComplete() {
         synchronized (lock) {

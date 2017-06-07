@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.Set;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.Cat;
+import io.realm.entities.Dog;
+import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -56,7 +59,8 @@ public class RealmSchemaTests {
     @Before
     public void setUp() {
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-                .schema(AllJavaTypes.class, Owner.class, PrimaryKeyAsString.class)
+                .schema(AllJavaTypes.class, Owner.class, PrimaryKeyAsString.class, Cat.class, Dog.class,
+                        DogPrimaryKey.class)
                 .build();
         Realm.getInstance(realmConfig).close(); // create Schema
         realm = DynamicRealm.getInstance(realmConfig);

@@ -4,16 +4,24 @@
 
 ### Enhancements
 
+* Added support for querying inverse relationships (#2904).
+* Moved inverse relationships out of beta stage.
+* Added `Realm.getDefaultConfiguration()` (#4725).
+
 ### Bug Fixes
+
+* [ObjectServer] Fixed a crash when an authentication error happens (#4726).
+* [ObjectServer] Enabled encryption with Sync (#4561).
 
 ### Internal
 
+* Factor out internal interface ManagedObject
 
 ## 3.3.1 (2017-05-26)
 
 ### Bug Fixes
 
-* Accept extra columns against synced Realm (#4706).
+* [ObjectServer] Accepted extra columns against synced Realm (#4706).
 
 
 ## 3.3.0 (2017-05-24)
@@ -67,7 +75,7 @@
 
 ### Internal
 
-* Use separated locks for different `RealmCache`s ($4551).
+* Use separated locks for different `RealmCache`s (#4551).
 
 ## 3.1.4 (2017-05-04)
 

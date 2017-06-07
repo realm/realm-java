@@ -20,10 +20,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
+import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
@@ -35,6 +38,16 @@ public class SyncTestUtils {
     public static final String REALM_TOKEN = UUID.randomUUID().toString();
     public static final String DEFAULT_AUTH_URL = "http://objectserver.realm.io/auth";
     public static final String DEFAULT_USER_IDENTIFIER = "JohnDoe";
+
+    private final static Method SYNC_MANAGER_RESET_METHOD;
+    static {
+        try {
+            SYNC_MANAGER_RESET_METHOD = SyncManager.class.getDeclaredMethod("reset");
+            SYNC_MANAGER_RESET_METHOD.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError(e);
+        }
+    }
 
     public static SyncUser createRandomTestUser() {
         return createTestUser(UUID.randomUUID().toString(),
@@ -115,5 +128,15 @@ public class SyncTestUtils {
 
     public static AuthenticateResponse createErrorResponse(ErrorCode code) {
         return AuthenticateResponse.from(new ObjectServerError(code, "dummy"));
+    }
+
+    public static void resetSyncMetadata() {
+        try {
+            SYNC_MANAGER_RESET_METHOD.invoke(null);
+        } catch (InvocationTargetException e) {
+            throw new AssertionError(e);
+        } catch (IllegalAccessException e) {
+            throw new AssertionError(e);
+        }
     }
 }

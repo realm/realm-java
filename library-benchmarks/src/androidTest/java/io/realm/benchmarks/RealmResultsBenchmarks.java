@@ -30,7 +30,8 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.benchmarks.config.BenchmarkConfig;
-import io.realm.entities.AllTypes;
+import io.realm.benchmarks.entities.AllTypes;
+
 
 @RunWith(SpannerRunner.class)
 public class RealmResultsBenchmarks {

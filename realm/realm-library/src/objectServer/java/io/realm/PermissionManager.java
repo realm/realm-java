@@ -28,10 +28,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import io.realm.internal.permissions.PermissionChange;
-import io.realm.log.RealmLog;
 import io.realm.internal.permissions.ManagementModule;
 import io.realm.internal.permissions.PermissionModule;
-
+import io.realm.log.RealmLog;
 /**
  * FIXME: Better Javadoc
  * Helper class for interacting with Realm permissions.
@@ -39,6 +38,37 @@ import io.realm.internal.permissions.PermissionModule;
  * closed after use to avoid leaking resources.
  */
 public class PermissionManager implements Closeable {
+
+    // Reference counted cache equivalent to how Realm instances work.
+    private static ThreadLocal<PermissionManager> permissionManager = new ThreadLocal<PermissionManager>() {
+        @Override
+        protected PermissionManager initialValue() {
+            return null;
+        }
+    };
+
+    private static ThreadLocal<Integer> permissionManagerInstanceCounter = new ThreadLocal<Integer>() {
+        @Override
+        protected Integer initialValue() {
+            return 0;
+        }
+    };
+
+    /**
+     * Return a thread confined, reference counted instance of the PermissionManager.
+     *
+     * @param syncUser user to create the PermissionManager for.
+     * @return a thread confined PermissionManager instance for the provided user.
+     */
+    static synchronized PermissionManager getInstance(SyncUser syncUser) {
+        PermissionManager pm = permissionManager.get();
+        if (pm == null) {
+            pm = new PermissionManager(syncUser);
+            permissionManager.set(pm);
+        }
+        permissionManagerInstanceCounter.set(permissionManagerInstanceCounter.get() + 1);
+        return pm;
+    }
 
     private enum RealmType {
         PERMISSION_REALM("__permission"),
@@ -70,10 +100,10 @@ public class PermissionManager implements Closeable {
     private Realm permissionRealm;
     private Realm managementRealm;
 
-    // Task list used to queue tasks until the underlying Realms are done opening (or fail doing so).
-    private Deque<PermissionManagerAsyncTask> delayedTasks = new LinkedList<>();
+    // Task list used to queue tasks until the underlying Realms are done opening (or failed doing so).
+    private Deque<AsyncTask> delayedTasks = new LinkedList<>();
 
-    // List of tasks that are running. Used to keep strong references for listeners to work.
+    // List of tasks that are being processed. Used to keep strong references for listeners to work.
     // The task must remove itself from this list once it either completes
     // or fails.
     private List<RealmAsyncTask> activeTasks = new ArrayList<>();
@@ -98,7 +128,7 @@ public class PermissionManager implements Closeable {
      *
      * @param user user to create manager for.
      */
-    PermissionManager(final SyncUser user) {
+    private PermissionManager(final SyncUser user) {
         this.user = user;
         threadId = Thread.currentThread().getId();
         managementRealmConfig = new SyncConfiguration.Builder(
@@ -106,6 +136,7 @@ public class PermissionManager implements Closeable {
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
+                        // FIXME: How to handle Client Reset?
                         synchronized (errorLock) {
                             managementRealmError = error;
                         }
@@ -119,6 +150,7 @@ public class PermissionManager implements Closeable {
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
+                        // FIXME: How to handle Client Reset?
                         synchronized (errorLock) {
                             permissionRealmError = error;
                         }
@@ -126,7 +158,7 @@ public class PermissionManager implements Closeable {
                 })
                 .modules(new PermissionModule())
                 .waitForInitialRemoteData()
-                .readOnly()
+                // .readOnly() // FIXME: Something is seriously wrong with the Permission Realm. It doesn't seem to exist on the server. Making it impossible to mark it read only
                 .build();
     }
 
@@ -136,10 +168,10 @@ public class PermissionManager implements Closeable {
      * @param callback
      * @return
      */
-    public RealmAsyncTask getPermissionsAsync(final Callback<RealmResults<Permission>> callback) {
+    public RealmAsyncTask getPermissions(final Callback<RealmResults<Permission>> callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
-        return addTask(new GetPermissionsAsyncTask(callback));
+        return addTask(new GetPermissionsAsyncTask(this, callback));
     }
 
     /**
@@ -153,14 +185,14 @@ public class PermissionManager implements Closeable {
     public RealmAsyncTask setPermission(Permission permission, final Callback<Void> callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
-        return addTask(new SetPermissionsAsyncTask(permission, callback));
+        return addTask(new SetPermissionsAsyncTask(this, permission, callback));
     }
 
     // Queue the task if the underlying Realms are not ready yet, otherwise
     // start the task by sending it to this thread handler. This is done
     // in order to be able to provide the user with a RealmAsyncTask representation
     // of the work being done.
-    private RealmAsyncTask addTask(final PermissionManagerAsyncTask task) {
+    private RealmAsyncTask addTask(final AsyncTask task) {
         if (isReady()) {
             activateTask(task);
         } else {
@@ -172,14 +204,14 @@ public class PermissionManager implements Closeable {
     }
 
     // Park the task until all underlying Realms are ready
-    private void delayTask(PermissionManagerAsyncTask task) {
+    private void delayTask(AsyncTask task) {
         delayedTasks.add(task);
     }
 
     // Run any tasks that where delayed while the underlying Realms where being opened.
     // PRECONDITION: Underlying Realms are no longer in the process of being opened.
     private void runDelayedTasks() {
-        for (PermissionManagerAsyncTask delayedTask : delayedTasks) {
+        for (AsyncTask delayedTask : delayedTasks) {
             activateTask(delayedTask);
         }
         delayedTasks.clear();
@@ -187,7 +219,7 @@ public class PermissionManager implements Closeable {
 
     // Activate a task. All tasks are controlled by the Handler in order to make it asynchronous.
     // PRECONDITION: Underlying Realms are no longer in the process of being opened.
-    private void activateTask(PermissionManagerAsyncTask task) {
+    private void activateTask(AsyncTask task) {
         activeTasks.add(task);
         handler.post(task);
     }
@@ -195,47 +227,45 @@ public class PermissionManager implements Closeable {
     // Open both underlying Realms asynchronously. Once they are both ready, all tasks added in the meantime are
     // started. If the Realms failed to open correctly any error will be reported through the `Callback.onError` callback.
     private void openRealms() {
-        if (openInProgress) {
-            return;
-        } else {
+        if (!openInProgress) {
             openInProgress = true;
             managementRealmOpenTask = Realm.getInstanceAsync(managementRealmConfig, new Realm.Callback() {
                 @Override
                 public void onSuccess(Realm realm) {
                     managementRealm = realm;
-                    checkIfRealmsAreOpened();
+                    checkIfRealmsAreOpenedAndRunDelayedTasks();
                 }
 
                 @Override
                 public void onError(Throwable exception) {
                     synchronized (errorLock) {
                         managementRealmError = new ObjectServerError(ErrorCode.UNKNOWN, exception);
+                        checkIfRealmsAreOpenedAndRunDelayedTasks();
                     }
-                    checkIfRealmsAreOpened();
                 }
             });
             permissionRealmOpenTask = Realm.getInstanceAsync(permissionRealmConfig, new Realm.Callback() {
                 @Override
                 public void onSuccess(Realm realm) {
                     permissionRealm = realm;
-                    checkIfRealmsAreOpened();
+                    checkIfRealmsAreOpenedAndRunDelayedTasks();
                 }
 
                 @Override
                 public void onError(Throwable exception) {
                     synchronized (errorLock) {
                         permissionRealmError = new ObjectServerError(ErrorCode.UNKNOWN, exception);
+                        checkIfRealmsAreOpenedAndRunDelayedTasks();
                     }
-                    checkIfRealmsAreOpened();
                 }
             });
         }
     }
 
-    private void checkIfRealmsAreOpened() {
+    private void checkIfRealmsAreOpenedAndRunDelayedTasks() {
         synchronized (errorLock) {
             if ((permissionRealm != null || permissionRealmError != null)
-                    && (managementRealm != null || managementRealmError != null)) {
+                && (managementRealm != null || managementRealmError != null)) {
                 openInProgress = false;
                 runDelayedTasks();
             }
@@ -256,7 +286,7 @@ public class PermissionManager implements Closeable {
         // Checks if we are in thread that created the PermissionManager.
         if (threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException("PermissionManager was accessed from the wrong thread. It can only be " +
-                    "accessed on the thread it was created on.");
+                                            "accessed on the thread it was created on.");
         }
     }
 
@@ -266,23 +296,35 @@ public class PermissionManager implements Closeable {
     @Override
     public void close() {
         checkIfValidThread();
+
+        // Multiple instances open, just decrement the reference count
+        Integer instanceCount = permissionManagerInstanceCounter.get();
+        if (instanceCount > 1) {
+            permissionManagerInstanceCounter.set(instanceCount - 1);
+            return;
+        }
+
+        // Only one instance open. Do a full close
+        permissionManagerInstanceCounter.set(0);
+        permissionManager.set(null);
+        delayedTasks.clear();
+
         // If Realms are still being opened, abort that task
-        if (openInProgress) {
-            if (managementRealmOpenTask != null) {
-                managementRealmOpenTask.cancel();
-                managementRealmOpenTask = null;
-            }
-            if (permissionRealmOpenTask != null) {
-                permissionRealmOpenTask.cancel();
-                permissionRealmOpenTask = null;
-            }
-        } else {
-            if (managementRealm != null) {
-                managementRealm.close();
-            }
-            if (permissionRealm != null) {
-                permissionRealm.close();
-            }
+        if (managementRealmOpenTask != null) {
+            managementRealmOpenTask.cancel();
+            managementRealmOpenTask = null;
+        }
+        if (permissionRealmOpenTask != null) {
+            permissionRealmOpenTask.cancel();
+            permissionRealmOpenTask = null;
+        }
+
+        // If Realms are opened. Close them.
+        if (managementRealm != null) {
+            managementRealm.close();
+        }
+        if (permissionRealm != null) {
+            permissionRealm.close();
         }
         closed = true;
     }
@@ -299,11 +341,11 @@ public class PermissionManager implements Closeable {
 
     @Override
     protected void finalize() throws Throwable {
-        super.finalize();
         if (managementRealm != null || permissionRealm != null) {
-            RealmLog.error("PermissionManager was not correctly closed before being finalized.");
+            RealmLog.warn("PermissionManager was not correctly closed before being finalized.");
             close();
         }
+        super.finalize();
     }
 
     // Creates the URL to the permission/management Realm based on the authentication URL.
@@ -322,16 +364,13 @@ public class PermissionManager implements Closeable {
 
     // Task responsible for loading the Permissions result and returning it to the user.
     // The Permission result is not considered available until the query has completed.
-    private class GetPermissionsAsyncTask extends PermissionManagerAsyncTask<RealmResults<Permission>> {
-
-        private final Callback<RealmResults<Permission>> callback;
+    private class GetPermissionsAsyncTask extends AsyncTask<RealmResults<Permission>> {
 
         // Prevent permissions from being GC'ed until fully loaded.
         private RealmResults<Permission> loadingPermissions;
 
-        GetPermissionsAsyncTask(Callback<RealmResults<Permission>> callback) {
-            super(callback);
-            this.callback = callback;
+        GetPermissionsAsyncTask(PermissionManager permissionManager, Callback<RealmResults<Permission>> callback) {
+            super(permissionManager, callback);
         }
 
         @Override
@@ -341,18 +380,25 @@ public class PermissionManager implements Closeable {
                 // Permissions already loaded
                 notifyCallbackWithSuccess(permissions);
             } else {
-                // Start loading permissions.
-                // TODO Right now multiple getPermission() calls can result in multiple
+                // TODO Right now multiple getPermission() calls will result in multiple
+                // queries being executed. The first one to return will be the one returned
+                // by all callbacks.
                 loadingPermissions = permissionRealm.where(Permission.class).findAllAsync();
                 loadingPermissions.addChangeListener(new RealmChangeListener <RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults <Permission> loadedPermissions) {
-                        loadingPermissions.removeChangeListener(this);
-                        if (checkAndReportInvalidState()) { return; }
-                        if (permissions == null) {
-                            permissions = loadedPermissions;
+                        // FIXME Until we can figure out why `waitForInitialRemoteData` sometimes
+                        // doesn't work for the permission Realm use the size as a heuristic for
+                        // when the Realm is downloaded. One permission should always be available
+                        // for the Management Realm.
+                        if (loadedPermissions.size() > 0) {
+                            loadingPermissions.removeChangeListener(this);
+                            if (checkAndReportInvalidState()) { return; }
+                            if (permissions == null) {
+                                permissions = loadedPermissions;
+                            }
+                            notifyCallbackWithSuccess(permissions);
                         }
-                        notifyCallbackWithSuccess(permissions);
                     }
                 });
             }
@@ -361,17 +407,15 @@ public class PermissionManager implements Closeable {
 
     // Class encapsulating setting a Permission by writing a PermissionChange and waiting for it to
     // be processed.
-    private class SetPermissionsAsyncTask extends PermissionManagerAsyncTask<Void> {
+    private class SetPermissionsAsyncTask extends AsyncTask<Void> {
 
-        private final Callback<Void> callback;
         private final PermissionChange unmanagedChangeRequest;
         private String changeRequestId;
         private PermissionChange managedChangeRequest;
         private RealmAsyncTask transactionTask;
 
-        public SetPermissionsAsyncTask(Permission newPermission, Callback<Void> callback) {
-            super(callback);
-            this.callback = callback;
+        public SetPermissionsAsyncTask(PermissionManager manager, Permission newPermission, Callback<Void> callback) {
+            super(manager, callback);
             this.unmanagedChangeRequest = convertToPermissionChange(newPermission);
             this.changeRequestId = unmanagedChangeRequest.getId();
         }
@@ -439,7 +483,6 @@ public class PermissionManager implements Closeable {
                                     ObjectServerError error = new ObjectServerError(errorCode, errorMsg);
                                     notifyCallbackError(error);
                                 }
-                                managedChangeRequest.removeChangeListener(this);
                             }
                         }
                     });
@@ -471,13 +514,16 @@ public class PermissionManager implements Closeable {
 
     // Class encapsulating all async tasks exposed by the PermissionManager.
     // All subclasses are responsible for removing themselves from the activeTaskList when done.
-    private abstract class PermissionManagerAsyncTask<T> implements RealmAsyncTask, Runnable {
+    // Made package protected instead of private to facilitate testing
+    abstract static class AsyncTask<T> implements RealmAsyncTask, Runnable {
 
         private final Callback<T> callback;
+        private final PermissionManager permissionManager;
         private volatile boolean canceled = false;
 
-        public PermissionManagerAsyncTask(Callback<T> callback) {
+        public AsyncTask(PermissionManager permissionManager, Callback<T> callback) {
             this.callback = callback;
+            this.permissionManager = permissionManager;
         }
 
         @Override
@@ -503,51 +549,59 @@ public class PermissionManager implements Closeable {
          * @return {@code true} if in a invalid state, {@code false} if in a valid one.
          */
         protected final boolean checkAndReportInvalidState() {
-            if (isCancelled()) {
-                return false;
-            }
-            if (isClosed()) {
+            if (isCancelled()) { return true; }
+            if (permissionManager.isClosed()) {
                 ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN,
                         new IllegalStateException("PermissionManager has been closed"));
                 notifyCallbackError(error);
-                return false;
+                return true;
             }
 
             // We are juggling two different Realms. If only one fail, expose that error directly.
-            // Otherwise try to sensible join the two error message before returning it to the user.
+            // Otherwise try to sensible join the two error messages before returning it to the user.
             // TODO: Should we expose the underlying Realm errors directly? What else would make sense?
-            synchronized (errorLock) {
-                boolean managementError = (managementRealmError != null);
-                boolean permissionError = (permissionRealmError != null);
+            boolean managementErrorHappened;
+            boolean permissionErrorHappened;
+            ObjectServerError managementError;
+            ObjectServerError permissionError;
+            synchronized (permissionManager.errorLock) {
+                // Only hold lock while making a safe copy of current error state
+                managementErrorHappened = (permissionManager.managementRealmError != null);
+                permissionErrorHappened = (permissionManager.permissionRealmError != null);
+                managementError = permissionManager.managementRealmError;
+                permissionError = permissionManager.permissionRealmError;
+            }
 
-                if (permissionError && !managementError) {
-                    notifyCallbackError(permissionRealmError);
-                    return false;
-                }
+            if (permissionErrorHappened && !managementErrorHappened) {
+                notifyCallbackError(permissionError);
+                return true;
+            }
 
-                if (managementError && !permissionError) {
-                    notifyCallbackError(managementRealmError);
-                    return false;
-                }
+            if (managementErrorHappened && !permissionErrorHappened) {
+                notifyCallbackError(managementError);
+                return true;
+            }
 
-                if (permissionError && managementError) {
-                    notifyCallbackError(combineRealmErrors(managementRealmError, permissionRealmError));
-                    return false;
-                }
+            if (permissionErrorHappened && managementErrorHappened) {
+                notifyCallbackError(combineRealmErrors(managementError, permissionError));
+                return true;
             }
 
             // Everything seems valid
-            return true;
+            return false;
 
         }
+
         protected final void notifyCallbackWithSuccess(T result) {
             callback.onSuccess(result);
-            activeTasks.remove(this);
+            permissionManager.activeTasks.remove(this);
         }
 
         protected final void notifyCallbackError(ObjectServerError e) {
+            RealmLog.debug("Error happened in PermissionManager for %s: %s",
+                    permissionManager.user.getIdentity(), e.toString());
             callback.onError(e);
-            activeTasks.remove(this);
+            permissionManager.activeTasks.remove(this);
         }
 
         // Combine error messages. If they have the same ErrorCode, it will be re-used, otherwise
@@ -566,7 +620,7 @@ public class PermissionManager implements Closeable {
 
         // Combine the text based error message from two ObjectServerErrrors.
         private String combineErrorMessage(ObjectServerError managementError,
-                                                  ObjectServerError permissionError) {
+                                           ObjectServerError permissionError) {
             StringBuilder errorMsg = new StringBuilder("Multiple errors occurred: ");
             errorMsg.append('\n');
             errorMsg.append("Management Realm:");
