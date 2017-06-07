@@ -312,8 +312,8 @@ public class SyncSession {
                     );
                     URI realmUrl = configuration.getServerUrl();
                     getUser().getSyncUser().addRealm(realmUrl, desc);
-                    // schedule a token refresh before it expires
                     String token = getUser().getSyncUser().getAccessToken(realmUrl).value();
+                    // schedule a token refresh before it expires
                     if (nativeRefreshAccessToken(configuration.getPath(), token, realmUrl.toString())) {
                         scheduleRefreshAccessToken(authServer, response.getAccessToken().expiresMs());
 
