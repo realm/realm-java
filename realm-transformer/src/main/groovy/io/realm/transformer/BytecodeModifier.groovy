@@ -31,9 +31,7 @@ class BytecodeModifier {
     private static final Logger logger = LoggerFactory.getLogger('realm-logger')
 
     static boolean isModelField(CtField field) {
-        return !field.hasAnnotation(Ignore.class) &&
-            !Modifier.isTransient(field.getModifiers()) &&
-            !Modifier.isStatic(field.getModifiers())
+        return !field.hasAnnotation(Ignore.class) && !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())
     }
 
     /**
@@ -51,7 +49,7 @@ class BytecodeModifier {
                     clazz.addMethod(CtNewMethod.getter("realmGet\$${field.name}", field))
                 }
                 if (!methods.contains("realmSet\$${field.name}".toString())) {
-                    clazz.addMethod(createSetter("realmSet\$${field.name}", field))
+                    clazz.addMethod(CtNewMethod.setter("realmSet\$${field.name}", field))
                 }
             }
         }
@@ -149,15 +147,4 @@ class BytecodeModifier {
                     new CtClass[0], new CtClass[0], "{return true;}", clazz))
         }
     }
-
-    private static CtMethod createSetter(String methodName, CtField field) {
-        CtMethod setter = CtNewMethod.setter(methodName, field)
-        if ("io.realm.RealmInteger".equals(field.getType().getName())) {
-            setter.insertBefore(
-                    'if (!($1 instanceof io.realm.internal.datatypes.realminteger.UnmanagedRealmInteger))' +
-                    'throw new IllegalStateException("Cannot assign a managed RealmInteger to an unmanaged object");');
-        }
-        return setter;
-    }
 }
-
