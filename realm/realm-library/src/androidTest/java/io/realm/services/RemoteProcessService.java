@@ -34,6 +34,7 @@ import io.realm.entities.AllTypes;
 
 /**
  * Helper service for multi-processes support testing.
+ * @deprecated use {@link RemoteTestService} instead.
  */
 public class RemoteProcessService extends Service {
 

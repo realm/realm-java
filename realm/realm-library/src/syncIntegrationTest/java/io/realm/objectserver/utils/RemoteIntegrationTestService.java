@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package io.realm.entities;
+package io.realm.objectserver.utils;
 
-import io.realm.annotations.RealmModule;
+import io.realm.SyncManager;
+import io.realm.services.RemoteTestService;
 
-@RealmModule(classes = {CatOwner.class, Owner.class})
-public class HumanModule {
+// Remote test service base class which contains some initialization for sync.
+public class RemoteIntegrationTestService extends RemoteTestService {
+    public RemoteIntegrationTestService() {
+        super();
+        SyncManager.Debug.skipOnlineChecking = true;
+    }
 }
