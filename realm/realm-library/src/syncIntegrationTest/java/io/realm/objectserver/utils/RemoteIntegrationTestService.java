@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,15 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.model;
+package io.realm.objectserver.utils;
 
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
+import io.realm.SyncManager;
+import io.realm.services.RemoteTestService;
 
-public class TestObject extends RealmObject {
-    @PrimaryKey
-    private int intProp;
-
-    private String stringProp;
-
-    public int getIntProp() {
-        return intProp;
-    }
-
-    public void setIntProp(int intProp) {
-        this.intProp = intProp;
-    }
-
-    public String getStringProp() {
-        return stringProp;
-    }
-
-    public void setStringProp(String stringProp) {
-        this.stringProp = stringProp;
+// Remote test service base class which contains some initialization for sync.
+public class RemoteIntegrationTestService extends RemoteTestService {
+    public RemoteIntegrationTestService() {
+        super();
+        SyncManager.Debug.skipOnlineChecking = true;
     }
 }
