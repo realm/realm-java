@@ -32,6 +32,7 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
+import io.realm.SyncCredentials;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.entities.Dog;
@@ -42,9 +43,9 @@ import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.PermissionOfferResponse;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -53,7 +54,42 @@ public class ManagementRealmTests extends BaseIntegrationTest {
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
 
-    @Ignore("TODO: Test is currently flaky. See https://github.com/realm/realm-java/pull/4066")
+    // This is primarily a test making sure that an admin user actually connects correctly to ROS.
+    // See https://github.com/realm/realm-java/issues/4750
+    @Test
+    @RunTestInLooperThread
+    public void adminUser_writeInvalidPermissionOffer() {
+        final SyncUser user = UserFactory.createAdminUser(Constants.AUTH_URL);
+        assertTrue(user.isValid());
+        Realm realm = user.getManagementRealm();
+        looperThread.closeAfterTest(realm);
+        looperThread.runAfterTest(new Runnable() {
+            @Override
+            public void run() {
+                user.logout();
+            }
+        });
+        realm.beginTransaction();
+        // Invalid Permission offer
+        realm.copyToRealm(new PermissionOffer("*", true, true, false, null));
+        realm.commitTransaction();
+        RealmResults <PermissionOffer> results = realm.where(PermissionOffer.class).findAllAsync();
+        looperThread.keepStrongReference(results);
+        results.addChangeListener(new RealmChangeListener <RealmResults <PermissionOffer>>() {
+            @Override
+            public void onChange(RealmResults <PermissionOffer> offers) {
+                if (offers.size() > 0) {
+                    PermissionOffer offer = offers.first();
+                    Integer statusCode = offer.getStatusCode();
+                    if (statusCode != null && statusCode > 0) {
+                        assertTrue(offer.getStatusMessage().contains("The path is invalid or current user has no access."));
+                        looperThread.testComplete();
+                    }
+                }
+            }
+        });
+    }
+
     @Test
     @RunTestInLooperThread
     public void create_acceptOffer() {

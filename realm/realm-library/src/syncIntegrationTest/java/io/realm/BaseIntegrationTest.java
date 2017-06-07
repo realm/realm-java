@@ -17,14 +17,18 @@
 package io.realm;
 
 import android.support.test.InstrumentationRegistry;
+import android.util.Log;
 
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import io.realm.internal.Util;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
@@ -37,16 +41,11 @@ public class BaseIntegrationTest {
     public static void setUp () throws Exception {
         SyncManager.Debug.skipOnlineChecking = true;
         try {
-            deleteRosFiles();
-            BaseRealm.applicationContext = null; // Make it possible to re-initialize file system
-            Realm.init(InstrumentationRegistry.getContext());
-            originalLogLevel = RealmLog.getLevel();
-            RealmLog.setLevel(LogLevel.DEBUG);
             HttpUtils.startSyncServer();
         } catch (Exception e) {
             // Throwing an exception from this method will crash JUnit. Instead just log it.
             // If this setup method fails, all unit tests in the class extending it will most likely fail as well.
-            RealmLog.error("Could not start Sync Server", e);
+            Log.e(HttpUtils.TAG, "Could not start Sync Server: " + Util.getStackTrace(e));
         }
     }
 
@@ -54,12 +53,32 @@ public class BaseIntegrationTest {
     public static void tearDown () throws Exception {
         try {
             HttpUtils.stopSyncServer();
-            RealmLog.setLevel(originalLogLevel);
-            deleteRosFiles();
         } catch (Exception e) {
-            RealmLog.error("Failed to stop Sync Server", e);
+            Log.e(HttpUtils.TAG, "Failed to stop Sync Server" + Util.getStackTrace(e));
         }
     }
+
+    @Before
+    public void setupTest() throws IOException {
+        // TODO We should implement a more consistent reset method for all of Sync that reset
+        // everything completely including deleting all files.
+        deleteRosFiles();
+        if (BaseRealm.applicationContext != null) {
+            // Realm was already initialized. Reset all internal state
+            // in order to be able fully re-initialize.
+            SyncManager.reset(); // Required for filesystem layout to be re-constructed.
+            BaseRealm.applicationContext = null; // Required for Realm.init() to work
+        }
+        Realm.init(InstrumentationRegistry.getContext());
+        originalLogLevel = RealmLog.getLevel();
+        RealmLog.setLevel(LogLevel.DEBUG);
+    }
+
+    @After
+    public void tearDownTest() throws IOException {
+        RealmLog.setLevel(originalLogLevel);
+    }
+
 
     // Cleanup filesystem to make sure nothing lives for the next test.
     // Failing to do so might lead to DIVERGENT_HISTORY errors being thrown if Realms from
