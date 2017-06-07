@@ -17,9 +17,12 @@
 package io.realm.objectserver.model;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 public class TestObject extends RealmObject {
+    @PrimaryKey
     private int intProp;
+
     private String stringProp;
 
     public int getIntProp() {

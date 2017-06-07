@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 
-package io.realm.entities;
+package io.realm.rule;
 
-import io.realm.annotations.RealmModule;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-@RealmModule(classes = {CatOwner.class, Owner.class})
-public class HumanModule {
+import io.realm.services.RemoteTestService;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+/**
+ * This should be used along with {@link RunWithRemoteService}. See comments there for usage.
+ */
+@Target(METHOD)
+@Retention(RUNTIME)
+public @interface RunTestWithRemoteService {
+    Class<? extends RemoteTestService> value();
 }
