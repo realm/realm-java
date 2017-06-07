@@ -21,6 +21,10 @@ import android.support.test.InstrumentationRegistry;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import io.realm.Realm;
 import io.realm.SyncManager;
 import io.realm.log.LogLevel;
@@ -35,6 +39,7 @@ public class BaseIntegrationTest {
     public static void setUp () throws Exception {
         SyncManager.Debug.skipOnlineChecking = true;
         try {
+            deleteRosFiles();
             Realm.init(InstrumentationRegistry.getContext());
             originalLogLevel = RealmLog.getLevel();
             RealmLog.setLevel(LogLevel.DEBUG);
@@ -51,8 +56,29 @@ public class BaseIntegrationTest {
         try {
             HttpUtils.stopSyncServer();
             RealmLog.setLevel(originalLogLevel);
+            deleteRosFiles();
         } catch (Exception e) {
             RealmLog.error("Failed to stop Sync Server", e);
+        }
+    }
+
+    // Cleanup filesystem to make sure nothing lives for the next test.
+    // Failing to do so might lead to DIVERGENT_HISTORY errors being thrown if Realms from
+    // previous tests are being accessed.
+    private static void deleteRosFiles() throws IOException {
+        File rosFiles = new File(InstrumentationRegistry.getContext().getFilesDir(),"realm-object-server");
+        if (rosFiles.isDirectory()) {
+            deleteFile(rosFiles);
+        }
+    }
+
+    private static void deleteFile(File file) throws IOException {
+        if (file.isDirectory()) {
+            for (File c : file.listFiles())
+                deleteFile(c);
+        }
+        if (!file.delete()) {
+            throw new FileNotFoundException("Failed to delete file: " + file);
         }
     }
 }
