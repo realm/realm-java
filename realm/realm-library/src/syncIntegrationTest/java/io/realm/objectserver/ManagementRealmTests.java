@@ -90,6 +90,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
         });
     }
 
+    @Ignore("Failing due to terminate called after throwing an instance of 'realm::MultipleSyncAgents'. Will be fixed when upgrading to Sync 1.10")
     @Test
     @RunTestInLooperThread
     public void create_acceptOffer() {
