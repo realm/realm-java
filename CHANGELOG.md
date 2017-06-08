@@ -1,3 +1,21 @@
+## 4.0.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+* Realm has upgraded its RxJava1 support to RxJava2 (#3497)
+  * `Realm.asObservable()` has been renamed to `Realm.asFlowable()`.
+  * `RealmList.asObservable()` has been renamed to `Realm.asFlowable()`.
+  * `RealmResults.asObservable()` has been renamed to `Realm.asFlowable()`.
+  * `RealmObject.asObservable()` has been renamed to `Realm.asFlowable()`.
+
+### Enhancements
+
+  * `RealmResults.asObservable()` has been added that publish a `Pair<RealmResults, OrderedCollectionChangeSet>` (#4277).
+  * `RealmList.asObservable()` has been added that publish a `Pair<RealmList, OrderedCollectionChangeSet>` (#4277).
+  * `Realm.asCompletable(Realm.Transaction)` has been added (#2126).
+  * `DynamicRealm.asCompletable(Realm.Transaction)` has been added (#2126).
+
+
 ## 3.4.0 (YYYY-MM-DD)
 
 ### Breaking Changes
