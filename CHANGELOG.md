@@ -12,6 +12,7 @@
 
 * [ObjectServer] Fixed a crash when an authentication error happens (#4726).
 * [ObjectServer] Enabled encryption with Sync (#4561).
+* [ObjectServer] Admin users did not connect correctly to the server (#4750).
 
 ### Internal
 

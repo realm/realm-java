@@ -16,9 +16,10 @@
 
 package io.realm.objectserver.utils;
 
+import android.util.Log;
+
 import java.io.IOException;
 
-import io.realm.log.RealmLog;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -27,6 +28,8 @@ import okhttp3.Response;
 /**
  * Start and Stop the node server responsible of creating a
  * temp directory & start a sync server on it for each unit test.
+ *
+ * WARNING: This class is called before Realm is initialized, so RealmLog cannot be used.
  */
 public class HttpUtils {
     private final static OkHttpClient client = new OkHttpClient.Builder()
@@ -35,8 +38,9 @@ public class HttpUtils {
 
     // adb reverse tcp:8888 tcp:8888
     // will forward this query to the host, running the integration test server on 8888
-    private final static String START_SERVER = "http://127.0.0.1:8888/start";
-    private final static String STOP_SERVER = "http://127.0.0.1:8888/stop";
+    private static final String START_SERVER = "http://127.0.0.1:8888/start";
+    private static final String STOP_SERVER = "http://127.0.0.1:8888/stop";
+    public static final String TAG = "IntegrationTestServer";
 
     public static void startSyncServer() throws Exception {
         Request request = new Request.Builder()
@@ -48,10 +52,10 @@ public class HttpUtils {
 
         Headers responseHeaders = response.headers();
         for (int i = 0; i < responseHeaders.size(); i++) {
-            RealmLog.debug(responseHeaders.name(i) + ": " + responseHeaders.value(i));
+            Log.d(TAG, responseHeaders.name(i) + ": " + responseHeaders.value(i));
         }
 
-        RealmLog.debug(response.body().string());
+        Log.d(TAG, response.body().string());
 
         // FIXME: Server ready checking should be done in the control server side!
         if (!waitAuthServerReady()) {
@@ -103,9 +107,9 @@ public class HttpUtils {
 
         Headers responseHeaders = response.headers();
         for (int i = 0; i < responseHeaders.size(); i++) {
-            RealmLog.debug(responseHeaders.name(i) + ": " + responseHeaders.value(i));
+            Log.d(TAG, responseHeaders.name(i) + ": " + responseHeaders.value(i));
         }
 
-        RealmLog.debug(response.body().string());
+        Log.d(TAG, response.body().string());
     }
 }
