@@ -781,6 +781,7 @@ public class RealmTests {
     }
 
     @Test
+    @Ignore
     public void utf8Tests() {
         realm.beginTransaction();
         realm.delete(AllTypes.class);
