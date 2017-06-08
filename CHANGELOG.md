@@ -2,7 +2,7 @@
 
 ### Breaking Changes
 
-* An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required object schemas (#3398).
+* An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required model classes (#3398).
 
 ### Enhancements
 

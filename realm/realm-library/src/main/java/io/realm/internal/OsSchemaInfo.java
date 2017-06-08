@@ -25,7 +25,7 @@ import java.util.List;
  * won't contain the column indices information.
  * <p>
  * When this is get from the Object Store {@code SharedRealm} instance, this represents the real schema of the Realm
- * file. It will contain the all the schema information as well as the information about the column indices.
+ * file. It will contain all the schema information as well as the information about the column indices.
  */
 public class OsSchemaInfo implements NativeObject {
     private long nativePtr;

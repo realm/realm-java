@@ -604,7 +604,7 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PRIVATE, Modifier.STATIC)); // Modifiers
 
         writer.emitStatement(
-                "OsObjectSchemaInfo info = new OsObjectSchemaInfo(\"%s\");", this.simpleClassName);
+                "OsObjectSchemaInfo info = new OsObjectSchemaInfo(\"%s\")", this.simpleClassName);
 
         // For each field generate corresponding table index constant
         for (VariableElement field : metadata.getFields()) {
