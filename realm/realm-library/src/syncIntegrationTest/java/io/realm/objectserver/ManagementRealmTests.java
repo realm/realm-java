@@ -41,6 +41,7 @@ import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.PermissionOfferResponse;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -55,8 +56,8 @@ public class ManagementRealmTests extends BaseIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void create_acceptOffer() {
-        SyncUser user1 = UserFactory.createUser(Constants.AUTH_URL, "user1");
-        final SyncUser user2 = UserFactory.createUser(Constants.AUTH_URL, "user2");
+        SyncUser user1 = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        final SyncUser user2 = UserFactory.createUniqueUser(Constants.AUTH_URL);
 
         // 1. User1 creates Realm that user2 does not have access
         final String user1RealmUrl = "realm://127.0.0.1:9080/" + user1.getIdentity() + "/permission-offer-test";

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package io.realm.entities;
+package io.realm.objectserver.utils;
 
-import io.realm.annotations.RealmModule;
+import io.realm.RealmObject;
 
-@RealmModule(classes = {CatOwner.class, Owner.class})
-public class HumanModule {
+// Used by UserFactory. Storing current user name for testing to share the same user name across processes.
+public class UserFactoryStore extends RealmObject {
+    private String userName;
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
 }
