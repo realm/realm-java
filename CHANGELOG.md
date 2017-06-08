@@ -17,6 +17,8 @@
 ### Internal
 
 * Factor out internal interface ManagedObject
+* Upgraded to Realm Sync 1.9.1
+* Upgraded to Realm Core 2.8.0
 
 ## 3.3.1 (2017-05-26)
 
