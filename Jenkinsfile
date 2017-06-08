@@ -80,7 +80,13 @@ try {
                 try {
                   backgroundPid = startLogCatCollector()
                   forwardAdbPorts()
-                  gradle('realm', 'connectedAndroidTest')
+                  // Run a full test for all flavours only on master. For each PR, ObjectServer tests should cover all tests in the Base flavour.
+                  // However, there are a few routines are different between ObjectServer and Base in the native code which is controlled by Macros.
+                  if (env.BRANCH_NAME == 'master') {
+                      gradle('realm', 'connectedAndroidTest')
+                  } else {
+                      gradle('realm', 'connectedObjectServerDebugAndroidTest')
+                  }
                   archiveLog = false;
                 } finally {
                   stopLogCatCollector(backgroundPid, archiveLog)
