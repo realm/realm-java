@@ -19,15 +19,14 @@ package io.realm;
 
 import android.annotation.SuppressLint;
 import android.os.Looper;
-import android.util.Log;
 
+import io.reactivex.Flowable;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.Collection;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-import rx.Observable;
 
 
 /**
@@ -268,12 +267,12 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * subscribed to. RealmResults will continually be emitted as the RealmResults are updated -
      * {@code onComplete} will never be called.
      * <p>
-     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      * <p>
      * <pre>
      * {@code
-     * realm.where(Foo.class).findAllAsync().asObservable()
+     * realm.where(Foo.class).findAllAsync().asFlowable()
      *      .filter(results -> results.isLoaded())
      *      .first()
      *      .subscribe( ... ) // You only get the results once
@@ -291,17 +290,17 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     @SuppressWarnings("unchecked")
-    public Observable<RealmResults<E>> asObservable() {
+    public Flowable<RealmResults<E>> asFlowable() {
         if (realm instanceof Realm) {
             return realm.configuration.getRxFactory().from((Realm) realm, this);
         } else if (realm instanceof DynamicRealm) {
             DynamicRealm dynamicRealm = (DynamicRealm) realm;
             RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
             @SuppressWarnings("UnnecessaryLocalVariable")
-            Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
+            Flowable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
             return results;
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava.");
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
         }
     }
 

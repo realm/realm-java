@@ -27,11 +27,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
+import io.reactivex.Flowable;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
-import rx.Observable;
-
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
@@ -854,12 +853,12 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * subscribed to. RealmList will continually be emitted as the RealmList is updated -
      * {@code onComplete} will never be called.
      * <p>
-     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      * <p>
      * <pre>
      * {@code
-     * list.asObservable()
+     * list.asFlowable()
      *      .first()
      *      .subscribe( ... ) // You only get the results once
      * }
@@ -875,17 +874,17 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     @SuppressWarnings("unchecked")
-    public Observable<RealmList<E>> asObservable() {
+    public Flowable<RealmList<E>> asFlowable() {
         if (realm instanceof Realm) {
             return realm.configuration.getRxFactory().from((Realm) realm, this);
         } else if (realm instanceof DynamicRealm) {
             DynamicRealm dynamicRealm = (DynamicRealm) realm;
             RealmList<DynamicRealmObject> dynamicList = (RealmList<DynamicRealmObject>) this;
             @SuppressWarnings("UnnecessaryLocalVariable")
-            Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicList);
+            Flowable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicList);
             return results;
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava.");
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
         }
     }
 

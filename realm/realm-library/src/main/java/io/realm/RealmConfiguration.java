@@ -377,7 +377,7 @@ public class RealmConfiguration {
     static synchronized boolean isRxJavaAvailable() {
         if (rxJavaAvailable == null) {
             try {
-                Class.forName("rx.Observable");
+                Class.forName("io.reactivex.Flowable");
                 rxJavaAvailable = true;
             } catch (ClassNotFoundException ignore) {
                 rxJavaAvailable = false;
