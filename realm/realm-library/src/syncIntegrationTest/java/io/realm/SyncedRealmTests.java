@@ -36,7 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;

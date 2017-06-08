@@ -31,7 +31,6 @@ import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmFileException;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.TestSyncConfigurationFactory;
 

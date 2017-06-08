@@ -60,16 +60,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmFileUserStore_nativeGetUser(JNIEnv*
 
 JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeUpdateOrCreateUser(JNIEnv* env, jclass,
                                                                                  jstring identity, jstring json_token,
-                                                                                 jstring url, jboolean is_admin)
+                                                                                 jstring url)
 {
     TR_ENTER()
     try {
-        JStringAccessor user_identity(env, identity);    // throws
+        JStringAccessor user_identity(env, identity);     // throws
         JStringAccessor user_json_token(env, json_token); // throws
-        JStringAccessor auth_url(env, url);              // throws
-
-        SyncUser::TokenType token_type = (is_admin) ? SyncUser::TokenType::Admin : SyncUser::TokenType::Normal;
-        SyncManager::shared().get_user(user_identity, user_json_token, std::string(auth_url), token_type);
+        JStringAccessor auth_url(env, url);               // throws
+        SyncManager::shared().get_user(user_identity, user_json_token, std::string(auth_url));
     }
     CATCH_STD()
 }
