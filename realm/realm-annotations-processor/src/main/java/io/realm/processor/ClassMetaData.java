@@ -428,7 +428,7 @@ public class ClassMetaData {
         if (Utils.isPrimitiveType(variableElement)) {
             Utils.error(String.format(
                     "@Required annotation is unnecessary for primitive field \"%s\".", element));
-        } else if (Utils.isRealmInteger(variableElement) || Utils.isRealmModel(variableElement) || Utils.isRealmList(variableElement)) {
+        } else if (Utils.isRealmModel(variableElement) || Utils.isRealmList(variableElement)) {
             Utils.error(String.format(
                     "Field \"%s\" with type \"%s\" cannot be @Required.", element, element.asType()));
         } else {

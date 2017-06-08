@@ -22,6 +22,9 @@ import io.realm.internal.datatypes.realminteger.UnmanagedRealmInteger;
 
 /**
  * A RealmInteger is a mutable, {@link java.lang.Long}-like numeric quantity.
+ * RealmInteger implementations are not thread safe.  Like all Realm objects,
+ * managed RealmIntegers may not be moved across threads.  Unmanaged RealmObject
+ * may be moved across threads by require safe publication.
  *
  * It wraps an internal CRDT counter:
  * @see <a href="https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type"></a>

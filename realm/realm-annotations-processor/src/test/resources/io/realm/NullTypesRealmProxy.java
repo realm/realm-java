@@ -27,7 +27,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-@SuppressWarnings("all")
 public class NullTypesRealmProxy extends some.test.NullTypes
         implements RealmObjectProxy, NullTypesRealmProxyInterface {
 

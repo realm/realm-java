@@ -108,8 +108,7 @@ public class RealmProxyClassGenerator {
                 .emitEmptyLine();
 
         // Begin the class definition
-        writer.emitAnnotation("SuppressWarnings(\"all\")")
-                .beginType(
+        writer.beginType(
                 qualifiedGeneratedClassName, // full qualified name of the item to generate
                 "class",                     // the type of the item
                 EnumSet.of(Modifier.PUBLIC), // modifiers to apply
@@ -388,7 +387,6 @@ public class RealmProxyClassGenerator {
 
         writer.emitAnnotation("Override");
         writer.beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
-                .emitStatement("throw new IllegalStateException(\"Cannot assign to a managed RealmInteger\")")
                 .endMethod();
     }
 
@@ -2116,7 +2114,7 @@ public class RealmProxyClassGenerator {
             return type;
         }
         if (Utils.isRealmInteger(field)) {
-            return Constants.RealmFieldType.COUNTER;
+            return Constants.RealmFieldType.REALM_INTEGER;
         }
         if (Utils.isRealmModel(field)) {
             return Constants.RealmFieldType.OBJECT;

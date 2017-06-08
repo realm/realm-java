@@ -29,7 +29,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-@SuppressWarnings("all")
 public class AllTypesRealmProxy extends some.test.AllTypes
     implements RealmObjectProxy, AllTypesRealmProxyInterface {
 
@@ -294,7 +293,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     @Override
     public void realmSet$columnCounter(RealmInteger value) {
-        throw new IllegalStateException("Cannot assign to a managed RealmInteger");
     }
 
     @Override
