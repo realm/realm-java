@@ -42,7 +42,7 @@ public class HttpUtils {
     private static final String STOP_SERVER = "http://127.0.0.1:8888/stop";
     public static final String TAG = "IntegrationTestServer";
 
-    public static void  startSyncServer() throws Exception {
+    public static void startSyncServer() throws Exception {
         Request request = new Request.Builder()
                 .url(START_SERVER)
                 .build();
