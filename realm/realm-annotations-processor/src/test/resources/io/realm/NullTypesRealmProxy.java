@@ -843,7 +843,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         builder.addProperty("fieldDoubleNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addProperty("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addProperty("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addProperty("fieldObjectNull", RealmFieldType.OBJECT, "NullTypes");
+        builder.addLinkedProperty("fieldObjectNull", RealmFieldType.OBJECT, "NullTypes");
         return builder.build();
     }
 
