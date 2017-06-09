@@ -41,6 +41,7 @@ import io.realm.TestHelper;
 import io.realm.entities.AllTypes;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -56,7 +57,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
 
     @NonNull
     private SyncConfiguration createSyncConfig() {
-        SyncUser user = loginAdminUser();
+        SyncUser user = UserFactory.createAdminUser(Constants.AUTH_URL);
         return configFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL).build();
     }
 
@@ -102,9 +103,9 @@ public class ProgressListenerTests extends BaseIntegrationTest {
     @Test
     public void downloadProgressListener_changesOnly() {
         final CountDownLatch allChangesDownloaded = new CountDownLatch(1);
-        SyncUser userWithData = loginUser();
+        SyncUser userWithData = UserFactory.createUniqueUser(Constants.AUTH_URL);
         URI serverUrl = createRemoteData(userWithData);
-        SyncUser adminUser = loginAdminUser();
+        SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
 
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString()).build();
         Realm realm = Realm.getInstance(config);
@@ -132,7 +133,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         final AtomicInteger transferCompleted = new AtomicInteger(0);
         final CountDownLatch allChangesDownloaded = new CountDownLatch(1);
         final CountDownLatch startWorker = new CountDownLatch(1);
-        final SyncUser userWithData = loginUser();
+        final SyncUser userWithData = UserFactory.createUniqueUser(Constants.AUTH_URL);
 
         URI serverUrl = createRemoteData(userWithData);
 
@@ -147,7 +148,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         });
         worker.start();
 
-        SyncUser adminUser = loginAdminUser();
+        SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         final SyncConfiguration adminConfig = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString()).build();
         Realm adminRealm = Realm.getInstance(adminConfig);
         Realm userRealm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(userWithData, Constants.USER_REALM).build()); // Keep session alive
@@ -337,7 +338,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
             session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
                 @Override
                 public void onChange(Progress progress) {
-                    RealmLog.error("Test %s -> %s", Integer.toString(testNo), progress.toString());
+                    RealmLog.info("Test %s -> %s", Integer.toString(testNo), progress.toString());
                     if (progress.isTransferComplete()) {
                         assertTransferComplete(progress, true);
                         changesUploaded.countDown();

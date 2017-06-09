@@ -9,7 +9,6 @@
 * Moved inverse relationships out of beta stage.
 * Added `Realm.getDefaultConfiguration()` (#4725).
 
-
 ### Bug Fixes
 
 * [ObjectServer] Fixed a crash when an authentication error happens (#4726).
