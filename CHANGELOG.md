@@ -1,8 +1,22 @@
-## 3.3.2 (2017-06-09)
+## 3.4.0 (YYYY-MM-DD)
 
 ### Breaking Changes
 
 ### Enhancements
+
+* Added support for querying inverse relationships (#2904).
+* Moved inverse relationships out of beta stage.
+* Added `Realm.getDefaultConfiguration()` (#4725).
+
+### Bug Fixes
+
+### Internal
+
+* Upgraded to Realm Sync 1.9.1
+* Upgraded to Realm Core 2.8.0
+
+
+## 3.3.2 (2017-06-09)
 
 ### Bug Fixes
 
