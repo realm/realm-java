@@ -41,6 +41,7 @@ import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
+import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -65,8 +66,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
     @Test
     @UiThreadTest
     public void waitForInitialRemoteData_mainThreadThrows() {
-        final SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-
+        final SyncUser user = SyncTestUtils.createTestUser(Constants.AUTH_URL);
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .waitForInitialRemoteData()
                 .build();
