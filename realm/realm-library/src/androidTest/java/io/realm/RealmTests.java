@@ -781,7 +781,6 @@ public class RealmTests {
     }
 
     @Test
-    @Ignore
     public void utf8Tests() {
         realm.beginTransaction();
         realm.delete(AllTypes.class);
@@ -801,10 +800,9 @@ public class RealmTests {
                 o.setColumnLong(i);
                 o.setColumnString(codePoint);
 
-                AllTypes realmType = realm.where(AllTypes.class).equalTo("columnLong", i).findFirst();
                 if (i > 1) {
                     assertEquals("Codepoint: " + i + " / " + currentUnicode, codePoint,
-                            realmType.getColumnString()); // codepoint 0 is NULL, ignore for now.
+                            o.getColumnString()); // codepoint 0 is NULL, ignore for now.
                 }
                 i++;
             }
