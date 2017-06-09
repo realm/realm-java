@@ -139,6 +139,7 @@ public class SyncManagerTests {
         assertEquals(0, counter[0]);
         assertEquals(0, counter[1]);
     }
+
     @Test
     public void session() throws IOException {
         SyncUser user = createTestUser();
@@ -146,8 +147,11 @@ public class SyncManagerTests {
         SyncConfiguration config = new SyncConfiguration.Builder(user, url)
                 .build();
         // This will trigger the creation of the session
-        Realm.getInstance(config);
+        Realm realm = Realm.getInstance(config);
         SyncSession session = SyncManager.getSession(config);
         assertEquals(user, session.getUser()); // see also SessionTests
+
+        realm.close();
+        SyncManager.reset();
     }
 }
