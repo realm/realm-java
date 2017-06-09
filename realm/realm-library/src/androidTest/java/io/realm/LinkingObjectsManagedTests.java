@@ -29,7 +29,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllJavaTypes;
@@ -46,9 +45,11 @@ import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 
 @RunWith(AndroidJUnit4.class)
 public class LinkingObjectsManagedTests {
@@ -147,15 +148,32 @@ public class LinkingObjectsManagedTests {
         // One entry for each reference, so two references from a LinkList will
         // result in two backlinks.
         assertEquals(2, child.getListParents().size());
+
         assertEquals(parent, child.getListParents().first());
         assertEquals(parent, child.getListParents().last());
+    }
+
+    // This test reproduces https://github.com/realm/realm-java/issues/4487
+    @Test
+    public void issue4487_checkIfTableIsCorrect() {
+        realm.beginTransaction();
+        final BacklinksTarget target = realm.createObject(BacklinksTarget.class);
+        target.setId(1);
+        final BacklinksSource source = realm.createObject(BacklinksSource.class);
+        source.setChild(target);
+        realm.commitTransaction();
+
+        final RealmResults<BacklinksSource> parents = target.getParents();
+        final BacklinksSource sourceFromBacklinks = parents.first();
+
+        assertEquals(source, sourceFromBacklinks);
     }
 
     // A listener registered on the backlinked object should not be called after the listener is removed
     @Test
     @RunTestInLooperThread
     public void notification_notSentAfterUnregisterListenerModelObject() {
-        final Realm looperThreadRealm = looperThread.realm;
+        final Realm looperThreadRealm = looperThread.getRealm();
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -176,21 +194,21 @@ public class LinkingObjectsManagedTests {
         looperThreadRealm.commitTransaction();
 
         verifyPostConditions(
-            looperThreadRealm,
-            new PostConditions() {
-                @Override
-                public void run(Realm realm) {
-                    assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
-                }
-            },
-            child, parent);
+                looperThreadRealm,
+                new PostConditions() {
+                    @Override
+                    public void run(Realm realm) {
+                        assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+                    }
+                },
+                child, parent);
     }
 
     // A listener registered on the backlinked field should be called when a commit adds a backlink
     @Test
     @RunTestInLooperThread
     public void notification_onCommitRealmResults() {
-        final Realm looperThreadRealm = looperThread.realm;
+        final Realm looperThreadRealm = looperThread.getRealm();
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -211,22 +229,22 @@ public class LinkingObjectsManagedTests {
         looperThreadRealm.commitTransaction();
 
         verifyPostConditions(
-            looperThreadRealm,
-            new PostConditions() {
-                @Override
-                public void run(Realm realm) {
-                    assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
-                    assertEquals(1, counter.get());
-                }
-            },
-            child, parent);
+                looperThreadRealm,
+                new PostConditions() {
+                    @Override
+                    public void run(Realm realm) {
+                        assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+                        assertEquals(1, counter.get());
+                    }
+                },
+                child, parent);
     }
 
     // A listener registered on the backlinked field should not be called after the listener is removed
     @Test
     @RunTestInLooperThread
     public void notification_notSentAfterUnregisterListenerRealmResults() {
-        final Realm looperThreadRealm = looperThread.realm;
+        final Realm looperThreadRealm = looperThread.getRealm();
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -248,21 +266,21 @@ public class LinkingObjectsManagedTests {
         looperThreadRealm.commitTransaction();
 
         verifyPostConditions(
-            looperThreadRealm,
-            new PostConditions() {
-                @Override
-                public void run(Realm realm) {
-                    assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
-                }
-            },
-            child, parent);
+                looperThreadRealm,
+                new PostConditions() {
+                    @Override
+                    public void run(Realm realm) {
+                        assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+                    }
+                },
+                child, parent);
     }
 
     // A listener registered on the backlinked object should be called when a backlinked object is deleted
     @Test
     @RunTestInLooperThread
     public void notification_onDeleteRealmResults() {
-        final Realm looperThreadRealm = looperThread.realm;
+        final Realm looperThreadRealm = looperThread.getRealm();
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -284,22 +302,22 @@ public class LinkingObjectsManagedTests {
         looperThreadRealm.commitTransaction();
 
         verifyPostConditions(
-            looperThreadRealm,
-            new PostConditions() {
-                @Override
-                public void run(Realm realm) {
-                    assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
-                    assertEquals(1, counter.get());
-                }
-            },
-            child, parent);
+                looperThreadRealm,
+                new PostConditions() {
+                    @Override
+                    public void run(Realm realm) {
+                        assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+                        assertEquals(1, counter.get());
+                    }
+                },
+                child, parent);
     }
 
     // A listener registered on the backlinked object should not called for an unrelated change
     @Test
     @RunTestInLooperThread
     public void notification_notSentOnUnrelatedChangeRealmResults() {
-        final Realm looperThreadRealm = looperThread.realm;
+        final Realm looperThreadRealm = looperThread.getRealm();
 
         looperThreadRealm.beginTransaction();
         AllJavaTypes child = looperThreadRealm.createObject(AllJavaTypes.class, 10);
@@ -319,14 +337,14 @@ public class LinkingObjectsManagedTests {
         looperThreadRealm.commitTransaction();
 
         verifyPostConditions(
-            looperThreadRealm,
-            new PostConditions() {
-                @Override
-                public void run(Realm realm) {
-                    assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
-                }
-            },
-            child, parent);
+                looperThreadRealm,
+                new PostConditions() {
+                    @Override
+                    public void run(Realm realm) {
+                        assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
+                    }
+                },
+                child, parent);
     }
 
     // Fields annotated with @LinkingObjects should not be affected by JSON updates
@@ -385,6 +403,105 @@ public class LinkingObjectsManagedTests {
         assertTrue(parents.contains(parent));
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void linkingObjects_IllegalStateException_ifNotYetLoaded() {
+        final Realm realm = looperThread.getRealm();
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final BacklinksTarget target = realm.createObject(BacklinksTarget.class);
+                target.setId(1);
+
+                final BacklinksSource source = realm.createObject(BacklinksSource.class);
+                source.setChild(target);
+            }
+        });
+
+
+        final BacklinksTarget targetAsync = realm.where(BacklinksTarget.class)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirstAsync();
+        // precondition
+        assertFalse(targetAsync.isLoaded());
+
+        thrown.expect(IllegalStateException.class);
+        //noinspection ResultOfMethodCallIgnored
+        targetAsync.getParents();
+        fail();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void linkingObjects_IllegalStateException_ifDeleted() {
+        final Realm realm = looperThread.getRealm();
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final BacklinksTarget target = realm.createObject(BacklinksTarget.class);
+                target.setId(1);
+
+                final BacklinksSource source = realm.createObject(BacklinksSource.class);
+                source.setChild(target);
+            }
+        });
+
+        final BacklinksTarget target = realm.where(BacklinksTarget.class)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                target.deleteFromRealm();
+            }
+        });
+
+        // precondition
+        assertFalse(target.isValid());
+
+        thrown.expect(IllegalStateException.class);
+        //noinspection ResultOfMethodCallIgnored
+        target.getParents();
+        fail();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void linkingObjects_IllegalStateException_ifDeletedIndirectly() {
+        final Realm realm = looperThread.getRealm();
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final BacklinksTarget target1 = realm.createObject(BacklinksTarget.class);
+                target1.setId(1);
+
+                final BacklinksSource source = realm.createObject(BacklinksSource.class);
+                source.setChild(target1);
+            }
+        });
+
+        final BacklinksTarget target = realm.where(BacklinksTarget.class)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                // delete target object indirectly
+                realm.where(BacklinksTarget.class).findAll().deleteAllFromRealm();
+            }
+        });
+
+        // precondition
+        assertFalse(target.isValid());
+
+        thrown.expect(IllegalStateException.class);
+        //noinspection ResultOfMethodCallIgnored
+        target.getParents();
+        fail();
+    }
+
     /**
      * Table validation should fail if the backinked column already exists in the target table.
      * The realm `backlinks-fieldInUse.realm` contains the classes `BacklinksSource` and `BacklinksTarget`
@@ -400,9 +517,9 @@ public class LinkingObjectsManagedTests {
         final String realmName = "backlinks-fieldInUse.realm";
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-            .name(realmName)
-            .schema(BacklinksSource.class, BacklinksTarget.class)
-            .build();
+                .name(realmName)
+                .schema(BacklinksSource.class, BacklinksTarget.class)
+                .build();
 
         try {
             configFactory.copyRealmFromAssets(context, realmName, realmName);
@@ -435,14 +552,15 @@ public class LinkingObjectsManagedTests {
      * basic validation passes.  Backlink validation, however, should fail, seeking the
      * `BacklinksSource` table.
      */
+    @Ignore("Need to rebuild the test library")
     @Test
     public void migration_backlinkedSourceClassDoesntExist() throws IOException {
         final String realmName = "backlinks-missingSourceClass.realm";
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-            .name(realmName)
-            .schema(BacklinksTarget.class)
-            .build();
+                .name(realmName)
+                .schema(BacklinksTarget.class)
+                .build();
 
         try {
             configFactory.copyRealmFromAssets(context, realmName, realmName);
@@ -476,14 +594,15 @@ public class LinkingObjectsManagedTests {
      * validate its table.  If we have been living clean lives, though, the validator for
      * `BacklinksMissingFieldTarget` should notice that there is no field named `BacklinksMissingFieldSource.xxxchild`.
      */
+    @Ignore("Need to rebuild the test library")
     @Test
     public void migration_backlinkedSourceFieldDoesntExist() {
         final String realmName = "backlinks-missingSourceField.realm";
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-            .name(realmName)
-            .modules(new BacklinksMissingFieldSourceModule(), new BacklinksMissingFieldTargetModule())
-            .build();
+                .name(realmName)
+                .modules(new BacklinksMissingFieldSourceModule(), new BacklinksMissingFieldTargetModule())
+                .build();
 
         try {
             configFactory.copyRealmFromAssets(context, realmName, realmName);
@@ -514,14 +633,15 @@ public class LinkingObjectsManagedTests {
      * for `BacklinksWrongTypeTarget` should notice, though, that its `parents` field points to an object
      * of the wrong type, `Integer`, instead of `BacklinksWrongTypeSource`.
      */
+    @Ignore("Need to rebuild the test library")
     @Test
     public void migration_backlinkedSourceFieldWrongType() {
         final String realmName = "backlinks-sourceFieldWrongType.realm";
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-            .name(realmName)
-            .modules(new BacklinksWrongTypeSourceModule(), new BacklinksWrongTypeTargetModule())
-            .build();
+                .name(realmName)
+                .modules(new BacklinksWrongTypeSourceModule(), new BacklinksWrongTypeTargetModule())
+                .build();
 
         try {
             configFactory.copyRealmFromAssets(context, realmName, realmName);
@@ -555,111 +675,6 @@ public class LinkingObjectsManagedTests {
         assertTrue(child.getListParents().contains(parent));
     }
 
-    // Query on a field descriptor starting with a backlink
-    // The test objects are:
-    //             gen1
-    //             / \
-    //         gen2A gen2B
-    //           \\   //
-    //            gen3
-    //  /  = object ref
-    //  // = list ref
-    @Test
-    @Ignore
-    public void query_startWithBacklink() {
-        realm.beginTransaction();
-        AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);
-
-        AllJavaTypes gen2A = realm.createObject(AllJavaTypes.class, 1);
-        gen2A.setFieldObject(gen1);
-
-        AllJavaTypes gen2B = realm.createObject(AllJavaTypes.class, 2);
-        gen2B.setFieldObject(gen1);
-
-        AllJavaTypes gen3 = realm.createObject(AllJavaTypes.class, 3);
-        RealmList<AllJavaTypes> parents = gen3.getFieldList();
-        parents.add(gen2A);
-        parents.add(gen2B);
-
-        realm.commitTransaction();
-
-        RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
-            .greaterThan("objectParents.fieldId", 1)
-            .findAll();
-        assertEquals(1, result.size());
-        assertTrue(result.contains(gen2B));
-    }
-
-    // Query on a field descriptor that ends with a backlink
-    // The test objects are:
-    //             gen1
-    //             / \
-    //         gen2A gen2B
-    //           \\   //
-    //            gen3
-    //  /  = object ref
-    //  // = list ref
-    @Test
-    @Ignore
-    public void query_endWithBacklink() {
-        realm.beginTransaction();
-        AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);
-
-        AllJavaTypes gen2A = realm.createObject(AllJavaTypes.class, 1);
-        gen2A.setFieldObject(gen1);
-
-        AllJavaTypes gen2B = realm.createObject(AllJavaTypes.class, 2);
-        gen2B.setFieldObject(gen1);
-
-        AllJavaTypes gen3 = realm.createObject(AllJavaTypes.class, 3);
-        RealmList<AllJavaTypes> parents = gen3.getFieldList();
-        parents.add(gen2A);
-        parents.add(gen2B);
-
-        realm.commitTransaction();
-
-        RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
-            .isNotNull("objectParents.listParents")
-            .findAll();
-        assertEquals(2, result.size());
-        assertTrue(result.contains(gen2A));
-        assertTrue(result.contains(gen2B));
-    }
-
-    // Query on a field descriptor that has a backlink in the middle
-    // The test objects are:
-    //             gen1
-    //             / \
-    //         gen2A gen2B
-    //           \\   //
-    //            gen3
-    //  /  = object ref
-    //  // = list ref
-    @Test
-    @Ignore
-    public void query_backlinkInMiddle() {
-        realm.beginTransaction();
-        AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);
-
-        AllJavaTypes gen2A = realm.createObject(AllJavaTypes.class, 1);
-        gen2A.setFieldObject(gen1);
-
-        AllJavaTypes gen2B = realm.createObject(AllJavaTypes.class, 2);
-        gen2B.setFieldObject(gen1);
-
-        AllJavaTypes gen3 = realm.createObject(AllJavaTypes.class, 3);
-        RealmList<AllJavaTypes> parents = gen3.getFieldList();
-        parents.add(gen2A);
-        parents.add(gen2B);
-
-        realm.commitTransaction();
-
-        RealmResults<AllJavaTypes> result = realm.where(AllJavaTypes.class)
-            .lessThan("objectParents.listParents.fieldId", 4)
-            .findAll();
-        assertEquals(2, result.size());
-    }
-
     // Based on a quick conversation with Christian Melchior and Mark Rowe,
     // it appears that notifications are enqueued, briefly, on a non-Java
     // thread.  That makes their delivery onto the looper thread unpredictable.
@@ -678,15 +693,17 @@ public class LinkingObjectsManagedTests {
         realm.commitTransaction();
 
         // Runnable is guaranteed to be enqueued on the Looper queue, after the notifications
-        looperThread.keepStrongReference.addAll(Arrays.asList(refs));
+        for (Object ref : refs) {
+            looperThread.keepStrongReference(ref);
+        }
         looperThread.postRunnable(
-            new Runnable() {
-                @Override
-                public void run() {
-                    test.run(realm);
-                    looperThread.testComplete();
-                }
-            });
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        test.run(realm);
+                        looperThread.testComplete();
+                    }
+                });
     }
 }
 

@@ -28,6 +28,8 @@
 #include "shared_realm.hpp"
 #include "results.hpp"
 
+#include "jni_util/java_exception_thrower.hpp"
+
 using namespace std;
 using namespace realm;
 using namespace realm::util;
@@ -55,6 +57,9 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     ostringstream ss;
     try {
         throw;
+    }
+    catch (JavaExceptionThrower& e) {
+        e.throw_java_exception(env);
     }
     catch (bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;

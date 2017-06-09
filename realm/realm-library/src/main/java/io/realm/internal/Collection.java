@@ -32,6 +32,9 @@ import io.realm.RealmChangeListener;
 @Keep
 public class Collection implements NativeObject {
 
+    private static final String CLOSED_REALM_MESSAGE =
+            "This Realm instance has already been closed, making it unusable.";
+
     private static class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
         public CollectionObserverPair(T observer, Object listener) {
             super(observer, listener);
@@ -94,6 +97,10 @@ public class Collection implements NativeObject {
         protected int pos = -1;
 
         public Iterator(Collection collection) {
+            if (collection.sharedRealm.isClosed()) {
+                throw new IllegalStateException(CLOSED_REALM_MESSAGE);
+            }
+
             this.iteratorCollection = collection;
 
             if (collection.isSnapshot) {
@@ -252,7 +259,7 @@ public class Collection implements NativeObject {
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final SharedRealm sharedRealm;
-    private final Context context;
+    private final NativeContext context;
     private final Table table;
     private boolean loaded;
     private boolean isSnapshot = false;
@@ -328,7 +335,7 @@ public class Collection implements NativeObject {
                 row.getNativePtr(),
                 srcTable.getNativePtr(),
                 srcTable.getColumnIndex(srcFieldName));
-        return new Collection(realm, row.getTable(), backlinksPtr, true);
+        return new Collection(realm, srcTable, backlinksPtr, true);
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query,
@@ -360,7 +367,7 @@ public class Collection implements NativeObject {
 
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
-        this.table = linkView.getTable();
+        this.table = linkView.getTargetTable();
         this.context.addReference(this);
         // Collection created from LinkView is loaded by default. So that the listener will be triggered first time
         // with empty change set.

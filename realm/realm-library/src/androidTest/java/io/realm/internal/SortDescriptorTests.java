@@ -25,8 +25,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
@@ -38,6 +38,7 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+
 
 @RunWith(AndroidJUnit4.class)
 public class SortDescriptorTests {
@@ -54,7 +55,7 @@ public class SortDescriptorTests {
         RealmConfiguration config = configFactory.createConfiguration();
         sharedRealm = SharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
-        table = sharedRealm.getTable("test_table");
+        table = sharedRealm.createTable("test_table");
     }
 
     @After
@@ -64,14 +65,14 @@ public class SortDescriptorTests {
 
     @Test
     public void getInstanceForDistinct() {
-        for (RealmFieldType type : SortDescriptor.validFieldTypesForDistinct) {
+        for (RealmFieldType type : SortDescriptor.DISTINCT_VALID_FIELD_TYPES) {
             long column = table.addColumn(type, type.name());
             table.addSearchIndex(column);
         }
 
         long i = 0;
-        for (RealmFieldType type : SortDescriptor.validFieldTypesForDistinct) {
-            SortDescriptor sortDescriptor = SortDescriptor.getInstanceForDistinct(table, type.name());
+        for (RealmFieldType type : SortDescriptor.DISTINCT_VALID_FIELD_TYPES) {
+            SortDescriptor sortDescriptor = SortDescriptor.getInstanceForDistinct(null, table, type.name());
             assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
             assertEquals(i, sortDescriptor.getColumnIndices()[0][0]);
             assertNull(sortDescriptor.getAscendings());
@@ -89,13 +90,13 @@ public class SortDescriptorTests {
         table.addColumnLink(listType, listType.name(), table);
 
         try {
-            SortDescriptor.getInstanceForDistinct(table, String.format("%s.%s", listType.name(), type.name()));
+            SortDescriptor.getInstanceForDistinct(null, table, String.format("%s.%s", listType.name(), type.name()));
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         try {
-            SortDescriptor.getInstanceForDistinct(table, String.format("%s.%s", objectType.name(), type.name()));
+            SortDescriptor.getInstanceForDistinct(null, table, String.format("%s.%s", objectType.name(), type.name()));
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -110,8 +111,8 @@ public class SortDescriptorTests {
         long intColumn = table.addColumn(intType, intType.name());
         table.addSearchIndex(intColumn);
 
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForDistinct(table, new String[] {
-               stringType.name(), intType.name()});
+        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForDistinct(null, table, new String[] {
+                stringType.name(), intType.name()});
         assertEquals(2, sortDescriptor.getColumnIndices().length);
         assertNull(sortDescriptor.getAscendings());
         assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
@@ -122,24 +123,11 @@ public class SortDescriptorTests {
 
     @Test
     public void getInstanceForDistinct_shouldThrowOnInvalidField() {
-        List<RealmFieldType> types = new ArrayList<RealmFieldType>();
-        for (RealmFieldType type : RealmFieldType.values()) {
-            if (!SortDescriptor.validFieldTypesForDistinct.contains(type) &&
-                    type != RealmFieldType.UNSUPPORTED_DATE &&
-                    type != RealmFieldType.UNSUPPORTED_TABLE &&
-                    type != RealmFieldType.UNSUPPORTED_MIXED) {
-                if (type == RealmFieldType.LIST || type == RealmFieldType.OBJECT) {
-                    table.addColumnLink(type, type.name(), table);
-                } else {
-                    table.addColumn(type, type.name());
-                }
-                types.add(type);
-            }
-        }
+        Set<RealmFieldType> types = getValidFieldTypes(SortDescriptor.DISTINCT_VALID_FIELD_TYPES);
 
         for (RealmFieldType type : types) {
             try {
-                SortDescriptor.getInstanceForDistinct(table, type.name());
+                SortDescriptor.getInstanceForDistinct(null, table, type.name());
                 fail();
             } catch (IllegalArgumentException ignored) {
                 assertTrue(ignored.getMessage().contains("Distinct is not supported"));
@@ -149,13 +137,13 @@ public class SortDescriptorTests {
 
     @Test
     public void getInstanceForSort() {
-        for (RealmFieldType type : SortDescriptor.validFieldTypesForSort) {
+        for (RealmFieldType type : SortDescriptor.SORT_VALID_FIELD_TYPES) {
             table.addColumn(type, type.name());
         }
 
         long i = 0;
-        for (RealmFieldType type : SortDescriptor.validFieldTypesForSort) {
-            SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(table, type.name(), Sort.DESCENDING);
+        for (RealmFieldType type : SortDescriptor.SORT_VALID_FIELD_TYPES) {
+            SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(null, table, type.name(), Sort.DESCENDING);
             assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
             assertEquals(i, sortDescriptor.getColumnIndices()[0][0]);
             assertFalse(sortDescriptor.getAscendings()[0]);
@@ -165,7 +153,7 @@ public class SortDescriptorTests {
 
     @Test
     public void getInstanceForSort_linkField() {
-        for (RealmFieldType type : SortDescriptor.validFieldTypesForDistinct) {
+        for (RealmFieldType type : SortDescriptor.DISTINCT_VALID_FIELD_TYPES) {
             long column = table.addColumn(type, type.name());
             table.addSearchIndex(column);
         }
@@ -173,8 +161,8 @@ public class SortDescriptorTests {
         long columnLink = table.addColumnLink(objectType, objectType.name(), table);
 
         long i = 0;
-        for (RealmFieldType type : SortDescriptor.validFieldTypesForDistinct) {
-            SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(table,
+        for (RealmFieldType type : SortDescriptor.DISTINCT_VALID_FIELD_TYPES) {
+            SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(null, table,
                     String.format("%s.%s", objectType.name(), type.name()), Sort.ASCENDING);
             assertEquals(2, sortDescriptor.getColumnIndices()[0].length);
             assertEquals(columnLink, sortDescriptor.getColumnIndices()[0][0]);
@@ -191,7 +179,7 @@ public class SortDescriptorTests {
         RealmFieldType intType = RealmFieldType.INTEGER;
         long intColumn = table.addColumn(intType, intType.name());
 
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(table, new String[] {
+        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(null, table, new String[] {
                 stringType.name(), intType.name()}, new Sort[] {Sort.ASCENDING, Sort.DESCENDING});
 
         assertEquals(2, sortDescriptor.getAscendings().length);
@@ -216,31 +204,18 @@ public class SortDescriptorTests {
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Number of fields and sort orders do not match.");
-        SortDescriptor.getInstanceForSort(table,
-                new String[] { stringType.name(), intType.name()}, new Sort[] {Sort.ASCENDING});
+        SortDescriptor.getInstanceForSort(null, table,
+                new String[] {stringType.name(), intType.name()}, new Sort[] {Sort.ASCENDING});
 
     }
 
     @Test
     public void getInstanceForSort_shouldThrowOnInvalidField() {
-        List<RealmFieldType> types = new ArrayList<RealmFieldType>();
-        for (RealmFieldType type : RealmFieldType.values()) {
-            if (!SortDescriptor.validFieldTypesForSort.contains(type) &&
-                    type != RealmFieldType.UNSUPPORTED_DATE &&
-                    type != RealmFieldType.UNSUPPORTED_TABLE&&
-                    type != RealmFieldType.UNSUPPORTED_MIXED) {
-                if (type == RealmFieldType.LIST || type == RealmFieldType.OBJECT) {
-                    table.addColumnLink(type, type.name(), table);
-                } else {
-                    table.addColumn(type, type.name());
-                }
-                types.add(type);
-            }
-        }
+        Set<RealmFieldType> types = getValidFieldTypes(SortDescriptor.SORT_VALID_FIELD_TYPES);
 
         for (RealmFieldType type : types) {
             try {
-                SortDescriptor.getInstanceForSort(table, type.name(), Sort.ASCENDING);
+                SortDescriptor.getInstanceForSort(null, table, type.name(), Sort.ASCENDING);
                 fail();
             } catch (IllegalArgumentException ignored) {
                 assertTrue(ignored.getMessage().contains("Sort is not supported"));
@@ -256,7 +231,31 @@ public class SortDescriptorTests {
         table.addColumnLink(listType, listType.name(), table);
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("is not a supported link field");
-        SortDescriptor.getInstanceForSort(table, String.format("%s.%s", listType.name(), type.name()), Sort.ASCENDING);
+        thrown.expectMessage("Invalid query: field 'LIST' in table 'test_table' is of invalid type 'LIST'.");
+        SortDescriptor.getInstanceForSort(null, table, String.format("%s.%s", listType.name(), type.name()), Sort.ASCENDING);
+    }
+
+    private Set<RealmFieldType> getValidFieldTypes(Set<RealmFieldType> filter) {
+        Set<RealmFieldType> types = new HashSet<>();
+        for (RealmFieldType type : RealmFieldType.values()) {
+            if (!filter.contains(type)) {
+                switch (type) {
+                    case UNSUPPORTED_DATE:
+                    case UNSUPPORTED_TABLE:
+                    case UNSUPPORTED_MIXED:
+                    case LINKING_OBJECTS: // TODO: should be supported?s
+                        break;
+                    case LIST:
+                    case OBJECT:
+                        table.addColumnLink(type, type.name(), table);
+                        types.add(type);
+                        break;
+                    default:
+                        table.addColumn(type, type.name());
+                        types.add(type);
+                }
+            }
+        }
+        return types;
     }
 }

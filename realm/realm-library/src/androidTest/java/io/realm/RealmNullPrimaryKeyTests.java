@@ -36,6 +36,7 @@ import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
@@ -202,7 +203,8 @@ public class RealmNullPrimaryKeyTests {
             realm.createObject(testClazz, null);
             fail("Null value as primary key already exists.");
         } catch (RealmPrimaryKeyConstraintException expected) {
-            assertEquals("Value already exists: null", expected.getMessage());
+            assertTrue("Exception message is: " + expected.getMessage(),
+                    expected.getMessage().contains("Primary key value already exists: 'null' ."));
         } finally {
             realm.cancelTransaction();
         }

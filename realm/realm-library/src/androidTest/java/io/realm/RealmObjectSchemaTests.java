@@ -48,7 +48,7 @@ public class RealmObjectSchemaTests {
     private RealmObjectSchema DOG_SCHEMA;
     private DynamicRealm realm;
     private RealmObjectSchema schema;
-    private StandardRealmSchema realmSchema;
+    private RealmSchema realmSchema;
 
     @Before
     public void setUp() {
@@ -738,16 +738,16 @@ public class RealmObjectSchemaTests {
         RealmConfiguration emptyConfig = configFactory.createConfiguration("empty");
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(emptyConfig);
         dynamicRealm.beginTransaction();
-        RealmObjectSchema objectSchema = dynamicRealm.getSchema().create(className);
+        StandardRealmObjectSchema objectSchema = (StandardRealmObjectSchema) dynamicRealm.getSchema().create(className);
 
-        assertNull(objectSchema.getFieldIndex(fieldName));
+        assertTrue(objectSchema.getFieldIndex(fieldName) < 0);
 
         objectSchema.addField(fieldName, long.class);
         //noinspection ConstantConditions
         assertTrue(objectSchema.getFieldIndex(fieldName) >= 0);
 
         objectSchema.removeField(fieldName);
-        assertNull(objectSchema.getFieldIndex(fieldName));
+        assertTrue(objectSchema.getFieldIndex(fieldName) < 0);
 
         dynamicRealm.cancelTransaction();
         dynamicRealm.close();

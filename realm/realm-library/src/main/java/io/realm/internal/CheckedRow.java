@@ -33,7 +33,7 @@ public class CheckedRow extends UncheckedRow {
     @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private UncheckedRow originalRow;
 
-    private CheckedRow(Context context, Table parent, long nativePtr) {
+    private CheckedRow(NativeContext context, Table parent, long nativePtr) {
         super(context, parent, nativePtr);
     }
 
@@ -50,7 +50,7 @@ public class CheckedRow extends UncheckedRow {
      * @param index the index of the row.
      * @return an instance of Row for the table and index specified.
      */
-    public static CheckedRow get(Context context, Table table, long index) {
+    public static CheckedRow get(NativeContext context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.getNativePtr(), index);
         return new CheckedRow(context, table, nativeRowPointer);
     }
@@ -63,7 +63,7 @@ public class CheckedRow extends UncheckedRow {
      * @param index the index of the row.
      * @return a checked instance of {@link Row} for the {@link LinkView} and index specified.
      */
-    public static CheckedRow get(Context context, LinkView linkView, long index) {
+    public static CheckedRow get(NativeContext context, LinkView linkView, long index) {
         long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePtr(), index);
         return new CheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
     }

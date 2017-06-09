@@ -29,9 +29,13 @@ public:
         : m_ref(nullptr)
     {
     }
-    JavaGlobalRef(JNIEnv* env, jobject obj)
+    // Acquire a global ref on the given jobject. The local ref will be released if given release_local_ref is true.
+    JavaGlobalRef(JNIEnv* env, jobject obj, bool release_local_ref = false)
         : m_ref(obj ? env->NewGlobalRef(obj) : nullptr)
     {
+        if (release_local_ref) {
+            env->DeleteLocalRef(obj);
+        }
     }
     JavaGlobalRef(JavaGlobalRef&& rhs)
         : m_ref(rhs.m_ref)
@@ -41,19 +45,17 @@ public:
     ~JavaGlobalRef();
 
     JavaGlobalRef& operator=(JavaGlobalRef&& rhs);
+    JavaGlobalRef(JavaGlobalRef&);
 
     inline operator bool() const noexcept
     {
         return m_ref != nullptr;
     }
 
-    inline jobject get() noexcept
+    inline jobject get() const noexcept
     {
         return m_ref;
     }
-
-    // Not implemented for now.
-    JavaGlobalRef(JavaGlobalRef&) = delete;
 
 private:
     jobject m_ref;

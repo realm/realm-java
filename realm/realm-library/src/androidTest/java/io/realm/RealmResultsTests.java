@@ -348,7 +348,7 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     @RunTestInLooperThread
     public void changeListener_syncIfNeeded_updatedFromOtherThread() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);
 
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 10).findAll();
@@ -380,7 +380,7 @@ public class RealmResultsTests extends CollectionTests {
             allTypes.setColumnBoolean((i % 2) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date(YEAR_MILLIS * (i - objects / 2)));
-            allTypes.setColumnDouble(3.1415 + i);
+            allTypes.setColumnDouble(Math.PI + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -404,7 +404,7 @@ public class RealmResultsTests extends CollectionTests {
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date(DECADE_MILLIS * (i - (objects / 2))));
-            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnDouble(Math.PI);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -421,7 +421,7 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void distinctAsync() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(4);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
@@ -456,10 +456,10 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
-        looperThread.keepStrongReference.add(distinctBool);
-        looperThread.keepStrongReference.add(distinctLong);
-        looperThread.keepStrongReference.add(distinctDate);
-        looperThread.keepStrongReference.add(distinctString);
+        looperThread.keepStrongReference(distinctBool);
+        looperThread.keepStrongReference(distinctLong);
+        looperThread.keepStrongReference(distinctDate);
+        looperThread.keepStrongReference(distinctString);
         distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
             public void onChange(RealmResults<AnnotationIndexTypes> object) {
@@ -497,7 +497,7 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void distinctAsync_withNullValues() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(2);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
@@ -522,8 +522,8 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
-        looperThread.keepStrongReference.add(distinctDate);
-        looperThread.keepStrongReference.add(distinctString);
+        looperThread.keepStrongReference(distinctDate);
+        looperThread.keepStrongReference(distinctString);
         distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
             public void onChange(RealmResults<AnnotationIndexTypes> object) {
@@ -545,7 +545,7 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void distinctAsync_notIndexedFields() {
         final AtomicInteger changeListenerCalled = new AtomicInteger(4);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
@@ -584,10 +584,10 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
-        looperThread.keepStrongReference.add(distinctBool);
-        looperThread.keepStrongReference.add(distinctLong);
-        looperThread.keepStrongReference.add(distinctDate);
-        looperThread.keepStrongReference.add(distinctString);
+        looperThread.keepStrongReference(distinctBool);
+        looperThread.keepStrongReference(distinctLong);
+        looperThread.keepStrongReference(distinctDate);
+        looperThread.keepStrongReference(distinctString);
         distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
             public void onChange(RealmResults<AnnotationIndexTypes> object) {
@@ -869,10 +869,10 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     @RunTestInLooperThread
     public void accessors_resultsBuiltOnDeletedLinkView_deletionAsALocalCommit() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         // Step 1
         RealmResults<Dog> dogs = populateRealmResultsOnLinkView(realm);
-        looperThread.keepStrongReference.add(dogs);
+        looperThread.keepStrongReference(dogs);
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
             public void onChange(RealmResults<Dog> dogs) {
@@ -930,9 +930,9 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void accessors_resultsBuiltOnDeletedLinkView_deletionAsARemoteCommit() {
         // Step 1
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         RealmResults<Dog> dogs = populateRealmResultsOnLinkView(realm);
-        looperThread.keepStrongReference.add(dogs);
+        looperThread.keepStrongReference(dogs);
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
             public void onChange(RealmResults<Dog> dogs) {
@@ -983,10 +983,10 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     @RunTestInLooperThread
     public void addChangeListener() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
@@ -1003,7 +1003,7 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void addChangeListener_twice() {
         final AtomicInteger listenersTriggered = new AtomicInteger(0);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
         RealmChangeListener<RealmResults<AllTypes>> listener = new RealmChangeListener<RealmResults<AllTypes>>() {
@@ -1031,7 +1031,7 @@ public class RealmResultsTests extends CollectionTests {
         });
 
         // Adding it twice will be ignored, so removing it will not cause the listener to be triggered.
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addChangeListener(listener);
         collection.addChangeListener(listener);
         collection.removeChangeListener(listener);
@@ -1055,7 +1055,7 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void removeChangeListener() {
         final AtomicInteger listenersTriggered = new AtomicInteger(0);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
         RealmChangeListener<RealmResults<AllTypes>> listener = new RealmChangeListener<RealmResults<AllTypes>>() {
@@ -1065,7 +1065,7 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addChangeListener(listener);
         collection.removeChangeListener(listener);
 
@@ -1100,7 +1100,7 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void removeAllChangeListeners() {
         final AtomicInteger listenersTriggered = new AtomicInteger(0);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
         RealmChangeListener<RealmResults<AllTypes>> listenerA = new RealmChangeListener<RealmResults<AllTypes>>() {
@@ -1116,7 +1116,7 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addChangeListener(listenerA);
         collection.addChangeListener(listenerB);
         collection.removeAllChangeListeners();
@@ -1136,6 +1136,33 @@ public class RealmResultsTests extends CollectionTests {
                 }
             }
         });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeAllChangeListeners_thenAdd() {
+        final Realm realm = looperThread.getRealm();
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
+
+        collection.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                fail();
+            }
+        });
+        collection.removeAllChangeListeners();
+
+        collection.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                assertEquals(1, results.size());
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
     }
 
     @Test

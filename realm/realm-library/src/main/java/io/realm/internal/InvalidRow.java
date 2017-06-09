@@ -170,6 +170,11 @@ public enum InvalidRow implements Row {
     }
 
     @Override
+    public void checkIfAttached() {
+        throw getStubException();
+    }
+
+    @Override
     public boolean hasColumn(String fieldName) {
         throw getStubException();
     }

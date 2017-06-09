@@ -17,8 +17,11 @@
 package io.realm;
 
 
+import android.annotation.SuppressLint;
 import android.os.Looper;
+import android.util.Log;
 
+import io.realm.internal.CheckedRow;
 import io.realm.internal.Collection;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
@@ -55,18 +58,25 @@ import rx.Observable;
  * @see Realm#executeTransaction(Realm.Transaction)
  */
 public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionImpl<E> {
+
+    // Called from Realm Proxy classes
+    @SuppressLint("unused")
     static <T extends RealmModel> RealmResults<T> createBacklinkResults(BaseRealm realm, Row row, Class<T> srcTableType, String srcFieldName) {
-        if (!(row instanceof UncheckedRow)) {
-            throw new IllegalArgumentException("Row is " + row.getClass());
-        }
         UncheckedRow uncheckedRow = (UncheckedRow) row;
         Table srcTable = realm.getSchema().getTable(srcTableType);
-        return new RealmResults<T>(
+        return new RealmResults<>(
                 realm,
                 Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
                 srcTableType);
     }
 
+    // Abandon typing information, all ye who enter here
+    static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
+        return new RealmResults<>(
+                realm,
+                Collection.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),
+                Table.getClassNameForTable(srcTable.getName()));
+    }
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
         super(realm, collection, clazz);
@@ -125,6 +135,31 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
 
     /**
      * Adds a change listener to this {@link RealmResults}.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmResults from being garbage collected.
+     * If the RealmResults is garbage collected, the change listener will stop being triggered. To avoid this, keep a
+     * strong reference for as long as appropriate e.g. in a class variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private RealmResults<Person> results; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       results = realm.where(Person.class).findAllAsync();
+     *       results.addChangeListener(new RealmChangeListener<RealmResults<Person>>() {
+     *           \@Override
+     *           public void onChange(RealmResults<Person> persons) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.
@@ -138,6 +173,31 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
 
     /**
      * Adds a change listener to this {@link RealmResults}.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmResults from being garbage collected.
+     * If the RealmResults is garbage collected, the change listener will stop being triggered. To avoid this, keep a
+     * strong reference for as long as appropriate e.g. in a class variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private RealmResults<Person> results; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       results = realm.where(Person.class).findAllAsync();
+     *       results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Person>>() {
+     *           \@Override
+     *           public void onChange(RealmResults<Person> persons, OrderedCollectionChangeSet changeSet) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.
@@ -251,7 +311,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @Deprecated
     public RealmResults<E> distinct(String fieldName) {
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(collection.getTable(), fieldName);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(new SchemaConnector(realm.getSchema()), collection.getTable(), fieldName);
         Collection distinctCollection = collection.distinct(distinctDescriptor);
         return createLoadedResults(distinctCollection);
     }

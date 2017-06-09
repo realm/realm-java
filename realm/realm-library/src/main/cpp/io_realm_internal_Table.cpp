@@ -497,29 +497,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddEmptyRow(JNIEnv* e
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemove(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                 jlong rowIndex)
-{
-    if (!TBL_AND_ROW_INDEX_VALID(env, TBL(nativeTablePtr), rowIndex)) {
-        return;
-    }
-    try {
-        TBL(nativeTablePtr)->remove(S(rowIndex));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveLast(JNIEnv* env, jobject, jlong nativeTablePtr)
-{
-    if (!TABLE_VALID(env, TBL(nativeTablePtr))) {
-        return;
-    }
-    try {
-        TBL(nativeTablePtr)->remove_last();
-    }
-    CATCH_STD()
-}
-
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMoveLastOver(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                        jlong rowIndex)
 {
@@ -956,198 +933,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeNullifyLink(JNIEnv* en
     CATCH_STD()
 }
 
-//---------------------- Aggregate methods for integers
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSumInt(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                  jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int)) {
-        return 0;
-    }
-    try {
-        return TBL(nativeTablePtr)->sum_int(S(columnIndex));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMaximumInt(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                      jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int)) {
-        return 0;
-    }
-    try {
-        return TBL(nativeTablePtr)->maximum_int(S(columnIndex));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMinimumInt(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                      jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int)) {
-        return 0;
-    }
-    try {
-        return TBL(nativeTablePtr)->minimum_int(S(columnIndex));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeAverageInt(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                        jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int)) {
-        return 0;
-    }
-    try {
-        return TBL(nativeTablePtr)->average_int(S(columnIndex));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-//--------------------- Aggregate methods for float
-
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeSumFloat(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                      jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Float)) {
-        return 0;
-    }
-    try {
-        return TBL(nativeTablePtr)->sum_float(S(columnIndex));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jfloat JNICALL Java_io_realm_internal_Table_nativeMaximumFloat(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                         jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Float)) {
-        return 0;
-    }
-    try {
-        return TBL(nativeTablePtr)->maximum_float(S(columnIndex));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jfloat JNICALL Java_io_realm_internal_Table_nativeMinimumFloat(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                         jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Float)) {
-        return 0;
-    }
-    try {
-        return TBL(nativeTablePtr)->minimum_float(S(columnIndex));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeAverageFloat(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                          jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Float)) {
-        return 0;
-    }
-    try {
-        return TBL(nativeTablePtr)->average_float(S(columnIndex));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-
-//--------------------- Aggregate methods for double
-
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeSumDouble(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                       jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Double)) {
-        return 0;
-    }
-    try {
-        return TBL(nativeTablePtr)->sum_double(S(columnIndex));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeMaximumDouble(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                           jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Double)) {
-        return 0;
-    }
-    try {
-        return TBL(nativeTablePtr)->maximum_double(S(columnIndex));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeMinimumDouble(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                           jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Double)) {
-        return 0;
-    }
-    try {
-        return TBL(nativeTablePtr)->minimum_double(S(columnIndex));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeAverageDouble(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                           jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Double)) {
-        return 0;
-    }
-    try {
-        return TBL(nativeTablePtr)->average_double(S(columnIndex));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-
-//--------------------- Aggregate methods for date
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMaximumTimestamp(JNIEnv* env, jobject,
-                                                                            jlong nativeTablePtr, jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Timestamp)) {
-        return 0;
-    }
-    try {
-        return to_milliseconds(TBL(nativeTablePtr)->maximum_timestamp(S(columnIndex)));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMinimumTimestamp(JNIEnv* env, jobject,
-                                                                            jlong nativeTablePtr, jlong columnIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Timestamp)) {
-        return 0;
-    }
-    try {
-        return to_milliseconds(TBL(nativeTablePtr)->minimum_timestamp(S(columnIndex)));
-    }
-    CATCH_STD()
-    return 0;
-}
-
 //---------------------- Count
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountLong(JNIEnv* env, jobject, jlong nativeTablePtr,
@@ -1533,7 +1318,9 @@ static bool check_valid_primary_key_column(JNIEnv* env, Table* table, StringData
             return true;
 
         default:
-            ThrowException(env, IllegalArgument, "Invalid primary key type: " + column_type);
+            std::ostringstream error_msg;
+            error_msg << "Invalid primary key type for column: " << column_name;
+            ThrowException(env, IllegalArgument, error_msg.str());
             return false;
     }
 }

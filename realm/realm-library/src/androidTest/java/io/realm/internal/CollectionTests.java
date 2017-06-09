@@ -55,6 +55,8 @@ public class CollectionTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
+    private final long[] oneNullTable = new long[] {NativeObject.NULLPTR};
+
     private RealmConfiguration config;
     private SharedRealm sharedRealm;
     private Table table;
@@ -77,7 +79,7 @@ public class CollectionTests {
 
     private void populateData() {
         sharedRealm.beginTransaction();
-        table = sharedRealm.getTable("test_table");
+        table = sharedRealm.createTable("test_table");
         // Specify the column types and names
         long columnIdx = table.addColumn(RealmFieldType.STRING, "firstName");
         table.addSearchIndex(columnIdx);
@@ -130,7 +132,7 @@ public class CollectionTests {
 
     @Test
     public void constructor_withDistinct() {
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(table, "firstName");
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(null, table, "firstName");
         Collection collection = new Collection(sharedRealm, table.where(), null, distinctDescriptor);
 
         assertEquals(collection.size(), 3);
@@ -166,8 +168,8 @@ public class CollectionTests {
     @Test
     public void where() {
         Collection collection = new Collection(sharedRealm, table.where());
-        Collection collection2 = new Collection(sharedRealm, collection.where().equalTo(new long[]{0}, "John"));
-        Collection collection3 =new Collection(sharedRealm, collection2.where().equalTo(new long[]{1}, "Anderson"));
+        Collection collection2 = new Collection(sharedRealm, collection.where().equalTo(new long[] {0}, oneNullTable, "John"));
+        Collection collection3 = new Collection(sharedRealm, collection2.where().equalTo(new long[] {1}, oneNullTable, "Anderson"));
 
         // A new native Results should be created.
         assertTrue(collection.getNativePtr() != collection2.getNativePtr());
@@ -180,8 +182,8 @@ public class CollectionTests {
 
     @Test
     public void sort() {
-        Collection collection = new Collection(sharedRealm, table.where().greaterThan(new long[]{2}, 1));
-        SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
+        Collection collection = new Collection(sharedRealm, table.where().greaterThan(new long[] {2}, oneNullTable, 1));
+        SortDescriptor sortDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
 
         Collection collection2 = collection.sort(sortDescriptor);
 
@@ -213,7 +215,7 @@ public class CollectionTests {
 
     @Test
     public void indexOf() {
-        SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
+        SortDescriptor sortDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
 
         Collection collection = new Collection(sharedRealm, table.where(), sortDescriptor);
         UncheckedRow row = table.getUncheckedRow(0);
@@ -222,7 +224,7 @@ public class CollectionTests {
 
     @Test
     public void indexOf_long() {
-        SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
+        SortDescriptor sortDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
 
         Collection collection = new Collection(sharedRealm, table.where(), sortDescriptor);
         assertEquals(3, collection.indexOf(0));
@@ -230,9 +232,9 @@ public class CollectionTests {
 
     @Test
     public void distinct() {
-        Collection collection = new Collection(sharedRealm, table.where().lessThan(new long[]{2}, 4));
+        Collection collection = new Collection(sharedRealm, table.where().lessThan(new long[] {2}, oneNullTable, 4));
 
-        SortDescriptor distinctDescriptor = new SortDescriptor(table, new long[] {2});
+        SortDescriptor distinctDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
         Collection collection2 = collection.distinct(distinctDescriptor);
 
         // A new native Results should be created.
@@ -253,7 +255,7 @@ public class CollectionTests {
         Table table = sharedRealm.getTable("test_table");
 
         final Collection collection = new Collection(sharedRealm, table.where());
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection collection1) {
@@ -342,7 +344,7 @@ public class CollectionTests {
         Table table = sharedRealm.getTable("test_table");
 
         final Collection collection = new Collection(sharedRealm, table.where());
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection collection1) {
@@ -363,7 +365,7 @@ public class CollectionTests {
         Table table = sharedRealm.getTable("test_table");
 
         final Collection collection = new Collection(sharedRealm, table.where());
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         assertEquals(collection.size(), 4); // Trigger the query to run.
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
@@ -388,7 +390,7 @@ public class CollectionTests {
         final AtomicInteger listenerCounter = new AtomicInteger(0);
 
         final Collection collection = new Collection(sharedRealm, table.where());
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection collection1) {
@@ -468,7 +470,7 @@ public class CollectionTests {
         Table table = sharedRealm.getTable("test_table");
         final Collection collection = new Collection(sharedRealm, table.where());
         final TestIterator iterator = new TestIterator(collection);
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         assertFalse(iterator.isDetached(sharedRealm));
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
@@ -484,6 +486,14 @@ public class CollectionTests {
         });
 
         addRowAsync();
+    }
+
+    @Test
+    public void collectionIterator_newInstance_throwsWhenSharedRealmIsClosed() {
+        final Collection collection = new Collection(sharedRealm, table.where());
+        sharedRealm.close();
+        thrown.expect(IllegalStateException.class);
+        new TestIterator(collection);
     }
 
     @Test

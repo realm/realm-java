@@ -17,11 +17,11 @@
 #include <jni.h>
 
 #include "jni_util/jni_utils.hpp"
+#include "jni_util/hack.hpp"
 
 #include <realm/string_data.hpp>
 #include <realm/unicode.hpp>
 
-#include "mem_usage.hpp"
 #include "util.hpp"
 
 using std::string;
@@ -37,6 +37,9 @@ const string TABLE_PREFIX("class_");
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
 {
+    // Workaround for some known bugs in system calls on specific devices.
+    hack_init();
+
     JNIEnv* env;
     if (vm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
         return JNI_ERR;
@@ -79,12 +82,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void*)
         #endif
         JniUtils::release();
     }
-}
-
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Util_nativeGetMemUsage(JNIEnv*, jclass)
-{
-    return static_cast<jlong>(GetMemUsage());
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeGetTablePrefix(JNIEnv* env, jclass)

@@ -27,6 +27,8 @@ import java.lang.reflect.Method;
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
+import io.realm.SyncSession;
+import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
 
@@ -81,16 +83,16 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
-    public String[] getUserAndServerUrl(RealmConfiguration config) {
+    public Object[] getUserAndServerUrl(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             String rosServerUrl = syncConfig.getServerUrl().toString();
             String rosUserIdentity = syncConfig.getUser().getIdentity();
             String syncRealmAuthUrl = syncConfig.getUser().getAuthenticationUrl().toString();
             String rosRefreshToken = syncConfig.getUser().getAccessToken().value();
-            return new String[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosRefreshToken};
+            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosRefreshToken, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath()};
         } else {
-            return new String[4];
+            return new Object[6];
         }
     }
 
@@ -102,6 +104,26 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncManager.getSession((SyncConfiguration) config);
+        }
+    }
+
+    @Override
+    public String getSyncServerCertificateAssetName(RealmConfiguration configuration) {
+        if (configuration instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            return syncConfig.getServerCertificateAssetName();
+        } else {
+            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
+        }
+    }
+
+    @Override
+    public String getSyncServerCertificateFilePath(RealmConfiguration configuration) {
+        if (configuration instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            return syncConfig.getServerCertificateFilePath();
+        } else {
+            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
         }
     }
 
@@ -128,5 +150,25 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         } catch (IllegalAccessException e) {
             throw new RealmException("Could not remove session: " + syncConfig.toString(), e);
         }
+    }
+
+    @Override
+    public void downloadRemoteChanges(RealmConfiguration config) {
+        if (config instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) config;
+            if (syncConfig.shouldWaitForInitialRemoteData()) {
+                SyncSession session = SyncManager.getSession(syncConfig);
+                try {
+                    session.downloadAllServerChanges();
+                } catch (InterruptedException e) {
+                    throw new DownloadingRealmInterruptedException(syncConfig, e);
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean wasDownloadInterrupted(Throwable throwable) {
+        return (throwable instanceof DownloadingRealmInterruptedException);
     }
 }

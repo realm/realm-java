@@ -32,17 +32,6 @@ import io.realm.log.RealmLog;
 
 public class Util {
 
-    public static long getNativeMemUsage() {
-        return nativeGetMemUsage();
-    }
-
-    static native long nativeGetMemUsage();
-
-    // Called by JNI. Do not remove.
-    static void javaPrint(String txt) {
-        System.out.print(txt);
-    }
-
     public static String getTablePrefix() {
         return nativeGetTablePrefix();
     }
@@ -99,6 +88,15 @@ public class Util {
                 || Build.MANUFACTURER.contains("Genymotion")
                 || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
                 || "google_sdk".equals(Build.PRODUCT);
+    }
+
+    public static boolean isEmptyString(String str) {
+        if (str == null || str.length() == 0) {
+            return true;
+
+        } else {
+            return false;
+        }
     }
 
     public static boolean deleteRealm(String canonicalPath, File realmFolder, String realmFileName) {

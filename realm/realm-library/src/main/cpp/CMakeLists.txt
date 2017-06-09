@@ -17,6 +17,10 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Initialize common compile & link flags.
+set(REALM_LINKER_FLAGS "")
+set(REALM_COMMON_CXX_FLAGS "")
+
 # Setup lcache
 if(NDK_LCACHE)
     set(CMAKE_CXX_CREATE_SHARED_LIBRARY "${NDK_LCACHE} ${CMAKE_CXX_CREATE_SHARED_LIBRARY}")
@@ -37,7 +41,7 @@ set(classes_LIST
     io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.OsRealmSchema
-    io.realm.RealmObjectSchema io.realm.internal.Collection
+    io.realm.OsRealmObjectSchema io.realm.internal.Collection
     io.realm.internal.NativeObjectReference io.realm.internal.CollectionChangeSet
     io.realm.internal.OsObject
 )
@@ -123,6 +127,14 @@ elseif (ARMEABI_V7A)
     set(ABI_CXX_FLAGS "-mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16")
 endif()
 
+# Hack the memmove bug on Samsung device.
+if (ARMEABI OR ARMEABI_V7A)
+    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -Wl,--wrap,memmove -Wl,--wrap,memcpy")
+    set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_WRAP_MEMMOVE=1")
+else()
+    set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_WRAP_MEMMOVE=0")
+endif()
+
 #FIXME uninitialized is reported by query_expression.hpp:1070
 #      d.init(ValueBase::m_from_link_list, ValueBase::m_values, D{});
 #FIXME maybe-uninitialized is reported by table_view.cpp:272:15:
@@ -131,7 +143,7 @@ endif()
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
     -Wno-missing-field-initializers  -Wno-maybe-uninitialized -Wno-uninitialized")
-set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14 -fsigned-char")
+set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14 -fsigned-char")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()
@@ -143,7 +155,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -Og -DNDEBUG")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set link flags
-set(REALM_LINKER_FLAGS "")
 if (build_SYNC)
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -lz")
 endif()

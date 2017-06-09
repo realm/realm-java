@@ -80,7 +80,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
 
     // Create remote data for a given user.
     private URI createRemoteData(SyncUser user) {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, Constants.SYNC_USER_REALM).build();
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM).build();
         final Realm realm = Realm.getInstance(config);
         writeSampleData(realm);
         final CountDownLatch changesUploaded = new CountDownLatch(1);
@@ -150,7 +150,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         SyncUser adminUser = loginAdminUser();
         final SyncConfiguration adminConfig = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString()).build();
         Realm adminRealm = Realm.getInstance(adminConfig);
-        Realm userRealm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(userWithData, Constants.SYNC_USER_REALM).build()); // Keep session alive
+        Realm userRealm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(userWithData, Constants.USER_REALM).build()); // Keep session alive
         SyncSession session = SyncManager.getSession(adminConfig);
         session.addDownloadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
             @Override

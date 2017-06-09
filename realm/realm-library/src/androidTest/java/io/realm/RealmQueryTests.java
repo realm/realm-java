@@ -18,20 +18,13 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -51,9 +44,7 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -62,33 +53,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class RealmQueryTests {
-    @Rule
-    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
-    @Rule
-    public final RunInLooperThread looperThread = new RunInLooperThread();
-
-    protected final static int TEST_DATA_SIZE = 10;
-    protected final static int TEST_NO_PRIMARY_KEY_NULL_TYPES_SIZE = 200;
-
-    private final static long DECADE_MILLIS = 10 * TimeUnit.DAYS.toMillis(365);
-
-    protected Realm realm;
-
-    @Before
-    public void setUp() throws Exception {
-        RealmConfiguration realmConfig = configFactory.createConfiguration();
-        realm = Realm.getInstance(realmConfig);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        if (realm != null) {
-            realm.close();
-        }
-    }
+public class RealmQueryTests extends QueryTests {
 
     private void populateTestRealm(Realm testRealm, int dataSize) {
         testRealm.beginTransaction();
@@ -98,7 +63,7 @@ public class RealmQueryTests {
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date(DECADE_MILLIS * (i - (dataSize / 2))));
-            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnDouble(Math.PI);
             allTypes.setColumnFloat(1.2345f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -139,8 +104,8 @@ public class RealmQueryTests {
             noPrimaryKeyNullTypes.setFieldLongNotNull((long) i);
             noPrimaryKeyNullTypes.setFieldFloatNull((i % 3) == 0 ? null : 1.2345f + i);
             noPrimaryKeyNullTypes.setFieldFloatNotNull(1.2345f + i);
-            noPrimaryKeyNullTypes.setFieldDoubleNull((i % 3) == 0 ? null : 3.1415 + i);
-            noPrimaryKeyNullTypes.setFieldDoubleNotNull(3.1415 + i);
+            noPrimaryKeyNullTypes.setFieldDoubleNull((i % 3) == 0 ? null : Math.PI + i);
+            noPrimaryKeyNullTypes.setFieldDoubleNotNull(Math.PI + i);
             noPrimaryKeyNullTypes.setFieldDateNull((i % 3) == 0 ? null : new Date(DECADE_MILLIS * (i - (dataSize / 2))));
             noPrimaryKeyNullTypes.setFieldDateNotNull(new Date(DECADE_MILLIS * (i - (dataSize / 2))));
         }
@@ -821,13 +786,13 @@ public class RealmQueryTests {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{3.1415d + 1}).findAll();
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{Math.PI + 1}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{3.1415d + 2}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{Math.PI + 2}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{3.1415d + 1, 3.1415d + 2}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{Math.PI + 1, Math.PI + 2}).findAll();
         assertEquals(2, resultList.size());
-        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Double[]{3.1415d + 1, 3.1415d + 2}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Double[]{Math.PI + 1, Math.PI + 2}).findAll();
         assertEquals(198, resultList.size());
     }
 
@@ -996,7 +961,7 @@ public class RealmQueryTests {
     public void in_doubleNotNull() {
         doTestForInDouble(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL);
         try {
-            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL, new Double[]{3.1415d + 1, null, 3.1415d + 2}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL, new Double[]{Math.PI + 1, null, Math.PI + 2}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -1005,7 +970,7 @@ public class RealmQueryTests {
     @Test
     public void in_doubleNull() {
         doTestForInDouble(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL);
-        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL, new Double[]{3.1415d + 1, null, 3.1415d + 2}).findAll();
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL, new Double[]{Math.PI + 1, null, Math.PI + 2}).findAll();
         assertEquals(131, resultList.size());
     }
 
@@ -1228,7 +1193,7 @@ public class RealmQueryTests {
         realm.commitTransaction();
 
         RealmResults<AllTypes> resultList = realm.where(AllTypes.class).like("columnString", "*Α*").findAll();
-         assertEquals(1, resultList.size());
+        assertEquals(1, resultList.size());
 
         resultList = realm.where(AllTypes.class).like("columnString", "*λ*").findAll();
         assertEquals(2, resultList.size());
@@ -2558,14 +2523,14 @@ public class RealmQueryTests {
             realm.where(Owner.class).isNull("dogs");
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
         }
 
         try {
             realm.where(Cat.class).isNull("owner.dogs");
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
         }
     }
 
@@ -2576,18 +2541,19 @@ public class RealmQueryTests {
             realm.where(Owner.class).isNotNull("dogs");
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
         }
 
         try {
             realm.where(Cat.class).isNotNull("owner.dogs");
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+            assertEquals("Illegal Argument: RealmList(dogs) is not nullable.", expected.getMessage());
         }
     }
 
-    // @Test Disabled because of time consuming.
+    @Ignore("Disabled because it is time consuming")
+    @Test
     public void largeRealmMultipleThreads() throws InterruptedException {
         final int nObjects = 500000;
         final int nThreads = 3;
@@ -2624,7 +2590,7 @@ public class RealmQueryTests {
             thread.start();
         }
 
-        latch.await();
+        TestHelper.awaitOrFail(latch);
     }
 
     @Test
@@ -2706,57 +2672,24 @@ public class RealmQueryTests {
         assertFalse(query.isValid());
     }
 
-
-    private static final List<RealmFieldType> SUPPORTED_IS_EMPTY_TYPES = Arrays.asList(
-            RealmFieldType.STRING,
-            RealmFieldType.BINARY,
-            RealmFieldType.LIST);
-
-    private static final List<RealmFieldType> NOT_SUPPORTED_IS_EMPTY_TYPES;
-    static {
-        final ArrayList<RealmFieldType> list = new ArrayList<RealmFieldType>(Arrays.asList(RealmFieldType.values()));
-        list.removeAll(SUPPORTED_IS_EMPTY_TYPES);
-        list.remove(RealmFieldType.UNSUPPORTED_MIXED);
-        list.remove(RealmFieldType.UNSUPPORTED_TABLE);
-        list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        NOT_SUPPORTED_IS_EMPTY_TYPES = list;
-    }
-
-    private void createIsEmptyDataSet(Realm realm) {
-        realm.beginTransaction();
-
-        AllJavaTypes emptyValues = new AllJavaTypes();
-        emptyValues.setFieldId(1);
-        emptyValues.setFieldString("");
-        emptyValues.setFieldBinary(new byte[0]);
-        emptyValues.setFieldObject(emptyValues);
-        emptyValues.setFieldList(new RealmList<AllJavaTypes>());
-        realm.copyToRealm(emptyValues);
-
-        AllJavaTypes nonEmpty = new AllJavaTypes();
-        nonEmpty.setFieldId(2);
-        nonEmpty.setFieldString("Foo");
-        nonEmpty.setFieldBinary(new byte[]{1, 2, 3});
-        nonEmpty.setFieldObject(nonEmpty);
-        nonEmpty.setFieldList(new RealmList<AllJavaTypes>(emptyValues));
-        realm.copyToRealmOrUpdate(nonEmpty);
-
-        realm.commitTransaction();
-    }
-
     @Test
     public void isEmpty() {
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
                 case STRING:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_STRING).count());
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_STRING).count());
                     break;
                 case BINARY:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BINARY).count());
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BINARY).count());
                     break;
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LIST).count());
+                    break;
+                case LINKING_OBJECTS:
+                    // Row 2 does not have a backlink
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2776,7 +2709,18 @@ public class RealmQueryTests {
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY).count());
                     break;
                 case LIST:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
+                    // Row 0: Backlink list to row 1, list to row 0; included
+                    // Row 1: Backlink list to row 2, list to row 1; included
+                    // Row 2: No backlink list; not included
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
+                    break;
+                case LINKING_OBJECTS:
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
+
+                    // Row 0: Link to row 0, backlink to row 0; not included
+                    // Row 1: Link to row 1m backlink to row 1; not included
+                    // Row 2: Empty link; included
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2829,44 +2773,6 @@ public class RealmQueryTests {
         }
     }
 
-    // Not-empty test harnesses.
-    private static final List<RealmFieldType> SUPPORTED_IS_NOT_EMPTY_TYPES = Arrays.asList(
-            RealmFieldType.STRING,
-            RealmFieldType.BINARY,
-            RealmFieldType.LIST);
-
-    private static final List<RealmFieldType> NOT_SUPPORTED_IS_NOT_EMPTY_TYPES;
-    static {
-        final ArrayList<RealmFieldType> list = new ArrayList<RealmFieldType>(Arrays.asList(RealmFieldType.values()));
-        list.removeAll(SUPPORTED_IS_NOT_EMPTY_TYPES);
-        list.remove(RealmFieldType.UNSUPPORTED_MIXED);
-        list.remove(RealmFieldType.UNSUPPORTED_TABLE);
-        list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = list;
-    }
-
-    private void createIsNotEmptyDataSet(Realm realm) {
-        realm.beginTransaction();
-
-        AllJavaTypes emptyValues = new AllJavaTypes();
-        emptyValues.setFieldId(1);
-        emptyValues.setFieldString("");
-        emptyValues.setFieldBinary(new byte[0]);
-        emptyValues.setFieldObject(emptyValues);
-        emptyValues.setFieldList(new RealmList<AllJavaTypes>());
-        realm.copyToRealm(emptyValues);
-
-        AllJavaTypes notEmpty = new AllJavaTypes();
-        notEmpty.setFieldId(2);
-        notEmpty.setFieldString("Foo");
-        notEmpty.setFieldBinary(new byte[]{1, 2, 3});
-        notEmpty.setFieldObject(notEmpty);
-        notEmpty.setFieldList(new RealmList<AllJavaTypes>(emptyValues));
-        realm.copyToRealmOrUpdate(notEmpty);
-
-        realm.commitTransaction();
-    }
-
     @Test
     public void isNotEmpty() {
         createIsNotEmptyDataSet(realm);
@@ -2880,6 +2786,10 @@ public class RealmQueryTests {
                     break;
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LIST).count());
+                    break;
+                case LINKING_OBJECTS:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2900,6 +2810,10 @@ public class RealmQueryTests {
                     break;
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
+                    break;
+                case LINKING_OBJECTS:
+                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2994,11 +2908,11 @@ public class RealmQueryTests {
     @Test
     @RunTestInLooperThread
     public void findAllSortedAsync_onSubObjectField() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class)
                 .findAllSortedAsync(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
-        looperThread.keepStrongReference.add(results);
+        looperThread.keepStrongReference(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> results) {
@@ -3029,7 +2943,7 @@ public class RealmQueryTests {
     @Test
     @RunTestInLooperThread
     public void findAllSortedAsync_listOnSubObjectField() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         String[] fieldNames = new String[2];
         fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
         fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
@@ -3041,7 +2955,7 @@ public class RealmQueryTests {
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class)
                 .findAllSortedAsync(fieldNames, sorts);
-        looperThread.keepStrongReference.add(results);
+        looperThread.keepStrongReference(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> results) {
@@ -3060,11 +2974,11 @@ public class RealmQueryTests {
                 AnnotationIndexTypes obj = realm.createObject(AnnotationIndexTypes.class);
                 obj.setIndexBoolean(j % 2 == 0);
                 obj.setIndexLong(j);
-                obj.setIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setIndexDate(withNull ? null : new Date(1000L * j));
                 obj.setIndexString(withNull ? null : "Test " + j);
                 obj.setNotIndexBoolean(j % 2 == 0);
                 obj.setNotIndexLong(j);
-                obj.setNotIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setNotIndexDate(withNull ? null : new Date(1000L * j));
                 obj.setNotIndexString(withNull ? null : "Test " + j);
                 obj.setFieldObject(obj);
             }
@@ -3193,7 +3107,7 @@ public class RealmQueryTests {
     @RunTestInLooperThread
     public void distinctAsync() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(4);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
@@ -3228,10 +3142,10 @@ public class RealmQueryTests {
             }
         };
 
-        looperThread.keepStrongReference.add(distinctBool);
-        looperThread.keepStrongReference.add(distinctLong);
-        looperThread.keepStrongReference.add(distinctDate);
-        looperThread.keepStrongReference.add(distinctString);
+        looperThread.keepStrongReference(distinctBool);
+        looperThread.keepStrongReference(distinctLong);
+        looperThread.keepStrongReference(distinctDate);
+        looperThread.keepStrongReference(distinctString);
         distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
             public void onChange(RealmResults<AnnotationIndexTypes> object) {
@@ -3269,7 +3183,7 @@ public class RealmQueryTests {
     @RunTestInLooperThread
     public void distinctAsync_withNullValues() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(2);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
@@ -3288,8 +3202,8 @@ public class RealmQueryTests {
             }
         };
 
-        looperThread.keepStrongReference.add(distinctDate);
-        looperThread.keepStrongReference.add(distinctString);
+        looperThread.keepStrongReference(distinctDate);
+        looperThread.keepStrongReference(distinctString);
 
         distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override

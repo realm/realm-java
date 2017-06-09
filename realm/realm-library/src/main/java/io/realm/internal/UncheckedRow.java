@@ -33,11 +33,11 @@ import io.realm.RealmFieldType;
 public class UncheckedRow implements NativeObject, Row {
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
-    private final Context context; // This is only kept because for now it's needed by the constructor of LinkView
+    private final NativeContext context; // This is only kept because for now it's needed by the constructor of LinkView
     private final Table parent;
     private final long nativePtr;
 
-    UncheckedRow(Context context, Table parent, long nativePtr) {
+    UncheckedRow(NativeContext context, Table parent, long nativePtr) {
         this.context = context;
         this.parent = parent;
         this.nativePtr = nativePtr;
@@ -71,7 +71,7 @@ public class UncheckedRow implements NativeObject, Row {
      * @param index the index of the row.
      * @return an instance of Row for the table and index specified.
      */
-    static UncheckedRow getByRowIndex(Context context, Table table, long index) {
+    static UncheckedRow getByRowIndex(NativeContext context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.getNativePtr(), index);
         return new UncheckedRow(context, table, nativeRowPointer);
     }
@@ -84,7 +84,7 @@ public class UncheckedRow implements NativeObject, Row {
      * @param nativeRowPointer pointer of a row.
      * @return an instance of Row for the table and row specified.
      */
-    static UncheckedRow getByRowPointer(Context context, Table table, long nativeRowPointer) {
+    static UncheckedRow getByRowPointer(NativeContext context, Table table, long nativeRowPointer) {
         return new UncheckedRow(context, table, nativeRowPointer);
     }
 
@@ -96,7 +96,7 @@ public class UncheckedRow implements NativeObject, Row {
      * @param index the index of the row.
      * @return an instance of Row for the LinkView and index specified.
      */
-    static UncheckedRow getByRowIndex(Context context, LinkView linkView, long index) {
+    static UncheckedRow getByRowIndex(NativeContext context, LinkView linkView, long index) {
         long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePtr(), index);
         return new UncheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
     }
@@ -290,6 +290,13 @@ public class UncheckedRow implements NativeObject, Row {
     @Override
     public boolean isAttached() {
         return nativePtr != 0 && nativeIsAttached(nativePtr);
+    }
+
+    @Override
+    public void checkIfAttached() {
+        if (!isAttached()) {
+            throw new IllegalStateException("Object is no longer managed by Realm. Has it been deleted?");
+        }
     }
 
     @Override

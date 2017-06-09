@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.internal.Table;
+
 
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
@@ -32,10 +34,15 @@ import java.util.Set;
  */
 class OsRealmSchema extends RealmSchema {
     static final class Creator extends RealmSchema {
-        private final Map<String, RealmObjectSchema> schema = new HashMap<>();
+        private final Map<String, OsRealmObjectSchema> schema = new HashMap<>();
 
         @Override
-        public void close() { }
+        public void close() {
+            for (Map.Entry<String, OsRealmObjectSchema> entry : schema.entrySet()) {
+                entry.getValue().close();
+            }
+            schema.clear();
+        }
 
         @Override
         public RealmObjectSchema get(String className) {
@@ -45,13 +52,13 @@ class OsRealmSchema extends RealmSchema {
 
         @Override
         public Set<RealmObjectSchema> getAll() {
-            return new LinkedHashSet<>(schema.values());
+            return new LinkedHashSet<RealmObjectSchema>(schema.values());
         }
 
         @Override
         public RealmObjectSchema create(String className) {
             checkEmpty(className);
-            RealmObjectSchema realmObjectSchema = new RealmObjectSchema(className);
+            OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(this, className);
             schema.put(className, realmObjectSchema);
             return realmObjectSchema;
         }
@@ -60,18 +67,52 @@ class OsRealmSchema extends RealmSchema {
         public boolean contains(String className) {
             return schema.containsKey(className);
         }
+
+        @Override
+        Table getTable(Class<? extends RealmModel> clazz) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        Table getTable(String className) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        OsRealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        OsRealmObjectSchema getSchemaForClass(String className) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void remove(String className) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public RealmObjectSchema rename(String oldClassName, String newClassName) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
 
-    private final long nativePtr;
+    private long nativePtr;
 
+    // TODO:
+    // Because making getAll return Set<? Extends RealmObjectSchema> is a breaking change
+    // Creator.getAll must return Set<RealmObjectSchema> instead of Set<? extends RealmObjectSchema>
+    // That necessitates the cast inside the loop below.
     OsRealmSchema(Creator creator) {
         Set<RealmObjectSchema> realmObjectSchemas = creator.getAll();
         long[] schemaNativePointers = new long[realmObjectSchemas.size()];
         int i = 0;
         for (RealmObjectSchema schema : realmObjectSchemas) {
-            schemaNativePointers[i++] = schema.getNativePtr();
+            schemaNativePointers[i++] = ((OsRealmObjectSchema) schema).getNativePtr();
         }
         this.nativePtr = nativeCreateFromList(schemaNativePointers);
     }
@@ -80,15 +121,13 @@ class OsRealmSchema extends RealmSchema {
         return this.nativePtr;
     }
 
-    // THIS IS NEVER CALLED!
     // See BaseRealm uses a StandardRealmSchema, not a OsRealmSchema.
     @Override
     public void close() {
-        Set<RealmObjectSchema> schemas = getAll();
-        for (RealmObjectSchema schema : schemas) {
-            schema.close();
+        if (nativePtr != 0L) {
+            nativeClose(nativePtr);
+            nativePtr = 0L;
         }
-        nativeClose(nativePtr);
     }
 
     /**
@@ -110,12 +149,7 @@ class OsRealmSchema extends RealmSchema {
      */
     @Override
     public Set<RealmObjectSchema> getAll() {
-        long[] ptrs = nativeGetAll(nativePtr);
-        Set<RealmObjectSchema> schemas = new LinkedHashSet<>(ptrs.length);
-        for (int i = 0; i < ptrs.length; i++) {
-            schemas.add(new RealmObjectSchema(ptrs[i]));
-        }
-        return schemas;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -128,9 +162,19 @@ class OsRealmSchema extends RealmSchema {
     public RealmObjectSchema create(String className) {
         // Adding a class is always permitted.
         checkEmpty(className);
-        RealmObjectSchema realmObjectSchema = new RealmObjectSchema(className);
+        OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(this, className);
         dynamicClassToSchema.put(className, realmObjectSchema);
         return realmObjectSchema;
+    }
+
+    @Override
+    public void remove(String className) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RealmObjectSchema rename(String oldClassName, String newClassName) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -144,7 +188,27 @@ class OsRealmSchema extends RealmSchema {
         return dynamicClassToSchema.containsKey(className);
     }
 
-    static void checkEmpty(String str) {
+    @Override
+    Table getTable(Class<? extends RealmModel> clazz) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    Table getTable(String className) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    OsRealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    OsRealmObjectSchema getSchemaForClass(String className) {
+        throw new UnsupportedOperationException();
+    }
+
+    private static void checkEmpty(String str) {
         if (str == null || str.isEmpty()) {
             throw new IllegalArgumentException("Null or empty class names are not allowed");
         }
@@ -153,6 +217,4 @@ class OsRealmSchema extends RealmSchema {
     static native long nativeCreateFromList(long[] objectSchemaPtrs);
 
     static native void nativeClose(long nativePtr);
-
-    static native long[] nativeGetAll(long nativePtr);
 }

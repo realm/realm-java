@@ -35,6 +35,8 @@ public:
     {
     }
 
+    JavaClass(JavaClass&&);
+
     inline jclass get() noexcept
     {
         return m_class;
@@ -46,7 +48,6 @@ public:
     }
 
     // Not implemented for now.
-    JavaClass(JavaClass&&) = delete;
     JavaClass(JavaClass&) = delete;
     JavaClass& operator=(JavaClass&&) = delete;
 

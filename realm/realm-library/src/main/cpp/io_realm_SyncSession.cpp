@@ -23,9 +23,14 @@
 #include "object-store/src/sync/sync_session.hpp"
 
 #include "util.hpp"
+#include "jni_util/java_global_ref.hpp"
+#include "jni_util/java_method.hpp"
+#include "jni_util/java_class.hpp"
+#include "jni_util/java_local_ref.hpp"
 #include "jni_util/jni_utils.hpp"
 
 using namespace realm;
+using namespace jni_util;
 using namespace sync;
 
 JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv* env, jclass,
@@ -44,13 +49,12 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JN
             return JNI_TRUE;
         }
         else {
-            realm::jni_util::Log::d("no active/inactive session found");
+            Log::d("no active/inactive session found");
         }
     }
     CATCH_STD()
     return JNI_FALSE;
 }
-
 
 JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIEnv* env, jclass,
                                                                             jstring j_local_realm_path,
@@ -113,4 +117,39 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveProgressListener(JN
         }
     }
     CATCH_STD()
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadCompletion(JNIEnv* env,
+                                                                                     jobject session_object,
+                                                                                     jstring localRealmPath)
+{
+    TR_ENTER()
+    try {
+        JStringAccessor local_realm_path(env, localRealmPath);
+        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+
+        if (session) {
+            static JavaClass java_sync_session_class(env, "io/realm/SyncSession");
+            static JavaMethod java_notify_result_method(env, java_sync_session_class, "notifyAllChangesDownloaded",
+                                                        "(Ljava/lang/Long;Ljava/lang/String;)V");
+            JavaGlobalRef java_session_object_ref(env, session_object);
+
+            bool listener_registered =
+                session->wait_for_download_completion([java_session_object_ref](std::error_code error) {
+                    JNIEnv* env = JniUtils::get_env(true);
+                    jobject java_error_code = nullptr;
+                    jstring java_error_message = nullptr;
+                    if (error != std::error_code{}) {
+                        java_error_code = NewLong(env, error.value());
+                        java_error_message = env->NewStringUTF(error.message().c_str());
+                    }
+                    env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method, java_error_code,
+                                        java_error_message);
+                });
+
+            return to_jbool(listener_registered);
+        }
+    }
+    CATCH_STD()
+    return JNI_FALSE;
 }

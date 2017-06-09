@@ -21,8 +21,8 @@ import java.util.Set;
 
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
+import io.realm.internal.util.Pair;
 
 
 /**
@@ -65,6 +65,23 @@ public abstract class RealmSchema {
     public abstract RealmObjectSchema create(String className);
 
     /**
+     * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
+     * to it will throw an {@link IllegalStateException}. Removes those classes or fields first.
+     *
+     * @param className name of the class to remove.
+     */
+    public abstract void remove(String className);
+
+    /**
+     * Renames a class already in the Realm.
+     *
+     * @param oldClassName old class name.
+     * @param newClassName new class name.
+     * @return a schema object for renamed class.
+     */
+    public abstract RealmObjectSchema rename(String oldClassName, String newClassName);
+
+    /**
      * Checks if a given class already exists in the schema.
      *
      * @param className class name to check.
@@ -72,21 +89,74 @@ public abstract class RealmSchema {
      */
     public abstract boolean contains(String className);
 
-    final void setColumnIndices(ColumnIndices columnIndices) {
-        this.columnIndices = columnIndices.clone();
+    abstract Table getTable(Class<? extends RealmModel> clazz);
+
+    abstract Table getTable(String className);
+
+    abstract RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz);
+
+    abstract RealmObjectSchema getSchemaForClass(String className);
+
+    /**
+     * Set the column index cache for this schema.
+     *
+     * @param columnIndices the column index cache
+     */
+    final void setInitialColumnIndices(ColumnIndices columnIndices) {
+        if (this.columnIndices != null) {
+            throw new IllegalStateException("An instance of ColumnIndices is already set.");
+        }
+        this.columnIndices = new ColumnIndices(columnIndices, true);
     }
 
-    final void setColumnIndices(long version, Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap) {
+    /**
+     * Set the column index cache for this schema.
+     *
+     * @param version the schema version
+     * @param columnInfoMap the column info map
+     */
+    final void setInitialColumnIndices(long version, Map<Pair<Class<? extends RealmModel>, String>, ColumnInfo> columnInfoMap) {
+        if (this.columnIndices != null) {
+            throw new IllegalStateException("An instance of ColumnIndices is already set.");
+        }
         columnIndices = new ColumnIndices(version, columnInfoMap);
     }
 
-    void setColumnIndices(ColumnIndices cacheForCurrentVersion, RealmProxyMediator mediator) {
-        columnIndices.copyFrom(cacheForCurrentVersion, mediator);
+    /**
+     * Updates all {@link ColumnInfo} elements in {@code columnIndices}.
+     * <p>
+     * The ColumnInfo elements are shared between all {@link RealmObject}s created by the Realm instance
+     * which owns this RealmSchema. Updating them also means updating indices information in those {@link RealmObject}s.
+     *
+     * @param schemaVersion new schema version.
+     */
+    void updateColumnIndices(ColumnIndices schemaVersion) {
+        columnIndices.copyFrom(schemaVersion);
     }
 
-    final ColumnIndices getColumnIndices() {
+    final boolean isProxyClass(Class<? extends RealmModel> modelClass, Class<? extends RealmModel> testee) {
+        return modelClass.equals(testee);
+    }
+
+    /**
+     * Sometimes you need ColumnIndicies that can be passed between threads.
+     * Setting the mutable flag false creates an instance that is effectively final.
+     *
+     * @return a new, thread-safe copy of this Schema's ColumnIndices.
+     * @see ColumnIndices for the effectively final contract.
+     */
+    final ColumnIndices getImmutableColumnIndicies() {
         checkIndices();
-        return columnIndices.clone();
+        return new ColumnIndices(columnIndices, false);
+    }
+
+    final boolean haveColumnInfo() {
+        return columnIndices != null;
+    }
+
+    final long getSchemaVersion() {
+        checkIndices();
+        return columnIndices.getSchemaVersion();
     }
 
     final ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
@@ -94,21 +164,13 @@ public abstract class RealmSchema {
         return columnIndices.getColumnInfo(clazz);
     }
 
-    final long getSchemaVersion() {
+    protected final ColumnInfo getColumnInfo(String className) {
         checkIndices();
-        return this.columnIndices.getSchemaVersion();
-    }
-
-    final boolean isProxyClass(Class<? extends RealmModel> modelClass, Class<? extends RealmModel> testee) {
-        return modelClass.equals(testee);
-    }
-
-    static String getSchemaForTable(Table table) {
-        return table.getName().substring(Table.TABLE_PREFIX.length());
+        return columnIndices.getColumnInfo(className);
     }
 
     private void checkIndices() {
-        if (this.columnIndices == null) {
+        if (!haveColumnInfo()) {
             throw new IllegalStateException("Attempt to use column index before set.");
         }
     }

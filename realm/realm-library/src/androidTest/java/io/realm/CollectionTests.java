@@ -123,7 +123,7 @@ public abstract class CollectionTests {
         obj.setFieldBoolean(((index % 2) == 0));
         obj.setFieldBinary(new byte[]{1, 2, 3});
         obj.setFieldDate(new Date(YEAR_MILLIS * 20 * (index - totalObjects / 2)));
-        obj.setFieldDouble(3.1415 + index);
+        obj.setFieldDouble(Math.PI + index);
         obj.setFieldFloat(1.234567f + index);
         obj.setFieldString("test data " + index);
     }

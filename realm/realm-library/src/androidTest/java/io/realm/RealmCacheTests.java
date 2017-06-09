@@ -28,22 +28,29 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmFileException;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmCacheTests {
 
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
@@ -191,7 +198,7 @@ public class RealmCacheTests {
         testRealm.close();
 
         // 2. Deletes the old Realm.
-        Realm.deleteRealm(config);
+        assertTrue(Realm.deleteRealm(config));
 
         // 3. Renames the new file to the old file name.
         assertTrue(copiedRealm.renameTo(new File(config.getRealmDirectory(), REALM_NAME)));
@@ -255,10 +262,46 @@ public class RealmCacheTests {
         });
         thread.start();
 
-        closeLatch.await();
+        TestHelper.awaitOrFail(closeLatch);
         RealmCache.invokeWithGlobalRefCount(defaultConfig, new TestHelper.ExpectedCountCallback(1));
         realmA.close();
         RealmCache.invokeWithGlobalRefCount(defaultConfig, new TestHelper.ExpectedCountCallback(0));
+    }
+
+    @Test
+    public void getInstance_differentConfigurationsShouldNotBlockEachOther() throws InterruptedException {
+        final CountDownLatch bgThreadStarted = new CountDownLatch(1);
+        final CountDownLatch realm2CreatedLatch = new CountDownLatch(1);
+
+        final RealmConfiguration config1 = configFactory.createConfigurationBuilder()
+                .name("config1.realm")
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        bgThreadStarted.countDown();
+                        TestHelper.awaitOrFail(realm2CreatedLatch);
+                    }
+                })
+                .build();
+
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder()
+                .name("config2.realm")
+                .build();
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(config1);
+                realm.close();
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(bgThreadStarted);
+        Realm realm = Realm.getInstance(config2);
+        realm2CreatedLatch.countDown();
+        realm.close();
+        thread.join();
     }
 
     @Test
@@ -266,31 +309,244 @@ public class RealmCacheTests {
         // Tests release typed Realm instance.
         Realm realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         Realm realmB = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
-        RealmCache.release(realmA);
+        realmA.close();
         assertNotNull(realmA.sharedRealm);
-        RealmCache.release(realmB);
+        realmB.close();
         assertNull(realmB.sharedRealm);
         // No crash but warning in the log.
-        RealmCache.release(realmB);
+        realmB.close();
 
         // Tests release dynamic Realm instance.
         DynamicRealm dynamicRealmA = RealmCache.createRealmOrGetFromCache(defaultConfig,
                 DynamicRealm.class);
         DynamicRealm dynamicRealmB = RealmCache.createRealmOrGetFromCache(defaultConfig,
                 DynamicRealm.class);
-        RealmCache.release(dynamicRealmA);
+        dynamicRealmA.close();
         assertNotNull(dynamicRealmA.sharedRealm);
-        RealmCache.release(dynamicRealmB);
+        dynamicRealmB.close();
         assertNull(dynamicRealmB.sharedRealm);
         // No crash but warning in the log.
-        RealmCache.release(dynamicRealmB);
+        dynamicRealmB.close();
 
         // Tests both typed Realm and dynamic Realm in same thread.
         realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         dynamicRealmA = RealmCache.createRealmOrGetFromCache(defaultConfig, DynamicRealm.class);
-        RealmCache.release(realmA);
+        realmA.close();
         assertNull(realmA.sharedRealm);
-        RealmCache.release(dynamicRealmA);
+        dynamicRealmA.close();
         assertNull(realmA.sharedRealm);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_typedRealm() {
+        final RealmConfiguration configuration = looperThread.createConfiguration();
+        final AtomicBoolean realmCreated = new AtomicBoolean(false);
+        Realm.getInstanceAsync(configuration, new Realm.Callback() {
+            @Override
+            public void onSuccess(Realm realm) {
+                realmCreated.set(true);
+                assertEquals(1, Realm.getLocalInstanceCount(configuration));
+                realm.close();
+                looperThread.testComplete();
+            }
+        });
+        assertFalse(realmCreated.get());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_dynamicRealm() {
+        final RealmConfiguration configuration = looperThread.createConfiguration();
+        final AtomicBoolean realmCreated = new AtomicBoolean(false);
+        DynamicRealm.getInstanceAsync(configuration, new DynamicRealm.Callback() {
+            @Override
+            public void onSuccess(DynamicRealm realm) {
+                realmCreated.set(true);
+                assertEquals(1, Realm.getLocalInstanceCount(configuration));
+                realm.close();
+                looperThread.testComplete();
+            }
+        });
+        assertFalse(realmCreated.get());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_callbackDeliveredInFollowingEventLoopWhenLocalCacheExist() {
+        final RealmConfiguration configuration = looperThread.createConfiguration();
+        final AtomicBoolean realmCreated = new AtomicBoolean(false);
+        final Realm localRealm = Realm.getInstance(configuration);
+        Realm.getInstanceAsync(configuration, new Realm.Callback() {
+            @Override
+            public void onSuccess(Realm realm) {
+                realmCreated.set(true);
+                assertEquals(2, Realm.getLocalInstanceCount(configuration));
+                assertSame(realm, localRealm);
+                realm.close();
+                localRealm.close();
+                looperThread.testComplete();
+            }
+        });
+        assertFalse(realmCreated.get());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_callbackDeliveredInFollowingEventLoopWhenGlobalCacheExist() throws InterruptedException {
+        final RealmConfiguration configuration = looperThread.createConfiguration();
+        final AtomicBoolean realmCreated = new AtomicBoolean(false);
+        final CountDownLatch globalRealmCreated = new CountDownLatch(1);
+        final CountDownLatch getAsyncFinishedLatch = new CountDownLatch(1);
+
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(configuration);
+                globalRealmCreated.countDown();
+                TestHelper.awaitOrFail(getAsyncFinishedLatch);
+                realm.close();
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(globalRealmCreated);
+        Realm.getInstanceAsync(configuration, new Realm.Callback() {
+            @Override
+            public void onSuccess(Realm realm) {
+                realmCreated.set(true);
+                assertEquals(1, Realm.getLocalInstanceCount(configuration));
+                realm.close();
+                getAsyncFinishedLatch.countDown();
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    fail();
+                }
+                looperThread.testComplete();
+            }
+        });
+        assertFalse(realmCreated.get());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_typedRealmShouldStillBeInitializedInBGIfOnlyDynamicRealmExists() {
+        final RealmConfiguration configuration = looperThread.createConfiguration();
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(configuration);
+        final AtomicBoolean realmCreated = new AtomicBoolean(false);
+
+        Realm.getInstanceAsync(configuration, new Realm.Callback() {
+            @Override
+            public void onSuccess(Realm realm) {
+                realmCreated.set(false);
+                assertEquals(2, Realm.getLocalInstanceCount(configuration));
+                dynamicRealm.close();
+                realm.close();
+                looperThread.testComplete();
+            }
+        });
+        // Callback should not be called immediately since we need to create column indices cache in bg thread.
+        // Only a local dynamic Realm instance existing at this time.
+        assertFalse(realmCreated.get());
+        assertEquals(1, Realm.getLocalInstanceCount(configuration));
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_onError() {
+        final RealmConfiguration configuration =
+                looperThread.createConfigurationBuilder()
+                .assetFile("NotExistingFile")
+                .build();
+        Realm.getInstanceAsync(configuration, new Realm.Callback() {
+            @Override
+            public void onSuccess(Realm realm) {
+                fail();
+            }
+
+            @Override
+            public void onError(Throwable exception) {
+                assertTrue(exception instanceof RealmFileException);
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    // If the async task is canceled before the posted event to create Realm instance in caller thread, the event should
+    // just be ignored.
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_cancelBeforePostShouldNotCreateRealmInstanceOnTheCallerThread() {
+        final AtomicReference<RealmAsyncTask> realmAsyncTasks = new AtomicReference<>();
+        final Runnable finishedRunnable = new Runnable() {
+            @Override
+            public void run() {
+                looperThread.testComplete();
+            }
+        };
+        final RealmConfiguration configuration = looperThread.createConfigurationBuilder()
+                .name("will_be_canceled")
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        // The BG thread started to initial the first Realm instance. Post an event to the caller's
+                        // queue to cancel the task before the event to create the Realm instance in caller thread.
+                        looperThread.postRunnable(new Runnable() {
+                            @Override
+                            public void run() {
+                                assertNotNull(realmAsyncTasks.get());
+                                realmAsyncTasks.get().cancel();
+                                // Wait the async task to be terminated.
+                                TestHelper.waitRealmThreadExecutorFinish();
+                                // Finish the test.
+                                looperThread.postRunnable(finishedRunnable);
+                            }
+                        });
+                    }
+                })
+                .build();
+
+        realmAsyncTasks.set(Realm.getInstanceAsync(configuration, new Realm.Callback() {
+            @Override
+            public void onSuccess(Realm realm) {
+                fail();
+            }
+        }));
+    }
+
+    // The DynamicRealm and Realm with the same Realm path should share the same RealmCache
+    @Test
+    public void typedRealmAndDynamicRealmShareTheSameCache() {
+        final String DB_NAME = "same_name.realm";
+        RealmConfiguration config1 = configFactory.createConfigurationBuilder()
+                .name(DB_NAME)
+                .build();
+
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder()
+                .name(DB_NAME)
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        // Because of config1 doesn't have initialData block, these two configurations are not the same.
+                        // So if a Realm is created with config1, then create another Realm with config2 should just
+                        // fail before executing this block.
+                        fail();
+                    }
+                })
+                .build();
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config1);
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config2);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            dynamicRealm.close();
+            if (realm != null) {
+                realm.close();
+            }
+        }
     }
 }

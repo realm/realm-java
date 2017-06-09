@@ -24,7 +24,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import dk.ilios.spanner.All;
 import io.realm.entities.AllJavaTypes;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -65,45 +64,22 @@ public class LinkingObjectsUnmanagedTests {
         assertEquals(parent, child.getObjectParents().first());
 
         AllJavaTypes unmanagedChild = realm.copyFromRealm(child);
-        assertEquals(new AllJavaTypes().getObjectParents(), unmanagedChild.getObjectParents());
-    }
-
-    // When managed, an object's backlinks fields get live.
-    @Test
-    public void copyToRealm() {
-        AllJavaTypes unmanagedChild = new AllJavaTypes(1);
-
-        realm.beginTransaction();
-        AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
-        realm.commitTransaction();
-        assertEquals(new AllJavaTypes().getObjectParents(), unmanagedChild.getObjectParents());
-
-        realm.beginTransaction();
-        AllJavaTypes child = realm.copyToRealm(unmanagedChild);
-        parent.setFieldObject(child);
-        realm.commitTransaction();
-
-        RealmResults<AllJavaTypes> parents = child.getObjectParents();
-        assertNotNull(parents);
-        assertEquals(1, parents.size());
-        assertEquals(parent, parents.first());
+        assertNull(unmanagedChild.getObjectParents());
     }
 
     // Test round-trip
     @Test
     public void copyToAndFromRealm() {
         AllJavaTypes unmanagedChild = new AllJavaTypes(1);
+        assertNull(unmanagedChild.getObjectParents());
 
         realm.beginTransaction();
         AllJavaTypes parent = realm.createObject(AllJavaTypes.class, 2);
-        realm.commitTransaction();
-        assertEquals(new AllJavaTypes().getObjectParents(), unmanagedChild.getObjectParents());
-
-        realm.beginTransaction();
         AllJavaTypes child = realm.copyToRealm(unmanagedChild);
         parent.setFieldObject(child);
         realm.commitTransaction();
 
+        // When managed, an object's backlinks fields get live.
         RealmResults<AllJavaTypes> parents = child.getObjectParents();
         assertNotNull(parents);
         assertEquals(1, parents.size());

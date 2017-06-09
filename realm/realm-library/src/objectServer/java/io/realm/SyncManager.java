@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
 import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.network.OkHttpAuthenticationServer;
 import io.realm.log.RealmLog;
 
@@ -97,6 +98,19 @@ public class SyncManager {
     // Right now it just lives and dies together with the process.
     private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
     private static volatile UserStore userStore;
+
+    private static NetworkStateReceiver.ConnectionListener networkListener = new NetworkStateReceiver.ConnectionListener() {
+        @Override
+        public void onChange(boolean connectionAvailable) {
+            if (connectionAvailable) {
+                RealmLog.debug("NetworkListener: Connection available");
+                // notify all sessions
+                notifyNetworkIsBack();
+            } else {
+                RealmLog.debug("NetworkListener: Connection lost");
+            }
+        }
+    };
 
     static volatile SyncSession.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
 
@@ -181,6 +195,10 @@ public class SyncManager {
         if (session == null) {
             session = new SyncSession(syncConfiguration);
             sessions.put(syncConfiguration.getPath(), session);
+            if (sessions.size() == 1) {
+                RealmLog.debug("first session created add network listener");
+                NetworkStateReceiver.addListener(networkListener);
+            }
         }
 
         return session;
@@ -198,6 +216,10 @@ public class SyncManager {
         SyncSession syncSession = sessions.remove(syncConfiguration.getPath());
         if (syncSession != null) {
             syncSession.close();
+        }
+        if (sessions.isEmpty()) {
+            RealmLog.debug("last session dropped, remove network listener");
+            NetworkStateReceiver.removeListener(networkListener);
         }
     }
 
@@ -248,6 +270,14 @@ public class SyncManager {
         }
     }
 
+    private static synchronized void notifyNetworkIsBack() {
+        try {
+            nativeReconnect();
+        } catch (Exception exception) {
+            RealmLog.error(exception);
+        }
+    }
+
     /**
      * All progress listener events from native Sync are reported to this method.
      * It costs 2 HashMap lookups for each listener triggered (one to find the session, one to
@@ -284,7 +314,7 @@ public class SyncManager {
             RealmLog.error("Matching Java SyncSession could not be found for: " + sessionPath);
         } else {
             try {
-                return syncSession.accessToken(authServer);
+                return syncSession.getAccessToken(authServer);
             } catch (Exception exception) {
                 RealmLog.error(exception);
             }
@@ -321,4 +351,5 @@ public class SyncManager {
     protected static native void nativeInitializeSyncManager(String syncBaseDir);
     private static native void nativeReset();
     private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
+    private static native void nativeReconnect();
 }

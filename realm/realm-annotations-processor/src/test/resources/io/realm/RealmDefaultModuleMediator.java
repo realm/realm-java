@@ -32,25 +32,13 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
-        checkClass(clazz);
-
-        if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.initTable(sharedRealm);
-        } else {
-            throw getMissingProxyClassException(clazz);
-        }
-    }
-
-    @Override
     public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return io.realm.AllTypesRealmProxy.createRealmObjectSchema(realmSchema);
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -59,9 +47,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return io.realm.AllTypesRealmProxy.validateTable(sharedRealm, allowExtraColumns);
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -70,9 +57,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return io.realm.AllTypesRealmProxy.getFieldNames();
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -81,9 +67,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return io.realm.AllTypesRealmProxy.getTableName();
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -95,9 +80,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
             if (clazz.equals(some.test.AllTypes.class)) {
                 return clazz.cast(new io.realm.AllTypesRealmProxy());
-            } else {
-                throw getMissingProxyClassException(clazz);
             }
+            throw getMissingProxyClassException(clazz);
         } finally {
             objectContext.clear();
         }
@@ -116,9 +100,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return clazz.cast(io.realm.AllTypesRealmProxy.copyOrUpdate(realm, (some.test.AllTypes) obj, update, cache));
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -208,9 +191,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return clazz.cast(io.realm.AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json, update));
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -220,9 +202,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return clazz.cast(io.realm.AllTypesRealmProxy.createUsingJsonStream(realm, reader));
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -233,9 +214,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return clazz.cast(io.realm.AllTypesRealmProxy.createDetachedCopy((some.test.AllTypes) realmObject, 0, maxDepth, cache));
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
 }

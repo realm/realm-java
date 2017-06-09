@@ -48,8 +48,8 @@ public class JNIRowTest extends TestCase {
 
         assertEquals("abc", row.getString(0));
         assertEquals(3, row.getLong(1));
-        assertEquals((float) 1.2, row.getFloat(2), 0.0001);
-        assertEquals(1.3, row.getDouble(3));
+        assertEquals(1.2F, row.getFloat(2), Float.MIN_NORMAL);
+        assertEquals(1.3, row.getDouble(3), Double.MIN_NORMAL);
         assertEquals(true, row.getBoolean(4));
         assertEquals(new Date(0), row.getDate(5));
         MoreAsserts.assertEquals(data, row.getBinaryByteArray(6));
@@ -67,8 +67,8 @@ public class JNIRowTest extends TestCase {
 
         assertEquals("a", row.getString(0));
         assertEquals(1, row.getLong(1));
-        assertEquals((float) 8.8, row.getFloat(2), 0.0001);
-        assertEquals(9.9, row.getDouble(3));
+        assertEquals(8.8F, row.getFloat(2), Float.MIN_NORMAL);
+        assertEquals(9.9, row.getDouble(3), Double.MIN_NORMAL);
         assertEquals(false, row.getBoolean(4));
         assertEquals(new Date(10000), row.getDate(5));
         MoreAsserts.assertEquals(newData, row.getBinaryByteArray(6));

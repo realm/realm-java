@@ -142,7 +142,7 @@ public class BulkInsertTests {
         allTypes.columnBoolean = false;
         allTypes.columnBinary = new byte[]{1, 2, 3};
         allTypes.columnDate = new Date();
-        allTypes.columnDouble = 3.1415;
+        allTypes.columnDouble = Math.PI;
         allTypes.columnFloat = 1.234567f;
         allTypes.columnString = "test data";
         allTypes.columnByte = 0x2A;
@@ -505,7 +505,7 @@ public class BulkInsertTests {
     public void insert_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(CatOwner.class, Cat.class)
+                .schema(CatOwner.class, Cat.class, Owner.class, DogPrimaryKey.class, Dog.class)
                 .name("filterable.realm")
                 .build();
         Realm.deleteRealm(config);
@@ -601,7 +601,7 @@ public class BulkInsertTests {
     public void insertOrUpdate_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(CatOwner.class, Cat.class)
+                .schema(CatOwner.class, Cat.class, Owner.class, DogPrimaryKey.class, Dog.class)
                 .name("filterable.realm")
                 .build();
         Realm.deleteRealm(config);

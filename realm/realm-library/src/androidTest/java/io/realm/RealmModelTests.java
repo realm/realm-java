@@ -91,7 +91,7 @@ public class RealmModelTests {
             allTypes.columnBoolean = (i % 3) == 0;
             allTypes.columnBinary = new byte[]{1, 2, 3};
             allTypes.columnDate = new Date();
-            allTypes.columnDouble = 3.1415 + i;
+            allTypes.columnDouble = Math.PI + i;
             allTypes.columnFloat = 1.234567f;
             allTypes.columnString = "test data ";
             allTypes.columnByte = 0x2A;
@@ -195,11 +195,11 @@ public class RealmModelTests {
     @Test
     @RunTestInLooperThread
     public void async_query() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         populateTestRealm(realm, TEST_DATA_SIZE);
 
         final RealmResults<AllTypesRealmModel> allTypesRealmModels = realm.where(AllTypesRealmModel.class).distinctAsync(AllTypesRealmModel.FIELD_STRING);
-        looperThread.keepStrongReference.add(allTypesRealmModels);
+        looperThread.keepStrongReference(allTypesRealmModels);
         allTypesRealmModels.addChangeListener(new RealmChangeListener<RealmResults<AllTypesRealmModel>>() {
             @Override
             public void onChange(RealmResults<AllTypesRealmModel> object) {
@@ -231,8 +231,8 @@ public class RealmModelTests {
     @Test
     @RunTestInLooperThread
     public void dynamicRealm() {
-        populateTestRealm(looperThread.realm, TEST_DATA_SIZE);
-        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        populateTestRealm(looperThread.getRealm(), TEST_DATA_SIZE);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
 
         dynamicRealm.beginTransaction();
         DynamicRealmObject dog = dynamicRealm.createObject(AllTypesRealmModel.CLASS_NAME, 42);
@@ -251,7 +251,7 @@ public class RealmModelTests {
         RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypesRealmModel.CLASS_NAME).findAll();
         assertEquals(TEST_DATA_SIZE, results.size());
         for (int i = 0; i < TEST_DATA_SIZE; i++) {
-            assertEquals(3.1415 + i, results.get(i).getDouble(AllTypesRealmModel.FIELD_DOUBLE), 0.0000001);
+            assertEquals(Math.PI + i, results.get(i).getDouble(AllTypesRealmModel.FIELD_DOUBLE), 0.0000001);
             assertEquals((i % 3) == 0, results.get(i).getBoolean(AllTypesRealmModel.FIELD_BOOLEAN));
         }
         dynamicRealm.close();

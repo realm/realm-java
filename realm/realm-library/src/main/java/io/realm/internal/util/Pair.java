@@ -20,6 +20,8 @@ package io.realm.internal.util;
  * Copy from the Android framework to avoid the dependency on Android classes + slight adjustment
  * to support older versions of Android.
  *
+ * Original source: https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/util/Pair.java
+ *
  * Container to ease passing around a tuple of two objects. This object provides a sensible
  * implementation of equals(), returning true if equals() is true on each of the contained
  * objects.

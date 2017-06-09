@@ -27,7 +27,7 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.examples.newsreader.R;
 import io.realm.examples.newsreader.model.Model;
@@ -37,10 +37,10 @@ public class DetailsActivity extends AppCompatActivity {
 
     private static final String KEY_STORY_ID = "key.storyId";
 
-    @Bind(R.id.details_text) TextView detailsView;
-    @Bind(R.id.read_text) TextView readView;
-    @Bind(R.id.date_text) TextView dateView;
-    @Bind(R.id.loader_view) ProgressBar loaderView;
+    @BindView(R.id.details_text) TextView detailsView;
+    @BindView(R.id.read_text) TextView readView;
+    @BindView(R.id.date_text) TextView dateView;
+    @BindView(R.id.loader_view) ProgressBar loaderView;
 
     private Toolbar toolbar;
     private DetailsPresenter presenter;

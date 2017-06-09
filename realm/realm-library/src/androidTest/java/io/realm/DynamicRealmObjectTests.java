@@ -598,25 +598,29 @@ public class DynamicRealmObjectTests {
         DynamicRealmObject dObj = new DynamicRealmObject(obj);
         try {
             for (SupportedType type : SupportedType.values()) {
+                String fieldName = null;
                 try {
                     switch (type) {
                         case OBJECT: continue; // Ignore
-                        case LIST: dObj.setNull(NullTypes.FIELD_LIST_NULL); break;
-                        case BOOLEAN: dObj.setNull(NullTypes.FIELD_BOOLEAN_NOT_NULL); break;
-                        case BYTE: dObj.setNull(NullTypes.FIELD_BYTE_NOT_NULL); break;
-                        case SHORT: dObj.setNull(NullTypes.FIELD_SHORT_NOT_NULL); break;
-                        case INT: dObj.setNull(NullTypes.FIELD_INTEGER_NOT_NULL); break;
-                        case LONG: dObj.setNull(NullTypes.FIELD_LONG_NOT_NULL); break;
-                        case FLOAT: dObj.setNull(NullTypes.FIELD_FLOAT_NOT_NULL); break;
-                        case DOUBLE: dObj.setNull(NullTypes.FIELD_DOUBLE_NOT_NULL); break;
-                        case STRING: dObj.setNull(NullTypes.FIELD_STRING_NOT_NULL); break;
-                        case BINARY: dObj.setNull(NullTypes.FIELD_BYTES_NOT_NULL); break;
-                        case DATE: dObj.setNull(NullTypes.FIELD_DATE_NOT_NULL); break;
+                        case LIST: fieldName = NullTypes.FIELD_LIST_NULL; break;
+                        case BOOLEAN: fieldName = NullTypes.FIELD_BOOLEAN_NOT_NULL; break;
+                        case BYTE: fieldName = NullTypes.FIELD_BYTE_NOT_NULL; break;
+                        case SHORT: fieldName = NullTypes.FIELD_SHORT_NOT_NULL; break;
+                        case INT: fieldName = NullTypes.FIELD_INTEGER_NOT_NULL; break;
+                        case LONG: fieldName = NullTypes.FIELD_LONG_NOT_NULL; break;
+                        case FLOAT: fieldName = NullTypes.FIELD_FLOAT_NOT_NULL; break;
+                        case DOUBLE: fieldName = NullTypes.FIELD_DOUBLE_NOT_NULL; break;
+                        case STRING: fieldName = NullTypes.FIELD_STRING_NOT_NULL; break;
+                        case BINARY: fieldName = NullTypes.FIELD_BYTES_NOT_NULL; break;
+                        case DATE: fieldName = NullTypes.FIELD_DATE_NOT_NULL; break;
                         default:
                             fail("Unknown type: " + type);
                     }
+
+                    dObj.setNull(fieldName);
                     fail("Setting value to null should throw: " + type);
                 } catch (IllegalArgumentException ignored) {
+                    assertTrue(ignored.getMessage().contains(fieldName));
                 }
             }
         } finally {
@@ -933,27 +937,27 @@ public class DynamicRealmObjectTests {
                         break;
                     case SHORT:
                         dObj.set(AllJavaTypes.FIELD_SHORT, (short) 42);
-                        assertEquals(Long.parseLong("42"), dObj.get(AllJavaTypes.FIELD_SHORT));
+                        assertEquals(Long.parseLong("42"), dObj.<Long> get(AllJavaTypes.FIELD_SHORT).longValue());
                         break;
                     case INT:
                         dObj.set(AllJavaTypes.FIELD_INT, 42);
-                        assertEquals(Long.parseLong("42"), dObj.get(AllJavaTypes.FIELD_INT));
+                        assertEquals(Long.parseLong("42"), dObj.<Long> get(AllJavaTypes.FIELD_INT).longValue());
                         break;
                     case LONG:
                         dObj.set(AllJavaTypes.FIELD_LONG, 42L);
-                        assertEquals(Long.parseLong("42"), dObj.get(AllJavaTypes.FIELD_LONG));
+                        assertEquals(Long.parseLong("42"), dObj.<Long> get(AllJavaTypes.FIELD_LONG).longValue());
                         break;
                     case BYTE:
                         dObj.set(AllJavaTypes.FIELD_BYTE, (byte) 4);
-                        assertEquals(Long.parseLong("4"), dObj.get(AllJavaTypes.FIELD_BYTE));
+                        assertEquals(Long.parseLong("4"), dObj.<Long> get(AllJavaTypes.FIELD_BYTE).longValue());
                         break;
                     case FLOAT:
                         dObj.set(AllJavaTypes.FIELD_FLOAT, 1.23f);
-                        assertEquals(Float.parseFloat("1.23"), dObj.get(AllJavaTypes.FIELD_FLOAT));
+                        assertEquals(Float.parseFloat("1.23"), dObj.<Float> get(AllJavaTypes.FIELD_FLOAT), Float.MIN_NORMAL);
                         break;
                     case DOUBLE:
                         dObj.set(AllJavaTypes.FIELD_DOUBLE, 1.234d);
-                        assertEquals(Double.parseDouble("1.234"), dObj.get(AllJavaTypes.FIELD_DOUBLE));
+                        assertEquals(Double.parseDouble("1.234"), dObj.<Double>get(AllJavaTypes.FIELD_DOUBLE), Double.MIN_NORMAL);
                         break;
                     case STRING:
                         dObj.set(AllJavaTypes.FIELD_STRING, "str");
@@ -1216,7 +1220,7 @@ public class DynamicRealmObjectTests {
         // Checks that toString() doesn't crash, and does simple formatting checks. We cannot compare to a set String as
         // eg. the byte array will be allocated each time it is accessed.
         String str = dObjTyped.toString();
-        assertTrue(str.startsWith("AllJavaTypes = ["));
+        assertTrue(str.startsWith("AllJavaTypes = dynamic["));
         assertTrue(str.endsWith("}]"));
     }
 

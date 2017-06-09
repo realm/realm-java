@@ -93,7 +93,7 @@ public class DynamicRealmTests {
             allTypes.setBoolean(AllTypes.FIELD_BOOLEAN, (i % 3) == 0);
             allTypes.setBlob(AllTypes.FIELD_BINARY, new byte[]{1, 2, 3});
             allTypes.setDate(AllTypes.FIELD_DATE, new Date());
-            allTypes.setDouble(AllTypes.FIELD_DOUBLE, 3.1415D + i);
+            allTypes.setDouble(AllTypes.FIELD_DOUBLE, Math.PI + i);
             allTypes.setFloat(AllTypes.FIELD_FLOAT, 1.234567F + i);
             allTypes.setString(AllTypes.FIELD_STRING, "test data " + i);
             allTypes.setLong(AllTypes.FIELD_LONG, i);
@@ -356,7 +356,7 @@ public class DynamicRealmTests {
                 .between(AllTypes.FIELD_LONG, 4, 9)
                 .findFirstAsync();
         assertFalse(allTypes.isLoaded());
-        looperThread.keepStrongReference.add(allTypes);
+        looperThread.keepStrongReference(allTypes);
         allTypes.addChangeListener(new RealmChangeListener<DynamicRealmObject>() {
             @Override
             public void onChange(DynamicRealmObject object) {
@@ -389,7 +389,7 @@ public class DynamicRealmTests {
                 looperThread.testComplete();
             }
         });
-        looperThread.keepStrongReference.add(allTypes);
+        looperThread.keepStrongReference(allTypes);
     }
 
     @Test
@@ -414,15 +414,15 @@ public class DynamicRealmTests {
                 looperThread.testComplete();
             }
         });
-        looperThread.keepStrongReference.add(allTypes);
+        looperThread.keepStrongReference(allTypes);
     }
 
     // Initializes a Dynamic Realm used by the *Async tests and keeps it ref in the looperThread.
     private DynamicRealm initializeDynamicRealm() {
-        RealmConfiguration defaultConfig = looperThread.realmConfiguration;
+        RealmConfiguration defaultConfig = looperThread.getConfiguration();
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
         populateTestRealm(dynamicRealm, 10);
-        looperThread.keepStrongReference.add(dynamicRealm);
+        looperThread.keepStrongReference(dynamicRealm);
         return dynamicRealm;
     }
 
@@ -476,27 +476,27 @@ public class DynamicRealmTests {
             @Override
             public void onChange(RealmResults<DynamicRealmObject> object) {
                 assertEquals("data 0", realmResults1.get(0).get(AllTypes.FIELD_STRING));
-                assertEquals(3L, realmResults1.get(0).get(AllTypes.FIELD_LONG));
+                assertEquals(3L, realmResults1.get(0).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 0", realmResults1.get(1).get(AllTypes.FIELD_STRING));
-                assertEquals(2L, realmResults1.get(1).get(AllTypes.FIELD_LONG));
+                assertEquals(2L, realmResults1.get(1).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 0", realmResults1.get(2).get(AllTypes.FIELD_STRING));
-                assertEquals(0L, realmResults1.get(2).get(AllTypes.FIELD_LONG));
+                assertEquals(0L, realmResults1.get(2).<Long> get(AllTypes.FIELD_LONG).longValue());
 
                 assertEquals("data 1", realmResults1.get(3).get(AllTypes.FIELD_STRING));
-                assertEquals(4L, realmResults1.get(3).get(AllTypes.FIELD_LONG));
+                assertEquals(4L, realmResults1.get(3).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 1", realmResults1.get(4).get(AllTypes.FIELD_STRING));
-                assertEquals(3L, realmResults1.get(4).get(AllTypes.FIELD_LONG));
+                assertEquals(3L, realmResults1.get(4).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 1", realmResults1.get(5).get(AllTypes.FIELD_STRING));
-                assertEquals(1L, realmResults1.get(5).get(AllTypes.FIELD_LONG));
+                assertEquals(1L, realmResults1.get(5).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 1", realmResults1.get(6).get(AllTypes.FIELD_STRING));
-                assertEquals(0L, realmResults1.get(6).get(AllTypes.FIELD_LONG));
+                assertEquals(0L, realmResults1.get(6).<Long> get(AllTypes.FIELD_LONG).longValue());
 
                 assertEquals("data 2", realmResults1.get(7).get(AllTypes.FIELD_STRING));
-                assertEquals(4L, realmResults1.get(7).get(AllTypes.FIELD_LONG));
+                assertEquals(4L, realmResults1.get(7).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 2", realmResults1.get(8).get(AllTypes.FIELD_STRING));
-                assertEquals(2L, realmResults1.get(8).get(AllTypes.FIELD_LONG));
+                assertEquals(2L, realmResults1.get(8).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 2", realmResults1.get(9).get(AllTypes.FIELD_STRING));
-                assertEquals(1L, realmResults1.get(9).get(AllTypes.FIELD_LONG));
+                assertEquals(1L, realmResults1.get(9).<Long> get(AllTypes.FIELD_LONG).longValue());
 
                 signalCallbackDone.run();
             }
@@ -506,33 +506,33 @@ public class DynamicRealmTests {
             @Override
             public void onChange(RealmResults<DynamicRealmObject> object) {
                 assertEquals("data 2", realmResults2.get(0).get(AllTypes.FIELD_STRING));
-                assertEquals(1L, realmResults2.get(0).get(AllTypes.FIELD_LONG));
+                assertEquals(1L, realmResults2.get(0).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 2", realmResults2.get(1).get(AllTypes.FIELD_STRING));
-                assertEquals(2L, realmResults2.get(1).get(AllTypes.FIELD_LONG));
+                assertEquals(2L, realmResults2.get(1).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 2", realmResults2.get(2).get(AllTypes.FIELD_STRING));
-                assertEquals(4L, realmResults2.get(2).get(AllTypes.FIELD_LONG));
+                assertEquals(4L, realmResults2.get(2).<Long> get(AllTypes.FIELD_LONG).longValue());
 
                 assertEquals("data 1", realmResults2.get(3).get(AllTypes.FIELD_STRING));
-                assertEquals(0L, realmResults2.get(3).get(AllTypes.FIELD_LONG));
+                assertEquals(0L, realmResults2.get(3).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 1", realmResults2.get(4).get(AllTypes.FIELD_STRING));
-                assertEquals(1L, realmResults2.get(4).get(AllTypes.FIELD_LONG));
+                assertEquals(1L, realmResults2.get(4).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 1", realmResults2.get(5).get(AllTypes.FIELD_STRING));
-                assertEquals(3L, realmResults2.get(5).get(AllTypes.FIELD_LONG));
+                assertEquals(3L, realmResults2.get(5).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 1", realmResults2.get(6).get(AllTypes.FIELD_STRING));
-                assertEquals(4L, realmResults2.get(6).get(AllTypes.FIELD_LONG));
+                assertEquals(4L, realmResults2.get(6).<Long> get(AllTypes.FIELD_LONG).longValue());
 
                 assertEquals("data 0", realmResults2.get(7).get(AllTypes.FIELD_STRING));
-                assertEquals(0L, realmResults2.get(7).get(AllTypes.FIELD_LONG));
+                assertEquals(0L, realmResults2.get(7).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 0", realmResults2.get(8).get(AllTypes.FIELD_STRING));
-                assertEquals(2L, realmResults2.get(8).get(AllTypes.FIELD_LONG));
+                assertEquals(2L, realmResults2.get(8).<Long> get(AllTypes.FIELD_LONG).longValue());
                 assertEquals("data 0", realmResults2.get(9).get(AllTypes.FIELD_STRING));
-                assertEquals(3L, realmResults2.get(9).get(AllTypes.FIELD_LONG));
+                assertEquals(3L, realmResults2.get(9).<Long> get(AllTypes.FIELD_LONG).longValue());
 
                 signalCallbackDone.run();
             }
         });
-        looperThread.keepStrongReference.add(realmResults1);
-        looperThread.keepStrongReference.add(realmResults2);
+        looperThread.keepStrongReference(realmResults1);
+        looperThread.keepStrongReference(realmResults2);
     }
 
     @Test
@@ -675,7 +675,36 @@ public class DynamicRealmTests {
         dynamicRealm.commitTransaction();
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Field 'nonExisting' does not exist.");
+        thrown.expectMessage("Invalid query: field 'nonExisting' not found in table 'NoField'.");
         dynamicRealm.where(className).equalTo("nonExisting", 1);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void getInstanceAsync_nonLooperThreadShouldThrow() {
+        DynamicRealm.getInstanceAsync(defaultConfig, new DynamicRealm.Callback() {
+            @Override
+            public void onSuccess(DynamicRealm realm) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_nullConfigShouldThrow() {
+        thrown.expect(IllegalArgumentException.class);
+        DynamicRealm.getInstanceAsync(null, new DynamicRealm.Callback() {
+            @Override
+            public void onSuccess(DynamicRealm realm) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_nullCallbackShouldThrow() {
+        thrown.expect(IllegalArgumentException.class);
+        DynamicRealm.getInstanceAsync(defaultConfig, null);
     }
 }

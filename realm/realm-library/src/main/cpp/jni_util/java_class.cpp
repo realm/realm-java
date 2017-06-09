@@ -31,12 +31,18 @@ JavaClass::JavaClass(JNIEnv* env, const char* class_name, bool free_on_unload)
     }
 }
 
+JavaClass::JavaClass(JavaClass&& rhs)
+    : m_ref_owner(std::move(rhs.m_ref_owner))
+    , m_class(rhs.m_class)
+{
+    rhs.m_class = nullptr;
+}
+
 JavaGlobalRef JavaClass::get_jclass(JNIEnv* env, const char* class_name)
 {
     jclass cls = env->FindClass(class_name);
     REALM_ASSERT_DEBUG(cls);
 
-    JavaGlobalRef cls_ref(env, cls);
-    env->DeleteLocalRef(cls);
+    JavaGlobalRef cls_ref(env, cls, true);
     return cls_ref;
 }
