@@ -400,17 +400,17 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo info = new OsObjectSchemaInfo("AllTypes");
-        info.add("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, !Property.REQUIRED);
-        info.add("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        info.add("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        info.add("columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        info.add("columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        info.add("columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        info.add("columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        info.add("columnObject", RealmFieldType.OBJECT, "AllTypes");
-        info.add("columnRealmList", RealmFieldType.LIST, "AllTypes");
-        return info;
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("AllTypes");
+        builder.addProperty("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, !Property .REQUIRED);
+        builder.addProperty("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property .REQUIRED);
+        builder.addProperty("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property .REQUIRED);
+        builder.addProperty("columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addLinkedProperty("columnObject", RealmFieldType.OBJECT, "AllTypes");
+        builder.addLinkedProperty("columnRealmList", RealmFieldType.LIST, "AllTypes");
+        return builder.build();
     }
 
     public static OsObjectSchemaInfo getExpectedObjectSchemaInfo() {

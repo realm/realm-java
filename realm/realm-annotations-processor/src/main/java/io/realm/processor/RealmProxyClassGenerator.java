@@ -604,7 +604,7 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PRIVATE, Modifier.STATIC)); // Modifiers
 
         writer.emitStatement(
-                "OsObjectSchemaInfo info = new OsObjectSchemaInfo(\"%s\")", this.simpleClassName);
+                "OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder(\"%s\")", this.simpleClassName);
 
         // For each field generate corresponding table index constant
         for (VariableElement field : metadata.getFields()) {
@@ -618,13 +618,13 @@ public class RealmProxyClassGenerator {
 
                 case OBJECT:
                     String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
-                    writer.emitStatement("info.add(\"%s\", RealmFieldType.OBJECT, \"%s\")",
+                    writer.emitStatement("builder.addLinkedProperty(\"%s\", RealmFieldType.OBJECT, \"%s\")",
                             fieldName, fieldTypeSimpleName);
                     break;
 
                 case LIST:
                     String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-                    writer.emitStatement("info.add(\"%s\", RealmFieldType.LIST, \"%s\")",
+                    writer.emitStatement("builder.addLinkedProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
                             fieldName, genericTypeSimpleName);
                     break;
 
@@ -632,7 +632,7 @@ public class RealmProxyClassGenerator {
                     String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
                     String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
                     String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
-                    writer.emitStatement("info.add(\"%s\", %s, %s, %s, %s)",
+                    writer.emitStatement("builder.addProperty(\"%s\", %s, %s, %s, %s)",
                             fieldName,
                             fieldType.getRealmType(),
                             primaryKeyFlag,
@@ -640,7 +640,7 @@ public class RealmProxyClassGenerator {
                             nullableFlag);
             }
         }
-        writer.emitStatement("return info");
+        writer.emitStatement("return builder.build()");
         writer.endMethod()
                 .emitEmptyLine();
     }

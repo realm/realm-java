@@ -16,14 +16,72 @@
 package io.realm.internal;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.realm.RealmFieldType;
 
 /**
- * Java wrapper for Object Store ObjectSchema.
+ * Immutable Java wrapper for Object Store ObjectSchema.
  *
  * @see OsSchemaInfo
  */
 public class OsObjectSchemaInfo implements NativeObject {
+
+    public static class Builder {
+        private String className;
+        private List<Property> propertyList = new ArrayList<Property>();
+
+        /**
+         * Creates an empty builder for {@code OsObjectSchemaInfo}. This constructor is intended to be used by
+         * the validation of schema, object schemas and properties through the object store.
+         *
+         * @param className name of the class
+         */
+        public Builder(String className) {
+            this.className = className;
+        }
+
+        /**
+         * Adds a property to this builder.
+         *
+         * @param name the name of the property.
+         * @param type the type of the property.
+         * @param primary set to true if this property is the primary key.
+         * @param indexed set to true if this property needs an index.
+         * @param required set to false if this property is not nullable.
+         * @return this {@code OsObjectSchemaInfo}.
+         */
+        public Builder addProperty(String name, RealmFieldType type, boolean primary, boolean indexed,
+                                   boolean required) {
+            final Property property = new Property(name, type, primary, indexed, required);
+            propertyList.add(property);
+            return this;
+        }
+
+        /**
+         * Adds a linked property to this {@code OsObjectSchema}.
+         *
+         * @param name the name of the linked property.
+         * @param type the type of the linked property.
+         * @return this {@code OsObjectSchemaInfo}.
+         */
+        public Builder addLinkedProperty(String name, RealmFieldType type, String linkedClassName) {
+            final Property property = new Property(name, type, linkedClassName);
+            propertyList.add(property);
+            return this;
+        }
+
+        public OsObjectSchemaInfo build() {
+            OsObjectSchemaInfo info = new OsObjectSchemaInfo(className);
+            for (Property property : propertyList) {
+                nativeAddProperty(info.nativePtr, property.getNativePtr());
+            }
+
+            return info;
+        }
+    }
+
     private long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
@@ -33,10 +91,16 @@ public class OsObjectSchemaInfo implements NativeObject {
      *
      * @param className name of the class
      */
-    public OsObjectSchemaInfo(String className) {
+    private OsObjectSchemaInfo(String className) {
         this(nativeCreateRealmObjectSchema(className));
     }
 
+    /**
+     * Create a java wrapper class for given {@code ObjectSchema} pointer. This java wrapper will take the ownership of
+     * the object's memory and release it through phantom reference.
+     *
+     * @param nativePtr pointer to the {@code ObjectSchema} object.
+     */
     private OsObjectSchemaInfo(long nativePtr) {
         this.nativePtr = nativePtr;
         NativeContext.dummyContext.addReference(this);
@@ -47,36 +111,6 @@ public class OsObjectSchemaInfo implements NativeObject {
      */
     public String getClassName() {
         return nativeGetClassName(nativePtr);
-    }
-
-
-    /**
-     * Adds a property to this {@code OsObjectSchema}.
-     *
-     * @param name the name of the property.
-     * @param type the type of the property.
-     * @param primary set to true if this property is the primary key.
-     * @param indexed set to true if this property needs an index.
-     * @param required set to false if this property is not nullable.
-     * @return this {@code OsObjectSchemaInfo}.
-     */
-    public OsObjectSchemaInfo add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
-        final Property property = new Property(name, type, primary, indexed, required);
-        nativeAddProperty(nativePtr, property.getNativePtr());
-        return this;
-    }
-
-    /**
-     * Adds a linked property to this {@code OsObjectSchema}.
-     *
-     * @param name the name of the linked property.
-     * @param type the type of the linked property.
-     * @return this {@code OsObjectSchemaInfo}.
-     */
-    public OsObjectSchemaInfo add(String name, RealmFieldType type, String linkedClassName) {
-        final Property property = new Property(name, type, linkedClassName);
-        nativeAddProperty(nativePtr, property.getNativePtr());
-        return this;
     }
 
     @Override

@@ -143,10 +143,10 @@ public class SimpleRealmProxy extends some.test.Simple
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo info = new OsObjectSchemaInfo("Simple");;
-        info.add("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        info.add("age", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        return info;
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("Simple");
+        builder.addProperty("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addProperty("age", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        return builder.build();
     }
 
     public static OsObjectSchemaInfo getExpectedObjectSchemaInfo() {

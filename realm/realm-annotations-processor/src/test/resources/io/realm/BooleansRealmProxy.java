@@ -187,12 +187,12 @@ public class BooleansRealmProxy extends some.test.Booleans
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo info = new OsObjectSchemaInfo("Booleans");;
-        info.add("done", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        info.add("isReady", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        info.add("mCompleted", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        info.add("anotherBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        return info;
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("Booleans");
+        builder.addProperty("done", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property .REQUIRED);
+        builder.addProperty("isReady", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property .REQUIRED);
+        builder.addProperty("mCompleted", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property .REQUIRED);
+        builder.addProperty("anotherBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property .REQUIRED);
+        return builder.build();
     }
 
     public static OsObjectSchemaInfo getExpectedObjectSchemaInfo() {
