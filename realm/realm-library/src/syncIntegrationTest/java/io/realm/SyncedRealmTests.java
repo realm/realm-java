@@ -37,6 +37,7 @@ import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.objectserver.utils.Constants;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
@@ -64,7 +65,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
     @Test
     @UiThreadTest
     public void waitForInitialRemoteData_mainThreadThrows() {
-        final SyncUser user = loginUser();
+        final SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
 
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .waitForInitialRemoteData()
