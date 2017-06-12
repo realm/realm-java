@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,19 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.model;
+package io.realm.objectserver.utils;
 
 import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
 
-public class TestObject extends RealmObject {
-    @PrimaryKey
-    private int intProp;
+// Used by UserFactory. Storing current user name for testing to share the same user name across processes.
+public class UserFactoryStore extends RealmObject {
+    private String userName;
 
-    private String stringProp;
-
-    public int getIntProp() {
-        return intProp;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setIntProp(int intProp) {
-        this.intProp = intProp;
-    }
-
-    public String getStringProp() {
-        return stringProp;
-    }
-
-    public void setStringProp(String stringProp) {
-        this.stringProp = stringProp;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }
