@@ -41,7 +41,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeCreateFromList
         for (jsize i = 0; i < array.len(); ++i) {
             object_schemas.push_back(*reinterpret_cast<ObjectSchema*>(array[i]));
         }
-        auto* schema = new Schema(object_schemas);
+        auto* schema = new Schema(std::move(object_schemas));
         return reinterpret_cast<jlong>(schema);
     }
     CATCH_STD()
