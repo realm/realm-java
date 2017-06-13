@@ -19,6 +19,7 @@ package io.realm.objectserver;
 import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,6 +51,11 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
     @Rule
     public RunWithRemoteService remoteService = new RunWithRemoteService();
+
+    @Before
+    public void before() throws Exception {
+        UserFactory.resetInstance();
+    }
 
     public static class SimpleCommitRemoteService extends RemoteIntegrationTestService {
         private static SyncUser user;
