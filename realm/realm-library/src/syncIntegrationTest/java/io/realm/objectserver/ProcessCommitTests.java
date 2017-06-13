@@ -38,9 +38,11 @@ import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.RemoteIntegrationTestService;
 import io.realm.objectserver.utils.UserFactory;
+import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.RunTestWithRemoteService;
 import io.realm.rule.RunWithRemoteService;
+import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.services.RemoteTestService;
 
 import static org.junit.Assert.assertEquals;
@@ -49,6 +51,8 @@ import static org.junit.Assert.assertEquals;
 @RunWith(AndroidJUnit4.class)
 public class ProcessCommitTests extends BaseIntegrationTest {
 
+    @Rule
+    public RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public RunWithRemoteService remoteService = new RunWithRemoteService();
 
