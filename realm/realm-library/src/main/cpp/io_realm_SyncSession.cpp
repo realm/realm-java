@@ -80,7 +80,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
             uint64_t transferred, uint64_t transferrable) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
-            auto path = JavaLocalRef(to_jstring(local_env, local_realm_path));
+            auto path = to_jstring(local_env, local_realm_path);
             local_env->CallStaticVoidMethod(java_syncmanager_class, java_notify_progress_listener, path, listener_id,
                                             static_cast<jlong>(transferred), static_cast<jlong>(transferrable));
 
