@@ -47,6 +47,7 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringAndInt;
+import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -61,6 +62,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -1922,5 +1924,104 @@ public class RealmObjectTests {
                 }
             }
         });
+    }
+
+    @Test
+    public void getRealmConfiguration_managedRealmObject() {
+        realm.beginTransaction();
+        AllTypes object = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        assertSame(realmConfig, RealmObject.getConfiguration(object));
+    }
+
+    @Test
+    public void getRealmConfiguration_managedRealmModel() {
+        realm.beginTransaction();
+        AllTypesRealmModel object = realm.createObject(AllTypesRealmModel.class, 1L);
+        realm.commitTransaction();
+
+        assertSame(realmConfig, RealmObject.getConfiguration(object));
+    }
+
+    @Test
+    public void getRealmConfiguration_DynamicRealmObject() {
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realmConfig);
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            dynamicRealm.beginTransaction();
+            DynamicRealmObject object = dynamicRealm.createObject("AllTypesRealmModel", 1L);
+            dynamicRealm.commitTransaction();
+
+            assertSame(realmConfig, RealmObject.getConfiguration(object));
+        } finally {
+            dynamicRealm.close();
+        }
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getRealmConfiguration_unmanagedRealmObjectThrows() {
+        RealmObject.getConfiguration(new AllTypes());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getRealmConfiguration_unmanagedRealmModelThrows() {
+        RealmObject.getConfiguration(new AllTypesRealmModel());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getRealmConfiguration_null() {
+        RealmObject.getConfiguration(null);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void getRealmConfiguration_closedObjectThrows() {
+        realm.beginTransaction();
+        AllTypes object = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        realm.close();
+        realm = null;
+
+        RealmObject.getConfiguration(object);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void getRealmConfiguration_deletedObjectThrows() {
+        realm.beginTransaction();
+        AllTypes object = realm.createObject(AllTypes.class);
+        object.deleteFromRealm();
+        realm.commitTransaction();
+
+        RealmObject.getConfiguration(object);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void getRealmConfiguration_illegalThreadThrows() throws Throwable {
+        realm.beginTransaction();
+        final AllTypes object = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        final CountDownLatch threadFinished = new CountDownLatch(1);
+        final AtomicReference<Throwable> throwable = new AtomicReference<>();
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    RealmObject.getConfiguration(object);
+                } catch (Throwable t) {
+                    throwable.set(t);
+                } finally {
+                    threadFinished.countDown();
+                }
+            }
+        });
+        thread.start();
+        TestHelper.awaitOrFail(threadFinished);
+
+        final Throwable thrownInTheThread = throwable.get();
+        if (thrownInTheThread != null) {
+            throw thrownInTheThread;
+        }
     }
 }

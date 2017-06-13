@@ -1790,6 +1790,26 @@ public class Realm extends BaseRealm {
     }
 
     /**
+     * Gets {@link RealmConfiguration} from managed {@link RealmModel} instance such as {@link RealmObject} or {@link DynamicRealmObject}.
+     *
+     * @param model managed Realm object.
+     * @return {@link RealmConfiguration} of the Realm where the {@code model} belongs to.
+     * @throws IllegalArgumentException if the {@code model} is {@code null} or unmanaged.
+     */
+    public static RealmConfiguration getConfiguration(RealmModel model) {
+        if (model == null) {
+            throw new IllegalArgumentException("'model' is null.");
+        }
+        if (!(model instanceof RealmObjectProxy)) {
+            throw new IllegalArgumentException("'model' is not a managed object.");
+        }
+        final BaseRealm realm = ((RealmObjectProxy) model).realmGet$proxyState().getRealm$realm();
+        realm.checkIfValid();
+
+        return realm.getConfiguration();
+    }
+
+    /**
      * Returns the current number of open Realm instances across all threads that are using this configuration.
      * This includes both dynamic and normal Realms.
      *

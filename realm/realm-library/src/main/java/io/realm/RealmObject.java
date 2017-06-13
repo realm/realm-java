@@ -684,4 +684,28 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
             throw new IllegalArgumentException("Cannot create Observables from unmanaged RealmObjects");
         }
     }
+
+    /**
+     * Gets {@link RealmConfiguration} from managed {@link RealmModel} instance such as {@link RealmObject} or {@link DynamicRealmObject}.
+     *
+     * @param model managed Realm object.
+     * @return {@link RealmConfiguration} of the Realm where the {@code model} belongs to.
+     * @throws IllegalArgumentException if the {@code model} is {@code null} or unmanaged.
+     * @throws IllegalStateException if the model is deleted, the corresponding Realm of the model is closed or in an incorrect thread.
+     */
+    public static RealmConfiguration getConfiguration(RealmModel model) {
+        if (model == null) {
+            throw new IllegalArgumentException("'model' is null.");
+        }
+        if (!(model instanceof RealmObjectProxy)) {
+            throw new IllegalArgumentException("'model' is not a managed object.");
+        }
+        final BaseRealm realm = ((RealmObjectProxy) model).realmGet$proxyState().getRealm$realm();
+        realm.checkIfValid();
+        if (!RealmObject.isValid(model)) {
+            throw new IllegalStateException("'model' is already deleted.");
+        }
+
+        return realm.getConfiguration();
+    }
 }
