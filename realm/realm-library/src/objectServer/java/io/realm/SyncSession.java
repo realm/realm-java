@@ -76,15 +76,15 @@ public class SyncSession {
     // We need JavaId -> Listener so C++ can trigger callbacks without keeping a reference to the
     // jobject, which would require a similar map on the C++ side.
     // We need Listener -> Token map in order to remove the progress listener in C++ from Java.
-    private Map<Long, Pair<ProgressListener, Progress>> listenerIdToProgressListenerMap = new HashMap<>();
-    private Map<ProgressListener, Long> progressListenerToOsTokenMap = new IdentityHashMap<>();
+    private final Map<Long, Pair<ProgressListener, Progress>> listenerIdToProgressListenerMap = new HashMap<>();
+    private final Map<ProgressListener, Long> progressListenerToOsTokenMap = new IdentityHashMap<>();
     // Counter used to assign all ProgressListeners on this session with a unique id.
     // ListenerId is created by Java to enable C++ to reference the java listener without holding
     // a reference to the actual object.
     // ListenerToken is the same concept, but created by OS and represents the listener.
     // We can unfortunately not just use the ListenerToken, since we need it to be available before
     // we register the listener.
-    AtomicLong progressListenerId = new AtomicLong(-1);
+    private final AtomicLong progressListenerId = new AtomicLong(-1);
 
     SyncSession(SyncConfiguration configuration) {
         this.configuration = configuration;
@@ -136,16 +136,13 @@ public class SyncSession {
         }
     }
 
-    // Called from native code
-    @SuppressWarnings("unused")
-    @KeepMember
     synchronized void notifyProgressListener(long listenerId, long transferredBytes, long transferableBytes) {
         Pair<ProgressListener, Progress> listener = listenerIdToProgressListenerMap.get(listenerId);
         if (listener != null) {
             Progress newProgressNotification = new Progress(transferredBytes, transferableBytes);
             if (!newProgressNotification.equals(listener.second)) {
-                listener.first.onChange(newProgressNotification);
                 listener.second = newProgressNotification;
+                listener.first.onChange(newProgressNotification);
             }
         } else {
             RealmLog.debug("Trying unknown listener failed: " + listenerId);

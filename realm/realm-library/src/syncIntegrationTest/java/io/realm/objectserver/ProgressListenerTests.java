@@ -192,6 +192,42 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         worker.join();
     }
 
+    // Make sure that a ProgressListener continues to report the correct thing, even if it crashed
+    @Test
+    public void uploadListener_worksEvenIfCrashed() throws InterruptedException {
+        final AtomicInteger transferCompleted = new AtomicInteger(0);
+        final CountDownLatch testDone = new CountDownLatch(1);
+        final SyncConfiguration config = createSyncConfig();
+        Realm realm = Realm.getInstance(config);
+
+        writeSampleData(realm); // Write first batch of sample data
+        SyncSession session = SyncManager.getSession(config);
+        session.addUploadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
+            @Override
+            public void onChange(Progress progress) {
+                if (progress.isTransferComplete()) {
+                    switch(transferCompleted.incrementAndGet()) {
+                        case 1:
+                            Realm realm = Realm.getInstance(config);
+                            writeSampleData(realm);
+                            realm.close();
+                            throw new RuntimeException("Crashing the changelistener");
+                        case 2:
+                            assertTransferComplete(progress, true);
+                            testDone.countDown();
+                            break;
+                        default:
+                            fail("Unsupported number of transfers completed: " + transferCompleted.get());
+                    }
+                }
+            }
+        });
+
+        TestHelper.awaitOrFail(testDone);
+        realm.close();
+    }
+
+
     @Test
     public void uploadProgressListener_changesOnly() {
         final CountDownLatch allChangeUploaded = new CountDownLatch(1);

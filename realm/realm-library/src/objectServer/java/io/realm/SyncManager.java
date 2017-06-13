@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
+import io.realm.internal.KeepMember;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.network.OkHttpAuthenticationServer;
@@ -285,6 +286,7 @@ public class SyncManager {
      * can leak since we don't have control over the session lifecycle.
      */
     @SuppressWarnings("unused")
+    @KeepMember
     private static synchronized void notifyProgressListener(String localRealmPath, long listenerId, long transferedBytes, long transferableBytes) {
         SyncSession session = sessions.get(localRealmPath);
         if (session != null) {
