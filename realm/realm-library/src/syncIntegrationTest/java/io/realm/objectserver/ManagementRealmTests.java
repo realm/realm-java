@@ -51,9 +51,6 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class ManagementRealmTests extends BaseIntegrationTest {
 
-    @Rule
-    public RunInLooperThread looperThread = new RunInLooperThread();
-
     // This is primarily a test making sure that an admin user actually connects correctly to ROS.
     // See https://github.com/realm/realm-java/issues/4750
     @Test
