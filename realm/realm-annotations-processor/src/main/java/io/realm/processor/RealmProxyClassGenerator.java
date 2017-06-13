@@ -36,6 +36,7 @@ import javax.tools.JavaFileObject;
 
 
 public class RealmProxyClassGenerator {
+    private static final String OPTION_DEBUG = "debug";
     private static final String BACKLINKS_FIELD_EXTENSION = "Backlinks";
 
     private final ProcessingEnvironment processingEnvironment;
@@ -44,6 +45,7 @@ public class RealmProxyClassGenerator {
     private final String qualifiedClassName;
     private final String interfaceName;
     private final String qualifiedGeneratedClassName;
+    private final boolean debugging;
 
     public RealmProxyClassGenerator(ProcessingEnvironment processingEnvironment, ClassMetaData metadata) {
         this.processingEnvironment = processingEnvironment;
@@ -53,6 +55,8 @@ public class RealmProxyClassGenerator {
         this.interfaceName = Utils.getProxyInterfaceName(simpleClassName);
         this.qualifiedGeneratedClassName = String.format("%s.%s",
                 Constants.REALM_PACKAGE_NAME, Utils.getProxyClassName(simpleClassName));
+
+        debugging = Boolean.parseBoolean(processingEnvironment.getOptions().get(OPTION_DEBUG));
     }
 
     public void generate() throws IOException, UnsupportedOperationException {
@@ -101,7 +105,10 @@ public class RealmProxyClassGenerator {
                 .emitEmptyLine();
 
         // Begin the class definition
-        writer.emitAnnotation("SuppressWarnings(\"all\")")
+        if (!debugging) {
+            writer.emitAnnotation("SuppressWarnings(\"all\")");
+        }
+        writer
                 .beginType(
                 qualifiedGeneratedClassName, // full qualified name of the item to generate
                 "class",                     // the type of the item
