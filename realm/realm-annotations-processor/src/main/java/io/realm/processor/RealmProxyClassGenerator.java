@@ -105,8 +105,7 @@ public class RealmProxyClassGenerator {
                 .emitEmptyLine();
 
         // Begin the class definition
-        writer.emitAnnotation("SuppressWarnings(\"all\")")
-                .beginType(
+        writer.beginType(
                 qualifiedGeneratedClassName, // full qualified name of the item to generate
                 "class",                     // the type of the item
                 EnumSet.of(Modifier.PUBLIC), // modifiers to apply
