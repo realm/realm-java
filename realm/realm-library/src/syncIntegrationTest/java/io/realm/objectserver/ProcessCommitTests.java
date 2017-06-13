@@ -19,7 +19,6 @@ package io.realm.objectserver;
 import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,11 +37,9 @@ import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.RemoteIntegrationTestService;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.RunTestWithRemoteService;
 import io.realm.rule.RunWithRemoteService;
-import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.services.RemoteTestService;
 
 import static org.junit.Assert.assertEquals;
@@ -52,16 +49,7 @@ import static org.junit.Assert.assertEquals;
 public class ProcessCommitTests extends BaseIntegrationTest {
 
     @Rule
-    public RunInLooperThread looperThread = new RunInLooperThread();
-    @Rule
     public RunWithRemoteService remoteService = new RunWithRemoteService();
-    @Rule
-    public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
-
-    @Before
-    public void before() throws Exception {
-        UserFactory.resetInstance();
-    }
 
     public static class SimpleCommitRemoteService extends RemoteIntegrationTestService {
         private static SyncUser user;
@@ -114,7 +102,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
-        final SyncConfiguration syncConfig = configFactory.createSyncConfigurationBuilder(user, realmUrl).build();
+        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, realmUrl).build();
         final Realm realm = Realm.getInstance(syncConfig);
         final RealmResults<ProcessInfo> all = realm.where(ProcessInfo.class).findAll();
         looperThread.keepStrongReference(all);
@@ -189,7 +177,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
-        final SyncConfiguration syncConfig = configFactory.createSyncConfigurationBuilder(user, realmUrl).build();
+        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, realmUrl).build();
         final Realm realm = Realm.getInstance(syncConfig);
         final RealmResults<TestObject> all = realm.where(TestObject.class).findAllSorted("intProp");
         looperThread.keepStrongReference(all);
