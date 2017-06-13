@@ -49,12 +49,12 @@ public class OsObjectSchemaInfo implements NativeObject {
          * @param type the type of the property.
          * @param isPrimaryKey set to true if this property is the primary key.
          * @param isIndexed set to true if this property needs an index.
-         * @param required set to false if this property is not nullable.
+         * @param isRequired set to false if this property is not nullable.
          * @return this {@code OsObjectSchemaInfo}.
          */
         public Builder addProperty(String name, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
-                                   boolean required) {
-            final Property property = new Property(name, type, isPrimaryKey, isIndexed, required);
+                                   boolean isRequired) {
+            final Property property = new Property(name, type, isPrimaryKey, isIndexed, isRequired);
             propertyList.add(property);
             return this;
         }

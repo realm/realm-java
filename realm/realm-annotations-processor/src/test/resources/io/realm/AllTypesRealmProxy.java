@@ -401,9 +401,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
         OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("AllTypes");
-        builder.addProperty("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, !Property .REQUIRED);
-        builder.addProperty("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property .REQUIRED);
-        builder.addProperty("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property .REQUIRED);
+        builder.addProperty("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, !Property.REQUIRED);
+        builder.addProperty("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addProperty("columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addProperty("columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addProperty("columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
