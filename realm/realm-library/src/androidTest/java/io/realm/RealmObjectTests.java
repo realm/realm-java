@@ -1959,22 +1959,37 @@ public class RealmObjectTests {
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getRealmConfiguration_unmanagedRealmObjectThrows() {
-        RealmObject.getConfiguration(new AllTypes());
+        try {
+            RealmObject.getConfiguration(new AllTypes());
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals(RealmObject.MSG_NOT_MANAGED_OBJECT, e.getMessage());
+        }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getRealmConfiguration_unmanagedRealmModelThrows() {
-        RealmObject.getConfiguration(new AllTypesRealmModel());
+        try {
+            RealmObject.getConfiguration(new AllTypesRealmModel());
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals(RealmObject.MSG_NOT_MANAGED_OBJECT, e.getMessage());
+        }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getRealmConfiguration_null() {
-        RealmObject.getConfiguration(null);
+        try {
+            RealmObject.getConfiguration(null);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals(RealmObject.MSG_NULL_OBJECT, e.getMessage());
+        }
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void getRealmConfiguration_closedObjectThrows() {
         realm.beginTransaction();
         AllTypes object = realm.createObject(AllTypes.class);
@@ -1983,20 +1998,30 @@ public class RealmObjectTests {
         realm.close();
         realm = null;
 
-        RealmObject.getConfiguration(object);
+        try {
+            RealmObject.getConfiguration(object);
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(BaseRealm.CLOSED_REALM_MESSAGE, e.getMessage());
+        }
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void getRealmConfiguration_deletedObjectThrows() {
         realm.beginTransaction();
         AllTypes object = realm.createObject(AllTypes.class);
         object.deleteFromRealm();
         realm.commitTransaction();
 
-        RealmObject.getConfiguration(object);
+        try {
+            RealmObject.getConfiguration(object);
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(RealmObject.MSG_DELETED_OBJECT, e.getMessage());
+        }
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void getRealmConfiguration_illegalThreadThrows() throws Throwable {
         realm.beginTransaction();
         final AllTypes object = realm.createObject(AllTypes.class);
@@ -2020,8 +2045,9 @@ public class RealmObjectTests {
         TestHelper.awaitOrFail(threadFinished);
 
         final Throwable thrownInTheThread = throwable.get();
-        if (thrownInTheThread != null) {
+        if (!(thrownInTheThread instanceof IllegalStateException)) {
             throw thrownInTheThread;
         }
+        assertEquals(BaseRealm.INCORRECT_THREAD_MESSAGE, thrownInTheThread.getMessage());
     }
 }

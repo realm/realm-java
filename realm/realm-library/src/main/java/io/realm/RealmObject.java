@@ -68,6 +68,9 @@ import rx.Observable;
 
 @RealmClass
 public abstract class RealmObject implements RealmModel, ManagableObject {
+    static final String MSG_NULL_OBJECT = "'model' is null.";
+    static final String MSG_NOT_MANAGED_OBJECT = "'model' is not a managed object.";
+    static final String MSG_DELETED_OBJECT = "'model' is already deleted.";
 
     /**
      * Deletes the object from the Realm it is currently associated to.
@@ -695,15 +698,15 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      */
     public static RealmConfiguration getConfiguration(RealmModel model) {
         if (model == null) {
-            throw new IllegalArgumentException("'model' is null.");
+            throw new IllegalArgumentException(MSG_NULL_OBJECT);
         }
         if (!(model instanceof RealmObjectProxy)) {
-            throw new IllegalArgumentException("'model' is not a managed object.");
+            throw new IllegalArgumentException(MSG_NOT_MANAGED_OBJECT);
         }
         final BaseRealm realm = ((RealmObjectProxy) model).realmGet$proxyState().getRealm$realm();
         realm.checkIfValid();
         if (!RealmObject.isValid(model)) {
-            throw new IllegalStateException("'model' is already deleted.");
+            throw new IllegalStateException(MSG_DELETED_OBJECT);
         }
 
         return realm.getConfiguration();
