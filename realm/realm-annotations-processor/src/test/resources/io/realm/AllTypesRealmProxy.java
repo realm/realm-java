@@ -30,6 +30,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+@SuppressWarnings("all")
 public class AllTypesRealmProxy extends some.test.AllTypes
         implements RealmObjectProxy, AllTypesRealmProxyInterface {
 
