@@ -19,10 +19,8 @@ package io.realm;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.test.annotation.UiThreadTest;
-import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -36,11 +34,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -52,15 +47,6 @@ import static org.junit.Assert.fail;
  */
 @RunWith(AndroidJUnit4.class)
 public class SyncedRealmTests extends BaseIntegrationTest {
-
-    @Rule
-    public RunInLooperThread looperThread = new RunInLooperThread();
-
-    @Rule
-    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
-
-    @Rule
-    public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
 
     @Test
     @UiThreadTest

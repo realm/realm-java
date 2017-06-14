@@ -296,7 +296,7 @@ public class SyncManager {
             RealmLog.error("Matching Java SyncSession could not be found for: " + sessionPath);
         } else {
             try {
-                return syncSession.accessToken(authServer);
+                return syncSession.getAccessToken(authServer);
             } catch (Exception exception) {
                 RealmLog.error(exception);
             }

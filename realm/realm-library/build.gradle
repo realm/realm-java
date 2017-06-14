@@ -65,6 +65,16 @@ android {
                 }
             }
         }
+
+        buildTypes {
+            debug {
+                javaCompileOptions {
+                    annotationProcessorOptions {
+                        arguments += [ 'realm.suppressWarnings' : 'false' ]
+                    }
+                }
+            }
+        }
     }
 
     externalNativeBuild {
@@ -92,6 +102,9 @@ android {
     packagingOptions {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/LICENSE.txt'
+        // We did strip with cmake for release build.
+        // Please, Gradle, you are not that smart! Pleas DO NOT strip debug symbols for debug build!
+        doNotStrip "*/*/*.so"
     }
 
     lintOptions {

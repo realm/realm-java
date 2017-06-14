@@ -1,4 +1,4 @@
-## 3.3.2 (YYYY-MM-DD)
+## 3.3.2 (2017-06-09)
 
 ### Breaking Changes
 
@@ -6,7 +6,9 @@
 
 ### Bug Fixes
 
-* [ObjectServer] Fixed a crash when an authentication error happend (#4726).
+* [ObjectServer] Fixed a crash when an authentication error happens (#4726).
+* [ObjectServer] Enabled encryption with Sync (#4561).
+* [ObjectServer] Admin users did not connect correctly to the server (#4750).
 
 ### Internal
 
