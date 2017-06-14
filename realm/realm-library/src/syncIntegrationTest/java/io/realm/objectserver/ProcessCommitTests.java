@@ -55,8 +55,6 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     public RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public RunWithRemoteService remoteService = new RunWithRemoteService();
-    @Rule
-    public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
     @Before
     public void before() throws Exception {
@@ -114,7 +112,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
-        final SyncConfiguration syncConfig = configFactory.createSyncConfigurationBuilder(user, realmUrl).build();
+        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, realmUrl).build();
         final Realm realm = Realm.getInstance(syncConfig);
         final RealmResults<ProcessInfo> all = realm.where(ProcessInfo.class).findAll();
         looperThread.keepStrongReference(all);
@@ -189,7 +187,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
-        final SyncConfiguration syncConfig = configFactory.createSyncConfigurationBuilder(user, realmUrl).build();
+        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, realmUrl).build();
         final Realm realm = Realm.getInstance(syncConfig);
         final RealmResults<TestObject> all = realm.where(TestObject.class).findAllSorted("intProp");
         looperThread.keepStrongReference(all);
