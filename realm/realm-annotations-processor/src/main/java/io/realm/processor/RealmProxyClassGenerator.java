@@ -56,6 +56,8 @@ public class RealmProxyClassGenerator {
         this.qualifiedGeneratedClassName = String.format("%s.%s",
                 Constants.REALM_PACKAGE_NAME, Utils.getProxyClassName(simpleClassName));
 
+        // See the configuration for the debug build type, in the realm-library project
+        // for an example of how to set this flag.
         debugging = Boolean.parseBoolean(processingEnvironment.getOptions().get(OPTION_DEBUG));
     }
 
