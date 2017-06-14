@@ -37,6 +37,7 @@ import javax.tools.JavaFileObject;
 
 
 public class RealmProxyClassGenerator {
+    private static final String OPTION_SUPPRESS_WARNINGS = "realm.suppressWarnings";
     private static final String BACKLINKS_FIELD_EXTENSION = "Backlinks";
 
     private static final List<String> IMPORTS;
@@ -76,6 +77,7 @@ public class RealmProxyClassGenerator {
     private final String qualifiedClassName;
     private final String interfaceName;
     private final String qualifiedGeneratedClassName;
+    private final boolean suppressWarnings;
 
     public RealmProxyClassGenerator(ProcessingEnvironment processingEnvironment, ClassMetaData metadata) {
         this.processingEnvironment = processingEnvironment;
@@ -85,6 +87,10 @@ public class RealmProxyClassGenerator {
         this.interfaceName = Utils.getProxyInterfaceName(simpleClassName);
         this.qualifiedGeneratedClassName = String.format("%s.%s",
                 Constants.REALM_PACKAGE_NAME, Utils.getProxyClassName(simpleClassName));
+
+        // See the configuration for the debug build type,
+        //  in the realm-library project, for an example of how to set this flag.
+        this.suppressWarnings = !"false".equalsIgnoreCase(processingEnvironment.getOptions().get(OPTION_SUPPRESS_WARNINGS));
     }
 
     public void generate() throws IOException, UnsupportedOperationException {
@@ -108,7 +114,11 @@ public class RealmProxyClassGenerator {
                 .emitEmptyLine();
 
         // Begin the class definition
-        writer.beginType(
+        if (suppressWarnings) {
+            writer.emitAnnotation("SuppressWarnings(\"all\")");
+        }
+        writer
+                .beginType(
                 qualifiedGeneratedClassName, // full qualified name of the item to generate
                 "class",                     // the type of the item
                 EnumSet.of(Modifier.PUBLIC), // modifiers to apply

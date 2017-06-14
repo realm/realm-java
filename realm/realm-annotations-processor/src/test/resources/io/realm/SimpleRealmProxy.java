@@ -27,6 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+@SuppressWarnings("all")
 public class SimpleRealmProxy extends some.test.Simple
         implements RealmObjectProxy, SimpleRealmProxyInterface {
 
