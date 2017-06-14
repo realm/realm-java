@@ -69,7 +69,6 @@ import rx.Observable;
 @RealmClass
 public abstract class RealmObject implements RealmModel, ManagableObject {
     static final String MSG_NULL_OBJECT = "'model' is null.";
-    static final String MSG_NOT_MANAGED_OBJECT = "'model' is not a managed object.";
     static final String MSG_DELETED_OBJECT = "'model' is already deleted.";
 
     /**
@@ -692,8 +691,8 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * Gets {@link RealmConfiguration} from managed {@link RealmModel} instance such as {@link RealmObject} or {@link DynamicRealmObject}.
      *
      * @param model managed Realm object.
-     * @return {@link RealmConfiguration} of the Realm where the {@code model} belongs to.
-     * @throws IllegalArgumentException if the {@code model} is {@code null} or unmanaged.
+     * @return {@link RealmConfiguration} of the Realm where the {@code model} belongs to or {@code null} if the {@code model} is unmanaged.
+     * @throws IllegalArgumentException if the {@code model} is {@code null}.
      * @throws IllegalStateException if the model is deleted, the corresponding Realm of the model is closed or in an incorrect thread.
      */
     public static RealmConfiguration getConfiguration(RealmModel model) {
@@ -701,7 +700,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
             throw new IllegalArgumentException(MSG_NULL_OBJECT);
         }
         if (!(model instanceof RealmObjectProxy)) {
-            throw new IllegalArgumentException(MSG_NOT_MANAGED_OBJECT);
+            return null;
         }
         final BaseRealm realm = ((RealmObjectProxy) model).realmGet$proxyState().getRealm$realm();
         realm.checkIfValid();

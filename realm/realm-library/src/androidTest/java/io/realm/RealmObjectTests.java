@@ -1960,23 +1960,13 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void getRealmConfiguration_unmanagedRealmObjectThrows() {
-        try {
-            RealmObject.getConfiguration(new AllTypes());
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertEquals(RealmObject.MSG_NOT_MANAGED_OBJECT, e.getMessage());
-        }
+    public void getRealmConfiguration_unmanagedRealmObjectReturnsNull() {
+        assertNull(RealmObject.getConfiguration(new AllTypes()));
     }
 
     @Test
-    public void getRealmConfiguration_unmanagedRealmModelThrows() {
-        try {
-            RealmObject.getConfiguration(new AllTypesRealmModel());
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertEquals(RealmObject.MSG_NOT_MANAGED_OBJECT, e.getMessage());
-        }
+    public void getRealmConfiguration_unmanagedRealmModelReturnsNull() {
+        assertNull(RealmObject.getConfiguration(new AllTypesRealmModel()));
     }
 
     @Test
