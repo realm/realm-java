@@ -44,9 +44,6 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
     @Rule
     public Timeout globalTimeout = Timeout.seconds(10);
 
-    @Rule
-    public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
-
     @Test
     public void trustedRootCA() throws InterruptedException {
         String username = UUID.randomUUID().toString();
