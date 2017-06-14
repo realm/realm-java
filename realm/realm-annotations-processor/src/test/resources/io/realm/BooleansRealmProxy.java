@@ -29,6 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+@SuppressWarnings("all")
 public class BooleansRealmProxy extends some.test.Booleans
         implements RealmObjectProxy, BooleansRealmProxyInterface {
 
