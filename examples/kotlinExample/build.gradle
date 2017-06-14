@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.1.2-4'
+    ext.kotlin_version = '1.1.2-5'
     repositories {
         jcenter()
         mavenCentral()
@@ -45,6 +45,6 @@ android {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:${kotlin_version}"
     compile 'org.jetbrains.anko:anko-sdk15:0.9.1'
 }
