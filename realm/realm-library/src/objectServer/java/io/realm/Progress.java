@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import io.realm.log.RealmLog;
+
+
 /**
  * Class used to encapsulate progress notifications when either downloading or uploading Realm data.
  * Each instance of this class is an immutable snapshot of the current progress.
@@ -83,7 +86,12 @@ public class Progress {
             return 1.0D;
         } else {
             double percentage = (double) transferredBytes / (double) transferableBytes;
-            return percentage > 1.0D ? 1.0D : percentage;
+            if (percentage > 1.0D) {
+                RealmLog.error("Invalid progress state: %s", this);
+                return 1.0D;
+            } else {
+                return percentage;
+            }
         }
     }
 
