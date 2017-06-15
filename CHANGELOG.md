@@ -1,4 +1,4 @@
-## 3.3.2 (2017-06-09)
+## 3.3.3 (YYYY-MM-DD)
 
 ### Breaking Changes
 
@@ -6,10 +6,17 @@
 
 ### Bug Fixes
 
+* When converting nullable BLOB field to required, `null` values should be converted to `byte[0]` instead of `byte[1]`.
+
+### Internal
+
+## 3.3.2 (2017-06-09)
+
+### Bug Fixes
+
 * [ObjectServer] Fixed a crash when an authentication error happens (#4726).
 * [ObjectServer] Enabled encryption with Sync (#4561).
 * [ObjectServer] Admin users did not connect correctly to the server (#4750).
-* When converting nullable BLOB field to required, `null` values should be converted to `byte[0]` instead of `byte[1]`.
 
 ### Internal
 
