@@ -44,6 +44,11 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
         // Failing to detach the JVM before closing the thread will crash on ART
         JniUtils::detach_current_thread();
     }
+
+    void handle_error(std::exception const& e)
+    {
+        Log::d("handle_error: %s", e.what());
+    }
 } s_client_thread_listener;
 
 struct AndroidSyncLoggerFactory : public realm::SyncLoggerFactory {

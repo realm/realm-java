@@ -15,6 +15,7 @@
  */
 
 #include "io_realm_internal_SharedRealm.h"
+//#define REALM_ENABLE_SYNC 1
 #if REALM_ENABLE_SYNC
 #include "object-store/src/sync/sync_manager.hpp"
 #include "object-store/src/sync/sync_config.hpp"
@@ -88,6 +89,9 @@ public:
         static JavaMethod java_bind_session_method(env, sync_manager_class, "bindSessionWithConfig",
                                                    "(Ljava/lang/String;)Ljava/lang/String;", true);
 
+        static JavaMethod java_ssl_verify_callback(env, sync_manager_class, "sslVerifyCallback",
+                                                   "(Ljava/lang/String;Ljava/lang/String;I)Z", true);
+
         // error handler will be called form the sync client thread
         auto error_handler = [=](std::shared_ptr<SyncSession> session, SyncError error) {
             realm::jni_util::Log::d("error_handler lambda invoked");
@@ -112,7 +116,7 @@ public:
         // the session which should be bound.
         auto bind_handler = [=](const std::string& path, const SyncConfig& syncConfig,
                                 std::shared_ptr<SyncSession> session) {
-            realm::jni_util::Log::d("Callback to Java requesting token for path");
+            realm::jni_util::Log::d("Callback to Java requesting token for path %1", path.c_str());
 
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
 
@@ -136,10 +140,32 @@ public:
                                                   realm::util::Optional<std::string>(realm_auth_url));
         }
 
+        std::function<sync::Client::SSLVerifyCallback> ssl_verify_callback = nullptr;
         util::Optional<std::string> ssl_trust_certificate_path = util::none;
-        if (sync_ssl_trust_certificate_path) {
+        // either user the custom Root CA or use the default Android TrustManager
+        if (sync_ssl_trust_certificate_path) {realm::jni_util::Log::d(">>>>>>>>>>>> sync_ssl_trust_certificate_path defined");
             ssl_trust_certificate_path =
                 realm::util::Optional<std::string>(JStringAccessor(env, sync_ssl_trust_certificate_path));
+        } else {realm::jni_util::Log::d(">>>>>>>>>>>> sync_ssl_trust_certificate_path NOT defined");
+            ssl_verify_callback = [](const std::string server_address, REALM_UNUSED realm::sync::Client::port_type server_port,
+                                          const char* pem_data, REALM_UNUSED size_t pem_size, REALM_UNUSED int preverify_ok, int depth) {
+
+                realm::jni_util::Log::d("Callback to Java requesting certificate validation for host %1",
+                                        server_address.c_str());
+
+                JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
+
+                std::string pem(pem_data);
+                jstring jserver_address = to_jstring(env, server_address.c_str());
+                jstring jpem = to_jstring(env, pem.c_str());
+                bool isValid = env->CallStaticBooleanMethod(sync_manager_class, java_ssl_verify_callback,
+                                                            jserver_address,
+                                                            jpem, depth) == JNI_TRUE;
+                // explicitly deleting local references, otherwise we will hit a local reference table overflow (max=512)
+                env->DeleteLocalRef(jserver_address);//FIXME use JavaLocalRef instead
+                env->DeleteLocalRef(jpem);//FIXME use JavaLocalRef instead
+                return isValid;
+            };
         }
 
         util::Optional<std::array<char, 64>> sync_encryption_key(util::none);
@@ -150,7 +176,8 @@ public:
 
         m_config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
             user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler),
-            nullptr, sync_encryption_key, sync_client_validate_ssl, ssl_trust_certificate_path});
+            nullptr, sync_encryption_key, sync_client_validate_ssl, ssl_trust_certificate_path,
+            std::move(ssl_verify_callback)});
 #else
         REALM_UNREACHABLE();
 #endif

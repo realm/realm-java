@@ -42,8 +42,8 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class SSLConfigurationTests extends BaseIntegrationTest {
 
-    @Rule
-    public Timeout globalTimeout = Timeout.seconds(10);
+//    @Rule
+//    public Timeout globalTimeout = Timeout.seconds(10);
 
     @Rule
     public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
