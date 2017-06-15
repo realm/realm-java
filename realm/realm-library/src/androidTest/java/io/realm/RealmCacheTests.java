@@ -141,22 +141,23 @@ public class RealmCacheTests {
     public void dontCacheWrongConfigurations() throws IOException {
         Realm testRealm;
         String REALM_NAME = "encrypted.realm";
-        configFactory.copyRealmFromAssets(context, REALM_NAME, REALM_NAME);
-        RealmMigration realmMigration = TestHelper.prepareMigrationToNullSupportStep();
 
         RealmConfiguration wrongConfig = configFactory.createConfigurationBuilder()
                 .name(REALM_NAME)
                 .encryptionKey(TestHelper.SHA512("foo"))
-                .migration(realmMigration)
                 .schema(StringOnly.class)
                 .build();
 
         RealmConfiguration rightConfig = configFactory.createConfigurationBuilder()
                 .name(REALM_NAME)
                 .encryptionKey(TestHelper.SHA512("realm"))
-                .migration(realmMigration)
                 .schema(StringOnly.class)
                 .build();
+
+        // Create the realm with proper key.
+        testRealm = Realm.getInstance(rightConfig);
+        assertNotNull(testRealm);
+        testRealm.close();
 
         // Opens Realm with wrong key.
         try {
@@ -178,13 +179,9 @@ public class RealmCacheTests {
         byte[] oldPassword = TestHelper.SHA512("realm");
         byte[] newPassword = TestHelper.SHA512("realm-copy");
 
-        configFactory.copyRealmFromAssets(context, REALM_NAME, REALM_NAME);
-        RealmMigration realmMigration = TestHelper.prepareMigrationToNullSupportStep();
-
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name(REALM_NAME)
                 .encryptionKey(oldPassword)
-                .migration(realmMigration)
                 .schema(StringOnly.class)
                 .build();
 
@@ -209,7 +206,6 @@ public class RealmCacheTests {
         RealmConfiguration newConfig = configFactory.createConfigurationBuilder()
                 .name(REALM_NAME)
                 .encryptionKey(newPassword)
-                .migration(realmMigration)
                 .schema(StringOnly.class)
                 .build();
 
