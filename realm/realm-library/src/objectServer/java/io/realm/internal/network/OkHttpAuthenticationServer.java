@@ -19,6 +19,7 @@ package io.realm.internal.network;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.ErrorCode;
@@ -108,6 +109,28 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         }
     }
 
+    @Override
+    public GetUserProfileValuesResponse getUserProfileValues(Token userToken, URL profileValuesUrl) {
+        //TODO revisit once the EndPoint is defined/known
+        try {
+            String requestBody = GetUserProfileValuesRequest.create(userToken).toJson();
+            return getUserProfileValues(buildActionUrl(profileValuesUrl, "ACTION_UNKNOWN_YET"), requestBody);
+        } catch (Exception e) {
+            return GetUserProfileValuesResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
+        }
+    }
+
+    @Override
+    public SetUserProfileValuesResponse setUserProfileValues(Token userToken, Map<String, String> values, URL profileValuesUrl) {
+        //TODO revisit once the EndPoint is defined/known
+        try {
+            String requestBody = SetUserProfileValuesRequest.create(userToken, values).toJson();
+            return setUserProfileValues(buildActionUrl(profileValuesUrl, "ACTION_UNKNOWN_YET"), requestBody);
+        } catch (Exception e) {
+            return SetUserProfileValuesResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
+        }
+    }
+
     // Builds the URL for a specific auth endpoint
     private static URL buildActionUrl(URL authenticationUrl, String action) {
         final String baseUrlString = authenticationUrl.toExternalForm();
@@ -141,6 +164,22 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         Call call = client.newCall(request);
         Response response = call.execute();
         return ChangePasswordResponse.from(response);
+    }
+
+    private GetUserProfileValuesResponse getUserProfileValues(URL profileValuesUrl, String requestBody) throws Exception {
+        RealmLog.debug("Network request (getUserProfileValues): " + profileValuesUrl);
+        Request request = newAuthRequest(profileValuesUrl).post(RequestBody.create(JSON, requestBody)).build();//FIXME Is it a post query?
+        Call call = client.newCall(request);
+        Response response = call.execute();
+        return GetUserProfileValuesResponse.from(response);
+    }
+
+    private SetUserProfileValuesResponse setUserProfileValues(URL profileValuesUrl, String requestBody) throws Exception {
+        RealmLog.debug("Network request (setUserProfileValues): " + profileValuesUrl);
+        Request request = newAuthRequest(profileValuesUrl).put(RequestBody.create(JSON, requestBody)).build();//FIXME Is it a put query?
+        Call call = client.newCall(request);
+        Response response = call.execute();
+        return SetUserProfileValuesResponse.from(response);
     }
 
     private Request.Builder newAuthRequest(URL url) {

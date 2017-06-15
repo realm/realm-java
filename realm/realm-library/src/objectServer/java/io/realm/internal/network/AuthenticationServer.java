@@ -18,6 +18,7 @@ package io.realm.internal.network;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.Map;
 
 import io.realm.SyncCredentials;
 import io.realm.SyncUser;
@@ -66,4 +67,14 @@ public interface AuthenticationServer {
      * Changes a user's password using admin account.
      */
     ChangePasswordResponse changePassword(Token adminToken, String userID, String newPassword, URL authenticationUrl);
+
+    /**
+     * Get user's profile values as a Map of key-value Strings.
+     */
+    GetUserProfileValuesResponse getUserProfileValues(Token userToken, URL authenticationUrl);
+
+    /**
+     * Changes a user's profile values, represented as a Map of key-value Strings.
+     */
+    SetUserProfileValuesResponse setUserProfileValues(Token userToken, Map<String,String> values, URL authenticationUrl);
 }

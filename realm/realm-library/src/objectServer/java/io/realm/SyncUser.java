@@ -41,7 +41,9 @@ import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.ChangePasswordResponse;
 import io.realm.internal.network.ExponentialBackoffTask;
+import io.realm.internal.network.GetUserProfileValuesResponse;
 import io.realm.internal.network.LogoutResponse;
+import io.realm.internal.network.SetUserProfileValuesResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
@@ -527,6 +529,77 @@ public class SyncUser {
         }
     }
 
+    /**
+     * Return the properties associated with this user.
+     * @return {@code Map<String,String>} of property name and property value.
+     * @throws ObjectServerError if the profile values could not be fetched.
+     */
+    public Map<String, String> getProfileValues() throws ObjectServerError {
+        AuthenticationServer authServer = SyncManager.getAuthServer();
+        GetUserProfileValuesResponse response = authServer.getUserProfileValues(getSyncUser().getUserToken(), getAuthenticationUrl());
+        if (!response.isValid()) {
+            throw response.getError();
+        }
+        return response.getUserValues();
+    }
+
+    /**
+     * Asynchronously return the properties associated with this user.
+     *
+     * @param callback when the profile values are fetched or {@code ObjectServerError} if it fails.
+     *                 The callback will always happen on the same thread as this method is called on.
+     * @return representation of the async task that can be used to cancel it if needed.
+     */
+    public RealmAsyncTask getProfileValuesAsync(ServerCallback<Map<String,String>> callback) {
+        checkLooperThread("Asynchronous profile values retrieval is only possible from looper threads.");
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
+
+        return new ROSRequest<Map<String,String>>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Map<String, String> run() {
+                return getProfileValues();
+            }
+        }.start();
+    }
+
+    /**
+     * Set the properties associated with this user.
+     * @param values {@code Map<String,String>} of property name and property value.
+     * @throws ObjectServerError if the profile values could not be set.
+     */
+    public void setProfileValues(Map<String, String> values) throws ObjectServerError {
+        AuthenticationServer authServer = SyncManager.getAuthServer();
+        // FIXME is the endpoint implemented in the AuthenticationUrl?
+        SetUserProfileValuesResponse response = authServer.setUserProfileValues(getSyncUser().getUserToken(), values, getAuthenticationUrl());
+        if (!response.isValid()) {
+            throw response.getError();
+        }
+    }
+
+    /**
+     * Asynchronously set the properties associated with this user.
+     * @param values {@code Map<String,String>} of property name and property value.
+     * @param callback when the profile values are set or {@code ObjectServerError} if it fails.
+     *                 The callback will always happen on the same thread as this method is called on.
+     * @return representation of the async task that can be used to cancel it if needed.
+     */
+    public RealmAsyncTask setProfileValuesAsync(final Map<String, String> values, ServerCallback<Void> callback) {
+        checkLooperThread("Asynchronous profile values set, is only possible from looper threads.");
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
+
+        return new ROSRequest<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Void run() {
+                setProfileValues(values);
+                return null;
+            }
+        }.start();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
@@ -561,6 +634,10 @@ public class SyncUser {
 
     // Class wrapping requests made against the auth server. Is also responsible for calling with success/error on the
     // correct thread.
+
+    /**
+     * @deprecated replaced by {@link ROSRequest}
+     */
     private static abstract class Request {
 
         private final Callback callback;
@@ -622,9 +699,84 @@ public class SyncUser {
         }
     }
 
+    private static abstract class ROSRequest<T> {
+
+        private ServerCallback<T> callback;
+        private final RealmNotifier handler;
+        private final ThreadPoolExecutor networkPoolExecutor;
+
+        public ROSRequest(ThreadPoolExecutor networkPoolExecutor, ServerCallback<T> callback) {
+            this.callback = callback;
+            this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
+            this.networkPoolExecutor = networkPoolExecutor;
+        }
+
+        // Implements the request. Return the result if the request succeeded. Otherwise throw an error.
+        public abstract T run() throws ObjectServerError;
+
+        // Start the request
+        public RealmAsyncTask start() {
+            Future<?> authenticateRequest = networkPoolExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        postSuccess(ROSRequest.this.run());
+                    } catch (ObjectServerError e) {
+                        postError(e);
+                    } catch (Throwable e) {
+                        postError(new ObjectServerError(ErrorCode.UNKNOWN, "Unexpected error", e));
+                    }
+                }
+            });
+            return new RealmAsyncTaskImpl(authenticateRequest, networkPoolExecutor);
+        }
+
+        private void postError(final ObjectServerError error) {
+            boolean errorHandled = false;
+            if (callback != null) {
+                Runnable action = new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onError(error);
+                    }
+                };
+                errorHandled = handler.post(action);
+            }
+
+            if (!errorHandled) {
+                RealmLog.error(error, "An error was thrown, but could not be handled.");
+            }
+        }
+
+        private void postSuccess(final T result) {
+            if (callback != null) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onSuccess(result);
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * @deprecated replaced by {@link ServerCallback}
+     */
     public interface Callback {
+        /**
+         * @deprecated replaced by {@link ServerCallback#onSuccess(Object)}
+         */
         void onSuccess(SyncUser user);
 
+        /**
+         * @deprecated replaced by {@link ServerCallback#onError(ObjectServerError)}
+         */
+        void onError(ObjectServerError error);
+    }
+
+    public interface ServerCallback<T> {
+        void onSuccess(T result);
         void onError(ObjectServerError error);
     }
 }
