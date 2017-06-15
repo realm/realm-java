@@ -42,6 +42,7 @@ import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
+import io.realm.entities.IndexedFields;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
@@ -2907,6 +2908,20 @@ public class RealmQueryTests extends QueryTests {
                 looperThread.testComplete();
             }
         });
+    }
+
+    @Test
+    public void findAll_indexedCaseInsensitiveFields() {
+        // Catches https://github.com/realm/realm-java/issues/4788
+        realm.beginTransaction();
+        realm.createObject(IndexedFields.class).indexedString = "ROVER";
+        realm.createObject(IndexedFields.class).indexedString = "Rover";
+        realm.commitTransaction();
+
+        RealmResults<IndexedFields> results = realm.where(IndexedFields.class)
+                .equalTo(IndexedFields.FIELD_INDEXED_STRING, "rover", Case.INSENSITIVE)
+                .findAll();
+        assertEquals(2, results.size());
     }
 
     @Test
