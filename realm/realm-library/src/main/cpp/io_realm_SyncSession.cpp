@@ -76,6 +76,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
         SyncSession::NotifierType type =
             (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
 
+        static JavaClass java_syncmanager_class(env, "io/realm/SyncManager");
+        static JavaMethod java_notify_progress_listener(env, java_syncmanager_class, "notifyProgressListener", "(Ljava/lang/String;JJJ)V", true);
+
         std::function<SyncProgressNotifierCallback> callback = [local_realm_path, listener_id](
             uint64_t transferred, uint64_t transferrable) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
