@@ -64,10 +64,7 @@ public class RealmObjectSchemaTests {
 
     @After
     public void tearDown() {
-        if (realm.isInTransaction()) {
-
-            realm.cancelTransaction();
-        }
+        realm.cancelTransaction();
         realm.close();
     }
 
@@ -565,7 +562,7 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
-    public void setRequired_true_onPKField_containsNullValues_shouldThrow() {
+    public void setRequired_true_onPrimaryKeyField_containsNullValues_shouldThrow() {
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             String className = fieldType.getType().getSimpleName() + "Class";
             String fieldName = "primaryKey";
@@ -587,7 +584,7 @@ public class RealmObjectSchemaTests {
         }
     }
 
-    private void setRequired_onPKField(boolean isRequired) {
+    private void setRequired_onPrimaryKeyField(boolean isRequired) {
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             String className = fieldType.getType().getSimpleName() + "Class";
             String fieldName = "primaryKey";
@@ -623,13 +620,13 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
-    public void setRequired_true_onPKField() {
-        setRequired_onPKField(true);
+    public void setRequired_true_onPrimaryKeyField() {
+        setRequired_onPrimaryKeyField(true);
     }
 
     @Test
-    public void setRequired_false_onPKField() {
-        setRequired_onPKField(false);
+    public void setRequired_false_onPrimaryKeyField() {
+        setRequired_onPrimaryKeyField(false);
     }
 
     private void setRequired_onIndexedField(boolean toRequired) {

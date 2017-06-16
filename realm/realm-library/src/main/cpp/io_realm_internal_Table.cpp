@@ -31,7 +31,8 @@ using namespace realm::_impl;
 using namespace realm::jni_util;
 using namespace realm::util;
 
-static const char* c_null_values_cannot_set_required_msg = "The primary key field '%1' has 'null' values stored. It cannot be converted to required primary key field.";
+static const char* c_null_values_cannot_set_required_msg = "The primary key field '%1' has 'null' values stored.  It "
+                                                           "cannot be converted to a '@Required' primary key field.";
 
 static void finalize_table(jlong ptr);
 
