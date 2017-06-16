@@ -14,8 +14,8 @@
 
 ### Internal
 
-* Upgraded to Realm Sync 1.9.1
-* Upgraded to Realm Core 2.8.0
+* Upgraded to Realm Sync 1.10.1
+* Upgraded to Realm Core 2.8.4
 
 ## 3.3.3 (YYYY-MM-DD)
 
