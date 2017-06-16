@@ -19,24 +19,20 @@ package io.realm.examples.unittesting;
 import android.content.Context;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
-import org.powermock.modules.junit4.internal.impl.PowerMockJUnit44RunnerDelegateImpl;
 import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-import org.robolectric.util.ActivityController;
 
 import java.util.Arrays;
 import java.util.List;
@@ -48,7 +44,6 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.examples.unittesting.model.Person;
 import io.realm.internal.RealmCore;
-import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -66,15 +61,15 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
+
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 21)
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*"})
 @SuppressStaticInitializationFor("io.realm.internal.Util")
 @PrepareForTest({Realm.class, RealmConfiguration.class, RealmQuery.class, RealmResults.class, RealmCore.class, RealmLog.class})
-public class ExampleActivityTest
-{
-	// Robolectric, Using Power Mock https://github.com/robolectric/robolectric/wiki/Using-PowerMock
+public class ExampleActivityTest {
+    // Robolectric, Using Power Mock https://github.com/robolectric/robolectric/wiki/Using-PowerMock
 
     @Rule
     public PowerMockRule rule = new PowerMockRule();
@@ -184,9 +179,9 @@ public class ExampleActivityTest
         doCallRealMethod().when(mockRealm).executeTransaction(Mockito.any(Realm.Transaction.class));
 
         // Create activity
-	    ExampleActivity activity = Robolectric.buildActivity(ExampleActivity.class).create().start().resume().visible().get();
+        ExampleActivity activity = Robolectric.buildActivity(ExampleActivity.class).create().start().resume().visible().get();
 
-	    assertThat(activity.getTitle().toString(), is("Unit Test Example"));
+        assertThat(activity.getTitle().toString(), is("Unit Test Example"));
 
         // Verify that two Realm.getInstance() calls took place.
         verifyStatic(times(2));
@@ -227,9 +222,9 @@ public class ExampleActivityTest
     public void shouldBeAbleToVerifyTransactionCalls() {
 
         // Create activity
-	    ExampleActivity activity = Robolectric.buildActivity(ExampleActivity.class).create().start().resume().visible().get();
+        ExampleActivity activity = Robolectric.buildActivity(ExampleActivity.class).create().start().resume().visible().get();
 
-	    assertThat(activity.getTitle().toString(), is("Unit Test Example"));
+        assertThat(activity.getTitle().toString(), is("Unit Test Example"));
 
         // Verify that two Realm.getInstance() calls took place.
         verifyStatic(times(2));
@@ -247,7 +242,7 @@ public class ExampleActivityTest
         verify(mockRealm, times(5)).executeTransaction(Mockito.any(Realm.Transaction.class));
 
         // Call the destroy method so we can verify that the .close() method was called (below)
-	    activity.onDestroy();
+        activity.onDestroy();
 
         // Verify that the realm got closed 2 separate times. Once in the AsyncTask, once
         // in onDestroy
