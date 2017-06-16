@@ -22,6 +22,7 @@ import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsObject;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
 import rx.Observable;
@@ -55,6 +56,10 @@ public class DynamicRealm extends BaseRealm {
 
     private DynamicRealm(RealmConfiguration configuration) {
         super(configuration);
+    }
+
+    private DynamicRealm(SharedRealm sharedRealm) {
+        super(sharedRealm);
     }
 
     /**
@@ -245,6 +250,10 @@ public class DynamicRealm extends BaseRealm {
      */
     static DynamicRealm createInstance(RealmConfiguration configuration) {
         return new DynamicRealm(configuration);
+    }
+
+    static DynamicRealm createInstance(SharedRealm sharedRealm) {
+        return new DynamicRealm(sharedRealm);
     }
 
     /**

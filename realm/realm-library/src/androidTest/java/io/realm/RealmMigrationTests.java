@@ -19,6 +19,7 @@ package io.realm;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
@@ -32,14 +33,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
+import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.FieldOrder;
 import io.realm.entities.NullTypes;
+import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
@@ -234,9 +239,8 @@ public class RealmMigrationTests {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Primary key not defined for field 'id' in existing Realm file. @PrimaryKey was added.")) {
-                fail(e.toString());
-            }
+            assertThat(e.getMessage(), CoreMatchers.containsString(
+                    "Primary Key for class 'AnnotationTypes' has been added"));
         } finally {
             if (realm != null) {
                 realm.close();
@@ -272,9 +276,8 @@ public class RealmMigrationTests {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Primary Key defined for field chars was removed.")) {
-                fail(e.toString());
-            }
+            assertThat(e.getMessage(),
+                    CoreMatchers.containsString("Primary Key for class 'StringOnly' has been removed."));
         } finally {
             if (realm != null) {
                 realm.close();
@@ -311,9 +314,8 @@ public class RealmMigrationTests {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Primary Key annotation definition was changed, from field id to field name")) {
-                fail(e.toString());
-            }
+            assertThat(e.getMessage(), CoreMatchers.containsString(
+                    "Primary Key for class 'PrimaryKeyAsString' has changed from 'id' to 'name'."));
         } finally {
             if (realm != null) {
                 realm.close();
@@ -823,7 +825,7 @@ public class RealmMigrationTests {
             fail();
         } catch (RealmMigrationNeededException ignored) {
             assertThat(ignored.getMessage(),
-                    CoreMatchers.containsString("Invalid RealmList type for field 'cats': 'class_Dog' expected "));
+                    CoreMatchers.containsString("Property 'CatOwner.cats' has been changed from 'array' to 'array'"));
         }
     }
 
@@ -851,8 +853,8 @@ public class RealmMigrationTests {
             realm.close();
             fail();
         } catch (RealmMigrationNeededException e) {
-            assertEquals("Field 'chars' is required. Either set @Required to field 'chars' or migrate using RealmObjectSchema.setNullable().",
-                    e.getMessage());
+            assertThat(e.getMessage(), CoreMatchers.containsString(
+                    "Property 'StringOnly.chars' has been made optional"));
         }
     }
 
@@ -983,10 +985,8 @@ public class RealmMigrationTests {
                 realm = Realm.getInstance(realmConfig);
                 fail("Failed on " + field);
             } catch (RealmMigrationNeededException e) {
-                assertEquals("Field '" + field + "' does support null values in the existing Realm file." +
-                        " Remove @Required or @PrimaryKey from field '" + field + "' " +
-                        "or migrate using RealmObjectSchema.setNullable().",
-                        e.getMessage());
+                assertThat(e.getMessage(), CoreMatchers.containsString(
+                        String.format("Property 'NullTypes.%s' has been made required", field)));
             }
         }
     }
@@ -1051,16 +1051,8 @@ public class RealmMigrationTests {
                 realm = Realm.getInstance(realmConfig);
                 fail("Failed on " + field);
             } catch (RealmMigrationNeededException e) {
-                if (field.equals(NullTypes.FIELD_STRING_NULL) || field.equals(NullTypes.FIELD_BYTES_NULL) ||
-                        field.equals(NullTypes.FIELD_DATE_NULL)) {
-                    assertEquals("Field '" + field + "' is required. Either set @Required to field '" +
-                            field + "' " +
-                            "or migrate using RealmObjectSchema.setNullable().", e.getMessage());
-                } else {
-                    assertEquals("Field '" + field + "' does not support null values in the existing Realm file."
-                                    + " Either set @Required, use the primitive type for field '"
-                                    + field + "' or migrate using RealmObjectSchema.setNullable().",  e.getMessage());
-                }
+                assertThat(e.getMessage(), CoreMatchers.containsString(
+                        String.format(Locale.US, "Property 'NullTypes.%s' has been made optional", field)));
             }
         }
     }
@@ -1126,13 +1118,12 @@ public class RealmMigrationTests {
                 realm.close();
                 fail();
             } catch (RealmMigrationNeededException expected) {
+                String pkFieldName = "id";
                 if (clazz == PrimaryKeyAsString.class) {
-                    assertEquals("@PrimaryKey field 'name' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.",
-                            expected.getMessage());
-                } else {
-                    assertEquals("@PrimaryKey field 'id' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.",
-                            expected.getMessage());
+                    pkFieldName = "name";
                 }
+                assertThat(expected.getMessage(), CoreMatchers.containsString(String.format(Locale.US,
+                        "Property '%s.%s' has been made optional", clazz.getSimpleName(), pkFieldName)));
             }
         }
     }
@@ -1152,7 +1143,7 @@ public class RealmMigrationTests {
                 fail();
             } catch (RealmMigrationNeededException expected) {
                 assertThat(expected.getMessage(), CoreMatchers.containsString(
-                        "Field 'id' does support null values in the existing Realm file."));
+                        String.format("Property '%s.%s' has been made required", clazz.getSimpleName(), "id")));
             }
         }
     }
@@ -1284,6 +1275,35 @@ public class RealmMigrationTests {
             realm = Realm.getInstance(config);
             fail();
         } catch (RealmMigrationNeededException ignored) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
+    @Test
+    public void migrationRequired_throwsExceptionInTheMigrationBlock() {
+        final RuntimeException exception = new RuntimeException("TEST");
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                throw exception;
+            }
+        };
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .migration(migration)
+                .schemaVersion(1)
+                .assetFile("default0.realm") // This Realm does not have the correct schema
+                .build();
+
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config);
+            fail();
+        } catch (RuntimeException expected) {
+            assertEquals(exception, expected);
         } finally {
             if (realm != null) {
                 realm.close();

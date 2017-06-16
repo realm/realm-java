@@ -373,15 +373,6 @@ public class Realm extends BaseRealm {
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
                 deleteRealm(configuration);
-            } else {
-                try {
-                    if (configuration.getMigration() != null) {
-                        migrateRealm(configuration, e);
-                    }
-                } catch (FileNotFoundException fileNotFoundException) {
-                    // Should never happen.
-                    throw new RealmFileException(RealmFileException.Kind.NOT_FOUND, fileNotFoundException);
-                }
             }
 
             return createAndValidateFromCache(cache);
@@ -392,7 +383,6 @@ public class Realm extends BaseRealm {
         Realm realm = new Realm(cache);
         RealmConfiguration configuration = realm.configuration;
 
-        final long currentVersion = realm.getVersion();
         final long requiredVersion = configuration.getSchemaVersion();
 
         final ColumnIndices columnIndices = RealmCache.findColumnIndices(cache.getTypedColumnIndicesArray(),
@@ -402,22 +392,6 @@ public class Realm extends BaseRealm {
             // Copies global cache as a Realm local indices cache.
             realm.schema.setInitialColumnIndices(columnIndices);
         } else {
-            final boolean syncingConfig = configuration.isSyncConfiguration();
-
-            if (!syncingConfig && (currentVersion != UNVERSIONED)) {
-                if (currentVersion < requiredVersion) {
-                    realm.doClose();
-                    throw new RealmMigrationNeededException(
-                            configuration.getPath(),
-                            String.format(Locale.US, "Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
-                }
-                if (requiredVersion < currentVersion) {
-                    realm.doClose();
-                    throw new IllegalArgumentException(
-                            String.format(Locale.US, "Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
-                }
-            }
-
             // Initializes Realm schema if needed.
             try {
                 initializeRealm(realm);
@@ -440,7 +414,7 @@ public class Realm extends BaseRealm {
             // interprocess lock. This lock can obviously not be created by a Realm instance so we probably need
             // to implement it in Object Store. When this happens, the `beginTransaction(true)` can be removed again.
             realm.beginTransaction(true);
-            RealmConfiguration configuration = realm.getConfiguration();
+            final RealmConfiguration configuration = realm.getConfiguration();
             long currentVersion = realm.getVersion();
             boolean unversioned = currentVersion == UNVERSIONED;
             long newVersion = configuration.getSchemaVersion();
@@ -454,21 +428,29 @@ public class Realm extends BaseRealm {
                     OsSchemaInfo schema = new OsSchemaInfo(mediator.getExpectedObjectSchemaInfoMap().values());
 
                     // Object Store handles all update logic
-                    realm.sharedRealm.updateSchema(schema, newVersion);
+                    realm.sharedRealm.updateSchema(schema, newVersion, null);
                     commitChanges = true;
                 }
             } else {
                 // Only allow creating the schema if not in read-only mode
-                if (unversioned) {
-                    if (configuration.isReadOnly()) {
-                        throw new IllegalArgumentException("Cannot create the Realm schema in a read-only file.");
-                    }
-
-                    // Let Object Store initialize all tables
-                    OsSchemaInfo schemaInfo = new OsSchemaInfo(mediator.getExpectedObjectSchemaInfoMap().values());
-                    realm.sharedRealm.updateSchema(schemaInfo, newVersion);
-                    commitChanges = true;
+                if (unversioned && configuration.isReadOnly()) {
+                    throw new IllegalArgumentException("Cannot create the Realm schema in a read-only file.");
                 }
+
+                // Let Object Store initialize all tables
+                OsSchemaInfo schemaInfo = new OsSchemaInfo(mediator.getExpectedObjectSchemaInfoMap().values());
+                SharedRealm.MigrationCallback migrationCallback = null;
+                if (configuration.getMigration() != null) {
+                    migrationCallback = new SharedRealm.MigrationCallback() {
+                        @Override
+                        public void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion) {
+                            configuration.getMigration().migrate(DynamicRealm.createInstance(sharedRealm),
+                                    oldVersion, newVersion);
+                        }
+                    };
+                }
+                realm.sharedRealm.updateSchema(schemaInfo, newVersion, migrationCallback);
+                commitChanges = true;
             }
 
             // Now that they have all been created, validate them.
@@ -481,9 +463,7 @@ public class Realm extends BaseRealm {
                         configuration.isSyncConfiguration()));
             }
 
-            realm.getSchema().setInitialColumnIndices(
-                    (unversioned) ? newVersion : currentVersion,
-                    columnInfoMap);
+            realm.getSchema().setInitialColumnIndices(realm.getVersion(), columnInfoMap);
 
             // Finally add any initial data
             final Transaction transaction = configuration.getInitialDataTransaction();
@@ -1654,11 +1634,7 @@ public class Realm extends BaseRealm {
      */
     private static void migrateRealm(final RealmConfiguration configuration, final RealmMigrationNeededException cause)
             throws FileNotFoundException {
-        BaseRealm.migrateRealm(configuration, null, new MigrationCallback() {
-            @Override
-            public void migrationComplete() {
-            }
-        }, cause);
+        BaseRealm.migrateRealm(configuration, null, cause);
     }
 
     /**
@@ -1671,11 +1647,7 @@ public class Realm extends BaseRealm {
      */
     public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration)
             throws FileNotFoundException {
-        BaseRealm.migrateRealm(configuration, migration, new MigrationCallback() {
-            @Override
-            public void migrationComplete() {
-            }
-        }, null);
+        BaseRealm.migrateRealm(configuration, migration, null);
     }
 
     /**

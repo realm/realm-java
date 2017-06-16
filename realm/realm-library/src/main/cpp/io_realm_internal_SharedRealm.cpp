@@ -21,8 +21,9 @@
 #include "object-store/src/sync/sync_session.hpp"
 #endif
 
-#include <shared_realm.hpp>
+#include <realm/util/assert.hpp>
 
+#include <shared_realm.hpp>
 #include "object_store.hpp"
 #include "java_binding_context.hpp"
 #include "util.hpp"
@@ -595,33 +596,47 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeCompact(JNIE
     return JNI_FALSE;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv* env, jclass,
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv* env, jobject j_shared_realm,
                                                                              jlong shared_realm_ptr, jlong schema_ptr,
-                                                                             jlong version)
+                                                                             jlong version,
+                                                                             jobject j_migration_callback)
 {
     TR_ENTER_PTR(shared_realm_ptr)
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         auto* schema = reinterpret_cast<Schema*>(schema_ptr);
-        shared_realm->update_schema(*schema, static_cast<uint64_t>(version), nullptr, true);
+        Realm::MigrationFunction migration_function = nullptr;
+        if (j_migration_callback) {
+            static JavaMethod run_migration_callback_method(env, j_shared_realm, "runMigrationCallback",
+                                                            "(Lio/realm/internal/SharedRealm$MigrationCallback;JJ)V");
+            migration_function = [&env, &j_shared_realm, &j_migration_callback, &shared_realm,
+                                  &version](SharedRealm old_realm, SharedRealm realm, Schema&) {
+                REALM_ASSERT_RELEASE(shared_realm == realm);
+                env->CallVoidMethod(j_shared_realm, run_migration_callback_method, j_migration_callback,
+                                    old_realm->schema_version(), version);
+            };
+        }
+        shared_realm->update_schema(*schema, static_cast<uint64_t>(version), migration_function, true);
+    }
+    catch (SchemaMismatchException& e) {
+        // An exception has been thrown in the migration block.
+        if (env->ExceptionCheck()) {
+            return;
+        }
+        static JavaClass migration_needed_class(env, "io/realm/exceptions/RealmMigrationNeededException");
+        static JavaMethod constructor(env, migration_needed_class, "<init>",
+                                      "(Ljava/lang/String;Ljava/lang/String;)V");
+
+        jstring message = to_jstring(env, e.what());
+        jstring path = to_jstring(env, shared_realm->config().path);
+        jobject migration_needed_exception = env->NewObject(migration_needed_class, constructor, path, message);
+        env->Throw(reinterpret_cast<jthrowable>(migration_needed_exception));
+    }
+    catch (InvalidSchemaVersionException& e) {
+        // To match the old behaviour. Otherwise it will be converted to ISE in the CATCH_STD.
+        ThrowException(env, IllegalArgument, e.what());
     }
     CATCH_STD()
-}
-
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeRequiresMigration(JNIEnv* env, jclass,
-                                                                                      jlong nativePtr,
-                                                                                      jlong nativeSchemaPtr)
-{
-
-    TR_ENTER()
-    try {
-        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(nativePtr));
-        auto* schema = reinterpret_cast<Schema*>(nativeSchemaPtr);
-        const std::vector<SchemaChange>& change_list = shared_realm->schema().compare(*schema);
-        return static_cast<jboolean>(!change_list.empty());
-    }
-    CATCH_STD()
-    return JNI_FALSE;
 }
 
 static void finalize_shared_realm(jlong ptr)

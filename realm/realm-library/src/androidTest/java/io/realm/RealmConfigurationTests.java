@@ -18,6 +18,7 @@ package io.realm;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -394,17 +395,13 @@ public class RealmConfigurationTests {
         assertEquals(0, realm.getVersion());
         realm.close();
 
-        // Version upgrades should always require a migration.
-        try {
-            realm = Realm.getInstance(new RealmConfiguration.Builder(context)
-                    .directory(configFactory.getRoot())
-                    .schemaVersion(42)
-                    .build());
-            fail();
-        } catch (RealmMigrationNeededException expected) {
-            // And it should come with a cause.
-            assertEquals("Realm on disk need to migrate from v0 to v42", expected.getMessage());
-        }
+        // Version upgrades only without any actual schema changes will just succeed, and the schema version will be
+        // set to the new one.
+        realm = Realm.getInstance(new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .schemaVersion(42)
+                .build());
+        assertEquals(42, realm.getSchema().getSchemaVersion());
     }
 
     @Test

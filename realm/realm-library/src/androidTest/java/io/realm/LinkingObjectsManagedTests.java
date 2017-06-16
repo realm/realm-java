@@ -20,6 +20,7 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -47,6 +48,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -530,7 +532,11 @@ public class LinkingObjectsManagedTests {
         } catch (IOException e) {
             fail("Failed copying realm");
         } catch (RealmMigrationNeededException expected) {
-            assertTrue(expected.getMessage().contains("Field count is"));
+            assertThat(expected.getMessage(),
+                    CoreMatchers.allOf(
+                            CoreMatchers.containsString("Property 'BacklinksSource.name' has been added"),
+                            CoreMatchers.containsString("Property 'BacklinksTarget.parents' has been removed")));
+            //assertTrue(expected.getMessage().contains("Field count is"));
         } finally {
             Realm.deleteRealm(realmConfig);
         }

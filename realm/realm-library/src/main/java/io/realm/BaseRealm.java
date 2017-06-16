@@ -32,6 +32,8 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.OsSchemaInfo;
+import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
@@ -98,6 +100,15 @@ abstract class BaseRealm implements Closeable {
                                 }
                             }
                         }, true);
+        this.schema = new RealmSchema(this);
+    }
+
+    BaseRealm(SharedRealm sharedRealm) {
+        this.threadId = Thread.currentThread().getId();
+        this.configuration = sharedRealm.getConfiguration();
+        this.realmCache = null;
+
+        this.sharedRealm = sharedRealm;
         this.schema = new RealmSchema(this);
     }
 
@@ -469,9 +480,6 @@ abstract class BaseRealm implements Closeable {
             sharedRealm.close();
             sharedRealm = null;
         }
-        if (schema != null) {
-            schema.close();
-        }
     }
 
     /**
@@ -610,13 +618,12 @@ abstract class BaseRealm implements Closeable {
      * @param configuration configuration for the Realm that should be migrated. If this is a SyncConfiguration this
      * method does nothing.
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}.
-     * @param callback callback for specific Realm type behaviors.
      * @param cause which triggers this migration.
      * @throws FileNotFoundException if the Realm file doesn't exist.
      * @throws IllegalArgumentException if the provided configuration is a {@link SyncConfiguration}.
      */
     protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
-            final MigrationCallback callback, final RealmMigrationNeededException cause)
+                                       final RealmMigrationNeededException cause)
             throws FileNotFoundException {
 
         if (configuration == null) {
@@ -645,16 +652,25 @@ abstract class BaseRealm implements Closeable {
                     return;
                 }
 
-                RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
                 DynamicRealm realm = null;
+                RealmProxyMediator mediator = configuration.getSchemaMediator();
+                OsSchemaInfo schemaInfo = new OsSchemaInfo(mediator.getExpectedObjectSchemaInfoMap().values());
                 try {
                     // Create a DynamicRealm WITHOUT putting it into a RealmCache to avoid recursive locks and call init
                     // steps multiple times (copy asset file / initialData transaction).
                     realm = DynamicRealm.createInstance(configuration);
                     realm.beginTransaction();
-                    long currentVersion = realm.getVersion();
-                    realmMigration.migrate(realm, currentVersion, configuration.getSchemaVersion());
-                    realm.setVersion(configuration.getSchemaVersion());
+                    SharedRealm.MigrationCallback migrationCallback = null;
+                    if (configuration.getMigration() != null) {
+                        migrationCallback = new SharedRealm.MigrationCallback() {
+                            @Override
+                            public void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion) {
+                                configuration.getMigration().migrate(DynamicRealm.createInstance(sharedRealm),
+                                        oldVersion, newVersion);
+                            }
+                        };
+                    }
+                    realm.sharedRealm.updateSchema(schemaInfo, configuration.getSchemaVersion(), migrationCallback);
                     realm.commitTransaction();
                 } catch (RuntimeException e) {
                     if (realm != null) {
@@ -664,7 +680,6 @@ abstract class BaseRealm implements Closeable {
                 } finally {
                     if (realm != null) {
                         realm.close();
-                        callback.migrationComplete();
                     }
                 }
             }
@@ -692,11 +707,6 @@ abstract class BaseRealm implements Closeable {
 
     SharedRealm getSharedRealm() {
         return sharedRealm;
-    }
-
-    // Internal delegate for migrations.
-    protected interface MigrationCallback {
-        void migrationComplete();
     }
 
     public static final class RealmObjectContext {

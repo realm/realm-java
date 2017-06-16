@@ -3,16 +3,20 @@
 ### Breaking Changes
 
 * An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required model classes (#3398).
+* Bumping schema version only without any actual schema changes will just succeed even when the migration block is not supplied. It threw an `RealmMigrationNeededException` before in the same case.
 
 ### Deprecated
 
 ### Enhancements
+
+* Added more detailed excpetion message for `RealmMigrationNeeded`.
 
 ### Bug Fixes
 
 ### Internal
 
 * Use Object Store to do table initialization.
+* Use Object Store to handle migration.
 
 ### Credits
 

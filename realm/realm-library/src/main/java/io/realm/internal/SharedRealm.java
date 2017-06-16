@@ -27,7 +27,7 @@ import io.realm.RealmConfiguration;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
-
+@KeepMember
 public final class SharedRealm implements Closeable, NativeObject {
 
     // Const value for RealmFileException conversion
@@ -166,6 +166,10 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     public interface SchemaVersionListener {
         void onSchemaVersionChanged(long currentVersion);
+    }
+
+    public interface MigrationCallback {
+        void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion);
     }
 
     private final SchemaVersionListener schemaChangeListener;
@@ -372,8 +376,8 @@ public final class SharedRealm implements Closeable, NativeObject {
      * @param schemaInfo the expected schema.
      * @param version the target version.
      */
-    public void updateSchema(OsSchemaInfo schemaInfo, long version) {
-        nativeUpdateSchema(nativePtr, schemaInfo.getNativePtr(), version);
+    public void updateSchema(OsSchemaInfo schemaInfo, long version, MigrationCallback migrationCallback) {
+        nativeUpdateSchema(nativePtr, schemaInfo.getNativePtr(), version, migrationCallback);
     }
 
     public void setAutoRefresh(boolean enabled) {
@@ -385,19 +389,8 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeIsAutoRefresh(nativePtr);
     }
 
-    /**
-     * Determine whether the passed schema needs to be updated.
-     * <p>
-     * TODO: This method should not require the caller to get the native pointer.
-     * Instead, the signature should be something like:
-     * public <T extends RealmSchema & NativeObject> </T>void updateSchema(T schema, long version)
-     * ... that is, something that is a schema and that wraps a native object.
-     *
-     * @param schemaNativePtr the pointer to a native schema object.
-     * @return true if it will be necessary to call {@code updateSchema}
-     */
-    public boolean requiresMigration(long schemaNativePtr) {
-        return nativeRequiresMigration(nativePtr, schemaNativePtr);
+    public RealmConfiguration getConfiguration() {
+        return configuration;
     }
 
     @Override
@@ -497,6 +490,11 @@ public final class SharedRealm implements Closeable, NativeObject {
         pendingRows.clear();
     }
 
+    @KeepMember
+    private void runMigrationCallback(MigrationCallback callback, long oldVersion, long newVersion) {
+        callback.onMigrationNeeded(this, oldVersion, newVersion);
+    }
+
     private static native void nativeInit(String temporaryDirectoryPath);
 
     // Keep last session as an 'object' to avoid any reference to sync code
@@ -564,13 +562,12 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
 
-    private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version);
+    private native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version,
+                                           MigrationCallback callback);
 
     private static native void nativeSetAutoRefresh(long nativePtr, boolean enabled);
 
     private static native boolean nativeIsAutoRefresh(long nativePtr);
-
-    private static native boolean nativeRequiresMigration(long nativePtr, long nativeSchemaPtr);
 
     private static native long nativeGetFinalizerPtr();
 }
