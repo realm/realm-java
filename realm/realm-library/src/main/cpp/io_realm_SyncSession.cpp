@@ -124,11 +124,11 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveProgressListener(JN
 
 JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadCompletion(JNIEnv* env,
                                                                                      jobject session_object,
-                                                                                     jstring localRealmPath)
+                                                                                     jstring j_local_realm_path)
 {
     TR_ENTER()
     try {
-        JStringAccessor local_realm_path(env, localRealmPath);
+        JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
 
         if (session) {

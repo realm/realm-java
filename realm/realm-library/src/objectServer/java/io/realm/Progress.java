@@ -79,7 +79,7 @@ public class Progress {
      * was added.
      *
      * @return a number between {@code 0.0} and {@code 1.0}, where {@code 0.0} represents that no data has been
-     *         transferred yet, and {@code 1.0} that all data has been transferred.
+     * transferred yet, and {@code 1.0} that all data has been transferred.
      */
     public double getFractionTransferred() {
         if (transferableBytes == 0) {
