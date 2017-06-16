@@ -164,6 +164,18 @@ public class RealmJsonTypeHelper {
     }
     // @formatter:on
 
+    // @formatter:off
+    public static void emitFillRealmIntegerFromStream(String interfaceName, String getter, String setter, String fieldName, JavaWriter writer) throws IOException {
+        writer
+            .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
+                .emitStatement("reader.skipValue()")
+                .emitStatement("((%s) obj).%s(null)", interfaceName, setter)
+            .nextControlFlow("else")
+                .emitStatement("((%s) obj).%s().set((long) reader.nextLong())", interfaceName, getter, fieldName)
+            .endControlFlow();
+    }
+    //@formatter:on
+
     private static class SimpleTypeConverter implements JsonToRealmFieldTypeConverter {
         private final String castType;
         private final String jsonType;

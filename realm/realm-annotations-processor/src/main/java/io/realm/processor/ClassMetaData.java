@@ -62,6 +62,7 @@ public class ClassMetaData {
     private boolean containsToString;
     private boolean containsEquals;
     private boolean containsHashCode;
+    private boolean containsRealmInteger;
 
     private final List<TypeMirror> validPrimaryKeyTypes;
     private final Types typeUtils;
@@ -142,6 +143,10 @@ public class ClassMetaData {
 
     public String getPrimaryKeyGetter() {
         return getInternalGetter(primaryKey.getSimpleName().toString());
+    }
+
+    public boolean containsRealmInteger() {
+        return containsRealmInteger;
     }
 
     public boolean containsToString() {
@@ -389,7 +394,11 @@ public class ClassMetaData {
             return categorizeBacklinkField(field);
         }
 
-        // Standard field that appear valid (more fine grained checks might fail later).
+        if (Utils.isRealmInteger(field)) {
+            containsRealmInteger = true;
+        }
+
+        // Standard field that appears to be valid (more fine grained checks might fail later).
         fields.add(field);
 
         return true;
@@ -419,7 +428,7 @@ public class ClassMetaData {
         if (Utils.isPrimitiveType(variableElement)) {
             Utils.error(String.format(
                     "@Required annotation is unnecessary for primitive field \"%s\".", element));
-        } else if (Utils.isRealmList(variableElement) || Utils.isRealmModel(variableElement)) {
+        } else if (Utils.isRealmModel(variableElement) || Utils.isRealmList(variableElement)) {
             Utils.error(String.format(
                     "Field \"%s\" with type \"%s\" cannot be @Required.", element, element.asType()));
         } else {

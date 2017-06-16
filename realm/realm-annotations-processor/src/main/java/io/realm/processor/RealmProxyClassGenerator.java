@@ -107,6 +107,10 @@ public class RealmProxyClassGenerator {
         if (!metadata.getBacklinkFields().isEmpty()) {
             imports.add("io.realm.internal.UncheckedRow");
         }
+        if (metadata.containsRealmInteger()) {
+            imports.add("io.realm.internal.datatypes.realminteger.ManagedRealmInteger");
+        }
+
         writer.emitImports(imports)
                 .emitEmptyLine();
 
@@ -273,6 +277,8 @@ public class RealmProxyClassGenerator {
 
             if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
                 emitPrimitiveType(writer, field, fieldName, fieldTypeCanonicalName);
+            } else if (Utils.isRealmInteger(field)) {
+                emitRealmInteger(writer, field, fieldName, fieldTypeCanonicalName);
             } else if (Utils.isRealmModel(field)) {
                 emitRealmModel(writer, field, fieldName, fieldTypeCanonicalName);
             } else if (Utils.isRealmList(field)) {
@@ -381,6 +387,18 @@ public class RealmProxyClassGenerator {
                     fieldJavaType, fieldIndexVariableReference(field));
         }
         writer.endMethod();
+    }
+
+    private void emitRealmInteger(JavaWriter writer, VariableElement field, String fieldName, String fieldTypeCanonicalName) throws IOException {
+        writer.emitAnnotation("Override");
+        writer.beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
+                .emitStatement("return new ManagedRealmInteger(0)")
+                .endMethod()
+                .emitEmptyLine();
+
+        writer.emitAnnotation("Override");
+        writer.beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
+                .endMethod();
     }
 
     /**
@@ -1056,6 +1074,17 @@ public class RealmProxyClassGenerator {
                 || "java.lang.Byte".equals(fieldType)) {
             writer
                     .emitStatement("Number %s = ((%s) object).%s()", getter, interfaceName, getter)
+                    .beginControlFlow("if (%s != null)", getter)
+                    .emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sIndex, rowIndex, %s.longValue(), false)", fieldName, getter);
+            if (isUpdate) {
+                writer.nextControlFlow("else")
+                        .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex, false)", fieldName);
+            }
+            writer.endControlFlow();
+
+        } else if ("io.realm.RealmInteger".equals(fieldType)) {
+            writer
+                    .emitStatement("io.realm.RealmInteger %s = ((%s) object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
                     .emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sIndex, rowIndex, %s.longValue(), false)", fieldName, getter);
             if (isUpdate) {
@@ -2027,6 +2056,15 @@ public class RealmProxyClassGenerator {
                         Utils.getProxyClassSimpleName(field),
                         writer);
 
+            } else if (Utils.isRealmInteger(field)) {
+                RealmJsonTypeHelper.emitFillRealmIntegerFromStream(
+                        interfaceName,
+                        metadata.getInternalGetter(fieldName),
+                        metadata.getInternalSetter(fieldName),
+                        fieldName,
+                        writer
+                );
+
             } else {
                 RealmJsonTypeHelper.emitFillJavaTypeFromStream(
                         interfaceName,
@@ -2088,6 +2126,9 @@ public class RealmProxyClassGenerator {
         Constants.RealmFieldType type = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
         if (type != null) {
             return type;
+        }
+        if (Utils.isRealmInteger(field)) {
+            return Constants.RealmFieldType.REALM_INTEGER;
         }
         if (Utils.isRealmModel(field)) {
             return Constants.RealmFieldType.OBJECT;
