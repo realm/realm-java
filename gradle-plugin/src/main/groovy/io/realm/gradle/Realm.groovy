@@ -23,6 +23,7 @@ import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.UnknownConfigurationException
 
 class Realm implements Plugin<Project> {
 
@@ -40,9 +41,7 @@ class Realm implements Plugin<Project> {
         }
 
         def syncEnabledDefault = false
-        // TODO ↓ should depend on the version of Android Gradle Plugin
-        def useNewConfigurationName = true
-        def dependencyConfigurationName = useNewConfigurationName ? "implementation" : "compile"
+        def dependencyConfigurationName = getDependencyConfigurationName(project)
         project.extensions.create('realm', RealmPluginExtension,
                 project, syncEnabledDefault, dependencyConfigurationName)
 
@@ -81,6 +80,17 @@ class Realm implements Plugin<Project> {
             return true
         } catch (Exception ignored) {
             return false
+        }
+    }
+
+    private static String getDependencyConfigurationName(Project project) {
+        def newDependencyName = "implementation"
+        def oldDependencyName = "compile"
+        try {
+            project.getConfigurations().getByName(newDependencyName)
+            return newDependencyName
+        } catch (UnknownConfigurationException ignored) {
+            oldDependencyName
         }
     }
 

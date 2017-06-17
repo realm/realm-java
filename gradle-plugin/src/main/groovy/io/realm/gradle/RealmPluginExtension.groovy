@@ -33,7 +33,7 @@ class RealmPluginExtension {
         this.syncEnabled = value;
 
         // remove realm android library first
-        for (String configName : [/*old name*/"compile", /*new name*/"implementation"]) {
+        for (String configName : [dependencyConfigurationName]) {
             def iterator = project.getConfigurations().getByName(configName).getDependencies().iterator();
             while (iterator.hasNext()) {
                 def item = iterator.next()
