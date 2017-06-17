@@ -1,8 +1,16 @@
-## 3.3.2 (2017-06-09)
+## 3.3.3 (YYYY-MM-DD)
 
 ### Breaking Changes
 
 ### Enhancements
+
+### Bug Fixes
+
+* When converting nullable BLOB field to required, `null` values should be converted to `byte[0]` instead of `byte[1]`.
+
+### Internal
+
+## 3.3.2 (2017-06-09)
 
 ### Bug Fixes
 
