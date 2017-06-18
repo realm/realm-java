@@ -338,7 +338,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                 case type_Binary: {
                     BinaryData bd = table->get_binary(column_index + 1, i);
                     if (bd.is_null()) {
-                        table->set_binary(column_index, i, BinaryData(""));
+                        table->set_binary(column_index, i, BinaryData("", 0));
                     }
                     else {
                         // Payload copy is needed

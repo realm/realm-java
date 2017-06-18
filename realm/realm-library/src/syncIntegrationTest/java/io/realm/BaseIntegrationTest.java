@@ -17,25 +17,42 @@
 package io.realm;
 
 import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.UiThreadTestRule;
 import android.util.Log;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import io.realm.internal.Util;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.TestSyncConfigurationFactory;
+
 
 public class BaseIntegrationTest {
 
     private static int originalLogLevel;
+
+    @Rule
+    public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
+
+    @Rule
+    public RunInLooperThread looperThread = new RunInLooperThread();
+
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
+
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     @BeforeClass
     public static void setUp () throws Exception {
@@ -82,9 +99,19 @@ public class BaseIntegrationTest {
 
     @After
     public void tearDownTest() throws IOException {
-        RealmLog.setLevel(originalLogLevel);
+        if (looperThread.isTestComplete()) {
+            // Non-looper tests can reset here
+            RealmLog.setLevel(originalLogLevel);
+        } else {
+            // Otherwise we need to wait for the test to complete
+            looperThread.runAfterTest(new Runnable() {
+                @Override
+                public void run() {
+                    RealmLog.setLevel(originalLogLevel);
+                }
+            });
+        }
     }
-
 
     // Cleanup filesystem to make sure nothing lives for the next test.
     // Failing to do so might lead to DIVERGENT_HISTORY errors being thrown if Realms from

@@ -65,6 +65,16 @@ android {
                 }
             }
         }
+
+        buildTypes {
+            debug {
+                javaCompileOptions {
+                    annotationProcessorOptions {
+                        arguments += [ 'realm.suppressWarnings' : 'false' ]
+                    }
+                }
+            }
+        }
     }
 
     externalNativeBuild {

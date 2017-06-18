@@ -25,6 +25,7 @@ import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -123,7 +124,9 @@ import io.realm.annotations.RealmModule;
         "io.realm.annotations.RealmModule",
         "io.realm.annotations.Required"
 })
+@SupportedOptions(value = {"realm.suppressWarnings"})
 public class RealmProcessor extends AbstractProcessor {
+
     // Don't consume annotations. This allows 3rd party annotation processors to run.
     private static final boolean CONSUME_ANNOTATIONS = false;
 

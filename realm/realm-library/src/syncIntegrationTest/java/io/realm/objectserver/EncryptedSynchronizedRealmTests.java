@@ -2,7 +2,6 @@ package io.realm.objectserver;
 
 import android.os.SystemClock;
 
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,19 +25,15 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.rule.TestSyncConfigurationFactory;
-import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
-    @Rule
-    public Timeout globalTimeout = Timeout.seconds(10);
 
     @Rule
-    public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
+    public Timeout globalTimeout = Timeout.seconds(10);
 
     // Make sure the encryption is local, i.e after deleting a synced Realm
     // re-open it again with no (or different) key, should be possible.
