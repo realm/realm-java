@@ -882,8 +882,8 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                Table table = realm.schema.getTable(StringOnly.class);
-                table.convertColumnToNullable(table.getColumnIndex("chars"));
+                RealmObjectSchema objectSchema = realm.getSchema().get(StringOnly.CLASS_NAME);
+                objectSchema.setRequired(StringOnly.FIELD_CHARS, false);
             }
         };
 

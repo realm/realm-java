@@ -146,19 +146,6 @@ public class TestHelper {
         return new ByteArrayInputStream(str.getBytes(UTF_8));
     }
 
-    // Creates a simple migration step in order to support null.
-    // FIXME: generate a new encrypted.realm will null support
-    public static RealmMigration prepareMigrationToNullSupportStep() {
-        RealmMigration realmMigration = new RealmMigration() {
-            @Override
-            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                Table stringOnly = realm.schema.getTable(StringOnly.class);
-                stringOnly.convertColumnToNullable(stringOnly.getColumnIndex("chars"));
-            }
-        };
-        return realmMigration;
-    }
-
     // Returns a random key used by encrypted Realms.
     public static byte[] getRandomKey() {
         byte[] key = new byte[64];

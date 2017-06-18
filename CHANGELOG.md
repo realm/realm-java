@@ -4,6 +4,7 @@
 
 ### Enhancements
 
+* [ObjectServer] Added support for Sync Progress Notifications through `SyncSession.addDownloadProgressListener(ProgressMode, ProgressListener)` and `SyncSession.addUploadProgressListener(ProgressMode, ProgressListener)` (#4104).
 * Added support for querying inverse relationships (#2904).
 * Moved inverse relationships out of beta stage.
 * Added `Realm.getDefaultConfiguration()` (#4725).
@@ -15,6 +16,17 @@
 * Upgraded to Realm Sync 1.9.1
 * Upgraded to Realm Core 2.8.0
 
+## 3.3.3 (YYYY-MM-DD)
+
+### Breaking Changes
+
+### Enhancements
+
+### Bug Fixes
+
+* When converting nullable BLOB field to required, `null` values should be converted to `byte[0]` instead of `byte[1]`.
+
+### Internal
 
 ## 3.3.2 (2017-06-09)
 
