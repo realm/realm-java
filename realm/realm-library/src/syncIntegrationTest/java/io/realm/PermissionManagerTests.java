@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
+import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
@@ -69,6 +70,12 @@ public class PermissionManagerTests extends BaseIntegrationTest {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
                 assertTrue(permissions.isLoaded());
+                if (permissions.size() > 1) {
+                    RealmLog.error("Unexpected number of permissions (%s):" + permissions.size());
+                    for (Permission permission : permissions) {
+                        RealmLog.error(permission.toString());
+                    }
+                }
                 assertEquals(1, permissions.size());
                 looperThread.testComplete();
             }
@@ -114,6 +121,12 @@ public class PermissionManagerTests extends BaseIntegrationTest {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
                 assertTrue(permissions.isLoaded());
+                if (permissions.size() > 1) {
+                    RealmLog.error("Unexpected number of permissions (%s):" + permissions.size());
+                    for (Permission permission : permissions) {
+                        RealmLog.error(permission.toString());
+                    }
+                }
                 assertEquals(1, permissions.size());
 
                 // Create new Realm, which should create a new Permission entry
