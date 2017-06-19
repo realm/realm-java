@@ -56,7 +56,7 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
         JNIEnv* env = JniUtils::get_env(true);
         std::string msg = format("An exception has been thrown on the sync client thread:\n%1", e.what());
         Log::f(msg.c_str());
-        // Since user has no way to handle exceptions thrown on the sync client thread, we just convert it to an Java
+        // Since user has no way to handle exceptions thrown on the sync client thread, we just convert it to a Java
         // exception to get more debug information for ourself.
         // FIXME: We really need to find a universal and clever way to get the native backtrace when exception thrown
         env->ThrowNew(m_realm_exception_class, msg.c_str());
