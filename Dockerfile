@@ -12,7 +12,7 @@ ENV ANDROID_HOME /opt/android-sdk-linux
 # Need by cmake
 ENV ANDROID_NDK_HOME /opt/android-ndk
 ENV ANDROID_NDK /opt/android-ndk
-ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
+ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
 ENV PATH ${PATH}:${NDK_HOME}
 ENV NDK_CCACHE /usr/bin/ccache
 ENV NDK_LCACHE /usr/bin/lcache
@@ -49,11 +49,12 @@ RUN cd /opt && \
 # Grab what's needed in the SDK
 RUN mkdir "${ANDROID_HOME}/licenses" && \
     echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "${ANDROID_HOME}/licenses/android-sdk-license"
-RUN ${ANDROID_HOME}/bin/sdkmanager "tools;26.0.2"
-RUN ${ANDROID_HOME}/bin/sdkmanager "platform-tools;26.0.0"
-RUN ${ANDROID_HOME}/bin/sdkmanager "build-tools;25.0.3"
-RUN ${ANDROID_HOME}/bin/sdkmanager "extras;android;m2repository"
-RUN ${ANDROID_HOME}/bin/sdkmanager "platforms;android-25"
+RUN ls ${ANDROID_HOME}
+RUN ${ANDROID_HOME}/tools/bin/sdkmanager "tools;26.0.2"
+RUN ${ANDROID_HOME}/tools/bin/sdkmanager "platform-tools;26.0.0"
+RUN ${ANDROID_HOME}/tools/bin/sdkmanager "build-tools;25.0.3"
+RUN ${ANDROID_HOME}/tools/bin/sdkmanager "extras;android;m2repository"
+RUN ${ANDROID_HOME}/tools/bin/sdkmanager "platforms;android-25"
 
 # Install the NDK
 RUN mkdir /opt/android-ndk-tmp && \
