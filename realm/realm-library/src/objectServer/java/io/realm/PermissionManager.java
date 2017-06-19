@@ -194,7 +194,7 @@ public class PermissionManager implements Closeable {
         delayedTasks.add(task);
     }
 
-    // Run any tasks that where delayed while the underlying Realms where being opened.
+    // Run any tasks that were delayed while the underlying Realms were being opened.
     // PRECONDITION: Underlying Realms are no longer in the process of being opened.
     private void runDelayedTasks() {
         for (AsyncTask delayedTask : delayedTasks) {
@@ -211,7 +211,8 @@ public class PermissionManager implements Closeable {
     }
 
     // Open both underlying Realms asynchronously. Once they are both ready, all tasks added in the meantime are
-    // started. If the Realms failed to open correctly any error will be reported through the `Callback.onError` callback.
+    // started. Any error will be reported through the `Callback.onError` callback if the Realms failed to open
+    // correctly.
     private void openRealms() {
         if (!openInProgress) {
             openInProgress = true;
@@ -316,7 +317,7 @@ public class PermissionManager implements Closeable {
     }
 
     /**
-     * Checks if this PermissionManager is closed or not. If it is closed, all methods will report back an error
+     * Checks if this PermissionManager is closed or not. If it is closed, all methods will report back an error.
      *
      * @return {@code true} if the PermissionManager is closed, {@code false} if it is still open.
      */
