@@ -2,7 +2,7 @@
 
 ### Breaking Changes
 
-* [ObjectServer] Update protocol version to 18 which is only compatible with ROS > 1.6.0.
+* [ObjectServer] Updated protocol version to 18 which is only compatible with ROS > 1.6.0.
 
 ### Enhancements
 

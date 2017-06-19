@@ -94,9 +94,9 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNI
         JStringAccessor base_file_path(env, sync_base_dir); // throws
         SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
 
-        static AndroidClientListener client_thread_listner(env);
+        static AndroidClientListener client_thread_listener(env);
         // Register Sync Client thread start/stop callback
-        g_binding_callback_thread_observer = &client_thread_listner;
+        g_binding_callback_thread_observer = &client_thread_listener;
 
         // init logger
         SyncManager::shared().set_logger_factory(s_sync_logger_factory);
