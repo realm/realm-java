@@ -50,7 +50,7 @@ RUN cd /opt && \
 RUN mkdir "${ANDROID_HOME}/licenses" && \
     echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "${ANDROID_HOME}/licenses/android-sdk-license"
 RUN sdkmanager --list
-RUN sdkmanager "tools;26.0.2"
+RUN sdkmanager --update
 RUN sdkmanager "platform-tools;26.0.0"
 RUN sdkmanager "build-tools;25.0.3"
 RUN sdkmanager "extras;android;m2repository"
