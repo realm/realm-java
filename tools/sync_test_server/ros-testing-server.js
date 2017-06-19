@@ -3,6 +3,7 @@
 var winston = require('winston'); //logging
 const temp = require('temp');
 const spawn = require('child_process').spawn;
+const exec = require('child_process').exec;
 var http = require('http');
 var dispatcher = require('httpdispatcher');
 
@@ -64,9 +65,15 @@ function stopRealmObjectServer() {
     if (syncServerChildProcess) {
         syncServerChildProcess.kill();
         syncServerChildProcess = null;
+        exec('rm -r ' + 'realm-object-server', function (err, stdout, stderr) {
+            if (err) {
+                winston.err(err)
+            } else {
+                winston.info("realm-object-server directory deleted")
+            }
+        });
     }
 }
-
 
 // start sync server
 dispatcher.onGet("/start", function(req, res) {
