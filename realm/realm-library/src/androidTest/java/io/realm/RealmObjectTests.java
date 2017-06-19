@@ -1932,7 +1932,7 @@ public class RealmObjectTests {
         AllTypes object = realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        assertSame(realmConfig, RealmObject.getConfiguration(object));
+        assertSame(realmConfig, object.getConfiguration());
     }
 
     @Test
@@ -1953,7 +1953,7 @@ public class RealmObjectTests {
             DynamicRealmObject object = dynamicRealm.createObject("AllTypesRealmModel", 1L);
             dynamicRealm.commitTransaction();
 
-            assertSame(realmConfig, RealmObject.getConfiguration(object));
+            assertSame(realmConfig, object.getConfiguration());
         } finally {
             dynamicRealm.close();
         }
@@ -1961,7 +1961,7 @@ public class RealmObjectTests {
 
     @Test
     public void getRealmConfiguration_unmanagedRealmObjectReturnsNull() {
-        assertNull(RealmObject.getConfiguration(new AllTypes()));
+        assertNull(new AllTypes().getConfiguration());
     }
 
     @Test
@@ -1989,7 +1989,7 @@ public class RealmObjectTests {
         realm = null;
 
         try {
-            RealmObject.getConfiguration(object);
+            object.getConfiguration();
             fail();
         } catch (IllegalStateException e) {
             assertEquals(BaseRealm.CLOSED_REALM_MESSAGE, e.getMessage());
@@ -2004,7 +2004,7 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         try {
-            RealmObject.getConfiguration(object);
+            object.getConfiguration();
             fail();
         } catch (IllegalStateException e) {
             assertEquals(RealmObject.MSG_DELETED_OBJECT, e.getMessage());
@@ -2023,7 +2023,8 @@ public class RealmObjectTests {
             @Override
             public void run() {
                 try {
-                    RealmObject.getConfiguration(object);
+                    object.getConfiguration();
+                    fail();
                 } catch (Throwable t) {
                     throwable.set(t);
                 } finally {
