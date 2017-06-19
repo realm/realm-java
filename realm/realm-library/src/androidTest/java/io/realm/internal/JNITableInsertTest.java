@@ -93,7 +93,7 @@ public class JNITableInsertTest {
                     t.addColumn(TestHelper.getColumnType(value.get(j)), value.get(j).getClass().getSimpleName());
                     // Adds value.
                     try {
-                        t.add(value.get(i));
+                        TestHelper.addRowWithValues(t, value.get(i));
                         fail("No matching type");
                     } catch (IllegalArgumentException e) {
                     }

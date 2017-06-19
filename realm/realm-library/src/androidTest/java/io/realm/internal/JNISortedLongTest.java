@@ -22,6 +22,8 @@ import junit.framework.TestCase;
 
 import io.realm.Realm;
 import io.realm.RealmFieldType;
+import io.realm.TestHelper;
+
 
 public class JNISortedLongTest extends TestCase {
     Table table;
@@ -32,14 +34,14 @@ public class JNISortedLongTest extends TestCase {
         table.addColumn(RealmFieldType.INTEGER, "number");
         table.addColumn(RealmFieldType.STRING, "name");
 
-        table.add(1, "A");
-        table.add(10, "B");
-        table.add(20, "C");
-        table.add(30, "B");
-        table.add(40, "D");
-        table.add(50, "D");
-        table.add(60, "D");
-        table.add(60, "D");
+        TestHelper.addRowWithValues(table, 1, "A");
+        TestHelper.addRowWithValues(table, 10, "B");
+        TestHelper.addRowWithValues(table, 20, "C");
+        TestHelper.addRowWithValues(table, 30, "B");
+        TestHelper.addRowWithValues(table, 40, "D");
+        TestHelper.addRowWithValues(table, 50, "D");
+        TestHelper.addRowWithValues(table, 60, "D");
+        TestHelper.addRowWithValues(table, 60, "D");
 
         assertEquals(8, table.size());
     }

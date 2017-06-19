@@ -64,8 +64,8 @@ public class JNITableTest {
         t.addColumn(RealmFieldType.INTEGER, "intCol");
         t.addColumn(RealmFieldType.BOOLEAN, "boolCol");
 
-        t.add("s1", 1, true);
-        t.add("s2", 2, false);
+        TestHelper.addRowWithValues(t, "s1", 1, true);
+        TestHelper.addRowWithValues(t, "s2", 2, false);
 
         String expected = "The Table contains 3 columns: stringCol, intCol, boolCol. And 2 rows.";
         assertEquals(expected, t.toString());
@@ -87,21 +87,6 @@ public class JNITableTest {
     @Test
     public void zeroColOperations() {
         Table tableZeroCols = new Table();
-
-        // Adds rows.
-        try {
-            tableZeroCols.add("val");
-            fail("No columns in table");
-        } catch (IndexOutOfBoundsException ignored) {}
-        try {
-            tableZeroCols.addEmptyRow();
-            fail("No columns in table");
-        } catch (IndexOutOfBoundsException ignored) {}
-        try {
-            tableZeroCols.addEmptyRows(10);
-            fail("No columns in table");
-        } catch (IndexOutOfBoundsException ignored) {}
-
 
         // Col operations
         try {
@@ -125,7 +110,7 @@ public class JNITableTest {
     @Test
     public void findFirstNonExisting() {
         Table t = TestHelper.getTableWithAllColumnTypes();
-        t.add(new byte[] {1, 2, 3}, true, new Date(1384423149761L), 4.5D, 5.7F, 100, "string");
+        TestHelper.addRowWithValues(t, new byte[] {1, 2, 3}, true, new Date(1384423149761L), 4.5D, 5.7F, 100, "string");
 
         assertEquals(-1, t.findFirstBoolean(1, false));
         assertEquals(-1, t.findFirstDate(2, new Date(138442314986L)));
@@ -139,9 +124,9 @@ public class JNITableTest {
         final int TEST_SIZE = 10;
         Table t = TestHelper.getTableWithAllColumnTypes();
         for (int i = 0; i < TEST_SIZE; i++) {
-            t.add(new byte[] {1, 2, 3}, true, new Date(i), (double) i, (float) i, i, "string " + i);
+            TestHelper.addRowWithValues(t, new byte[] {1, 2, 3}, true, new Date(i), (double) i, (float) i, i, "string " + i);
         }
-        t.add(new byte[] {1, 2, 3}, true, new Date(TEST_SIZE), (double) TEST_SIZE, (float) TEST_SIZE, TEST_SIZE, "");
+        TestHelper.addRowWithValues(t, new byte[] {1, 2, 3}, true, new Date(TEST_SIZE), (double) TEST_SIZE, (float) TEST_SIZE, TEST_SIZE, "");
 
         assertEquals(0, t.findFirstBoolean(1, true));
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -165,7 +150,9 @@ public class JNITableTest {
     @Test
     public void getValuesFromNonExistingColumn() {
         Table t = TestHelper.getTableWithAllColumnTypes();
-        t.addEmptyRows(10);
+        for (int i = 0; i < 10; i++) {
+            OsObject.createRow(t);
+        }
 
         try {
             t.getBinaryByteArray(-1, 0);
@@ -277,7 +264,7 @@ public class JNITableTest {
         t.addColumn(RealmFieldType.STRING, "");
         t.addColumn(RealmFieldType.DATE, "");
         t.addColumn(RealmFieldType.BINARY, "");
-        t.add("String val", new Date(), new byte[] {1, 2, 3});
+        TestHelper.addRowWithValues(t, "String val", new Date(), new byte[] {1, 2, 3});
 
         try {
             t.setString(0, 0, null, false);
@@ -286,17 +273,6 @@ public class JNITableTest {
         try {
             t.setDate(1, 0, null, false);
             fail("null Date not allowed");
-        } catch (IllegalArgumentException ignored) { }
-    }
-
-    @Test
-    public void addNegativeEmptyRows() {
-        Table t = new Table();
-        t.addColumn(RealmFieldType.STRING, "colName");
-
-        try {
-            t.addEmptyRows(-1);
-            fail("Argument is negative");
         } catch (IllegalArgumentException ignored) { }
     }
 
@@ -377,14 +353,14 @@ public class JNITableTest {
         t.addColumn(RealmFieldType.STRING, "StringCol");
 
         // Adds 3 rows of data with same values in each column.
-        t.add(1, 2.0D, 3.0F, "s1");
-        t.add(1, 2.0D, 3.0F, "s1");
-        t.add(1, 2.0D, 3.0F, "s1");
+        TestHelper.addRowWithValues(t, 1, 2.0D, 3.0F, "s1");
+        TestHelper.addRowWithValues(t, 1, 2.0D, 3.0F, "s1");
+        TestHelper.addRowWithValues(t, 1, 2.0D, 3.0F, "s1");
 
         // Adds other values.
-        t.add(10, 20.0D, 30.0F, "s10");
-        t.add(100, 200.0D, 300.0F, "s100");
-        t.add(1000, 2000.0D, 3000.0F, "s1000");
+        TestHelper.addRowWithValues(t, 10, 20.0D, 30.0F, "s10");
+        TestHelper.addRowWithValues(t, 100, 200.0D, 300.0F, "s100");
+        TestHelper.addRowWithValues(t, 1000, 2000.0D, 3000.0F, "s1000");
 
         // Counts instances of values added in the first 3 rows.
         assertEquals(3, t.count(0, 1));
@@ -426,7 +402,7 @@ public class JNITableTest {
                     Table table = new Table();
                     long colIndex = table.addColumn(columnType, columnName, nullable);
                     table.addColumn(RealmFieldType.BOOLEAN, "bool");
-                    table.addEmptyRow();
+                    OsObject.createRow(table);
                     if (columnType == RealmFieldType.BOOLEAN) {
                         table.setBoolean(colIndex, 0, true, false);
                     } else if (columnType == RealmFieldType.DATE) {
@@ -443,7 +419,7 @@ public class JNITableTest {
                         table.setString(colIndex, 0, "Foo", false);
                     }
                     try {
-                        table.addEmptyRow();
+                        OsObject.createRow(table);
                         if (columnType == RealmFieldType.BINARY) {
                             table.setBinaryByteArray(colIndex, 1, null, false);
                         } else if (columnType == RealmFieldType.STRING) {
@@ -467,7 +443,7 @@ public class JNITableTest {
                     assertTrue(table.getColumnIndex(columnName) >= 0);
                     assertEquals(colIndex, table.getColumnIndex(columnName));
 
-                    table.addEmptyRow();
+                    OsObject.createRow(table);
                     if (columnType == RealmFieldType.BINARY) {
                         table.setBinaryByteArray(colIndex, 0, null, false);
                     } else if (columnType == RealmFieldType.STRING) {
@@ -502,7 +478,7 @@ public class JNITableTest {
                     Table table = new Table();
                     long colIndex = table.addColumn(columnType, columnName, nullable);
                     table.addColumn(RealmFieldType.BOOLEAN, "bool");
-                    table.addEmptyRow();
+                    OsObject.createRow(table);
                     if (columnType == RealmFieldType.BOOLEAN) {
                         table.setBoolean(colIndex, 0, true, false);
                     } else if (columnType == RealmFieldType.DATE) {
@@ -517,7 +493,7 @@ public class JNITableTest {
                         table.setBinaryByteArray(colIndex, 0, new byte[] {0}, false);
                     } else if (columnType == RealmFieldType.STRING) { table.setString(colIndex, 0, "Foo", false); }
                     try {
-                        table.addEmptyRow();
+                        OsObject.createRow(table);
                         if (columnType == RealmFieldType.BINARY) {
                             table.setBinaryByteArray(colIndex, 1, null, false);
                         } else if (columnType == RealmFieldType.STRING) {
@@ -540,7 +516,7 @@ public class JNITableTest {
                     assertTrue(table.getColumnIndex(columnName) >= 0);
                     assertEquals(colIndex, table.getColumnIndex(columnName));
 
-                    table.addEmptyRow();
+                    OsObject.createRow(table);
                     try {
                         if (columnType == RealmFieldType.BINARY) {
                             table.setBinaryByteArray(colIndex, 0, null, false);
@@ -626,7 +602,7 @@ public class JNITableTest {
             }
 
             sharedRealm.beginTransaction();
-            table.addEmptyRow();
+            OsObject.createRow(table);
 
             ListIterator<Pair<RealmFieldType, Object>> it = columnInfoList.listIterator();
             for (int columnIndex = 0; columnIndex < columnInfoList.size(); columnIndex++) {
@@ -749,8 +725,8 @@ public class JNITableTest {
             }
 
             sharedRealm.beginTransaction();
-            table.addEmptyRow();
-            table.addEmptyRow(); // For link field update.
+            OsObject.createRow(table);
+            OsObject.createRow(table); // For link field update.
 
             ListIterator<Pair<RealmFieldType, Object>> it = columnInfoList.listIterator();
             for (int columnIndex = 0; columnIndex < columnInfoList.size(); columnIndex++) {
@@ -881,8 +857,8 @@ public class JNITableTest {
             }
 
             sharedRealm.beginTransaction();
-            table.addEmptyRow();
-            table.addEmptyRow(); // For link field update.
+            OsObject.createRow(table);
+            OsObject.createRow(table); // For link field update.
 
             // Sets as default.
             ListIterator<Pair<RealmFieldType, Object>> it = columnInfoList.listIterator();

@@ -55,6 +55,7 @@ import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Collection;
+import io.realm.internal.OsObject;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
@@ -103,6 +104,89 @@ public class TestHelper {
         if (o instanceof byte[])
             return RealmFieldType.BINARY;
         return RealmFieldType.UNSUPPORTED_MIXED;
+    }
+
+    /**
+     * Appends the specified row to the end of the table. For internal testing usage only.
+     *
+     * @param table the table where the object to be added.
+     * @param values values.
+     * @return the row index of the appended row.
+     * @deprecated Remove this functions since it doesn't seem to be useful. And this function does deal with tables
+     * with primary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
+     * added.
+     */
+    public static long addRowWithValues(Table table, Object... values) {
+        long rowIndex = OsObject.createRow(table);
+
+        // Checks values types.
+        int columns = (int) table.getColumnCount();
+        if (columns != values.length) {
+            throw new IllegalArgumentException("The number of value parameters (" +
+                    String.valueOf(values.length) +
+                    ") does not match the number of columns in the table (" +
+                    String.valueOf(columns) + ").");
+        }
+        RealmFieldType[] colTypes = new RealmFieldType[columns];
+        for (int columnIndex = 0; columnIndex < columns; columnIndex++) {
+            Object value = values[columnIndex];
+            RealmFieldType colType = table.getColumnType(columnIndex);
+            colTypes[columnIndex] = colType;
+            if (!colType.isValid(value)) {
+                // String representation of the provided value type.
+                String providedType;
+                if (value == null) {
+                    providedType = "null";
+                } else {
+                    providedType = value.getClass().toString();
+                }
+
+                throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
+                        ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
+            }
+        }
+
+        // Inserts values.
+        for (long columnIndex = 0; columnIndex < columns; columnIndex++) {
+            Object value = values[(int) columnIndex];
+            switch (colTypes[(int) columnIndex]) {
+                case BOOLEAN:
+                    table.setBoolean(columnIndex, rowIndex, (Boolean) value, false);
+                    break;
+                case INTEGER:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        long intValue = ((Number) value).longValue();
+                        table.setLong(columnIndex, rowIndex, intValue, false);
+                    }
+                    break;
+                case FLOAT:
+                    table.setFloat(columnIndex, rowIndex, (Float) value, false);
+                    break;
+                case DOUBLE:
+                    table.setDouble(columnIndex, rowIndex, (Double) value, false);
+                    break;
+                case STRING:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setString(columnIndex, rowIndex, (String) value, false);
+                    }
+                    break;
+                case DATE:
+                    table.setDate(columnIndex, rowIndex, (Date) value, false);
+                    break;
+                case BINARY:
+                    table.setBinaryByteArray(columnIndex, rowIndex, (byte[]) value, false);
+                    break;
+                case UNSUPPORTED_MIXED:
+                case UNSUPPORTED_TABLE:
+                default:
+                    throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int) columnIndex]));
+            }
+        }
+        return rowIndex;
     }
 
     /**

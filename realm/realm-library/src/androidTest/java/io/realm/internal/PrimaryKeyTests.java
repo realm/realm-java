@@ -96,9 +96,9 @@ public class PrimaryKeyTests {
         tbl.setPrimaryKey("name");
 
         // Creates first entry with name "Foo".
-        tbl.setString(0, tbl.addEmptyRow(), "Foo", false);
+        tbl.setString(0, OsObject.createRow(tbl), "Foo", false);
 
-        long rowIndex = tbl.addEmptyRow();
+        long rowIndex = OsObject.createRow(tbl);
         try {
             tbl.setString(0, rowIndex, "Foo", false); // Tries to create 2nd entry with name Foo.
         } catch (RealmPrimaryKeyConstraintException e1) {
@@ -119,7 +119,7 @@ public class PrimaryKeyTests {
     public void addEmptyRowWithPrimaryKeyWrongTypeStringThrows() {
         Table t = getTableWithStringPrimaryKey();
         try {
-            OsObject.createWithPrimaryKey(sharedRealm, t, 42);
+            OsObject.createWithPrimaryKey(t, 42);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -129,7 +129,7 @@ public class PrimaryKeyTests {
     @Test
     public void addEmptyRowWithPrimaryKeyNullString() {
         Table t = getTableWithStringPrimaryKey();
-        OsObject.createWithPrimaryKey(sharedRealm, t, null);
+        OsObject.createWithPrimaryKey(t, null);
         assertEquals(1, t.size());
         sharedRealm.cancelTransaction();
     }
@@ -138,7 +138,7 @@ public class PrimaryKeyTests {
     public void addEmptyRowWithPrimaryKeyWrongTypeIntegerThrows() {
         Table t = getTableWithIntegerPrimaryKey();
         try {
-            OsObject.createWithPrimaryKey(sharedRealm, t, "Foo");
+            OsObject.createWithPrimaryKey(t, "Foo");
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -148,7 +148,7 @@ public class PrimaryKeyTests {
     @Test
     public void addEmptyRowWithPrimaryKeyString() {
         Table t = getTableWithStringPrimaryKey();
-        UncheckedRow row = OsObject.createWithPrimaryKey(sharedRealm, t, "Foo");
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, "Foo");
         assertEquals(1, t.size());
         assertEquals("Foo", row.getString(0));
         sharedRealm.cancelTransaction();
@@ -157,7 +157,7 @@ public class PrimaryKeyTests {
     @Test
     public void addEmptyRowWithPrimaryKeyLong() {
         Table t = getTableWithIntegerPrimaryKey();
-        UncheckedRow row = OsObject.createWithPrimaryKey(sharedRealm, t, 42);
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, 42);
         assertEquals(1, t.size());
         assertEquals(42L, row.getLong(0));
         sharedRealm.cancelTransaction();

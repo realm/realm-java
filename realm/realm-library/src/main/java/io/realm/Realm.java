@@ -981,7 +981,7 @@ public class Realm extends BaseRealm {
                     " 'createObject(Class<E>, Object)' instead.", table.getClassName()));
         }
         return configuration.getSchemaMediator().newInstance(clazz, this,
-                OsObject.create(sharedRealm, table),
+                OsObject.create(table),
                 schema.getColumnInfo(clazz),
                 acceptDefaultValue, excludeFields);
     }
@@ -1028,7 +1028,7 @@ public class Realm extends BaseRealm {
         Table table = schema.getTable(clazz);
 
         return configuration.getSchemaMediator().newInstance(clazz, this,
-                OsObject.createWithPrimaryKey(sharedRealm, table, primaryKeyValue),
+                OsObject.createWithPrimaryKey(table, primaryKeyValue),
                 schema.getColumnInfo(clazz),
                 acceptDefaultValue, excludeFields);
     }

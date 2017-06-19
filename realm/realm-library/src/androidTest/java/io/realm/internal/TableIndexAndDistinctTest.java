@@ -19,6 +19,8 @@ package io.realm.internal;
 import junit.framework.TestCase;
 
 import io.realm.RealmFieldType;
+import io.realm.TestHelper;
+
 
 public class TableIndexAndDistinctTest extends TestCase {
     Table table;
@@ -29,13 +31,13 @@ public class TableIndexAndDistinctTest extends TestCase {
         table.addColumn(RealmFieldType.STRING, "name");
 
         long i = 0;
-        table.add(0, "A");
-        table.add(1, "B");
-        table.add(2, "C");
-        table.add(3, "B");
-        table.add(4, "D");
-        table.add(5, "D");
-        table.add(6, "D");
+        TestHelper.addRowWithValues(table, 0, "A");
+        TestHelper.addRowWithValues(table, 1, "B");
+        TestHelper.addRowWithValues(table, 2, "C");
+        TestHelper.addRowWithValues(table, 3, "B");
+        TestHelper.addRowWithValues(table, 4, "D");
+        TestHelper.addRowWithValues(table, 5, "D");
+        TestHelper.addRowWithValues(table, 6, "D");
         assertEquals(7, table.size());
     }
 
@@ -52,11 +54,11 @@ public class TableIndexAndDistinctTest extends TestCase {
         t.addColumn(RealmFieldType.STRING, "col3");
         t.addColumn(RealmFieldType.STRING, "col4");
         t.addColumn(RealmFieldType.STRING, "col5");
-        t.add("row1", "row2", "row3", "row4", "row5");
-        t.add("row1", "row2", "row3", "row4", "row5");
-        t.add("row1", "row2", "row3", "row4", "row5");
-        t.add("row1", "row2", "row3", "row4", "row5");
-        t.add("row1", "row2", "row3", "row4", "row5");
+        TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
+        TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
+        TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
+        TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
+        TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
 
         for (long c=0;c<t.getColumnCount();c++){
             t.addSearchIndex(c);

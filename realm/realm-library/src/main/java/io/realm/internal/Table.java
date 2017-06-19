@@ -351,125 +351,6 @@ public class Table implements TableSchema, NativeObject {
         nativeMoveLastOver(nativePtr, rowIndex);
     }
 
-    /**
-     * Adds an empty row to the table which doesn't have a primary key defined.
-     * <p>
-     * NOTE: To add a table with a primary key defined, use {@link #addEmptyRowWithPrimaryKey(Object)} instead. This
-     * won't check if this table has a primary key.
-     *
-     * @return row index.
-     */
-    public long addEmptyRow() {
-        checkImmutable();
-        return nativeAddEmptyRow(nativePtr, 1);
-    }
-
-    @SuppressWarnings("WeakerAccess")
-    public long addEmptyRows(long rows) {
-        checkImmutable();
-        if (rows < 1) {
-            throw new IllegalArgumentException("'rows' must be > 0.");
-        }
-        if (hasPrimaryKey()) {
-            if (rows > 1) {
-                throw new RealmException("Multiple empty rows cannot be created if a primary key is defined for the table.");
-            }
-            return addEmptyRow();
-        }
-        return nativeAddEmptyRow(nativePtr, rows);
-    }
-
-    /**
-     * Appends the specified row to the end of the table. For internal testing usage only.
-     *
-     * @param values values.
-     * @return the row index of the appended row.
-     * @deprecated Remove this functions since it doesn't seem to be useful. And this function does deal with tables
-     * with primary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
-     * added.
-     */
-    protected long add(Object... values) {
-        long rowIndex = addEmptyRow();
-
-        checkImmutable();
-
-        // Checks values types.
-        int columns = (int) getColumnCount();
-        if (columns != values.length) {
-            throw new IllegalArgumentException("The number of value parameters (" +
-                    String.valueOf(values.length) +
-                    ") does not match the number of columns in the table (" +
-                    String.valueOf(columns) + ").");
-        }
-        RealmFieldType[] colTypes = new RealmFieldType[columns];
-        for (int columnIndex = 0; columnIndex < columns; columnIndex++) {
-            Object value = values[columnIndex];
-            RealmFieldType colType = getColumnType(columnIndex);
-            colTypes[columnIndex] = colType;
-            if (!colType.isValid(value)) {
-                // String representation of the provided value type.
-                String providedType;
-                if (value == null) {
-                    providedType = "null";
-                } else {
-                    providedType = value.getClass().toString();
-                }
-
-                throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
-                        ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
-            }
-        }
-
-        // Inserts values.
-        for (long columnIndex = 0; columnIndex < columns; columnIndex++) {
-            Object value = values[(int) columnIndex];
-            switch (colTypes[(int) columnIndex]) {
-                case BOOLEAN:
-                    nativeSetBoolean(nativePtr, columnIndex, rowIndex, (Boolean) value, false);
-                    break;
-                case INTEGER:
-                    if (value == null) {
-                        checkDuplicatedNullForPrimaryKeyValue(columnIndex, rowIndex);
-                        nativeSetNull(nativePtr, columnIndex, rowIndex, false);
-                    } else {
-                        long intValue = ((Number) value).longValue();
-                        checkIntValueIsLegal(columnIndex, rowIndex, intValue);
-                        nativeSetLong(nativePtr, columnIndex, rowIndex, intValue, false);
-                    }
-                    break;
-                case FLOAT:
-                    nativeSetFloat(nativePtr, columnIndex, rowIndex, (Float) value, false);
-                    break;
-                case DOUBLE:
-                    nativeSetDouble(nativePtr, columnIndex, rowIndex, (Double) value, false);
-                    break;
-                case STRING:
-                    if (value == null) {
-                        checkDuplicatedNullForPrimaryKeyValue(columnIndex, rowIndex);
-                        nativeSetNull(nativePtr, columnIndex, rowIndex, false);
-                    } else {
-                        String stringValue = (String) value;
-                        checkStringValueIsLegal(columnIndex, rowIndex, stringValue);
-                        nativeSetString(nativePtr, columnIndex, rowIndex, (String) value, false);
-                    }
-                    break;
-                case DATE:
-                    if (value == null) { throw new IllegalArgumentException("Null Date is not allowed."); }
-                    nativeSetTimestamp(nativePtr, columnIndex, rowIndex, ((Date) value).getTime(), false);
-                    break;
-                case BINARY:
-                    if (value == null) { throw new IllegalArgumentException("Null Array is not allowed"); }
-                    nativeSetByteArray(nativePtr, columnIndex, rowIndex, (byte[]) value, false);
-                    break;
-                case UNSUPPORTED_MIXED:
-                case UNSUPPORTED_TABLE:
-                default:
-                    throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int) columnIndex]));
-            }
-        }
-        return rowIndex;
-    }
-
     private boolean isPrimaryKeyColumn(long columnIndex) {
         return columnIndex == getPrimaryKey();
     }
@@ -569,6 +450,10 @@ public class Table implements TableSchema, NativeObject {
     //
     // Getters
     //
+
+    SharedRealm getSharedRealm() {
+        return sharedRealm;
+    }
 
     public long getLong(long columnIndex, long rowIndex) {
         return nativeGetLong(nativePtr, columnIndex, rowIndex);
@@ -1057,8 +942,6 @@ public class Table implements TableSchema, NativeObject {
     private native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
 
     private native void nativeMoveLastOver(long nativeTablePtr, long rowIndex);
-
-    public static native long nativeAddEmptyRow(long nativeTablePtr, long rows);
 
     private native long nativeGetSortedViewMulti(long nativeTableViewPtr, long[] columnIndices, boolean[] ascending);
 

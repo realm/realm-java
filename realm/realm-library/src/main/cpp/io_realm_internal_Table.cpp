@@ -528,24 +528,6 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv* 
 
 // ---------------- Row handling
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddEmptyRow(JNIEnv* env, jclass, jlong nativeTablePtr,
-                                                                       jlong rows)
-{
-    Table* pTable = TBL(nativeTablePtr);
-    if (!TABLE_VALID(env, pTable)) {
-        return 0;
-    }
-    if (pTable->get_column_count() < 1) {
-        ThrowException(env, IndexOutOfBounds, concat_stringdata("Table has no columns: ", pTable->get_name()));
-        return 0;
-    }
-    try {
-        return static_cast<jlong>(pTable->add_empty_row(S(rows)));
-    }
-    CATCH_STD()
-    return 0;
-}
-
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMoveLastOver(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                        jlong rowIndex)
 {

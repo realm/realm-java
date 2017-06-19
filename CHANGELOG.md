@@ -11,6 +11,9 @@
 
 ### Internal
 
+* Removed `Table#addEmptyRow()`, `Table#addEmptyRows()` and `Table#add(Object...)`.
+
+
 ## 3.3.2 (2017-06-09)
 
 ### Bug Fixes

@@ -45,12 +45,12 @@ public class JNIQueryTest extends TestCase {
         table.addColumn(RealmFieldType.INTEGER, "number");
         table.addColumn(RealmFieldType.STRING, "name");
 
-        table.add(10, "A");
-        table.add(11, "B");
-        table.add(12, "C");
-        table.add(13, "B");
-        table.add(14, "D");
-        table.add(16, "D");
+        TestHelper.addRowWithValues(table, 10, "A");
+        TestHelper.addRowWithValues(table, 11, "B");
+        TestHelper.addRowWithValues(table, 12, "C");
+        TestHelper.addRowWithValues(table, 13, "B");
+        TestHelper.addRowWithValues(table, 14, "D");
+        TestHelper.addRowWithValues(table, 16, "D");
         assertEquals(6, table.size());
     }
 
@@ -386,12 +386,12 @@ public class JNIQueryTest extends TestCase {
         table.addColumn(RealmFieldType.BOOLEAN, "completed");
 
         // Inserts some values.
-        table.add("Arnold", 420, false);    // 0
-        table.add("Jane", 770, false);      // 1 *
-        table.add("Erik", 600, false);      // 2
-        table.add("Henry", 601, false);     // 3 *
-        table.add("Bill", 564, true);       // 4
-        table.add("Janet", 875, false);     // 5 *
+        TestHelper.addRowWithValues(table, "Arnold", 420, false);    // 0
+        TestHelper.addRowWithValues(table, "Jane", 770, false);      // 1 *
+        TestHelper.addRowWithValues(table, "Erik", 600, false);      // 2
+        TestHelper.addRowWithValues(table, "Henry", 601, false);     // 3 *
+        TestHelper.addRowWithValues(table, "Bill", 564, true);       // 4
+        TestHelper.addRowWithValues(table, "Janet", 875, false);     // 5 *
 
         TableQuery query = table.where().greaterThan(new long[]{1}, oneNullTable, 600);
 
@@ -425,7 +425,7 @@ public class JNIQueryTest extends TestCase {
         Table t = new Table();
         t = TestHelper.getTableWithAllColumnTypes();
 
-        t.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, "string");
+        TestHelper.addRowWithValues(t, new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, "string");
 
         TableQuery q = t.where().greaterThan(new long[]{5}, oneNullTable, 1000); // No matches
 
@@ -619,9 +619,9 @@ public class JNIQueryTest extends TestCase {
         Table table = new Table();
         table.addColumn(RealmFieldType.DATE, "date");
 
-        table.add(new Date(0));
-        table.add(new Date(10000));
-        table.add(new Date(1000));
+        TestHelper.addRowWithValues(table, new Date(0));
+        TestHelper.addRowWithValues(table, new Date(10000));
+        TestHelper.addRowWithValues(table, new Date(1000));
 
         assertEquals(new Date(10000), table.where().maximumDate(0));
     }
@@ -632,9 +632,9 @@ public class JNIQueryTest extends TestCase {
         Table table = new Table();
         table.addColumn(RealmFieldType.DATE, "date");
 
-        table.add(new Date(10000));
-        table.add(new Date(0));
-        table.add(new Date(1000));
+        TestHelper.addRowWithValues(table, new Date(10000));
+        TestHelper.addRowWithValues(table, new Date(0));
+        TestHelper.addRowWithValues(table, new Date(1000));
 
         assertEquals(new Date(0), table.where().minimumDate(0));
     }
@@ -649,13 +649,13 @@ public class JNIQueryTest extends TestCase {
         final Date distantPast = new Date(Long.MIN_VALUE);
         final Date distantFuture = new Date(Long.MAX_VALUE);
 
-        table.add(new Date(10000));
-        table.add(new Date(0));
-        table.add(new Date(1000));
-        table.add(future);
-        table.add(distantFuture);
-        table.add(past);
-        table.add(distantPast);
+        TestHelper.addRowWithValues(table, new Date(10000));
+        TestHelper.addRowWithValues(table, new Date(0));
+        TestHelper.addRowWithValues(table, new Date(1000));
+        TestHelper.addRowWithValues(table, future);
+        TestHelper.addRowWithValues(table, distantFuture);
+        TestHelper.addRowWithValues(table, past);
+        TestHelper.addRowWithValues(table, distantPast);
 
         assertEquals(1L, table.where().equalTo(new long[]{0}, oneNullTable, distantPast).count());
         assertEquals(6L, table.where().notEqualTo(new long[]{0}, oneNullTable, distantPast).count());
@@ -747,10 +747,10 @@ public class JNIQueryTest extends TestCase {
         final byte[] binary3 = new byte[] {0x09, 0x0a, 0x0b, 0x04};
         final byte[] binary4 = new byte[] {0x05, 0x0a, 0x0b, 0x10};
 
-        table.add((Object) binary1);
-        table.add((Object) binary2);
-        table.add((Object) binary3);
-        table.add((Object) binary4);
+        TestHelper.addRowWithValues(table, (Object) binary1);
+        TestHelper.addRowWithValues(table, (Object) binary2);
+        TestHelper.addRowWithValues(table, (Object) binary3);
+        TestHelper.addRowWithValues(table, (Object) binary4);
 
         // Equal to
 

@@ -23,6 +23,8 @@ import junit.framework.TestCase;
 import java.util.Date;
 
 import io.realm.RealmFieldType;
+import io.realm.TestHelper;
+
 
 public class JNIRowTest extends TestCase {
 
@@ -41,7 +43,7 @@ public class JNIRowTest extends TestCase {
 
         byte[] data = new byte[2];
 
-        table.add("abc", 3, (float) 1.2, 1.3, true, new Date(0), data);
+        TestHelper.addRowWithValues(table, "abc", 3, (float) 1.2, 1.3, true, new Date(0), data);
 
 
         UncheckedRow row = table.getUncheckedRow(0);
@@ -86,7 +88,7 @@ public class JNIRowTest extends TestCase {
         table.addColumn(RealmFieldType.DATE, "date");
         table.addColumn(RealmFieldType.BINARY, "binary");
 
-        long rowIndex = table.addEmptyRow();
+        long rowIndex = OsObject.createRow(table);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
 
         row.setString(colStringIndex, "test");

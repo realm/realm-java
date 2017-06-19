@@ -22,6 +22,7 @@ import junit.framework.TestCase;
 
 import io.realm.Realm;
 import io.realm.RealmFieldType;
+import io.realm.TestHelper;
 import io.realm.internal.Table.PivotType;
 
 public class PivotTest extends TestCase {
@@ -41,7 +42,7 @@ public class PivotTest extends TestCase {
 
         for (long i=0;i<50000;i++){
             String sex = i % 2 == 0 ? "Male" : "Female";
-            t.add(sex, 20 + (i%20), true);
+            TestHelper.addRowWithValues(t, sex, 20 + (i%20), true);
         }
     }
 

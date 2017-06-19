@@ -148,9 +148,11 @@ public class OsObject implements NativeObject {
     /**
      * Create an object in the given table which doesn't have a primary key column defined.
      *
+     * @param table the table where the object is created. This table must be atached to {@link SharedRealm}.
      * @return a newly created {@code UncheckedRow}.
      */
-    public static UncheckedRow create(SharedRealm sharedRealm, Table table) {
+    public static UncheckedRow create(Table table) {
+        final SharedRealm sharedRealm = table.getSharedRealm();
         return new UncheckedRow(sharedRealm.context, table,
                 nativeCreateNewObject(sharedRealm.getNativePtr(), table.getNativePtr()));
     }
@@ -159,10 +161,12 @@ public class OsObject implements NativeObject {
      * Create a row in the given table which doesn't have a primary key column defined.
      * This is used for the fast bulk insertion.
      *
+     * @param table the table where the object is created.
      * @return a newly created row's index.
      */
-    public static long createRow(SharedRealm sharedRealm, Table table) {
-        return nativeCreateRow(sharedRealm.getNativePtr(), table.getNativePtr());
+    public static long createRow(Table table) {
+        final SharedRealm sharedRealm = table.getSharedRealm();
+        return nativeCreateRow(sharedRealm != null ? sharedRealm.getNativePtr() : 0L, table.getNativePtr());
     }
 
     private static long getAndVerifyPrimaryKeyColumnIndex(Table table) {
@@ -178,11 +182,13 @@ public class OsObject implements NativeObject {
      * Create an object in the given table which has a primary key column defined, and set the primary key with given
      * value.
      *
+     * @param table the table where the object is created. This table must be atached to {@link SharedRealm}.
      * @return a newly created {@code UncheckedRow}.
      */
-    public static UncheckedRow createWithPrimaryKey(SharedRealm sharedRealm, Table table, Object primaryKeyValue) {
+    public static UncheckedRow createWithPrimaryKey(Table table, Object primaryKeyValue) {
         long primaryKeyColumnIndex = getAndVerifyPrimaryKeyColumnIndex(table);
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
+        final SharedRealm sharedRealm = table.getSharedRealm();
 
         if (type == RealmFieldType.STRING) {
             if (primaryKeyValue != null && !(primaryKeyValue instanceof String)) {
@@ -207,22 +213,24 @@ public class OsObject implements NativeObject {
      * value.
      * This is used for the fast bulk insertion.
      *
+     * @param table the table where the object is created.
      * @return a newly created {@code UncheckedRow}.
      */
-    public static long createRowWithPrimaryKey(SharedRealm sharedRealm, Table table, Object primaryKeyValue) {
+    public static long createRowWithPrimaryKey(Table table, Object primaryKeyValue) {
         long primaryKeyColumnIndex = getAndVerifyPrimaryKeyColumnIndex(table);
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
+        final SharedRealm sharedRealm = table.getSharedRealm();
 
         if (type == RealmFieldType.STRING) {
             if (primaryKeyValue != null && !(primaryKeyValue instanceof String)) {
                 throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
             }
-            return nativeCreateRowWithStringPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+            return nativeCreateRowWithStringPrimaryKey(sharedRealm != null ? sharedRealm.getNativePtr() : 0L, table.getNativePtr(),
                     primaryKeyColumnIndex, (String) primaryKeyValue);
 
         } else if (type == RealmFieldType.INTEGER) {
             long value = primaryKeyValue == null ? 0 : Long.parseLong(primaryKeyValue.toString());
-            return nativeCreateRowWithLongPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+            return nativeCreateRowWithLongPrimaryKey(sharedRealm != null ? sharedRealm.getNativePtr() : 0L, table.getNativePtr(),
                     primaryKeyColumnIndex, value, primaryKeyValue == null);
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
