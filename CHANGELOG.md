@@ -7,6 +7,7 @@
 ### Bug Fixes
 
 * When converting nullable BLOB field to required, `null` values should be converted to `byte[0]` instead of `byte[1]`.
+* [ObjectServer] Retrying connections with exponential backoff, when encountering `ConnectException` (#4310).
 
 ### Internal
 

@@ -16,6 +16,7 @@
 
 package io.realm.internal.network;
 
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -54,7 +55,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = AuthenticateRequest.userLogin(credentials).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
-            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
+            // ConnectException is recoverable (with exponential backoff)
+            ErrorCode errorCode = (e instanceof ConnectException) ? ErrorCode.IO_EXCEPTION : ErrorCode.UNKNOWN;
+            return AuthenticateResponse.from(new ObjectServerError(errorCode, e));
         }
     }
 
@@ -64,7 +67,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = AuthenticateRequest.realmLogin(refreshToken, serverUrl).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
-            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
+            // ConnectException is recoverable (with exponential backoff)
+            ErrorCode errorCode = (e instanceof ConnectException) ? ErrorCode.IO_EXCEPTION : ErrorCode.UNKNOWN;
+            return AuthenticateResponse.from(new ObjectServerError(errorCode, e));
         }
     }
 
@@ -74,7 +79,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = AuthenticateRequest.userRefresh(userToken, serverUrl).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
-            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
+            // ConnectException is recoverable (with exponential backoff)
+            ErrorCode errorCode = (e instanceof ConnectException) ? ErrorCode.IO_EXCEPTION : ErrorCode.UNKNOWN;
+            return AuthenticateResponse.from(new ObjectServerError(errorCode, e));
         }
     }
 
@@ -84,7 +91,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = LogoutRequest.create(userToken).toJson();
             return logout(buildActionUrl(authenticationUrl, ACTION_LOGOUT), requestBody);
         } catch (Exception e) {
-            return LogoutResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
+            // ConnectException is recoverable (with exponential backoff)
+            ErrorCode errorCode = (e instanceof ConnectException) ? ErrorCode.IO_EXCEPTION : ErrorCode.UNKNOWN;
+            return LogoutResponse.from(new ObjectServerError(errorCode, e));
         }
     }
 
@@ -94,7 +103,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = ChangePasswordRequest.create(userToken, newPassword).toJson();
             return changePassword(buildActionUrl(authenticationUrl, ACTION_CHANGE_PASSWORD), requestBody);
         } catch (Throwable e) {
-            return ChangePasswordResponse.createFailure(new ObjectServerError(ErrorCode.UNKNOWN, e));
+            // ConnectException is recoverable (with exponential backoff)
+            ErrorCode errorCode = (e instanceof ConnectException) ? ErrorCode.IO_EXCEPTION : ErrorCode.UNKNOWN;
+            return ChangePasswordResponse.createFailure(new ObjectServerError(errorCode, e));
         }
     }
 
@@ -104,7 +115,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = ChangePasswordRequest.create(adminToken, userId, newPassword).toJson();
             return changePassword(buildActionUrl(authenticationUrl, ACTION_CHANGE_PASSWORD), requestBody);
         } catch (Throwable e) {
-            return ChangePasswordResponse.createFailure(new ObjectServerError(ErrorCode.UNKNOWN, e));
+            // ConnectException is recoverable (with exponential backoff)
+            ErrorCode errorCode = (e instanceof ConnectException) ? ErrorCode.IO_EXCEPTION : ErrorCode.UNKNOWN;
+            return ChangePasswordResponse.createFailure(new ObjectServerError(errorCode, e));
         }
     }
 
