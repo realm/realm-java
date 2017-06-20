@@ -375,10 +375,8 @@ public class PermissionManager implements Closeable {
                 loadingPermissions.addChangeListener(new RealmChangeListener <RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults <Permission> loadedPermissions) {
-                        // FIXME Until we can figure out why `waitForInitialRemoteData` sometimes
-                        // doesn't work for the permission Realm use the size as a heuristic for
-                        // when the Realm is downloaded. One permission should always be available
-                        // for the Management Realm.
+                        // FIXME Wait until both the __permission and __management Realm are available
+                        // To unblock things we just return whenever either permission is present.
                         if (loadedPermissions.size() > 0) {
                             loadingPermissions.removeChangeListener(this);
                             if (checkAndReportInvalidState()) { return; }
