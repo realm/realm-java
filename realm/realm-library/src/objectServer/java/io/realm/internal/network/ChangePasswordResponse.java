@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
-import io.realm.log.RealmLog;
 import okhttp3.Response;
 
 /**
@@ -27,7 +26,14 @@ import okhttp3.Response;
  */
 public class ChangePasswordResponse extends AuthServerResponse {
 
-    public static ChangePasswordResponse from(Response response) {
+    /**
+     * Helper method for creating the proper change password response. This method will set the appropriate error
+     * depending on any HTTP response codes or I/O errors.
+     *
+     * @param response the server response.
+     * @return the change password response.
+     */
+    static ChangePasswordResponse from(Response response) {
         if (response.isSuccessful()) {
             return new ChangePasswordResponse();
         }
@@ -40,8 +46,18 @@ public class ChangePasswordResponse extends AuthServerResponse {
         }
     }
 
-    public static ChangePasswordResponse createFailure(ObjectServerError objectServerError) {
+    /**
+     * Helper method for creating a failed response.
+     */
+    public static ChangePasswordResponse from(ObjectServerError objectServerError) {
         return new ChangePasswordResponse(objectServerError);
+    }
+
+    /**
+     * Helper method for creating a failed response from an {@link Exception}.
+     */
+    public static ChangePasswordResponse from(Exception exception) {
+        return ChangePasswordResponse.from(new ObjectServerError(ErrorCode.fromException(exception), exception));
     }
 
     private ChangePasswordResponse() {

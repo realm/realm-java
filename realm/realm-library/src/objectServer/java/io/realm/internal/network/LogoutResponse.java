@@ -57,6 +57,13 @@ public class LogoutResponse extends AuthServerResponse {
     }
 
     /**
+     * Helper method for creating a failed response from an {@link Exception}.
+     */
+    public static LogoutResponse from(Exception exception) {
+        return LogoutResponse.from(new ObjectServerError(ErrorCode.fromException(exception), exception));
+    }
+
+    /**
      * Creates an unsuccessful authentication response. This should only happen in case of network or I/O
      * related issues.
      *
