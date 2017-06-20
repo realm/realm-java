@@ -28,7 +28,6 @@ import io.realm.Realm;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 
-@SuppressWarnings("deprecation")
 public class JNIQueryTest extends TestCase {
 
     private Table table;

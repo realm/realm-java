@@ -77,7 +77,6 @@ public class JNITableInsertTest {
         table.addColumn(RealmFieldType.STRING, "THIS STRING HAS 63 CHARACTERS PERFECT FOR THE MAX 63 CHARACTERS");
     }
 
-    @SuppressWarnings("deprecation")
     @Test
     public void testGenericAddOnTable() {
         for (int i = 0; i < value.size(); i++) {
