@@ -2,6 +2,8 @@
 
 ### Breaking Changes
 
+* [ObjectServer] Updated protocol version to 18 which is only compatible with ROS > 1.6.0.
+
 ### Enhancements
 
 * [ObjectServer] Added support for Sync Progress Notifications through `SyncSession.addDownloadProgressListener(ProgressMode, ProgressListener)` and `SyncSession.addUploadProgressListener(ProgressMode, ProgressListener)` (#4104).
@@ -13,8 +15,8 @@
 
 ### Internal
 
-* Upgraded to Realm Sync 1.9.1
-* Upgraded to Realm Core 2.8.0
+* Upgraded to Realm Sync 1.10.1
+* Upgraded to Realm Core 2.8.4
 
 ### Credits
 
