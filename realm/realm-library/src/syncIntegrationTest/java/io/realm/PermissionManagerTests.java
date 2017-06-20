@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
@@ -26,9 +25,9 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.UUID;
+import java.util.Arrays;
 
-import io.realm.objectserver.BaseIntegrationTest;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
@@ -65,14 +64,13 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void getPermissions_returnLoadedResults() {
-        // For a new user, the PermissionManager should contain 1 entry for the __permission Realm
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
         pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
                 assertTrue(permissions.isLoaded());
-                assertEquals(1, permissions.size());
+                assertInitialPermissions(permissions);
                 looperThread.testComplete();
             }
 
@@ -117,7 +115,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
                 assertTrue(permissions.isLoaded());
-                assertEquals(1, permissions.size());
+                assertInitialPermissions(permissions);
 
                 // Create new Realm, which should create a new Permission entry
                 SyncConfiguration config2 = new SyncConfiguration.Builder(user, Constants.USER_REALM_2).build();
@@ -299,4 +297,23 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         }.run();
     }
 
+    /**
+     * The initial set of permissions of ROS is timing dependant. This method will identify the possible known starting
+     * states and fail if neither of these can be verified.
+     */
+    private void assertInitialPermissions(RealmResults<Permission> permissions) {
+        // For a new user, the PermissionManager should contain 1 entry for the __permission Realm, but we are
+        // creating the __management Realm at the same time, so this might be here as well.
+        permissions = permissions.sort("path");
+        if (permissions.size() == 1) {
+            // FIXME It is very unpredictable which Permission is returned. This needs to be fixed.
+            Permission permission = permissions.first();
+            assertTrue(permission.getPath().endsWith("__permission") || permission.getPath().endsWith("__management"));
+        } else if (permissions.size() == 2) {
+            assertTrue("Failed: " + permissions.get(0).toString(), permissions.get(0).getPath().endsWith("__management"));
+            assertTrue("Failed: " + permissions.get(1).toString(), permissions.get(1).getPath().endsWith("__permission"));
+        } else {
+            fail("Permission Realm contains unknown permissions: " + Arrays.toString(permissions.toArray()));
+        }
+    }
 }

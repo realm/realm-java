@@ -65,6 +65,16 @@ android {
                 }
             }
         }
+
+        buildTypes {
+            debug {
+                javaCompileOptions {
+                    annotationProcessorOptions {
+                        arguments += [ 'realm.suppressWarnings' : 'false' ]
+                    }
+                }
+            }
+        }
     }
 
     externalNativeBuild {
@@ -92,6 +102,9 @@ android {
     packagingOptions {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/LICENSE.txt'
+        // We did strip with cmake for release build.
+        // Please, Gradle, you are not that smart! Pleas DO NOT strip debug symbols for debug build!
+        doNotStrip "*/*/*.so"
     }
 
     lintOptions {
@@ -230,10 +243,10 @@ task findbugs(type: FindBugs) {
         xml.enabled = false
         html.enabled = true
         xml {
-            destination "$project.buildDir/findbugs/findbugs-output.xml"
+            destination file("$project.buildDir/findbugs/findbugs-output.xml")
         }
         html {
-            destination "$project.buildDir/findbugs/findbugs-output.html"
+            destination file("$project.buildDir/findbugs/findbugs-output.html")
         }
     }
 }
@@ -257,7 +270,7 @@ task checkstyle(type: Checkstyle) {
 
     source 'src'
     include '*/java/**/*.java'
-    // Ingore tests for now.
+    // Ignore tests for now.
     exclude '*Test*/**'
 
     // empty classpath

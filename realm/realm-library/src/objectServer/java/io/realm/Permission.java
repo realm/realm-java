@@ -152,4 +152,16 @@ public class Permission extends RealmObject {
     public Date getUpdatedAt() {
         return updatedAt;
     }
+
+    @Override
+    public String toString() {
+        return "Permission{" +
+                "userId='" + userId + '\'' +
+                ", path='" + path + '\'' +
+                ", mayRead=" + mayRead +
+                ", mayWrite=" + mayWrite +
+                ", mayManage=" + mayManage +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
 }

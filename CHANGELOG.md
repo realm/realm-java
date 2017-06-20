@@ -4,14 +4,38 @@
 
 ### Enhancements
 
+* [ObjectServer] Added support for Sync Progress Notifications through `SyncSession.addDownloadProgressListener(ProgressMode, ProgressListener)` and `SyncSession.addUploadProgressListener(ProgressMode, ProgressListener)` (#4104).
 * Added support for querying inverse relationships (#2904).
 * Moved inverse relationships out of beta stage.
 * Added `Realm.getDefaultConfiguration()` (#4725).
 
 ### Bug Fixes
 
+### Internal
+
+* Upgraded to Realm Sync 1.9.1
+* Upgraded to Realm Core 2.8.0
+
+## 3.3.3 (YYYY-MM-DD)
+
+### Breaking Changes
+
+### Enhancements
+
+### Bug Fixes
+
+* When converting nullable BLOB field to required, `null` values should be converted to `byte[0]` instead of `byte[1]`.
+* Fixed a bug which may cause duplicated primary key values when migrating a nullable primary key field to not nullable. `RealmObjectSchema.setRequired()` and `RealmObjectSchema.setNullable()` will throw when converting a nullable primary key field with null values stored to a required primary key field.
+
+### Internal
+
+## 3.3.2 (2017-06-09)
+
+### Bug Fixes
+
 * [ObjectServer] Fixed a crash when an authentication error happens (#4726).
 * [ObjectServer] Enabled encryption with Sync (#4561).
+* [ObjectServer] Admin users did not connect correctly to the server (#4750).
 
 ### Internal
 

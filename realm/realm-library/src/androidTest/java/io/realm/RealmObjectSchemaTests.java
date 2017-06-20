@@ -18,6 +18,7 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,7 +34,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -103,22 +104,28 @@ public class RealmObjectSchemaTests {
     }
 
     public enum IndexFieldType {
-        STRING(String.class),
-        SHORT(Short.class), PRIMITIVE_SHORT(short.class),
-        INT(Integer.class), PRIMITIVE_INT(int.class),
-        LONG(Long.class), PRIMITIVE_LONG(long.class),
-        BYTE(Byte.class), PRIMITIVE_BYTE(byte.class),
-        BOOLEAN(Boolean.class), PRIMITIVE_BOOLEAN(boolean.class),
-        DATE(Date.class);
+        STRING(String.class, true),
+        SHORT(Short.class, true), PRIMITIVE_SHORT(short.class, false),
+        INT(Integer.class, true), PRIMITIVE_INT(int.class, false),
+        LONG(Long.class, true), PRIMITIVE_LONG(long.class, false),
+        BYTE(Byte.class, true), PRIMITIVE_BYTE(byte.class, false),
+        BOOLEAN(Boolean.class, true), PRIMITIVE_BOOLEAN(boolean.class, false),
+        DATE(Date.class, true);
 
         private final Class<?> clazz;
+        private final boolean nullable;
 
         public Class<?> getType() {
             return clazz;
         }
 
-        IndexFieldType(Class<?> clazz) {
+        public boolean isNullable() {
+            return nullable;
+        }
+
+        IndexFieldType(Class<?> clazz, boolean nullable) {
             this.clazz = clazz;
+            this.nullable = nullable;
         }
     }
 
@@ -142,20 +149,26 @@ public class RealmObjectSchemaTests {
 
     // TODO These should also be allowed? BOOLEAN, DATE
     public enum PrimaryKeyFieldType {
-        STRING(String.class),
-        SHORT(Short.class), PRIMITIVE_SHORT(short.class),
-        INT(Integer.class), PRIMITIVE_INT(int.class),
-        LONG(Long.class), PRIMITIVE_LONG(long.class),
-        BYTE(Byte.class), PRIMITIVE_BYTE(byte.class);
+        STRING(String.class, true),
+        SHORT(Short.class, true), PRIMITIVE_SHORT(short.class, false),
+        INT(Integer.class, true), PRIMITIVE_INT(int.class, false),
+        LONG(Long.class, true), PRIMITIVE_LONG(long.class, false),
+        BYTE(Byte.class, true), PRIMITIVE_BYTE(byte.class, false);
 
         private final Class<?> clazz;
+        private final boolean nullable;
 
         public Class<?> getType() {
             return clazz;
         }
 
-        PrimaryKeyFieldType(Class<?> clazz) {
+        public boolean isNullable() {
+            return nullable;
+        }
+
+        PrimaryKeyFieldType(Class<?> clazz, boolean nullable) {
             this.clazz = clazz;
+            this.nullable = nullable;
         }
     }
 
@@ -505,6 +518,143 @@ public class RealmObjectSchemaTests {
             }
             schema.removeField(fieldName);
         }
+    }
+
+    // When converting a nullable field to required, the null values of the field will be set to the default value
+    // according to the field type.
+    @Test
+    public void setRequired_nullValueBecomesDefaultValue() {
+        for (FieldType fieldType : FieldType.values()) {
+            String fieldName = fieldType.name();
+            switch (fieldType) {
+                case OBJECT:
+                case LIST:
+                    // Skip always nullable fields.
+                    break;
+                default:
+                    // Skip not-nullable fields .
+                    if (!fieldType.isNullable()) {
+                        break;
+                    }
+                    schema.addField(fieldName, fieldType.getType());
+                    DynamicRealmObject object = realm.createObject(schema.getClassName());
+                    assertTrue(object.isNull(fieldName));
+                    schema.setRequired(fieldName, true);
+                    assertFalse(object.isNull(fieldName));
+                    if (fieldType == FieldType.BLOB) {
+                        assertEquals(0, object.getBlob(fieldName).length);
+                    } else if (fieldType == FieldType.BOOLEAN) {
+                        assertFalse(object.getBoolean(fieldName));
+                    } else if (fieldType == FieldType.STRING) {
+                        assertEquals(0, object.getString(fieldName).length());
+                    } else if (fieldType == FieldType.FLOAT) {
+                        assertEquals(0.0F, object.getFloat(fieldName), 0F);
+                    } else if (fieldType == FieldType.DOUBLE) {
+                        assertEquals(0.0D, object.getDouble(fieldName), 0D);
+                    } else if (fieldType == FieldType.DATE) {
+                        assertEquals(new Date(0), object.getDate(fieldName));
+                    } else {
+                        assertEquals(0, object.getInt(fieldName));
+                    }
+                    break;
+            }
+        }
+    }
+
+    @Test
+    public void setRequired_true_onPrimaryKeyField_containsNullValues_shouldThrow() {
+        for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
+            String className = fieldType.getType().getSimpleName() + "Class";
+            String fieldName = "primaryKey";
+            schema = realmSchema.create(className);
+            if (!fieldType.isNullable()) {
+                continue;
+            }
+            schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
+            DynamicRealmObject object = realm.createObject(schema.getClassName(), null);
+            assertTrue(object.isNull(fieldName));
+            try {
+                schema.setRequired(fieldName, true);
+                fail();
+            } catch (IllegalStateException expected) {
+                assertThat(expected.getMessage(),
+                        CoreMatchers.containsString("The primary key field 'primaryKey' has 'null' values stored."));
+            }
+            realmSchema.remove(className);
+        }
+    }
+
+    private void setRequired_onPrimaryKeyField(boolean isRequired) {
+        for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
+            String className = fieldType.getType().getSimpleName() + "Class";
+            String fieldName = "primaryKey";
+            schema = realmSchema.create(className);
+            if (!fieldType.isNullable()) {
+                continue;
+            }
+            if (isRequired) {
+                schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
+            } else {
+                schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY, FieldAttribute.REQUIRED);
+            }
+            realm.createObject(schema.getClassName(), "1");
+            realm.createObject(schema.getClassName(), "2");
+            assertTrue(schema.hasPrimaryKey());
+            assertTrue(schema.hasIndex(fieldName));
+
+            schema.setRequired(fieldName, isRequired);
+            assertTrue(schema.hasPrimaryKey());
+            assertTrue(schema.hasIndex(fieldName));
+
+            RealmResults<DynamicRealmObject> results = realm.where(className).findAllSorted(fieldName);
+            assertEquals(2, results.size());
+            if (fieldType == PrimaryKeyFieldType.STRING) {
+                assertEquals("1", results.get(0).getString(fieldName));
+                assertEquals("2", results.get(1).getString(fieldName));
+            } else {
+                assertEquals(1, results.get(0).getLong(fieldName));
+                assertEquals(2, results.get(1).getLong(fieldName));
+            }
+            realmSchema.remove(className);
+        }
+    }
+
+    @Test
+    public void setRequired_true_onPrimaryKeyField() {
+        setRequired_onPrimaryKeyField(true);
+    }
+
+    @Test
+    public void setRequired_false_onPrimaryKeyField() {
+        setRequired_onPrimaryKeyField(false);
+    }
+
+    private void setRequired_onIndexedField(boolean toRequired) {
+        String fieldName = "IndexedField";
+        for (IndexFieldType fieldType : IndexFieldType.values()) {
+            if (!fieldType.isNullable()) {
+                continue;
+            }
+            if (toRequired) {
+                schema.addField(fieldName, fieldType.getType(), FieldAttribute.INDEXED);
+            } else {
+                schema.addField(fieldName, fieldType.getType(), FieldAttribute.INDEXED, FieldAttribute.REQUIRED);
+            }
+            assertTrue(schema.hasIndex(fieldName));
+            schema.setRequired(fieldName, toRequired);
+            assertTrue(schema.hasIndex(fieldName));
+            schema.removeField(fieldName);
+        }
+    }
+
+    @Test
+    public void setRequired_true_onIndexedField() {
+        setRequired_onIndexedField(true);
+    }
+
+    @Test
+    public void setRequired_false_onIndexedField() {
+        setRequired_onIndexedField(false);
     }
 
     @Test
