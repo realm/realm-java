@@ -300,19 +300,20 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     }
 
     /**
-     * The initial set of permissions of ROS is timing dependant. This method will identify the possible know starting
+     * The initial set of permissions of ROS is timing dependant. This method will identify the possible known starting
      * states and fail if neither of these can be verified.
      */
     private void assertInitialPermissions(RealmResults<Permission> permissions) {
         // For a new user, the PermissionManager should contain 1 entry for the __permission Realm, but we are
         // creating the __management Realm at the same time, so this might be here as well.
+        permissions = permissions.sort("path");
         if (permissions.size() == 1) {
             // FIXME It is very unpredictable which Permission is returned. This needs to be fixed.
             Permission permission = permissions.first();
             assertTrue(permission.getPath().endsWith("__permission") || permission.getPath().endsWith("__management"));
         } else if (permissions.size() == 2) {
-            assertTrue("Failed: " + permissions.get(0).toString(), permissions.get(0).getPath().endsWith("__permission"));
-            assertTrue("Failed: " + permissions.get(1).toString(), permissions.get(1).getPath().endsWith("__management"));
+            assertTrue("Failed: " + permissions.get(0).toString(), permissions.get(0).getPath().endsWith("__management"));
+            assertTrue("Failed: " + permissions.get(1).toString(), permissions.get(1).getPath().endsWith("__permission"));
         } else {
             fail("Permission Realm contains unknown permissions: " + Arrays.toString(permissions.toArray()));
         }
