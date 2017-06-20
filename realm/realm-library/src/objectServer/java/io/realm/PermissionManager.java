@@ -328,9 +328,8 @@ public class PermissionManager implements Closeable {
 
     @Override
     protected void finalize() throws Throwable {
-        if (managementRealm != null || permissionRealm != null) {
+        if (!closed) {
             RealmLog.warn("PermissionManager was not correctly closed before being finalized.");
-            close();
         }
         super.finalize();
     }
