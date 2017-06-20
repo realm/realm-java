@@ -20,6 +20,7 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -64,6 +65,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -882,8 +884,8 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                Table table = realm.schema.getTable(StringOnly.class);
-                table.convertColumnToNullable(table.getColumnIndex("chars"));
+                RealmObjectSchema objectSchema = realm.getSchema().get(StringOnly.CLASS_NAME);
+                objectSchema.setRequired(StringOnly.FIELD_CHARS, false);
             }
         };
 
@@ -1148,21 +1150,14 @@ public class RealmMigrationTests {
         for (final Class clazz : classes) {
             try {
                 RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-                        .schemaVersion(0)
                         .schema(clazz)
-                        .migration(new RealmMigration() {
-                            @Override
-                            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                                // intentionally lefts empty to demonstrate incompatibilities between nullable/not-nullable PrimaryKeys.
-                            }
-                        })
                         .build();
                 Realm realm = Realm.getInstance(realmConfig);
                 realm.close();
                 fail();
-            } catch (IllegalStateException expected) {
-                assertEquals("Cannot migrate an object with null value in field 'id'. Either maintain the same type for primary key field 'id', or remove the object with null value before migration.",
-                        expected.getMessage());
+            } catch (RealmMigrationNeededException expected) {
+                assertThat(expected.getMessage(), CoreMatchers.containsString(
+                        "Field 'id' does support null values in the existing Realm file."));
             }
         }
     }
