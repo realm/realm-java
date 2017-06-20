@@ -20,19 +20,8 @@
 #include "io_realm_internal_Table.h"
 #include "tablebase_tpl.hpp"
 
-#include "util/format.hpp"
-
-#include "jni_util/java_exception_thrower.hpp"
-#include "java_exception_def.hpp"
-
 using namespace std;
 using namespace realm;
-using namespace realm::_impl;
-using namespace realm::jni_util;
-using namespace realm::util;
-
-static const char* c_null_values_cannot_set_required_msg = "The primary key field '%1' has 'null' values stored.  It "
-                                                           "cannot be converted to a '@Required' primary key field.";
 
 static void finalize_table(jlong ptr);
 
@@ -203,12 +192,11 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
 // 6. removing the original column and renaming the temporary column will make it look like original is being modified
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullable(JNIEnv* env, jobject,
-                                                                                  jlong native_table_ptr,
-                                                                                  jlong j_column_index,
-                                                                                  jboolean is_primary_key)
+                                                                                  jlong nativeTablePtr,
+                                                                                  jlong columnIndex)
 {
-    Table* table = TBL(native_table_ptr);
-    if (!TBL_AND_COL_INDEX_VALID(env, table, j_column_index)) {
+    Table* table = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, table, columnIndex)) {
         return;
     }
     if (table->has_shared_type()) {
@@ -216,7 +204,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
         return;
     }
     try {
-        size_t column_index = S(j_column_index);
+        size_t column_index = S(columnIndex);
         if (table->is_nullable(column_index)) {
             return; // column is already nullable
         }
@@ -244,22 +232,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
             j++;
         }
 
-        // Search index has too be added first since if it is a PK field, add_xxx_unique will check it.
-        if (table->has_search_index(column_index + 1)) {
-            table->add_search_index(column_index);
-        }
-
         for (size_t i = 0; i < table->size(); ++i) {
             switch (column_type) {
                 case type_String: {
                     // Payload copy is needed
                     StringData sd(table->get_string(column_index + 1, i));
-                    if (is_primary_key) {
-                        table->set_string_unique(column_index, i, sd);
-                    }
-                    else {
-                        table->set_string(column_index, i, sd);
-                    }
+                    table->set_string(column_index, i, sd);
                     break;
                 }
                 case type_Binary: {
@@ -270,12 +248,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
                     break;
                 }
                 case type_Int:
-                    if (is_primary_key) {
-                        table->set_int_unique(column_index, i, table->get_int(column_index + 1, i));
-                    }
-                    else {
-                        table->set_int(column_index, i, table->get_int(column_index + 1, i));
-                    }
+                    table->set_int(column_index, i, table->get_int(column_index + 1, i));
                     break;
                 case type_Bool:
                     table->set_bool(column_index, i, table->get_bool(column_index + 1, i));
@@ -300,6 +273,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
                     return;
             }
         }
+        if (table->has_search_index(column_index + 1)) {
+            table->add_search_index(column_index);
+        }
         table->remove_column(column_index + 1);
         table->rename_column(table->get_column_index(tmp_column_name), column_name);
     }
@@ -307,12 +283,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNullable(JNIEnv* env, jobject,
-                                                                                     jlong native_table_ptr,
-                                                                                     jlong j_column_index,
-                                                                                     jboolean is_primary_key)
+                                                                                     jlong nativeTablePtr,
+                                                                                     jlong columnIndex)
 {
-    Table* table = TBL(native_table_ptr);
-    if (!TBL_AND_COL_INDEX_VALID(env, table, j_column_index)) {
+    Table* table = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, table, columnIndex)) {
         return;
     }
     if (table->has_shared_type()) {
@@ -320,7 +295,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         return;
     }
     try {
-        size_t column_index = S(j_column_index);
+        size_t column_index = S(columnIndex);
         if (!table->is_nullable(column_index)) {
             return; // column is already not nullable
         }
@@ -347,32 +322,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
             j++;
         }
 
-        // Search index has too be added first since if it is a PK field, add_xxx_unique will check it.
-        if (table->has_search_index(column_index + 1)) {
-            table->add_search_index(column_index);
-        }
-
         for (size_t i = 0; i < table->size(); ++i) {
             switch (column_type) { // FIXME: respect user-specified default values
                 case type_String: {
                     StringData sd = table->get_string(column_index + 1, i);
                     if (sd == realm::null()) {
-                        if (is_primary_key) {
-                            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
-                                                 format(c_null_values_cannot_set_required_msg, column_name));
-                        }
-                        else {
-                            table->set_string(column_index, i, "");
-                        }
+                        table->set_string(column_index, i, "");
                     }
                     else {
                         // Payload copy is needed
-                        if (is_primary_key) {
-                            table->set_string_unique(column_index, i, sd);
-                        }
-                        else {
-                            table->set_string(column_index, i, sd);
-                        }
+                        table->set_string(column_index, i, sd);
                     }
                     break;
                 }
@@ -390,21 +349,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                 }
                 case type_Int:
                     if (table->is_null(column_index + 1, i)) {
-                        if (is_primary_key) {
-                            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
-                                                 format(c_null_values_cannot_set_required_msg, column_name));
-                        }
-                        else {
-                            table->set_int(column_index, i, 0);
-                        }
+                        table->set_int(column_index, i, 0);
                     }
                     else {
-                        if (is_primary_key) {
-                            table->set_int_unique(column_index, i, table->get_int(column_index + 1, i));
-                        }
-                        else {
-                            table->set_int(column_index, i, table->get_int(column_index + 1, i));
-                        }
+                        table->set_int(column_index, i, table->get_int(column_index + 1, i));
                     }
                     break;
                 case type_Bool:
@@ -450,6 +398,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                     ThrowException(env, UnsupportedOperation, "The old DateTime type is not supported.");
                     return;
             }
+        }
+        if (table->has_search_index(column_index + 1)) {
+            table->add_search_index(column_index);
         }
         table->remove_column(column_index + 1);
         table->rename_column(table->get_column_index(tmp_column_name), column_name);
