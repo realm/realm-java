@@ -86,6 +86,37 @@ public class SyncSession {
     // we register the listener.
     private final AtomicLong progressListenerId = new AtomicLong(-1);
 
+    private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 0;
+    private static final byte STATE_VALUE_ACTIVE = 1;
+    private static final byte STATE_VALUE_DYING = 2;
+    private static final byte STATE_VALUE_INACTIVE = 3;
+    private static final byte STATE_VALUE_ERROR = 4;
+
+    public enum State {
+        STATE_WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
+        STATE_ACTIVE(STATE_VALUE_ACTIVE),
+        STATE_DYING(STATE_VALUE_DYING),
+        STATE_INACTIVE(STATE_VALUE_INACTIVE),
+        STATE_ERROR(STATE_VALUE_ERROR);
+
+        final byte value;
+
+        State(byte value) {
+            this.value = value;
+        }
+
+        public static State fromByte(byte value) {
+            State[] stateCodes = values();
+            for (State state : stateCodes) {
+                if (state.value == value) {
+                    return state;
+                }
+            }
+
+            throw new IllegalArgumentException("Unknown state code: " + value);
+        }
+    }
+
     SyncSession(SyncConfiguration configuration) {
         this.configuration = configuration;
         this.errorHandler = configuration.getErrorHandler();
@@ -134,6 +165,17 @@ public class SyncSession {
         } else {
             errorHandler.onError(this, new ObjectServerError(errCode, errorMessage));
         }
+    }
+
+    @KeepMember
+    @SuppressWarnings("unused")
+    public State getState() {
+        byte state = nativeGetState(configuration.getPath());
+        if (state == -1) {
+            // session was not found, probably the Realm was closed
+            throw new IllegalStateException("Could not find session, Realm was probably closed");
+        }
+        return State.fromByte(state);
     }
 
     synchronized void notifyProgressListener(long listenerId, long transferredBytes, long transferableBytes) {
@@ -589,6 +631,7 @@ public class SyncSession {
 
     private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
-    private static native boolean nativeRefreshAccessToken(String path, String accessToken, String realmUrl);
-    private native boolean nativeWaitForDownloadCompletion(String path);
+    private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
+    private native boolean nativeWaitForDownloadCompletion(String localRealmPath);
+    private native byte nativeGetState(String localRealmPath);
 }

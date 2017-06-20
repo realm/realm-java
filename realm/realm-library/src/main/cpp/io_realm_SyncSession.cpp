@@ -26,12 +26,27 @@
 #include "jni_util/java_global_ref.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/java_class.hpp"
-#include "jni_util/java_local_ref.hpp"
 #include "jni_util/jni_utils.hpp"
 
 using namespace realm;
 using namespace jni_util;
 using namespace sync;
+
+static_assert(SyncSession::PublicState::WaitingForAccessToken ==
+                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
+              "");
+static_assert(SyncSession::PublicState::Active ==
+                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_ACTIVE),
+              "");
+static_assert(SyncSession::PublicState::Dying ==
+                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_DYING),
+              "");
+static_assert(SyncSession::PublicState::Inactive ==
+                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_INACTIVE),
+              "");
+static_assert(SyncSession::PublicState::Error ==
+                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_ERROR),
+              "");
 
 JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv* env, jclass,
                                                                               jstring j_local_realm_path,
@@ -155,4 +170,31 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
     }
     CATCH_STD()
     return JNI_FALSE;
+}
+
+JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jobject,
+                                                                 jstring j_local_realm_path)
+{
+    TR_ENTER()
+    try {
+        JStringAccessor local_realm_path(env, j_local_realm_path);
+        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+
+        if (session) {
+            switch (session->state()) {
+                case SyncSession::PublicState::WaitingForAccessToken:
+                    return io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN;
+                case SyncSession::PublicState::Active:
+                    return io_realm_SyncSession_STATE_VALUE_ACTIVE;
+                case SyncSession::PublicState::Dying:
+                    return io_realm_SyncSession_STATE_VALUE_DYING;
+                case SyncSession::PublicState::Inactive:
+                    return io_realm_SyncSession_STATE_VALUE_INACTIVE;
+                case SyncSession::PublicState::Error:
+                    return io_realm_SyncSession_STATE_VALUE_ERROR;
+            }
+        }
+    }
+    CATCH_STD()
+    return -1;
 }
