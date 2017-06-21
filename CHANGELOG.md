@@ -2,6 +2,8 @@
 
 ### Breaking Changes
 
+* [ObjectServer] Updated protocol version to 18 which is only compatible with ROS > 1.6.0.
+
 ### Enhancements
 
 * [ObjectServer] Added support for Sync Progress Notifications through `SyncSession.addDownloadProgressListener(ProgressMode, ProgressListener)` and `SyncSession.addUploadProgressListener(ProgressMode, ProgressListener)` (#4104).
@@ -13,8 +15,12 @@
 
 ### Internal
 
-* Upgraded to Realm Sync 1.9.1
-* Upgraded to Realm Core 2.8.0
+* Upgraded to Realm Sync 1.10.1
+* Upgraded to Realm Core 2.8.4
+
+### Credits
+
+* Thanks to Anis Ben Nsir (@abennsir) for upgrading Roboelectric in the unitTestExample (#4698).
 
 ## 3.3.3 (YYYY-MM-DD)
 
@@ -26,6 +32,7 @@
 
 * When converting nullable BLOB field to required, `null` values should be converted to `byte[0]` instead of `byte[1]`.
 * Fixed a bug which may cause duplicated primary key values when migrating a nullable primary key field to not nullable. `RealmObjectSchema.setRequired()` and `RealmObjectSchema.setNullable()` will throw when converting a nullable primary key field with null values stored to a required primary key field.
+* [ObjectServer] Retrying connections with exponential backoff, when encountering `ConnectException` (#4310).
 
 ### Internal
 
