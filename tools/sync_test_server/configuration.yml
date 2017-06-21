@@ -154,7 +154,7 @@ proxy:
     ## The address/interface on which the HTTP proxy module should listen. This defaults
     ## to 127.0.0.1. If you wish to listen on all available interfaces,
     ## uncomment the following line.
-    listen_address: '::'
+    listen_address: '0.0.0.0'
 
     ## The port that the HTTP proxy module should bind to.
     # listen_port: 9080
@@ -175,7 +175,7 @@ proxy:
     ## The address/interface on which the HTTPS proxy module should listen. This defaults
     ## to 127.0.0.1. If you wish to listen on all available interfaces,
     ## uncomment the following line.
-    listen_address: '::'
+    listen_address: '0.0.0.0'
 
     ## The port that the HTTPS proxy module should bind to.
     listen_port: 9443

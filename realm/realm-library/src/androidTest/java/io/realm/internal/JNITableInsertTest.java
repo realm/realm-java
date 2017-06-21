@@ -36,11 +36,11 @@ import static org.junit.Assert.fail;
 @RunWith(Parameterized.class)
 public class JNITableInsertTest {
 
-    List<Object> value = new ArrayList<Object>();
+    private List<Object> value = new ArrayList<>();
 
     @Parameterized.Parameters
     public static Collection<Object[]> parameters() {
-        List<Object> value = new ArrayList<Object>();
+        List<Object> value = new ArrayList<>();
         value.add(0, true);
         value.add(1, "abc");
         value.add(2, 123L);
@@ -66,7 +66,7 @@ public class JNITableInsertTest {
             table.addColumn(RealmFieldType.STRING, "THIS STRING HAS 64 CHARACTERS, "
                     + "LONGER THAN THE MAX 63 CHARACTERS");
             fail("Too long name");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException ignore) {
         }
     }
 
@@ -95,7 +95,7 @@ public class JNITableInsertTest {
                     try {
                         t.add(value.get(i));
                         fail("No matching type");
-                    } catch (IllegalArgumentException e) {
+                    } catch (IllegalArgumentException ignored) {
                     }
                 }
             }
