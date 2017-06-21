@@ -1,7 +1,7 @@
 # Realm Sync Core release used by Realm Java
 # https://github.com/realm/realm-sync/releases
-REALM_SYNC_VERSION=1.9.1
-REALM_SYNC_SHA256=b1bd4be71c414f17fee01c05888989ecd0c22a57d4c760c6750f6634c2c29ee8
+REALM_SYNC_VERSION=1.10.1
+REALM_SYNC_SHA256=b48fd48461b563e2a6b1605ec346aca48b64b64a12d42a0f5a61135906d49074
 
 # Object Server Release used by Integration tests
 # `realm` is stable releases, `realm-testing` is developer builds.
@@ -10,4 +10,4 @@ REALM_SYNC_SHA256=b1bd4be71c414f17fee01c05888989ecd0c22a57d4c760c6750f6634c2c29e
 # /tools/sync_test_server/Dockerfile specify which repo (apt) we should
 # install/use between 'realm' and 'realm-testing', the version below should
 # correspond to an existing version on the *specified* repo.
-REALM_OBJECT_SERVER_DE_VERSION=1.7.5-180
+REALM_OBJECT_SERVER_DE_VERSION=1.7.6-62
