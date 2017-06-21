@@ -75,6 +75,13 @@ public class AuthenticateResponse extends AuthServerResponse {
     }
 
     /**
+     * Helper method for creating a failed response from an {@link Exception}.
+     */
+    public static AuthenticateResponse from(Exception exception) {
+        return AuthenticateResponse.from(new ObjectServerError(ErrorCode.fromException(exception), exception));
+    }
+
+    /**
      * Helper method for creating a valid user login response. The user returned will be assumed to have all permissions
      * and doesn't expire.
      *
