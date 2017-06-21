@@ -7,6 +7,7 @@
 ### Enhancements
 
 * [ObjectServer] Added support for Sync Progress Notifications through `SyncSession.addDownloadProgressListener(ProgressMode, ProgressListener)` and `SyncSession.addUploadProgressListener(ProgressMode, ProgressListener)` (#4104).
+* [ObjectServer] Added `SyncSession.getState()` (#4784).
 * Added support for querying inverse relationships (#2904).
 * Moved inverse relationships out of beta stage.
 * Added `Realm.getDefaultConfiguration()` (#4725).
