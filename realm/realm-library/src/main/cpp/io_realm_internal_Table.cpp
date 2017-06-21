@@ -1286,7 +1286,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(JNIEnv*, j
     return to_jbool(TBL(nativeTablePtr)->is_attached()); // noexcept
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv* env, jobject)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCreate(JNIEnv* env, jclass)
 {
     TR_ENTER()
     try {

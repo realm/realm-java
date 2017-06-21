@@ -66,23 +66,6 @@ public class Table implements TableSchema, NativeObject {
     private final SharedRealm sharedRealm;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
 
-    /**
-     * Constructs a Table base object. It can be used to register columns in this table. Registering into table is
-     * allowed only for empty tables. It creates a native reference of the object and keeps a reference to it.
-     */
-    public Table() {
-        this.context = new NativeContext();
-        // Native methods work will be initialized here. Generated classes will
-        // have nothing to do with the native functions. Generated Java Table
-        // classes will work as a wrapper on top of table.
-        this.nativePtr = createNative();
-        if (nativePtr == 0) {
-            throw new java.lang.OutOfMemoryError("Out of native memory.");
-        }
-        this.sharedRealm = null;
-        context.addReference(this);
-    }
-
     Table(Table parent, long nativePointer) {
         this(parent.sharedRealm, nativePointer);
     }
@@ -799,7 +782,7 @@ public class Table implements TableSchema, NativeObject {
         if (!this.getColumnType(intCol).equals(RealmFieldType.INTEGER)) {
             throw new UnsupportedOperationException("Aggregation column must be of type Int");
         }
-        Table result = new Table();
+        Table result = new Table(sharedRealm, Table.nativeCreate());
         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
         return result;
     }
@@ -911,7 +894,7 @@ public class Table implements TableSchema, NativeObject {
         return TABLE_PREFIX + name;
     }
 
-    protected native long createNative();
+    static native long nativeCreate();
 
     private native boolean nativeIsValid(long nativeTablePtr);
 

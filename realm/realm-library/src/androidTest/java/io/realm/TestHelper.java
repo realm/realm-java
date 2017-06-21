@@ -39,6 +39,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -53,9 +54,9 @@ import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
-import io.realm.entities.StringOnly;
 import io.realm.internal.Collection;
 import io.realm.internal.OsObject;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
@@ -190,22 +191,61 @@ public class TestHelper {
     }
 
     /**
-     * Creates an empty table with 1 column of all our supported column types, currently 9 columns.
+     * Creates an empty table with 1 column of all our supported column types, currently 7 columns.
      *
-     * @return
+     * @return created table.
      */
-    public static Table getTableWithAllColumnTypes() {
-        Table t = new Table();
+    public static Table getTableWithAllColumnTypes(SharedRealm realm, String name) {
+        realm.beginTransaction();
+        try {
+            Table t = realm.createTable(name);
 
-        t.addColumn(RealmFieldType.BINARY, "binary");
-        t.addColumn(RealmFieldType.BOOLEAN, "boolean");
-        t.addColumn(RealmFieldType.DATE, "date");
-        t.addColumn(RealmFieldType.DOUBLE, "double");
-        t.addColumn(RealmFieldType.FLOAT, "float");
-        t.addColumn(RealmFieldType.INTEGER, "long");
-        t.addColumn(RealmFieldType.STRING, "string");
+            t.addColumn(RealmFieldType.BINARY, "binary");
+            t.addColumn(RealmFieldType.BOOLEAN, "boolean");
+            t.addColumn(RealmFieldType.DATE, "date");
+            t.addColumn(RealmFieldType.DOUBLE, "double");
+            t.addColumn(RealmFieldType.FLOAT, "float");
+            t.addColumn(RealmFieldType.INTEGER, "long");
+            t.addColumn(RealmFieldType.STRING, "string");
 
-        return t;
+            return t;
+        } catch (RuntimeException e) {
+            realm.cancelTransaction();
+            throw e;
+        } finally {
+            if (realm.isInTransaction()) {
+                realm.commitTransaction();
+            }
+        }
+
+    }
+
+
+    public static Table createTable(SharedRealm sharedRealm, String name) {
+        return createTable(sharedRealm, name, null);
+    }
+
+    public interface TableSetup {
+        void execute(Table table);
+    }
+
+    public static Table createTable(SharedRealm sharedRealm, String name, TableSetup additionalSetup) {
+        sharedRealm.beginTransaction();
+        try {
+            Table table = sharedRealm.createTable(name);
+            if (additionalSetup != null) {
+                additionalSetup.execute(table);
+            }
+            return table;
+        } catch (RuntimeException e) {
+            sharedRealm.cancelTransaction();
+            throw e;
+        } finally {
+            if (sharedRealm.isInTransaction()) {
+                sharedRealm.commitTransaction();
+            }
+        }
+
     }
 
     public static String streamToString(InputStream in) throws IOException {

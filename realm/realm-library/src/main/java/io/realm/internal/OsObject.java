@@ -166,7 +166,7 @@ public class OsObject implements NativeObject {
      */
     public static long createRow(Table table) {
         final SharedRealm sharedRealm = table.getSharedRealm();
-        return nativeCreateRow(sharedRealm != null ? sharedRealm.getNativePtr() : 0L, table.getNativePtr());
+        return nativeCreateRow(sharedRealm.getNativePtr(), table.getNativePtr());
     }
 
     private static long getAndVerifyPrimaryKeyColumnIndex(Table table) {
@@ -225,12 +225,12 @@ public class OsObject implements NativeObject {
             if (primaryKeyValue != null && !(primaryKeyValue instanceof String)) {
                 throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
             }
-            return nativeCreateRowWithStringPrimaryKey(sharedRealm != null ? sharedRealm.getNativePtr() : 0L, table.getNativePtr(),
+            return nativeCreateRowWithStringPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                     primaryKeyColumnIndex, (String) primaryKeyValue);
 
         } else if (type == RealmFieldType.INTEGER) {
             long value = primaryKeyValue == null ? 0 : Long.parseLong(primaryKeyValue.toString());
-            return nativeCreateRowWithLongPrimaryKey(sharedRealm != null ? sharedRealm.getNativePtr() : 0L, table.getNativePtr(),
+            return nativeCreateRowWithLongPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                     primaryKeyColumnIndex, value, primaryKeyValue == null);
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);

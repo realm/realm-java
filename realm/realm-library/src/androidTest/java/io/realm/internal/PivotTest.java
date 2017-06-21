@@ -19,14 +19,18 @@ package io.realm.internal;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 import io.realm.internal.Table.PivotType;
+import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -35,22 +39,42 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class PivotTest {
 
-    Table t;
-    long colIndexSex;
-    long colIndexAge;
-    long colIndexHired;
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+
+    private RealmConfiguration config;
+    private SharedRealm sharedRealm;
+
+    private Table t;
+    private long colIndexSex;
+    private long colIndexAge;
+    private long colIndexHired;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
-        t = new Table();
-        colIndexSex = t.addColumn(RealmFieldType.STRING, "sex");
-        colIndexAge = t.addColumn(RealmFieldType.INTEGER, "age");
-        colIndexHired = t.addColumn(RealmFieldType.BOOLEAN, "hired");
+        config = configFactory.createConfiguration();
+        sharedRealm = SharedRealm.getInstance(config);
 
-        for (long i=0;i<50000;i++){
-            String sex = i % 2 == 0 ? "Male" : "Female";
-            TestHelper.addRowWithValues(t, sex, 20 + (i%20), true);
+        t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+            @Override
+            public void execute(Table t) {
+                colIndexSex = t.addColumn(RealmFieldType.STRING, "sex");
+                colIndexAge = t.addColumn(RealmFieldType.INTEGER, "age");
+                colIndexHired = t.addColumn(RealmFieldType.BOOLEAN, "hired");
+
+                for (long i=0;i<50000;i++){
+                    String sex = i % 2 == 0 ? "Male" : "Female";
+                    TestHelper.addRowWithValues(t, sex, 20 + (i%20), true);
+                }
+            }
+        });
+    }
+
+    @After
+    public void tearDown() {
+        if (sharedRealm != null && !sharedRealm.isClosed()) {
+            sharedRealm.close();
         }
     }
 
