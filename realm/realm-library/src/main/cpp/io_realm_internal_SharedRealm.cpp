@@ -140,7 +140,7 @@ public:
                                                   realm::util::Optional<std::string>(realm_auth_url));
         }
 
-        std::function<sync::Client::SSLVerifyCallback> ssl_verify_callback = nullptr;
+        std::function<sync::Session::SSLVerifyCallback> ssl_verify_callback = nullptr;
         util::Optional<std::string> ssl_trust_certificate_path = util::none;
         // either user the custom Root CA or use the default Android TrustManager
         if (sync_ssl_trust_certificate_path) {realm::jni_util::Log::d(">>>>>>>>>>>> sync_ssl_trust_certificate_path defined");

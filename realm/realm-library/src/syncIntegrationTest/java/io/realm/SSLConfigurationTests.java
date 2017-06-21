@@ -202,4 +202,90 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         } catch (RealmFileException ignored) {
         }
     }
+
+    // combining ssl_trust_certificate_path & verify_servers_ssl_certificate=false (should work since no validation for second)
+    @Test
+    public void combiningTwoSSLConfiguration() throws InterruptedException {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+
+        // 1. Copy a valid Realm to the server using ssl_verify_path option
+        final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .schema(StringOnly.class)
+                .trustedRootCA("trusted_ca.pem")
+                .build();
+        Realm realm = Realm.getInstance(configOld);
+
+        realm.beginTransaction();
+        realm.createObject(StringOnly.class).setChars("Foo");
+        realm.commitTransaction();
+
+        // make sure the changes gets to the server
+        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
+        realm.close();
+        user.logout();
+        Realm.deleteRealm(configOld);
+
+        // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
+        // download the uploaded changes.
+        user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
+        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .schema(StringOnly.class)
+                .waitForInitialRemoteData()
+                .disableSSLVerification()
+                .build();
+        realm = Realm.getInstance(config);
+
+        RealmResults<StringOnly> all = realm.where(StringOnly.class).findAll();
+        try {
+            assertEquals(1, all.size());
+            assertEquals("Foo", all.get(0).getChars());
+        } finally {
+            realm.close();
+        }
+    }
+
+    // combining verify_servers_ssl_certificate=false & SSLVerifyCallback (should fail since first config is not inherited)
+    @Test
+    public void combiningTwoSSLConfiguration2() throws InterruptedException {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+
+        // 1. Copy a valid Realm to the server using ssl_verify_path option
+        final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .schema(StringOnly.class)
+                .disableSSLVerification()
+                .build();
+        Realm realm = Realm.getInstance(configOld);
+
+        realm.beginTransaction();
+        realm.createObject(StringOnly.class).setChars("Foo");
+        realm.commitTransaction();
+
+        // make sure the changes gets to the server
+        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
+        realm.close();
+        user.logout();
+        Realm.deleteRealm(configOld);
+
+        // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
+        // download the uploaded changes.
+        user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
+        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .schema(StringOnly.class)
+                .waitForInitialRemoteData()
+                .build();
+        realm = Realm.getInstance(config);
+
+        RealmResults<StringOnly> all = realm.where(StringOnly.class).findAll();
+        try {
+            assertEquals(1, all.size());
+            assertEquals("Foo", all.get(0).getChars());
+        } finally {
+            realm.close();
+        }
+    }
+
 }
