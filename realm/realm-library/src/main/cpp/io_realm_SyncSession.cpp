@@ -172,7 +172,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
     return JNI_FALSE;
 }
 
-JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jobject,
+JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jclass,
                                                                  jstring j_local_realm_path)
 {
     TR_ENTER()

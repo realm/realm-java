@@ -644,5 +644,5 @@ public class SyncSession {
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
     private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
     private native boolean nativeWaitForDownloadCompletion(String localRealmPath);
-    private native byte nativeGetState(String localRealmPath);
+    private static native byte nativeGetState(String localRealmPath);
 }
