@@ -16,9 +16,11 @@
 
 package io.realm.internal;
 
+import android.support.test.runner.AndroidJUnit4;
 import android.test.MoreAsserts;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Date;
 
@@ -26,9 +28,17 @@ import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 
 
-public class JNIRowTest extends TestCase {
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
-    public void testRow() {
+
+@RunWith(AndroidJUnit4.class)
+public class JNIRowTest {
+
+    @Test
+    public void nonNullValues() {
 
         Table table = new Table();
 
@@ -76,7 +86,8 @@ public class JNIRowTest extends TestCase {
         MoreAsserts.assertEquals(newData, row.getBinaryByteArray(6));
     }
 
-    public void testNull() {
+    @Test
+    public void nullValues() {
 
         Table table = new Table();
 
