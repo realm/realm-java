@@ -12,7 +12,7 @@
 
 ### Internal
 
-* Removed `Table#addEmptyRow()`, `Table#addEmptyRows()` and `Table#add(Object...)`.
+* Removed `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)` and `Table#pivot(long,long,PivotType)`.
 
 
 ## 3.3.2 (2017-06-09)

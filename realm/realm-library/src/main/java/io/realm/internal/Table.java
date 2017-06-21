@@ -30,20 +30,6 @@ import io.realm.exceptions.RealmPrimaryKeyConstraintException;
  */
 public class Table implements TableSchema, NativeObject {
 
-    enum PivotType {
-        COUNT(0),
-        SUM(1),
-        AVG(2),
-        MIN(3),
-        MAX(4);
-
-        final int value; // Package protected, accessible from Table
-
-        PivotType(int value) {
-            this.value = value;
-        }
-    }
-
     public static final int TABLE_MAX_LENGTH = 56; // Max length of class names without prefix
     public static final long INFINITE = -1;
     public static final boolean NULLABLE = true;
@@ -775,18 +761,6 @@ public class Table implements TableSchema, NativeObject {
         return nativeUpperBoundInt(nativePtr, columnIndex, value);
     }
 
-    public Table pivot(long stringCol, long intCol, PivotType pivotType) {
-        if (!this.getColumnType(stringCol).equals(RealmFieldType.STRING)) {
-            throw new UnsupportedOperationException("Group by column must be of type String");
-        }
-        if (!this.getColumnType(intCol).equals(RealmFieldType.INTEGER)) {
-            throw new UnsupportedOperationException("Aggregation column must be of type Int");
-        }
-        Table result = new Table(sharedRealm, Table.nativeCreate());
-        nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
-        return result;
-    }
-
     //
 
     /**
@@ -1022,8 +996,6 @@ public class Table implements TableSchema, NativeObject {
     private native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
 
     private native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);
-
-    private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long resultPtr);
 
     private native String nativeGetName(long nativeTablePtr);
 
