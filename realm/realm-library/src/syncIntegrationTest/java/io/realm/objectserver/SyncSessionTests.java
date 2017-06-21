@@ -1,10 +1,13 @@
 package io.realm.objectserver;
 
+import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.concurrent.TimeUnit;
 
 import io.realm.BaseIntegrationTest;
 import io.realm.Realm;
@@ -34,7 +37,12 @@ public class SyncSessionTests extends BaseIntegrationTest {
         Realm realm = Realm.getInstance(syncConfiguration);
 
         SyncSession session = SyncManager.getSession(syncConfiguration);
-        assertEquals(SyncSession.State.STATE_ACTIVE, session.getState());
+
+        // make sure the `access_token` is acquired. otherwise we can still be
+        // in WAITING_FOR_ACCESS_TOKEN state
+        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));
+
+        assertEquals(SyncSession.State.ACTIVE, session.getState());
         realm.close();
     }
 
@@ -49,7 +57,7 @@ public class SyncSessionTests extends BaseIntegrationTest {
 
         SyncSession session = SyncManager.getSession(syncConfiguration);
         user.logout();
-        assertEquals(SyncSession.State.STATE_INACTIVE, session.getState());
+        assertEquals(SyncSession.State.INACTIVE, session.getState());
 
         realm.close();
     }

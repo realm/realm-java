@@ -86,6 +86,7 @@ public class SyncSession {
     // we register the listener.
     private final AtomicLong progressListenerId = new AtomicLong(-1);
 
+    // represent different states as defined in SyncSession::PublicState 'sync_session.hpp'
     private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 0;
     private static final byte STATE_VALUE_ACTIVE = 1;
     private static final byte STATE_VALUE_DYING = 2;
@@ -93,11 +94,11 @@ public class SyncSession {
     private static final byte STATE_VALUE_ERROR = 4;
 
     public enum State {
-        STATE_WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
-        STATE_ACTIVE(STATE_VALUE_ACTIVE),
-        STATE_DYING(STATE_VALUE_DYING),
-        STATE_INACTIVE(STATE_VALUE_INACTIVE),
-        STATE_ERROR(STATE_VALUE_ERROR);
+        WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
+        ACTIVE(STATE_VALUE_ACTIVE),
+        DYING(STATE_VALUE_DYING),
+        INACTIVE(STATE_VALUE_INACTIVE),
+        ERROR(STATE_VALUE_ERROR);
 
         final byte value;
 
@@ -105,7 +106,7 @@ public class SyncSession {
             this.value = value;
         }
 
-        public static State fromByte(byte value) {
+        static State fromByte(byte value) {
             State[] stateCodes = values();
             for (State state : stateCodes) {
                 if (state.value == value) {
@@ -167,6 +168,16 @@ public class SyncSession {
         }
     }
 
+    /**
+     * Get the current session's state, as defined in {@link SyncSession.State}.
+     *
+     * Note that the state may change after this method returns, example: the authentication
+     * token will expire, causing the session to move to {@link State#WAITING_FOR_ACCESS_TOKEN}
+     * after it was in {@link State#ACTIVE}.
+     *
+     * @return the state of the session.
+     * @see SyncSession.State
+     */
     @KeepMember
     @SuppressWarnings("unused")
     public State getState() {
