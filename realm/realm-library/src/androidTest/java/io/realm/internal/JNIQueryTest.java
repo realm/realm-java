@@ -17,8 +17,11 @@
 package io.realm.internal;
 
 import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -28,15 +31,19 @@ import io.realm.Realm;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 
-public class JNIQueryTest extends TestCase {
+import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.fail;
+
+
+@RunWith(AndroidJUnit4.class)
+public class JNIQueryTest {
 
     private Table table;
     private final long[] oneNullTable = new long[]{NativeObject.NULLPTR};
 
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
     }
 
@@ -54,7 +61,8 @@ public class JNIQueryTest extends TestCase {
         assertEquals(6, table.size());
     }
 
-    public void testShouldQuery() {
+    @Test
+    public void shouldQuery() {
         init();
         TableQuery query = table.where();
 
@@ -77,7 +85,8 @@ public class JNIQueryTest extends TestCase {
     }
 
 
-    public void testNonCompleteQuery() {
+    @Test
+    public void nonCompleteQuery() {
         init();
 
         // All the following queries are not valid, e.g contain a group but not a closing group, an or() but not a second filter etc
@@ -101,7 +110,8 @@ public class JNIQueryTest extends TestCase {
         try { table.where().equalTo(new long[]{0}, oneNullTable, 1).endGroup().find(1);   fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
     }
 
-    public void testInvalidColumnIndexEqualTo() {
+    @Test
+    public void invalidColumnIndexEqualTo() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
 
@@ -147,7 +157,8 @@ public class JNIQueryTest extends TestCase {
         try { query.equalTo(new long[]{10}, oneNullTable, "a", Case.INSENSITIVE); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException ignore) {}
     }
 
-    public void testInvalidColumnIndexNotEqualTo() {
+    @Test
+    public void invalidColumnIndexNotEqualTo() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
 
@@ -189,8 +200,8 @@ public class JNIQueryTest extends TestCase {
         try { query.notEqualTo(new long[]{10}, oneNullTable, "a", Case.INSENSITIVE); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException ignore) {}
     }
 
-
-    public void testInvalidColumnIndexGreaterThan() {
+    @Test
+    public void invalidColumnIndexGreaterThan() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
 
@@ -216,8 +227,8 @@ public class JNIQueryTest extends TestCase {
         try { query.greaterThan(new long[]{10}, oneNullTable, 1); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException ignore) {}
     }
 
-
-    public void testInvalidColumnIndexGreaterThanOrEqual() {
+    @Test
+    public void invalidColumnIndexGreaterThanOrEqual() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
 
@@ -243,8 +254,8 @@ public class JNIQueryTest extends TestCase {
         try { query.greaterThanOrEqual(new long[]{10}, oneNullTable, 1); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException ignore) {}
     }
 
-
-    public void testInvalidColumnIndexLessThan() {
+    @Test
+    public void invalidColumnIndexLessThan() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
 
@@ -270,7 +281,8 @@ public class JNIQueryTest extends TestCase {
         try { query.lessThan(new long[]{10}, oneNullTable, 1); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException ignore) {}
     }
 
-    public void testInvalidColumnIndexLessThanOrEqual() {
+    @Test
+    public void invalidColumnIndexLessThanOrEqual() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
 
@@ -296,8 +308,8 @@ public class JNIQueryTest extends TestCase {
         try { query.lessThanOrEqual(new long[]{10}, oneNullTable, 1); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException ignore) {}
     }
 
-
-    public void testInvalidColumnIndexBetween() {
+    @Test
+    public void invalidColumnIndexBetween() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
 
@@ -323,8 +335,8 @@ public class JNIQueryTest extends TestCase {
         try { query.between(new long[]{10}, 1, 10); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException ignore) {}
     }
 
-
-    public void testInvalidColumnIndexContains() {
+    @Test
+    public void invalidColumnIndexContains() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
 
@@ -345,7 +357,8 @@ public class JNIQueryTest extends TestCase {
     }
 
     @SuppressWarnings("ConstantConditions")
-    public void testNullInputQuery() {
+    @Test
+    public void nullInputQuery() {
         Table t = new Table();
         t.addColumn(RealmFieldType.DATE, "dateCol");
         t.addColumn(RealmFieldType.STRING, "stringCol");
@@ -376,9 +389,8 @@ public class JNIQueryTest extends TestCase {
         try { t.where().like(new long[]{1}, oneNullTable, nullString, Case.INSENSITIVE);          fail("String is null"); } catch (IllegalArgumentException ignore) { }
     }
 
-
-
-    public void testShouldFind() {
+    @Test
+    public void shouldFind() {
         // Creates a table.
         Table table = new Table();
 
@@ -420,9 +432,8 @@ public class JNIQueryTest extends TestCase {
         try {  query.find(7);  fail("Exception expected");  } catch (ArrayIndexOutOfBoundsException ignore) {  }
     }
 
-
-
-    public void testQueryTestForNoMatches() {
+    @Test
+    public void queryTestForNoMatches() {
         Table t = TestHelper.getTableWithAllColumnTypes();
 
         t.add(new byte[]{1,2,3}, true, new Date(1384423149761L), 4.5d, 5.7f, 100, "string");
@@ -433,9 +444,8 @@ public class JNIQueryTest extends TestCase {
         assertEquals(-1, q.find(1));
     }
 
-
-
-    public void testQueryWithWrongDataType() {
+    @Test
+    public void queryWithWrongDataType() {
 
         Table table = TestHelper.getTableWithAllColumnTypes();
 
@@ -516,8 +526,8 @@ public class JNIQueryTest extends TestCase {
         */
     }
 
-
-    public void testColumnIndexOutOfBounds() {
+    @Test
+    public void columnIndexOutOfBounds() {
         Table table = TestHelper.getTableWithAllColumnTypes();
 
         // Queries the table.
@@ -617,7 +627,8 @@ public class JNIQueryTest extends TestCase {
         try { query.equalTo(new long[]{7}, oneNullTable, true);                     fail(); } catch(ArrayIndexOutOfBoundsException ignore) {}
     }
 
-    public void testMaximumDate() {
+    @Test
+    public void maximumDate() {
 
         Table table = new Table();
         table.addColumn(RealmFieldType.DATE, "date");
@@ -629,8 +640,8 @@ public class JNIQueryTest extends TestCase {
         assertEquals(new Date(10000), table.where().maximumDate(0));
     }
 
-
-    public void testMinimumDate() {
+    @Test
+    public void minimumDate() {
 
         Table table = new Table();
         table.addColumn(RealmFieldType.DATE, "date");
@@ -642,7 +653,8 @@ public class JNIQueryTest extends TestCase {
         assertEquals(new Date(0), table.where().minimumDate(0));
     }
 
-    public void testDateQuery() throws Exception {
+    @Test
+    public void dateQuery() throws Exception {
 
         Table table = new Table();
         table.addColumn(RealmFieldType.DATE, "date");
@@ -740,7 +752,8 @@ public class JNIQueryTest extends TestCase {
         assertEquals(1L, table.where().between(new long[]{0}, distantFuture, distantFuture).count());
     }
 
-    public void testByteArrayQuery() throws Exception {
+    @Test
+    public void byteArrayQuery() throws Exception {
 
         Table table = new Table();
         table.addColumn(RealmFieldType.BINARY, "binary");
