@@ -17,13 +17,19 @@
 package io.realm.internal;
 
 import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import io.realm.Realm;
 import io.realm.RealmFieldType;
 
-public class JNISortedLongTest extends TestCase {
+import static org.junit.Assert.assertEquals;
+
+
+@RunWith(AndroidJUnit4.class)
+public class JNISortedLongTest {
     Table table;
 
     void init() {
@@ -44,7 +50,8 @@ public class JNISortedLongTest extends TestCase {
         assertEquals(8, table.size());
     }
 
-    public void testShouldTestSortedIntTable() {
+    @Test
+    public void shouldTestSortedIntTable() {
         init();
 
         // Before first entry.
