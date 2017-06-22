@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -134,6 +133,8 @@ public class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
+    private static final Object defaultConfigurationLock = new Object();
+    // guarded by `defaultConfigurationLock`
     private static RealmConfiguration defaultConfiguration;
 
     /**
@@ -195,7 +196,7 @@ public class Realm extends BaseRealm {
             }
             checkFilesDirAvailable(context);
             RealmCore.loadLibrary(context);
-            defaultConfiguration = new RealmConfiguration.Builder(context).build();
+            setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             BaseRealm.applicationContext = context.getApplicationContext();
             SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
@@ -267,10 +268,15 @@ public class Realm extends BaseRealm {
      * was set and the thread opening the Realm was interrupted while the download was in progress.
      */
     public static Realm getDefaultInstance() {
-        if (defaultConfiguration == null) {
-            throw new IllegalStateException("Call `Realm.init(Context)` before calling this method.");
+        RealmConfiguration configuration = getDefaultConfiguration();
+        if (configuration == null) {
+            if (BaseRealm.applicationContext == null) {
+                throw new IllegalStateException("Call `Realm.init(Context)` before calling this method.");
+            } else {
+                throw new IllegalStateException("Set default configuration by using `Realm.setDefaultConfiguration(RealmConfiguration)`.");
+            }
         }
-        return RealmCache.createRealmOrGetFromCache(defaultConfiguration, Realm.class);
+        return RealmCache.createRealmOrGetFromCache(configuration, Realm.class);
     }
 
     /**
@@ -325,7 +331,20 @@ public class Realm extends BaseRealm {
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
-        defaultConfiguration = configuration;
+        synchronized (defaultConfigurationLock) {
+            defaultConfiguration = configuration;
+        }
+    }
+
+    /**
+     * Returns the default configuration for {@link #getDefaultInstance()}.
+     *
+     * @return default configuration object or {@code null} if no default configuration is specified.
+     */
+    public static RealmConfiguration getDefaultConfiguration() {
+        synchronized (defaultConfigurationLock) {
+            return defaultConfiguration;
+        }
     }
 
     /**
@@ -333,7 +352,9 @@ public class Realm extends BaseRealm {
      * fail until a new default configuration has been set using {@link #setDefaultConfiguration(RealmConfiguration)}.
      */
     public static void removeDefaultConfiguration() {
-        defaultConfiguration = null;
+        synchronized (defaultConfigurationLock) {
+            defaultConfiguration = null;
+        }
     }
 
     /**
