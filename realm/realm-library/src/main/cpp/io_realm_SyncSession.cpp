@@ -24,14 +24,30 @@
 
 #include "util.hpp"
 #include "jni_util/java_global_ref.hpp"
+#include "jni_util/java_local_ref.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/java_class.hpp"
-#include "jni_util/java_local_ref.hpp"
 #include "jni_util/jni_utils.hpp"
 
 using namespace realm;
 using namespace jni_util;
 using namespace sync;
+
+static_assert(SyncSession::PublicState::WaitingForAccessToken ==
+                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
+              "");
+static_assert(SyncSession::PublicState::Active ==
+                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_ACTIVE),
+              "");
+static_assert(SyncSession::PublicState::Dying ==
+                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_DYING),
+              "");
+static_assert(SyncSession::PublicState::Inactive ==
+                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_INACTIVE),
+              "");
+static_assert(SyncSession::PublicState::Error ==
+                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_ERROR),
+              "");
 
 JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv* env, jclass,
                                                                               jstring j_local_realm_path,
@@ -83,9 +99,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
             uint64_t transferred, uint64_t transferrable) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
-            auto path = to_jstring(local_env, local_realm_path);
-            local_env->CallStaticVoidMethod(java_syncmanager_class, java_notify_progress_listener, path, listener_id,
-                                            static_cast<jlong>(transferred), static_cast<jlong>(transferrable));
+            JavaLocalRef<jstring> path(local_env, to_jstring(local_env, local_realm_path));
+            local_env->CallStaticVoidMethod(java_syncmanager_class, java_notify_progress_listener, path.get(),
+                                            listener_id, static_cast<jlong>(transferred),
+                                            static_cast<jlong>(transferrable));
 
             // All exceptions will be caught on the Java side of handlers, but Errors will still end
             // up here, so we need to do something sensible with them.
@@ -96,10 +113,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
                 local_env->ExceptionDescribe();
                 throw std::runtime_error("An unexpected Error was thrown from Java. See LogCat");
             }
-
-            // Callback happens on a thread not controlled by the JVM. So manual cleanup is
-            // required.
-            local_env->DeleteLocalRef(path);
         };
         uint64_t token = session->register_progress_notifier(callback, type, to_bool(is_streaming));
         return static_cast<jlong>(token);
@@ -140,14 +153,14 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
             bool listener_registered =
                 session->wait_for_download_completion([java_session_object_ref](std::error_code error) {
                     JNIEnv* env = JniUtils::get_env(true);
-                    jobject java_error_code = nullptr;
-                    jstring java_error_message = nullptr;
+                    JavaLocalRef<jobject> java_error_code;
+                    JavaLocalRef<jstring> java_error_message;
                     if (error != std::error_code{}) {
-                        java_error_code = NewLong(env, error.value());
-                        java_error_message = env->NewStringUTF(error.message().c_str());
+                        java_error_code = JavaLocalRef<jobject>(env, NewLong(env, error.value()));
+                        java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
                     }
-                    env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method, java_error_code,
-                                        java_error_message);
+                    env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method, java_error_code.get(),
+                                        java_error_message.get());
                 });
 
             return to_jbool(listener_registered);
@@ -155,4 +168,31 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
     }
     CATCH_STD()
     return JNI_FALSE;
+}
+
+JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jclass,
+                                                                 jstring j_local_realm_path)
+{
+    TR_ENTER()
+    try {
+        JStringAccessor local_realm_path(env, j_local_realm_path);
+        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+
+        if (session) {
+            switch (session->state()) {
+                case SyncSession::PublicState::WaitingForAccessToken:
+                    return io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN;
+                case SyncSession::PublicState::Active:
+                    return io_realm_SyncSession_STATE_VALUE_ACTIVE;
+                case SyncSession::PublicState::Dying:
+                    return io_realm_SyncSession_STATE_VALUE_DYING;
+                case SyncSession::PublicState::Inactive:
+                    return io_realm_SyncSession_STATE_VALUE_INACTIVE;
+                case SyncSession::PublicState::Error:
+                    return io_realm_SyncSession_STATE_VALUE_ERROR;
+            }
+        }
+    }
+    CATCH_STD()
+    return -1;
 }
