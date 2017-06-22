@@ -46,6 +46,13 @@ public class UserFactory {
         return SyncUser.login(credentials, authUrl);
     }
 
+    /**
+     * Create a unique user, using the standard authentification URL used by the test server.
+     */
+    public static SyncUser createUniqueUser() {
+        return createUniqueUser(Constants.AUTH_URL);
+    }
+
     public static SyncUser createUniqueUser(String authUrl) {
         String uniqueName = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, PASSWORD, true);

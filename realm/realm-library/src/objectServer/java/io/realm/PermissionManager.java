@@ -24,13 +24,19 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
-import io.realm.internal.permissions.PermissionChange;
 import io.realm.internal.permissions.ManagementModule;
+import io.realm.internal.permissions.PermissionChange;
 import io.realm.internal.permissions.PermissionModule;
 import io.realm.log.RealmLog;
+import io.realm.permissions.Permission;
+import io.realm.permissions.PermissionRequest;
+
+
 /**
  * FIXME: Better Javadoc
  * Helper class for interacting with Realm permissions.
@@ -40,19 +46,24 @@ import io.realm.log.RealmLog;
 public class PermissionManager implements Closeable {
 
     // Reference counted cache equivalent to how Realm instances work.
-    private static ThreadLocal<PermissionManager> permissionManager = new ThreadLocal<PermissionManager>() {
-        @Override
-        protected PermissionManager initialValue() {
-            return null;
-        }
-    };
+    private static Map<SyncUser, Cache> cache = new HashMap<>();
 
-    private static ThreadLocal<Integer> permissionManagerInstanceCounter = new ThreadLocal<Integer>() {
-        @Override
-        protected Integer initialValue() {
-            return 0;
-        }
-    };
+    private static class Cache {
+        public ThreadLocal<PermissionManager> pm = new ThreadLocal<PermissionManager>() {
+            @Override
+            protected PermissionManager initialValue() {
+                return null;
+            }
+        };
+        public ThreadLocal<Integer> instanceCounter = new ThreadLocal<Integer>() {
+            @Override
+            protected Integer initialValue() {
+                return 0;
+            }
+        };
+    }
+
+    private static final Object cacheLock = new Object();
 
     /**
      * Return a thread confined, reference counted instance of the PermissionManager.
@@ -60,14 +71,21 @@ public class PermissionManager implements Closeable {
      * @param syncUser user to create the PermissionManager for.
      * @return a thread confined PermissionManager instance for the provided user.
      */
-    static synchronized PermissionManager getInstance(SyncUser syncUser) {
-        PermissionManager pm = permissionManager.get();
-        if (pm == null) {
-            pm = new PermissionManager(syncUser);
-            permissionManager.set(pm);
+    static PermissionManager getInstance(SyncUser syncUser) {
+        synchronized (cacheLock) {
+            Cache userCache = cache.get(syncUser);
+            if (userCache == null) {
+                Cache c = new Cache();
+                PermissionManager pm = new PermissionManager(syncUser);
+                c.pm.set(pm);
+                c.instanceCounter.set(1);
+                cache.put(syncUser, c);
+                return pm;
+            } else {
+                userCache.instanceCounter.set(userCache.instanceCounter.get() + 1);
+                return userCache.pm.get();
+            }
         }
-        permissionManagerInstanceCounter.set(permissionManagerInstanceCounter.get() + 1);
-        return pm;
     }
 
     private enum RealmType {
@@ -175,17 +193,22 @@ public class PermissionManager implements Closeable {
     }
 
     /**
-     * FIXME: Javadoc
+     * Applies a given set of permissions to a Realm.
+     * <p>
+     * A {@link PermissionRequest} object encapsulates a description of which users are granted what
+     * {@link io.realm.permissions.AccessLevel}s for which Realm(s).
+     * <p>
+     * Once the request is successfully handled, a {@link Permission} entry is created in each users
+     * {@link PermissionManager} and can be found using {@link PermissionManager#getPermissions(Callback)}.
      *
-     * @param callback will be notified once the permission has been successfully written or a failure
-     * occurred.
-     *
-     * @return
+     * @param request request object describing which permissions to grant and to what Realm(s).
+     * @param callback callback when the request either succeeded or failed.
+     * @return async task representing the request. This can be used to cancel it if needed.
      */
-    public RealmAsyncTask setPermission(Permission permission, final Callback<Void> callback) {
+    public RealmAsyncTask applyPermission(PermissionRequest request, final Callback<Void> callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
-        return addTask(new SetPermissionsAsyncTask(this, permission, callback));
+        return addTask(new ApplyPermissionTask(this, request, callback));
     }
 
     // Queue the task if the underlying Realms are not ready yet, otherwise
@@ -299,15 +322,20 @@ public class PermissionManager implements Closeable {
         checkIfValidThread();
 
         // Multiple instances open, just decrement the reference count
-        Integer instanceCount = permissionManagerInstanceCounter.get();
-        if (instanceCount > 1) {
-            permissionManagerInstanceCounter.set(instanceCount - 1);
-            return;
-        }
+        synchronized (cacheLock) {
+            Cache cache = PermissionManager.cache.get(user);
+            ThreadLocal<Integer> instanceCounter = cache.instanceCounter;
+            Integer instanceCount = instanceCounter.get();
+            if (instanceCount > 1) {
+                instanceCounter.set(instanceCount - 1);
+                return;
+            }
 
-        // Only one instance open. Do a full close
-        permissionManagerInstanceCounter.set(0);
-        permissionManager.set(null);
+            // Only one instance open. Do a full close
+            instanceCounter.set(0);
+            cache.pm.set(null);
+            PermissionManager.cache.remove(user);
+        }
         delayedTasks.clear();
 
         // If Realms are still being opened, abort that task
@@ -405,28 +433,17 @@ public class PermissionManager implements Closeable {
 
     // Class encapsulating setting a Permission by writing a PermissionChange and waiting for it to
     // be processed.
-    private class SetPermissionsAsyncTask extends AsyncTask<Void> {
+    private class ApplyPermissionTask extends AsyncTask<Void> {
 
         private final PermissionChange unmanagedChangeRequest;
         private String changeRequestId;
         private PermissionChange managedChangeRequest;
         private RealmAsyncTask transactionTask;
 
-        public SetPermissionsAsyncTask(PermissionManager manager, Permission newPermission, Callback<Void> callback) {
+        public ApplyPermissionTask(PermissionManager manager, PermissionRequest request, Callback<Void> callback) {
             super(manager, callback);
-            this.unmanagedChangeRequest = convertToPermissionChange(newPermission);
+            this.unmanagedChangeRequest = PermissionChange.fromRequest(request);
             this.changeRequestId = unmanagedChangeRequest.getId();
-        }
-
-        // Converts a Permission object to a PermissionChange object which is understood by the
-        // management Realm.
-        private PermissionChange convertToPermissionChange(Permission permission) {
-            // TODO Check that path -> RealmUrl conversion is correct
-            return new PermissionChange(permission.getPath(),
-                    permission.getUserId(),
-                    permission.mayRead(),
-                    permission.mayWrite(),
-                    permission.mayManage());
         }
 
         @Override
@@ -548,7 +565,8 @@ public class PermissionManager implements Closeable {
          */
         protected final boolean checkAndReportInvalidState() {
             if (isCancelled()) { return true; }
-            if (permissionManager.isClosed()) {
+            // Closed check need to work around thread confinement
+            if (permissionManager.closed) {
                 ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN,
                         new IllegalStateException("PermissionManager has been closed"));
                 notifyCallbackError(error);
@@ -641,5 +659,4 @@ public class PermissionManager implements Closeable {
         void onSuccess(T t);
         void onError(ObjectServerError error);
     }
-
 }
