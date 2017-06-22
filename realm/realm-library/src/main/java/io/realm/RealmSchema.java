@@ -37,8 +37,9 @@ public abstract class RealmSchema {
     private ColumnIndices columnIndices; // Cached field look up
 
     /**
-     * Release the schema and any of native resources it might hold.
+     * @deprecated {@link RealmSchema} doesn't have to be released manually.
      */
+    @Deprecated
     public abstract void close();
 
     /**
