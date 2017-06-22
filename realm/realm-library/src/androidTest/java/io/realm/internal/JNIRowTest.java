@@ -99,7 +99,6 @@ public class JNIRowTest {
         assertEquals(new Date(0), row.getDate(5));
         MoreAsserts.assertEquals(data, row.getBinaryByteArray(6));
 
-        sharedRealm.beginTransaction();
         row.setString(0, "a");
         row.setLong(1, 1);
         row.setFloat(2, (float) 8.8);
@@ -109,7 +108,6 @@ public class JNIRowTest {
 
         byte[] newData = new byte[3];
         row.setBinaryByteArray(6, newData);
-        sharedRealm.commitTransaction();
 
         assertEquals("a", row.getString(0));
         assertEquals(1, row.getLong(1));
@@ -124,7 +122,6 @@ public class JNIRowTest {
     public void nullValues() {
 
         Table table = TestHelper.createTable(sharedRealm, "temp");
-        sharedRealm.beginTransaction();
         long colStringIndex = table.addColumn(RealmFieldType.STRING, "string", true);
         long colIntIndex = table.addColumn(RealmFieldType.INTEGER, "integer", true);
         table.addColumn(RealmFieldType.FLOAT, "float");
@@ -133,11 +130,9 @@ public class JNIRowTest {
         table.addColumn(RealmFieldType.DATE, "date");
         table.addColumn(RealmFieldType.BINARY, "binary");
         long rowIndex = OsObject.createRow(table);
-        sharedRealm.commitTransaction();
 
         UncheckedRow row = table.getUncheckedRow(rowIndex);
 
-        sharedRealm.beginTransaction();
         row.setString(colStringIndex, "test");
         assertEquals(row.getString(colStringIndex), "test");
         row.setNull(colStringIndex);
@@ -152,7 +147,6 @@ public class JNIRowTest {
         assertFalse(row.isNull(colBoolIndex));
         row.setNull(colBoolIndex);
         assertTrue(row.isNull(colBoolIndex));
-        sharedRealm.commitTransaction();
     }
 
 }
