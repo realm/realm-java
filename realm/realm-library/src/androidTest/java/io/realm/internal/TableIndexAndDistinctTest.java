@@ -41,6 +41,7 @@ public class TableIndexAndDistinctTest {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
+    @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
     private SharedRealm sharedRealm;
     private Table table;

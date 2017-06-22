@@ -39,7 +39,9 @@ public class JNIColumnInfoTest {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
+    @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
+    @SuppressWarnings("FieldCanBeLocal")
     private SharedRealm sharedRealm;
     private Table table;
 

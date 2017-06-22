@@ -34,7 +34,6 @@ import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 import io.realm.rule.TestRealmConfigurationFactory;
 
-
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
@@ -47,6 +46,7 @@ public class JNIRowTest {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
+    @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
     private SharedRealm sharedRealm;
 

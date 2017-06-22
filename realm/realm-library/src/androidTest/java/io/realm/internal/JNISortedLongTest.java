@@ -31,7 +31,6 @@ import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 import io.realm.rule.TestRealmConfigurationFactory;
 
-
 import static org.junit.Assert.assertEquals;
 
 
@@ -41,6 +40,7 @@ public class JNISortedLongTest {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
+    @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
     private SharedRealm sharedRealm;
     private Table table;
