@@ -1252,16 +1252,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(JNIEnv*, j
     return to_jbool(TBL(nativeTablePtr)->is_attached()); // noexcept
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCreate(JNIEnv* env, jclass)
-{
-    TR_ENTER()
-    try {
-        return reinterpret_cast<jlong>(LangBindHelper::new_table());
-    }
-    CATCH_STD()
-    return 0;
-}
-
 // Checks if the primary key column contains any duplicate values, making it ineligible as a
 // primary key.
 static bool check_valid_primary_key_column(JNIEnv* env, Table* table, StringData column_name) // throws

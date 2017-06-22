@@ -868,8 +868,6 @@ public class Table implements TableSchema, NativeObject {
         return TABLE_PREFIX + name;
     }
 
-    static native long nativeCreate();
-
     private native boolean nativeIsValid(long nativeTablePtr);
 
     private native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);
