@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import java.net.ConnectException;
+
 /**
  * This class enumerate all potential errors related to using the Object Server or synchronizing data.
  */
@@ -125,6 +127,16 @@ public enum ErrorCode {
             }
         }
         throw new IllegalArgumentException("Unknown error code: " + errorCode);
+    }
+
+    /**
+     * Helper method for mapping between {@link Exception} and {@link ErrorCode}.
+     * @param exception to be mapped as an {@link ErrorCode}.
+     * @return mapped {@link ErrorCode}.
+     */
+    public static ErrorCode fromException(Exception exception) {
+        // ConnectException is recoverable (with exponential backoff)
+        return (exception instanceof ConnectException) ? ErrorCode.IO_EXCEPTION : ErrorCode.UNKNOWN;
     }
 
     public enum Category {

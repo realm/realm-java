@@ -113,7 +113,6 @@ public class BaseIntegrationTest {
         }
     }
 
-
     // Cleanup filesystem to make sure nothing lives for the next test.
     // Failing to do so might lead to DIVERGENT_HISTORY errors being thrown if Realms from
     // previous tests are being accessed.

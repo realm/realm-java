@@ -814,30 +814,19 @@ public class RealmProxyClassGenerator {
             }
             writer.endControlFlow();
         } else {
-            // check before migrating a nullable field containing null value to not-nullable PrimaryKey field for Realm version 0.89+
-            if (metadata.isPrimaryKey(field)) {
-                writer
-                        .beginControlFlow("if (table.isColumnNullable(%s) && table.findFirstNull(%s) != Table.NO_MATCH)",
-                                fieldIndexVariableReference(field), fieldIndexVariableReference(field))
-                        .emitStatement("throw new IllegalStateException(\"Cannot migrate an object with null value in field '%s'." +
-                                        " Either maintain the same type for primary key field '%s', or remove the object with null value before migration.\")",
-                                fieldName, fieldName)
-                        .endControlFlow();
+            writer.beginControlFlow("if (table.isColumnNullable(%s))", fieldIndexVariableReference(field));
+            if (Utils.isPrimitiveType(fieldTypeQualifiedName)) {
+                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
+                                " \"Field '%s' does support null values in the existing Realm file. " +
+                                "Use corresponding boxed type for field '%s' or migrate using RealmObjectSchema.setNullable().\")",
+                        fieldName, fieldName);
             } else {
-                writer.beginControlFlow("if (table.isColumnNullable(%s))", fieldIndexVariableReference(field));
-                if (Utils.isPrimitiveType(fieldTypeQualifiedName)) {
-                    writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                    " \"Field '%s' does support null values in the existing Realm file. " +
-                                    "Use corresponding boxed type for field '%s' or migrate using RealmObjectSchema.setNullable().\")",
-                            fieldName, fieldName);
-                } else {
-                    writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                    " \"Field '%s' does support null values in the existing Realm file. " +
-                                    "Remove @Required or @PrimaryKey from field '%s' or migrate using RealmObjectSchema.setNullable().\")",
-                            fieldName, fieldName);
-                }
-                writer.endControlFlow();
+                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
+                                " \"Field '%s' does support null values in the existing Realm file. " +
+                                "Remove @Required or @PrimaryKey from field '%s' or migrate using RealmObjectSchema.setNullable().\")",
+                        fieldName, fieldName);
             }
+            writer.endControlFlow();
         }
 
         // Validate @Index
