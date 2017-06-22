@@ -190,11 +190,25 @@ public class TestHelper {
     }
 
     /**
-     * Creates an empty table with 1 column of all our supported column types, currently 7 columns.
+     * Creates an empty table whose name is "temp" with 1 column of all our supported column types, currently 7 columns.
      *
+     * @param sharedRealm A {@link SharedRealm} where the table is created.
      * @return created table.
      */
-    public static Table getTableWithAllColumnTypes(SharedRealm sharedRealm, String name) {
+    public static Table createTableWithAllColumnTypes(SharedRealm sharedRealm) {
+        return createTableWithAllColumnTypes(sharedRealm, "temp");
+    }
+
+    /**
+     * Creates an empty table with 1 column of all our supported column types, currently 7 columns.
+     *
+     * @param sharedRealm A {@link SharedRealm} where the table is created.
+     * @param name name of the table.
+     * @return created table.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static Table createTableWithAllColumnTypes(SharedRealm sharedRealm,
+            @SuppressWarnings("SameParameterValue") String name) {
         boolean wasInTransaction = sharedRealm.isInTransaction();
         if (!wasInTransaction) {
             sharedRealm.beginTransaction();

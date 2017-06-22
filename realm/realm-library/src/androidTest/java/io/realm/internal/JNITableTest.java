@@ -121,7 +121,7 @@ public class JNITableTest {
 
     @Test
     public void findFirstNonExisting() {
-        Table t = TestHelper.getTableWithAllColumnTypes(sharedRealm, "temp");
+        Table t = TestHelper.createTableWithAllColumnTypes(sharedRealm);
         sharedRealm.beginTransaction();
         TestHelper.addRowWithValues(t, new byte[] {1, 2, 3}, true, new Date(1384423149761L), 4.5D, 5.7F, 100, "string");
         sharedRealm.commitTransaction();
@@ -136,7 +136,7 @@ public class JNITableTest {
     @Test
     public void findFirst() {
         final int TEST_SIZE = 10;
-        Table t = TestHelper.getTableWithAllColumnTypes(sharedRealm, "temp");
+        Table t = TestHelper.createTableWithAllColumnTypes(sharedRealm);
         sharedRealm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
             TestHelper.addRowWithValues(t, new byte[] {1, 2, 3}, true, new Date(i), (double) i, (float) i, i, "string " + i);
@@ -165,7 +165,7 @@ public class JNITableTest {
 
     @Test
     public void getValuesFromNonExistingColumn() {
-        Table t = TestHelper.getTableWithAllColumnTypes(sharedRealm, "temp");
+        Table t = TestHelper.createTableWithAllColumnTypes(sharedRealm);
         sharedRealm.beginTransaction();
         for (int i = 0; i < 10; i++) {
             OsObject.createRow(t);
@@ -328,7 +328,7 @@ public class JNITableTest {
 
     @Test
     public void shouldThrowWhenSetIndexOnWrongRealmFieldType() {
-        Table t = TestHelper.getTableWithAllColumnTypes(sharedRealm, "temp");
+        Table t = TestHelper.createTableWithAllColumnTypes(sharedRealm);
         for (long colIndex = 0; colIndex < t.getColumnCount(); colIndex++) {
 
             // All types supported addSearchIndex and removeSearchIndex.

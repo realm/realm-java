@@ -127,7 +127,7 @@ public class TableIndexAndDistinctTest {
     public void shouldTestIndexOnWrongColumnType(Long index) {
 
         // Gets a table with all available column types.
-        Table t = TestHelper.getTableWithAllColumnTypes();
+        Table t = TestHelper.createTableWithAllColumnTypes(sharedRealm);
 
         // If column type is String, then throw the excepted exception.
         if (t.getColumnType(index).equals(RealmFieldType.STRING)){
