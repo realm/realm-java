@@ -46,21 +46,11 @@ import io.realm.permissions.PermissionRequest;
 public class PermissionManager implements Closeable {
 
     // Reference counted cache equivalent to how Realm instances work.
-    private static Map<SyncUser, Cache> cache = new HashMap<>();
+    private static Map<String, ThreadLocal<Cache>> cache = new HashMap<>();
 
     private static class Cache {
-        public ThreadLocal<PermissionManager> pm = new ThreadLocal<PermissionManager>() {
-            @Override
-            protected PermissionManager initialValue() {
-                return null;
-            }
-        };
-        public ThreadLocal<Integer> instanceCounter = new ThreadLocal<Integer>() {
-            @Override
-            protected Integer initialValue() {
-                return 0;
-            }
-        };
+        public PermissionManager pm = null;
+        public Integer instanceCounter = Integer.valueOf(0);
     }
 
     private static final Object cacheLock = new Object();
@@ -73,18 +63,18 @@ public class PermissionManager implements Closeable {
      */
     static PermissionManager getInstance(SyncUser syncUser) {
         synchronized (cacheLock) {
-            Cache userCache = cache.get(syncUser);
-            if (userCache == null) {
-                Cache c = new Cache();
-                PermissionManager pm = new PermissionManager(syncUser);
-                c.pm.set(pm);
-                c.instanceCounter.set(1);
-                cache.put(syncUser, c);
-                return pm;
-            } else {
-                userCache.instanceCounter.set(userCache.instanceCounter.get() + 1);
-                return userCache.pm.get();
+            ThreadLocal<Cache> threadLocalCache = cache.get(syncUser.getIdentity());
+            if (threadLocalCache == null) {
+                threadLocalCache = new ThreadLocal<>();
+                threadLocalCache.set(new Cache());
+                cache.put(syncUser.getIdentity(), threadLocalCache);
             }
+            Cache c = threadLocalCache.get();
+            if (c.instanceCounter == 0) {
+                c.pm = new PermissionManager(syncUser);
+            }
+            c.instanceCounter++;
+            return c.pm;
         }
     }
 
@@ -319,22 +309,20 @@ public class PermissionManager implements Closeable {
      */
     @Override
     public void close() {
+        RealmLog.error("Closing PermissionManager for: " + user.getIdentity());
         checkIfValidThread();
 
         // Multiple instances open, just decrement the reference count
         synchronized (cacheLock) {
-            Cache cache = PermissionManager.cache.get(user);
-            ThreadLocal<Integer> instanceCounter = cache.instanceCounter;
-            Integer instanceCount = instanceCounter.get();
-            if (instanceCount > 1) {
-                instanceCounter.set(instanceCount - 1);
+            Cache cache = PermissionManager.cache.get(user.getIdentity()).get();
+            if (cache.instanceCounter > 1) {
+                cache.instanceCounter--;
                 return;
             }
 
             // Only one instance open. Do a full close
-            instanceCounter.set(0);
-            cache.pm.set(null);
-            PermissionManager.cache.remove(user);
+            cache.instanceCounter = 0;
+            cache.pm = null;
         }
         delayedTasks.clear();
 

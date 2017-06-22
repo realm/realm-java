@@ -362,19 +362,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                 pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
                     @Override
                     public void onSuccess(RealmResults<Permission> permissions) {
-                        RealmLog.error("User1: " + user.getIdentity());
-                        RealmLog.error("User2: " + user2.getIdentity());
-                        for (Permission permission : permissions) {
-                            RealmLog.error(permission.toString());
-                        }
-                        Permission p = permissions.where().endsWith("path", "/test").findFirst();
-                        if (p != null) {
-                            assertTrue(p.mayRead());
-                            assertTrue(p.mayWrite());
-                            assertFalse(p.mayManage());
-                            assertEquals(user.getIdentity(), p.getUserId());
-                            looperThread.testComplete();
-                        }
+                        assertPermissionPresent(permissions, user, "/test", AccessLevel.WRITE);
                     }
 
                     @Override
@@ -387,6 +375,30 @@ public class PermissionManagerTests extends BaseIntegrationTest {
             @Override
             public void onError(ObjectServerError error) {
                 fail(error.toString());
+            }
+        });
+    }
+
+    // Wait for a given permission to be present
+    private void assertPermissionPresent(RealmResults<Permission> permissions, final SyncUser user, String urlSuffix, final AccessLevel accessLevel) {
+        RealmResults<Permission> filteredPermissions = permissions.where().endsWith("path", urlSuffix).findAllAsync();
+        looperThread.keepStrongReference(permissions);
+        filteredPermissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
+            @Override
+            public void onChange(RealmResults<Permission> permissions) {
+                switch(permissions.size()) {
+                    case 0: return;
+                    case 1:
+                        Permission p = permissions.first();
+                        assertEquals(accessLevel.mayRead(), p.mayRead());
+                        assertEquals(accessLevel.mayWrite(), p.mayWrite());
+                        assertEquals(accessLevel.mayManage(), p.mayManage());
+                        assertEquals(user.getIdentity(), p.getUserId());
+                        looperThread.testComplete();
+                        break;
+                    default:
+                        fail("To many permissions matched: " + Arrays.toString(permissions.toArray()));
+                }
             }
         });
     }
