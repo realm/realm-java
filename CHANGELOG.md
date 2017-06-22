@@ -4,6 +4,10 @@
 
 * [ObjectServer] Updated protocol version to 18 which is only compatible with ROS > 1.6.0.
 
+### Deprecated
+
+* `RealmSchema.close()` and `RealmObjectSchema.close()`. They don't need to be closed manually. They were added to the public API by mistake.
+
 ### Enhancements
 
 * [ObjectServer] Added support for Sync Progress Notifications through `SyncSession.addDownloadProgressListener(ProgressMode, ProgressListener)` and `SyncSession.addUploadProgressListener(ProgressMode, ProgressListener)` (#4104).
