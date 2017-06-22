@@ -12,7 +12,7 @@
 
 ### Internal
 
-* Removed `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)` and `Table#pivot(long,long,PivotType)`.
+* Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.
 
 
 ## 3.3.2 (2017-06-09)
