@@ -1,3 +1,18 @@
+## 3.5.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+### Credits
+
+
 ## 3.4.0 (2017-06-22)
 
 ### Breaking Changes
