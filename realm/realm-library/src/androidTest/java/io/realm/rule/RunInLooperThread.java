@@ -485,10 +485,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                 try {
                     looperTearDown();
                     closeResources();
-                    if (!runAfterTestIsComplete.isEmpty()) {
-                        for (Runnable task : runAfterTestIsComplete) {
-                            task.run();
-                        }
+                    for (Runnable task : runAfterTestIsComplete) {
+                        task.run();
                     }
                 } catch (Throwable t) {
                     setAssertionError(t);
