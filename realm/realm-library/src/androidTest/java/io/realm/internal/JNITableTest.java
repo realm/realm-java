@@ -62,7 +62,7 @@ public class JNITableTest {
 
     @Test
     public void tableToString() {
-        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 t.addColumn(RealmFieldType.STRING, "stringCol");
@@ -266,7 +266,7 @@ public class JNITableTest {
 
     @Test
     public void getNonExistingColumn() {
-        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 t.addColumn(RealmFieldType.INTEGER, "int");
@@ -282,7 +282,7 @@ public class JNITableTest {
 
     @Test
     public void setNulls() {
-        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 t.addColumn(RealmFieldType.STRING, "");
@@ -368,7 +368,7 @@ public class JNITableTest {
 
     @Test
     public void columnName() {
-        TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 try {
@@ -382,7 +382,7 @@ public class JNITableTest {
 
     @Test
     public void tableNumbers() {
-        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 t.addColumn(RealmFieldType.INTEGER, "intCol");
@@ -443,7 +443,7 @@ public class JNITableTest {
             for (final boolean nullable : new boolean[] {Table.NOT_NULLABLE, Table.NULLABLE}) {
                 for (final String columnName : columnNames) {
                     final AtomicLong colIndexRef = new AtomicLong();
-                    Table table = TestHelper.createTable(sharedRealm, "temp" + tableIndex, new TestHelper.TableSetup() {
+                    Table table = TestHelper.createTable(sharedRealm, "temp" + tableIndex, new TestHelper.AdditionalTableSetup() {
                         @Override
                         public void execute(Table table) {
                             long colIndex = table.addColumn(columnType, columnName, nullable);
@@ -533,7 +533,7 @@ public class JNITableTest {
             for (final boolean nullable : new boolean[] {Table.NOT_NULLABLE, Table.NULLABLE}) {
                 for (final String columnName : columnNames) {
                     final AtomicLong colIndexRef = new AtomicLong();
-                    Table table = TestHelper.createTable(sharedRealm, "temp" + tableIndex, new TestHelper.TableSetup() {
+                    Table table = TestHelper.createTable(sharedRealm, "temp" + tableIndex, new TestHelper.AdditionalTableSetup() {
                         @Override
                         public void execute(Table table) {
                             long colIndex = table.addColumn(columnType, columnName, nullable);
@@ -631,7 +631,7 @@ public class JNITableTest {
     // Adds column and read back if it is nullable or not.
     @Test
     public void isNullable() {
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.STRING, "string1", Table.NOT_NULLABLE);

@@ -61,7 +61,7 @@ public class JNISortedLongTest {
 
     private void init() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
-        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.INTEGER, "number");

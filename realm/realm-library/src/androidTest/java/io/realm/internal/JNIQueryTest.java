@@ -67,7 +67,7 @@ public class JNIQueryTest {
     }
 
     private void init() {
-        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.INTEGER, "number");
@@ -383,7 +383,7 @@ public class JNIQueryTest {
     @SuppressWarnings("ConstantConditions")
     @Test
     public void nullInputQuery() {
-        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 t.addColumn(RealmFieldType.DATE, "dateCol");
@@ -420,7 +420,7 @@ public class JNIQueryTest {
     @Test
     public void shouldFind() {
         // Creates a table.
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.STRING, "username");
@@ -663,7 +663,7 @@ public class JNIQueryTest {
     @Test
     public void maximumDate() {
 
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.DATE, "date");
@@ -680,7 +680,7 @@ public class JNIQueryTest {
     @Test
     public void minimumDate() {
 
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.DATE, "date");
@@ -702,7 +702,7 @@ public class JNIQueryTest {
         final Date distantPast = new Date(Long.MIN_VALUE);
         final Date distantFuture = new Date(Long.MAX_VALUE);
 
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.DATE, "date");
@@ -805,7 +805,7 @@ public class JNIQueryTest {
         final byte[] binary3 = new byte[] {0x09, 0x0a, 0x0b, 0x04};
         final byte[] binary4 = new byte[] {0x05, 0x0a, 0x0b, 0x10};
 
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.BINARY, "binary");

@@ -67,7 +67,7 @@ public class TableIndexAndDistinctTest {
     }
 
     private void init() {
-        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.INTEGER, "number");
@@ -94,7 +94,7 @@ public class TableIndexAndDistinctTest {
     public void shouldTestSettingIndexOnMultipleColumns() {
 
         // Creates a table only with String type columns
-        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 t.addColumn(RealmFieldType.STRING, "col1");

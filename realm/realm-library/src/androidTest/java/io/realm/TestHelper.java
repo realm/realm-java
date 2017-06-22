@@ -39,7 +39,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -222,19 +221,17 @@ public class TestHelper {
                 sharedRealm.commitTransaction();
             }
         }
-
     }
-
 
     public static Table createTable(SharedRealm sharedRealm, String name) {
         return createTable(sharedRealm, name, null);
     }
 
-    public interface TableSetup {
+    public interface AdditionalTableSetup {
         void execute(Table table);
     }
 
-    public static Table createTable(SharedRealm sharedRealm, String name, TableSetup additionalSetup) {
+    public static Table createTable(SharedRealm sharedRealm, String name, AdditionalTableSetup additionalSetup) {
         boolean wasInTransaction = sharedRealm.isInTransaction();
         if (!wasInTransaction) {
             sharedRealm.beginTransaction();
@@ -255,7 +252,6 @@ public class TestHelper {
                 sharedRealm.commitTransaction();
             }
         }
-
     }
 
     public static String streamToString(InputStream in) throws IOException {

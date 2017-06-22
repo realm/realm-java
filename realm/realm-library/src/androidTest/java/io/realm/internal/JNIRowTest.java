@@ -74,7 +74,7 @@ public class JNIRowTest {
     public void nonNullValues() {
         final byte[] data = new byte[2];
 
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {
+        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.STRING, "string");

@@ -33,7 +33,6 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -94,7 +93,7 @@ public class JNITableInsertTest {
                 final Object valueI = value.get(i);
                 final Object valueJ = value.get(j);
 
-                TestHelper.createTable(sharedRealm, "temp" + i + "_" + j, new TestHelper.TableSetup() {
+                TestHelper.createTable(sharedRealm, "temp" + i + "_" + j, new TestHelper.AdditionalTableSetup() {
                     @Override
                     public void execute(Table t) {
                         // If the objects matches no exception will be thrown.
