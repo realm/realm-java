@@ -14,7 +14,7 @@
 
 ### Bug Fixes
 
-* [ObjectServer] Fixed a bug which may crash when the JNI local reference limitation reached on sync client thread.
+* [ObjectServer] Fixed a bug which may crash when the JNI local reference limitation was reached on sync client thread.
 
 ### Internal
 
