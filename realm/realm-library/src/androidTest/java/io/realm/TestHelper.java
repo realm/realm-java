@@ -195,10 +195,13 @@ public class TestHelper {
      *
      * @return created table.
      */
-    public static Table getTableWithAllColumnTypes(SharedRealm realm, String name) {
-        realm.beginTransaction();
+    public static Table getTableWithAllColumnTypes(SharedRealm sharedRealm, String name) {
+        boolean wasInTransaction = sharedRealm.isInTransaction();
+        if (!wasInTransaction) {
+            sharedRealm.beginTransaction();
+        }
         try {
-            Table t = realm.createTable(name);
+            Table t = sharedRealm.createTable(name);
 
             t.addColumn(RealmFieldType.BINARY, "binary");
             t.addColumn(RealmFieldType.BOOLEAN, "boolean");
@@ -210,11 +213,13 @@ public class TestHelper {
 
             return t;
         } catch (RuntimeException e) {
-            realm.cancelTransaction();
+            if (!wasInTransaction) {
+                sharedRealm.cancelTransaction();
+            }
             throw e;
         } finally {
-            if (realm.isInTransaction()) {
-                realm.commitTransaction();
+            if (!wasInTransaction && sharedRealm.isInTransaction()) {
+                sharedRealm.commitTransaction();
             }
         }
 
@@ -230,7 +235,10 @@ public class TestHelper {
     }
 
     public static Table createTable(SharedRealm sharedRealm, String name, TableSetup additionalSetup) {
-        sharedRealm.beginTransaction();
+        boolean wasInTransaction = sharedRealm.isInTransaction();
+        if (!wasInTransaction) {
+            sharedRealm.beginTransaction();
+        }
         try {
             Table table = sharedRealm.createTable(name);
             if (additionalSetup != null) {
@@ -238,10 +246,12 @@ public class TestHelper {
             }
             return table;
         } catch (RuntimeException e) {
-            sharedRealm.cancelTransaction();
+            if (!wasInTransaction) {
+                sharedRealm.cancelTransaction();
+            }
             throw e;
         } finally {
-            if (sharedRealm.isInTransaction()) {
+            if (!wasInTransaction && sharedRealm.isInTransaction()) {
                 sharedRealm.commitTransaction();
             }
         }

@@ -55,10 +55,16 @@ public class JNIRowTest {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
         sharedRealm = SharedRealm.getInstance(config);
+
+        sharedRealm.beginTransaction();
     }
 
     @After
     public void tearDown() {
+        if (sharedRealm != null && sharedRealm.isInTransaction()) {
+            sharedRealm.cancelTransaction();
+        }
+
         if (sharedRealm != null && !sharedRealm.isClosed()) {
             sharedRealm.close();
         }
@@ -66,7 +72,6 @@ public class JNIRowTest {
 
     @Test
     public void nonNullValues() {
-
         final byte[] data = new byte[2];
 
         Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.TableSetup() {

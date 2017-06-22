@@ -51,10 +51,16 @@ public class TableIndexAndDistinctTest {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
         sharedRealm = SharedRealm.getInstance(config);
+
+        sharedRealm.beginTransaction();
     }
 
     @After
     public void tearDown() {
+        if (sharedRealm != null && sharedRealm.isInTransaction()) {
+            sharedRealm.cancelTransaction();
+        }
+
         if (sharedRealm != null && !sharedRealm.isClosed()) {
             sharedRealm.close();
         }
@@ -105,9 +111,7 @@ public class TableIndexAndDistinctTest {
         });
 
         for (long c=0;c<t.getColumnCount();c++){
-            sharedRealm.beginTransaction();
             t.addSearchIndex(c);
-            sharedRealm.commitTransaction();
             assertEquals(true, t.hasSearchIndex(c));
         }
 
@@ -136,22 +140,16 @@ public class TableIndexAndDistinctTest {
     @Test
     public void shouldCheckIndexIsOkOnColumn() {
         init();
-        sharedRealm.beginTransaction();
         table.addSearchIndex(1);
-        sharedRealm.commitTransaction();
     }
 
     @Test
     public void removeSearchIndex() {
         init();
-        sharedRealm.beginTransaction();
         table.addSearchIndex(1);
-        sharedRealm.commitTransaction();
         assertEquals(true, table.hasSearchIndex(1));
 
-        sharedRealm.beginTransaction();
         table.removeSearchIndex(1);
-        sharedRealm.commitTransaction();
         assertEquals(false, table.hasSearchIndex(1));
     }
 
@@ -161,9 +159,7 @@ public class TableIndexAndDistinctTest {
         assertEquals(false, table.hasSearchIndex(1));
 
         // Removes index from non-indexed column is a no-op.
-        sharedRealm.beginTransaction();
         table.removeSearchIndex(1);
-        sharedRealm.commitTransaction();
         assertEquals(false, table.hasSearchIndex(1));
     }
 }
