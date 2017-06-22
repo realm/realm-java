@@ -86,6 +86,38 @@ public class SyncSession {
     // we register the listener.
     private final AtomicLong progressListenerId = new AtomicLong(-1);
 
+    // represent different states as defined in SyncSession::PublicState 'sync_session.hpp'
+    private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 0;
+    private static final byte STATE_VALUE_ACTIVE = 1;
+    private static final byte STATE_VALUE_DYING = 2;
+    private static final byte STATE_VALUE_INACTIVE = 3;
+    private static final byte STATE_VALUE_ERROR = 4;
+
+    public enum State {
+        WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
+        ACTIVE(STATE_VALUE_ACTIVE),
+        DYING(STATE_VALUE_DYING),
+        INACTIVE(STATE_VALUE_INACTIVE),
+        ERROR(STATE_VALUE_ERROR);
+
+        final byte value;
+
+        State(byte value) {
+            this.value = value;
+        }
+
+        static State fromByte(byte value) {
+            State[] stateCodes = values();
+            for (State state : stateCodes) {
+                if (state.value == value) {
+                    return state;
+                }
+            }
+
+            throw new IllegalArgumentException("Unknown state code: " + value);
+        }
+    }
+
     SyncSession(SyncConfiguration configuration) {
         this.configuration = configuration;
         this.errorHandler = configuration.getErrorHandler();
@@ -134,6 +166,27 @@ public class SyncSession {
         } else {
             errorHandler.onError(this, new ObjectServerError(errCode, errorMessage));
         }
+    }
+
+    /**
+     * Get the current session's state, as defined in {@link SyncSession.State}.
+     *
+     * Note that the state may change after this method returns, example: the authentication
+     * token will expire, causing the session to move to {@link State#WAITING_FOR_ACCESS_TOKEN}
+     * after it was in {@link State#ACTIVE}.
+     *
+     * @return the state of the session.
+     * @see SyncSession.State
+     */
+    @KeepMember
+    @SuppressWarnings("unused")
+    public State getState() {
+        byte state = nativeGetState(configuration.getPath());
+        if (state == -1) {
+            // session was not found, probably the Realm was closed
+            throw new IllegalStateException("Could not find session, Realm was probably closed");
+        }
+        return State.fromByte(state);
     }
 
     synchronized void notifyProgressListener(long listenerId, long transferredBytes, long transferableBytes) {
@@ -589,6 +642,7 @@ public class SyncSession {
 
     private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
-    private static native boolean nativeRefreshAccessToken(String path, String accessToken, String realmUrl);
-    private native boolean nativeWaitForDownloadCompletion(String path);
+    private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
+    private native boolean nativeWaitForDownloadCompletion(String localRealmPath);
+    private static native byte nativeGetState(String localRealmPath);
 }

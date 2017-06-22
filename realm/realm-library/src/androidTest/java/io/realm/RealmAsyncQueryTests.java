@@ -735,6 +735,7 @@ public class RealmAsyncQueryTests {
         final Realm realm = looperThread.getRealm();
         final AllTypes allTypes = realm.where(AllTypes.class).findFirstAsync();
         final AtomicBoolean firstListenerCalled = new AtomicBoolean(false);
+        looperThread.keepStrongReference(allTypes);
 
         allTypes.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override
