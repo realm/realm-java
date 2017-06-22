@@ -1,4 +1,4 @@
-## 3.4.0 (YYYY-MM-DD)
+## 3.4.0 (2017-06-22)
 
 ### Breaking Changes
 
