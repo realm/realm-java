@@ -17,17 +17,24 @@
 package io.realm.internal;
 
 import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import io.realm.Realm;
 import io.realm.RealmFieldType;
 
-public class JNIColumnInfoTest extends TestCase {
+import static junit.framework.TestCase.assertEquals;
+
+
+@RunWith(AndroidJUnit4.class)
+public class JNIColumnInfoTest {
 
     Table table;
 
-    @Override
+    @Before
     public void setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         table = new Table();
@@ -35,7 +42,8 @@ public class JNIColumnInfoTest extends TestCase {
         table.addColumn(RealmFieldType.STRING, "lastName");
     }
 
-    public void testShouldGetColumnInformation() {
+    @Test
+    public void shouldGetColumnInformation() {
 
         assertEquals(2, table.getColumnCount());
 
@@ -47,7 +55,8 @@ public class JNIColumnInfoTest extends TestCase {
 
     }
 
-    public void testValidateColumnInfo() {
+    @Test
+    public void validateColumnInfo() {
 
         assertEquals(2, table.getColumnCount());
 
