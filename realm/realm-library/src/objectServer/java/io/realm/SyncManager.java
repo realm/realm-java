@@ -56,6 +56,11 @@ public class SyncManager {
          */
         public static boolean skipOnlineChecking = false;
 
+        /**
+         * Set this to true to init a SyncManager with a directory named by the process ID. This is useful for
+         * integration tests which are emulating multiple sync client by using multiple processes.
+         */
+        public static boolean separatedDirForSyncManager = false;
     }
 
     /**
