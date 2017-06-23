@@ -89,7 +89,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     // Runnable guaranteed to trigger after the test either succeeded or failed.
     // Access guarded by 'lock'
-    private Runnable runAfterTestIsComplete;
+    private List<Runnable> runAfterTestIsComplete = new ArrayList<>();
 
     /**
      * Get the configuration for the test realm.
@@ -162,7 +162,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
      */
     public void runAfterTest(Runnable task) {
         synchronized (lock) {
-            runAfterTestIsComplete = task;
+            runAfterTestIsComplete.add(task);
         }
     }
 
@@ -485,8 +485,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                 try {
                     looperTearDown();
                     closeResources();
-                    if (runAfterTestIsComplete != null) {
-                        runAfterTestIsComplete.run();
+                    for (Runnable task : runAfterTestIsComplete) {
+                        task.run();
                     }
                 } catch (Throwable t) {
                     setAssertionError(t);

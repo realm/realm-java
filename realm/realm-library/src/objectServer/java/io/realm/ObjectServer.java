@@ -19,6 +19,9 @@ package io.realm;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 
+import java.io.File;
+import java.io.IOException;
+
 import io.realm.internal.Keep;
 
 /**
@@ -41,7 +44,25 @@ class ObjectServer {
         // init the "sync_manager.cpp" metadata Realm, this is also needed later, when re try
         // to schedule a client reset. in realm-java#master this is already done, when initialising
         // the RealmFileUserStore (not available now on releases)
-        SyncManager.nativeInitializeSyncManager(context.getFilesDir().getPath());
+        if (SyncManager.Debug.separatedDirForSyncManager) {
+            try {
+                // Files.createTempDirectory is not available on JDK 6.
+                File dir = File.createTempFile("remote_sync_", "_" + android.os.Process.myPid(),
+                        context.getFilesDir());
+                if (!dir.delete()) {
+                    throw new IllegalStateException(String.format("Temp file '%s' cannot be deleted.", dir.getPath()));
+                }
+                if (!dir.mkdir()) {
+                    throw new IllegalStateException(String.format("Directory '%s' for SyncManager cannot be created. ",
+                            dir.getPath()));
+                }
+                SyncManager.nativeInitializeSyncManager(dir.getPath());
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
+        } else {
+            SyncManager.nativeInitializeSyncManager(context.getFilesDir().getPath());
+        }
 
         // Configure default UserStore
         UserStore userStore = new RealmFileUserStore();
