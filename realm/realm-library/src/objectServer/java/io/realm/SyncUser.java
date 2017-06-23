@@ -44,9 +44,8 @@ import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
+import io.realm.internal.permissions.ManagementModule;
 import io.realm.log.RealmLog;
-import io.realm.permissions.PermissionModule;
-
 
 /**
  * This class represents a user on the Realm Object Server. The credentials are provided by various 3rd party
@@ -61,14 +60,17 @@ import io.realm.permissions.PermissionModule;
  */
 public class SyncUser {
 
+    private final ObjectServerUser syncUser;
+    private SyncUser(ObjectServerUser user) {
+        this.syncUser = user;
+    }
     private static class ManagementConfig {
         private SyncConfiguration managementRealmConfig;
 
-        synchronized SyncConfiguration initAndGetManagementRealmConfig(
-                ObjectServerUser syncUser, final SyncUser user) {
+        synchronized SyncConfiguration initAndGetManagementRealmConfig(final SyncUser user) {
             if (managementRealmConfig == null) {
                 managementRealmConfig = new SyncConfiguration.Builder(
-                        user, getManagementRealmUrl(syncUser.getAuthenticationUrl()))
+                        user, getManagementRealmUrl(user.getAuthenticationUrl()))
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
                             public void onError(SyncSession session, ObjectServerError error) {
@@ -81,7 +83,7 @@ public class SyncUser {
                                 }
                             }
                         })
-                        .modules(new PermissionModule())
+                        .modules(new ManagementModule())
                         .build();
             }
 
@@ -92,11 +94,6 @@ public class SyncUser {
 
     private final ManagementConfig managementConfig = new ManagementConfig();
 
-    private final ObjectServerUser syncUser;
-
-    private SyncUser(ObjectServerUser user) {
-        this.syncUser = user;
-    }
 
     /**
      * Returns the current user that is logged in and still valid.
@@ -202,6 +199,7 @@ public class SyncUser {
                 ObjectServerUser syncUser = new ObjectServerUser(result.getRefreshToken(), authUrl);
                 SyncUser user = new SyncUser(syncUser);
                 RealmLog.info("Succeeded authenticating user.\n%s", user);
+
                 SyncManager.getUserStore().put(user);
                 SyncManager.notifyUserLoggedIn(user);
                 return user;
@@ -501,7 +499,7 @@ public class SyncUser {
      * @see <a href="https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
      */
     public Realm getManagementRealm() {
-        return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(syncUser, this));
+        return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(this));
     }
 
     /**
@@ -525,6 +523,15 @@ public class SyncUser {
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Could not create URL to the management Realm", e);
         }
+    }
+
+    /**
+     * FIXME Javadoc
+     *
+     * @return
+     */
+    public PermissionManager getPermissionManager() {
+        return PermissionManager.getInstance(this);
     }
 
     @Override

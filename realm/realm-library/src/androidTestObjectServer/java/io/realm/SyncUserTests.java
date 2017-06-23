@@ -356,4 +356,19 @@ public class SyncUserTests {
         thrown.expect(IllegalStateException.class);
         user.changePassword("user-id", "new-password");
     }
+
+    @Test
+    @RunTestInLooperThread
+    public void getPermissionManager_isReferenceCounted() {
+        SyncUser user = createTestUser();
+        PermissionManager pm1 = user.getPermissionManager();
+        PermissionManager pm2 = user.getPermissionManager();
+        assertTrue(pm1 == pm2);
+        assertFalse(pm1.isClosed());
+        pm1.close();
+        assertFalse(pm1.isClosed());
+        pm1.close();
+        assertTrue(pm1.isClosed());
+        looperThread.testComplete();
+    }
 }

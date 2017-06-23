@@ -968,7 +968,7 @@ public class TestHelper {
             }
             counter--;
         }
-        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10 + " seconds");
+        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10.0D + " seconds");
     }
 
     /**
