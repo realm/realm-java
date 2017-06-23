@@ -33,6 +33,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -151,21 +152,33 @@ public class TestHelper {
             Object value = values[(int) columnIndex];
             switch (colTypes[(int) columnIndex]) {
                 case BOOLEAN:
-                    table.setBoolean(columnIndex, rowIndex, (Boolean) value, false);
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setBoolean(columnIndex, rowIndex, (Boolean) value, false);
+                    }
                     break;
                 case INTEGER:
                     if (value == null) {
                         table.setNull(columnIndex, rowIndex, false);
                     } else {
-                        long intValue = ((Number) value).longValue();
-                        table.setLong(columnIndex, rowIndex, intValue, false);
+                        long longValue = ((Number) value).longValue();
+                        table.setLong(columnIndex, rowIndex, longValue, false);
                     }
                     break;
                 case FLOAT:
-                    table.setFloat(columnIndex, rowIndex, (Float) value, false);
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setFloat(columnIndex, rowIndex, (Float) value, false);
+                    }
                     break;
                 case DOUBLE:
-                    table.setDouble(columnIndex, rowIndex, (Double) value, false);
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setDouble(columnIndex, rowIndex, (Double) value, false);
+                    }
                     break;
                 case STRING:
                     if (value == null) {
@@ -175,10 +188,18 @@ public class TestHelper {
                     }
                     break;
                 case DATE:
-                    table.setDate(columnIndex, rowIndex, (Date) value, false);
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setDate(columnIndex, rowIndex, (Date) value, false);
+                    }
                     break;
                 case BINARY:
-                    table.setBinaryByteArray(columnIndex, rowIndex, (byte[]) value, false);
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setBinaryByteArray(columnIndex, rowIndex, (byte[]) value, false);
+                    }
                     break;
                 case UNSUPPORTED_MIXED:
                 case UNSUPPORTED_TABLE:
