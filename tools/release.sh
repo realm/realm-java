@@ -144,7 +144,7 @@ prepare_branch() {
 
     # Update date in change log
     cur_date=$(date "+%F")
-    sed -i "1 s/YYYY-MM-DD/${cur_date}/" CHANGELOG.md
+    sed -i .bak "1 s/YYYY-MM-DD/${cur_date}/" CHANGELOG.md
     git add CHANGELOG.md
     git commit -m "Update changelog date"
 

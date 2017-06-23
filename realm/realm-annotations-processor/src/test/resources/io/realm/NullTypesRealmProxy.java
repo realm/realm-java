@@ -5,8 +5,6 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmObjectSchema;
-import io.realm.RealmSchema;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
@@ -29,8 +27,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+@SuppressWarnings("all")
 public class NullTypesRealmProxy extends some.test.NullTypes
-        implements RealmObjectProxy, NullTypesRealmProxyInterface {
+    implements RealmObjectProxy, NullTypesRealmProxyInterface {
 
     static final class NullTypesColumnInfo extends ColumnInfo {
         long fieldStringNotNullIndex;
@@ -814,42 +813,42 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
             throw new IllegalArgumentException("'value' is not a valid managed object.");
         }
-        if (((RealmObjectProxy)value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
+        if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
             throw new IllegalArgumentException("'value' belongs to a different Realm.");
         }
         proxyState.getRow$realm().setLink(columnInfo.fieldObjectNullIndex, ((RealmObjectProxy)value).realmGet$proxyState().getRow$realm().getIndex());
     }
 
     public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
-        if (!realmSchema.contains("NullTypes")) {
-            RealmObjectSchema realmObjectSchema = realmSchema.create("NullTypes");
-            realmObjectSchema.add("fieldStringNotNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("fieldStringNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-            realmObjectSchema.add("fieldBooleanNotNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("fieldBooleanNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-            realmObjectSchema.add("fieldBytesNotNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("fieldBytesNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-            realmObjectSchema.add("fieldByteNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("fieldByteNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-            realmObjectSchema.add("fieldShortNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("fieldShortNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-            realmObjectSchema.add("fieldIntegerNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("fieldIntegerNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-            realmObjectSchema.add("fieldLongNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("fieldLongNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-            realmObjectSchema.add("fieldFloatNotNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("fieldFloatNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-            realmObjectSchema.add("fieldDoubleNotNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("fieldDoubleNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-            realmObjectSchema.add("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-            realmObjectSchema.add("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-            if (!realmSchema.contains("NullTypes")) {
-                NullTypesRealmProxy.createRealmObjectSchema(realmSchema);
-            }
-            realmObjectSchema.add("fieldObjectNull", RealmFieldType.OBJECT, realmSchema.get("NullTypes"));
-            return realmObjectSchema;
+        if (realmSchema.contains("NullTypes")) {
+            return realmSchema.get("NullTypes");
         }
-        return realmSchema.get("NullTypes");
+        RealmObjectSchema realmObjectSchema = realmSchema.create("NullTypes");
+        realmObjectSchema.add("fieldStringNotNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        realmObjectSchema.add("fieldStringNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        realmObjectSchema.add("fieldBooleanNotNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        realmObjectSchema.add("fieldBooleanNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        realmObjectSchema.add("fieldBytesNotNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        realmObjectSchema.add("fieldBytesNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        realmObjectSchema.add("fieldByteNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        realmObjectSchema.add("fieldByteNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        realmObjectSchema.add("fieldShortNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        realmObjectSchema.add("fieldShortNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        realmObjectSchema.add("fieldIntegerNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        realmObjectSchema.add("fieldIntegerNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        realmObjectSchema.add("fieldLongNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        realmObjectSchema.add("fieldLongNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        realmObjectSchema.add("fieldFloatNotNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        realmObjectSchema.add("fieldFloatNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        realmObjectSchema.add("fieldDoubleNotNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        realmObjectSchema.add("fieldDoubleNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        realmObjectSchema.add("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        realmObjectSchema.add("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        if (!realmSchema.contains("NullTypes")) {
+            NullTypesRealmProxy.createRealmObjectSchema(realmSchema);
+        }
+        realmObjectSchema.add("fieldObjectNull", RealmFieldType.OBJECT, realmSchema.get("NullTypes"));
+        return realmObjectSchema;
     }
 
     public static NullTypesColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
@@ -1086,7 +1085,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public static some.test.NullTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-            throws JSONException {
+        throws JSONException {
         final List<String> excludeFields = new ArrayList<String>(1);
         if (json.has("fieldObjectNull")) {
             excludeFields.add("fieldObjectNull");
@@ -1256,7 +1255,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     @SuppressWarnings("cast")
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.NullTypes createUsingJsonStream(Realm realm, JsonReader reader)
-            throws IOException {
+        throws IOException {
         some.test.NullTypes obj = new some.test.NullTypes();
         reader.beginObject();
         while (reader.hasNext()) {
@@ -1433,148 +1432,152 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().threadId != realm.threadId) {
             throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
         }
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         RealmObjectProxy cachedRealmObject = cache.get(object);
         if (cachedRealmObject != null) {
             return (some.test.NullTypes) cachedRealmObject;
-        } else {
-            return copy(realm, object, update, cache);
         }
+
+        return copy(realm, object, update, cache);
     }
 
     public static some.test.NullTypes copy(Realm realm, some.test.NullTypes newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.NullTypes) cachedRealmObject;
-        } else {
-            // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
-            some.test.NullTypes realmObject = realm.createObjectInternal(some.test.NullTypes.class, false, Collections.<String>emptyList());
-            cache.put(newObject, (RealmObjectProxy) realmObject);
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldStringNotNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldStringNotNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldStringNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldStringNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldBooleanNotNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldBooleanNotNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldBooleanNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldBooleanNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldBytesNotNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldBytesNotNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldBytesNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldBytesNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldByteNotNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldByteNotNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldByteNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldByteNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldShortNotNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldShortNotNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldShortNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldShortNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldIntegerNotNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldIntegerNotNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldIntegerNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldIntegerNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldLongNotNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldLongNotNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldLongNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldLongNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldFloatNotNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldFloatNotNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldFloatNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldFloatNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldDoubleNotNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldDoubleNotNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldDoubleNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldDoubleNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldDateNotNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldDateNotNull());
-            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldDateNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldDateNull());
-
-            some.test.NullTypes fieldObjectNullObj = ((NullTypesRealmProxyInterface) newObject).realmGet$fieldObjectNull();
-            if (fieldObjectNullObj != null) {
-                some.test.NullTypes cachefieldObjectNull = (some.test.NullTypes) cache.get(fieldObjectNullObj);
-                if (cachefieldObjectNull != null) {
-                    ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldObjectNull(cachefieldObjectNull);
-                } else {
-                    ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldObjectNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, update, cache));
-                }
-            } else {
-                ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldObjectNull(null);
-            }
-            return realmObject;
         }
+
+        // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
+        some.test.NullTypes realmObject = realm.createObjectInternal(some.test.NullTypes.class, false, Collections.<String>emptyList());
+        cache.put(newObject, (RealmObjectProxy) realmObject);
+
+        NullTypesRealmProxyInterface realmObjectSource = (NullTypesRealmProxyInterface) newObject;
+        NullTypesRealmProxyInterface realmObjectCopy = (NullTypesRealmProxyInterface) realmObject;
+
+        realmObjectCopy.realmSet$fieldStringNotNull(realmObjectSource.realmGet$fieldStringNotNull());
+        realmObjectCopy.realmSet$fieldStringNull(realmObjectSource.realmGet$fieldStringNull());
+        realmObjectCopy.realmSet$fieldBooleanNotNull(realmObjectSource.realmGet$fieldBooleanNotNull());
+        realmObjectCopy.realmSet$fieldBooleanNull(realmObjectSource.realmGet$fieldBooleanNull());
+        realmObjectCopy.realmSet$fieldBytesNotNull(realmObjectSource.realmGet$fieldBytesNotNull());
+        realmObjectCopy.realmSet$fieldBytesNull(realmObjectSource.realmGet$fieldBytesNull());
+        realmObjectCopy.realmSet$fieldByteNotNull(realmObjectSource.realmGet$fieldByteNotNull());
+        realmObjectCopy.realmSet$fieldByteNull(realmObjectSource.realmGet$fieldByteNull());
+        realmObjectCopy.realmSet$fieldShortNotNull(realmObjectSource.realmGet$fieldShortNotNull());
+        realmObjectCopy.realmSet$fieldShortNull(realmObjectSource.realmGet$fieldShortNull());
+        realmObjectCopy.realmSet$fieldIntegerNotNull(realmObjectSource.realmGet$fieldIntegerNotNull());
+        realmObjectCopy.realmSet$fieldIntegerNull(realmObjectSource.realmGet$fieldIntegerNull());
+        realmObjectCopy.realmSet$fieldLongNotNull(realmObjectSource.realmGet$fieldLongNotNull());
+        realmObjectCopy.realmSet$fieldLongNull(realmObjectSource.realmGet$fieldLongNull());
+        realmObjectCopy.realmSet$fieldFloatNotNull(realmObjectSource.realmGet$fieldFloatNotNull());
+        realmObjectCopy.realmSet$fieldFloatNull(realmObjectSource.realmGet$fieldFloatNull());
+        realmObjectCopy.realmSet$fieldDoubleNotNull(realmObjectSource.realmGet$fieldDoubleNotNull());
+        realmObjectCopy.realmSet$fieldDoubleNull(realmObjectSource.realmGet$fieldDoubleNull());
+        realmObjectCopy.realmSet$fieldDateNotNull(realmObjectSource.realmGet$fieldDateNotNull());
+        realmObjectCopy.realmSet$fieldDateNull(realmObjectSource.realmGet$fieldDateNull());
+
+        some.test.NullTypes fieldObjectNullObj = realmObjectSource.realmGet$fieldObjectNull();
+        if (fieldObjectNullObj == null) {
+            realmObjectCopy.realmSet$fieldObjectNull(null);
+        } else {
+            some.test.NullTypes cachefieldObjectNull = (some.test.NullTypes) cache.get(fieldObjectNullObj);
+            if (cachefieldObjectNull != null) {
+                realmObjectCopy.realmSet$fieldObjectNull(cachefieldObjectNull);
+            } else {
+                realmObjectCopy.realmSet$fieldObjectNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, update, cache));
+            }
+        }
+        return realmObject;
     }
 
     public static long insert(Realm realm, some.test.NullTypes object, Map<RealmModel,Long> cache) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-            return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+            return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
         NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
         long rowIndex = OsObject.createRow(realm.sharedRealm, table);
         cache.put(object, rowIndex);
-        String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldStringNotNull();
+        String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringNotNull();
         if (realmGet$fieldStringNotNull != null) {
             Table.nativeSetString(tableNativePtr, columnInfo.fieldStringNotNullIndex, rowIndex, realmGet$fieldStringNotNull, false);
         }
-        String realmGet$fieldStringNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldStringNull();
+        String realmGet$fieldStringNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringNull();
         if (realmGet$fieldStringNull != null) {
             Table.nativeSetString(tableNativePtr, columnInfo.fieldStringNullIndex, rowIndex, realmGet$fieldStringNull, false);
         }
-        Boolean realmGet$fieldBooleanNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBooleanNotNull();
+        Boolean realmGet$fieldBooleanNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBooleanNotNull();
         if (realmGet$fieldBooleanNotNull != null) {
             Table.nativeSetBoolean(tableNativePtr, columnInfo.fieldBooleanNotNullIndex, rowIndex, realmGet$fieldBooleanNotNull, false);
         }
-        Boolean realmGet$fieldBooleanNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBooleanNull();
+        Boolean realmGet$fieldBooleanNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBooleanNull();
         if (realmGet$fieldBooleanNull != null) {
             Table.nativeSetBoolean(tableNativePtr, columnInfo.fieldBooleanNullIndex, rowIndex, realmGet$fieldBooleanNull, false);
         }
-        byte[] realmGet$fieldBytesNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBytesNotNull();
+        byte[] realmGet$fieldBytesNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBytesNotNull();
         if (realmGet$fieldBytesNotNull != null) {
             Table.nativeSetByteArray(tableNativePtr, columnInfo.fieldBytesNotNullIndex, rowIndex, realmGet$fieldBytesNotNull, false);
         }
-        byte[] realmGet$fieldBytesNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBytesNull();
+        byte[] realmGet$fieldBytesNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBytesNull();
         if (realmGet$fieldBytesNull != null) {
             Table.nativeSetByteArray(tableNativePtr, columnInfo.fieldBytesNullIndex, rowIndex, realmGet$fieldBytesNull, false);
         }
-        Number realmGet$fieldByteNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldByteNotNull();
+        Number realmGet$fieldByteNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldByteNotNull();
         if (realmGet$fieldByteNotNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldByteNotNullIndex, rowIndex, realmGet$fieldByteNotNull.longValue(), false);
         }
-        Number realmGet$fieldByteNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldByteNull();
+        Number realmGet$fieldByteNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldByteNull();
         if (realmGet$fieldByteNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldByteNullIndex, rowIndex, realmGet$fieldByteNull.longValue(), false);
         }
-        Number realmGet$fieldShortNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldShortNotNull();
+        Number realmGet$fieldShortNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldShortNotNull();
         if (realmGet$fieldShortNotNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldShortNotNullIndex, rowIndex, realmGet$fieldShortNotNull.longValue(), false);
         }
-        Number realmGet$fieldShortNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldShortNull();
+        Number realmGet$fieldShortNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldShortNull();
         if (realmGet$fieldShortNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldShortNullIndex, rowIndex, realmGet$fieldShortNull.longValue(), false);
         }
-        Number realmGet$fieldIntegerNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldIntegerNotNull();
+        Number realmGet$fieldIntegerNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldIntegerNotNull();
         if (realmGet$fieldIntegerNotNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldIntegerNotNullIndex, rowIndex, realmGet$fieldIntegerNotNull.longValue(), false);
         }
-        Number realmGet$fieldIntegerNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldIntegerNull();
+        Number realmGet$fieldIntegerNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldIntegerNull();
         if (realmGet$fieldIntegerNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldIntegerNullIndex, rowIndex, realmGet$fieldIntegerNull.longValue(), false);
         }
-        Number realmGet$fieldLongNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldLongNotNull();
+        Number realmGet$fieldLongNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldLongNotNull();
         if (realmGet$fieldLongNotNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldLongNotNullIndex, rowIndex, realmGet$fieldLongNotNull.longValue(), false);
         }
-        Number realmGet$fieldLongNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldLongNull();
+        Number realmGet$fieldLongNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldLongNull();
         if (realmGet$fieldLongNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldLongNullIndex, rowIndex, realmGet$fieldLongNull.longValue(), false);
         }
-        Float realmGet$fieldFloatNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldFloatNotNull();
+        Float realmGet$fieldFloatNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldFloatNotNull();
         if (realmGet$fieldFloatNotNull != null) {
             Table.nativeSetFloat(tableNativePtr, columnInfo.fieldFloatNotNullIndex, rowIndex, realmGet$fieldFloatNotNull, false);
         }
-        Float realmGet$fieldFloatNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldFloatNull();
+        Float realmGet$fieldFloatNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldFloatNull();
         if (realmGet$fieldFloatNull != null) {
             Table.nativeSetFloat(tableNativePtr, columnInfo.fieldFloatNullIndex, rowIndex, realmGet$fieldFloatNull, false);
         }
-        Double realmGet$fieldDoubleNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDoubleNotNull();
+        Double realmGet$fieldDoubleNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDoubleNotNull();
         if (realmGet$fieldDoubleNotNull != null) {
             Table.nativeSetDouble(tableNativePtr, columnInfo.fieldDoubleNotNullIndex, rowIndex, realmGet$fieldDoubleNotNull, false);
         }
-        Double realmGet$fieldDoubleNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDoubleNull();
+        Double realmGet$fieldDoubleNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDoubleNull();
         if (realmGet$fieldDoubleNull != null) {
             Table.nativeSetDouble(tableNativePtr, columnInfo.fieldDoubleNullIndex, rowIndex, realmGet$fieldDoubleNull, false);
         }
-        java.util.Date realmGet$fieldDateNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDateNotNull();
+        java.util.Date realmGet$fieldDateNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDateNotNull();
         if (realmGet$fieldDateNotNull != null) {
             Table.nativeSetTimestamp(tableNativePtr, columnInfo.fieldDateNotNullIndex, rowIndex, realmGet$fieldDateNotNull.getTime(), false);
         }
-        java.util.Date realmGet$fieldDateNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDateNull();
+        java.util.Date realmGet$fieldDateNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDateNull();
         if (realmGet$fieldDateNull != null) {
             Table.nativeSetTimestamp(tableNativePtr, columnInfo.fieldDateNullIndex, rowIndex, realmGet$fieldDateNull.getTime(), false);
         }
@@ -1597,230 +1600,231 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         some.test.NullTypes object = null;
         while (objects.hasNext()) {
             object = (some.test.NullTypes) objects.next();
-            if(!cache.containsKey(object)) {
-                if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-                    cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex());
-                    continue;
-                }
-                long rowIndex = OsObject.createRow(realm.sharedRealm, table);
-                cache.put(object, rowIndex);
-                String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldStringNotNull();
-                if (realmGet$fieldStringNotNull != null) {
-                    Table.nativeSetString(tableNativePtr, columnInfo.fieldStringNotNullIndex, rowIndex, realmGet$fieldStringNotNull, false);
-                }
-                String realmGet$fieldStringNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldStringNull();
-                if (realmGet$fieldStringNull != null) {
-                    Table.nativeSetString(tableNativePtr, columnInfo.fieldStringNullIndex, rowIndex, realmGet$fieldStringNull, false);
-                }
-                Boolean realmGet$fieldBooleanNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBooleanNotNull();
-                if (realmGet$fieldBooleanNotNull != null) {
-                    Table.nativeSetBoolean(tableNativePtr, columnInfo.fieldBooleanNotNullIndex, rowIndex, realmGet$fieldBooleanNotNull, false);
-                }
-                Boolean realmGet$fieldBooleanNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBooleanNull();
-                if (realmGet$fieldBooleanNull != null) {
-                    Table.nativeSetBoolean(tableNativePtr, columnInfo.fieldBooleanNullIndex, rowIndex, realmGet$fieldBooleanNull, false);
-                }
-                byte[] realmGet$fieldBytesNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBytesNotNull();
-                if (realmGet$fieldBytesNotNull != null) {
-                    Table.nativeSetByteArray(tableNativePtr, columnInfo.fieldBytesNotNullIndex, rowIndex, realmGet$fieldBytesNotNull, false);
-                }
-                byte[] realmGet$fieldBytesNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBytesNull();
-                if (realmGet$fieldBytesNull != null) {
-                    Table.nativeSetByteArray(tableNativePtr, columnInfo.fieldBytesNullIndex, rowIndex, realmGet$fieldBytesNull, false);
-                }
-                Number realmGet$fieldByteNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldByteNotNull();
-                if (realmGet$fieldByteNotNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldByteNotNullIndex, rowIndex, realmGet$fieldByteNotNull.longValue(), false);
-                }
-                Number realmGet$fieldByteNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldByteNull();
-                if (realmGet$fieldByteNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldByteNullIndex, rowIndex, realmGet$fieldByteNull.longValue(), false);
-                }
-                Number realmGet$fieldShortNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldShortNotNull();
-                if (realmGet$fieldShortNotNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldShortNotNullIndex, rowIndex, realmGet$fieldShortNotNull.longValue(), false);
-                }
-                Number realmGet$fieldShortNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldShortNull();
-                if (realmGet$fieldShortNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldShortNullIndex, rowIndex, realmGet$fieldShortNull.longValue(), false);
-                }
-                Number realmGet$fieldIntegerNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldIntegerNotNull();
-                if (realmGet$fieldIntegerNotNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldIntegerNotNullIndex, rowIndex, realmGet$fieldIntegerNotNull.longValue(), false);
-                }
-                Number realmGet$fieldIntegerNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldIntegerNull();
-                if (realmGet$fieldIntegerNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldIntegerNullIndex, rowIndex, realmGet$fieldIntegerNull.longValue(), false);
-                }
-                Number realmGet$fieldLongNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldLongNotNull();
-                if (realmGet$fieldLongNotNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldLongNotNullIndex, rowIndex, realmGet$fieldLongNotNull.longValue(), false);
-                }
-                Number realmGet$fieldLongNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldLongNull();
-                if (realmGet$fieldLongNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldLongNullIndex, rowIndex, realmGet$fieldLongNull.longValue(), false);
-                }
-                Float realmGet$fieldFloatNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldFloatNotNull();
-                if (realmGet$fieldFloatNotNull != null) {
-                    Table.nativeSetFloat(tableNativePtr, columnInfo.fieldFloatNotNullIndex, rowIndex, realmGet$fieldFloatNotNull, false);
-                }
-                Float realmGet$fieldFloatNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldFloatNull();
-                if (realmGet$fieldFloatNull != null) {
-                    Table.nativeSetFloat(tableNativePtr, columnInfo.fieldFloatNullIndex, rowIndex, realmGet$fieldFloatNull, false);
-                }
-                Double realmGet$fieldDoubleNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDoubleNotNull();
-                if (realmGet$fieldDoubleNotNull != null) {
-                    Table.nativeSetDouble(tableNativePtr, columnInfo.fieldDoubleNotNullIndex, rowIndex, realmGet$fieldDoubleNotNull, false);
-                }
-                Double realmGet$fieldDoubleNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDoubleNull();
-                if (realmGet$fieldDoubleNull != null) {
-                    Table.nativeSetDouble(tableNativePtr, columnInfo.fieldDoubleNullIndex, rowIndex, realmGet$fieldDoubleNull, false);
-                }
-                java.util.Date realmGet$fieldDateNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDateNotNull();
-                if (realmGet$fieldDateNotNull != null) {
-                    Table.nativeSetTimestamp(tableNativePtr, columnInfo.fieldDateNotNullIndex, rowIndex, realmGet$fieldDateNotNull.getTime(), false);
-                }
-                java.util.Date realmGet$fieldDateNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDateNull();
-                if (realmGet$fieldDateNull != null) {
-                    Table.nativeSetTimestamp(tableNativePtr, columnInfo.fieldDateNullIndex, rowIndex, realmGet$fieldDateNull.getTime(), false);
-                }
+            if (cache.containsKey(object)) {
+                continue;
+            }
+            if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getIndex());
+                continue;
+            }
+            long rowIndex = OsObject.createRow(realm.sharedRealm, table);
+            cache.put(object, rowIndex);
+            String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringNotNull();
+            if (realmGet$fieldStringNotNull != null) {
+                Table.nativeSetString(tableNativePtr, columnInfo.fieldStringNotNullIndex, rowIndex, realmGet$fieldStringNotNull, false);
+            }
+            String realmGet$fieldStringNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringNull();
+            if (realmGet$fieldStringNull != null) {
+                Table.nativeSetString(tableNativePtr, columnInfo.fieldStringNullIndex, rowIndex, realmGet$fieldStringNull, false);
+            }
+            Boolean realmGet$fieldBooleanNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBooleanNotNull();
+            if (realmGet$fieldBooleanNotNull != null) {
+                Table.nativeSetBoolean(tableNativePtr, columnInfo.fieldBooleanNotNullIndex, rowIndex, realmGet$fieldBooleanNotNull, false);
+            }
+            Boolean realmGet$fieldBooleanNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBooleanNull();
+            if (realmGet$fieldBooleanNull != null) {
+                Table.nativeSetBoolean(tableNativePtr, columnInfo.fieldBooleanNullIndex, rowIndex, realmGet$fieldBooleanNull, false);
+            }
+            byte[] realmGet$fieldBytesNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBytesNotNull();
+            if (realmGet$fieldBytesNotNull != null) {
+                Table.nativeSetByteArray(tableNativePtr, columnInfo.fieldBytesNotNullIndex, rowIndex, realmGet$fieldBytesNotNull, false);
+            }
+            byte[] realmGet$fieldBytesNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBytesNull();
+            if (realmGet$fieldBytesNull != null) {
+                Table.nativeSetByteArray(tableNativePtr, columnInfo.fieldBytesNullIndex, rowIndex, realmGet$fieldBytesNull, false);
+            }
+            Number realmGet$fieldByteNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldByteNotNull();
+            if (realmGet$fieldByteNotNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldByteNotNullIndex, rowIndex, realmGet$fieldByteNotNull.longValue(), false);
+            }
+            Number realmGet$fieldByteNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldByteNull();
+            if (realmGet$fieldByteNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldByteNullIndex, rowIndex, realmGet$fieldByteNull.longValue(), false);
+            }
+            Number realmGet$fieldShortNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldShortNotNull();
+            if (realmGet$fieldShortNotNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldShortNotNullIndex, rowIndex, realmGet$fieldShortNotNull.longValue(), false);
+            }
+            Number realmGet$fieldShortNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldShortNull();
+            if (realmGet$fieldShortNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldShortNullIndex, rowIndex, realmGet$fieldShortNull.longValue(), false);
+            }
+            Number realmGet$fieldIntegerNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldIntegerNotNull();
+            if (realmGet$fieldIntegerNotNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldIntegerNotNullIndex, rowIndex, realmGet$fieldIntegerNotNull.longValue(), false);
+            }
+            Number realmGet$fieldIntegerNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldIntegerNull();
+            if (realmGet$fieldIntegerNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldIntegerNullIndex, rowIndex, realmGet$fieldIntegerNull.longValue(), false);
+            }
+            Number realmGet$fieldLongNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldLongNotNull();
+            if (realmGet$fieldLongNotNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldLongNotNullIndex, rowIndex, realmGet$fieldLongNotNull.longValue(), false);
+            }
+            Number realmGet$fieldLongNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldLongNull();
+            if (realmGet$fieldLongNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldLongNullIndex, rowIndex, realmGet$fieldLongNull.longValue(), false);
+            }
+            Float realmGet$fieldFloatNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldFloatNotNull();
+            if (realmGet$fieldFloatNotNull != null) {
+                Table.nativeSetFloat(tableNativePtr, columnInfo.fieldFloatNotNullIndex, rowIndex, realmGet$fieldFloatNotNull, false);
+            }
+            Float realmGet$fieldFloatNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldFloatNull();
+            if (realmGet$fieldFloatNull != null) {
+                Table.nativeSetFloat(tableNativePtr, columnInfo.fieldFloatNullIndex, rowIndex, realmGet$fieldFloatNull, false);
+            }
+            Double realmGet$fieldDoubleNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDoubleNotNull();
+            if (realmGet$fieldDoubleNotNull != null) {
+                Table.nativeSetDouble(tableNativePtr, columnInfo.fieldDoubleNotNullIndex, rowIndex, realmGet$fieldDoubleNotNull, false);
+            }
+            Double realmGet$fieldDoubleNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDoubleNull();
+            if (realmGet$fieldDoubleNull != null) {
+                Table.nativeSetDouble(tableNativePtr, columnInfo.fieldDoubleNullIndex, rowIndex, realmGet$fieldDoubleNull, false);
+            }
+            java.util.Date realmGet$fieldDateNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDateNotNull();
+            if (realmGet$fieldDateNotNull != null) {
+                Table.nativeSetTimestamp(tableNativePtr, columnInfo.fieldDateNotNullIndex, rowIndex, realmGet$fieldDateNotNull.getTime(), false);
+            }
+            java.util.Date realmGet$fieldDateNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDateNull();
+            if (realmGet$fieldDateNull != null) {
+                Table.nativeSetTimestamp(tableNativePtr, columnInfo.fieldDateNullIndex, rowIndex, realmGet$fieldDateNull.getTime(), false);
+            }
 
-                some.test.NullTypes fieldObjectNullObj = ((NullTypesRealmProxyInterface) object).realmGet$fieldObjectNull();
-                if (fieldObjectNullObj != null) {
-                    Long cachefieldObjectNull = cache.get(fieldObjectNullObj);
-                    if (cachefieldObjectNull == null) {
-                        cachefieldObjectNull = NullTypesRealmProxy.insert(realm, fieldObjectNullObj, cache);
-                    }
-                    table.setLink(columnInfo.fieldObjectNullIndex, rowIndex, cachefieldObjectNull, false);
+            some.test.NullTypes fieldObjectNullObj = ((NullTypesRealmProxyInterface) object).realmGet$fieldObjectNull();
+            if (fieldObjectNullObj != null) {
+                Long cachefieldObjectNull = cache.get(fieldObjectNullObj);
+                if (cachefieldObjectNull == null) {
+                    cachefieldObjectNull = NullTypesRealmProxy.insert(realm, fieldObjectNullObj, cache);
                 }
+                table.setLink(columnInfo.fieldObjectNullIndex, rowIndex, cachefieldObjectNull, false);
             }
         }
     }
 
     public static long insertOrUpdate(Realm realm, some.test.NullTypes object, Map<RealmModel,Long> cache) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-            return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+            return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
         NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
         long rowIndex = OsObject.createRow(realm.sharedRealm, table);
         cache.put(object, rowIndex);
-        String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldStringNotNull();
+        String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringNotNull();
         if (realmGet$fieldStringNotNull != null) {
             Table.nativeSetString(tableNativePtr, columnInfo.fieldStringNotNullIndex, rowIndex, realmGet$fieldStringNotNull, false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldStringNotNullIndex, rowIndex, false);
         }
-        String realmGet$fieldStringNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldStringNull();
+        String realmGet$fieldStringNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringNull();
         if (realmGet$fieldStringNull != null) {
             Table.nativeSetString(tableNativePtr, columnInfo.fieldStringNullIndex, rowIndex, realmGet$fieldStringNull, false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldStringNullIndex, rowIndex, false);
         }
-        Boolean realmGet$fieldBooleanNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBooleanNotNull();
+        Boolean realmGet$fieldBooleanNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBooleanNotNull();
         if (realmGet$fieldBooleanNotNull != null) {
             Table.nativeSetBoolean(tableNativePtr, columnInfo.fieldBooleanNotNullIndex, rowIndex, realmGet$fieldBooleanNotNull, false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldBooleanNotNullIndex, rowIndex, false);
         }
-        Boolean realmGet$fieldBooleanNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBooleanNull();
+        Boolean realmGet$fieldBooleanNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBooleanNull();
         if (realmGet$fieldBooleanNull != null) {
             Table.nativeSetBoolean(tableNativePtr, columnInfo.fieldBooleanNullIndex, rowIndex, realmGet$fieldBooleanNull, false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldBooleanNullIndex, rowIndex, false);
         }
-        byte[] realmGet$fieldBytesNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBytesNotNull();
+        byte[] realmGet$fieldBytesNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBytesNotNull();
         if (realmGet$fieldBytesNotNull != null) {
             Table.nativeSetByteArray(tableNativePtr, columnInfo.fieldBytesNotNullIndex, rowIndex, realmGet$fieldBytesNotNull, false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldBytesNotNullIndex, rowIndex, false);
         }
-        byte[] realmGet$fieldBytesNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBytesNull();
+        byte[] realmGet$fieldBytesNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBytesNull();
         if (realmGet$fieldBytesNull != null) {
             Table.nativeSetByteArray(tableNativePtr, columnInfo.fieldBytesNullIndex, rowIndex, realmGet$fieldBytesNull, false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldBytesNullIndex, rowIndex, false);
         }
-        Number realmGet$fieldByteNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldByteNotNull();
+        Number realmGet$fieldByteNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldByteNotNull();
         if (realmGet$fieldByteNotNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldByteNotNullIndex, rowIndex, realmGet$fieldByteNotNull.longValue(), false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldByteNotNullIndex, rowIndex, false);
         }
-        Number realmGet$fieldByteNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldByteNull();
+        Number realmGet$fieldByteNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldByteNull();
         if (realmGet$fieldByteNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldByteNullIndex, rowIndex, realmGet$fieldByteNull.longValue(), false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldByteNullIndex, rowIndex, false);
         }
-        Number realmGet$fieldShortNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldShortNotNull();
+        Number realmGet$fieldShortNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldShortNotNull();
         if (realmGet$fieldShortNotNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldShortNotNullIndex, rowIndex, realmGet$fieldShortNotNull.longValue(), false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldShortNotNullIndex, rowIndex, false);
         }
-        Number realmGet$fieldShortNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldShortNull();
+        Number realmGet$fieldShortNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldShortNull();
         if (realmGet$fieldShortNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldShortNullIndex, rowIndex, realmGet$fieldShortNull.longValue(), false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldShortNullIndex, rowIndex, false);
         }
-        Number realmGet$fieldIntegerNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldIntegerNotNull();
+        Number realmGet$fieldIntegerNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldIntegerNotNull();
         if (realmGet$fieldIntegerNotNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldIntegerNotNullIndex, rowIndex, realmGet$fieldIntegerNotNull.longValue(), false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldIntegerNotNullIndex, rowIndex, false);
         }
-        Number realmGet$fieldIntegerNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldIntegerNull();
+        Number realmGet$fieldIntegerNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldIntegerNull();
         if (realmGet$fieldIntegerNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldIntegerNullIndex, rowIndex, realmGet$fieldIntegerNull.longValue(), false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldIntegerNullIndex, rowIndex, false);
         }
-        Number realmGet$fieldLongNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldLongNotNull();
+        Number realmGet$fieldLongNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldLongNotNull();
         if (realmGet$fieldLongNotNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldLongNotNullIndex, rowIndex, realmGet$fieldLongNotNull.longValue(), false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldLongNotNullIndex, rowIndex, false);
         }
-        Number realmGet$fieldLongNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldLongNull();
+        Number realmGet$fieldLongNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldLongNull();
         if (realmGet$fieldLongNull != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.fieldLongNullIndex, rowIndex, realmGet$fieldLongNull.longValue(), false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldLongNullIndex, rowIndex, false);
         }
-        Float realmGet$fieldFloatNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldFloatNotNull();
+        Float realmGet$fieldFloatNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldFloatNotNull();
         if (realmGet$fieldFloatNotNull != null) {
             Table.nativeSetFloat(tableNativePtr, columnInfo.fieldFloatNotNullIndex, rowIndex, realmGet$fieldFloatNotNull, false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldFloatNotNullIndex, rowIndex, false);
         }
-        Float realmGet$fieldFloatNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldFloatNull();
+        Float realmGet$fieldFloatNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldFloatNull();
         if (realmGet$fieldFloatNull != null) {
             Table.nativeSetFloat(tableNativePtr, columnInfo.fieldFloatNullIndex, rowIndex, realmGet$fieldFloatNull, false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldFloatNullIndex, rowIndex, false);
         }
-        Double realmGet$fieldDoubleNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDoubleNotNull();
+        Double realmGet$fieldDoubleNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDoubleNotNull();
         if (realmGet$fieldDoubleNotNull != null) {
             Table.nativeSetDouble(tableNativePtr, columnInfo.fieldDoubleNotNullIndex, rowIndex, realmGet$fieldDoubleNotNull, false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldDoubleNotNullIndex, rowIndex, false);
         }
-        Double realmGet$fieldDoubleNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDoubleNull();
+        Double realmGet$fieldDoubleNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDoubleNull();
         if (realmGet$fieldDoubleNull != null) {
             Table.nativeSetDouble(tableNativePtr, columnInfo.fieldDoubleNullIndex, rowIndex, realmGet$fieldDoubleNull, false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldDoubleNullIndex, rowIndex, false);
         }
-        java.util.Date realmGet$fieldDateNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDateNotNull();
+        java.util.Date realmGet$fieldDateNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDateNotNull();
         if (realmGet$fieldDateNotNull != null) {
             Table.nativeSetTimestamp(tableNativePtr, columnInfo.fieldDateNotNullIndex, rowIndex, realmGet$fieldDateNotNull.getTime(), false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.fieldDateNotNullIndex, rowIndex, false);
         }
-        java.util.Date realmGet$fieldDateNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDateNull();
+        java.util.Date realmGet$fieldDateNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDateNull();
         if (realmGet$fieldDateNull != null) {
             Table.nativeSetTimestamp(tableNativePtr, columnInfo.fieldDateNullIndex, rowIndex, realmGet$fieldDateNull.getTime(), false);
         } else {
@@ -1847,144 +1851,145 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         some.test.NullTypes object = null;
         while (objects.hasNext()) {
             object = (some.test.NullTypes) objects.next();
-            if(!cache.containsKey(object)) {
-                if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-                    cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex());
-                    continue;
-                }
-                long rowIndex = OsObject.createRow(realm.sharedRealm, table);
-                cache.put(object, rowIndex);
-                String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldStringNotNull();
-                if (realmGet$fieldStringNotNull != null) {
-                    Table.nativeSetString(tableNativePtr, columnInfo.fieldStringNotNullIndex, rowIndex, realmGet$fieldStringNotNull, false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldStringNotNullIndex, rowIndex, false);
-                }
-                String realmGet$fieldStringNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldStringNull();
-                if (realmGet$fieldStringNull != null) {
-                    Table.nativeSetString(tableNativePtr, columnInfo.fieldStringNullIndex, rowIndex, realmGet$fieldStringNull, false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldStringNullIndex, rowIndex, false);
-                }
-                Boolean realmGet$fieldBooleanNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBooleanNotNull();
-                if (realmGet$fieldBooleanNotNull != null) {
-                    Table.nativeSetBoolean(tableNativePtr, columnInfo.fieldBooleanNotNullIndex, rowIndex, realmGet$fieldBooleanNotNull, false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldBooleanNotNullIndex, rowIndex, false);
-                }
-                Boolean realmGet$fieldBooleanNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBooleanNull();
-                if (realmGet$fieldBooleanNull != null) {
-                    Table.nativeSetBoolean(tableNativePtr, columnInfo.fieldBooleanNullIndex, rowIndex, realmGet$fieldBooleanNull, false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldBooleanNullIndex, rowIndex, false);
-                }
-                byte[] realmGet$fieldBytesNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBytesNotNull();
-                if (realmGet$fieldBytesNotNull != null) {
-                    Table.nativeSetByteArray(tableNativePtr, columnInfo.fieldBytesNotNullIndex, rowIndex, realmGet$fieldBytesNotNull, false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldBytesNotNullIndex, rowIndex, false);
-                }
-                byte[] realmGet$fieldBytesNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldBytesNull();
-                if (realmGet$fieldBytesNull != null) {
-                    Table.nativeSetByteArray(tableNativePtr, columnInfo.fieldBytesNullIndex, rowIndex, realmGet$fieldBytesNull, false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldBytesNullIndex, rowIndex, false);
-                }
-                Number realmGet$fieldByteNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldByteNotNull();
-                if (realmGet$fieldByteNotNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldByteNotNullIndex, rowIndex, realmGet$fieldByteNotNull.longValue(), false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldByteNotNullIndex, rowIndex, false);
-                }
-                Number realmGet$fieldByteNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldByteNull();
-                if (realmGet$fieldByteNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldByteNullIndex, rowIndex, realmGet$fieldByteNull.longValue(), false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldByteNullIndex, rowIndex, false);
-                }
-                Number realmGet$fieldShortNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldShortNotNull();
-                if (realmGet$fieldShortNotNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldShortNotNullIndex, rowIndex, realmGet$fieldShortNotNull.longValue(), false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldShortNotNullIndex, rowIndex, false);
-                }
-                Number realmGet$fieldShortNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldShortNull();
-                if (realmGet$fieldShortNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldShortNullIndex, rowIndex, realmGet$fieldShortNull.longValue(), false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldShortNullIndex, rowIndex, false);
-                }
-                Number realmGet$fieldIntegerNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldIntegerNotNull();
-                if (realmGet$fieldIntegerNotNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldIntegerNotNullIndex, rowIndex, realmGet$fieldIntegerNotNull.longValue(), false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldIntegerNotNullIndex, rowIndex, false);
-                }
-                Number realmGet$fieldIntegerNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldIntegerNull();
-                if (realmGet$fieldIntegerNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldIntegerNullIndex, rowIndex, realmGet$fieldIntegerNull.longValue(), false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldIntegerNullIndex, rowIndex, false);
-                }
-                Number realmGet$fieldLongNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldLongNotNull();
-                if (realmGet$fieldLongNotNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldLongNotNullIndex, rowIndex, realmGet$fieldLongNotNull.longValue(), false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldLongNotNullIndex, rowIndex, false);
-                }
-                Number realmGet$fieldLongNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldLongNull();
-                if (realmGet$fieldLongNull != null) {
-                    Table.nativeSetLong(tableNativePtr, columnInfo.fieldLongNullIndex, rowIndex, realmGet$fieldLongNull.longValue(), false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldLongNullIndex, rowIndex, false);
-                }
-                Float realmGet$fieldFloatNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldFloatNotNull();
-                if (realmGet$fieldFloatNotNull != null) {
-                    Table.nativeSetFloat(tableNativePtr, columnInfo.fieldFloatNotNullIndex, rowIndex, realmGet$fieldFloatNotNull, false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldFloatNotNullIndex, rowIndex, false);
-                }
-                Float realmGet$fieldFloatNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldFloatNull();
-                if (realmGet$fieldFloatNull != null) {
-                    Table.nativeSetFloat(tableNativePtr, columnInfo.fieldFloatNullIndex, rowIndex, realmGet$fieldFloatNull, false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldFloatNullIndex, rowIndex, false);
-                }
-                Double realmGet$fieldDoubleNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDoubleNotNull();
-                if (realmGet$fieldDoubleNotNull != null) {
-                    Table.nativeSetDouble(tableNativePtr, columnInfo.fieldDoubleNotNullIndex, rowIndex, realmGet$fieldDoubleNotNull, false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldDoubleNotNullIndex, rowIndex, false);
-                }
-                Double realmGet$fieldDoubleNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDoubleNull();
-                if (realmGet$fieldDoubleNull != null) {
-                    Table.nativeSetDouble(tableNativePtr, columnInfo.fieldDoubleNullIndex, rowIndex, realmGet$fieldDoubleNull, false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldDoubleNullIndex, rowIndex, false);
-                }
-                java.util.Date realmGet$fieldDateNotNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDateNotNull();
-                if (realmGet$fieldDateNotNull != null) {
-                    Table.nativeSetTimestamp(tableNativePtr, columnInfo.fieldDateNotNullIndex, rowIndex, realmGet$fieldDateNotNull.getTime(), false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldDateNotNullIndex, rowIndex, false);
-                }
-                java.util.Date realmGet$fieldDateNull = ((NullTypesRealmProxyInterface)object).realmGet$fieldDateNull();
-                if (realmGet$fieldDateNull != null) {
-                    Table.nativeSetTimestamp(tableNativePtr, columnInfo.fieldDateNullIndex, rowIndex, realmGet$fieldDateNull.getTime(), false);
-                } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.fieldDateNullIndex, rowIndex, false);
-                }
+            if (cache.containsKey(object)) {
+                continue;
+            }
+            if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getIndex());
+                continue;
+            }
+            long rowIndex = OsObject.createRow(realm.sharedRealm, table);
+            cache.put(object, rowIndex);
+            String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringNotNull();
+            if (realmGet$fieldStringNotNull != null) {
+                Table.nativeSetString(tableNativePtr, columnInfo.fieldStringNotNullIndex, rowIndex, realmGet$fieldStringNotNull, false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldStringNotNullIndex, rowIndex, false);
+            }
+            String realmGet$fieldStringNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringNull();
+            if (realmGet$fieldStringNull != null) {
+                Table.nativeSetString(tableNativePtr, columnInfo.fieldStringNullIndex, rowIndex, realmGet$fieldStringNull, false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldStringNullIndex, rowIndex, false);
+            }
+            Boolean realmGet$fieldBooleanNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBooleanNotNull();
+            if (realmGet$fieldBooleanNotNull != null) {
+                Table.nativeSetBoolean(tableNativePtr, columnInfo.fieldBooleanNotNullIndex, rowIndex, realmGet$fieldBooleanNotNull, false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldBooleanNotNullIndex, rowIndex, false);
+            }
+            Boolean realmGet$fieldBooleanNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBooleanNull();
+            if (realmGet$fieldBooleanNull != null) {
+                Table.nativeSetBoolean(tableNativePtr, columnInfo.fieldBooleanNullIndex, rowIndex, realmGet$fieldBooleanNull, false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldBooleanNullIndex, rowIndex, false);
+            }
+            byte[] realmGet$fieldBytesNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBytesNotNull();
+            if (realmGet$fieldBytesNotNull != null) {
+                Table.nativeSetByteArray(tableNativePtr, columnInfo.fieldBytesNotNullIndex, rowIndex, realmGet$fieldBytesNotNull, false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldBytesNotNullIndex, rowIndex, false);
+            }
+            byte[] realmGet$fieldBytesNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldBytesNull();
+            if (realmGet$fieldBytesNull != null) {
+                Table.nativeSetByteArray(tableNativePtr, columnInfo.fieldBytesNullIndex, rowIndex, realmGet$fieldBytesNull, false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldBytesNullIndex, rowIndex, false);
+            }
+            Number realmGet$fieldByteNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldByteNotNull();
+            if (realmGet$fieldByteNotNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldByteNotNullIndex, rowIndex, realmGet$fieldByteNotNull.longValue(), false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldByteNotNullIndex, rowIndex, false);
+            }
+            Number realmGet$fieldByteNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldByteNull();
+            if (realmGet$fieldByteNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldByteNullIndex, rowIndex, realmGet$fieldByteNull.longValue(), false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldByteNullIndex, rowIndex, false);
+            }
+            Number realmGet$fieldShortNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldShortNotNull();
+            if (realmGet$fieldShortNotNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldShortNotNullIndex, rowIndex, realmGet$fieldShortNotNull.longValue(), false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldShortNotNullIndex, rowIndex, false);
+            }
+            Number realmGet$fieldShortNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldShortNull();
+            if (realmGet$fieldShortNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldShortNullIndex, rowIndex, realmGet$fieldShortNull.longValue(), false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldShortNullIndex, rowIndex, false);
+            }
+            Number realmGet$fieldIntegerNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldIntegerNotNull();
+            if (realmGet$fieldIntegerNotNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldIntegerNotNullIndex, rowIndex, realmGet$fieldIntegerNotNull.longValue(), false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldIntegerNotNullIndex, rowIndex, false);
+            }
+            Number realmGet$fieldIntegerNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldIntegerNull();
+            if (realmGet$fieldIntegerNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldIntegerNullIndex, rowIndex, realmGet$fieldIntegerNull.longValue(), false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldIntegerNullIndex, rowIndex, false);
+            }
+            Number realmGet$fieldLongNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldLongNotNull();
+            if (realmGet$fieldLongNotNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldLongNotNullIndex, rowIndex, realmGet$fieldLongNotNull.longValue(), false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldLongNotNullIndex, rowIndex, false);
+            }
+            Number realmGet$fieldLongNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldLongNull();
+            if (realmGet$fieldLongNull != null) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.fieldLongNullIndex, rowIndex, realmGet$fieldLongNull.longValue(), false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldLongNullIndex, rowIndex, false);
+            }
+            Float realmGet$fieldFloatNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldFloatNotNull();
+            if (realmGet$fieldFloatNotNull != null) {
+                Table.nativeSetFloat(tableNativePtr, columnInfo.fieldFloatNotNullIndex, rowIndex, realmGet$fieldFloatNotNull, false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldFloatNotNullIndex, rowIndex, false);
+            }
+            Float realmGet$fieldFloatNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldFloatNull();
+            if (realmGet$fieldFloatNull != null) {
+                Table.nativeSetFloat(tableNativePtr, columnInfo.fieldFloatNullIndex, rowIndex, realmGet$fieldFloatNull, false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldFloatNullIndex, rowIndex, false);
+            }
+            Double realmGet$fieldDoubleNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDoubleNotNull();
+            if (realmGet$fieldDoubleNotNull != null) {
+                Table.nativeSetDouble(tableNativePtr, columnInfo.fieldDoubleNotNullIndex, rowIndex, realmGet$fieldDoubleNotNull, false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldDoubleNotNullIndex, rowIndex, false);
+            }
+            Double realmGet$fieldDoubleNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDoubleNull();
+            if (realmGet$fieldDoubleNull != null) {
+                Table.nativeSetDouble(tableNativePtr, columnInfo.fieldDoubleNullIndex, rowIndex, realmGet$fieldDoubleNull, false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldDoubleNullIndex, rowIndex, false);
+            }
+            java.util.Date realmGet$fieldDateNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDateNotNull();
+            if (realmGet$fieldDateNotNull != null) {
+                Table.nativeSetTimestamp(tableNativePtr, columnInfo.fieldDateNotNullIndex, rowIndex, realmGet$fieldDateNotNull.getTime(), false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldDateNotNullIndex, rowIndex, false);
+            }
+            java.util.Date realmGet$fieldDateNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldDateNull();
+            if (realmGet$fieldDateNull != null) {
+                Table.nativeSetTimestamp(tableNativePtr, columnInfo.fieldDateNullIndex, rowIndex, realmGet$fieldDateNull.getTime(), false);
+            } else {
+                Table.nativeSetNull(tableNativePtr, columnInfo.fieldDateNullIndex, rowIndex, false);
+            }
 
-                some.test.NullTypes fieldObjectNullObj = ((NullTypesRealmProxyInterface) object).realmGet$fieldObjectNull();
-                if (fieldObjectNullObj != null) {
-                    Long cachefieldObjectNull = cache.get(fieldObjectNullObj);
-                    if (cachefieldObjectNull == null) {
-                        cachefieldObjectNull = NullTypesRealmProxy.insertOrUpdate(realm, fieldObjectNullObj, cache);
-                    }
-                    Table.nativeSetLink(tableNativePtr, columnInfo.fieldObjectNullIndex, rowIndex, cachefieldObjectNull, false);
-                } else {
-                    Table.nativeNullifyLink(tableNativePtr, columnInfo.fieldObjectNullIndex, rowIndex);
+            some.test.NullTypes fieldObjectNullObj = ((NullTypesRealmProxyInterface) object).realmGet$fieldObjectNull();
+            if (fieldObjectNullObj != null) {
+                Long cachefieldObjectNull = cache.get(fieldObjectNullObj);
+                if (cachefieldObjectNull == null) {
+                    cachefieldObjectNull = NullTypesRealmProxy.insertOrUpdate(realm, fieldObjectNullObj, cache);
                 }
+                Table.nativeSetLink(tableNativePtr, columnInfo.fieldObjectNullIndex, rowIndex, cachefieldObjectNull, false);
+            } else {
+                Table.nativeNullifyLink(tableNativePtr, columnInfo.fieldObjectNullIndex, rowIndex);
             }
         }
     }
@@ -1995,41 +2000,42 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         CacheData<RealmModel> cachedObject = cache.get(realmObject);
         some.test.NullTypes unmanagedObject;
-        if (cachedObject != null) {
-            // Reuse cached object or recreate it because it was encountered at a lower depth.
-            if (currentDepth >= cachedObject.minDepth) {
-                return (some.test.NullTypes)cachedObject.object;
-            } else {
-                unmanagedObject = (some.test.NullTypes)cachedObject.object;
-                cachedObject.minDepth = currentDepth;
-            }
-        } else {
+        if (cachedObject == null) {
             unmanagedObject = new some.test.NullTypes();
             cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject));
+        } else {
+            // Reuse cached object or recreate it because it was encountered at a lower depth.
+            if (currentDepth >= cachedObject.minDepth) {
+                return (some.test.NullTypes) cachedObject.object;
+            }
+            unmanagedObject = (some.test.NullTypes) cachedObject.object;
+            cachedObject.minDepth = currentDepth;
         }
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldStringNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNotNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldStringNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldBooleanNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBooleanNotNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldBooleanNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBooleanNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldBytesNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBytesNotNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldBytesNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBytesNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldByteNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldByteNotNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldByteNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldByteNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldShortNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldShortNotNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldShortNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldShortNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldIntegerNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldIntegerNotNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldIntegerNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldIntegerNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldLongNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldLongNotNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldLongNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldLongNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldFloatNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldFloatNotNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldFloatNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldFloatNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldDoubleNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDoubleNotNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldDoubleNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDoubleNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldDateNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDateNotNull());
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldDateNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDateNull());
+        NullTypesRealmProxyInterface unmanagedCopy = (NullTypesRealmProxyInterface) unmanagedObject;
+        NullTypesRealmProxyInterface realmSource = (NullTypesRealmProxyInterface) realmObject;
+        unmanagedCopy.realmSet$fieldStringNotNull(realmSource.realmGet$fieldStringNotNull());
+        unmanagedCopy.realmSet$fieldStringNull(realmSource.realmGet$fieldStringNull());
+        unmanagedCopy.realmSet$fieldBooleanNotNull(realmSource.realmGet$fieldBooleanNotNull());
+        unmanagedCopy.realmSet$fieldBooleanNull(realmSource.realmGet$fieldBooleanNull());
+        unmanagedCopy.realmSet$fieldBytesNotNull(realmSource.realmGet$fieldBytesNotNull());
+        unmanagedCopy.realmSet$fieldBytesNull(realmSource.realmGet$fieldBytesNull());
+        unmanagedCopy.realmSet$fieldByteNotNull(realmSource.realmGet$fieldByteNotNull());
+        unmanagedCopy.realmSet$fieldByteNull(realmSource.realmGet$fieldByteNull());
+        unmanagedCopy.realmSet$fieldShortNotNull(realmSource.realmGet$fieldShortNotNull());
+        unmanagedCopy.realmSet$fieldShortNull(realmSource.realmGet$fieldShortNull());
+        unmanagedCopy.realmSet$fieldIntegerNotNull(realmSource.realmGet$fieldIntegerNotNull());
+        unmanagedCopy.realmSet$fieldIntegerNull(realmSource.realmGet$fieldIntegerNull());
+        unmanagedCopy.realmSet$fieldLongNotNull(realmSource.realmGet$fieldLongNotNull());
+        unmanagedCopy.realmSet$fieldLongNull(realmSource.realmGet$fieldLongNull());
+        unmanagedCopy.realmSet$fieldFloatNotNull(realmSource.realmGet$fieldFloatNotNull());
+        unmanagedCopy.realmSet$fieldFloatNull(realmSource.realmGet$fieldFloatNull());
+        unmanagedCopy.realmSet$fieldDoubleNotNull(realmSource.realmGet$fieldDoubleNotNull());
+        unmanagedCopy.realmSet$fieldDoubleNull(realmSource.realmGet$fieldDoubleNull());
+        unmanagedCopy.realmSet$fieldDateNotNull(realmSource.realmGet$fieldDateNotNull());
+        unmanagedCopy.realmSet$fieldDateNull(realmSource.realmGet$fieldDateNull());
 
         // Deep copy of fieldObjectNull
-        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldObjectNull(NullTypesRealmProxy.createDetachedCopy(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldObjectNull(), currentDepth + 1, maxDepth, cache));
+        unmanagedCopy.realmSet$fieldObjectNull(NullTypesRealmProxy.createDetachedCopy(realmSource.realmGet$fieldObjectNull(), currentDepth + 1, maxDepth, cache));
         return unmanagedObject;
     }
 

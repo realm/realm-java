@@ -17,21 +17,29 @@
 package io.realm.internal;
 
 import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import io.realm.Realm;
 import io.realm.RealmFieldType;
 import io.realm.internal.Table.PivotType;
 
-public class PivotTest extends TestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+
+@RunWith(AndroidJUnit4.class)
+public class PivotTest {
 
     Table t;
     long colIndexSex;
     long colIndexAge;
     long colIndexHired;
 
-    @Override
+    @Before
     public void setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         t = new Table();
@@ -45,7 +53,8 @@ public class PivotTest extends TestCase {
         }
     }
 
-    public void testPivotTable(){
+    @Test
+    public void pivotTable(){
 
         Table resultCount = t.pivot(colIndexSex, colIndexAge, PivotType.COUNT);
         assertEquals(2, resultCount.size());
@@ -60,7 +69,7 @@ public class PivotTest extends TestCase {
         assertEquals(38, resultMax.getLong(1, 0));
         assertEquals(39, resultMax.getLong(1, 1));
 
-        try { t.pivot(colIndexHired, colIndexAge, PivotType.SUM); fail("Group by not a String column"); } catch (UnsupportedOperationException e) { }
-        try { t.pivot(colIndexSex, colIndexHired, PivotType.SUM); fail("Aggregation not an int column"); } catch (UnsupportedOperationException e) { }
+        try { t.pivot(colIndexHired, colIndexAge, PivotType.SUM); fail("Group by not a String column"); } catch (UnsupportedOperationException ignore) { }
+        try { t.pivot(colIndexSex, colIndexHired, PivotType.SUM); fail("Aggregation not an int column"); } catch (UnsupportedOperationException ignore) { }
     }
 }

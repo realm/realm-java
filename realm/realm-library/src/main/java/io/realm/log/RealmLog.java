@@ -269,6 +269,10 @@ public final class RealmLog {
 
     // Formats the message, parses the stacktrace of given throwable and passes them to nativeLog.
     private static void log(int level, Throwable throwable, String message, Object... args) {
+        if (level < getLevel()) {
+            return;
+        }
+
         StringBuilder stringBuilder = new StringBuilder();
         if (args != null && args.length > 0) {
             message = String.format(message, args);

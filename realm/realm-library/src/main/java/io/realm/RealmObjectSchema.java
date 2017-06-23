@@ -42,8 +42,9 @@ public abstract class RealmObjectSchema {
     }
 
     /**
-     * Release the object schema and any of native resources it might hold.
+     * @deprecated {@link RealmObjectSchema} doesn't have to be released manually.
      */
+    @Deprecated
     public abstract void close();
 
     /**

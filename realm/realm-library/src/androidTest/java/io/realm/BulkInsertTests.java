@@ -505,7 +505,7 @@ public class BulkInsertTests {
     public void insert_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(CatOwner.class, Cat.class)
+                .schema(CatOwner.class, Cat.class, Owner.class, DogPrimaryKey.class, Dog.class)
                 .name("filterable.realm")
                 .build();
         Realm.deleteRealm(config);
@@ -601,7 +601,7 @@ public class BulkInsertTests {
     public void insertOrUpdate_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(CatOwner.class, Cat.class)
+                .schema(CatOwner.class, Cat.class, Owner.class, DogPrimaryKey.class, Dog.class)
                 .name("filterable.realm")
                 .build();
         Realm.deleteRealm(config);

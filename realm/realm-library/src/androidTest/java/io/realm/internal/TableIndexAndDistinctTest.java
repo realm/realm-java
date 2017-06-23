@@ -16,11 +16,18 @@
 
 package io.realm.internal;
 
-import junit.framework.TestCase;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import io.realm.RealmFieldType;
 
-public class TableIndexAndDistinctTest extends TestCase {
+import static org.junit.Assert.assertEquals;
+
+
+@RunWith(AndroidJUnit4.class)
+public class TableIndexAndDistinctTest {
     Table table;
 
     void init() {
@@ -43,7 +50,8 @@ public class TableIndexAndDistinctTest extends TestCase {
      * Checks that Index can be set on multiple columns, with the String.
      * @param
      */
-    public void testShouldTestSettingIndexOnMultipleColumns() {
+    @Test
+    public void shouldTestSettingIndexOnMultipleColumns() {
 
         // Creates a table only with String type columns
         Table t = new Table();
@@ -85,12 +93,14 @@ public class TableIndexAndDistinctTest extends TestCase {
         t.addSearchIndex(index);
     }*/
 
-    public void testShouldCheckIndexIsOkOnColumn() {
+    @Test
+    public void shouldCheckIndexIsOkOnColumn() {
         init();
         table.addSearchIndex(1);
     }
 
-    public void testRemoveSearchIndex() {
+    @Test
+    public void removeSearchIndex() {
         init();
         table.addSearchIndex(1);
         assertEquals(true, table.hasSearchIndex(1));
@@ -99,7 +109,8 @@ public class TableIndexAndDistinctTest extends TestCase {
         assertEquals(false, table.hasSearchIndex(1));
     }
 
-    public void testRemoveSearchIndexNoop() {
+    @Test
+    public void removeSearchIndexNoOp() {
         init();
         assertEquals(false, table.hasSearchIndex(1));
 

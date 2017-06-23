@@ -20,6 +20,7 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -64,6 +65,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -121,7 +123,7 @@ public class RealmMigrationTests {
         // V1 config
         RealmConfiguration v1Config = configFactory.createConfigurationBuilder()
                 .name(MIGRATED_REALM)
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .schemaVersion(1)
                 .build();
         Realm oldRealm = Realm.getInstance(v1Config);
@@ -140,7 +142,7 @@ public class RealmMigrationTests {
 
         RealmConfiguration v2Config = configFactory.createConfigurationBuilder()
                 .name(MIGRATED_REALM)
-                .schema(AllTypes.class, FieldOrder.class)
+                .schema(StringOnly.class, FieldOrder.class)
                 .schemaVersion(2)
                 .migration(migration)
                 .build();
@@ -151,7 +153,7 @@ public class RealmMigrationTests {
         RealmConfiguration newConfig = configFactory.createConfigurationBuilder()
                 .name(NEW_REALM)
                 .schemaVersion(2)
-                .schema(AllTypes.class, FieldOrder.class)
+                .schema(StringOnly.class, FieldOrder.class)
                 .build();
         Realm newRealm = Realm.getInstance(newConfig);
         newRealm.close();
@@ -166,7 +168,7 @@ public class RealmMigrationTests {
 
         // Creates v0 of the Realm.
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -184,7 +186,7 @@ public class RealmMigrationTests {
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(StringOnly.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
         try {
@@ -718,7 +720,7 @@ public class RealmMigrationTests {
     public void settingPrimaryKeyWithObjectSchema() {
         // Creates v0 of the Realm.
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -738,7 +740,7 @@ public class RealmMigrationTests {
         // Creates v1 of the Realm.
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(StringOnly.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
 
@@ -789,7 +791,7 @@ public class RealmMigrationTests {
 
         // Creates v0 of the Realm.
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -806,7 +808,7 @@ public class RealmMigrationTests {
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(StringOnly.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
 
@@ -882,8 +884,8 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                Table table = realm.schema.getTable(StringOnly.class);
-                table.convertColumnToNullable(table.getColumnIndex("chars"));
+                RealmObjectSchema objectSchema = realm.getSchema().get(StringOnly.CLASS_NAME);
+                objectSchema.setRequired(StringOnly.FIELD_CHARS, false);
             }
         };
 
@@ -1148,21 +1150,14 @@ public class RealmMigrationTests {
         for (final Class clazz : classes) {
             try {
                 RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-                        .schemaVersion(0)
                         .schema(clazz)
-                        .migration(new RealmMigration() {
-                            @Override
-                            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                                // intentionally lefts empty to demonstrate incompatibilities between nullable/not-nullable PrimaryKeys.
-                            }
-                        })
                         .build();
                 Realm realm = Realm.getInstance(realmConfig);
                 realm.close();
                 fail();
-            } catch (IllegalStateException expected) {
-                assertEquals("Cannot migrate an object with null value in field 'id'. Either maintain the same type for primary key field 'id', or remove the object with null value before migration.",
-                        expected.getMessage());
+            } catch (RealmMigrationNeededException expected) {
+                assertThat(expected.getMessage(), CoreMatchers.containsString(
+                        "Field 'id' does support null values in the existing Realm file."));
             }
         }
     }
