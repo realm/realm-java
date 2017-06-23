@@ -53,11 +53,20 @@ public class UserFactory {
         return createUniqueUser(Constants.AUTH_URL);
     }
 
+    public static SyncUser createUser(String username) {
+        return createUser(username, Constants.AUTH_URL);
+    }
+
     public static SyncUser createUniqueUser(String authUrl) {
         String uniqueName = UUID.randomUUID().toString();
-        SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, PASSWORD, true);
+        return createUser(uniqueName);
+    }
+
+    private static SyncUser createUser(String username, String authUrl) {
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, PASSWORD, true);
         return SyncUser.login(credentials, authUrl);
     }
+
 
     public SyncUser createDefaultUser(String authUrl) {
         SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, true);
@@ -108,4 +117,5 @@ public class UserFactory {
         RealmLog.debug("UserFactory.getInstance, the default user is " + instance.userName + " .");
         return instance;
     }
+
 }

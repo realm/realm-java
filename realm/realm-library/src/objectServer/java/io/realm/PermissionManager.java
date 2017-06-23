@@ -309,7 +309,6 @@ public class PermissionManager implements Closeable {
      */
     @Override
     public void close() {
-        RealmLog.error("Closing PermissionManager for: " + user.getIdentity());
         checkIfValidThread();
 
         // Multiple instances open, just decrement the reference count

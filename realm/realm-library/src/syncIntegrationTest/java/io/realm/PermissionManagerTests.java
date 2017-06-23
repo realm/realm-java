@@ -30,6 +30,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import io.realm.exceptions.RealmError;
+import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
@@ -340,7 +342,6 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         });
     }
 
-    // applyPermission - changePermissions (userId)
     @Test
     @RunTestInLooperThread
     public void applyPermission_withUserId() {
@@ -379,7 +380,121 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         });
     }
 
-    // Wait for a given permission to be present
+    @Test
+    @RunTestInLooperThread
+    public void applyPermission_withEmail() {
+        String user1Email = TestHelper.getRandomEmail();
+        String user2Email = TestHelper.getRandomEmail();
+        final SyncUser user1 = createUserForTest(user1Email);
+        final SyncUser user2 = createUserForTest(user2Email);
+        PermissionManager pm1 = user1.getPermissionManager();
+        looperThread.closeAfterTest(pm1);
+
+        // Create request for giving `user2` WRITE permissions to `user1`'s Realm.
+        UserCondition condition = UserCondition.email(user2Email);
+        AccessLevel accessLevel = AccessLevel.WRITE;
+        String url = createRemoteRealm(user1, "test");
+        PermissionRequest request = new PermissionRequest(condition, url, accessLevel);
+
+        pm1.applyPermission(request, new PermissionManager.Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                PermissionManager pm2 = user2.getPermissionManager();
+                looperThread.closeAfterTest(pm2);
+                pm2.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+                    @Override
+                    public void onSuccess(RealmResults<Permission> permissions) {
+                        assertPermissionPresent(permissions, user2, user1.getIdentity() + "/test", AccessLevel.WRITE);
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        fail(error.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void applyPermission_usersWithNoExistingPermissions() {
+        final SyncUser user1 = createUserForTest("user1@realm.io");
+        final SyncUser user2 = createUserForTest("user2@realm.io");
+        PermissionManager pm1 = user1.getPermissionManager();
+        looperThread.closeAfterTest(pm1);
+
+        // Create request for giving all users with no existing permissions WRITE permissions to `user1`'s Realm.
+        UserCondition condition = UserCondition.noExistingPermissions();
+        AccessLevel accessLevel = AccessLevel.WRITE;
+        final String url = createRemoteRealm(user1, "test");
+        PermissionRequest request = new PermissionRequest(condition, url, accessLevel);
+
+        pm1.applyPermission(request, new PermissionManager.Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                // Default permissions are not recorded in the __permission Realm for user2
+                // Only way to check is by opening the Realm.
+                SyncConfiguration config = new SyncConfiguration.Builder(user2, url)
+                        .errorHandler(new SyncSession.ErrorHandler() {
+                            @Override
+                            public void onError(SyncSession session, ObjectServerError error) {
+                                fail(error.toString());
+                            }
+                        })
+                        .build();
+                Realm realm = Realm.getInstance(config);
+                try {
+                    SyncManager.getSession(config).downloadAllServerChanges();
+                } catch (InterruptedException e) {
+                    fail(Util.getStackTrace(e));
+                }
+                realm.close();
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    private SyncUser createUniqueUserForTest() {
+        final SyncUser user = UserFactory.createUniqueUser();
+        looperThread.runAfterTest(new Runnable() {
+            @Override
+            public void run() {
+                user.logout();
+            }
+        });
+        return user;
+    }
+
+    private SyncUser createUserForTest(String username) {
+        final SyncUser user = UserFactory.createUser(username);
+        looperThread.runAfterTest(new Runnable() {
+            @Override
+            public void run() {
+                user.logout();
+            }
+        });
+        return user;
+    }
+
+    /**
+     * Wait for a given permission to be present.
+     *
+     * @param permissions permission results.
+     * @param user user that is being granted the permission.
+     * @param urlSuffix the url suffix to listen for.
+     * @param accessLevel the expected access level for 'user'.
+     */
     private void assertPermissionPresent(RealmResults<Permission> permissions, final SyncUser user, String urlSuffix, final AccessLevel accessLevel) {
         RealmResults<Permission> filteredPermissions = permissions.where().endsWith("path", urlSuffix).findAllAsync();
         looperThread.keepStrongReference(permissions);
@@ -401,32 +516,6 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                 }
             }
         });
-    }
-
-    // applyPermission - changePermissions (email)
-    // applyPermission - changePermissions (non-existing permissions)
-
-    @Test
-    @RunTestInLooperThread
-    public void applyPermission_withEmail() {
-        fail();
-    }
-
-    @Test
-    @RunTestInLooperThread
-    public void applyPermission_usersWithNoExistingPermissions() {
-        fail();
-    }
-
-    private SyncUser createUniqueUserForTest() {
-        final SyncUser user = UserFactory.createUniqueUser();
-        looperThread.runAfterTest(new Runnable() {
-            @Override
-            public void run() {
-                user.logout();
-            }
-        });
-        return user;
     }
 
     private void setRealmError(PermissionManager pm, String fieldName, ObjectServerError error) throws NoSuchFieldException,
