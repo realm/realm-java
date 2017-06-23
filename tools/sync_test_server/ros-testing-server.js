@@ -3,6 +3,7 @@
 var winston = require('winston'); //logging
 const temp = require('temp');
 const spawn = require('child_process').spawn;
+const exec = require('child_process').exec;
 var http = require('http');
 var dispatcher = require('httpdispatcher');
 
@@ -32,7 +33,13 @@ function handleRequest(request, response) {
 
 var syncServerChildProcess = null;
 
-function startRealmObjectServer() {
+function startRealmObjectServer(done) {
+    // Hack for checking the ROS is fully initialized.
+    // Consider the ROS is initialized fully only if log below shows twice
+    // "client: Closing Realm file: /tmp/ros117521-7-1eiqt7a/internal_data/permission/__auth.realm"
+    // https://github.com/realm/realm-object-server/issues/1297
+    var logFindingCounter = 2
+
     stopRealmObjectServer();
     temp.mkdir('ros', function(err, path) {
         if (!err) {
@@ -43,9 +50,15 @@ function startRealmObjectServer() {
             syncServerChildProcess = spawn('realm-object-server',
                     ['--root', path,
                     '--configuration', '/configuration.yml'],
-                    { env: env });
+                    { env: env});
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
+                if (logFindingCounter != 0 && /client: Closing Realm file: .*__auth.realm/.test(data)) {
+                    if (logFindingCounter == 1) {
+                        done()
+                    }
+                    logFindingCounter--
+                }
                 winston.info(`stdout: ${data}`);
             });
 
@@ -64,15 +77,23 @@ function stopRealmObjectServer() {
     if (syncServerChildProcess) {
         syncServerChildProcess.kill();
         syncServerChildProcess = null;
+        exec('rm -r ' + 'realm-object-server', function (err, stdout, stderr) {
+            if (err) {
+                winston.err(err)
+            } else {
+                winston.info("realm-object-server directory deleted")
+            }
+        });
     }
 }
 
 
 // start sync server
 dispatcher.onGet("/start", function(req, res) {
-    startRealmObjectServer();
-    res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.end('Starting a server');
+    startRealmObjectServer(() => {
+        res.writeHead(200, {'Content-Type': 'text/plain'});
+        res.end('Starting a server');
+    })
 });
 
 // stop a previously started sync server
