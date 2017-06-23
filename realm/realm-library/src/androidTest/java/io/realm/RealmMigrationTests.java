@@ -751,41 +751,6 @@ public class RealmMigrationTests {
         realm.close();
     }
 
-    // Adding search index is idempotent.
-    @Test
-    public void addingSearchIndexTwice() throws IOException {
-        final Class[] classes = {PrimaryKeyAsLong.class, PrimaryKeyAsString.class};
-
-        for (final Class clazz : classes) {
-            final AtomicBoolean didMigrate = new AtomicBoolean(false);
-
-            RealmMigration migration = new RealmMigration() {
-                @Override
-                public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                    RealmObjectSchema schema = realm.getSchema().getSchemaForClass(clazz.getSimpleName());
-                    schema.addIndex("id");
-                    // @PrimaryKey fields in PrimaryKeyAsLong and PrimaryKeyAsString.class should be set 'nullable'.
-                    schema.setNullable("name", true);
-                    didMigrate.set(true);
-                }
-            };
-            RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-                    .schemaVersion(42)
-                    .schema(clazz)
-                    .migration(migration)
-                    .build();
-            Realm.deleteRealm(realmConfig);
-            configFactory.copyRealmFromAssets(context, "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
-            Realm.migrateRealm(realmConfig);
-            realm = Realm.getInstance(realmConfig);
-            assertEquals(42, realm.getVersion());
-            assertTrue(didMigrate.get());
-            Table table = realm.getTable(clazz);
-            assertEquals(true, table.hasSearchIndex(table.getColumnIndex("id")));
-            realm.close();
-        }
-    }
-
     @Test
     public void setAnnotations() {
 
