@@ -58,7 +58,7 @@ public class BaseIntegrationTest {
     public static void setUp () throws Exception {
         SyncManager.Debug.skipOnlineChecking = true;
         try {
-            HttpUtils.startSyncServer();
+//            HttpUtils.startSyncServer();
         } catch (Exception e) {
             // Throwing an exception from this method will crash JUnit. Instead just log it.
             // If this setup method fails, all unit tests in the class extending it will most likely fail as well.
@@ -69,7 +69,7 @@ public class BaseIntegrationTest {
     @AfterClass
     public static void tearDown () throws Exception {
         try {
-            HttpUtils.stopSyncServer();
+//            HttpUtils.stopSyncServer();
         } catch (Exception e) {
             Log.e(HttpUtils.TAG, "Failed to stop Sync Server" + Util.getStackTrace(e));
         }

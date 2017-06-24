@@ -66,4 +66,9 @@ public interface AuthenticationServer {
      * Changes a user's password using admin account.
      */
     ChangePasswordResponse changePassword(Token adminToken, String userID, String newPassword, URL authenticationUrl);
+
+    /**
+     * Look up the generated user ID using the selected authentication provider.
+     */
+    LookupUserIdResponse retrieveUser(Token adminToken, String provider, String providerId, URL authenticationUrl);
 }

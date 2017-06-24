@@ -42,6 +42,7 @@ import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.ChangePasswordResponse;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
+import io.realm.internal.network.LookupUserIdResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
@@ -422,6 +423,26 @@ public class SyncUser {
                 return SyncUser.this;
             }
         }.start();
+    }
+
+    public void retrieveUser(final String provider, final String providerId) throws ObjectServerError {
+        if (Util.isEmptyString(provider)) {
+            throw new IllegalArgumentException("Not-null 'provider' required.");
+        }
+
+        if (Util.isEmptyString(providerId)) {
+            throw new IllegalArgumentException("None empty 'providerId' required.");
+        }
+
+        if (!isAdmin()) {
+            throw new IllegalStateException("User need to be admin in order to lookup ID.");
+        }
+
+        AuthenticationServer authServer = SyncManager.getAuthServer();
+        LookupUserIdResponse response = authServer.retrieveUser(getSyncUser().getUserToken(), provider, providerId, getAuthenticationUrl());
+        if (!response.isValid()) {
+            throw response.getError();
+        }
     }
 
     private static void checkLooperThread(String errorMessage) {

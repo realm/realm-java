@@ -216,6 +216,20 @@ public class AuthTests extends BaseIntegrationTest {
     }
 
     @Test
+    public void retrieveUser() {
+        String username = "nh@realm.io";
+        String password = "nh@realm.io";
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, false);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(user.isValid());
+        assertTrue(user.isAdmin());
+//        String identity = user.getIdentity();
+        user.retrieveUser("password", "nabil.hachicha@gmail.com");
+
+
+    }
+
+    @Test
     @RunTestInLooperThread
     public void changePassword_using_admin_async() {
         final String username = UUID.randomUUID().toString();
