@@ -61,7 +61,7 @@ realm {
 
 dependencies {
     implementation 'com.android.support:support-v4:25.2.0'
-    implementation 'com.android.support:design:25.2.0'
+    implementation 'com.android.support:appcompat-v7:25.2.0'
     implementation 'com.android.support:design:25.2.0'
     implementation 'me.zhanghai.android.materialprogressbar:library:1.3.0'
     implementation 'com.jakewharton:butterknife:8.5.1'
