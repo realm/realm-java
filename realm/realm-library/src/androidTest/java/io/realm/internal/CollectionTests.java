@@ -87,22 +87,22 @@ public class CollectionTests {
         table.addColumn(RealmFieldType.INTEGER, "age");
 
         // Add data to the table
-        long row = table.addEmptyRow();
+        long row = OsObject.createRow(table);
         table.setString(0, row, "John", false);
         table.setString(1, row, "Lee", false);
         table.setLong(2, row, 4, false);
 
-        row = table.addEmptyRow();
+        row = OsObject.createRow(table);
         table.setString(0, row, "John", false);
         table.setString(1, row, "Anderson", false);
         table.setLong(2, row, 3, false);
 
-        row = table.addEmptyRow();
+        row = OsObject.createRow(table);
         table.setString(0, row, "Erik", false);
         table.setString(1, row, "Lee", false);
         table.setLong(2, row, 1, false);
 
-        row = table.addEmptyRow();
+        row = OsObject.createRow(table);
         table.setString(0, row, "Henry", false);
         table.setString(1, row, "Anderson", false);
         table.setLong(2, row, 1, false);
@@ -126,7 +126,7 @@ public class CollectionTests {
     private void addRow(SharedRealm sharedRealm) {
         sharedRealm.beginTransaction();
         table = sharedRealm.getTable("test_table");
-        table.addEmptyRow();
+        OsObject.createRow(table);
         sharedRealm.commitTransaction();
     }
 
@@ -310,7 +310,7 @@ public class CollectionTests {
             }
         });
         sharedRealm.beginTransaction();
-        table.addEmptyRow();
+        OsObject.createRow(table);
         sharedRealm.commitTransaction();
         sharedRealm.refresh();
         TestHelper.awaitOrFail(latch);

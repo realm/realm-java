@@ -13,6 +13,22 @@
 ### Credits
 
 
+## 3.4.1 (YYYY-MM-DD)
+
+### Breaking Changes
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+* Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.
+
+
+
 ## 3.4.0 (2017-06-22)
 
 ### Breaking Changes
