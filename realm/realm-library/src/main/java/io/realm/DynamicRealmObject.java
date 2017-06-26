@@ -454,7 +454,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     value = JsonUtils.stringToDate(strValue);
                     break;
                 default:
-                    throw new IllegalArgumentException(String.format("Field %s is not a String field, " +
+                    throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                            "Field %s is not a String field, " +
                             "and the provide value could not be automatically converted: %s. Use a typed" +
                             "setter instead", fieldName, value));
             }
@@ -679,7 +680,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             Table table = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex);
             Table inputTable = value.proxyState.getRow$realm().getTable();
             if (!table.hasSameSchema(inputTable)) {
-                throw new IllegalArgumentException(String.format("Type of object is wrong. Was %s, expected %s",
+                throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                        "Type of object is wrong. Was %s, expected %s",
                         inputTable.getName(), table.getName()));
             }
             proxyState.getRow$realm().setLink(columnIndex, value.proxyState.getRow$realm().getIndex());
@@ -803,7 +805,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             if (columnType == RealmFieldType.INTEGER || columnType == RealmFieldType.OBJECT) {
                 columnTypeIndefiniteVowel = "n";
             }
-            throw new IllegalArgumentException(String.format("'%s' is not a%s '%s', but a%s '%s'.",
+            throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                    "'%s' is not a%s '%s', but a%s '%s'.",
                     fieldName, expectedIndefiniteVowel, expectedType, columnTypeIndefiniteVowel, columnType));
         }
     }
@@ -910,7 +913,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     break;
                 case LIST:
                     String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName();
-                    sb.append(String.format("RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getLinkList(columnIndex).size()));
+                    sb.append(String.format(Locale.ENGLISH, "RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getLinkList(columnIndex).size()));
                     break;
                 case UNSUPPORTED_TABLE:
                 case UNSUPPORTED_MIXED:
@@ -984,7 +987,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     private void checkIsPrimaryKey(String fieldName) {
         RealmObjectSchema objectSchema = proxyState.getRealm$realm().getSchema().getSchemaForClass(getType());
         if (objectSchema.hasPrimaryKey() && objectSchema.getPrimaryKey().equals(fieldName)) {
-            throw new IllegalArgumentException(String.format(
+            throw new IllegalArgumentException(String.format(Locale.ENGLISH,
                     "Primary key field '%s' cannot be changed after object was created.", fieldName));
         }
     }

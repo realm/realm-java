@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -635,7 +636,8 @@ public class SyncSession {
          */
         public void throwExceptionIfNeeded() {
             if (resultReceived && errorCode != null) {
-                throw new ObjectServerError(ErrorCode.UNKNOWN, String.format("Internal error (%d): %s", errorCode, errorMessage));
+                throw new ObjectServerError(ErrorCode.UNKNOWN,
+                        String.format(Locale.ENGLISH, "Internal error (%d): %s", errorCode, errorMessage));
             }
         }
     }

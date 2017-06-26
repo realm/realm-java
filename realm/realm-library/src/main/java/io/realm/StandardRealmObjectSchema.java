@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -176,7 +177,8 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
             if (SUPPORTED_LINKED_FIELDS.containsKey(fieldType)) {
                 throw new IllegalArgumentException("Use addRealmObjectField() instead to add fields that link to other RealmObjects: " + fieldName);
             } else {
-                throw new IllegalArgumentException(String.format("Realm doesn't support this field type: %s(%s)",
+                throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                        "Realm doesn't support this field type: %s(%s)",
                         fieldName, fieldType));
             }
         }
@@ -678,7 +680,8 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
             throw new IllegalArgumentException(
-                    String.format("Field name '%s' does not exist on schema for '%s'",
+                    String.format(Locale.ENGLISH,
+                            "Field name '%s' does not exist on schema for '%s'",
                             fieldName, getClassName()
                     ));
         }

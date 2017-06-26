@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import java.util.Locale;
+
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.CheckedRow;
@@ -105,7 +107,8 @@ public class DynamicRealm extends BaseRealm {
         Table table = schema.getTable(className);
         // Check and throw the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
-            throw new RealmException(String.format("'%s' has a primary key, use" +
+            throw new RealmException(String.format(Locale.ENGLISH,
+                    "'%s' has a primary key, use" +
                     " 'createObject(String, Object)' instead.", className));
         }
 
