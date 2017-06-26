@@ -79,9 +79,9 @@ function stopRealmObjectServer() {
         syncServerChildProcess = null;
         exec('rm -r ' + 'realm-object-server', function (err, stdout, stderr) {
             if (err) {
-                winston.err(err)
+                winston.error(err);
             } else {
-                winston.info("realm-object-server directory deleted")
+                winston.info("realm-object-server directory deleted");
             }
         });
     }
