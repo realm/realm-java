@@ -23,6 +23,10 @@ import io.realm.RealmObject;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
+import io.realm.permissions.AccessLevel;
+import io.realm.permissions.PermissionOfferRequest;
+import io.realm.permissions.UserCondition;
+
 
 /**
  * This model is used for offering permission changes to other users.
@@ -31,7 +35,7 @@ import io.realm.annotations.Required;
  * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
  * documentation.
  */
-public class PermissionOffer extends RealmObject {
+public class PermissionOffer extends RealmObject implements BasePermissionApi {
 
     // Base fields
     @PrimaryKey
@@ -53,6 +57,15 @@ public class PermissionOffer extends RealmObject {
     private boolean mayWrite;
     private boolean mayManage;
     private Date expiresAt;
+
+    /**
+     * Converts a {@link PermissionOfferRequest} to a {@link PermissionOffer}.
+     */
+    public static PermissionOffer fromRequest(PermissionOfferRequest offer) {
+        // PRE-CONDITION: All input are verified to be valid from the perspective of the Client.
+        AccessLevel level = offer.getAccessLevel();
+        return new PermissionOffer(offer.getUrl(), level.mayRead(), level.mayWrite(), level.mayManage(), offer.getExpireDate());
+    }
 
     public PermissionOffer() {
         // No args constructor required by Realm
@@ -79,27 +92,31 @@ public class PermissionOffer extends RealmObject {
         this.expiresAt = expiresAt;
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getCreatedAt() {
         return createdAt;
     }
 
+    @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getUpdatedAt() {
         return updatedAt;
     }
 
-    /**
-     * Returns the status code for this change.
-     *
-     * @return {@code null} if not yet processed. {@code 0} if successful, {@code >0} if an error happened. See {@link #getStatusMessage()}.
-     */
+    @Override
     public Integer getStatusCode() {
         return statusCode;
+    }
+
+    @Override
+    public String getStatusMessage() {
+        return statusMessage;
     }
 
     /**
@@ -110,10 +127,6 @@ public class PermissionOffer extends RealmObject {
      */
     public boolean isSuccessful() {
         return statusCode != null && statusCode == 0;
-    }
-
-    public String getStatusMessage() {
-        return statusMessage;
     }
 
     public String getToken() {
@@ -140,4 +153,5 @@ public class PermissionOffer extends RealmObject {
     public Date getExpiresAt() {
         return expiresAt;
     }
+
 }

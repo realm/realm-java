@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -34,6 +35,7 @@ import io.realm.internal.Util;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
+import io.realm.permissions.PermissionOfferRequest;
 import io.realm.permissions.UserCondition;
 import io.realm.permissions.Permission;
 import io.realm.permissions.PermissionRequest;
@@ -43,6 +45,7 @@ import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -459,6 +462,54 @@ public class PermissionManagerTests extends BaseIntegrationTest {
             @Override
             public void onError(ObjectServerError error) {
                 fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void makeOffer() {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        String url = createRemoteRealm(user, "test");
+
+        PermissionOfferRequest request = new PermissionOfferRequest(url, AccessLevel.WRITE);
+        pm.makeOffer(request, new PermissionManager.Callback<String>() {
+            @Override
+            public void onSuccess(String offerToken) {
+                assertNotNull(offerToken);
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void makeOffer_noManageAccessThrows() {
+        // User 2 creates a Realm
+        SyncUser user2 = createUniqueUserForTest();
+        String url = createRemoteRealm(user2, "test");
+
+        // User 1 tries to create an offer for it.
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        PermissionOfferRequest request = new PermissionOfferRequest(url, AccessLevel.WRITE);
+        pm.makeOffer(request, new PermissionManager.Callback<String>() {
+            @Override
+            public void onSuccess(String offerToken) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.ACCESS_DENIED, error.getErrorCode());
+                looperThread.testComplete();
             }
         });
     }

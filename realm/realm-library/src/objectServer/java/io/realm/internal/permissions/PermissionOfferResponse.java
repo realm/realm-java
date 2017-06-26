@@ -33,7 +33,7 @@ import io.realm.annotations.Required;
  * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
  * documentation.
  */
-public class PermissionOfferResponse extends RealmObject {
+public class PermissionOfferResponse extends RealmObject implements BasePermissionApi {
 
     // Base fields
     @PrimaryKey
@@ -74,25 +74,24 @@ public class PermissionOfferResponse extends RealmObject {
         this.token = token;
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getCreatedAt() {
         return createdAt;
     }
 
+    @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getUpdatedAt() {
         return updatedAt;
     }
 
-    /**
-     * Returns the status code for this change.
-     *
-     * @return {@code null} if not yet processed. {@code 0} if successful, {@code >0} if an error happened. See {@link #getStatusMessage()}.
-     */
+    @Override
     public Integer getStatusCode() {
         return statusCode;
     }
@@ -107,6 +106,7 @@ public class PermissionOfferResponse extends RealmObject {
         return statusCode != null && statusCode == 0;
     }
 
+    @Override
     public String getStatusMessage() {
         return statusMessage;
     }
