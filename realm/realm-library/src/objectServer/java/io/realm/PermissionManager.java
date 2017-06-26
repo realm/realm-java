@@ -200,7 +200,7 @@ public class PermissionManager implements Closeable {
      * @param callback callback when the request either succeeded or failed.
      * @return async task representing the request. This can be used to cancel it if needed.
      */
-    public RealmAsyncTask applyPermission(PermissionRequest request, final Callback<Void> callback) {
+    public RealmAsyncTask applyPermissions(PermissionRequest request, final Callback<Void> callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         return addTask(new ApplyPermissionTask(this, request, callback));

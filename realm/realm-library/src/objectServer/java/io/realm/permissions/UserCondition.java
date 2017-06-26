@@ -26,7 +26,7 @@ import io.realm.internal.Util;
  * It is used when a request for changing existing permissions are done.
  *
  * @see PermissionRequest
- * @see io.realm.PermissionManager#applyPermission(PermissionRequest, PermissionManager.Callback)
+ * @see io.realm.PermissionManager#applyPermissions(PermissionRequest, PermissionManager.Callback)
  */
 public final class UserCondition {
 

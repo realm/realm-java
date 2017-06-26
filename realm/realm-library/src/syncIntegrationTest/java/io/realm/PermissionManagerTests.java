@@ -30,9 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import io.realm.exceptions.RealmError;
 import io.realm.internal.Util;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
@@ -287,7 +285,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void applyPermission_nonAdminUserFails() {
+    public void applyPermissions_nonAdminUserFails() {
         SyncUser user2 = createUniqueUserForTest();
         String otherUsersUrl = createRemoteRealm(user2, "test");
 
@@ -300,7 +298,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         AccessLevel accessLevel = AccessLevel.WRITE;
         PermissionRequest request = new PermissionRequest(condition, otherUsersUrl, accessLevel);
 
-        pm.applyPermission(request, new PermissionManager.Callback<Void>() {
+        pm.applyPermissions(request, new PermissionManager.Callback<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
                 fail();
@@ -316,7 +314,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void applyPermission_wrongUrlFails() {
+    public void applyPermissions_wrongUrlFails() {
         String wrongUrl = createRemoteRealm(user, "test") + "-notexisting";
 
         PermissionManager pm = user.getPermissionManager();
@@ -328,7 +326,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         AccessLevel accessLevel = AccessLevel.WRITE;
         PermissionRequest request = new PermissionRequest(condition, wrongUrl, accessLevel);
 
-        pm.applyPermission(request, new PermissionManager.Callback<Void>() {
+        pm.applyPermissions(request, new PermissionManager.Callback<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
                 fail();
@@ -344,7 +342,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void applyPermission_withUserId() {
+    public void applyPermissions_withUserId() {
         final SyncUser user2 = createUniqueUserForTest();
         String url = createRemoteRealm(user2, "test");
         PermissionManager pm2 = user2.getPermissionManager();
@@ -355,7 +353,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         AccessLevel accessLevel = AccessLevel.WRITE;
         PermissionRequest request = new PermissionRequest(condition, url, accessLevel);
 
-        pm2.applyPermission(request, new PermissionManager.Callback<Void>() {
+        pm2.applyPermissions(request, new PermissionManager.Callback<Void>() {
             @Override
             public void onSuccess(Void result) {
                 PermissionManager pm = user.getPermissionManager();
@@ -382,7 +380,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void applyPermission_withEmail() {
+    public void applyPermissions_withEmail() {
         String user1Email = TestHelper.getRandomEmail();
         String user2Email = TestHelper.getRandomEmail();
         final SyncUser user1 = createUserForTest(user1Email);
@@ -396,7 +394,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         String url = createRemoteRealm(user1, "test");
         PermissionRequest request = new PermissionRequest(condition, url, accessLevel);
 
-        pm1.applyPermission(request, new PermissionManager.Callback<Void>() {
+        pm1.applyPermissions(request, new PermissionManager.Callback<Void>() {
             @Override
             public void onSuccess(Void result) {
                 PermissionManager pm2 = user2.getPermissionManager();
@@ -423,7 +421,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void applyPermission_usersWithNoExistingPermissions() {
+    public void applyPermissions_usersWithNoExistingPermissions() {
         final SyncUser user1 = createUserForTest("user1@realm.io");
         final SyncUser user2 = createUserForTest("user2@realm.io");
         PermissionManager pm1 = user1.getPermissionManager();
@@ -435,7 +433,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         final String url = createRemoteRealm(user1, "test");
         PermissionRequest request = new PermissionRequest(condition, url, accessLevel);
 
-        pm1.applyPermission(request, new PermissionManager.Callback<Void>() {
+        pm1.applyPermissions(request, new PermissionManager.Callback<Void>() {
             @Override
             public void onSuccess(Void result) {
                 // Default permissions are not recorded in the __permission Realm for user2

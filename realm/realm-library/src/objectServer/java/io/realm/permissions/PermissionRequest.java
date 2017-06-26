@@ -31,7 +31,7 @@ import io.realm.internal.Util;
  * {@link PermissionManager#getPermissions(PermissionManager.Callback)}.
  *
  *
- * @see PermissionManager#applyPermission(PermissionRequest, PermissionManager.Callback)
+ * @see PermissionManager#applyPermissions(PermissionRequest, PermissionManager.Callback)
  * @see PermissionManager#getPermissions(PermissionManager.Callback)
  */
 public final class PermissionRequest {

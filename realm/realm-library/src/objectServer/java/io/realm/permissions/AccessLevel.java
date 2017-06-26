@@ -30,7 +30,7 @@ import io.realm.RealmConfiguration;
  * access can always read or write from the Realm.
  *
  * @see PermissionRequest
- * @see io.realm.PermissionManager#applyPermission(PermissionRequest, PermissionManager.Callback)
+ * @see io.realm.PermissionManager#applyPermissions(PermissionRequest, PermissionManager.Callback)
  */
 public enum AccessLevel {
 
