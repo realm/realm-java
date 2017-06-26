@@ -165,6 +165,79 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
+    public void getDefaultPermissions_returnLoadedResults() {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                assertTrue(permissions.isLoaded());
+                assertInitialPermissions(permissions);
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getDefaultPermissions_noLongerValidWhenPermissionManagerIsClosed() {
+        final PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.getDefaultPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                try {
+                    assertTrue(permissions.isValid());
+                    pm.close();
+                    assertFalse(permissions.isValid());
+                } finally {
+                    user.logout();
+                }
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getDefaultPermissions_updatedWithNewRealms() {
+        // FIXME Add once `setPermissions` are implemented
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getDefaultPermissions_closed() throws IOException {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.close();
+
+        pm.getDefaultPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
+                assertEquals(IllegalStateException.class, error.getException().getClass());
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
     public void permissionManagerAsyncTask_handlePermissionRealmError() throws NoSuchFieldException, IllegalAccessException {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
