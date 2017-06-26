@@ -486,8 +486,7 @@ public class SyncUser {
      * @return the user's access token. If this user has logged out or the login has expired {@code null} is returned.
      */
     public Token getAccessToken() {
-        Token userToken = syncUser.getUserToken();
-        return (userToken != null) ? userToken : null;
+        return syncUser.getUserToken();
     }
 
     /**
