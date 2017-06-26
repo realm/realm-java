@@ -19,6 +19,7 @@ package io.realm;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -203,9 +204,10 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     }
 
     @Test
+    @Ignore("FIXME Add once `setPermissions` are implemented")
     @RunTestInLooperThread
     public void getDefaultPermissions_updatedWithNewRealms() {
-        // FIXME Add once `setPermissions` are implemented
+
     }
 
     @Test
