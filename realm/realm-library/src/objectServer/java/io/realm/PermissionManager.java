@@ -62,8 +62,12 @@ public class PermissionManager implements Closeable {
             String userId = syncUser.getIdentity();
             ThreadLocal<Cache> threadLocalCache = cache.get(userId);
             if (threadLocalCache == null) {
-                threadLocalCache = new ThreadLocal<>();
-                threadLocalCache.set(new Cache());
+                threadLocalCache = new ThreadLocal<Cache>() {
+                    @Override
+                    protected Cache initialValue() {
+                        return new Cache();
+                    }
+                };
                 cache.put(userId, threadLocalCache);
             }
             Cache c = threadLocalCache.get();
@@ -322,7 +326,7 @@ public class PermissionManager implements Closeable {
         }
         closed = true;
     }
-    
+
     /**
      * Checks if this PermissionManager is closed or not. If it is closed, all methods will report back an error.
      *
