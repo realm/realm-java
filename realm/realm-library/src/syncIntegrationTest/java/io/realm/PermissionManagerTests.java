@@ -52,13 +52,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Before
     public void setUpTest() {
-        user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        looperThread.runAfterTest(new Runnable() {
-            @Override
-            public void run() {
-                user.logout();
-            }
-        });
+        user = createUniqueUserForTest();
     }
 
     @Test
@@ -352,6 +346,28 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
         // Create dummy task that can trigger the error reporting
         runTask(pm, callback);
+    }
+
+    private SyncUser createUniqueUserForTest() {
+        final SyncUser user = UserFactory.createUniqueUser();
+        looperThread.runAfterTest(new Runnable() {
+            @Override
+            public void run() {
+                user.logout();
+            }
+        });
+        return user;
+    }
+
+    private SyncUser createUserForTest(String username) {
+        final SyncUser user = UserFactory.createUser(username);
+        looperThread.runAfterTest(new Runnable() {
+            @Override
+            public void run() {
+                user.logout();
+            }
+        });
+        return user;
     }
 
     private void setRealmError(PermissionManager pm, String fieldName, ObjectServerError error) throws NoSuchFieldException,
