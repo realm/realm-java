@@ -34,11 +34,11 @@ import static org.junit.Assert.fail;
 public class UserConditionTests {
 
     @Test
-    public void email_nullOrEmptyThrows() {
+    public void username_nullOrEmptyThrows() {
         String[] illegalValues = { null, ""};
         for (String value : illegalValues) {
             try {
-                UserCondition.email(value);
+                UserCondition.username(value);
                 fail();
             } catch (IllegalArgumentException ignore) {
             }
@@ -78,8 +78,8 @@ public class UserConditionTests {
     }
 
     @Test
-    public void email() {
-        UserCondition condition = UserCondition.email("a@b.c");
+    public void username() {
+        UserCondition condition = UserCondition.username("a@b.c");
         assertEquals("a@b.c", condition.getValue());
         assertEquals("email", condition.getKey());
         assertEquals(UserCondition.MatcherType.METADATA, condition.getType());
@@ -111,8 +111,8 @@ public class UserConditionTests {
 
     @Test
     public void equals() {
-        UserCondition c1 = UserCondition.email("a@b.c");
-        UserCondition c2 = UserCondition.email("a@b.c");
+        UserCondition c1 = UserCondition.username("a@b.c");
+        UserCondition c2 = UserCondition.username("a@b.c");
 
         assertTrue(c1.equals(c2));
         assertTrue(c2.equals(c1));
@@ -121,8 +121,8 @@ public class UserConditionTests {
 
     @Test
     public void notEquals() {
-        UserCondition c1 = UserCondition.email("a@b.c");
-        UserCondition c2 = UserCondition.email("a@b.d");
+        UserCondition c1 = UserCondition.username("a@b.c");
+        UserCondition c2 = UserCondition.username("a@b.d");
 
         assertFalse(c1.equals(c2));
         assertFalse(c2.equals(c1));

@@ -380,16 +380,16 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void applyPermissions_withEmail() {
-        String user1Email = TestHelper.getRandomEmail();
-        String user2Email = TestHelper.getRandomEmail();
-        final SyncUser user1 = createUserForTest(user1Email);
-        final SyncUser user2 = createUserForTest(user2Email);
+    public void applyPermissions_withUsername() {
+        String user1Username = TestHelper.getRandomEmail();
+        String user2Username = TestHelper.getRandomEmail();
+        final SyncUser user1 = createUserForTest(user1Username);
+        final SyncUser user2 = createUserForTest(user2Username);
         PermissionManager pm1 = user1.getPermissionManager();
         looperThread.closeAfterTest(pm1);
 
         // Create request for giving `user2` WRITE permissions to `user1`'s Realm.
-        UserCondition condition = UserCondition.email(user2Email);
+        UserCondition condition = UserCondition.username(user2Username);
         AccessLevel accessLevel = AccessLevel.WRITE;
         String url = createRemoteRealm(user1, "test");
         PermissionRequest request = new PermissionRequest(condition, url, accessLevel);

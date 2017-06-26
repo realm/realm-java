@@ -35,16 +35,16 @@ public final class UserCondition {
     private final MatcherType type;
 
     /**
-     * Creates a condition for matching, exactly, a users email. The comparison is case-sensitive and wildcards are
+     * Creates a condition for matching, exactly, a users username. The comparison is case-sensitive and wildcards are
      * not allowed.
      *
-     * @param email exact email to match against.
+     * @param username exact username to match against.
      */
-    public static UserCondition email(String email) {
-        if (Util.isEmptyString(email)) {
-            throw new IllegalArgumentException("Non-empty 'email' required.");
+    public static UserCondition username(String username) {
+        if (Util.isEmptyString(username)) {
+            throw new IllegalArgumentException("Non-empty 'username' required.");
         }
-        return new UserCondition(MatcherType.METADATA, "email", email);
+        return new UserCondition(MatcherType.METADATA, "email", username);
     }
 
     /**
