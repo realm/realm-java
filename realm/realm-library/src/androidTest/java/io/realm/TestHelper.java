@@ -157,7 +157,7 @@ public class TestHelper {
     public static String getRandomEmail() {
         StringBuilder sb = new StringBuilder(UUID.randomUUID().toString().toLowerCase());
         sb.append('@');
-        sb.append("realm.io");
+        sb.append("androidtest.realm.io");
         return sb.toString();
     }
 
