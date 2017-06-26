@@ -33,6 +33,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -53,8 +54,9 @@ import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
-import io.realm.entities.StringOnly;
 import io.realm.internal.Collection;
+import io.realm.internal.OsObject;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
@@ -106,22 +108,185 @@ public class TestHelper {
     }
 
     /**
-     * Creates an empty table with 1 column of all our supported column types, currently 9 columns.
+     * Appends the specified row to the end of the table. For internal testing usage only.
      *
-     * @return
+     * @param table the table where the object to be added.
+     * @param values values.
+     * @return the row index of the appended row.
+     * @deprecated Remove this functions since it doesn't seem to be useful. And this function does deal with tables
+     * with primary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
+     * added.
      */
-    public static Table getTableWithAllColumnTypes() {
-        Table t = new Table();
+    public static long addRowWithValues(Table table, Object... values) {
+        long rowIndex = OsObject.createRow(table);
 
-        t.addColumn(RealmFieldType.BINARY, "binary");
-        t.addColumn(RealmFieldType.BOOLEAN, "boolean");
-        t.addColumn(RealmFieldType.DATE, "date");
-        t.addColumn(RealmFieldType.DOUBLE, "double");
-        t.addColumn(RealmFieldType.FLOAT, "float");
-        t.addColumn(RealmFieldType.INTEGER, "long");
-        t.addColumn(RealmFieldType.STRING, "string");
+        // Checks values types.
+        int columns = (int) table.getColumnCount();
+        if (columns != values.length) {
+            throw new IllegalArgumentException("The number of value parameters (" +
+                    String.valueOf(values.length) +
+                    ") does not match the number of columns in the table (" +
+                    String.valueOf(columns) + ").");
+        }
+        RealmFieldType[] colTypes = new RealmFieldType[columns];
+        for (int columnIndex = 0; columnIndex < columns; columnIndex++) {
+            Object value = values[columnIndex];
+            RealmFieldType colType = table.getColumnType(columnIndex);
+            colTypes[columnIndex] = colType;
+            if (!colType.isValid(value)) {
+                // String representation of the provided value type.
+                String providedType;
+                if (value == null) {
+                    providedType = "null";
+                } else {
+                    providedType = value.getClass().toString();
+                }
 
-        return t;
+                throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
+                        ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
+            }
+        }
+
+        // Inserts values.
+        for (long columnIndex = 0; columnIndex < columns; columnIndex++) {
+            Object value = values[(int) columnIndex];
+            switch (colTypes[(int) columnIndex]) {
+                case BOOLEAN:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setBoolean(columnIndex, rowIndex, (Boolean) value, false);
+                    }
+                    break;
+                case INTEGER:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        long longValue = ((Number) value).longValue();
+                        table.setLong(columnIndex, rowIndex, longValue, false);
+                    }
+                    break;
+                case FLOAT:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setFloat(columnIndex, rowIndex, (Float) value, false);
+                    }
+                    break;
+                case DOUBLE:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setDouble(columnIndex, rowIndex, (Double) value, false);
+                    }
+                    break;
+                case STRING:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setString(columnIndex, rowIndex, (String) value, false);
+                    }
+                    break;
+                case DATE:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setDate(columnIndex, rowIndex, (Date) value, false);
+                    }
+                    break;
+                case BINARY:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setBinaryByteArray(columnIndex, rowIndex, (byte[]) value, false);
+                    }
+                    break;
+                case UNSUPPORTED_MIXED:
+                case UNSUPPORTED_TABLE:
+                default:
+                    throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int) columnIndex]));
+            }
+        }
+        return rowIndex;
+    }
+
+    /**
+     * Creates an empty table whose name is "temp" with 1 column of all our supported column types, currently 7 columns.
+     *
+     * @param sharedRealm A {@link SharedRealm} where the table is created.
+     * @return created table.
+     */
+    public static Table createTableWithAllColumnTypes(SharedRealm sharedRealm) {
+        return createTableWithAllColumnTypes(sharedRealm, "temp");
+    }
+
+    /**
+     * Creates an empty table with 1 column of all our supported column types, currently 7 columns.
+     *
+     * @param sharedRealm A {@link SharedRealm} where the table is created.
+     * @param name name of the table.
+     * @return created table.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static Table createTableWithAllColumnTypes(SharedRealm sharedRealm,
+            @SuppressWarnings("SameParameterValue") String name) {
+        boolean wasInTransaction = sharedRealm.isInTransaction();
+        if (!wasInTransaction) {
+            sharedRealm.beginTransaction();
+        }
+        try {
+            Table t = sharedRealm.createTable(name);
+
+            t.addColumn(RealmFieldType.BINARY, "binary");
+            t.addColumn(RealmFieldType.BOOLEAN, "boolean");
+            t.addColumn(RealmFieldType.DATE, "date");
+            t.addColumn(RealmFieldType.DOUBLE, "double");
+            t.addColumn(RealmFieldType.FLOAT, "float");
+            t.addColumn(RealmFieldType.INTEGER, "long");
+            t.addColumn(RealmFieldType.STRING, "string");
+
+            return t;
+        } catch (RuntimeException e) {
+            if (!wasInTransaction) {
+                sharedRealm.cancelTransaction();
+            }
+            throw e;
+        } finally {
+            if (!wasInTransaction && sharedRealm.isInTransaction()) {
+                sharedRealm.commitTransaction();
+            }
+        }
+    }
+
+    public static Table createTable(SharedRealm sharedRealm, String name) {
+        return createTable(sharedRealm, name, null);
+    }
+
+    public interface AdditionalTableSetup {
+        void execute(Table table);
+    }
+
+    public static Table createTable(SharedRealm sharedRealm, String name, AdditionalTableSetup additionalSetup) {
+        boolean wasInTransaction = sharedRealm.isInTransaction();
+        if (!wasInTransaction) {
+            sharedRealm.beginTransaction();
+        }
+        try {
+            Table table = sharedRealm.createTable(name);
+            if (additionalSetup != null) {
+                additionalSetup.execute(table);
+            }
+            return table;
+        } catch (RuntimeException e) {
+            if (!wasInTransaction) {
+                sharedRealm.cancelTransaction();
+            }
+            throw e;
+        } finally {
+            if (!wasInTransaction && sharedRealm.isInTransaction()) {
+                sharedRealm.commitTransaction();
+            }
+        }
     }
 
     public static String streamToString(InputStream in) throws IOException {
