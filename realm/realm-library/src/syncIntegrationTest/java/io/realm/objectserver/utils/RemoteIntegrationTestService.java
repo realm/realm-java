@@ -24,5 +24,6 @@ public class RemoteIntegrationTestService extends RemoteTestService {
     public RemoteIntegrationTestService() {
         super();
         SyncManager.Debug.skipOnlineChecking = true;
+        SyncManager.Debug.separatedDirForSyncManager = true;
     }
 }

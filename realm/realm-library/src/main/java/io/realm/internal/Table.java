@@ -30,20 +30,6 @@ import io.realm.exceptions.RealmPrimaryKeyConstraintException;
  */
 public class Table implements TableSchema, NativeObject {
 
-    enum PivotType {
-        COUNT(0),
-        SUM(1),
-        AVG(2),
-        MIN(3),
-        MAX(4);
-
-        final int value; // Package protected, accessible from Table
-
-        PivotType(int value) {
-            this.value = value;
-        }
-    }
-
     public static final int TABLE_MAX_LENGTH = 56; // Max length of class names without prefix
     public static final long INFINITE = -1;
     public static final boolean NULLABLE = true;
@@ -65,23 +51,6 @@ public class Table implements TableSchema, NativeObject {
 
     private final SharedRealm sharedRealm;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
-
-    /**
-     * Constructs a Table base object. It can be used to register columns in this table. Registering into table is
-     * allowed only for empty tables. It creates a native reference of the object and keeps a reference to it.
-     */
-    public Table() {
-        this.context = new NativeContext();
-        // Native methods work will be initialized here. Generated classes will
-        // have nothing to do with the native functions. Generated Java Table
-        // classes will work as a wrapper on top of table.
-        this.nativePtr = createNative();
-        if (nativePtr == 0) {
-            throw new java.lang.OutOfMemoryError("Out of native memory.");
-        }
-        this.sharedRealm = null;
-        context.addReference(this);
-    }
 
     Table(Table parent, long nativePointer) {
         this(parent.sharedRealm, nativePointer);
@@ -351,125 +320,6 @@ public class Table implements TableSchema, NativeObject {
         nativeMoveLastOver(nativePtr, rowIndex);
     }
 
-    /**
-     * Adds an empty row to the table which doesn't have a primary key defined.
-     * <p>
-     * NOTE: To add a table with a primary key defined, use {@link #addEmptyRowWithPrimaryKey(Object)} instead. This
-     * won't check if this table has a primary key.
-     *
-     * @return row index.
-     */
-    public long addEmptyRow() {
-        checkImmutable();
-        return nativeAddEmptyRow(nativePtr, 1);
-    }
-
-    @SuppressWarnings("WeakerAccess")
-    public long addEmptyRows(long rows) {
-        checkImmutable();
-        if (rows < 1) {
-            throw new IllegalArgumentException("'rows' must be > 0.");
-        }
-        if (hasPrimaryKey()) {
-            if (rows > 1) {
-                throw new RealmException("Multiple empty rows cannot be created if a primary key is defined for the table.");
-            }
-            return addEmptyRow();
-        }
-        return nativeAddEmptyRow(nativePtr, rows);
-    }
-
-    /**
-     * Appends the specified row to the end of the table. For internal testing usage only.
-     *
-     * @param values values.
-     * @return the row index of the appended row.
-     * @deprecated Remove this functions since it doesn't seem to be useful. And this function does deal with tables
-     * with primary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
-     * added.
-     */
-    protected long add(Object... values) {
-        long rowIndex = addEmptyRow();
-
-        checkImmutable();
-
-        // Checks values types.
-        int columns = (int) getColumnCount();
-        if (columns != values.length) {
-            throw new IllegalArgumentException("The number of value parameters (" +
-                    String.valueOf(values.length) +
-                    ") does not match the number of columns in the table (" +
-                    String.valueOf(columns) + ").");
-        }
-        RealmFieldType[] colTypes = new RealmFieldType[columns];
-        for (int columnIndex = 0; columnIndex < columns; columnIndex++) {
-            Object value = values[columnIndex];
-            RealmFieldType colType = getColumnType(columnIndex);
-            colTypes[columnIndex] = colType;
-            if (!colType.isValid(value)) {
-                // String representation of the provided value type.
-                String providedType;
-                if (value == null) {
-                    providedType = "null";
-                } else {
-                    providedType = value.getClass().toString();
-                }
-
-                throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
-                        ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
-            }
-        }
-
-        // Inserts values.
-        for (long columnIndex = 0; columnIndex < columns; columnIndex++) {
-            Object value = values[(int) columnIndex];
-            switch (colTypes[(int) columnIndex]) {
-                case BOOLEAN:
-                    nativeSetBoolean(nativePtr, columnIndex, rowIndex, (Boolean) value, false);
-                    break;
-                case INTEGER:
-                    if (value == null) {
-                        checkDuplicatedNullForPrimaryKeyValue(columnIndex, rowIndex);
-                        nativeSetNull(nativePtr, columnIndex, rowIndex, false);
-                    } else {
-                        long intValue = ((Number) value).longValue();
-                        checkIntValueIsLegal(columnIndex, rowIndex, intValue);
-                        nativeSetLong(nativePtr, columnIndex, rowIndex, intValue, false);
-                    }
-                    break;
-                case FLOAT:
-                    nativeSetFloat(nativePtr, columnIndex, rowIndex, (Float) value, false);
-                    break;
-                case DOUBLE:
-                    nativeSetDouble(nativePtr, columnIndex, rowIndex, (Double) value, false);
-                    break;
-                case STRING:
-                    if (value == null) {
-                        checkDuplicatedNullForPrimaryKeyValue(columnIndex, rowIndex);
-                        nativeSetNull(nativePtr, columnIndex, rowIndex, false);
-                    } else {
-                        String stringValue = (String) value;
-                        checkStringValueIsLegal(columnIndex, rowIndex, stringValue);
-                        nativeSetString(nativePtr, columnIndex, rowIndex, (String) value, false);
-                    }
-                    break;
-                case DATE:
-                    if (value == null) { throw new IllegalArgumentException("Null Date is not allowed."); }
-                    nativeSetTimestamp(nativePtr, columnIndex, rowIndex, ((Date) value).getTime(), false);
-                    break;
-                case BINARY:
-                    if (value == null) { throw new IllegalArgumentException("Null Array is not allowed"); }
-                    nativeSetByteArray(nativePtr, columnIndex, rowIndex, (byte[]) value, false);
-                    break;
-                case UNSUPPORTED_MIXED:
-                case UNSUPPORTED_TABLE:
-                default:
-                    throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int) columnIndex]));
-            }
-        }
-        return rowIndex;
-    }
-
     private boolean isPrimaryKeyColumn(long columnIndex) {
         return columnIndex == getPrimaryKey();
     }
@@ -569,6 +419,10 @@ public class Table implements TableSchema, NativeObject {
     //
     // Getters
     //
+
+    SharedRealm getSharedRealm() {
+        return sharedRealm;
+    }
 
     public long getLong(long columnIndex, long rowIndex) {
         return nativeGetLong(nativePtr, columnIndex, rowIndex);
@@ -907,18 +761,6 @@ public class Table implements TableSchema, NativeObject {
         return nativeUpperBoundInt(nativePtr, columnIndex, value);
     }
 
-    public Table pivot(long stringCol, long intCol, PivotType pivotType) {
-        if (!this.getColumnType(stringCol).equals(RealmFieldType.STRING)) {
-            throw new UnsupportedOperationException("Group by column must be of type String");
-        }
-        if (!this.getColumnType(intCol).equals(RealmFieldType.INTEGER)) {
-            throw new UnsupportedOperationException("Aggregation column must be of type Int");
-        }
-        Table result = new Table();
-        nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
-        return result;
-    }
-
     //
 
     /**
@@ -1026,8 +868,6 @@ public class Table implements TableSchema, NativeObject {
         return TABLE_PREFIX + name;
     }
 
-    protected native long createNative();
-
     private native boolean nativeIsValid(long nativeTablePtr);
 
     private native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);
@@ -1057,8 +897,6 @@ public class Table implements TableSchema, NativeObject {
     private native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
 
     private native void nativeMoveLastOver(long nativeTablePtr, long rowIndex);
-
-    public static native long nativeAddEmptyRow(long nativeTablePtr, long rows);
 
     private native long nativeGetSortedViewMulti(long nativeTableViewPtr, long[] columnIndices, boolean[] ascending);
 
@@ -1156,8 +994,6 @@ public class Table implements TableSchema, NativeObject {
     private native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
 
     private native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);
-
-    private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long resultPtr);
 
     private native String nativeGetName(long nativeTablePtr);
 

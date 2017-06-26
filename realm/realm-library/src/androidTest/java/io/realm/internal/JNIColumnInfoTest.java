@@ -20,11 +20,15 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
+import io.realm.TestHelper;
+import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.TestCase.assertEquals;
 
@@ -32,14 +36,28 @@ import static junit.framework.TestCase.assertEquals;
 @RunWith(AndroidJUnit4.class)
 public class JNIColumnInfoTest {
 
-    Table table;
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private RealmConfiguration config;
+    @SuppressWarnings("FieldCanBeLocal")
+    private SharedRealm sharedRealm;
+    private Table table;
 
     @Before
     public void setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
-        table = new Table();
-        table.addColumn(RealmFieldType.STRING, "firstName");
-        table.addColumn(RealmFieldType.STRING, "lastName");
+        config = configFactory.createConfiguration();
+        sharedRealm = SharedRealm.getInstance(config);
+
+        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+            @Override
+            public void execute(Table table) {
+                table.addColumn(RealmFieldType.STRING, "firstName");
+                table.addColumn(RealmFieldType.STRING, "lastName");
+            }
+        });
     }
 
     @Test

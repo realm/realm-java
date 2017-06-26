@@ -32,7 +32,7 @@ import org.json.JSONObject;
 
 @SuppressWarnings("all")
 public class AllTypesRealmProxy extends some.test.AllTypes
-    implements RealmObjectProxy, AllTypesRealmProxyInterface {
+        implements RealmObjectProxy, AllTypesRealmProxyInterface {
 
     static final class AllTypesColumnInfo extends ColumnInfo {
         long columnStringIndex;
@@ -576,7 +576,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     @SuppressWarnings("cast")
     public static some.test.AllTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-        throws JSONException {
+            throws JSONException {
         final List<String> excludeFields = new ArrayList<String>(2);
         some.test.AllTypes obj = null;
         if (update) {
@@ -688,7 +688,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     @SuppressWarnings("cast")
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.AllTypes createUsingJsonStream(Realm realm, JsonReader reader)
-        throws IOException {
+            throws IOException {
         boolean jsonHasPrimaryKey = false;
         some.test.AllTypes obj = new some.test.AllTypes();
         reader.beginObject();
@@ -893,7 +893,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
         if (rowIndex == Table.NO_MATCH) {
-            rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, primaryKeyValue);
+            rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue);
         } else {
             Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
         }
@@ -958,7 +958,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
             }
             if (rowIndex == Table.NO_MATCH) {
-                rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, primaryKeyValue);
+                rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue);
             } else {
                 Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
             }
@@ -1015,7 +1015,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
         if (rowIndex == Table.NO_MATCH) {
-            rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, primaryKeyValue);
+            rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue);
         }
         cache.put(object, rowIndex);
         Table.nativeSetLong(tableNativePtr, columnInfo.columnLongIndex, rowIndex, ((AllTypesRealmProxyInterface) object).realmGet$columnLong(), false);
@@ -1085,7 +1085,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
             }
             if (rowIndex == Table.NO_MATCH) {
-                rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, primaryKeyValue);
+                rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue);
             }
             cache.put(object, rowIndex);
             Table.nativeSetLong(tableNativePtr, columnInfo.columnLongIndex, rowIndex, ((AllTypesRealmProxyInterface) object).realmGet$columnLong(), false);

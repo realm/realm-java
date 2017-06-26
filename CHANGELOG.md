@@ -1,9 +1,44 @@
-## 3.4.0 (YYYY-MM-DD)
+## 3.5.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+### Credits
+
+
+## 3.4.1 (YYYY-MM-DD)
+
+### Breaking Changes
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+* Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.
+
+
+
+## 3.4.0 (2017-06-22)
 
 ### Breaking Changes
 
 * [ObjectServer] Updated protocol version to 18 which is only compatible with ROS > 1.6.0.
 * An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required model classes (#3398).
+
+### Deprecated
+
+* `RealmSchema.close()` and `RealmObjectSchema.close()`. They don't need to be closed manually. They were added to the public API by mistake.
 
 ### Enhancements
 
@@ -16,6 +51,9 @@
 ### Bug Fixes
 
 * [ObjectServer] Fixed a bug which may crash when the JNI local reference limitation was reached on sync client thread.
+* [ObjectServer] Retrying connections with exponential backoff, when encountering `ConnectException` (#4310).
+* When converting nullable BLOB field to required, `null` values should be converted to `byte[0]` instead of `byte[1]`.
+* Fixed a bug which may cause duplicated primary key values when migrating a nullable primary key field to not nullable. `RealmObjectSchema.setRequired()` and `RealmObjectSchema.setNullable()` will throw when converting a nullable primary key field with null values stored to a required primary key field.
 
 ### Internal
 
@@ -26,19 +64,6 @@
 
 * Thanks to Anis Ben Nsir (@abennsir) for upgrading Roboelectric in the unitTestExample (#4698).
 
-## 3.3.3 (YYYY-MM-DD)
-
-### Breaking Changes
-
-### Enhancements
-
-### Bug Fixes
-
-* When converting nullable BLOB field to required, `null` values should be converted to `byte[0]` instead of `byte[1]`.
-* Fixed a bug which may cause duplicated primary key values when migrating a nullable primary key field to not nullable. `RealmObjectSchema.setRequired()` and `RealmObjectSchema.setNullable()` will throw when converting a nullable primary key field with null values stored to a required primary key field.
-* [ObjectServer] Retrying connections with exponential backoff, when encountering `ConnectException` (#4310).
-
-### Internal
 
 ## 3.3.2 (2017-06-09)
 

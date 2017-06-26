@@ -1502,10 +1502,10 @@ public class RealmProxyClassGenerator {
             writer.beginControlFlow("if (rowIndex == Table.NO_MATCH)");
             if (Utils.isString(metadata.getPrimaryKey())) {
                 writer.emitStatement(
-                        "rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, primaryKeyValue)");
+                        "rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue)");
             } else {
                 writer.emitStatement(
-                        "rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, ((%s) object).%s())",
+                        "rowIndex = OsObject.createRowWithPrimaryKey(table, ((%s) object).%s())",
                         interfaceName, primaryKeyGetter);
             }
 
@@ -1517,7 +1517,7 @@ public class RealmProxyClassGenerator {
             writer.endControlFlow();
             writer.emitStatement("cache.put(object, rowIndex)");
         } else {
-            writer.emitStatement("long rowIndex = OsObject.createRow(realm.sharedRealm, table)");
+            writer.emitStatement("long rowIndex = OsObject.createRow(table)");
             writer.emitStatement("cache.put(object, rowIndex)");
         }
     }
