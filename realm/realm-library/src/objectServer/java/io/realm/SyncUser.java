@@ -531,6 +531,7 @@ public class SyncUser {
      * @return
      */
     public PermissionManager getPermissionManager() {
+        new AndroidCapabilities().checkCanDeliverNotification("The PermissionManager can only opened on a Looper thread.");
         return PermissionManager.getInstance(this);
     }
 
