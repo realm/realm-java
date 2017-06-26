@@ -82,7 +82,7 @@ public class SyncManager {
                 return;
             }
 
-            String errorMsg = String.format(Locale.ENGLISH, "Session Error[%s]: %s",
+            String errorMsg = String.format(Locale.US, "Session Error[%s]: %s",
                     session.getConfiguration().getServerUrl(),
                     error.toString());
             switch (error.getErrorCode().getCategory()) {

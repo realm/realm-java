@@ -277,7 +277,7 @@ public final class RealmLog {
 
         StringBuilder stringBuilder = new StringBuilder();
         if (args != null && args.length > 0) {
-            message = String.format(Locale.ENGLISH, message, args);
+            message = String.format(Locale.US, message, args);
         }
         if (throwable != null) {
             stringBuilder.append(Log.getStackTraceString(throwable));

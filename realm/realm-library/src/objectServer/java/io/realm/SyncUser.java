@@ -76,7 +76,7 @@ public class SyncUser {
                                 if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
                                     RealmLog.error("Client Reset required for user's management Realm: " + user.toString());
                                 } else {
-                                    RealmLog.error(String.format(Locale.ENGLISH,
+                                    RealmLog.error(String.format(Locale.US,
                                             "Unexpected error with %s's management Realm: %s",
                                             user.getIdentity(),
                                             error.toString()));

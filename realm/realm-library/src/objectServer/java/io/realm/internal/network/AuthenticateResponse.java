@@ -133,14 +133,14 @@ public class AuthenticateResponse extends AuthServerResponse {
             if (accessToken == null) {
                 message = "accessToken = null";
             } else {
-                message = String.format(Locale.ENGLISH, "Identity %s; Path %s", accessToken.identity(), accessToken.path());
+                message = String.format(Locale.US, "Identity %s; Path %s", accessToken.identity(), accessToken.path());
             }
         } catch (JSONException ex) {
             accessToken = null;
             refreshToken = null;
             //noinspection ThrowableInstanceNeverThrown
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, ex);
-            message = String.format(Locale.ENGLISH, "Error %s", error.getErrorMessage());
+            message = String.format(Locale.US, "Error %s", error.getErrorMessage());
         }
         RealmLog.debug("AuthenticateResponse. " + message);
         setError(error);

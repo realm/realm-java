@@ -274,7 +274,7 @@ public abstract class FieldDescriptor {
 
     private void verifyColumnType(String tableName, String columnName, RealmFieldType columnType, Set<RealmFieldType> validTypes) {
         if (!validTypes.contains(columnType)) {
-            throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+            throw new IllegalArgumentException(String.format(Locale.US,
                     "Invalid query: field '%s' in table '%s' is of invalid type '%s'.",
                     columnName, tableName, columnType.toString()));
         }

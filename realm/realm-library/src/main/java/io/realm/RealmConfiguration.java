@@ -323,7 +323,7 @@ public class RealmConfiguration {
     private static RealmProxyMediator getModuleMediator(String fullyQualifiedModuleClassName) {
         String[] moduleNameParts = fullyQualifiedModuleClassName.split("\\.");
         String moduleSimpleName = moduleNameParts[moduleNameParts.length - 1];
-        String mediatorName = String.format(Locale.ENGLISH, "io.realm.%s%s", moduleSimpleName, "Mediator");
+        String mediatorName = String.format(Locale.US, "io.realm.%s%s", moduleSimpleName, "Mediator");
         Class<?> clazz;
         //noinspection TryWithIdenticalCatches
         try {
@@ -501,7 +501,7 @@ public class RealmConfiguration {
                 throw new IllegalArgumentException("A non-null key must be provided");
             }
             if (key.length != KEY_LENGTH) {
-                throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                throw new IllegalArgumentException(String.format(Locale.US,
                         "The provided key must be %s bytes. Yours was: %s",
                         KEY_LENGTH, key.length));
             }

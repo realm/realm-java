@@ -1601,7 +1601,7 @@ public class RealmQuery<E extends RealmModel> {
             case DOUBLE:
                 return query.sumDouble(columnIndex);
             default:
-                throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }
@@ -1628,7 +1628,7 @@ public class RealmQuery<E extends RealmModel> {
             case FLOAT:
                 return query.averageFloat(columnIndex);
             default:
-                throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }
@@ -1654,7 +1654,7 @@ public class RealmQuery<E extends RealmModel> {
             case DOUBLE:
                 return this.query.minimumDouble(columnIndex);
             default:
-                throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }
@@ -1696,7 +1696,7 @@ public class RealmQuery<E extends RealmModel> {
             case DOUBLE:
                 return this.query.maximumDouble(columnIndex);
             default:
-                throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }

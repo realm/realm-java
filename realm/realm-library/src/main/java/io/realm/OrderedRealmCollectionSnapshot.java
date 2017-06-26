@@ -130,7 +130,7 @@ public class OrderedRealmCollectionSnapshot<E extends RealmModel> extends Ordere
 
     private UnsupportedOperationException getUnsupportedException(String methodName) {
         return new UnsupportedOperationException(
-                String.format(Locale.ENGLISH, "'%s()' is not supported by OrderedRealmCollectionSnapshot. " +
+                String.format(Locale.US, "'%s()' is not supported by OrderedRealmCollectionSnapshot. " +
                         "Call '%s()' on the original 'RealmCollection' instead.", methodName, methodName));
     }
 

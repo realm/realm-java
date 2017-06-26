@@ -408,12 +408,12 @@ public class Realm extends BaseRealm {
                     realm.doClose();
                     throw new RealmMigrationNeededException(
                             configuration.getPath(),
-                            String.format(Locale.ENGLISH, "Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
+                            String.format(Locale.US, "Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
                 }
                 if (requiredVersion < currentVersion) {
                     realm.doClose();
                     throw new IllegalArgumentException(
-                            String.format(Locale.ENGLISH, "Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
+                            String.format(Locale.US, "Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
                 }
             }
 
@@ -999,7 +999,7 @@ public class Realm extends BaseRealm {
         Table table = schema.getTable(clazz);
         // Checks and throws the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
-            throw new RealmException(String.format(Locale.ENGLISH, "'%s' has a primary key, use" +
+            throw new RealmException(String.format(Locale.US, "'%s' has a primary key, use" +
                     " 'createObject(Class<E>, Object)' instead.", table.getClassName()));
         }
         return configuration.getSchemaMediator().newInstance(clazz, this,

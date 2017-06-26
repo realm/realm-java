@@ -107,7 +107,7 @@ public class DynamicRealm extends BaseRealm {
         Table table = schema.getTable(className);
         // Check and throw the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
-            throw new RealmException(String.format(Locale.ENGLISH,
+            throw new RealmException(String.format(Locale.US,
                     "'%s' has a primary key, use" +
                     " 'createObject(String, Object)' instead.", className));
         }

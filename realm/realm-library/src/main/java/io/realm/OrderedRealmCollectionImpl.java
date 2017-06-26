@@ -247,7 +247,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         }
         long columnIndex = collection.getTable().getColumnIndex(fieldName);
         if (columnIndex < 0) {
-            throw new IllegalArgumentException(String.format(Locale.ENGLISH, "Field '%s' does not exist.", fieldName));
+            throw new IllegalArgumentException(String.format(Locale.US, "Field '%s' does not exist.", fieldName));
         }
         return columnIndex;
     }

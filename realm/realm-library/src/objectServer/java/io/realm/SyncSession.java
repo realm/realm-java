@@ -637,7 +637,7 @@ public class SyncSession {
         public void throwExceptionIfNeeded() {
             if (resultReceived && errorCode != null) {
                 throw new ObjectServerError(ErrorCode.UNKNOWN,
-                        String.format(Locale.ENGLISH, "Internal error (%d): %s", errorCode, errorMessage));
+                        String.format(Locale.US, "Internal error (%d): %s", errorCode, errorMessage));
             }
         }
     }

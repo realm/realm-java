@@ -65,7 +65,7 @@ class DynamicFieldDescriptor extends FieldDescriptor {
             columnIndex = currentTable.getColumnIndex(columnName);
             if (columnIndex < 0) {
                 throw new IllegalArgumentException(
-                        String.format(Locale.ENGLISH, "Invalid query: field '%s' not found in table '%s'.", columnName, tableName));
+                        String.format(Locale.US, "Invalid query: field '%s' not found in table '%s'.", columnName, tableName));
             }
 
             columnType = currentTable.getColumnType(columnIndex);

@@ -104,7 +104,7 @@ public class SortDescriptor {
     // could do this in the field descriptor, but this provides a better error message
     private static void checkFieldType(FieldDescriptor descriptor, Set<RealmFieldType> legalTerminalTypes, String message, String fieldDescriptions) {
         if (!legalTerminalTypes.contains(descriptor.getFinalColumnType())) {
-            throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+            throw new IllegalArgumentException(String.format(Locale.US,
                     "%s on '%s' field '%s' in '%s'.", message, descriptor.getFinalColumnType(), descriptor.getFinalColumnName(), fieldDescriptions));
         }
     }

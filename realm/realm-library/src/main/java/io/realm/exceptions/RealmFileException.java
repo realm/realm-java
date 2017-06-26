@@ -120,6 +120,6 @@ public class RealmFileException extends RuntimeException {
 
     @Override
     public String toString() {
-        return String.format(Locale.ENGLISH, "%s Kind: %s.", super.toString(), kind);
+        return String.format(Locale.US, "%s Kind: %s.", super.toString(), kind);
     }
 }

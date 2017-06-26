@@ -255,7 +255,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
                         return object;
                     } else {
                         // Different target table
-                        throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                        throw new IllegalArgumentException(String.format(Locale.US,
                                 "The object has a different type from list's." +
                                 " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
                     }

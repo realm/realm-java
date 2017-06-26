@@ -70,13 +70,13 @@ class CachedFieldDescriptor extends FieldDescriptor {
             tableInfo = schema.getColumnInfo(currentTable);
             if (tableInfo == null) {
                 throw new IllegalArgumentException(
-                        String.format(Locale.ENGLISH, "Invalid query: table '%s' not found in this schema.", currentTable));
+                        String.format(Locale.US, "Invalid query: table '%s' not found in this schema.", currentTable));
             }
 
             columnIndex = tableInfo.getColumnIndex(columnName);
             if (columnIndex < 0) {
                 throw new IllegalArgumentException(
-                        String.format(Locale.ENGLISH, "Invalid query: field '%s' not found in table '%s'.", columnName, currentTable));
+                        String.format(Locale.US, "Invalid query: field '%s' not found in table '%s'.", columnName, currentTable));
             }
 
             columnType = tableInfo.getColumnType(columnName);
