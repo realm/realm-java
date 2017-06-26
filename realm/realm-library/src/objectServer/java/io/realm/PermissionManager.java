@@ -63,11 +63,16 @@ public class PermissionManager implements Closeable {
      */
     static PermissionManager getInstance(SyncUser syncUser) {
         synchronized (cacheLock) {
-            ThreadLocal<Cache> threadLocalCache = cache.get(syncUser.getIdentity());
+            String userId = syncUser.getIdentity();
+            ThreadLocal<Cache> threadLocalCache = cache.get(userId);
             if (threadLocalCache == null) {
-                threadLocalCache = new ThreadLocal<>();
-                threadLocalCache.set(new Cache());
-                cache.put(syncUser.getIdentity(), threadLocalCache);
+                threadLocalCache = new ThreadLocal<Cache>() {
+                    @Override
+                    protected Cache initialValue() {
+                        return new Cache();
+                    }
+                };
+                cache.put(userId, threadLocalCache);
             }
             Cache c = threadLocalCache.get();
             if (c.instanceCounter == 0) {

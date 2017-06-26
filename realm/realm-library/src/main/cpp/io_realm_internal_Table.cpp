@@ -101,40 +101,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnLink(JNIEnv*
 }
 
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativePivot(JNIEnv* env, jobject, jlong dataTablePtr,
-                                                                jlong stringCol, jlong intCol, jint operation,
-                                                                jlong resultTablePtr)
-{
-    Table* dataTable = TBL(dataTablePtr);
-    Table* resultTable = TBL(resultTablePtr);
-    Table::AggrType pivotOp;
-    switch (operation) {
-        case 0:
-            pivotOp = Table::aggr_count;
-            break;
-        case 1:
-            pivotOp = Table::aggr_sum;
-            break;
-        case 2:
-            pivotOp = Table::aggr_avg;
-            break;
-        case 3:
-            pivotOp = Table::aggr_min;
-            break;
-        case 4:
-            pivotOp = Table::aggr_max;
-            break;
-        default:
-            ThrowException(env, UnsupportedOperation, "No pivot operation specified.");
-            return;
-    }
-
-    try {
-        dataTable->aggregate(S(stringCol), S(intCol), pivotOp, *resultTable);
-    }
-    CATCH_STD()
-}
-
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveColumn(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                        jlong columnIndex)
 {
@@ -527,24 +493,6 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv* 
 
 
 // ---------------- Row handling
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddEmptyRow(JNIEnv* env, jclass, jlong nativeTablePtr,
-                                                                       jlong rows)
-{
-    Table* pTable = TBL(nativeTablePtr);
-    if (!TABLE_VALID(env, pTable)) {
-        return 0;
-    }
-    if (pTable->get_column_count() < 1) {
-        ThrowException(env, IndexOutOfBounds, concat_stringdata("Table has no columns: ", pTable->get_name()));
-        return 0;
-    }
-    try {
-        return static_cast<jlong>(pTable->add_empty_row(S(rows)));
-    }
-    CATCH_STD()
-    return 0;
-}
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMoveLastOver(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                        jlong rowIndex)
@@ -1302,16 +1250,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(JNIEnv*, j
 {
     TR_ENTER_PTR(nativeTablePtr)
     return to_jbool(TBL(nativeTablePtr)->is_attached()); // noexcept
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv* env, jobject)
-{
-    TR_ENTER()
-    try {
-        return reinterpret_cast<jlong>(LangBindHelper::new_table());
-    }
-    CATCH_STD()
-    return 0;
 }
 
 // Checks if the primary key column contains any duplicate values, making it ineligible as a

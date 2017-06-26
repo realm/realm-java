@@ -465,28 +465,6 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         });
     }
 
-    private SyncUser createUniqueUserForTest() {
-        final SyncUser user = UserFactory.createUniqueUser();
-        looperThread.runAfterTest(new Runnable() {
-            @Override
-            public void run() {
-                user.logout();
-            }
-        });
-        return user;
-    }
-
-    private SyncUser createUserForTest(String username) {
-        final SyncUser user = UserFactory.createUser(username);
-        looperThread.runAfterTest(new Runnable() {
-            @Override
-            public void run() {
-                user.logout();
-            }
-        });
-        return user;
-    }
-
     /**
      * Wait for a given permission to be present.
      *
@@ -516,6 +494,28 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                 }
             }
         });
+    }
+
+    private SyncUser createUniqueUserForTest() {
+        final SyncUser user = UserFactory.createUniqueUser();
+        looperThread.runAfterTest(new Runnable() {
+            @Override
+            public void run() {
+                user.logout();
+            }
+        });
+        return user;
+    }
+
+    private SyncUser createUserForTest(String username) {
+        final SyncUser user = UserFactory.createUser(username);
+        looperThread.runAfterTest(new Runnable() {
+            @Override
+            public void run() {
+                user.logout();
+            }
+        });
+        return user;
     }
 
     private void setRealmError(PermissionManager pm, String fieldName, ObjectServerError error) throws NoSuchFieldException,

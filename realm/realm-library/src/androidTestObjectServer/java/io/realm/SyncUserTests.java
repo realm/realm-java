@@ -44,6 +44,7 @@ import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
 
+import static io.realm.util.SyncTestUtils.createNamedTestUser;
 import static io.realm.util.SyncTestUtils.createTestAdminUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
@@ -370,5 +371,35 @@ public class SyncUserTests {
         pm1.close();
         assertTrue(pm1.isClosed());
         looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getPermissionManger_instanceUniqueToUser() {
+        SyncUser user1 = createNamedTestUser("user1");
+        SyncUser user2 = createNamedTestUser("user2");
+        PermissionManager pm1 = user1.getPermissionManager();
+        PermissionManager pm2 = user2.getPermissionManager();
+
+        try {
+            assertFalse(pm1 == pm2);
+            assertFalse(pm1.equals(pm2));
+            looperThread.testComplete();
+        } finally {
+            pm1.close();
+            pm2.close();
+            user1.logout();
+            user2.logout();
+        }
+    }
+
+    @Test
+    public void getPermissionManager_throwOnNonLooperThread() {
+        SyncUser user = createTestUser();
+        try {
+            user.getPermissionManager();
+            fail();
+        } catch (IllegalStateException e) {
+        }
     }
 }
