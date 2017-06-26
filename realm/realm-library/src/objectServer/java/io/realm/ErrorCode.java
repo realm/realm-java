@@ -118,7 +118,7 @@ public enum ErrorCode {
         return category;
     }
 
-    public static ErrorCode fromInt(int errorCode) {1
+    public static ErrorCode fromInt(int errorCode) {
         ErrorCode[] errorCodes = values();
         for (int i = 0; i < errorCodes.length; i++) {
             ErrorCode error = errorCodes[i];
