@@ -29,11 +29,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import io.realm.internal.Util;
 import io.realm.internal.permissions.BasePermissionApi;
 import io.realm.internal.permissions.ManagementModule;
 import io.realm.internal.permissions.PermissionChange;
 import io.realm.internal.permissions.PermissionModule;
 import io.realm.internal.permissions.PermissionOffer;
+import io.realm.internal.permissions.PermissionOfferResponse;
 import io.realm.log.RealmLog;
 import io.realm.permissions.Permission;
 import io.realm.permissions.PermissionRequest;
@@ -234,13 +236,20 @@ public class PermissionManager implements Closeable {
     }
 
     /**
-     * FIXME
-     * @param offerToken
-     * @param callback
-     * @return
+     * Accepts a permission offer sent by another user. Once this offer is accepted successfully, the permissions
+     * described by the token will be granted.
+     *
+     * @param offerToken token representing the permission offer.
+     * @param callback with the permission details that were accepted.
+     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
      */
-    public RealmAsyncTask acceptOffer(String offerToken, final Callback<Void> callback) {
-        return null; // FIXME
+    public RealmAsyncTask acceptOffer(String offerToken, final Callback<Permission> callback) {
+        checkIfValidThread();
+        checkCallbackNotNull(callback);
+        if (Util.isEmptyString(offerToken)) {
+            throw new IllegalArgumentException("Non-empty 'offerToken' required.");
+        }
+        return addTask(new AcceptOfferAsyncTask(this, offerToken, callback));
     }
 
     /**
@@ -591,12 +600,112 @@ public class PermissionManager implements Closeable {
                     managedOffer = managementRealm.where(PermissionOffer.class).equalTo("id", offerId).findFirstAsync();
                     managedOffer.addChangeListener(new RealmChangeListener<PermissionOffer>() {
                         @Override
-                        public void onChange(PermissionOffer permissionOffer) {
+                        public void onChange(final PermissionOffer permissionOffer) {
                             if (checkAndReportInvalidState()) {
                                 managedOffer.removeChangeListener(this);
                                 return;
                             }
-                            handleServerStatusChanges(permissionOffer, permissionOffer.getToken());
+                            handleServerStatusChanges(permissionOffer, new Runnable() {
+                                @Override
+                                public void run() {
+                                    notifyCallbackWithSuccess(permissionOffer.getToken());
+                                }
+                            });
+                        }
+                    });
+                }
+            };
+
+            // Critical error: The PermissionChange could not be written to the Realm.
+            // Report it back to the user.
+            Realm.Transaction.OnError onError = new Realm.Transaction.OnError() {
+                @Override
+                public void onError(Throwable error) {
+                    if (checkAndReportInvalidState()) { return; }
+                    notifyCallbackError(new ObjectServerError(ErrorCode.UNKNOWN, error));
+                }
+            };
+
+            // Run
+            transactionTask = managementRealm.executeTransactionAsync(transaction, onSuccess, onError);
+        }
+
+        @Override
+        public void cancel() {
+            super.cancel();
+            if (transactionTask != null) {
+                transactionTask.cancel();
+                transactionTask = null;
+            }
+        }
+    }
+
+    private class AcceptOfferAsyncTask extends AsyncTask<Permission> {
+
+        private final PermissionOfferResponse unmanagedResponse;
+        private final String responseId;
+        private PermissionOfferResponse managedResponse;
+        private RealmAsyncTask transactionTask;
+        public RealmResults<Permission> grantedPermissionResults;
+
+        public AcceptOfferAsyncTask(PermissionManager permissionManager, String offerToken, Callback<Permission> callback) {
+            super(permissionManager, callback);
+            this.unmanagedResponse = new PermissionOfferResponse(offerToken);
+            this.responseId = unmanagedResponse.getId();
+        }
+
+        @Override
+        public void run() {
+            if (checkAndReportInvalidState()) {
+                return;
+            }
+
+            // Save response object. It will be synchronized to the server where it will be processed.
+            Realm.Transaction transaction = new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    if (checkAndReportInvalidState()) { return; }
+                    realm.insertOrUpdate(unmanagedResponse);
+                }
+            };
+
+            // If the response was successfully written to Realm, we need to wait for it to be processed.
+            // Register a ChangeListener on the object and wait for the proper response code, which can then be
+            // converted to a proper response to the user.
+            Realm.Transaction.OnSuccess onSuccess = new Realm.Transaction.OnSuccess() {
+                @Override
+                public void onSuccess() {
+                    if (checkAndReportInvalidState()) { return; }
+                    RealmLog.error("Response written");
+
+                    // Find PermissionOffer object we just added
+                    // Wait for it to be processed
+                    managedResponse = managementRealm.where(PermissionOfferResponse.class).equalTo("id", responseId).findFirstAsync();
+                    managedResponse.addChangeListener(new RealmChangeListener<PermissionOfferResponse>() {
+                        @Override
+                        public void onChange(final PermissionOfferResponse response) {
+                            RealmLog.error("Change detected : " + response);
+                            if (checkAndReportInvalidState()) {
+                                managedResponse.removeChangeListener(this);
+                                return;
+                            }
+                            handleServerStatusChanges(response, new Runnable() {
+                                @Override
+                                public void run() {
+                                    RealmLog.error(response.toString());
+                                    managedResponse.removeAllChangeListeners();
+                                    grantedPermissionResults = permissionRealm.where(Permission.class).equalTo("path", response.getRealmUrl()).findAllAsync();
+                                    grantedPermissionResults.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
+                                        @Override
+                                        public void onChange(RealmResults<Permission> permissions) {
+                                            grantedPermissionResults.removeChangeListener(this);
+                                            if (!permissions.isEmpty()) {
+                                                notifyCallbackWithSuccess(permissions.first());
+                                            }
+                                        }
+                                    });
+                                }
+                            });
                         }
                     });
                 }
@@ -710,7 +819,7 @@ public class PermissionManager implements Closeable {
         /**
          * Handle the status change from ROS and either call error or success callbacks.
          */
-        protected void handleServerStatusChanges(BasePermissionApi permissionOffer, T resultOnSuccess) {
+        protected void handleServerStatusChanges(BasePermissionApi permissionOffer, Runnable onSuccessDelegate) {
             Integer statusCode = permissionOffer.getStatusCode();
             if (statusCode != null) {
                 if (statusCode > 0) {
@@ -719,7 +828,7 @@ public class PermissionManager implements Closeable {
                     ObjectServerError error = new ObjectServerError(errorCode, errorMsg);
                     notifyCallbackError(error);
                 } else if (statusCode == 0) {
-                    notifyCallbackWithSuccess(resultOnSuccess);
+                    onSuccessDelegate.run();
                 } else {
                     ErrorCode errorCode = ErrorCode.UNKNOWN;
                     String errorMsg = "Illegal status code: " + statusCode;

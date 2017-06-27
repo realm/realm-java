@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
@@ -30,15 +32,17 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Util;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
-import io.realm.permissions.PermissionOfferRequest;
-import io.realm.permissions.UserCondition;
 import io.realm.permissions.Permission;
+import io.realm.permissions.PermissionOfferRequest;
 import io.realm.permissions.PermissionRequest;
+import io.realm.permissions.UserCondition;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
@@ -514,6 +518,109 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         });
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void acceptOffer() {
+        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
+
+        final SyncUser user2 = createUniqueUserForTest();
+        final PermissionManager pm = user2.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        pm.acceptOffer(offerToken, new PermissionManager.Callback<Permission>() {
+            @Override
+            public void onSuccess(Permission permission) {
+                RealmLog.error("Offer accepted");
+                assertEquals(user.getIdentity() + "/test", permission.getPath());
+                assertTrue(permission.mayRead());
+                assertTrue(permission.mayWrite());
+                assertFalse(permission.mayManage());
+                assertEquals(user2.getIdentity(), permission.getUserId());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void acceptOffer_invalidToken() {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.acceptOffer("wrong-token", new PermissionManager.Callback<Permission>() {
+            @Override
+            public void onSuccess(Permission permission) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.INVALID_PARAMETERS, error.getErrorCode());
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void acceptOffer_expiredThrows() {
+        looperThread.testComplete();
+
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void acceptOffer_multipleUsers() {
+        looperThread.testComplete();
+    }
+
+    /**
+     * Creates a offer for a newly created Realm.
+     *
+     * @param user User that should create the offer
+     * @param realmName Realm to create
+     * @param level accessLevel to offer
+     * @param expires when the offer expires
+     * @return
+     */
+    private String createOffer(final SyncUser user, final String realmName, final AccessLevel level, final Date expires) {
+        final CountDownLatch offerReady = new CountDownLatch(1);
+        final AtomicReference<String> offer = new AtomicReference<>(null);
+        final HandlerThread ht = new HandlerThread("OfferThread");
+        ht.start();
+        Handler handler = new Handler(ht.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                RealmLog.error("Make offer");
+                String url = createRemoteRealm(user, realmName);
+                final PermissionManager pm = user.getPermissionManager();
+                pm.makeOffer(new PermissionOfferRequest(url, level, expires), new PermissionManager.Callback<String>() {
+                    @Override
+                    public void onSuccess(String offerToken) {
+                        RealmLog.error("Offer: " + offerToken);
+                        offer.set(offerToken);
+                        pm.close();
+                        offerReady.countDown();
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        pm.close();
+                        fail(error.toString());
+                    }
+                });
+            }
+        });
+        TestHelper.awaitOrFail(offerReady);
+        ht.quit();
+        return offer.get();
+    }
+
     /**
      * Wait for a given permission to be present.
      *
@@ -627,4 +734,5 @@ public class PermissionManagerTests extends BaseIntegrationTest {
             fail("Permission Realm contains unknown permissions: " + Arrays.toString(permissions.toArray()));
         }
     }
+
 }
