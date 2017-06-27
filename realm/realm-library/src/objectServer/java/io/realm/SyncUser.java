@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -75,7 +76,8 @@ public class SyncUser {
                                 if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
                                     RealmLog.error("Client Reset required for user's management Realm: " + user.toString());
                                 } else {
-                                    RealmLog.error(String.format("Unexpected error with %s's management Realm: %s",
+                                    RealmLog.error(String.format(Locale.US,
+                                            "Unexpected error with %s's management Realm: %s",
                                             user.getIdentity(),
                                             error.toString()));
                                 }

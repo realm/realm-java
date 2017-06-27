@@ -42,7 +42,7 @@ package io.realm;
  *     }
  *
  *     if (oldVersion < newVersion) {
- *         throw new IllegalStateException(String.format("Migration missing from v%d to v%d", oldVersion, newVersion));
+ *         throw new IllegalStateException(String.format(Locale.US, "Migration missing from v%d to v%d", oldVersion, newVersion));
  *     }
  *   }
  * }
