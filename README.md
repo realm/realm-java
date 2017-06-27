@@ -80,7 +80,7 @@ You may unzip the file wherever you choose.  For OSX, a suggested location is `~
     export ANDROID_NDK_HOME=~/Library/Android/android-ndk-r10e
     ```
 
- * If you will be launching Android Studio from the OS X Finder, you should also run the following two commands:
+ * If you will be launching Android Studio from the macOS Finder, you should also run the following two commands:
 
     ```
     launchctl setenv ANDROID_HOME "$ANDROID_HOME"
@@ -93,13 +93,13 @@ You may unzip the file wherever you choose.  For OSX, a suggested location is `~
    export REALM_CORE_DOWNLOAD_DIR=~/.realmCore
    ```
 
-   OS X users must also run the following command in order for Android Studio to see this environment variable..
+   macOS users must also run the following command in order for Android Studio to see this environment variable..
 
    ```
    launchctl setenv REALM_CORE_DOWNLOAD_DIR "$REALM_CORE_DOWNLOAD_DIR"
    ```
 
-It would be a good idea to add all of the symbol definitions (and their accompanying `launchctl` commands, if you are using OS X) to your `~/.profile` (or `~/.zprofile` if the login shell is `zsh`)
+It would be a good idea to add all of the symbol definitions (and their accompanying `launchctl` commands, if you are using macOS) to your `~/.profile` (or `~/.zprofile` if the login shell is `zsh`)
 
 
 ### Download sources
