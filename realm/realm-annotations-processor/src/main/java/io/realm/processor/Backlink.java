@@ -16,6 +16,8 @@
 
 package io.realm.processor;
 
+import java.util.Locale;
+
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 
@@ -87,7 +89,7 @@ final class Backlink {
 
     public Backlink(ClassMetaData clazz, VariableElement backlink) {
         if ((null == clazz) || (null == backlink)) {
-            throw new NullPointerException(String.format("null parameter: %s, %s", clazz, backlink));
+            throw new NullPointerException(String.format(Locale.US, "null parameter: %s, %s", clazz, backlink));
         }
 
         this.backlink = backlink;
@@ -129,7 +131,7 @@ final class Backlink {
     public boolean validateSource() {
         // A @LinkingObjects cannot be @Required
         if (backlink.getAnnotation(Required.class) != null) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "The @LinkingObjects field \"%s.%s\" cannot be @Required.",
                     targetClass,
                     targetField));
@@ -138,7 +140,7 @@ final class Backlink {
 
         // The annotation must have an argument, identifying the linked field
         if ((sourceField == null) || sourceField.equals("")) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "The @LinkingObjects annotation for the field \"%s.%s\" must have a parameter identifying the link target.",
                     targetClass,
                     targetField));
@@ -147,7 +149,7 @@ final class Backlink {
 
         // Using link syntax to try to reference a linked field is not possible.
         if (sourceField.contains(".")) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "The parameter to the @LinkingObjects annotation for the field \"%s.%s\" contains a '.'.  The use of '.' to specify fields in referenced classes is not supported.",
                     targetClass,
                     targetField));
@@ -156,7 +158,7 @@ final class Backlink {
 
         // The annotated element must be a RealmResult
         if (!Utils.isRealmResults(backlink)) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "The field \"%s.%s\" is a \"%s\". Fields annotated with @LinkingObjects must be RealmResults.",
                     targetClass,
                     targetField,
@@ -165,7 +167,7 @@ final class Backlink {
         }
 
         if (sourceClass == null) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "\"The field \"%s.%s\", annotated with @LinkingObjects, must specify a generic type.",
                     targetClass,
                     targetField));
@@ -174,7 +176,7 @@ final class Backlink {
 
         // A @LinkingObjects field must be final
         if (!backlink.getModifiers().contains(Modifier.FINAL)) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "A @LinkingObjects field \"%s.%s\" must be final.",
                     targetClass,
                     targetField));
@@ -188,7 +190,7 @@ final class Backlink {
         VariableElement field = clazz.getDeclaredField(sourceField);
 
         if (field == null) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "Field \"%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", does not exist in class \"%s\".",
                     sourceField,
                     targetClass,
@@ -199,7 +201,7 @@ final class Backlink {
 
         String fieldType = field.asType().toString();
         if (!(targetClass.equals(fieldType) || targetClass.equals(Utils.getRealmListType(field)))) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "Field \"%s.%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", has type \"%s\" instead of \"%3$s\".",
                     sourceClass,
                     sourceField,

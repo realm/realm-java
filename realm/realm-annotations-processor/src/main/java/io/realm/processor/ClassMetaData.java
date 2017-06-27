@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -266,7 +267,7 @@ public class ClassMetaData {
         }
 
         if (fields.size() == 0) {
-            Utils.error(String.format("Class \"%s\" must contain at least 1 persistable field.", className));
+            Utils.error(String.format(Locale.US, "Class \"%s\" must contain at least 1 persistable field.", className));
         }
 
         return true;
@@ -320,7 +321,7 @@ public class ClassMetaData {
     // Report if the default constructor is missing
     private boolean checkDefaultConstructor() {
         if (!hasDefaultConstructor) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "Class \"%s\" must declare a public constructor with no arguments if it contains custom constructors.",
                     className));
             return false;
@@ -332,7 +333,7 @@ public class ClassMetaData {
     private boolean checkForFinalFields() {
         for (VariableElement field : fields) {
             if (field.getModifiers().contains(Modifier.FINAL)) {
-                Utils.error(String.format(
+                Utils.error(String.format(Locale.US,
                         "Class \"%s\" contains illegal final field \"%s\".", className, field.getSimpleName().toString()));
                 return false;
             }
@@ -343,7 +344,7 @@ public class ClassMetaData {
     private boolean checkForVolatileFields() {
         for (VariableElement field : fields) {
             if (field.getModifiers().contains(Modifier.VOLATILE)) {
-                Utils.error(String.format(
+                Utils.error(String.format(Locale.US,
                         "Class \"%s\" contains illegal volatile field \"%s\".",
                         className,
                         field.getSimpleName().toString()));
@@ -410,22 +411,22 @@ public class ClassMetaData {
             }
         }
 
-        Utils.error(String.format("Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
+        Utils.error(String.format(Locale.US, "Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
         return false;
     }
 
     // The field has the @Required annotation
     private void categorizeRequiredField(Element element, VariableElement variableElement) {
         if (Utils.isPrimitiveType(variableElement)) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "@Required annotation is unnecessary for primitive field \"%s\".", element));
         } else if (Utils.isRealmList(variableElement) || Utils.isRealmModel(variableElement)) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "Field \"%s\" with type \"%s\" cannot be @Required.", element, element.asType()));
         } else {
             // Should never get here - user should remove @Required
             if (nullableFields.contains(variableElement)) {
-                Utils.error(String.format(
+                Utils.error(String.format(Locale.US,
                         "Field \"%s\" with type \"%s\" appears to be nullable. Consider removing @Required.",
                         element,
                         element.asType()));
@@ -437,7 +438,7 @@ public class ClassMetaData {
     // String, short, int, long and must only be present one time
     private boolean categorizePrimaryKeyField(VariableElement variableElement) {
         if (primaryKey != null) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "A class cannot have more than one @PrimaryKey. Both \"%s\" and \"%s\" are annotated as @PrimaryKey.",
                     primaryKey.getSimpleName().toString(),
                     variableElement.getSimpleName().toString()));
@@ -446,7 +447,7 @@ public class ClassMetaData {
 
         TypeMirror fieldType = variableElement.asType();
         if (!isValidPrimaryKeyType(fieldType)) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "Field \"%s\" with type \"%s\" cannot be used as primary key. See @PrimaryKey for legal types.",
                     variableElement.getSimpleName().toString(),
                     fieldType));
