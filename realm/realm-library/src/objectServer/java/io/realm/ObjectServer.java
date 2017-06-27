@@ -21,6 +21,7 @@ import android.content.pm.PackageInfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 
 import io.realm.internal.Keep;
 
@@ -50,10 +51,12 @@ class ObjectServer {
                 File dir = File.createTempFile("remote_sync_", "_" + android.os.Process.myPid(),
                         context.getFilesDir());
                 if (!dir.delete()) {
-                    throw new IllegalStateException(String.format("Temp file '%s' cannot be deleted.", dir.getPath()));
+                    throw new IllegalStateException(String.format(Locale.US,
+                            "Temp file '%s' cannot be deleted.", dir.getPath()));
                 }
                 if (!dir.mkdir()) {
-                    throw new IllegalStateException(String.format("Directory '%s' for SyncManager cannot be created. ",
+                    throw new IllegalStateException(String.format(Locale.US,
+                            "Directory '%s' for SyncManager cannot be created. ",
                             dir.getPath()));
                 }
                 SyncManager.nativeInitializeSyncManager(dir.getPath());

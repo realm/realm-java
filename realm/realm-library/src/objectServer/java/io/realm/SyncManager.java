@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -81,7 +82,7 @@ public class SyncManager {
                 return;
             }
 
-            String errorMsg = String.format("Session Error[%s]: %s",
+            String errorMsg = String.format(Locale.US, "Session Error[%s]: %s",
                     session.getConfiguration().getServerUrl(),
                     error.toString());
             switch (error.getErrorCode().getCategory()) {
