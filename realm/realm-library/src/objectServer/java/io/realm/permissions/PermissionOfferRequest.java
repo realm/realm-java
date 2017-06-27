@@ -30,7 +30,7 @@ import io.realm.internal.Util;
  * to other users. Once they accept this token using, the permissions covered by this offer will take effect for that
  * user.
  * <p>
- * Permission offers can only be created by users that can manage the Realm(s), to offer is about.
+ * Permission offers can only be created by users that can manage the Realm, to offer is about.
  *
  * @see PermissionManager#makeOffer(PermissionOfferRequest, PermissionManager.Callback)
  * @see PermissionManager#acceptOffer(String, PermissionManager.Callback)
@@ -44,8 +44,7 @@ public final class PermissionOfferRequest {
     /**
      * Creates a request for an permission offer that last until it is manually revoked.
      *
-     * @param url specific url to Realm effected this offer encompass all Realms manged
-     * by the user making the offer.
+     * @param url specific url to Realm effected this offer encompass all Realms manged by the user making the offer.
      * @param accessLevel the {@link AccessLevel} granted to the user accepting the offer.
      *
      * @see PermissionManager#revokeOffer(String, PermissionManager.Callback)
@@ -57,8 +56,7 @@ public final class PermissionOfferRequest {
     /**
      * Creates a request for an permission offer that last until it is manually revoked.
      *
-     * @param url specific url to Realm effected or {@code *} to indicate that this offer encompass all Realms manged
-     * by the user making the offer.
+     * @param url specific url to Realm effected. The user sending the offer must have manage rights to this Realm.
      * @param accessLevel the {@link AccessLevel} granted to the user accepting the offer.
      * @param expireDate the date when this offer expires.
      *

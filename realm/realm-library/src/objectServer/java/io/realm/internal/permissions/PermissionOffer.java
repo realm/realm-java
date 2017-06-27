@@ -22,6 +22,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
 import io.realm.permissions.AccessLevel;
 import io.realm.permissions.PermissionOfferRequest;
@@ -35,7 +36,8 @@ import io.realm.permissions.UserCondition;
  * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
  * documentation.
  */
-public class PermissionOffer extends RealmObject implements BasePermissionApi {
+@RealmClass
+public class PermissionOffer implements BasePermissionApi {
 
     // Base fields
     @PrimaryKey

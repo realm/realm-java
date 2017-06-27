@@ -216,7 +216,7 @@ public class PermissionManager implements Closeable {
      * <p>
      * This can be used as a flexible way of sharing Realms with other users that might not be known at the time
      * of making the offer as well as enabling sharing across other channels like e-mail. If a specific user should be
-     * granted access, using {@link #applyPermissions(PermissionRequest, Callback)} applyPermission(PermissionRequest, Callback)} will be faster and quicker.
+     * granted access, using {@link #applyPermissions(PermissionRequest, Callback)} will be faster and quicker.
      * <p>
      * An offer can be accepted by multiple users.
      *
@@ -710,12 +710,13 @@ public class PermissionManager implements Closeable {
         /**
          * Handle the status change from ROS and either call error or success callbacks.
          */
-        protected void handleServerStatusChanges(BasePermissionApi permissionOffer, T resultOnSuccess) {
-            Integer statusCode = permissionOffer.getStatusCode();
+        protected void handleServerStatusChanges(BasePermissionApi obj, T resultOnSuccess) {
+            Integer statusCode = obj.getStatusCode();
             if (statusCode != null) {
+                RealmObject.removeAllChangeListeners(obj);
                 if (statusCode > 0) {
                     ErrorCode errorCode = ErrorCode.fromInt(statusCode);
-                    String errorMsg = permissionOffer.getStatusMessage();
+                    String errorMsg = obj.getStatusMessage();
                     ObjectServerError error = new ObjectServerError(errorCode, errorMsg);
                     notifyCallbackError(error);
                 } else if (statusCode == 0) {
