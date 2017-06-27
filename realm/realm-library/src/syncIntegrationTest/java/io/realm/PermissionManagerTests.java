@@ -163,7 +163,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     public void getDefaultPermissions_returnLoadedResults() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
-        pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+        pm.getDefaultPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
                 assertTrue(permissions.isLoaded());
