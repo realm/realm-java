@@ -35,7 +35,7 @@ import io.realm.RealmConfiguration;
 public enum AccessLevel {
 
     /**
-     * The user do not have access to this Realm.
+     * The user does not have access to this Realm.
      */
     NONE(false, false, false),
 
