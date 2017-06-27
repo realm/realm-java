@@ -271,7 +271,6 @@ public class AuthTests extends BaseIntegrationTest {
     }
 
     // Cached instances of RealmConfiguration should not be allowed to be used if the user is no longer valid
-    // using a logout user should
     @Test
     public void cachedInstanceShouldThrowIfUserBecomeInvalid() throws InterruptedException {
         String username = UUID.randomUUID().toString();
@@ -359,7 +358,7 @@ public class AuthTests extends BaseIntegrationTest {
         }
     }
 
-    // logging out 'user' should have the same impact on other instance of the same user
+    // logging out 'user' should have the same impact on other instance(s) of the same user
     @Test
     public void loggingOutUserShouldImpactOtherInstances() throws InterruptedException {
         String username = UUID.randomUUID().toString();
@@ -393,7 +392,6 @@ public class AuthTests extends BaseIntegrationTest {
 
         SyncUser.currentUser().logout();
 
-        // logging out 'currentUser' should have the same impact on other instance(s) of the same user
         assertFalse(user.isValid());
         assertFalse(currentUser.isValid());
         assertNull(SyncUser.currentUser());
