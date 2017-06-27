@@ -8,6 +8,8 @@
 
 ### Bug Fixes
 
+* [ObjectServer] Fixed a bug related to the behaviour of `SyncUser#logout` and the use of invalid `SyncUser` with `SyncConfiguration` (#4822).
+
 ### Internal
 
 * Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.

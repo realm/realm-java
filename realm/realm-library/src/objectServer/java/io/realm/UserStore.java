@@ -68,4 +68,12 @@ public interface UserStore {
      * @return Collection of all users. If no users exist, an empty collection is returned.
      */
     Collection<SyncUser> allUsers();
+
+    /**
+     * Returns the state of the specified user: {@code true} if active (not logged out), {@code false} otherwise.
+     *
+     * @param identity identity of the user.
+     * @return {@code true} if the user is not logged out, {@code false} otherwise.
+     */
+    boolean isActive(String identity);
 }

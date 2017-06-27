@@ -456,7 +456,7 @@ public class SyncUser {
      */
     public boolean isValid() {
         Token userToken = getSyncUser().getUserToken();
-        return syncUser.isLoggedIn() && userToken != null && userToken.expiresMs() > System.currentTimeMillis();
+        return syncUser.isLoggedIn() && SyncManager.getUserStore().isActive(syncUser.getIdentity()) && userToken != null && userToken.expiresMs() > System.currentTimeMillis();
     }
 
     /**

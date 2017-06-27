@@ -28,6 +28,7 @@ import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
+import io.realm.SyncUser;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
@@ -86,11 +87,17 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public Object[] getUserAndServerUrl(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
-            String rosServerUrl = syncConfig.getServerUrl().toString();
-            String rosUserIdentity = syncConfig.getUser().getIdentity();
-            String syncRealmAuthUrl = syncConfig.getUser().getAuthenticationUrl().toString();
-            String rosRefreshToken = syncConfig.getUser().getAccessToken().value();
-            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosRefreshToken, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath()};
+            // make sure the user is still valid
+            SyncUser user = syncConfig.getUser();
+            if (!user.isValid()) {
+                throw new IllegalStateException("SyncUser is no longer valid, probably logged out.");
+            } else {
+                String rosServerUrl = syncConfig.getServerUrl().toString();
+                String rosUserIdentity = user.getIdentity();
+                String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
+                String rosRefreshToken = user.toJson();
+                return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosRefreshToken, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath()};
+            }
         } else {
             return new Object[6];
         }
