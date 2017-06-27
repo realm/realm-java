@@ -241,8 +241,8 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         // Simulate error in the permission Realm
         Field permissionConfigField = pm.getClass().getDeclaredField("permissionRealmError");
         permissionConfigField.setAccessible(true);
-        final ObjectServerError expectedError = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
-        permissionConfigField.set(pm, expectedError);
+        final ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
+        permissionConfigField.set(pm, error);
 
         PermissionManager.Callback <Void> callback = new PermissionManager.Callback <Void>() {
             @Override
@@ -252,7 +252,9 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(expectedError, error);
+                assertTrue(error.getErrorMessage().startsWith("Error occurred in Realm"));
+                assertTrue(error.getErrorMessage().contains("Permission Realm"));
+                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
                 looperThread.testComplete();
             }
         };
@@ -268,8 +270,8 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         looperThread.closeAfterTest(pm);
 
         // Simulate error in the permission Realm
-        final ObjectServerError expectedError = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
-        setRealmError(pm, "managementRealmError", expectedError);
+        final ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
+        setRealmError(pm, "managementRealmError", error);
 
         PermissionManager.Callback <Void> callback = new PermissionManager.Callback <Void>() {
             @Override
@@ -279,7 +281,9 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(expectedError, error);
+                assertTrue(error.getErrorMessage().startsWith("Error occurred in Realm"));
+                assertTrue(error.getErrorMessage().contains("Management Realm"));
+                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
                 looperThread.testComplete();
             }
         };

@@ -609,7 +609,8 @@ public class PermissionManager implements Closeable {
 
         // Combine the text based error message from two ObjectServerErrrors.
         private String combineErrorMessage(Map<String, ObjectServerError> errors) {
-            StringBuilder errorMsg = new StringBuilder("Multiple errors occurred: ");
+            boolean multipleErrors = errors.size() > 1;
+            StringBuilder errorMsg = new StringBuilder(multipleErrors ? "Multiple errors occurred: " : "Error occurred in Realm: ");
             for (Map.Entry<String, ObjectServerError> entry : errors.entrySet()) {
                 errorMsg.append('\n');
                 errorMsg.append(entry.getKey());
