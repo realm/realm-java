@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,36 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.realm.entities;
 
-
-import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Required;
 
-public class CatOwner extends RealmObject {
-    public static final String CLASS_NAME = "CatOwner";
-    public static final String FIELD_NAME = "name";
-    public static final String FIELD_CATS = "cats";
-
+// This class is used for the pre-null testing. Before 0.83.0, without nullable support, String is required by default.
+// To use the Realm file created before 0.83.0 without migration, @Required has to be added to the String field.
+public class StringOnlyRequired extends RealmObject {
     @Required
-    private String name;
-    private RealmList<Cat> cats;
+    private String chars;
 
-
-    public String getName() {
-        return name;
+    public String getChars() {
+        return chars;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public RealmList<Cat> getCats() {
-        return cats;
-    }
-
-    public void setCats(RealmList<Cat> cats) {
-        this.cats = cats;
+    public void setChars(String chars) {
+        this.chars = chars;
     }
 }
