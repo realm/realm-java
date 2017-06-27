@@ -101,6 +101,12 @@ You may unzip the file wherever you choose.  For OSX, a suggested location is `~
 
 It would be a good idea to add all of the symbol definitions (and their accompanying `launchctl` commands, if you are using OS X) to your `~/.profile` (or `~/.zprofile` if the login shell is `zsh`)
 
+ * If you develop Realm Java with Android Studio, we recommend you to exclude some directories from indexing target by executing following steps on Android Studio. It really speeds up indexing phase after build.
+
+    - Select `build`, `.externalNativeBuild` and `distribution` folders in project view.
+    - Press `Command + Shift + A` to open `Find action` dialog. If you are not using defaut keymap nor using OSX, you can find your shortcut key in `Keymap` preference by searching `Find action`.`
+    - Search `Excluded` (not `Exclude`) action and select it. Selected folder icons should become orange (in default theme).
+    - Restart Android Studio.
 
 ### Download sources
 
