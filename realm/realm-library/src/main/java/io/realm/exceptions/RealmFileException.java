@@ -15,6 +15,8 @@
  */
 package io.realm.exceptions;
 
+import java.util.Locale;
+
 import io.realm.internal.Keep;
 import io.realm.internal.SharedRealm;
 
@@ -118,6 +120,6 @@ public class RealmFileException extends RuntimeException {
 
     @Override
     public String toString() {
-        return String.format("%s Kind: %s.", super.toString(), kind);
+        return String.format(Locale.US, "%s Kind: %s.", super.toString(), kind);
     }
 }

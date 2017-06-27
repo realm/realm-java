@@ -16,6 +16,7 @@ package io.realm.internal.fields;
  */
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import io.realm.RealmFieldType;
@@ -69,13 +70,13 @@ class CachedFieldDescriptor extends FieldDescriptor {
             tableInfo = schema.getColumnInfo(currentTable);
             if (tableInfo == null) {
                 throw new IllegalArgumentException(
-                        String.format("Invalid query: table '%s' not found in this schema.", currentTable));
+                        String.format(Locale.US, "Invalid query: table '%s' not found in this schema.", currentTable));
             }
 
             columnIndex = tableInfo.getColumnIndex(columnName);
             if (columnIndex < 0) {
                 throw new IllegalArgumentException(
-                        String.format("Invalid query: field '%s' not found in table '%s'.", columnName, currentTable));
+                        String.format(Locale.US, "Invalid query: field '%s' not found in table '%s'.", columnName, currentTable));
             }
 
             columnType = tableInfo.getColumnType(columnName);

@@ -25,6 +25,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import io.realm.annotations.RealmModule;
@@ -322,7 +323,7 @@ public class RealmConfiguration {
     private static RealmProxyMediator getModuleMediator(String fullyQualifiedModuleClassName) {
         String[] moduleNameParts = fullyQualifiedModuleClassName.split("\\.");
         String moduleSimpleName = moduleNameParts[moduleNameParts.length - 1];
-        String mediatorName = String.format("io.realm.%s%s", moduleSimpleName, "Mediator");
+        String mediatorName = String.format(Locale.US, "io.realm.%s%s", moduleSimpleName, "Mediator");
         Class<?> clazz;
         //noinspection TryWithIdenticalCatches
         try {
@@ -500,7 +501,8 @@ public class RealmConfiguration {
                 throw new IllegalArgumentException("A non-null key must be provided");
             }
             if (key.length != KEY_LENGTH) {
-                throw new IllegalArgumentException(String.format("The provided key must be %s bytes. Yours was: %s",
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "The provided key must be %s bytes. Yours was: %s",
                         KEY_LENGTH, key.length));
             }
             this.key = Arrays.copyOf(key, key.length);
