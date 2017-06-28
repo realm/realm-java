@@ -76,7 +76,7 @@ function startRealmObjectServer(done) {
 
 function stopRealmObjectServer(callback) {
     if (syncServerChildProcess) {
-        syncServerChildProcess.on('exit', function() => {
+        syncServerChildProcess.on('exit', function() {
             syncServerChildProcess = null;
             exec('rm -r ' + 'realm-object-server', function (err, stdout, stderr) {
                 if (err) {
