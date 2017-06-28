@@ -466,7 +466,6 @@ public class PermissionManager implements Closeable {
                             .equalTo("id", changeRequestId)
                             .findFirstAsync();
 
-
                     // Wait for it to be processed
                     managedChangeRequest.addChangeListener(new RealmChangeListener<PermissionChange>() {
                         @Override

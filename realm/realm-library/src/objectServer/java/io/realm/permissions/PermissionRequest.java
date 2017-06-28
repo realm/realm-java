@@ -53,15 +53,15 @@ public final class PermissionRequest {
      *
      */
     public PermissionRequest(UserCondition condition, String realmUrl, AccessLevel accessLevel) {
-        validateCondition(condition);
-        validateUrl(realmUrl);
-        validateAccessLevel(accessLevel);
+        checkCondition(condition);
+        checkUrl(realmUrl);
+        checkAccessLevel(accessLevel);
         this.condition = condition;
         this.accessLevel = accessLevel;
         this.url = realmUrl;
     }
 
-    private void validateUrl(String url) {
+    private void checkUrl(String url) {
         if (Util.isEmptyString(url)) {
             throw new IllegalArgumentException("Non-empty 'realmUrl' required.");
         }
@@ -78,13 +78,13 @@ public final class PermissionRequest {
         }
     }
 
-    private void validateCondition(UserCondition condition) {
+    private void checkCondition(UserCondition condition) {
         if (condition == null) {
             throw new IllegalArgumentException("Non-null 'condition' required.");
         }
     }
 
-    private void validateAccessLevel(AccessLevel accessLevel) {
+    private void checkAccessLevel(AccessLevel accessLevel) {
         if (accessLevel == null) {
             throw new IllegalArgumentException("Non-null 'accessLevel' required.");
         }
