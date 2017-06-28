@@ -534,6 +534,9 @@ public class RealmLinkTests {
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNull("cat").findAll();
         assertEquals(1, owners2.size());
+
+        RealmResults<Owner> owners3 = testRealm.where(Owner.class).isNull("dogs.birthday").findAll();
+        assertEquals(0, owners3.size());
     }
 
     @Test

@@ -1510,7 +1510,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
         }
 
         TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
-        int col_type = src_table_ref->get_column_type(S(column_idx));
+        DataType col_type = src_table_ref->get_column_type(S(column_idx));
         if (arr_len == 1) {
             switch (col_type) {
                 case type_Link:
@@ -1635,7 +1635,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
 
         TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
 
-        int col_type = src_table_ref->get_column_type(S(column_idx));
+        DataType col_type = src_table_ref->get_column_type(S(column_idx));
         if (arr_len == 1) {
             switch (col_type) {
                 case type_Link:
@@ -1718,7 +1718,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty(JNIEnv* e
             return;
         }
 
-        int col_type = src_table_ref->get_column_type(column_idx);
+        DataType col_type = src_table_ref->get_column_type(column_idx);
         if (arr_len == 1) {
             // Field queries
             switch (col_type) {
@@ -1788,7 +1788,7 @@ Java_io_realm_internal_TableQuery_nativeIsNotEmpty(JNIEnv *env, jobject, jlong n
             return;
         }
 
-        int col_type = src_table_ref->get_column_type(column_idx);
+        DataType col_type = src_table_ref->get_column_type(column_idx);
         if (arr_len == 1) {
             // Field queries
             switch (col_type) {
