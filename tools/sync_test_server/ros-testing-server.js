@@ -104,10 +104,11 @@ dispatcher.onGet("/start", function(req, res) {
 
 // stop a previously started sync server
 dispatcher.onGet("/stop", function(req, res) {
-    stopRealmObjectServer();
-    winston.info("Sync server stopped");
-    res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.end('Stopping the server');
+    stopRealmObjectServer(function() {
+      winston.info("Sync server stopped");
+      res.writeHead(200, {'Content-Type': 'text/plain'});
+      res.end('Stopping the server');
+    });
 });
 
 //Create and start the Http server
