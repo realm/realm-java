@@ -125,7 +125,7 @@ class StandardRealmSchema extends RealmSchema {
             throw new IllegalArgumentException(String.format("Realm doesn't support primary key field type '%s'.",
                     fieldType));
         }
-        boolean isStringField = metadata.realmType == RealmFieldType.STRING;
+        boolean isStringField = (metadata.realmType == RealmFieldType.STRING);
 
         boolean nullable = metadata.defaultNullable;
         if (StandardRealmObjectSchema.containsAttribute(attributes, FieldAttribute.REQUIRED)) {

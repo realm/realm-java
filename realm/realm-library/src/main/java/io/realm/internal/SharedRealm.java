@@ -315,11 +315,10 @@ public final class SharedRealm implements Closeable, NativeObject {
      * sync to do the creation. This will always call the core's {@code add_table()} to avoid creating the stable id
      * column for pk table.
      *
-     * @param name the name of table.
      * @return a created {@link Table} object.
      */
-    public Table createPkTable(String name) {
-        return new Table(this, nativeCreateTable(nativePtr, name, true));
+    public Table createPkTable() {
+        return new Table(this, nativeCreateTable(nativePtr, Table.PRIMARY_KEY_TABLE_NAME, true));
     }
 
     /**
