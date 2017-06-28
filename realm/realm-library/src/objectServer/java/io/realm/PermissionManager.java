@@ -514,11 +514,11 @@ public class PermissionManager implements Closeable {
 
 
                     // Wait for it to be processed
-                    managedChangeRequest.addChangeListener(new RealmChangeListener<PermissionChange>() {
+                    RealmObject.addChangeListener(managedChangeRequest, new RealmChangeListener<PermissionChange>() {
                         @Override
                         public void onChange(PermissionChange permissionChange) {
                             if (checkAndReportInvalidState()) {
-                                managedChangeRequest.removeChangeListener(this);
+                                RealmObject.removeChangeListener(managedChangeRequest, this);
                                 return;
                             }
                             handleServerStatusChanges(permissionChange, null);
@@ -589,11 +589,11 @@ public class PermissionManager implements Closeable {
                     // Find PermissionChange object we just added
                     // Wait for it to be processed
                     managedOffer = managementRealm.where(PermissionOffer.class).equalTo("id", offerId).findFirstAsync();
-                    managedOffer.addChangeListener(new RealmChangeListener<PermissionOffer>() {
+                    RealmObject.addChangeListener(managedOffer, new RealmChangeListener<PermissionOffer>() {
                         @Override
                         public void onChange(PermissionOffer permissionOffer) {
                             if (checkAndReportInvalidState()) {
-                                managedOffer.removeChangeListener(this);
+                                RealmObject.removeChangeListener(managedOffer, this);
                                 return;
                             }
                             handleServerStatusChanges(permissionOffer, permissionOffer.getToken());
