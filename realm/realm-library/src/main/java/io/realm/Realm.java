@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -407,12 +408,12 @@ public class Realm extends BaseRealm {
                     realm.doClose();
                     throw new RealmMigrationNeededException(
                             configuration.getPath(),
-                            String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
+                            String.format(Locale.US, "Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
                 }
                 if (requiredVersion < currentVersion) {
                     realm.doClose();
                     throw new IllegalArgumentException(
-                            String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
+                            String.format(Locale.US, "Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
                 }
             }
 
@@ -998,11 +999,11 @@ public class Realm extends BaseRealm {
         Table table = schema.getTable(clazz);
         // Checks and throws the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
-            throw new RealmException(String.format("'%s' has a primary key, use" +
+            throw new RealmException(String.format(Locale.US, "'%s' has a primary key, use" +
                     " 'createObject(Class<E>, Object)' instead.", table.getClassName()));
         }
         return configuration.getSchemaMediator().newInstance(clazz, this,
-                OsObject.create(sharedRealm, table),
+                OsObject.create(table),
                 schema.getColumnInfo(clazz),
                 acceptDefaultValue, excludeFields);
     }
@@ -1049,7 +1050,7 @@ public class Realm extends BaseRealm {
         Table table = schema.getTable(clazz);
 
         return configuration.getSchemaMediator().newInstance(clazz, this,
-                OsObject.createWithPrimaryKey(sharedRealm, table, primaryKeyValue),
+                OsObject.createWithPrimaryKey(table, primaryKeyValue),
                 schema.getColumnInfo(clazz),
                 acceptDefaultValue, excludeFields);
     }

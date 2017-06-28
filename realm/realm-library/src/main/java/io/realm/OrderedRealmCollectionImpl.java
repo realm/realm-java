@@ -5,6 +5,7 @@ import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.ListIterator;
+import java.util.Locale;
 
 import io.realm.internal.Collection;
 import io.realm.internal.InvalidRow;
@@ -246,7 +247,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         }
         long columnIndex = collection.getTable().getColumnIndex(fieldName);
         if (columnIndex < 0) {
-            throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
+            throw new IllegalArgumentException(String.format(Locale.US, "Field '%s' does not exist.", fieldName));
         }
         return columnIndex;
     }
