@@ -29,7 +29,7 @@ import org.json.JSONObject;
 
 @SuppressWarnings("all")
 public class SimpleRealmProxy extends some.test.Simple
-    implements RealmObjectProxy, SimpleRealmProxyInterface {
+        implements RealmObjectProxy, SimpleRealmProxyInterface {
 
     static final class SimpleColumnInfo extends ColumnInfo {
         long nameIndex;
@@ -209,7 +209,7 @@ public class SimpleRealmProxy extends some.test.Simple
 
     @SuppressWarnings("cast")
     public static some.test.Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-        throws JSONException {
+            throws JSONException {
         final List<String> excludeFields = Collections.<String> emptyList();
         some.test.Simple obj = realm.createObjectInternal(some.test.Simple.class, true, excludeFields);
         if (json.has("name")) {
@@ -232,7 +232,7 @@ public class SimpleRealmProxy extends some.test.Simple
     @SuppressWarnings("cast")
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.Simple createUsingJsonStream(Realm realm, JsonReader reader)
-        throws IOException {
+            throws IOException {
         some.test.Simple obj = new some.test.Simple();
         reader.beginObject();
         while (reader.hasNext()) {
@@ -302,7 +302,7 @@ public class SimpleRealmProxy extends some.test.Simple
         Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativePtr();
         SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
-        long rowIndex = OsObject.createRow(realm.sharedRealm, table);
+        long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
         String realmGet$name = ((SimpleRealmProxyInterface) object).realmGet$name();
         if (realmGet$name != null) {
@@ -326,7 +326,7 @@ public class SimpleRealmProxy extends some.test.Simple
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getIndex());
                 continue;
             }
-            long rowIndex = OsObject.createRow(realm.sharedRealm, table);
+            long rowIndex = OsObject.createRow(table);
             cache.put(object, rowIndex);
             String realmGet$name = ((SimpleRealmProxyInterface) object).realmGet$name();
             if (realmGet$name != null) {
@@ -343,7 +343,7 @@ public class SimpleRealmProxy extends some.test.Simple
         Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativePtr();
         SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
-        long rowIndex = OsObject.createRow(realm.sharedRealm, table);
+        long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
         String realmGet$name = ((SimpleRealmProxyInterface) object).realmGet$name();
         if (realmGet$name != null) {
@@ -369,7 +369,7 @@ public class SimpleRealmProxy extends some.test.Simple
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getIndex());
                 continue;
             }
-            long rowIndex = OsObject.createRow(realm.sharedRealm, table);
+            long rowIndex = OsObject.createRow(table);
             cache.put(object, rowIndex);
             String realmGet$name = ((SimpleRealmProxyInterface) object).realmGet$name();
             if (realmGet$name != null) {

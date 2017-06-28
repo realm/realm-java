@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,6 +57,11 @@ public class SyncManager {
          */
         public static boolean skipOnlineChecking = false;
 
+        /**
+         * Set this to true to init a SyncManager with a directory named by the process ID. This is useful for
+         * integration tests which are emulating multiple sync client by using multiple processes.
+         */
+        public static boolean separatedDirForSyncManager = false;
     }
 
     /**
@@ -76,7 +82,7 @@ public class SyncManager {
                 return;
             }
 
-            String errorMsg = String.format("Session Error[%s]: %s",
+            String errorMsg = String.format(Locale.US, "Session Error[%s]: %s",
                     session.getConfiguration().getServerUrl(),
                     error.toString());
             switch (error.getErrorCode().getCategory()) {
