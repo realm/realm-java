@@ -64,7 +64,7 @@ In case you don't want to use the precompiled version, you can build Realm yours
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
 
  * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
-You may unzip the file wherever you choose.  For OSX, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
+You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
 
  * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/local.properties` and assign it the full path name of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
 
