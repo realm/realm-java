@@ -8,6 +8,8 @@
 
 ### Bug Fixes
 
+* Fixed a bug related to link queries (#4856).
+
 ### Internal
 
 * Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.
