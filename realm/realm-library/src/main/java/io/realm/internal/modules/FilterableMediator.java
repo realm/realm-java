@@ -22,9 +22,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +32,6 @@ import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmModel;
-import io.realm.RealmObjectSchema;
-import io.realm.RealmSchema;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.RealmObjectProxy;
@@ -51,7 +49,6 @@ public class FilterableMediator extends RealmProxyMediator {
 
     private final RealmProxyMediator originalMediator;
     private final Set<Class<? extends RealmModel>> allowedClasses;
-    private final Set<String> allowedClasseNames;
 
     /**
      * Creates a filterable {@link RealmProxyMediator}.
@@ -72,23 +69,19 @@ public class FilterableMediator extends RealmProxyMediator {
             }
         }
         this.allowedClasses = Collections.unmodifiableSet(tempAllowedClasses);
-
-        Set<String> tempAllowedClassNames = new HashSet<String>();
-        for (Class<? extends RealmModel> clazz : this.allowedClasses) {
-            tempAllowedClassNames.add(clazz.getSimpleName());
-        }
-        this.allowedClasseNames = Collections.unmodifiableSet(tempAllowedClassNames);
     }
 
     @Override
-    public List<OsObjectSchemaInfo> getExpectedObjectSchemaInfoList() {
-        List<OsObjectSchemaInfo> infoList = new ArrayList<OsObjectSchemaInfo>();
-        for (OsObjectSchemaInfo objectSchemaInfo : originalMediator.getExpectedObjectSchemaInfoList()) {
-            if (allowedClasseNames.contains(objectSchemaInfo.getClassName())) {
-                infoList.add(objectSchemaInfo);
+    public Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap() {
+        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
+                new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
+        for (Map.Entry<Class<? extends RealmModel>, OsObjectSchemaInfo> entry :
+                originalMediator.getExpectedObjectSchemaInfoMap().entrySet()) {
+            if (allowedClasses.contains(entry.getKey())) {
+                infoMap.put(entry.getKey(), entry.getValue());
             }
         }
-        return infoList;
+        return infoMap;
     }
 
     @Override

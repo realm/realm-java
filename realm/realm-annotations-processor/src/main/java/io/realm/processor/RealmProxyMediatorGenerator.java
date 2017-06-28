@@ -69,7 +69,6 @@ public class RealmProxyMediatorGenerator {
                 "java.util.Collections",
                 "java.util.HashSet",
                 "java.util.List",
-                "java.util.ArrayList",
                 "java.util.Map",
                 "java.util.HashMap",
                 "java.util.Set",
@@ -97,7 +96,7 @@ public class RealmProxyMediatorGenerator {
         writer.emitEmptyLine();
 
         emitFields(writer);
-        emitGetExpectedObjectSchemaInfoList(writer);
+        emitGetExpectedObjectSchemaInfoMap(writer);
         emitValidateTableMethod(writer);
         emitGetFieldNamesMethod(writer);
         emitGetTableNameMethod(writer);
@@ -127,18 +126,21 @@ public class RealmProxyMediatorGenerator {
         writer.emitEmptyLine();
     }
 
-    private void emitGetExpectedObjectSchemaInfoList(JavaWriter writer) throws IOException {
+    private void emitGetExpectedObjectSchemaInfoMap(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod(
-                "List<OsObjectSchemaInfo>",
-                "getExpectedObjectSchemaInfoList",
+                "Map<Class<? extends RealmModel>, OsObjectSchemaInfo>",
+                "getExpectedObjectSchemaInfoMap",
                 EnumSet.of(Modifier.PUBLIC));
 
-        writer.emitStatement("List<OsObjectSchemaInfo> infoList = new ArrayList<OsObjectSchemaInfo>()");
-        for (String proxyClassName :  qualifiedProxyClasses) {
-            writer.emitStatement("infoList.add(%s.getExpectedObjectSchemaInfo())", proxyClassName);
+        writer.emitStatement(
+                "Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap = " +
+                        "new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>()");
+        for (int i = 0; i < qualifiedProxyClasses.size(); i++) {
+            writer.emitStatement("infoMap.put(%s.class, %s.getExpectedObjectSchemaInfo())",
+                    qualifiedModelClasses.get(i), qualifiedProxyClasses.get(i));
         }
-        writer.emitStatement("return infoList");
+        writer.emitStatement("return infoMap");
 
         writer.endMethod();
         writer.emitEmptyLine();

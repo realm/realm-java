@@ -451,7 +451,7 @@ public class Realm extends BaseRealm {
             if (configuration.isSyncConfiguration()) {
                 // Update/create the schema if allowed
                 if (!configuration.isReadOnly()) {
-                    OsSchemaInfo schema = new OsSchemaInfo(mediator.getExpectedObjectSchemaInfoList());
+                    OsSchemaInfo schema = new OsSchemaInfo(mediator.getExpectedObjectSchemaInfoMap().values());
 
                     // Object Store handles all update logic
                     realm.sharedRealm.updateSchema(schema, newVersion);
@@ -465,7 +465,7 @@ public class Realm extends BaseRealm {
                     }
 
                     // Let Object Store initialize all tables
-                    OsSchemaInfo schemaInfo = new OsSchemaInfo(mediator.getExpectedObjectSchemaInfoList());
+                    OsSchemaInfo schemaInfo = new OsSchemaInfo(mediator.getExpectedObjectSchemaInfoMap().values());
                     realm.sharedRealm.updateSchema(schemaInfo, newVersion);
                     commitChanges = true;
                 }

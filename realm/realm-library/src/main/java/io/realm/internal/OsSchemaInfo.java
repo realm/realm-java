@@ -16,8 +16,6 @@
 
 package io.realm.internal;
 
-import java.util.List;
-
 /**
  * Java wrapper for the Object Store Schema object.
  * <p>
@@ -36,10 +34,12 @@ public class OsSchemaInfo implements NativeObject {
      *
      * @param objectSchemaInfoList all the object schemas should be contained in this {@code OsObjectSchemaInfo}.
      */
-    public OsSchemaInfo(List<OsObjectSchemaInfo> objectSchemaInfoList) {
+    public OsSchemaInfo(java.util.Collection<OsObjectSchemaInfo> objectSchemaInfoList) {
         long[] schemaNativePointers = new long[objectSchemaInfoList.size()];
-        for (int i = 0; i < objectSchemaInfoList.size(); i++) {
-            schemaNativePointers[i] = objectSchemaInfoList.get(i).getNativePtr();
+        int i = 0;
+        for (OsObjectSchemaInfo info : objectSchemaInfoList) {
+            schemaNativePointers[i] = info.getNativePtr();
+            i++;
         }
         this.nativePtr = nativeCreateFromList(schemaNativePointers);
         NativeContext.dummyContext.addReference(this);
