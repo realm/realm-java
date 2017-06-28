@@ -435,41 +435,41 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNIEnv* env, jclass,
                                                                              jlong shared_realm_ptr,
-                                                                             jstring table_name,
+                                                                             jstring j_table_name,
                                                                              jboolean is_pk_table)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    std::string table_name_str;
+    std::string table_name;
     try {
-        table_name_str = JStringAccessor(env, table_name); // throws
+        table_name = JStringAccessor(env, j_table_name); // throws
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         shared_realm->verify_in_write(); // throws
         Table* table;
         auto& group = shared_realm->read_group();
         if (is_pk_table) {
             // sync::create_table() will add an extra column for stable ID which is not allowed for pk table.
-            table = LangBindHelper::add_table(group, table_name_str); // throws
+            table = LangBindHelper::add_table(group, table_name); // throws
         }
         else {
 #if REALM_ENABLE_SYNC
             // Sync doesn't throw when table exists.
-            if (group.has_table(table_name_str)) {
+            if (group.has_table(table_name)) {
                 THROW_JAVA_EXCEPTION(
                     env, JavaExceptionDef::IllegalArgument,
-                    format(c_table_name_exists_exception_msg, table_name_str.substr(TABLE_PREFIX.length())));
+                    format(c_table_name_exists_exception_msg, table_name.substr(TABLE_PREFIX.length())));
             }
-            auto table_ref = sync::create_table(group, table_name_str); // throws
+            auto table_ref = sync::create_table(group, table_name); // throws
             table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
 #else
-            table = LangBindHelper::add_table(group, table_name_str); // throws
+            table = LangBindHelper::add_table(group, table_name); // throws
 #endif
         }
         return reinterpret_cast<jlong>(table);
     }
     catch (TableNameInUse& e) {
         // We need to print the table name, so catch the exception here.
-        std::string class_name_str(table_name_str.substr(TABLE_PREFIX.length()));
+        std::string class_name_str(table_name.substr(TABLE_PREFIX.length()));
         ThrowException(env, IllegalArgument, format(c_table_name_exists_exception_msg, class_name_str));
     }
     CATCH_STD()
@@ -478,16 +478,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNI
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTableWithPrimaryKeyField(
-    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring table_name, jstring field_name, jboolean is_string_type,
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring j_table_name, jstring j_field_name, jboolean is_string_type,
     jboolean is_nullable)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
     std::string class_name_str;
     try {
-        std::string table_name_str(JStringAccessor(env, table_name));
-        class_name_str = std::string(table_name_str.substr(TABLE_PREFIX.length()));
-        JStringAccessor field_name_str(env, field_name); // throws
+        std::string table_name(JStringAccessor(env, j_table_name));
+        class_name_str = std::string(table_name.substr(TABLE_PREFIX.length()));
+        JStringAccessor field_name(env, j_field_name); // throws
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         shared_realm->verify_in_write(); // throws
         DataType pkType = is_string_type ? DataType::type_String : DataType::type_Int;
@@ -495,18 +495,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTableWith
         auto& group = shared_realm->read_group();
 #if REALM_ENABLE_SYNC
         // Sync doesn't throw when table exists.
-        if (group.has_table(table_name_str)) {
+        if (group.has_table(table_name)) {
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                  format(c_table_name_exists_exception_msg, class_name_str));
         }
         auto table_ref =
-            sync::create_table_with_primary_key(group, table_name_str, pkType, field_name_str, is_nullable);
+            sync::create_table_with_primary_key(group, table_name, pkType, field_name, is_nullable);
         table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
 #else
-        table = LangBindHelper::add_table(group, table_name_str);
-        table->add_column(pkType, field_name_str, is_nullable);
+        table = LangBindHelper::add_table(group, table_name);
+        table->add_column(pkType, field_name, is_nullable);
 #endif
-        ObjectStore::set_primary_key_for_object(group, class_name_str, field_name_str);
+        ObjectStore::set_primary_key_for_object(group, class_name_str, field_name);
         return reinterpret_cast<jlong>(table);
     }
     catch (TableNameInUse& e) {
