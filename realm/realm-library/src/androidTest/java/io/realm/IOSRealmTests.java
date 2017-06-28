@@ -59,7 +59,6 @@ public class IOSRealmTests {
         RealmConfiguration defaultConfiguration = configFactory.createConfigurationBuilder()
                 .name(REALM_NAME)
                 .schema(IOSAllTypes.class, IOSChild.class)
-                .deleteRealmIfMigrationNeeded()
                 .build();
         Realm.setDefaultConfiguration(defaultConfiguration);
         context = InstrumentationRegistry.getInstrumentation().getContext();
