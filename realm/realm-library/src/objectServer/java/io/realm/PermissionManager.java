@@ -33,11 +33,10 @@ import io.realm.internal.permissions.BasePermissionApi;
 import io.realm.internal.permissions.ManagementModule;
 import io.realm.internal.permissions.PermissionChange;
 import io.realm.internal.permissions.PermissionModule;
-import io.realm.internal.permissions.PermissionOffer;
+import io.realm.permissions.PermissionOffer;
 import io.realm.log.RealmLog;
 import io.realm.permissions.Permission;
 import io.realm.permissions.PermissionRequest;
-import io.realm.permissions.PermissionOfferRequest;
 
 
 /**
@@ -227,10 +226,13 @@ public class PermissionManager implements Closeable {
      * @see <a href="https://realm.io/docs/java/latest/#modifying-permissions">Modifying permissions</a> for a more
      * high level description.
      */
-    public RealmAsyncTask makeOffer(PermissionOfferRequest offer, final Callback<String> callback) {
+    public RealmAsyncTask makeOffer(PermissionOffer offer, final Callback<String> callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
-        return addTask(new MakeOfferAsyncTask(this, PermissionOffer.fromRequest(offer), callback));
+        if (offer.isOfferCreated()) {
+            throw new IllegalStateException("Offer is already created: " + offer);
+        }
+        return addTask(new MakeOfferAsyncTask(this, offer, callback));
     }
 
     /**
@@ -249,6 +251,14 @@ public class PermissionManager implements Closeable {
      * @return
      */
     public RealmAsyncTask revokeOffer(String offerToken, final Callback<Void> callback) {
+        return null; // FIXME
+    }
+
+    /**
+     * FIXME
+     * @return
+     */
+    public RealmAsyncTask getOffers(Callback<RealmResults<PermissionOffer>> callback) {
         return null; // FIXME
     }
 

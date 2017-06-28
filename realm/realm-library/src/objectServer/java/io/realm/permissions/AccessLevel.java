@@ -48,7 +48,7 @@ public enum AccessLevel {
      * before being re-opened with the correct configuration.
      * <p>
      * <pre>
-     * @{code
+     * {@code
      * SyncConfiguration config = new SyncConfiguration(getUser(), getUrl())
      *     .readOnly()
      *     .waitForInitialRemoteData()
@@ -94,7 +94,7 @@ public enum AccessLevel {
     }
 
     /**
-     * Returns {@code true} if the user is allowed to manage the Realm, {@false if not}.
+     * Returns {@code true} if the user is allowed to manage the Realm, {@code false if not}.
      * <p>
      * Having this permission, means the user is able to grant permissions to other users as well as remove them
      * again.

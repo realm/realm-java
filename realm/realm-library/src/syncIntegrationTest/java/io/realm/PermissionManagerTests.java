@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -35,7 +34,7 @@ import io.realm.internal.Util;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
-import io.realm.permissions.PermissionOfferRequest;
+import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.UserCondition;
 import io.realm.permissions.Permission;
 import io.realm.permissions.PermissionRequest;
@@ -473,8 +472,8 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         looperThread.closeAfterTest(pm);
         String url = createRemoteRealm(user, "test");
 
-        PermissionOfferRequest request = new PermissionOfferRequest(url, AccessLevel.WRITE);
-        pm.makeOffer(request, new PermissionManager.Callback<String>() {
+        PermissionOffer offer = new PermissionOffer(url, AccessLevel.WRITE);
+        pm.makeOffer(offer, new PermissionManager.Callback<String>() {
             @Override
             public void onSuccess(String offerToken) {
                 assertNotNull(offerToken);
@@ -499,8 +498,8 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
 
-        PermissionOfferRequest request = new PermissionOfferRequest(url, AccessLevel.WRITE);
-        pm.makeOffer(request, new PermissionManager.Callback<String>() {
+        PermissionOffer offer = new PermissionOffer(url, AccessLevel.WRITE);
+        pm.makeOffer(offer, new PermissionManager.Callback<String>() {
             @Override
             public void onSuccess(String offerToken) {
                 fail();

@@ -19,10 +19,11 @@ import java.util.Date;
 import java.util.UUID;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
+import io.realm.permissions.PermissionOffer;
+
 
 /**
  * This model is used to apply permission changes defined in the permission offer
