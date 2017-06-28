@@ -835,36 +835,32 @@ public class RealmTests {
 
     // The test writes and reads random Strings.
     @Test
-    @Ignore("This test is slow. Move it to another testsuite that runs once a day on Jenkins")
     public void unicodeStrings() {
-        List<String> chars_array = getCharacterArray();
+        List<String> charsArray = getCharacterArray();
         // Change seed value for new random values.
         long seed = 20;
         Random random = new Random(seed);
 
-
-        String test_char = "";
-        String test_char_old = "";
-
-        int random_value;
+        StringBuilder testChar = new StringBuilder();
+        realm.beginTransaction();
         for (int i = 0; i < 1000; i++) {
-            random_value = random.nextInt(25);
+            testChar.setLength(0);
+            int length = random.nextInt(25);
 
-            for (int j = 0; j < random_value; j++) {
-                test_char = test_char_old + chars_array.get(random.nextInt(27261));
-                test_char_old = test_char;
+            for (int j = 0; j < length; j++) {
+                testChar.append(charsArray.get(random.nextInt(27261)));
             }
-            realm.beginTransaction();
             StringOnly stringOnly = realm.createObject(StringOnly.class);
-            stringOnly.setChars(test_char);
-            realm.commitTransaction();
 
+            // tests setter
+            stringOnly.setChars(testChar.toString());
+
+            // tests getter
             realm.where(StringOnly.class).findFirst().getChars();
 
-            realm.beginTransaction();
             realm.delete(StringOnly.class);
-            realm.commitTransaction();
         }
+        realm.cancelTransaction();
     }
 
     @Test
