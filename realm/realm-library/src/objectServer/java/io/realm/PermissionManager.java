@@ -81,7 +81,7 @@ public class PermissionManager implements Closeable {
     }
 
     private enum RealmType {
-        GLOBAL_PERMISSION_REALM("__permission", true),
+        DEFAULT_PERMISSION_REALM("__permission", true),
         PERMISSION_REALM("__permission", false),
         MANAGEMENT_REALM("__management", false);
 
@@ -107,7 +107,7 @@ public class PermissionManager implements Closeable {
     // Used to track the lifecycle of the PermissionManager
     private RealmAsyncTask managementRealmOpenTask;
     private RealmAsyncTask permissionRealmOpenTask;
-    private RealmAsyncTask globalPermissionRealmOpenTask;
+    private RealmAsyncTask defaultPermissionRealmOpenTask;
     private boolean openInProgress = false;
     private boolean closed;
 
@@ -115,10 +115,10 @@ public class PermissionManager implements Closeable {
     private Handler handler = new Handler();
     private final SyncConfiguration managementRealmConfig;
     private final SyncConfiguration permissionRealmConfig;
-    private final SyncConfiguration globalPermissionRealmConfig;
+    private final SyncConfiguration defaultPermissionRealmConfig;
     private Realm permissionRealm;
     private Realm managementRealm;
-    private Realm globalPermissionRealm;
+    private Realm defaultPermissionRealm;
 
     // Task list used to queue tasks until the underlying Realms are done opening (or failed doing so).
     private Deque<AsyncTask> delayedTasks = new LinkedList<>();
@@ -134,7 +134,7 @@ public class PermissionManager implements Closeable {
     private final Object errorLock = new Object();
     private volatile ObjectServerError permissionRealmError = null;
     private volatile ObjectServerError managementRealmError = null;
-    private volatile ObjectServerError globalPermissionRealmError = null;
+    private volatile ObjectServerError defaultPermissionRealmError = null;
 
     // Cached result of the permission query. This will be filled, once the first PermissionAsyncTask has loaded
     // the result.
@@ -183,14 +183,14 @@ public class PermissionManager implements Closeable {
                 // .readOnly() // FIXME: Something is seriously wrong with the Permission Realm. It doesn't seem to exist on the server. Making it impossible to mark it read only
                 .build();
 
-        globalPermissionRealmConfig = new SyncConfiguration.Builder(
-                user, getRealmUrl(RealmType.GLOBAL_PERMISSION_REALM, user.getAuthenticationUrl()))
+        defaultPermissionRealmConfig = new SyncConfiguration.Builder(
+                user, getRealmUrl(RealmType.DEFAULT_PERMISSION_REALM, user.getAuthenticationUrl()))
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
                         // FIXME: How to handle Client Reset?
                         synchronized (errorLock) {
-                            globalPermissionRealmError = error;
+                            defaultPermissionRealmError = error;
                         }
                     }
                 })
@@ -298,17 +298,17 @@ public class PermissionManager implements Closeable {
                     }
                 }
             });
-            globalPermissionRealmOpenTask = Realm.getInstanceAsync(globalPermissionRealmConfig, new Realm.Callback() {
+            defaultPermissionRealmOpenTask = Realm.getInstanceAsync(defaultPermissionRealmConfig, new Realm.Callback() {
                 @Override
                 public void onSuccess(Realm realm) {
-                    globalPermissionRealm = realm;
+                    defaultPermissionRealm = realm;
                     checkIfRealmsAreOpenedAndRunDelayedTasks();
                 }
 
                 @Override
                 public void onError(Throwable exception) {
                     synchronized (errorLock) {
-                        globalPermissionRealmError = new ObjectServerError(ErrorCode.UNKNOWN, exception);
+                        defaultPermissionRealmError = new ObjectServerError(ErrorCode.UNKNOWN, exception);
                         checkIfRealmsAreOpenedAndRunDelayedTasks();
                     }
                 }
@@ -319,7 +319,7 @@ public class PermissionManager implements Closeable {
     private void checkIfRealmsAreOpenedAndRunDelayedTasks() {
         synchronized (errorLock) {
             if ((permissionRealm != null || permissionRealmError != null)
-                && (globalPermissionRealm != null || globalPermissionRealmError != null)
+                && (defaultPermissionRealm != null || defaultPermissionRealmError != null)
                 && (managementRealm != null || managementRealmError != null)) {
                 openInProgress = false;
                 runDelayedTasks();
@@ -334,7 +334,7 @@ public class PermissionManager implements Closeable {
     }
 
     private boolean isReady() {
-        return managementRealm != null && permissionRealm != null && globalPermissionRealm != null;
+        return managementRealm != null && permissionRealm != null && defaultPermissionRealm != null;
     }
 
     private void checkIfValidThread() {
@@ -375,9 +375,9 @@ public class PermissionManager implements Closeable {
             permissionRealmOpenTask.cancel();
             permissionRealmOpenTask = null;
         }
-        if (globalPermissionRealmOpenTask != null) {
-            globalPermissionRealmOpenTask.cancel();
-            globalPermissionRealmOpenTask = null;
+        if (defaultPermissionRealmOpenTask != null) {
+            defaultPermissionRealmOpenTask.cancel();
+            defaultPermissionRealmOpenTask = null;
         }
 
         // If Realms are opened. Close them.
@@ -387,8 +387,8 @@ public class PermissionManager implements Closeable {
         if (permissionRealm != null) {
             permissionRealm.close();
         }
-        if (globalPermissionRealm != null) {
-            globalPermissionRealm.close();
+        if (defaultPermissionRealm != null) {
+            defaultPermissionRealm.close();
         }
         closed = true;
     }
@@ -564,10 +564,10 @@ public class PermissionManager implements Closeable {
                 // Only hold lock while making a safe copy of current error state
                 managementErrorHappened = (permissionManager.managementRealmError != null);
                 permissionErrorHappened = (permissionManager.permissionRealmError != null);
-                defaultPermissionErrorHappened = (permissionManager.globalPermissionRealmError != null);
+                defaultPermissionErrorHappened = (permissionManager.defaultPermissionRealmError != null);
                 managementError = permissionManager.managementRealmError;
                 permissionError = permissionManager.permissionRealmError;
-                defaultPermissionError = permissionManager.globalPermissionRealmError;
+                defaultPermissionError = permissionManager.defaultPermissionRealmError;
             }
 
             // Everything seems valid
