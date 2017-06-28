@@ -1,3 +1,18 @@
+## 4.0.0-BETA1 (YYYY-MM-DD)
+
+### Breaking Changes
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+### Credits
+
+
 ## 3.5.0 (YYYY-MM-DD)
 
 ### Breaking Changes
