@@ -70,7 +70,7 @@ public class SyncManagerTests {
 
             @Override
             public boolean isActive(String identity) {
-                return false;
+                return true;
             }
         };
     }
@@ -143,6 +143,7 @@ public class SyncManagerTests {
         assertEquals(0, counter[0]);
         assertEquals(0, counter[1]);
     }
+
     @Test
     public void session() throws IOException {
         SyncUser user = createTestUser();
