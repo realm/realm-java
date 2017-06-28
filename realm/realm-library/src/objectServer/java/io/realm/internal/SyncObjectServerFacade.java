@@ -32,6 +32,7 @@ import io.realm.SyncUser;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
+import io.realm.log.RealmLog;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -90,14 +91,20 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             // make sure the user is still valid
             SyncUser user = syncConfig.getUser();
             if (!user.isValid()) {
-                throw new IllegalStateException("SyncUser is no longer valid, probably logged out.");
-            } else {
-                String rosServerUrl = syncConfig.getServerUrl().toString();
-                String rosUserIdentity = user.getIdentity();
-                String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
-                String rosRefreshToken = user.toJson();
-                return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosRefreshToken, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath()};
+                if (user.getAccessToken() == null) {
+                    throw new IllegalStateException("The SyncUser is already logged out, can not use the provided configuration");
+                } else {
+                    // user was not logged out but the `refresh_token` is not longer valid
+                    // the user will still get a stall version of Realm, that will work offline
+                    // but not sync.
+                    RealmLog.warn("SyncUser is no longer valid.");
+                }
             }
+            String rosServerUrl = syncConfig.getServerUrl().toString();
+            String rosUserIdentity = user.getIdentity();
+            String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
+            String rosRefreshToken = user.toJson();
+            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosRefreshToken, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath()};
         } else {
             return new Object[6];
         }
