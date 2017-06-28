@@ -40,50 +40,56 @@ function startRealmObjectServer(done) {
     // https://github.com/realm/realm-object-server/issues/1297
     var logFindingCounter = 2
 
-    stopRealmObjectServer();
-    temp.mkdir('ros', function(err, path) {
-        if (!err) {
-            winston.info("Starting sync server in ", path);
-            var env = Object.create( process.env );
-            winston.info(env.NODE_ENV);
-            env.NODE_ENV = 'development';
-            syncServerChildProcess = spawn('realm-object-server',
-                    ['--root', path,
-                    '--configuration', '/configuration.yml'],
-                    { env: env});
-            // local config:
-            syncServerChildProcess.stdout.on('data', (data) => {
-                if (logFindingCounter != 0 && /client: Closing Realm file: .*__auth.realm/.test(data)) {
-                    if (logFindingCounter == 1) {
-                        done()
+    stopRealmObjectServer(function() {
+        temp.mkdir('ros', function(err, path) {
+            if (!err) {
+                winston.info("Starting sync server in ", path);
+                var env = Object.create( process.env );
+                winston.info(env.NODE_ENV);
+                env.NODE_ENV = 'development';
+                syncServerChildProcess = spawn('realm-object-server',
+                        ['--root', path,
+                        '--configuration', '/configuration.yml'],
+                        { env: env});
+                // local config:
+                syncServerChildProcess.stdout.on('data', (data) => {
+                    if (logFindingCounter != 0 && /client: Closing Realm file: .*__auth.realm/.test(data)) {
+                        if (logFindingCounter == 1) {
+                            done()
+                        }
+                        logFindingCounter--
                     }
-                    logFindingCounter--
-                }
-                winston.info(`stdout: ${data}`);
-            });
+                    winston.info(`stdout: ${data}`);
+                });
 
-            syncServerChildProcess.stderr.on('data', (data) => {
-                winston.info(`stderr: ${data}`);
-            });
+                syncServerChildProcess.stderr.on('data', (data) => {
+                    winston.info(`stderr: ${data}`);
+                });
 
-            syncServerChildProcess.on('close', (code) => {
-                winston.info(`child process exited with code ${code}`);
-            });
-        }
+                syncServerChildProcess.on('close', (code) => {
+                    winston.info(`child process exited with code ${code}`);
+                });
+            }
+        });
     });
 }
 
-function stopRealmObjectServer() {
+function stopRealmObjectServer(callback) {
     if (syncServerChildProcess) {
-        syncServerChildProcess.kill();
-        syncServerChildProcess = null;
-        exec('rm -r ' + 'realm-object-server', function (err, stdout, stderr) {
-            if (err) {
-                winston.error(err);
-            } else {
-                winston.info("realm-object-server directory deleted");
-            }
+        syncServerChildProcess.on('exit', function() => {
+            syncServerChildProcess = null;
+            exec('rm -r ' + 'realm-object-server', function (err, stdout, stderr) {
+                if (err) {
+                    winston.error(err);
+                } else {
+                    winston.info("realm-object-server directory deleted");
+                }
+            });
+            callback();
         });
+        syncServerChildProcess.kill();
+    } else {
+        callback();
     }
 }
 
