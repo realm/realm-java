@@ -43,7 +43,13 @@ import io.realm.exceptions.RealmException;
  */
 public abstract class RealmProxyMediator {
 
-    public abstract List<OsObjectSchemaInfo> getExpectedObjectSchemaInfoList();
+    /**
+     * Returns a map of model classes to their schema information which are defined in this mediator. Classes which have
+     * same class name but in different packages should have different names in the {@code OsObjectSchemaInfo}.
+     *
+     * @return the map with classes and their schema information.
+     */
+    public abstract Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap();
 
     /**
      * Validates the backing table in Realm for the given RealmObject class.

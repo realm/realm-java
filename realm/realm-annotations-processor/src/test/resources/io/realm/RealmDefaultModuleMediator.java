@@ -10,7 +10,6 @@ import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,10 +32,11 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public List<OsObjectSchemaInfo> getExpectedObjectSchemaInfoList() {
-        List<OsObjectSchemaInfo> infoList = new ArrayList<OsObjectSchemaInfo>();
-        infoList.add(io.realm.AllTypesRealmProxy.getExpectedObjectSchemaInfo());
-        return infoList;
+    public Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap() {
+        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
+                    new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
+        infoMap.put(some.test.AllTypes.class, io.realm.AllTypesRealmProxy.getExpectedObjectSchemaInfo());
+        return infoMap;
     }
 
     @Override
