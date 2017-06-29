@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.Diagnostic;
@@ -70,9 +71,35 @@ public class RealmVersionChecker {
     private void launchRealmCheck() {
         //Check Realm version server
         String latestVersionStr = checkLatestVersion();
-        if (!latestVersionStr.equals(REALM_VERSION)) {
+        if (reportNewVersion(latestVersionStr, REALM_VERSION)) {
             printMessage("Version " + latestVersionStr + " of Realm is now available: " + REALM_ANDROID_DOWNLOAD_URL);
         }
+    }
+
+    /**
+     * Checks if the latest release should be reported to the user.
+     *
+     * Note: Public for testing.
+     *
+     * @param newVersion new version string.
+     * @param currentVersion current version string.
+     * @return returns {@code true} if the new version detected should be reported to the user, {@code false} if not.
+     */
+
+    public static boolean reportNewVersion(String newVersion, String currentVersion) {
+        if (newVersion == null || newVersion.equals("")) {
+            // Invalid version strings should be ignored
+            return false;
+        }
+        if (!newVersion.matches(REALM_VERSION_PATTERN)) {
+            // Releases not following a standard major.minor.patch format should not be
+            // considered a standard release, so we do not want to notify people about
+            // these.
+            return false;
+        }
+
+        // In all other cases assume that any change is cause for an upgrade.
+        return !newVersion.equals(currentVersion);
     }
 
     private String checkLatestVersion() {
