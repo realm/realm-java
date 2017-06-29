@@ -12,6 +12,7 @@ android {
         minSdkVersion 15
         versionCode 1
         versionName "1.0"
+        javaCompileOptions.annotationProcessorOptions.includeCompileClasspath = true
     }
     buildTypes {
         release {
@@ -27,6 +28,6 @@ android {
 }
 
 dependencies {
-    provided 'org.projectlombok:lombok:1.16.6'
+    compileOnly 'org.projectlombok:lombok:1.16.6'
     annotationProcessor 'org.projectlombok:lombok:1.16.6'
 }
