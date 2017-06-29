@@ -30,8 +30,12 @@ import java.util.List;
 import java.util.Map;
 
 import io.realm.internal.permissions.ManagementModule;
+import io.realm.internal.permissions.PermissionChange;
 import io.realm.internal.permissions.PermissionModule;
 import io.realm.log.RealmLog;
+import io.realm.permissions.Permission;
+import io.realm.permissions.PermissionRequest;
+
 
 /**
  * FIXME: Better Javadoc
@@ -181,6 +185,25 @@ public class PermissionManager implements Closeable {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         return addTask(new GetPermissionsAsyncTask(this, callback));
+    }
+
+    /**
+     * Applies a given set of permissions to a Realm.
+     * <p>
+     * A {@link PermissionRequest} object encapsulates a description of which users are granted what
+     * {@link io.realm.permissions.AccessLevel}s for which Realm(s).
+     * <p>
+     * Once the request is successfully handled, a {@link Permission} entry is created in each user's
+     * {@link PermissionManager} and can be found using {@link PermissionManager#getPermissions(Callback)}.
+     *
+     * @param request request object describing which permissions to grant and to what Realm(s).
+     * @param callback callback when the request either succeeded or failed.
+     * @return async task representing the request. This can be used to cancel it if needed.
+     */
+    public RealmAsyncTask applyPermissions(PermissionRequest request, final Callback<Void> callback) {
+        checkIfValidThread();
+        checkCallbackNotNull(callback);
+        return addTask(new ApplyPermissionTask(this, request, callback));
     }
 
     // Queue the task if the underlying Realms are not ready yet, otherwise
@@ -377,7 +400,6 @@ public class PermissionManager implements Closeable {
                 // Permissions already loaded
                 notifyCallbackWithSuccess(permissions);
             } else {
-                // Start loading permissions.
                 // TODO Right now multiple getPermission() calls will result in multiple
                 // queries being executed. The first one to return will be the one returned
                 // by all callbacks.
@@ -397,6 +419,101 @@ public class PermissionManager implements Closeable {
                         }
                     }
                 });
+            }
+        }
+    }
+
+    // Class encapsulating setting a Permission by writing a PermissionChange and waiting for it to
+    // be processed.
+    private class ApplyPermissionTask extends AsyncTask<Void> {
+
+        private final PermissionChange unmanagedChangeRequest;
+        private String changeRequestId;
+        private PermissionChange managedChangeRequest;
+        private RealmAsyncTask transactionTask;
+
+        public ApplyPermissionTask(PermissionManager manager, PermissionRequest request, Callback<Void> callback) {
+            super(manager, callback);
+            this.unmanagedChangeRequest = PermissionChange.fromRequest(request);
+            this.changeRequestId = unmanagedChangeRequest.getId();
+        }
+
+        @Override
+        public void run() {
+            if (checkAndReportInvalidState()) {
+                return;
+            }
+
+            // Save PermissionChange object. It will be synchronized to the server where it will be processed.
+            Realm.Transaction transaction = new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    if (checkAndReportInvalidState()) { return; }
+                    realm.insertOrUpdate(unmanagedChangeRequest);
+                }
+            };
+
+            // If the PermissionChange was successfully written to Realm, we need to wait for it to be processed.
+            // Register a ChangeListener on the object and wait for the proper response code, which can then be
+            // converted to a proper response to the user.
+            Realm.Transaction.OnSuccess onSuccess = new Realm.Transaction.OnSuccess() {
+                @Override
+                public void onSuccess() {
+                    if (checkAndReportInvalidState()) { return; }
+
+                    // Find PermissionChange object we just added
+                    managedChangeRequest = managementRealm.where(PermissionChange.class)
+                            .equalTo("id", changeRequestId)
+                            .findFirstAsync();
+
+                    // Wait for it to be processed
+                    managedChangeRequest.addChangeListener(new RealmChangeListener<PermissionChange>() {
+                        @Override
+                        public void onChange(PermissionChange permissionChange) {
+                            if (checkAndReportInvalidState()) {
+                                managedChangeRequest.removeChangeListener(this);
+                                return;
+                            }
+                            Integer statusCode = permissionChange.getStatusCode();
+                            if (statusCode != null) {
+                                if (statusCode > 0) {
+                                    ErrorCode errorCode = ErrorCode.fromInt(statusCode);
+                                    String errorMsg = permissionChange.getStatusMessage();
+                                    ObjectServerError error = new ObjectServerError(errorCode, errorMsg);
+                                    notifyCallbackError(error);
+                                } else if (statusCode == 0) {
+                                    notifyCallbackWithSuccess(null);
+                                } else {
+                                    ErrorCode errorCode = ErrorCode.UNKNOWN;
+                                    String errorMsg = "Illegal status code: " + statusCode;
+                                    ObjectServerError error = new ObjectServerError(errorCode, errorMsg);
+                                    notifyCallbackError(error);
+                                }
+                            }
+                        }
+                    });
+                }
+            };
+
+            // Critical error: The PermissionChange could not be written to the Realm.
+            // Report it back to the user.
+            Realm.Transaction.OnError onError = new Realm.Transaction.OnError() {
+                @Override
+                public void onError(Throwable error) {
+                    if (checkAndReportInvalidState()) { return; }
+                    notifyCallbackError(new ObjectServerError(ErrorCode.UNKNOWN, error));
+                }
+            };
+
+            // Run
+            transactionTask = managementRealm.executeTransactionAsync(transaction, onSuccess, onError);
+        }
+
+        @Override
+        public void cancel() {
+            super.cancel();
+            if (transactionTask != null) {
+                cancel();
             }
         }
     }
@@ -439,7 +556,8 @@ public class PermissionManager implements Closeable {
          */
         protected final boolean checkAndReportInvalidState() {
             if (isCancelled()) { return true; }
-            if (permissionManager.isClosed()) {
+            // Closed check need to work around thread confinement
+            if (permissionManager.closed) {
                 ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN,
                         new IllegalStateException("PermissionManager has been closed"));
                 notifyCallbackError(error);

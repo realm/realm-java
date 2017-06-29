@@ -22,6 +22,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
+import io.realm.permissions.AccessLevel;
+import io.realm.permissions.UserCondition;
+import io.realm.permissions.PermissionRequest;
+
 
 /**
  * This class is used for requesting changes to a Realm's permissions.
@@ -45,9 +49,41 @@ public class PermissionChange extends RealmObject {
     private String realmUrl;
     @Required
     private String userId;
+
+    private String metadataKey;
+    private String metadataValue;
+    private String metadataNameSpace;
     private Boolean mayRead = false;
     private Boolean mayWrite = false;
     private Boolean mayManage = false;
+
+    /**
+     * Maps between a PermissionRequest and a PermissionChange object.
+     *
+     * @param request request to map to a PermissionChange.
+     */
+    public static PermissionChange fromRequest(PermissionRequest request) {
+        // PRE-CONDITION: All input are verified to be valid from the perspective of the Client.
+        UserCondition condition = request.getCondition();
+        AccessLevel level = request.getAccessLevel();
+        String realmUrl = request.getUrl();
+
+        String userId = "";
+        String metadataKey = null;
+        String metadataValue = null;
+        switch (condition.getType()) {
+            case USER_ID:
+                userId = condition.getValue();
+                break;
+            case METADATA:
+                metadataKey = condition.getKey();
+                metadataValue = condition.getValue();
+                break;
+        }
+
+        return new PermissionChange(realmUrl, userId, metadataKey, metadataValue, level.mayRead(), level.mayWrite(),
+                level.mayManage());
+    }
 
     public PermissionChange() {
         // Default constructor required by Realm
@@ -70,6 +106,17 @@ public class PermissionChange extends RealmObject {
     public PermissionChange(String realmUrl, String userId, Boolean mayRead, Boolean mayWrite, Boolean mayManage) {
         this.realmUrl = realmUrl;
         this.userId = userId;
+        this.mayRead = mayRead;
+        this.mayWrite = mayWrite;
+        this.mayManage = mayManage;
+    }
+
+    public PermissionChange(String realmUrl, String userId, String metadataKey, String metadataValue, Boolean mayRead,
+            Boolean mayWrite, Boolean mayManage) {
+        this.realmUrl = realmUrl;
+        this.userId = userId;
+        this.metadataKey = metadataKey;
+        this.metadataValue = metadataValue;
         this.mayRead = mayRead;
         this.mayWrite = mayWrite;
         this.mayManage = mayManage;
@@ -120,5 +167,13 @@ public class PermissionChange extends RealmObject {
 
     public Boolean mayManage() {
         return mayManage;
+    }
+
+    public String getMetadataKey() {
+        return metadataKey;
+    }
+
+    public String getMetadataValue() {
+        return metadataValue;
     }
 }
