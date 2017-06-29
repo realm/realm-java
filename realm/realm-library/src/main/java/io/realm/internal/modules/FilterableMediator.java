@@ -24,6 +24,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +32,8 @@ import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmModel;
-import io.realm.RealmObjectSchema;
-import io.realm.RealmSchema;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
@@ -71,14 +71,17 @@ public class FilterableMediator extends RealmProxyMediator {
         this.allowedClasses = Collections.unmodifiableSet(tempAllowedClasses);
     }
 
-    public RealmProxyMediator getOriginalMediator() {
-        return originalMediator;
-    }
-
     @Override
-    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema schema) {
-        checkSchemaHasClass(clazz);
-        return originalMediator.createRealmObjectSchema(clazz, schema);
+    public Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap() {
+        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
+                new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
+        for (Map.Entry<Class<? extends RealmModel>, OsObjectSchemaInfo> entry :
+                originalMediator.getExpectedObjectSchemaInfoMap().entrySet()) {
+            if (allowedClasses.contains(entry.getKey())) {
+                infoMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return infoMap;
     }
 
     @Override
