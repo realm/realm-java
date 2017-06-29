@@ -62,6 +62,7 @@ In case you don't want to use the precompiled version, you can build Realm yours
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
  * Download & install the Android SDK **Build-Tools 26.0.0**, **Android N (API 25)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
+ * If you use Android Studio, Android Studio 3.0 or later is required.
 
  * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
 You may unzip the file wherever you choose.  For OSX, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
