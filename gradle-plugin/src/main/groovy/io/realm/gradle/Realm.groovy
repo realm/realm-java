@@ -84,7 +84,7 @@ class Realm implements Plugin<Project> {
 
     private static String getDependencyConfigurationName(Project project) {
         /*
-         * Dependency configuration name for android gradle plugin 3.0.0-*
+         * Dependency configuration name for android gradle plugin 3.0.0-*.
          * We need to use 'api' instead of 'implementation' since user's model class
          * might be using Realm's classes and annotations.
          */
