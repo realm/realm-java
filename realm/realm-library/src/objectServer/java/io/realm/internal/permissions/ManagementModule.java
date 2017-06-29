@@ -17,6 +17,8 @@
 package io.realm.internal.permissions;
 
 import io.realm.annotations.RealmModule;
+import io.realm.permissions.PermissionOffer;
+
 
 /**
  * FIXME Javadoc

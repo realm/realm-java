@@ -21,6 +21,7 @@ import java.util.UUID;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
 import io.realm.permissions.AccessLevel;
 import io.realm.permissions.UserCondition;
@@ -32,7 +33,8 @@ import io.realm.permissions.PermissionRequest;
  *
  * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Controlling Permissions</a>
  */
-public class PermissionChange extends RealmObject implements BasePermissionApi {
+@RealmClass
+public class PermissionChange implements BasePermissionApi {
 
     // Base fields
     @PrimaryKey

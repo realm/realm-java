@@ -36,12 +36,11 @@ import io.realm.internal.permissions.BasePermissionApi;
 import io.realm.internal.permissions.ManagementModule;
 import io.realm.internal.permissions.PermissionChange;
 import io.realm.internal.permissions.PermissionModule;
-import io.realm.internal.permissions.PermissionOffer;
 import io.realm.internal.permissions.PermissionOfferResponse;
+import io.realm.permissions.PermissionOffer;
 import io.realm.log.RealmLog;
 import io.realm.permissions.Permission;
 import io.realm.permissions.PermissionRequest;
-import io.realm.permissions.PermissionOfferRequest;
 
 
 /**
@@ -200,7 +199,7 @@ public class PermissionManager implements Closeable {
      * A {@link PermissionRequest} object encapsulates a description of which users are granted what
      * {@link io.realm.permissions.AccessLevel}s for which Realm(s).
      * <p>
-     * Once the request is successfully handled, a {@link Permission} entry is created in each users
+     * Once the request is successfully handled, a {@link Permission} entry is created in each user's
      * {@link PermissionManager} and can be found using {@link PermissionManager#getPermissions(Callback)}.
      *
      * @param request request object describing which permissions to grant and to what Realm(s).
@@ -220,7 +219,7 @@ public class PermissionManager implements Closeable {
      * <p>
      * This can be used as a flexible way of sharing Realms with other users that might not be known at the time
      * of making the offer as well as enabling sharing across other channels like e-mail. If a specific user should be
-     * granted access, using {@link #applyPermissions(PermissionRequest, Callback)} applyPermission(PermissionRequest, Callback)} will be faster and quicker.
+     * granted access, using {@link #applyPermissions(PermissionRequest, Callback)} will be faster and quicker.
      * <p>
      * An offer can be accepted by multiple users.
      *
@@ -231,10 +230,13 @@ public class PermissionManager implements Closeable {
      * @see <a href="https://realm.io/docs/java/latest/#modifying-permissions">Modifying permissions</a> for a more
      * high level description.
      */
-    public RealmAsyncTask makeOffer(PermissionOfferRequest offer, final Callback<String> callback) {
+    public RealmAsyncTask makeOffer(PermissionOffer offer, final Callback<String> callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
-        return addTask(new MakeOfferAsyncTask(this, PermissionOffer.fromRequest(offer), callback));
+        if (offer.isOfferCreated()) {
+            throw new IllegalStateException("Offer is already created: " + offer);
+        }
+        return addTask(new MakeOfferAsyncTask(this, offer, callback));
     }
 
     /**
@@ -260,6 +262,14 @@ public class PermissionManager implements Closeable {
      * @return
      */
     public RealmAsyncTask revokeOffer(String offerToken, final Callback<Void> callback) {
+        return null; // FIXME
+    }
+
+    /**
+     * FIXME
+     * @return
+     */
+    public RealmAsyncTask getOffers(Callback<RealmResults<PermissionOffer>> callback) {
         return null; // FIXME
     }
 
@@ -525,11 +535,11 @@ public class PermissionManager implements Closeable {
 
 
                     // Wait for it to be processed
-                    managedChangeRequest.addChangeListener(new RealmChangeListener<PermissionChange>() {
+                    RealmObject.addChangeListener(managedChangeRequest, new RealmChangeListener<PermissionChange>() {
                         @Override
                         public void onChange(PermissionChange permissionChange) {
                             if (checkAndReportInvalidState()) {
-                                managedChangeRequest.removeChangeListener(this);
+                                RealmObject.removeChangeListener(managedChangeRequest, this);
                                 return;
                             }
                             handleServerStatusChanges(permissionChange, null);
@@ -600,11 +610,11 @@ public class PermissionManager implements Closeable {
                     // Find PermissionChange object we just added
                     // Wait for it to be processed
                     managedOffer = managementRealm.where(PermissionOffer.class).equalTo("id", offerId).findFirstAsync();
-                    managedOffer.addChangeListener(new RealmChangeListener<PermissionOffer>() {
+                    RealmObject.addChangeListener(managedOffer, new RealmChangeListener<PermissionOffer>() {
                         @Override
                         public void onChange(final PermissionOffer permissionOffer) {
                             if (checkAndReportInvalidState()) {
-                                managedOffer.removeChangeListener(this);
+                                RealmObject.removeChangeListener(managedOffer, this);
                                 return;
                             }
                             handleServerStatusChanges(permissionOffer, new Runnable() {
@@ -823,12 +833,13 @@ public class PermissionManager implements Closeable {
         /**
          * Handle the status change from ROS and either call error or success callbacks.
          */
-        protected void handleServerStatusChanges(BasePermissionApi permissionOffer, Runnable onSuccessDelegate) {
-            Integer statusCode = permissionOffer.getStatusCode();
+        protected void handleServerStatusChanges(BasePermissionApi obj, T resultOnSuccess) {
+            Integer statusCode = obj.getStatusCode();
             if (statusCode != null) {
+                RealmObject.removeAllChangeListeners(obj);
                 if (statusCode > 0) {
                     ErrorCode errorCode = ErrorCode.fromInt(statusCode);
-                    String errorMsg = permissionOffer.getStatusMessage();
+                    String errorMsg = obj.getStatusMessage();
                     ObjectServerError error = new ObjectServerError(errorCode, errorMsg);
                     notifyCallbackError(error);
                 } else if (statusCode == 0) {

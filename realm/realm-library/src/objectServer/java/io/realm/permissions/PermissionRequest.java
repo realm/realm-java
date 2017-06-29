@@ -24,12 +24,11 @@ import io.realm.internal.Util;
 
 
 /**
- * This class represent the intent of giving a set of permissions to some users for some Realm(s).
+ * This class represents the intent of giving a set of permissions to some users for some Realm(s).
  * <p>
  * If the request is successful, a {@link Permission} entry will be added to each affected users
  * {@link PermissionManager}, where it can be fetched using
  * {@link PermissionManager#getPermissions(PermissionManager.Callback)}.
- *
  *
  * @see PermissionManager#applyPermissions(PermissionRequest, PermissionManager.Callback)
  * @see PermissionManager#getPermissions(PermissionManager.Callback)
@@ -45,7 +44,8 @@ public final class PermissionRequest {
      *
      * @param realmUrl the Realm URL whose permissions settings should be changed. Use {@code *} to change the
      * permissions of all Realms managed by the user sending this request. The user that wants to grant these permissions
-     * must have administrative rights to those realms.
+     * must have administrative rights to those Realms.
+     *
      * @param condition the conditions used to match which users are effected.
      * @param accessLevel the {@link AccessLevel} to grant matching users. Setting the access level is absolute i.e., it
      * may revoke permissions for users that previously had a higher access level. To revoke all permissions, use
@@ -53,15 +53,15 @@ public final class PermissionRequest {
      *
      */
     public PermissionRequest(UserCondition condition, String realmUrl, AccessLevel accessLevel) {
-        validateCondition(condition);
-        validateUrl(realmUrl);
-        validateAccessLevel(accessLevel);
+        checkCondition(condition);
+        checkUrl(realmUrl);
+        checkAccessLevel(accessLevel);
         this.condition = condition;
         this.accessLevel = accessLevel;
         this.url = realmUrl;
     }
 
-    private void validateUrl(String url) {
+    private void checkUrl(String url) {
         if (Util.isEmptyString(url)) {
             throw new IllegalArgumentException("Non-empty 'realmUrl' required.");
         }
@@ -78,13 +78,13 @@ public final class PermissionRequest {
         }
     }
 
-    private void validateCondition(UserCondition condition) {
+    private void checkCondition(UserCondition condition) {
         if (condition == null) {
             throw new IllegalArgumentException("Non-null 'condition' required.");
         }
     }
 
-    private void validateAccessLevel(AccessLevel accessLevel) {
+    private void checkAccessLevel(AccessLevel accessLevel) {
         if (accessLevel == null) {
             throw new IllegalArgumentException("Non-null 'accessLevel' required.");
         }

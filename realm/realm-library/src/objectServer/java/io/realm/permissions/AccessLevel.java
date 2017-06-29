@@ -27,7 +27,7 @@ import io.realm.RealmConfiguration;
  * <p>
  * Note that each access level guarantees all allowed actions provided by less permissive access levels.
  * Specifically, users with write access to a Realm can always read from that Realm, and users with administrative
- * access can always read or write from the Realm.
+ * access can always read or write from the Realm. This means that {@code NONE < READ < WRITE < ADMIN}.
  *
  * @see PermissionRequest
  * @see io.realm.PermissionManager#applyPermissions(PermissionRequest, PermissionManager.Callback)
@@ -35,7 +35,7 @@ import io.realm.RealmConfiguration;
 public enum AccessLevel {
 
     /**
-     * The user do not have access to this Realm.
+     * The user does not have access to this Realm.
      */
     NONE(false, false, false),
 
@@ -48,7 +48,7 @@ public enum AccessLevel {
      * before being re-opened with the correct configuration.
      * <p>
      * <pre>
-     * @{code
+     * {@code
      * SyncConfiguration config = new SyncConfiguration(getUser(), getUrl())
      *     .readOnly()
      *     .waitForInitialRemoteData()
@@ -94,7 +94,7 @@ public enum AccessLevel {
     }
 
     /**
-     * Returns {@code true} if the user is allowed to manage the Realm, {@false if not}.
+     * Returns {@code true} if the user is allowed to manage the Realm, {@code false} if not.
      * <p>
      * Having this permission, means the user is able to grant permissions to other users as well as remove them
      * again.
