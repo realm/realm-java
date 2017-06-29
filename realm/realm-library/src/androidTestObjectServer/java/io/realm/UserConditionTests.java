@@ -60,8 +60,8 @@ public class UserConditionTests {
     @Test
     public void keyValue_nullOrEmptyThrows() {
         // Keys
-        String[] illegalKeyValues = { null, ""};
-        for (String key : illegalKeyValues) {
+        String[] illegalKeys = { null, ""};
+        for (String key : illegalKeys) {
             try {
                 UserCondition.keyValue(key, "value");
                 fail();

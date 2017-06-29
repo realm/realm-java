@@ -73,7 +73,13 @@ public class PermissionRequestTests {
     public void url_validURIs() {
         // We support "*" and valid URI's
         // We don't attempt to do more validation than that and leaves that up to ROS
-        String[] validUrls = { "*", "http://foo/bar/baz", "realm://foo.bar/~/default" };
+        String[] validUrls = {
+                "*",
+                "http://foo/bar/baz",
+                "https://foo/bar/baz",
+                "realm://foo.bar/~/default",
+                "realms://foo.bar/~/default"
+        };
         for (String url : validUrls) {
             PermissionRequest request = new PermissionRequest(UserCondition.userId("id"), url, AccessLevel.ADMIN);
             assertEquals(url, request.getUrl());

@@ -195,7 +195,7 @@ public class PermissionManager implements Closeable {
      * A {@link PermissionRequest} object encapsulates a description of which users are granted what
      * {@link io.realm.permissions.AccessLevel}s for which Realm(s).
      * <p>
-     * Once the request is successfully handled, a {@link Permission} entry is created in each users
+     * Once the request is successfully handled, a {@link Permission} entry is created in each user's
      * {@link PermissionManager} and can be found using {@link PermissionManager#getPermissions(Callback)}.
      *
      * @param request request object describing which permissions to grant and to what Realm(s).

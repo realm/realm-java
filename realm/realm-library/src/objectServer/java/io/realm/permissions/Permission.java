@@ -71,7 +71,7 @@ public class Permission extends RealmObject {
     }
 
     /**
-     * Checks whether or not the user defined by this permission are allowed to read the Realm defined by
+     * Checks whether or not the user defined by this permission is allowed to read the Realm defined by
      * {@link #getPath()}.
      *
      * @return {@code true} if this permission grant read permissions to the Realm, {@code false} if not.
@@ -81,7 +81,7 @@ public class Permission extends RealmObject {
     }
 
     /**
-     * Checks whether or not the user defined by this permission are allowed to write to the Realm defined by
+     * Checks whether or not the user defined by this permission is allowed to write to the Realm defined by
      * {@link #getPath()}.
      *
      * @return {@code true} if this permission grant write permissions to the Realm, {@code false} if not.
@@ -91,9 +91,9 @@ public class Permission extends RealmObject {
     }
 
     /**
-     * Checks whether or not the user defined by this permission are allowed to manage access to the Realm defined
+     * Checks whether or not the user defined by this permission is allowed to manage access to the Realm defined
      * by {@link #getPath()}. Having this permission enable those users to add or remove permissions from
-     * other users, including the one that granted it.
+     * other users, including the one who granted it.
      *
      * @return {@code true} if this permission grant administrative rights to the Realm, {@code false} if not.
      */
