@@ -32,18 +32,18 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
     //noinspection GradleDependency
-    compile 'com.android.support:appcompat-v7:25.2.0'
+    implementation 'com.android.support:appcompat-v7:25.2.0'
     //noinspection GradleDependency
-    compile 'com.android.support:design:25.2.0'
-    compile 'io.reactivex:rxjava:1.1.0'
-    compile 'io.reactivex:rxandroid:1.1.0'
-    compile 'com.squareup.retrofit:retrofit:2.0.0-beta2'
-    compile 'com.squareup.retrofit:converter-jackson:2.0.0-beta2'
-    compile 'com.squareup.retrofit:adapter-rxjava:2.0.0-beta2'
-    compile 'com.jakewharton.timber:timber:4.1.0'
-    compile 'com.jakewharton:butterknife:8.5.1'
+    implementation 'com.android.support:design:25.2.0'
+    implementation 'io.reactivex:rxjava:1.1.0'
+    implementation 'io.reactivex:rxandroid:1.1.0'
+    implementation 'com.squareup.retrofit:retrofit:2.0.0-beta2'
+    implementation 'com.squareup.retrofit:converter-jackson:2.0.0-beta2'
+    implementation 'com.squareup.retrofit:adapter-rxjava:2.0.0-beta2'
+    implementation 'com.jakewharton.timber:timber:4.1.0'
+    implementation 'com.jakewharton:butterknife:8.5.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
-    compile 'me.zhanghai.android.materialprogressbar:library:1.1.4'
+    implementation 'me.zhanghai.android.materialprogressbar:library:1.1.4'
 }
