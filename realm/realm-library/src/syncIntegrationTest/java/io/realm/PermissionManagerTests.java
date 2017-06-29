@@ -26,11 +26,18 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
-import io.realm.log.RealmLog;
+import io.realm.internal.Util;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
+import io.realm.permissions.AccessLevel;
+import io.realm.permissions.UserCondition;
+import io.realm.permissions.Permission;
+import io.realm.permissions.PermissionRequest;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
@@ -39,6 +46,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 
 @RunWith(AndroidJUnit4.class)
 public class PermissionManagerTests extends BaseIntegrationTest {
@@ -50,6 +58,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
 
     private SyncUser user;
+    private List<SyncUser> testUsers = new ArrayList<>();
 
     @Before
     public void setUpTest() {
@@ -140,7 +149,6 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @RunTestInLooperThread
     public void getPermissions_closed() throws IOException {
         PermissionManager pm = user.getPermissionManager();
-        looperThread.closeAfterTest(pm);
         pm.close();
 
         pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
@@ -244,7 +252,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         final ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
         permissionConfigField.set(pm, error);
 
-        PermissionManager.Callback <Void> callback = new PermissionManager.Callback <Void>() {
+        PermissionManager.Callback<Void> callback = new PermissionManager.Callback<Void>() {
             @Override
             public void onSuccess(Void result) {
                 fail();
@@ -273,7 +281,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         final ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
         setRealmError(pm, "managementRealmError", error);
 
-        PermissionManager.Callback <Void> callback = new PermissionManager.Callback <Void>() {
+        PermissionManager.Callback<Void> callback = new PermissionManager.Callback<Void>() {
             @Override
             public void onSuccess(Void result) {
                 fail();
@@ -304,7 +312,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         // Simulate error in the management Realm
         setRealmError(pm, "permissionRealmError", new ObjectServerError(ErrorCode.CONNECTION_CLOSED, "Boom2"));
 
-        PermissionManager.Callback <Void> callback = new PermissionManager.Callback <Void>() {
+        PermissionManager.Callback<Void> callback = new PermissionManager.Callback<Void>() {
             @Override
             public void onSuccess(Void result) {
                 fail();
@@ -335,7 +343,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         // Simulate error in the management Realm
         setRealmError(pm, "permissionRealmError", new ObjectServerError(ErrorCode.SESSION_CLOSED, "Boom2"));
 
-        PermissionManager.Callback <Void> callback = new PermissionManager.Callback <Void>() {
+        PermissionManager.Callback<Void> callback = new PermissionManager.Callback<Void>() {
             @Override
             public void onSuccess(Void result) {
                 fail();
@@ -352,6 +360,217 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
         // Create dummy task that can trigger the error reporting
         runTask(pm, callback);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void applyPermissions_nonAdminUserFails() {
+        SyncUser user2 = createUniqueUserForTest();
+        String otherUsersUrl = createRemoteRealm(user2, "test");
+
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        // Create request for setting permissions on another users Realm,
+        // i.e. user making the request do not have manage rights.
+        UserCondition condition = UserCondition.userId(user.getIdentity());
+        AccessLevel accessLevel = AccessLevel.WRITE;
+        PermissionRequest request = new PermissionRequest(condition, otherUsersUrl, accessLevel);
+
+        pm.applyPermissions(request, new PermissionManager.Callback<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.ACCESS_DENIED, error.getErrorCode());
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void applyPermissions_wrongUrlFails() {
+        String wrongUrl = createRemoteRealm(user, "test") + "-notexisting";
+
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        // Create request for setting permissions on another users Realm,
+        // i.e. user making the request do not have manage rights.
+        UserCondition condition = UserCondition.userId(user.getIdentity());
+        AccessLevel accessLevel = AccessLevel.WRITE;
+        PermissionRequest request = new PermissionRequest(condition, wrongUrl, accessLevel);
+
+        pm.applyPermissions(request, new PermissionManager.Callback<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.ACCESS_DENIED, error.getErrorCode());
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void applyPermissions_withUserId() {
+        final SyncUser user2 = createUniqueUserForTest();
+        String url = createRemoteRealm(user2, "test");
+        PermissionManager pm2 = user2.getPermissionManager();
+        looperThread.closeAfterTest(pm2);
+
+        // Create request for giving `user` WRITE permissions to `user2`'s Realm.
+        UserCondition condition = UserCondition.userId(user.getIdentity());
+        AccessLevel accessLevel = AccessLevel.WRITE;
+        PermissionRequest request = new PermissionRequest(condition, url, accessLevel);
+
+        pm2.applyPermissions(request, new PermissionManager.Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                PermissionManager pm = user.getPermissionManager();
+                looperThread.closeAfterTest(pm);
+                pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+                    @Override
+                    public void onSuccess(RealmResults<Permission> permissions) {
+                        assertPermissionPresent(permissions, user, "/test", AccessLevel.WRITE);
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        fail(error.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void applyPermissions_withUsername() {
+        String user1Username = TestHelper.getRandomEmail();
+        String user2Username = TestHelper.getRandomEmail();
+        final SyncUser user1 = createUserForTest(user1Username);
+        final SyncUser user2 = createUserForTest(user2Username);
+        PermissionManager pm1 = user1.getPermissionManager();
+        looperThread.closeAfterTest(pm1);
+
+        // Create request for giving `user2` WRITE permissions to `user1`'s Realm.
+        UserCondition condition = UserCondition.username(user2Username);
+        AccessLevel accessLevel = AccessLevel.WRITE;
+        String url = createRemoteRealm(user1, "test");
+        PermissionRequest request = new PermissionRequest(condition, url, accessLevel);
+
+        pm1.applyPermissions(request, new PermissionManager.Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                PermissionManager pm2 = user2.getPermissionManager();
+                looperThread.closeAfterTest(pm2);
+                pm2.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+                    @Override
+                    public void onSuccess(RealmResults<Permission> permissions) {
+                        assertPermissionPresent(permissions, user2, user1.getIdentity() + "/test", AccessLevel.WRITE);
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        fail(error.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void applyPermissions_usersWithNoExistingPermissions() {
+        final SyncUser user1 = createUserForTest("user1@realm.io");
+        final SyncUser user2 = createUserForTest("user2@realm.io");
+        PermissionManager pm1 = user1.getPermissionManager();
+        looperThread.closeAfterTest(pm1);
+
+        // Create request for giving all users with no existing permissions WRITE permissions to `user1`'s Realm.
+        UserCondition condition = UserCondition.noExistingPermissions();
+        AccessLevel accessLevel = AccessLevel.WRITE;
+        final String url = createRemoteRealm(user1, "test");
+        PermissionRequest request = new PermissionRequest(condition, url, accessLevel);
+
+        pm1.applyPermissions(request, new PermissionManager.Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                // Default permissions are not recorded in the __permission Realm for user2
+                // Only way to check is by opening the Realm.
+                SyncConfiguration config = new SyncConfiguration.Builder(user2, url)
+                        .errorHandler(new SyncSession.ErrorHandler() {
+                            @Override
+                            public void onError(SyncSession session, ObjectServerError error) {
+                                fail(error.toString());
+                            }
+                        })
+                        .build();
+                Realm realm = Realm.getInstance(config);
+                try {
+                    SyncManager.getSession(config).downloadAllServerChanges();
+                } catch (InterruptedException e) {
+                    fail(Util.getStackTrace(e));
+                }
+                realm.close();
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    /**
+     * Wait for a given permission to be present.
+     *
+     * @param permissions permission results.
+     * @param user user that is being granted the permission.
+     * @param urlSuffix the url suffix to listen for.
+     * @param accessLevel the expected access level for 'user'.
+     */
+    private void assertPermissionPresent(RealmResults<Permission> permissions, final SyncUser user, String urlSuffix, final AccessLevel accessLevel) {
+        RealmResults<Permission> filteredPermissions = permissions.where().endsWith("path", urlSuffix).findAllAsync();
+        looperThread.keepStrongReference(permissions);
+        filteredPermissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
+            @Override
+            public void onChange(RealmResults<Permission> permissions) {
+                switch(permissions.size()) {
+                    case 0: return;
+                    case 1:
+                        Permission p = permissions.first();
+                        assertEquals(accessLevel.mayRead(), p.mayRead());
+                        assertEquals(accessLevel.mayWrite(), p.mayWrite());
+                        assertEquals(accessLevel.mayManage(), p.mayManage());
+                        assertEquals(user.getIdentity(), p.getUserId());
+                        looperThread.testComplete();
+                        break;
+                    default:
+                        fail("To many permissions matched: " + Arrays.toString(permissions.toArray()));
+                }
+            }
+        });
     }
 
     private SyncUser createUniqueUserForTest() {
@@ -392,6 +611,29 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                 }
             }
         }.run();
+    }
+
+    /**
+     * Creates an empty remote Realm on ROS owned by the provided user
+     */
+    private String createRemoteRealm(SyncUser user, String realmName) {
+        String url = Constants.AUTH_SERVER_URL + "~/" + realmName;
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+
+        Realm realm = Realm.getInstance(config);
+        SyncSession session = SyncManager.getSession(config);
+        final CountDownLatch uploadLatch = new CountDownLatch(1);
+        session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
+            @Override
+            public void onChange(Progress progress) {
+                if (progress.isTransferComplete()) {
+                    uploadLatch.countDown();
+                }
+            }
+        });
+        TestHelper.awaitOrFail(uploadLatch);
+        realm.close();
+        return config.getServerUrl().toString();
     }
 
     /**

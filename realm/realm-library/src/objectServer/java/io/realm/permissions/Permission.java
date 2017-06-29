@@ -14,74 +14,25 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.permissions;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Date;
-import java.util.UUID;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-import io.realm.RealmModel;
+import io.realm.PermissionManager;
 import io.realm.RealmObject;
-import io.realm.annotations.Ignore;
-import io.realm.annotations.PrimaryKey;
+import io.realm.SyncUser;
 import io.realm.annotations.Required;
 
 
 /**
- * FIXME Javadoc
- * Public description of what a a Permission is and how it works
+ * This class represents a given set of permissions for one user on one Realm.
+ * <p>
+ * Permissions can be changed by users with administrative rights using the {@link PermissionManager}.
+ *
+ * @see SyncUser#getPermissionManager()
  */
 public class Permission extends RealmObject {
-
-    /**
-     * FIXME: Public description of what a permission is and how it works
-     */
-    public enum AccessLevel {
-        /**
-         * FIXME: add description
-         */
-        NONE(false, false, false),
-
-        /**
-         * FIXME: add description
-         */
-        READ(true, false, false),
-
-        /**
-         * FIXME: add description
-         */
-        READ_WRITE(true, true, false),
-
-        /**
-         * FIXME: add description
-         */
-        ADMIN(true, true, true);
-
-        private final boolean mayRead;
-        private final boolean mayWrite;
-        private final boolean mayManage;
-
-        AccessLevel(boolean mayRead, boolean mayWrite, boolean mayManage) {
-            this.mayRead = mayRead;
-            this.mayWrite = mayWrite;
-            this.mayManage = mayManage;
-        }
-
-        public boolean mayRead() {
-            return mayRead;
-        }
-
-        public boolean mayWrite() {
-            return mayWrite;
-        }
-
-        public boolean mayManage() {
-            return mayManage;
-        }
-    }
 
     @Required
     private String userId;
@@ -93,59 +44,67 @@ public class Permission extends RealmObject {
     @Required
     private Date updatedAt;
 
+    /**
+     * Required by Realm. Do not use.
+     */
     public Permission() {
+        // Required by Realm
     }
 
     /**
-     * FIXME: JAvadoc
+     * Returns the {@link SyncUser#getIdentity()} of the user effected by this permission.˚
+     * <p>
      *
-     * @return
+     * @return the user effected by this permission.
      */
     public String getUserId() {
         return userId;
     }
 
-
     /**
-     * FIXME: JAvadoc
+     * Returns the path to the Realm on the server effected by this permission. This is not the full URL.
      *
-     * @return
+     * @return the path to the Realm this permission object refers to.
      */
     public String getPath() {
         return path;
     }
 
     /**
-     * FIXME: JAvadoc
+     * Checks whether or not the user defined by this permission is allowed to read the Realm defined by
+     * {@link #getPath()}.
      *
-     * @return
+     * @return {@code true} if this permission grant read permissions to the Realm, {@code false} if not.
      */
     public boolean mayRead() {
         return mayRead;
     }
 
     /**
-     * FIXME: JAvadoc
+     * Checks whether or not the user defined by this permission is allowed to write to the Realm defined by
+     * {@link #getPath()}.
      *
-     * @return
+     * @return {@code true} if this permission grant write permissions to the Realm, {@code false} if not.
      */
     public boolean mayWrite() {
         return mayWrite;
     }
 
     /**
-     * FIXME: JAvadoc
+     * Checks whether or not the user defined by this permission is allowed to manage access to the Realm defined
+     * by {@link #getPath()}. Having this permission enable those users to add or remove permissions from
+     * other users, including the one who granted it.
      *
-     * @return
+     * @return {@code true} if this permission grant administrative rights to the Realm, {@code false} if not.
      */
     public boolean mayManage() {
         return mayManage;
     }
 
     /**
-     * FIXME: JAvadoc
+     * Returns the timestamp for when this permission object was last updated.
      *
-     * @return
+     * @return the timestamp for when this permission was last updated.
      */
     @SuppressFBWarnings({"EI_EXPOSE_REP"})
     public Date getUpdatedAt() {
