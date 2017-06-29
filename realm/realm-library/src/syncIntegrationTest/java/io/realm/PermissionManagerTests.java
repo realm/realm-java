@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,8 +39,8 @@ import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
-import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.Permission;
+import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.PermissionRequest;
 import io.realm.permissions.UserCondition;
 import io.realm.rule.RunInLooperThread;
@@ -598,7 +599,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                 RealmLog.error("Make offer");
                 String url = createRemoteRealm(user, realmName);
                 final PermissionManager pm = user.getPermissionManager();
-                pm.makeOffer(new PermissionOfferRequest(url, level, expires), new PermissionManager.Callback<String>() {
+                pm.makeOffer(new PermissionOffer(url, level, expires), new PermissionManager.Callback<String>() {
                     @Override
                     public void onSuccess(String offerToken) {
                         RealmLog.error("Offer: " + offerToken);
