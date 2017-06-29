@@ -341,8 +341,6 @@ public class AuthTests extends BaseIntegrationTest {
     }
 
 
-    // logout user make sure calling isValid & isAdmin is correct
-
     @Test
     @RunTestInLooperThread
     public void retrieve_async() {
