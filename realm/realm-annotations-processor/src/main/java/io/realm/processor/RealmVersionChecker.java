@@ -91,8 +91,10 @@ public class RealmVersionChecker {
             // Invalid version strings should be ignored
             return false;
         }
-        if (newVersion.toLowerCase(Locale.US).endsWith("beta")) {
-            // BETA releases should be ignored
+        if (!newVersion.matches(REALM_VERSION_PATTERN)) {
+            // Releases not following a standard major.minor.patch format should not be
+            // considered a standard release, so we do not want to notify people about
+            // these.
             return false;
         }
 

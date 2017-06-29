@@ -10,11 +10,13 @@ import static org.junit.Assert.assertTrue;
 public class VersionCheckerTests {
 
     @Test
-    public void ignoreBetaReleases() {
+    public void ignoreNamedReleases() {
         String[] newReleases = {
                 "1.0.0-BETA",
                 "1.0.0-beta",
-                "foo-BETA"
+                "foo-BETA",
+                "STABLE-1.0.0",
+                "1.alpha.0"
         };
 
         for (String version : newReleases) {
@@ -44,7 +46,7 @@ public class VersionCheckerTests {
         String[] validVersions = {
                 "0.9.0",
                 "1.1.0",
-                "1.0.0-STABLE"
+                "999.999.999"
         };
 
         for (String version : validVersions) {
