@@ -8,7 +8,7 @@
 
 ### Bug Fixes
 
-* Fixed a bug related to link queries (#4856).
+* Fixed a bug in `isNull()`, `isNotNull()`, `isEmpty()`, and `isNotEmpty()` when queries involve nullable fields in link queries (#4856).
 
 ### Internal
 
