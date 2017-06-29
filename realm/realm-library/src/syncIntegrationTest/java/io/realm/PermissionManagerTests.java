@@ -131,7 +131,8 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                 permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults<Permission> permissions) {
-                        assertEquals(2, permissions.size());
+                        // Should contain __permission, __management and the tests2 realm.
+                        assertEquals(3, permissions.size());
                         secondRealm.close();
                         looperThread.testComplete();
                     }
