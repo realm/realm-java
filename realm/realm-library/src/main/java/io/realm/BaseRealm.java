@@ -98,7 +98,7 @@ abstract class BaseRealm implements Closeable {
                                 }
                             }
                         }, true);
-        this.schema = new StandardRealmSchema(this);
+        this.schema = new RealmSchema(this);
     }
 
     /**
