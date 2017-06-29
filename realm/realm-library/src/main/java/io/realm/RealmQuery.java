@@ -19,6 +19,7 @@ package io.realm;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.Locale;
 
 import io.realm.annotations.Required;
 import io.realm.internal.Collection;
@@ -1600,7 +1601,8 @@ public class RealmQuery<E extends RealmModel> {
             case DOUBLE:
                 return query.sumDouble(columnIndex);
             default:
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }
 
@@ -1626,7 +1628,8 @@ public class RealmQuery<E extends RealmModel> {
             case FLOAT:
                 return query.averageFloat(columnIndex);
             default:
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }
 
@@ -1651,7 +1654,8 @@ public class RealmQuery<E extends RealmModel> {
             case DOUBLE:
                 return this.query.minimumDouble(columnIndex);
             default:
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }
 
@@ -1692,7 +1696,8 @@ public class RealmQuery<E extends RealmModel> {
             case DOUBLE:
                 return this.query.maximumDouble(columnIndex);
             default:
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }
 

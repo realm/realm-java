@@ -45,6 +45,6 @@ android {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:${kotlin_version}"
-    compile 'org.jetbrains.anko:anko-sdk15:0.9.1'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:${kotlin_version}"
+    implementation 'org.jetbrains.anko:anko-sdk15:0.9.1'
 }

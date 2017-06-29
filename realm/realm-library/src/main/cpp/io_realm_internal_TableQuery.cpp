@@ -1573,50 +1573,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
     CATCH_STD()
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRowIntoSharedGroup(
-    JNIEnv* env, jclass, jlong handoverPtr, jlong callerSharedGrpPtr)
-{
-    TR_ENTER_PTR(handoverPtr)
-    SharedGroup::Handover<Row>* handoverRowPtr = HO(Row, handoverPtr);
-    std::unique_ptr<SharedGroup::Handover<Row>> handoverRow(handoverRowPtr);
-
-    try {
-        // import_from_handover will free (delete) the handover
-        auto sharedRealm = *(reinterpret_cast<SharedRealm*>(callerSharedGrpPtr));
-        if (!sharedRealm->is_closed()) {
-            using rf = realm::_impl::RealmFriend;
-            auto row = rf::get_shared_group(*sharedRealm).import_from_handover(std::move(handoverRow));
-            return reinterpret_cast<jlong>(row.release());
-        }
-        else {
-            ThrowException(env, RuntimeError, ERR_IMPORT_CLOSED_REALM);
-        }
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery(JNIEnv* env, jobject,
-                                                                              jlong bgSharedRealmPtr,
-                                                                              jlong nativeQueryPtr)
-{
-    TR_ENTER_PTR(nativeQueryPtr)
-    Query* pQuery = Q(nativeQueryPtr);
-    if (!QUERY_VALID(env, pQuery)) {
-        return 0;
-    }
-    try {
-        auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
-        using rf = realm::_impl::RealmFriend;
-        auto handover = rf::get_shared_group(*sharedRealm).export_for_handover(*pQuery, ConstSourcePayload::Copy);
-        return reinterpret_cast<jlong>(handover.release());
-    }
-    CATCH_STD()
-    return 0;
-}
-
-
-
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv* env, jobject, jlong nativeQueryPtr,
                                                                          jlongArray columnIndexes,
                                                                          jlongArray tablePointers)
