@@ -80,7 +80,7 @@ public class RealmProxyMediatorGenerator {
                 "io.realm.internal.RealmProxyMediator",
                 "io.realm.internal.Row",
                 "io.realm.internal.Table",
-                "io.realm.RealmObjectSchema",
+                "io.realm.internal.OsObjectSchemaInfo",
                 "org.json.JSONException",
                 "org.json.JSONObject"
         );
@@ -96,7 +96,7 @@ public class RealmProxyMediatorGenerator {
         writer.emitEmptyLine();
 
         emitFields(writer);
-        emitCreateRealmObjectSchema(writer);
+        emitGetExpectedObjectSchemaInfoMap(writer);
         emitValidateTableMethod(writer);
         emitGetFieldNamesMethod(writer);
         emitGetTableNameMethod(writer);
@@ -126,20 +126,22 @@ public class RealmProxyMediatorGenerator {
         writer.emitEmptyLine();
     }
 
-    private void emitCreateRealmObjectSchema(JavaWriter writer) throws IOException {
+    private void emitGetExpectedObjectSchemaInfoMap(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod(
-                "RealmObjectSchema",
-                "createRealmObjectSchema",
-                EnumSet.of(Modifier.PUBLIC),
-                "Class<? extends RealmModel>", "clazz", "RealmSchema", "realmSchema"
-        );
-        emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
-            @Override
-            public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.createRealmObjectSchema(realmSchema)", qualifiedProxyClasses.get(i));
-            }
-        }, writer);
+                "Map<Class<? extends RealmModel>, OsObjectSchemaInfo>",
+                "getExpectedObjectSchemaInfoMap",
+                EnumSet.of(Modifier.PUBLIC));
+
+        writer.emitStatement(
+                "Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap = " +
+                        "new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>()");
+        for (int i = 0; i < qualifiedProxyClasses.size(); i++) {
+            writer.emitStatement("infoMap.put(%s.class, %s.getExpectedObjectSchemaInfo())",
+                    qualifiedModelClasses.get(i), qualifiedProxyClasses.get(i));
+        }
+        writer.emitStatement("return infoMap");
+
         writer.endMethod();
         writer.emitEmptyLine();
     }
