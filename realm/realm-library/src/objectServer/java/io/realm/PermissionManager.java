@@ -542,7 +542,12 @@ public class PermissionManager implements Closeable {
                                 RealmObject.removeChangeListener(managedChangeRequest, this);
                                 return;
                             }
-                            handleServerStatusChanges(permissionChange, null);
+                            handleServerStatusChanges(permissionChange, new Runnable() {
+                                @Override
+                                public void run() {
+                                    notifyCallbackWithSuccess(null);
+                                }
+                            });
                         }
                     });
                 }
@@ -688,30 +693,25 @@ public class PermissionManager implements Closeable {
                 @Override
                 public void onSuccess() {
                     if (checkAndReportInvalidState()) { return; }
-                    RealmLog.error("Response written");
 
                     // Find PermissionOffer object we just added
                     // Wait for it to be processed
                     managedResponse = managementRealm.where(PermissionOfferResponse.class).equalTo("id", responseId).findFirstAsync();
-                    managedResponse.addChangeListener(new RealmChangeListener<PermissionOfferResponse>() {
+                    RealmObject.addChangeListener(managedResponse, new RealmChangeListener<PermissionOfferResponse>() {
                         @Override
                         public void onChange(final PermissionOfferResponse response) {
-                            RealmLog.error("Change detected : " + response);
                             if (checkAndReportInvalidState()) {
-                                managedResponse.removeChangeListener(this);
+                                RealmObject.removeChangeListener(managedResponse, this);
                                 return;
                             }
                             handleServerStatusChanges(response, new Runnable() {
                                 @Override
                                 public void run() {
-                                    RealmLog.error(response.toString());
-                                    managedResponse.removeAllChangeListeners();
-                                    RealmLog.error(response.getPath());
+                                    RealmObject.removeAllChangeListeners(managedResponse);
                                     grantedPermissionResults = permissionRealm.where(Permission.class).equalTo("path", response.getPath()).findAllAsync();
                                     grantedPermissionResults.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                                         @Override
                                         public void onChange(RealmResults<Permission> permissions) {
-                                            RealmLog.error(Arrays.toString(permissions.toArray()));
                                             if (!permissions.isEmpty()) {
                                                 grantedPermissionResults.removeChangeListener(this);
                                                 notifyCallbackWithSuccess(permissions.first());
@@ -833,7 +833,7 @@ public class PermissionManager implements Closeable {
         /**
          * Handle the status change from ROS and either call error or success callbacks.
          */
-        protected void handleServerStatusChanges(BasePermissionApi obj, T resultOnSuccess) {
+        protected void handleServerStatusChanges(BasePermissionApi obj, Runnable onSuccessDelegate) {
             Integer statusCode = obj.getStatusCode();
             if (statusCode != null) {
                 RealmObject.removeAllChangeListeners(obj);
