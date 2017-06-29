@@ -47,8 +47,6 @@ function startRealmObjectServer(done) {
         }
         temp.mkdir('ros', function(err, path) {
             if (!err) {
-                var oldCwd = process.cwd();
-                process.chdir(path);
                 syncServerDir = path;
                 winston.info("Starting sync server in ", path);
                 var env = Object.create( process.env );
@@ -57,7 +55,7 @@ function startRealmObjectServer(done) {
                 syncServerChildProcess = spawn('realm-object-server',
                         ['--root', path,
                         '--configuration', '/configuration.yml'],
-                        { env: env});
+                        { env: env, cwd: path});
                 // local config:
                 syncServerChildProcess.stdout.on('data', (data) => {
                     if (logFindingCounter != 0 && /client: Closing Realm file: .*__auth.realm/.test(data)) {
@@ -76,7 +74,6 @@ function startRealmObjectServer(done) {
                 syncServerChildProcess.on('close', (code) => {
                     winston.info(`child process exited with code ${code}`);
                 });
-                process.chdir(oldCwd);
             }
         });
     });
