@@ -15,10 +15,15 @@
  */
 package io.realm.internal.network;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.util.Locale;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
+import io.realm.log.RealmLog;
 import okhttp3.Response;
 
 /**
@@ -26,29 +31,32 @@ import okhttp3.Response;
  */
 public class LookupUserIdResponse extends AuthServerResponse {
 
+    private static final String JSON_FIELD_USER = "user";
+    private static final String JSON_FIELD_USER_ID = "id";
+    private static final String JSON_FIELD_USER_IS_ADMIN = "isAdmin";
+
+    private final String userId;
+    private final Boolean isAdmin;
+
     /**
-     * Helper method for creating the proper change password response. This method will set the appropriate error
+     * Helper method for creating the proper lookup user response. This method will set the appropriate error
      * depending on any HTTP response codes or I/O errors.
      *
      * @param response the server response.
-     * @return the change password response.
+     * @return the user lookup response.
      */
     static LookupUserIdResponse from(Response response) {
+        String serverResponse;
         try {
-            System.out.println(">>>>>>>>>>>>>>>>>> serverResponse: " + response.body().string() + " response.code: " + response.code());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (response.isSuccessful()) {
-            return new LookupUserIdResponse();
-        }
-        try {
-            String serverResponse = response.body().string();
-
-            return new LookupUserIdResponse(AuthServerResponse.createError(serverResponse, response.code()));
+            serverResponse = response.body().string();
         } catch (IOException e) {
             ObjectServerError error = new ObjectServerError(ErrorCode.IO_EXCEPTION, e);
             return new LookupUserIdResponse(error);
+        }
+        if (!response.isSuccessful()) {
+            return new LookupUserIdResponse(AuthServerResponse.createError(serverResponse, response.code()));
+        } else {
+            return new LookupUserIdResponse(serverResponse);
         }
     }
 
@@ -66,12 +74,54 @@ public class LookupUserIdResponse extends AuthServerResponse {
         return LookupUserIdResponse.from(new ObjectServerError(ErrorCode.fromException(exception), exception));
     }
 
-    private LookupUserIdResponse() {
-        this.error = null;
-    }
-
     private LookupUserIdResponse(ObjectServerError error) {
+        RealmLog.debug("LookupUserIdResponse - Error: " + error);
+        setError(error);
         this.error = error;
+        this.userId = null;
+        this.isAdmin = null;
     }
 
+    private LookupUserIdResponse(String serverResponse) {
+        ObjectServerError error;
+        String userId;
+        Boolean isAdmin;
+        String message;
+        try {
+            JSONObject obj = new JSONObject(serverResponse);
+            JSONObject jsonUser = obj.getJSONObject(JSON_FIELD_USER);
+            if (jsonUser != null) {
+                userId = jsonUser.has(JSON_FIELD_USER_ID) ? jsonUser.getString(JSON_FIELD_USER_ID) : null;
+                isAdmin = jsonUser.has(JSON_FIELD_USER_IS_ADMIN) ? jsonUser.getBoolean(JSON_FIELD_USER_IS_ADMIN) : null;
+                error = null;
+
+                message = String.format(Locale.US, "Identity %s; Path %b", userId, isAdmin);
+
+            } else {
+                userId = null;
+                isAdmin = null;
+                error = null;
+                message = "user = null";
+            }
+
+        } catch (JSONException e) {
+            userId = null;
+            isAdmin = null;
+            error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, e);
+            message = String.format(Locale.US, "Error %s", error.getErrorMessage());
+        }
+
+        RealmLog.debug("LookupUserIdResponse. " + message);
+        setError(error);
+        this.userId = userId;
+        this.isAdmin = isAdmin;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
 }

@@ -427,7 +427,14 @@ public class SyncUser {
         }.start();
     }
 
-    public void retrieveUser(final String provider, final String providerId) throws ObjectServerError {
+    /**
+     * Helper method for Admin users in order to look up a {@code SyncUser} using the identity provider and the used username.
+     * @param provider identity providers {@link io.realm.SyncCredentials.IdentityProvider}.
+     * @param providerId username or email used to create the account first time.
+     * @return {@code SyncUser} associated with the given identity provider and providerId.
+     * @throws ObjectServerError if the user could not be found.
+     */
+    public SyncUser retrieveUser(final String provider, final String providerId) throws ObjectServerError {
         if (Util.isEmptyString(provider)) {
             throw new IllegalArgumentException("Not-null 'provider' required.");
         }
@@ -444,7 +451,42 @@ public class SyncUser {
         LookupUserIdResponse response = authServer.retrieveUser(getSyncUser().getUserToken(), provider, providerId, getAuthenticationUrl());
         if (!response.isValid()) {
             throw response.getError();
+        } else {
+            SyncUser syncUser = SyncManager.getUserStore().get(response.getUserId());
+            if (syncUser != null) {
+                return syncUser;
+            } else {
+                // build an SynUser without a token
+                Token refreshToken = new Token(null, response.getUserId(), null, 0, null, response.isAdmin());
+                ObjectServerUser objectServerUser = new ObjectServerUser(refreshToken, getAuthenticationUrl());
+                objectServerUser.localLogout();
+                return new SyncUser(objectServerUser);
+            }
         }
+    }
+
+    /**
+     * Asynchronously lookup up a {@code SyncUser} using the identity provider and the used username.
+     * This is for Admin users only.
+     *
+     * @param provider identity providers {@link io.realm.SyncCredentials.IdentityProvider}.
+     * @param providerId username or email used to create the account first time.
+     * @param callback callback when the lookup has completed or failed. The callback will always happen on the same thread
+     * as this method is called on.
+     * @return representation of the async task that can be used to cancel it if needed.
+     */
+    public RealmAsyncTask retrieveUserAsync(final String provider, final String providerId, final Callback callback) {
+        checkLooperThread("Asynchronously retrieving user id is only possible from looper threads.");
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
+
+        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public SyncUser run() {
+                return retrieveUser(provider, providerId);
+            }
+        }.start();
     }
 
     private static void checkLooperThread(String errorMessage) {

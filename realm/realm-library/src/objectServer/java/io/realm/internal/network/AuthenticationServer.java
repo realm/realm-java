@@ -68,7 +68,7 @@ public interface AuthenticationServer {
     ChangePasswordResponse changePassword(Token adminToken, String userID, String newPassword, URL authenticationUrl);
 
     /**
-     * Look up the generated user ID using the selected authentication provider.
+     * Look up the generated user ID using the selected identity provider.
      */
     LookupUserIdResponse retrieveUser(Token adminToken, String provider, String providerId, URL authenticationUrl);
 }

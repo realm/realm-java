@@ -28,6 +28,7 @@ import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertFalse;
@@ -216,20 +217,6 @@ public class AuthTests extends BaseIntegrationTest {
     }
 
     @Test
-    public void retrieveUser() {
-        String username = "nh@realm.io";
-        String password = "nh@realm.io";
-        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, false);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        assertTrue(user.isValid());
-        assertTrue(user.isAdmin());
-//        String identity = user.getIdentity();
-        user.retrieveUser("password", "nabil.hachicha@gmail.com");
-
-
-    }
-
-    @Test
     @RunTestInLooperThread
     public void changePassword_using_admin_async() {
         final String username = UUID.randomUUID().toString();
@@ -280,4 +267,112 @@ public class AuthTests extends BaseIntegrationTest {
         user.changePassword("new-password");
     }
 
+    @Test
+    public void retrieve() {
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+
+        final String username = UUID.randomUUID().toString();
+        final String password = "password";
+        final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(user.isValid());
+
+        String identity = user.getIdentity();
+        SyncUser syncUser = adminUser.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, username);
+        assertNotNull(syncUser);
+        assertEquals(identity, syncUser.getIdentity());
+        assertFalse(syncUser.isAdmin());
+        assertTrue(syncUser.isValid());
+    }
+
+    @Test
+    public void retrieve_logout() {
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+
+        final String username = UUID.randomUUID().toString();
+        final String password = "password";
+        final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final String identity = user.getIdentity();
+        user.logout();
+        assertFalse(user.isValid());
+
+        SyncUser syncUser = adminUser.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, username);
+        assertNotNull(syncUser);
+        assertEquals(identity, syncUser.getIdentity());
+        assertFalse(syncUser.isAdmin());
+        assertFalse(syncUser.isValid());
+    }
+
+    @Test
+    public void retrieve_AdminUser() {
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        SyncUser syncUser = adminUser.retrieveUser(SyncCredentials.IdentityProvider.DEBUG, "admin");// TODO use enum for auth provider
+        assertNotNull(syncUser);
+        assertEquals(adminUser.getIdentity(), syncUser.getIdentity());
+        assertTrue(syncUser.isAdmin());
+        assertTrue(syncUser.isValid());
+    }
+
+    @Test
+    public void retrieve_unknownProviderId() {
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        try {
+            adminUser.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, "doesNotExist");
+            fail("Should not be possible to get the userId of an unknown user");
+        } catch (ObjectServerError expected) {
+        }
+    }
+
+    @Test
+    public void retrieve_invalidProvider() {
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        final String username = UUID.randomUUID().toString();
+        final String password = "password";
+        final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(user.isValid());
+
+        try {
+            adminUser.retrieveUser("invalid", "username");
+            fail("Should not be possible to the userId of an unknown provider");
+        } catch (ObjectServerError expected) {
+        }
+    }
+
+
+    // logout user make sure calling isValid & isAdmin is correct
+
+    @Test
+    @RunTestInLooperThread
+    public void retrieve_async() {
+        final String username = UUID.randomUUID().toString();
+        final String password = "password";
+        final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(user.isValid());
+
+        // Login an admin user
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        assertTrue(adminUser.isValid());
+        assertTrue(adminUser.isAdmin());
+
+        final String identity = user.getIdentity();
+        adminUser.retrieveUserAsync("password", username, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser syncUser) {
+
+                assertNotNull(syncUser);
+                assertEquals(identity, syncUser.getIdentity());
+                assertFalse(syncUser.isAdmin());
+                assertTrue(syncUser.isValid());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.getErrorMessage());
+            }
+        });
+    }
 }

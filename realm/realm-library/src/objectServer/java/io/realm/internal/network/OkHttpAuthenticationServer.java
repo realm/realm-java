@@ -110,7 +110,6 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     @Override
     public LookupUserIdResponse retrieveUser(Token adminToken, String provider, String providerId, URL authenticationUrl) {
         try {
-//            String requestBody = LookupUserIdRequest.create(adminToken).toJson();
             return lookupUserId(buildLookupUserIdUrl(authenticationUrl, ACTION_LOOKUP_USER_ID, provider, providerId), adminToken.value());
         } catch (Exception e) {
             return LookupUserIdResponse.from(e);
@@ -129,8 +128,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     }
 
     private static URL buildLookupUserIdUrl(URL authenticationUrl, String action, String provider, String providerId) {
-//        final String baseUrlString = authenticationUrl.toExternalForm();
-        final String baseUrlString = "http://127.0.0.1:9080/";
+        String authURL = authenticationUrl.toExternalForm();
+        // we need the base URL without the '/auth' part
+        String baseUrlString = authURL.substring(0, authURL.indexOf(authenticationUrl.getPath()));
         try {
             String separator = baseUrlString.endsWith("/") ? "" : "/";
             return new URL(baseUrlString + separator + action + "/" + provider + "/accounts/" + providerId);
