@@ -230,6 +230,7 @@ public class PermissionManager implements Closeable {
         return addTask(new GetDefaultPermissionsAsyncTask(this, callback));
     }
 
+    /**
      * Applies a given set of permissions to a Realm.
      * <p>
      * A {@link PermissionRequest} object encapsulates a description of which users are granted what
