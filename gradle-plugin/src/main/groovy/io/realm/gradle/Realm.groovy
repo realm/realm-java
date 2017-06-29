@@ -42,8 +42,7 @@ class Realm implements Plugin<Project> {
 
         def syncEnabledDefault = false
         def dependencyConfigurationName = getDependencyConfigurationName(project)
-        project.extensions.create('realm', RealmPluginExtension,
-                project, syncEnabledDefault, dependencyConfigurationName)
+        project.extensions.create('realm', RealmPluginExtension, project, syncEnabledDefault, dependencyConfigurationName)
 
         def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
         def isKotlinProject = project.plugins.findPlugin('kotlin-android') != null
@@ -84,6 +83,11 @@ class Realm implements Plugin<Project> {
     }
 
     private static String getDependencyConfigurationName(Project project) {
+        /*
+         * Dependency configuration name for android gradle plugin 3.0.0-*
+         * We need to use 'api' instead of 'implementation' since user's model class
+         * might be using Realm's classes and annotations.
+         */
         def newDependencyName = "api"
         def oldDependencyName = "compile"
         try {
