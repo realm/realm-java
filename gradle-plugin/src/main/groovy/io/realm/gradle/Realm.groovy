@@ -84,7 +84,7 @@ class Realm implements Plugin<Project> {
     }
 
     private static String getDependencyConfigurationName(Project project) {
-        def newDependencyName = "implementation"
+        def newDependencyName = "api"
         def oldDependencyName = "compile"
         try {
             project.getConfigurations().getByName(newDependencyName)
