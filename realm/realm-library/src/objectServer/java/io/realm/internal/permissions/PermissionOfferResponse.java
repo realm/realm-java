@@ -15,6 +15,8 @@
  */
 package io.realm.internal.permissions;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.UUID;
 
@@ -117,5 +119,13 @@ public class PermissionOfferResponse extends RealmObject implements BasePermissi
 
     public String getRealmUrl() {
         return realmUrl;
+    }
+
+    public String getPath() {
+        try {
+            return new URI(realmUrl).getPath();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -23,12 +23,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import io.realm.exceptions.RealmError;
 import io.realm.internal.Util;
 import io.realm.internal.permissions.BasePermissionApi;
 import io.realm.internal.permissions.ManagementModule;
@@ -694,12 +696,14 @@ public class PermissionManager implements Closeable {
                                 public void run() {
                                     RealmLog.error(response.toString());
                                     managedResponse.removeAllChangeListeners();
-                                    grantedPermissionResults = permissionRealm.where(Permission.class).equalTo("path", response.getRealmUrl()).findAllAsync();
+                                    RealmLog.error(response.getPath());
+                                    grantedPermissionResults = permissionRealm.where(Permission.class).equalTo("path", response.getPath()).findAllAsync();
                                     grantedPermissionResults.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                                         @Override
                                         public void onChange(RealmResults<Permission> permissions) {
-                                            grantedPermissionResults.removeChangeListener(this);
+                                            RealmLog.error(Arrays.toString(permissions.toArray()));
                                             if (!permissions.isEmpty()) {
+                                                grantedPermissionResults.removeChangeListener(this);
                                                 notifyCallbackWithSuccess(permissions.first());
                                             }
                                         }

@@ -531,7 +531,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
             @Override
             public void onSuccess(Permission permission) {
                 RealmLog.error("Offer accepted");
-                assertEquals(user.getIdentity() + "/test", permission.getPath());
+                assertEquals("/" + user.getIdentity() + "/test", permission.getPath());
                 assertTrue(permission.mayRead());
                 assertTrue(permission.mayWrite());
                 assertFalse(permission.mayManage());
