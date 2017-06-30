@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.realm.entities.AllJavaTypes;
 import io.realm.entities.StringOnly;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
