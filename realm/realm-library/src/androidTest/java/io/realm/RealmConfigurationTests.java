@@ -262,18 +262,15 @@ public class RealmConfigurationTests {
         }
     }
 
+    // Only Dog is included in the schema definition, but in order to create Dog, the Owner has to be defined as well.
     @Test
-    public void customSchemaDontIncludeLinkedClasses() {
+    public void schemaDoesNotContainAllDefinedObjectShouldThrow() {
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
                 .schema(Dog.class)
                 .build();
+        thrown.expect(IllegalStateException.class);
         realm = Realm.getInstance(config);
-        try {
-            assertEquals(3, realm.getTable(Owner.class).getColumnCount());
-            fail("Owner should to be part of the schema");
-        } catch (IllegalArgumentException ignored) {
-        }
     }
 
     @Test

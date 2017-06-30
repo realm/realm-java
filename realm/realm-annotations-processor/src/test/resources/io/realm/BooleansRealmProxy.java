@@ -9,6 +9,8 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.Property;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
@@ -68,6 +70,7 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     private BooleansColumnInfo columnInfo;
     private ProxyState<some.test.Booleans> proxyState;
+    private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -184,16 +187,17 @@ public class BooleansRealmProxy extends some.test.Booleans
         proxyState.getRow$realm().setBoolean(columnInfo.anotherBooleanIndex, value);
     }
 
-    public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
-        if (realmSchema.contains("Booleans")) {
-            return realmSchema.get("Booleans");
-        }
-        RealmObjectSchema realmObjectSchema = realmSchema.create("Booleans");
-        realmObjectSchema.add("done", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("isReady", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("mCompleted", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("anotherBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        return realmObjectSchema;
+    private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("Booleans");
+        builder.addProperty("done", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("isReady", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("mCompleted", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("anotherBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        return builder.build();
+    }
+
+    public static OsObjectSchemaInfo getExpectedObjectSchemaInfo() {
+        return expectedObjectSchemaInfo;
     }
 
     public static BooleansColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {

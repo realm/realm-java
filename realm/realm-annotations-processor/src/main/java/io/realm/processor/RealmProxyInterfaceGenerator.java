@@ -20,6 +20,7 @@ import com.squareup.javawriter.JavaWriter;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.Locale;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
@@ -42,7 +43,7 @@ public class RealmProxyInterfaceGenerator {
 
     public void generate() throws IOException {
         String qualifiedGeneratedInterfaceName =
-                String.format("%s.%s", Constants.REALM_PACKAGE_NAME, Utils.getProxyInterfaceName(className));
+                String.format(Locale.US, "%s.%s", Constants.REALM_PACKAGE_NAME, Utils.getProxyInterfaceName(className));
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedInterfaceName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
 

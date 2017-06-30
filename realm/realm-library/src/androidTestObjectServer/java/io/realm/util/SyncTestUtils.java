@@ -28,6 +28,7 @@ import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
+import io.realm.UserStore;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
@@ -37,13 +38,22 @@ public class SyncTestUtils {
     public static final String USER_TOKEN = UUID.randomUUID().toString();
     public static final String REALM_TOKEN = UUID.randomUUID().toString();
     public static final String DEFAULT_AUTH_URL = "http://objectserver.realm.io/auth";
-    public static final String DEFAULT_USER_IDENTIFIER = "JohnDoe";
 
     private final static Method SYNC_MANAGER_RESET_METHOD;
     static {
         try {
             SYNC_MANAGER_RESET_METHOD = SyncManager.class.getDeclaredMethod("reset");
             SYNC_MANAGER_RESET_METHOD.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private final static Method SYNC_MANAGER_GET_USER_STORE_METHOD;
+    static {
+        try {
+            SYNC_MANAGER_GET_USER_STORE_METHOD = SyncManager.class.getDeclaredMethod("getUserStore");
+            SYNC_MANAGER_GET_USER_STORE_METHOD.setAccessible(true);
         } catch (NoSuchMethodException e) {
             throw new AssertionError(e);
         }
@@ -59,19 +69,19 @@ public class SyncTestUtils {
     }
 
     public static SyncUser createTestAdminUser() {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER, DEFAULT_AUTH_URL, Long.MAX_VALUE, true);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, UUID.randomUUID().toString(), DEFAULT_AUTH_URL, Long.MAX_VALUE, true);
     }
 
     public static SyncUser createTestUser() {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER, DEFAULT_AUTH_URL, Long.MAX_VALUE, false);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, UUID.randomUUID().toString(), DEFAULT_AUTH_URL, Long.MAX_VALUE, false);
     }
 
     public static SyncUser createTestUser(long expires) {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER,  DEFAULT_AUTH_URL, expires, false);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, UUID.randomUUID().toString(), DEFAULT_AUTH_URL, expires, false);
     }
 
     public static SyncUser createTestUser(String authUrl) {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER,  authUrl, Long.MAX_VALUE, false);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, UUID.randomUUID().toString(), authUrl, Long.MAX_VALUE, false);
     }
 
     public static SyncUser createNamedTestUser(String userIdentifier) {
@@ -94,7 +104,12 @@ public class SyncTestUtils {
             obj.put("authUrl", authUrl);
             obj.put("userToken", userToken.toJson());
             obj.put("realms", realmList);
-            return SyncUser.fromJson(obj.toString());
+            SyncUser syncUser = SyncUser.fromJson(obj.toString());
+            // persist the user to the ObjectStore sync metadata, to simulate real login, otherwise SyncUser.isValid will
+            // "throw IllegalArgumentException: User not authenticated or authentication expired." since
+            // the call to  SyncManager.getUserStore().isActive(syncUser.getIdentity()) will return false
+            addToUserStore(syncUser);
+            return syncUser;
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -133,6 +148,17 @@ public class SyncTestUtils {
     public static void resetSyncMetadata() {
         try {
             SYNC_MANAGER_RESET_METHOD.invoke(null);
+        } catch (InvocationTargetException e) {
+            throw new AssertionError(e);
+        } catch (IllegalAccessException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private static void addToUserStore(SyncUser user) {
+        try {
+            UserStore userStore = (UserStore) SYNC_MANAGER_GET_USER_STORE_METHOD.invoke(null);
+            userStore.put(user);
         } catch (InvocationTargetException e) {
             throw new AssertionError(e);
         } catch (IllegalAccessException e) {

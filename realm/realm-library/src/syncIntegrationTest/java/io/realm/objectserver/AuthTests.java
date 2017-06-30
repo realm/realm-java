@@ -11,6 +11,7 @@ import org.junit.runner.RunWith;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -18,6 +19,7 @@ import io.realm.BaseIntegrationTest;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncManager;
@@ -266,6 +268,134 @@ public class AuthTests extends BaseIntegrationTest {
 
         thrown.expect(ObjectServerError.class);
         user.changePassword("new-password");
+    }
+
+    // Cached instances of RealmConfiguration should not be allowed to be used if the user is no longer valid
+    @Test
+    public void cachedInstanceShouldThrowIfUserBecomeInvalid() throws InterruptedException {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final RealmConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
+        Realm realm = Realm.getInstance(configuration);
+
+        user.logout();
+        assertFalse(user.isValid());
+
+        final CountDownLatch backgroundThread = new CountDownLatch(1);
+        // Should throw when using the invalid configuration form a different thread
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Realm.getInstance(configuration);
+                    fail("Invalid SyncConfiguration should throw");
+                } catch (IllegalStateException expected) {
+                } finally {
+                    backgroundThread.countDown();
+                }
+            }
+        }.start();
+
+        backgroundThread.await();
+
+        // it is ok to return the cached instance, since this use case is legit
+        // user refresh token can timeout, or the token can be revoked from ROS
+        // while running the Realm instance. So it doesn't make sense to break this behaviour
+        Realm cachedInstance = Realm.getInstance(configuration);
+        assertNotNull(cachedInstance);
+
+        realm.close();
+        cachedInstance.close();
+    }
+
+    @Test
+    public void buildingSyncConfigurationShouldThrowIfInvalidUser() {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser currentUser = SyncUser.currentUser();
+        user.logout();
+
+        assertFalse(user.isValid());
+
+        try {
+            // We should not be able to build a configuration with an invalid/logged out user
+            new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
+            fail("Invalid user, it should not be possible to create a SyncConfiguration");
+        } catch (IllegalArgumentException expected) {
+            // User not authenticated or authentication expired.
+        }
+
+        try {
+            // We should not be able to build a configuration with an invalid/logged out user
+            new SyncConfiguration.Builder(currentUser, Constants.USER_REALM).build();
+            fail("Invalid currentUser, it should not be possible to create a SyncConfiguration");
+        } catch (IllegalArgumentException expected) {
+            // User not authenticated or authentication expired.
+        }
+    }
+
+    // using a logout user should throw
+    @Test
+    public void usingConfigurationWithInvalidUserShouldThrow() {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        RealmConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
+        user.logout();
+        assertFalse(user.isValid());
+
+        try {
+            Realm.getInstance(configuration);
+            fail("SyncUser is not longer valid, it should not be possible to get a Realm instance");
+        } catch (IllegalStateException expected) {
+        }
+    }
+
+    // logging out 'user' should have the same impact on other instance(s) of the same user
+    @Test
+    public void loggingOutUserShouldImpactOtherInstances() throws InterruptedException {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser currentUser = SyncUser.currentUser();
+
+        assertTrue(user.isValid());
+        assertEquals(user, currentUser);
+
+        user.logout();
+
+        assertFalse(user.isValid());
+        assertFalse(currentUser.isValid());
+    }
+
+    // logging out 'currentUser' should have the same impact on other instance(s) of the user
+    @Test
+    public void loggingOutCurrentUserShouldImpactOtherInstances() throws InterruptedException {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser currentUser = SyncUser.currentUser();
+
+        assertTrue(user.isValid());
+        assertEquals(user, currentUser);
+
+        SyncUser.currentUser().logout();
+
+        assertFalse(user.isValid());
+        assertFalse(currentUser.isValid());
+        assertNull(SyncUser.currentUser());
     }
 
     @Test
