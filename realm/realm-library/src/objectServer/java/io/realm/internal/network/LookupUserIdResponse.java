@@ -91,7 +91,9 @@ public class LookupUserIdResponse extends AuthServerResponse {
             JSONObject obj = new JSONObject(serverResponse);
             JSONObject jsonUser = obj.getJSONObject(JSON_FIELD_USER);
             if (jsonUser != null) {
-                userId = jsonUser.has(JSON_FIELD_USER_ID) ? jsonUser.getString(JSON_FIELD_USER_ID) : null;
+                userId = jsonUser.optString(JSON_FIELD_USER_ID, null);
+                // can not use optBoolean since `null` is not permitted as default value
+                // (we need it for the Boolean boxed type)
                 isAdmin = jsonUser.has(JSON_FIELD_USER_IS_ADMIN) ? jsonUser.getBoolean(JSON_FIELD_USER_IS_ADMIN) : null;
                 error = null;
 

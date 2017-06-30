@@ -428,9 +428,12 @@ public class SyncUser {
     }
 
     /**
-     * Helper method for Admin users in order to look up a {@code SyncUser} using the identity provider and the used username.
-     * @param provider identity providers {@link io.realm.SyncCredentials.IdentityProvider}.
-     * @param providerId username or email used to create the account first time.
+     * Helper method for Admin users in order to lookup a {@code SyncUser} using the identity provider and the used username.
+     *
+     * @param provider identity providers {@link io.realm.SyncCredentials.IdentityProvider} used when the account was created.
+     * @param providerId username or email used to create the account for the first time,
+     *                   what is needed will depend on what type of {@link SyncCredentials} was used.
+     *
      * @return {@code SyncUser} associated with the given identity provider and providerId.
      * @throws ObjectServerError if the user could not be found.
      */
@@ -444,7 +447,7 @@ public class SyncUser {
         }
 
         if (!isAdmin()) {
-            throw new IllegalStateException("User need to be admin in order to lookup ID.");
+            throw new IllegalStateException("SyncUser needs to be admin in order to lookup other users ID.");
         }
 
         AuthenticationServer authServer = SyncManager.getAuthServer();
@@ -466,11 +469,12 @@ public class SyncUser {
     }
 
     /**
-     * Asynchronously lookup up a {@code SyncUser} using the identity provider and the used username.
+     * Asynchronously lookup a {@code SyncUser} using the identity provider and the used username.
      * This is for Admin users only.
      *
-     * @param provider identity providers {@link io.realm.SyncCredentials.IdentityProvider}.
-     * @param providerId username or email used to create the account first time.
+     * @param provider identity providers {@link io.realm.SyncCredentials.IdentityProvider} used when the account was created.
+     * @param providerId  username or email used to create the account for the first time,
+     *                    what is needed will depend on what type of {@link SyncCredentials} was used.
      * @param callback callback when the lookup has completed or failed. The callback will always happen on the same thread
      * as this method is called on.
      * @return representation of the async task that can be used to cancel it if needed.

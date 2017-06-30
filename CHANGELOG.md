@@ -21,7 +21,7 @@
 
 ### Enhancements
 
-* [ObjectServer] Adding user lookup API for admin (#4828).
+* [ObjectServer] Adding user lookup API for administrators (#4828).
 
 ### Bug Fixes
 

@@ -340,7 +340,6 @@ public class AuthTests extends BaseIntegrationTest {
         }
     }
 
-
     @Test
     @RunTestInLooperThread
     public void retrieve_async() {
