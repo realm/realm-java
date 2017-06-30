@@ -85,7 +85,7 @@ public class LinkingObjectsDynamicTests {
             object.linkingObjects(null, AllJavaTypes.FIELD_INT);
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals(StandardRealmSchema.EMPTY_STRING_MSG, expected.getMessage());
+            assertEquals(RealmSchema.EMPTY_STRING_MSG, expected.getMessage());
         }
     }
 

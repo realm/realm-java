@@ -52,6 +52,8 @@ public class RealmProxyClassGenerator {
             "io.realm.internal.ColumnInfo",
             "io.realm.internal.LinkView",
             "io.realm.internal.OsObject",
+            "io.realm.internal.OsObjectSchemaInfo",
+            "io.realm.internal.Property",
             "io.realm.internal.RealmObjectProxy",
             "io.realm.internal.Row",
             "io.realm.internal.SharedRealm",
@@ -133,7 +135,8 @@ public class RealmProxyClassGenerator {
         emitInjectContextMethod(writer);
         emitPersistedFieldAccessors(writer);
         emitBacklinkFieldAccessors(writer);
-        emitCreateRealmObjectSchemaMethod(writer);
+        emitCreateExpectedObjectSchemaInfo(writer);
+        emitGetExpectedObjectSchemaInfo(writer);
         emitValidateTableMethod(writer);
         emitGetTableNameMethod(writer);
         emitGetFieldNamesMethod(writer);
@@ -228,7 +231,11 @@ public class RealmProxyClassGenerator {
 
     private void emitClassFields(JavaWriter writer) throws IOException {
         writer.emitField(columnInfoClassName(), "columnInfo", EnumSet.of(Modifier.PRIVATE))
-                .emitField("ProxyState<" + qualifiedClassName + ">", "proxyState", EnumSet.of(Modifier.PRIVATE));
+                .emitField("ProxyState<" + qualifiedClassName + ">", "proxyState", EnumSet.of(Modifier.PRIVATE))
+                .emitField("OsObjectSchemaInfo", "expectedObjectSchemaInfo",
+                        EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL),
+                        "createExpectedObjectSchemaInfo()");
+
 
         for (VariableElement variableElement : metadata.getFields()) {
             if (Utils.isRealmList(variableElement)) {
@@ -607,23 +614,18 @@ public class RealmProxyClassGenerator {
     }
     //@formatter:on
 
-    private void emitCreateRealmObjectSchemaMethod(JavaWriter writer) throws IOException {
+    private void emitCreateExpectedObjectSchemaInfo(JavaWriter writer) throws IOException {
         writer.beginMethod(
-                "RealmObjectSchema", // Return type
-                "createRealmObjectSchema", // Method name
-                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "RealmSchema", "realmSchema"); // Argument type & argument name
+                "OsObjectSchemaInfo", // Return type
+                "createExpectedObjectSchemaInfo", // Method name
+                EnumSet.of(Modifier.PRIVATE, Modifier.STATIC)); // Modifiers
 
-        writer.beginControlFlow("if (realmSchema.contains(\"%s\"))", this.simpleClassName)
-            .emitStatement("return realmSchema.get(\"%s\")", this.simpleClassName)
-            .endControlFlow();
-
-        writer.emitStatement("RealmObjectSchema realmObjectSchema = realmSchema.create(\"%s\")", this.simpleClassName);
+        writer.emitStatement(
+                "OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder(\"%s\")", this.simpleClassName);
 
         // For each field generate corresponding table index constant
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
-            String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
 
             Constants.RealmFieldType fieldType = getRealmType(field);
             switch (fieldType) {
@@ -632,27 +634,22 @@ public class RealmProxyClassGenerator {
                     break;
 
                 case OBJECT:
-                    writer.beginControlFlow("if (!realmSchema.contains(\"" + fieldTypeSimpleName + "\"))")
-                            .emitStatement("%s%s.createRealmObjectSchema(realmSchema)", fieldTypeSimpleName, Constants.PROXY_SUFFIX)
-                            .endControlFlow()
-                            .emitStatement("realmObjectSchema.add(\"%s\", RealmFieldType.OBJECT, realmSchema.get(\"%s\"))",
-                                    fieldName, fieldTypeSimpleName);
+                    String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
+                    writer.emitStatement("builder.addLinkedProperty(\"%s\", RealmFieldType.OBJECT, \"%s\")",
+                            fieldName, fieldTypeSimpleName);
                     break;
 
                 case LIST:
                     String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-                    writer.beginControlFlow("if (!realmSchema.contains(\"" + genericTypeSimpleName + "\"))")
-                            .emitStatement("%s%s.createRealmObjectSchema(realmSchema)", genericTypeSimpleName, Constants.PROXY_SUFFIX)
-                            .endControlFlow()
-                            .emitStatement("realmObjectSchema.add(\"%s\", RealmFieldType.LIST, realmSchema.get(\"%s\"))",
-                                    fieldName, genericTypeSimpleName);
+                    writer.emitStatement("builder.addLinkedProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
+                            fieldName, genericTypeSimpleName);
                     break;
 
                 default:
                     String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
                     String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
                     String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
-                    writer.emitStatement("realmObjectSchema.add(\"%s\", %s, %s, %s, %s)",
+                    writer.emitStatement("builder.addProperty(\"%s\", %s, %s, %s, %s)",
                             fieldName,
                             fieldType.getRealmType(),
                             primaryKeyFlag,
@@ -660,7 +657,19 @@ public class RealmProxyClassGenerator {
                             nullableFlag);
             }
         }
-        writer.emitStatement("return realmObjectSchema");
+        writer.emitStatement("return builder.build()");
+        writer.endMethod()
+                .emitEmptyLine();
+    }
+
+    private void emitGetExpectedObjectSchemaInfo(JavaWriter writer) throws IOException {
+        writer.beginMethod(
+                "OsObjectSchemaInfo", // Return type
+                "getExpectedObjectSchemaInfo", // Method name
+                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC)); // Modifiers
+
+        writer.emitStatement(" return expectedObjectSchemaInfo");
+
         writer.endMethod()
                 .emitEmptyLine();
     }
