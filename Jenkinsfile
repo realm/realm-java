@@ -81,6 +81,7 @@ try {
                   backgroundPid = startLogCatCollector()
                   forwardAdbPorts()
                   gradle('realm', 'connectedAndroidTest')
+                  gradle('examples', 'connectedAndroidTest')
                   archiveLog = false;
                 } finally {
                   stopLogCatCollector(backgroundPid, archiveLog)
