@@ -128,7 +128,14 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                 assertInitialPermissions(permissions);
 
                 // Create new Realm, which should create a new Permission entry
-                SyncConfiguration config2 = new SyncConfiguration.Builder(user, Constants.USER_REALM_2).build();
+                SyncConfiguration config2 = new SyncConfiguration.Builder(user, Constants.USER_REALM_2)
+                        .errorHandler(new SyncSession.ErrorHandler() {
+                            @Override
+                            public void onError(SyncSession session, ObjectServerError error) {
+                                fail(error.toString());
+                            }
+                        })
+                        .build();
                 final Realm secondRealm = Realm.getInstance(config2);
                 looperThread.keepStrongReference(secondRealm);
 
@@ -137,10 +144,12 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                 permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults<Permission> permissions) {
-                        // __permission, __management and test2 Realms
-                        assertEquals(3, permissions.size());
-                        secondRealm.close();
-                        looperThread.testComplete();
+                        RealmLog.error(Arrays.toString(permissions.toArray()));
+                        Permission p = permissions.where().endsWith("path", "tests2").findFirst();
+                        if (p != null) {
+                            secondRealm.close();
+                            looperThread.testComplete();
+                        }
                     }
                 });
             }

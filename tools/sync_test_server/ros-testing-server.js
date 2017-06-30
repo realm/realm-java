@@ -57,7 +57,7 @@ function startRealmObjectServer(done) {
                 syncServerChildProcess = spawn('realm-object-server',
                         ['--root', path,
                         '--configuration', '/configuration.yml'],
-                        { env: env});
+                        { env: env, cwd: path});
                 // local config:
                 syncServerChildProcess.stdout.on('data', (data) => {
                     if (logFindingCounter != 0 && /client: Closing Realm file: .*__auth.realm/.test(data)) {
@@ -91,7 +91,7 @@ function stopRealmObjectServer(callback) {
                     winston.error(err);
                     callback(err);
                 } else {
-                    winston.info("realm-object-server directory deleted");
+                    winston.info("realm-object-server directory deleted: " + syncServerDir);
                     syncServerDir = null;
                     callback();
                 }
