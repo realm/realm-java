@@ -434,8 +434,9 @@ public class SyncUser {
      * @param providerId username or email used to create the account for the first time,
      *                   what is needed will depend on what type of {@link SyncCredentials} was used.
      *
-     * @return {@code SyncUser} associated with the given identity provider and providerId.
-     * @throws ObjectServerError if the user could not be found.
+     * @return {@code SyncUser} associated with the given identity provider and providerId, or {@code null} in case
+     * of an {@code invalid} provider or {@code providerId}.
+     * @throws ObjectServerError in case of an error.
      */
     public SyncUser retrieveUser(final String provider, final String providerId) throws ObjectServerError {
         if (Util.isEmptyString(provider)) {
