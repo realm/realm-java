@@ -27,6 +27,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -511,7 +512,8 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("A non-null key must be provided");
             }
             if (key.length != KEY_LENGTH) {
-                throw new IllegalArgumentException(String.format("The provided key must be %s bytes. Yours was: %s",
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "The provided key must be %s bytes. Yours was: %s",
                         KEY_LENGTH, key.length));
             }
             this.key = Arrays.copyOf(key, key.length);
@@ -720,7 +722,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 byte[] buf = digest.digest(in.getBytes("UTF-8"));
                 StringBuilder builder = new StringBuilder();
                 for (byte b : buf) {
-                    builder.append(String.format("%02X", b));
+                    builder.append(String.format(Locale.US, "%02X", b));
                 }
                 return builder.toString();
             } catch (NoSuchAlgorithmException e) {
@@ -799,14 +801,16 @@ public class SyncConfiguration extends RealmConfiguration {
                     realmFileDirectory = new File(rootDir, user.getIdentity());
                     fullPathName = realmFileDirectory.getAbsolutePath() + File.pathSeparator + realmFileName;
                     if (fullPathName.length() > MAX_FULL_PATH_LENGTH) { // we are out of ideas
-                        throw new IllegalStateException(String.format("Full path name must not exceed %d characters: %s",
+                        throw new IllegalStateException(String.format(Locale.US,
+                                "Full path name must not exceed %d characters: %s",
                                 MAX_FULL_PATH_LENGTH, fullPathName));
                     }
                 }
             }
 
             if (realmFileName.length() > MAX_FILE_NAME_LENGTH) {
-                throw new IllegalStateException(String.format("File name exceed %d characters: %d", MAX_FILE_NAME_LENGTH,
+                throw new IllegalStateException(String.format(Locale.US,
+                        "File name exceed %d characters: %d", MAX_FILE_NAME_LENGTH,
                         realmFileName.length()));
             }
 

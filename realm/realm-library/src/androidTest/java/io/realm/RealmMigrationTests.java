@@ -36,6 +36,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.CatOwner;
+import io.realm.entities.Dog;
 import io.realm.entities.FieldOrder;
 import io.realm.entities.NullTypes;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
@@ -48,6 +50,7 @@ import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.entities.StringOnlyRequired;
 import io.realm.entities.Thread;
 import io.realm.entities.migration.MigrationClassRenamed;
 import io.realm.entities.migration.MigrationFieldRenameAndAdd;
@@ -64,6 +67,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -797,16 +801,29 @@ public class RealmMigrationTests {
         }
     }
 
-    // In default-before-migration.realm, CatOwner has a RealmList<Dog> field.
-    // This is changed to RealmList<Cat> and getInstance() must throw an exception.
+    // Check if the RealmList type change can trigger a RealmMigrationNeededException.
     @Test
     public void migrationException_realmListChanged() throws IOException {
-        configFactory.copyRealmFromAssets(context,
-                "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmConfiguration config = configFactory.createConfiguration();
+        // Initialize the schema with RealmList<Cat>
+        Realm.getInstance(configFactory.createConfiguration()).close();
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
+        dynamicRealm.beginTransaction();
+        // Change the RealmList type to RealmList<Dog>
+        RealmObjectSchema dogSchema = dynamicRealm.getSchema().get(Dog.CLASS_NAME);
+        RealmObjectSchema ownerSchema = dynamicRealm.getSchema().get(CatOwner.CLASS_NAME);
+        ownerSchema.removeField(CatOwner.FIELD_CATS);
+        ownerSchema.addRealmListField(CatOwner.FIELD_CATS, dogSchema);
+        dynamicRealm.commitTransaction();
+        dynamicRealm.close();
+
         try {
-            realm = Realm.getInstance(configFactory.createConfiguration());
+            realm = Realm.getInstance(config);
             fail();
         } catch (RealmMigrationNeededException ignored) {
+            assertThat(ignored.getMessage(),
+                    CoreMatchers.containsString("Invalid RealmList type for field 'cats': 'class_Dog' expected "));
         }
     }
 
@@ -816,7 +833,7 @@ public class RealmMigrationTests {
     @Test
     public void openPreNullRealmRequiredMissing() throws IOException {
         configFactory.copyRealmFromAssets(context,
-                "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+                "string-only-pre-null-0.82.2.realm", Realm.DEFAULT_REALM_NAME);
         RealmMigration realmMigration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
@@ -844,13 +861,15 @@ public class RealmMigrationTests {
     // old class (without @Required) can be used,
     @Test
     public void migratePreNull() throws IOException {
+        final AtomicBoolean migrationCalled = new AtomicBoolean(false);
         configFactory.copyRealmFromAssets(context,
-                "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+                "string-only-pre-null-0.82.2.realm", Realm.DEFAULT_REALM_NAME);
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmObjectSchema objectSchema = realm.getSchema().get(StringOnly.CLASS_NAME);
                 objectSchema.setRequired(StringOnly.FIELD_CHARS, false);
+                migrationCalled.set(true);
             }
         };
 
@@ -860,8 +879,13 @@ public class RealmMigrationTests {
                 .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
+        assertTrue(migrationCalled.get());
+
+        StringOnly stringOnly = realm.where(StringOnly.class).findFirst();
+        assertNotNull(stringOnly);
+        // This object was created with 0.82.2
+        assertEquals("String_set_with_0.82.2", stringOnly.getChars());
         realm.beginTransaction();
-        StringOnly stringOnly = realm.createObject(StringOnly.class);
         stringOnly.setChars(null);
         realm.commitTransaction();
         realm.close();
@@ -873,19 +897,25 @@ public class RealmMigrationTests {
     @Test
     public void openPreNullWithRequired() throws IOException {
         configFactory.copyRealmFromAssets(context,
-                "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+                "string-only-required-pre-null-0.82.2.realm", Realm.DEFAULT_REALM_NAME);
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(0)
-                .schema(AllTypes.class)
+                .schema(StringOnlyRequired.class)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
 
+        StringOnlyRequired stringOnlyRequired = realm.where(StringOnlyRequired.class).findFirst();
+        assertNotNull(stringOnlyRequired);
+        // This object was created with 0.82.2
+        assertEquals("String_set_with_0.82.2", stringOnlyRequired.getChars());
+
         realm.beginTransaction();
         try {
-            AllTypes allTypes = realm.createObject(AllTypes.class);
-            allTypes.setColumnString(null);
+            stringOnlyRequired.setChars(null);
             fail();
-        } catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException expected) {
+            assertThat(expected.getMessage(),
+                    CoreMatchers.containsString("Trying to set non-nullable field 'chars' to null."));
         }
         realm.cancelTransaction();
 

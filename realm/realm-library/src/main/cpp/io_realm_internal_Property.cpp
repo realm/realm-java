@@ -15,7 +15,7 @@
  */
 
 #include <jni.h>
-#include "io_realm_Property.h"
+#include "io_realm_internal_Property.h"
 
 #include <stdexcept>
 #include <object-store/src/property.hpp>
@@ -25,7 +25,13 @@
 
 using namespace realm;
 
-JNIEXPORT jlong JNICALL Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2IZZZ(
+static void finalize_property(jlong ptr)
+{
+    TR_ENTER_PTR(ptr);
+    delete reinterpret_cast<Property*>(ptr);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateProperty__Ljava_lang_String_2IZZZ(
     JNIEnv* env, jclass, jstring name_, jint type, jboolean is_primary, jboolean is_indexed, jboolean is_nullable)
 {
     TR_ENTER()
@@ -48,7 +54,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_Property_nativeCreateProperty__Ljava_lang_
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_String_2(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_String_2(
     JNIEnv* env, jclass, jstring name_, jint type, jstring linkedToName_)
 {
     TR_ENTER()
@@ -63,12 +69,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_Property_nativeCreateProperty__Ljava_lang_
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_Property_nativeClose(JNIEnv* env, jclass, jlong property_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER_PTR(property_ptr)
-    try {
-        Property* property = reinterpret_cast<Property*>(property_ptr);
-        delete property;
-    }
-    CATCH_STD()
+    TR_ENTER()
+    return reinterpret_cast<jlong>(&finalize_property);
 }
