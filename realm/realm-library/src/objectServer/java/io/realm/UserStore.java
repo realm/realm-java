@@ -71,6 +71,8 @@ public interface UserStore {
 
     /**
      * Returns the state of the specified user: {@code true} if active (not logged out), {@code false} otherwise.
+     * This method checks if the user was marked as logged out. If the user has expired but not actively logged out
+     * this method will return {@code true}.
      *
      * @param identity identity of the user.
      * @return {@code true} if the user is not logged out, {@code false} otherwise.

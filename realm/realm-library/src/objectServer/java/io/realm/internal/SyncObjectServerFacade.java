@@ -92,19 +92,19 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             SyncUser user = syncConfig.getUser();
             if (!user.isValid()) {
                 if (user.getAccessToken() == null) {
-                    throw new IllegalStateException("The SyncUser is already logged out, can not use the provided configuration.");
+                    throw new IllegalStateException("The SyncUser is already logged out and can not use the provided configuration to open a Realm.");
                 } else {
                     // user was not logged out but the `refresh_token` is not longer valid
                     // the user will still get a stall version of Realm, that will work offline
                     // but not sync.
-                    RealmLog.warn("SyncUser is no longer valid.");
+                    RealmLog.warn("Can not use the provided configuration to open a Realm, the SyncUser is no longer valid.");
                 }
             }
             String rosServerUrl = syncConfig.getServerUrl().toString();
             String rosUserIdentity = user.getIdentity();
             String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
-            String rosRefreshToken = user.toJson();
-            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosRefreshToken, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath()};
+            String rosSerializedUser = user.toJson();
+            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath()};
         } else {
             return new Object[6];
         }
