@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -55,7 +56,7 @@ public class RealmProxyMediatorGenerator {
     }
 
     public void generate() throws IOException {
-        String qualifiedGeneratedClassName = String.format("%s.%sMediator", REALM_PACKAGE_NAME, className);
+        String qualifiedGeneratedClassName = String.format(Locale.US, "%s.%sMediator", REALM_PACKAGE_NAME, className);
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
         writer.setIndent("    ");
