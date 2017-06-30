@@ -40,6 +40,8 @@
 
 ### Enhancements
 
+* [ObjectServer] Adding user lookup API for administrators (#4828).
+
 ### Bug Fixes
 
 * [ObjectServer] Fixed a bug related to the behaviour of `SyncUser#logout` and the use of invalid `SyncUser` with `SyncConfiguration` (#4822).
