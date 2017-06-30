@@ -205,7 +205,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
         config.automatic_change_notifications = auto_change_notification;
 
         if (compact_on_launch) {
-            static JavaMethod should_compact(env, compact_on_launch, "shouldCompact", "(LL)Z");
+            static JavaMethod should_compact(env, compact_on_launch, "shouldCompact", "(JJ)Z");
             JavaGlobalRef java_compact_on_launch_ref(env, compact_on_launch);
 
             auto should_compact_on_launch_function = [java_compact_on_launch_ref](size_t totalBytes, size_t usedBytes) {
