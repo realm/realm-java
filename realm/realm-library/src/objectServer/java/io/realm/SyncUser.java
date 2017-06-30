@@ -447,13 +447,22 @@ public class SyncUser {
         }
 
         if (!isAdmin()) {
-            throw new IllegalStateException("SyncUser needs to be admin in order to lookup other users ID.");
+            throw new IllegalArgumentException("SyncUser needs to be admin in order to lookup other users ID.");
         }
 
         AuthenticationServer authServer = SyncManager.getAuthServer();
         LookupUserIdResponse response = authServer.retrieveUser(getSyncUser().getUserToken(), provider, providerId, getAuthenticationUrl());
         if (!response.isValid()) {
-            throw response.getError();
+            // the endpoint returns a 404 if it can't honor the query, either because
+            // - provider is not valid
+            // - provider_id is not valid
+            // - token used is not an admin one
+            // in this case we should return null instead of throwing
+            if (response.getError().getErrorCode() == ErrorCode.NOT_FOUND) {
+                return null;
+            } else {
+                throw response.getError();
+            }
         } else {
             SyncUser syncUser = SyncManager.getUserStore().get(response.getUserId());
             if (syncUser != null) {

@@ -32,6 +32,7 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 
 @RunWith(AndroidJUnit4.class)
@@ -317,11 +318,8 @@ public class AuthTests extends BaseIntegrationTest {
     @Test
     public void retrieve_unknownProviderId() {
         final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
-        try {
-            adminUser.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, "doesNotExist");
-            fail("Should not be possible to get the userId of an unknown user");
-        } catch (ObjectServerError expected) {
-        }
+        SyncUser syncUser = adminUser.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, "doesNotExist");
+        assertNull(syncUser);
     }
 
     @Test
@@ -333,10 +331,29 @@ public class AuthTests extends BaseIntegrationTest {
         final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         assertTrue(user.isValid());
 
+        SyncUser syncUser = adminUser.retrieveUser("invalid", "username");
+        assertNull(syncUser);
+    }
+
+    @Test
+    public void retrieve_notAdmin() {
+        final String username1 = UUID.randomUUID().toString();
+        final String password1 = "password";
+        final SyncCredentials credentials1 = SyncCredentials.usernamePassword(username1, password1, true);
+        final SyncUser user1 = SyncUser.login(credentials1, Constants.AUTH_URL);
+        assertTrue(user1.isValid());
+
+        final String username2 = UUID.randomUUID().toString();
+        final String password2 = "password";
+        final SyncCredentials credentials2 = SyncCredentials.usernamePassword(username2, password2, true);
+        final SyncUser user2 = SyncUser.login(credentials2, Constants.AUTH_URL);
+        assertTrue(user2.isValid());
+
+        // trying to lookup user2 using user1 should not work (requires admin token)
         try {
-            adminUser.retrieveUser("invalid", "username");
-            fail("Should not be possible to the userId of an unknown provider");
-        } catch (ObjectServerError expected) {
+            user1.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, username2);
+            fail("It should not be possible to lookup a user using non admin token");
+        } catch (IllegalArgumentException expected) {
         }
     }
 
