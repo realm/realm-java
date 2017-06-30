@@ -8,6 +8,9 @@
 
 ### Bug Fixes
 
+* Fixed a bug in `isNull()`, `isNotNull()`, `isEmpty()`, and `isNotEmpty()` when queries involve nullable fields in link queries (#4856).
+* Fixed a bug in how to resolve field names when querying `@LinkingObjects` as the last field (#4864).
+
 ### Internal
 
 * Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.

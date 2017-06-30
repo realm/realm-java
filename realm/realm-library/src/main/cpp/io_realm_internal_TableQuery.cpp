@@ -1712,9 +1712,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty(JNIEnv* e
         auto column_idx = static_cast<size_t>(index_arr[arr_len - 1]);
 
         // Support a backlink as the last column in a field descriptor
-        Table* last = TBL(table_arr[arr_len-1]);
+        auto last = reinterpret_cast<Table*>(table_arr[arr_len-1]);
         if (last != nullptr) {
-            pQuery->and_query(src_table_ref->column<BackLink>(*last, column_idx).count() == 0);
+            TableRef last_ref = TableRef(last);
+            pQuery->and_query(src_table_ref->column<BackLink>(*last_ref, column_idx).count() == 0);
             return;
         }
 
@@ -1782,9 +1783,10 @@ Java_io_realm_internal_TableQuery_nativeIsNotEmpty(JNIEnv *env, jobject, jlong n
         auto column_idx = static_cast<size_t>(index_arr[arr_len - 1]);
 
         // Support a backlink as the last column in a field descriptor
-        auto last = reinterpret_cast<Table *>(table_arr[arr_len-1]);
+        auto last = reinterpret_cast<Table*>(table_arr[arr_len-1]);
         if (last != nullptr) {
-            pQuery->and_query(src_table_ref->column<BackLink>(*last, column_idx).count() != 0);
+            TableRef last_ref = TableRef(last);
+            pQuery->and_query(src_table_ref->column<BackLink>(*last_ref, column_idx).count() != 0);
             return;
         }
 

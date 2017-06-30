@@ -23,6 +23,7 @@ import org.junit.runner.RunWith;
 import java.util.Date;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.BacklinksTarget;
 import io.realm.entities.NullTypes;
 
 import static org.junit.Assert.assertEquals;
@@ -345,7 +346,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
     }
 
     @Test
-    public void isEmpty() {
+    public void isEmpty_linkingObjects() {
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
@@ -361,6 +362,12 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     // tested in RealmQueryTests
             }
         }
+    }
+
+    @Test
+    public void isEmpty_multipleModelClasses() {
+        createLinkedDataSet(realm);
+        assertEquals(1, realm.where(BacklinksTarget.class).isEmpty(BacklinksTarget.FIELD_PARENTS).count());
     }
 
     @Test
