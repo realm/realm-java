@@ -60,11 +60,12 @@ In case you don't want to use the precompiled version, you can build Realm yours
 ### Prerequisites
 
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
- * Download & install the Android SDK **Build-Tools 25.0.3**, **Android N (API 25)** (for example through Android Studio’s **Android SDK Manager**).
+ * Download & install the Android SDK **Build-Tools 26.0.0**, **Android N (API 25)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
+ * If you use Android Studio, Android Studio 3.0 or later is required.
 
  * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
-You may unzip the file wherever you choose.  For OSX, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
+You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
 
  * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/local.properties` and assign it the full path name of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
 
@@ -80,7 +81,7 @@ You may unzip the file wherever you choose.  For OSX, a suggested location is `~
     export ANDROID_NDK_HOME=~/Library/Android/android-ndk-r10e
     ```
 
- * If you will be launching Android Studio from the OS X Finder, you should also run the following two commands:
+ * If you will be launching Android Studio from the macOS Finder, you should also run the following two commands:
 
     ```
     launchctl setenv ANDROID_HOME "$ANDROID_HOME"
@@ -93,14 +94,20 @@ You may unzip the file wherever you choose.  For OSX, a suggested location is `~
    export REALM_CORE_DOWNLOAD_DIR=~/.realmCore
    ```
 
-   OS X users must also run the following command in order for Android Studio to see this environment variable..
+   macOS users must also run the following command in order for Android Studio to see this environment variable..
 
    ```
    launchctl setenv REALM_CORE_DOWNLOAD_DIR "$REALM_CORE_DOWNLOAD_DIR"
    ```
 
-It would be a good idea to add all of the symbol definitions (and their accompanying `launchctl` commands, if you are using OS X) to your `~/.profile` (or `~/.zprofile` if the login shell is `zsh`)
+It would be a good idea to add all of the symbol definitions (and their accompanying `launchctl` commands, if you are using macOS) to your `~/.profile` (or `~/.zprofile` if the login shell is `zsh`)
 
+ * If you develop Realm Java with Android Studio, we recommend you to exclude some directories from indexing target by executing following steps on Android Studio. It really speeds up indexing phase after build.
+
+    - Under `/realm/realm-library/`, select `build`, `.externalNativeBuild` and `distribution` folders in `Project` view.
+    - Press `Command + Shift + A` to open `Find action` dialog. If you are not using defaut keymap nor using macOS, you can find your shortcut key in `Keymap` preference by searching `Find action`.
+    - Search `Excluded` (not `Exclude`) action and select it. Selected folder icons should become orange (in default theme).
+    - Restart Android Studio.
 
 ### Download sources
 
