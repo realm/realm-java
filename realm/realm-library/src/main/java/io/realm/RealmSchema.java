@@ -27,6 +27,8 @@ import io.realm.internal.Table;
 import io.realm.internal.Util;
 import io.realm.internal.util.Pair;
 
+import static io.realm.RealmObjectSchema.SUPPORTED_SIMPLE_FIELDS;
+
 
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
@@ -117,6 +119,42 @@ public class RealmSchema {
     }
 
     /**
+     * Adds a new class to the Realm with a primary key field defined.
+     *
+     * @param className           name of the class.
+     * @param primaryKeyFieldName name of the primary key field.
+     * @param fieldType           type of field to add. Only {@code byte}, {@code short}, {@code int}, {@code long}
+     *                            and their boxed types or the {@code String} is supported.
+     * @param attributes          set of attributes for this field. This method implicitly adds
+     *                            {@link FieldAttribute#PRIMARY_KEY} and {@link FieldAttribute#INDEXED} attributes to
+     *                            the field.
+     * @return a Realm schema object for that class.
+     */
+    public RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName, Class<?> fieldType,
+                                                       FieldAttribute... attributes) {
+        checkEmpty(className, EMPTY_STRING_MSG);
+        RealmObjectSchema.checkLegalName(primaryKeyFieldName);
+        String internalTableName = checkAndGetTableNameFromClassName(className);
+
+        RealmObjectSchema.FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(fieldType);
+        if (metadata == null || (metadata.realmType != RealmFieldType.STRING &&
+                metadata.realmType != RealmFieldType.INTEGER)) {
+            throw new IllegalArgumentException(String.format("Realm doesn't support primary key field type '%s'.",
+                    fieldType));
+        }
+        boolean isStringField = (metadata.realmType == RealmFieldType.STRING);
+
+        boolean nullable = metadata.defaultNullable;
+        if (RealmObjectSchema.containsAttribute(attributes, FieldAttribute.REQUIRED)) {
+            nullable = false;
+        }
+
+        return new RealmObjectSchema(realm, this,
+                realm.getSharedRealm().createTableWithPrimaryKey(internalTableName, primaryKeyFieldName,
+                        isStringField, nullable));
+    }
+
+    /**
      * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
      * to it will throw an {@link IllegalStateException}. Removes those classes or fields first.
      *
@@ -192,6 +230,14 @@ public class RealmSchema {
         if (!realm.getSharedRealm().hasTable(internalTableName)) {
             throw new IllegalArgumentException(errorMsg);
         }
+    }
+
+    private String checkAndGetTableNameFromClassName(String className) {
+        String internalTableName = Table.getTableNameForClass(className);
+        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
+        }
+        return internalTableName;
     }
 
     Table getTable(String className) {

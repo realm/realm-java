@@ -38,7 +38,7 @@ import io.realm.internal.fields.FieldDescriptor;
  */
 public class RealmObjectSchema {
 
-    private static final Map<Class<?>, FieldMetaData> SUPPORTED_SIMPLE_FIELDS;
+    static final Map<Class<?>, FieldMetaData> SUPPORTED_SIMPLE_FIELDS;
 
     static {
         Map<Class<?>, FieldMetaData> m = new HashMap<>();
@@ -350,7 +350,10 @@ public class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist, the field cannot be a primary key or it already
      * has a primary key defined.
+     * @deprecated adding or removing primary key after object schema gets created will be disallowed in
+     * realm-java 4.0.0.
      */
+    @Deprecated
     public RealmObjectSchema addPrimaryKey(String fieldName) {
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
@@ -373,7 +376,10 @@ public class RealmObjectSchema {
      *
      * @return the updated schema.
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
+     * @deprecated adding or removing primary key after object schema gets created will be disallowed in
+     * realm-java 4.0.0.
      */
+    @Deprecated
     public RealmObjectSchema removePrimaryKey() {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
         if (!table.hasPrimaryKey()) {
@@ -635,7 +641,7 @@ public class RealmObjectSchema {
         }
     }
 
-    private boolean containsAttribute(FieldAttribute[] attributeList, FieldAttribute attribute) {
+    static boolean containsAttribute(FieldAttribute[] attributeList, FieldAttribute attribute) {
         if (attributeList == null || attributeList.length == 0) {
             return false;
         }
@@ -652,7 +658,7 @@ public class RealmObjectSchema {
         checkFieldNameIsAvailable(fieldName);
     }
 
-    private void checkLegalName(String fieldName) {
+    static void checkLegalName(String fieldName) {
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Field name can not be null or empty");
         }
@@ -732,7 +738,7 @@ public class RealmObjectSchema {
     }
 
     // Tuple containing data about each supported Java type.
-    private static final class FieldMetaData {
+    static final class FieldMetaData {
         final RealmFieldType realmType;
         final boolean defaultNullable;
 
