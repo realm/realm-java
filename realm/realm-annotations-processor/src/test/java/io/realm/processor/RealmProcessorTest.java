@@ -69,6 +69,7 @@ public class RealmProcessorTest {
     private JavaFileObject backlinksNotFound = JavaFileObjects.forResource("some/test/Backlinks_NotFound.java");
     private JavaFileObject backlinksNonFinalField = JavaFileObjects.forResource("some/test/Backlinks_NotFinal.java");
     private JavaFileObject backlinksWrongType = JavaFileObjects.forResource("some/test/Backlinks_WrongType.java");
+    private JavaFileObject nonLatinName = JavaFileObjects.forResource("some/test/ÁrvíztűrőTükörfúrógép.java");
 
     @Test
     public void compileSimpleFile() {
@@ -563,5 +564,13 @@ public class RealmProcessorTest {
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
                 .withErrorContaining("instead of");
+    }
+
+    @Test
+    public void compareNonLatinName() throws Exception {
+        ASSERT.about(javaSource())
+                .that(nonLatinName)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
     }
 }
