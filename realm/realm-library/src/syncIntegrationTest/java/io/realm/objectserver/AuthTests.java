@@ -279,21 +279,20 @@ public class AuthTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final RealmConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
-        Realm.getInstance(configuration);
+        Realm realm = Realm.getInstance(configuration);
 
         user.logout();
         assertFalse(user.isValid());
 
         final CountDownLatch backgroundThread = new CountDownLatch(1);
-        final IllegalStateException[] backgroundException = new IllegalStateException[1];
         // Should throw when using the invalid configuration form a different thread
         new Thread() {
             @Override
             public void run() {
                 try {
                     Realm.getInstance(configuration);
+                    fail("Invalid SyncConfiguration should throw");
                 } catch (IllegalStateException expected) {
-                    backgroundException[0] = expected;
                 } finally {
                     backgroundThread.countDown();
                 }
@@ -301,13 +300,15 @@ public class AuthTests extends BaseIntegrationTest {
         }.start();
 
         backgroundThread.await();
-        assertNotNull(backgroundException[0]);
 
         // it is ok to return the cached instance, since this use case is legit
         // user refresh token can timeout, or the token can be revoked from ROS
         // while running the Realm instance. So it doesn't make sense to break this behaviour
         Realm cachedInstance = Realm.getInstance(configuration);
         assertNotNull(cachedInstance);
+
+        realm.close();
+        cachedInstance.close();
     }
 
     @Test
@@ -339,7 +340,7 @@ public class AuthTests extends BaseIntegrationTest {
         }
     }
 
-    // using a logout user should
+    // using a logout user should throw
     @Test
     public void usingConfigurationWithInvalidUserShouldThrow() {
         String username = UUID.randomUUID().toString();

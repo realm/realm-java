@@ -92,7 +92,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             SyncUser user = syncConfig.getUser();
             if (!user.isValid()) {
                 if (user.getAccessToken() == null) {
-                    throw new IllegalStateException("The SyncUser is already logged out, can not use the provided configuration");
+                    throw new IllegalStateException("The SyncUser is already logged out, can not use the provided configuration.");
                 } else {
                     // user was not logged out but the `refresh_token` is not longer valid
                     // the user will still get a stall version of Realm, that will work offline
