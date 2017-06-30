@@ -102,6 +102,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;
@@ -1054,6 +1055,44 @@ public class RealmTests {
         realm = Realm.getInstance(config);
         realm.close();
         Realm.deleteRealm(config);
+    }
+
+    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
+        final String REALM_NAME = "test.realm";
+        RealmConfiguration realmConfig = configFactory.createConfiguration(REALM_NAME);
+        Realm realm = Realm.getInstance(realmConfig);
+        populateTestRealm(realm, 100);
+        realm.close();
+        long before = new File(realmConfig.getPath()).length();
+        realmConfig = configFactory.createConfiguration(REALM_NAME, compactOnLaunch);
+        realm = Realm.getInstance(realmConfig);
+        realm.close();
+        long after = new File(realmConfig.getPath()).length();
+        return new Pair(before, after);
+    }
+
+    @Test
+    public void compactOnLaunch_shouldCompact() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(new CompactOnLaunchCallback() {
+            @Override
+            public boolean shouldCompact(long totalBytes, long usedBytes) {
+                assertTrue(totalBytes > usedBytes);
+                return true;
+            }
+        });
+        assertTrue(results.first > results.second);
+    }
+
+    @Test
+    public void compactOnLaunch_shouldNotCompact() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(new CompactOnLaunchCallback() {
+            @Override
+            public boolean shouldCompact(long totalBytes, long usedBytes) {
+                assertTrue(totalBytes > usedBytes);
+                return false;
+            }
+        });
+        assertTrue(results.first == results.second);
     }
 
     @Test

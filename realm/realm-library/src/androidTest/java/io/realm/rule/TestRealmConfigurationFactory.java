@@ -32,13 +32,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.realm.DynamicRealm;
+import io.realm.CompactOnLaunchCallback;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.RealmMigration;
-import io.realm.RealmObject;
-import io.realm.TestHelper;
-import io.realm.annotations.RealmModule;
 
 import static org.junit.Assert.assertTrue;
 
@@ -129,7 +125,16 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
         return createConfiguration(null, name, module, null);
     }
 
+    public RealmConfiguration createConfiguration(String name, CompactOnLaunchCallback compactOnLaunchCallback) {
+        return createConfiguration(null, name, null, null, compactOnLaunchCallback);
+    }
+
     public RealmConfiguration createConfiguration(String subDir, String name, Object module, byte[] key) {
+        return createConfiguration(subDir, name, module, key, null);
+    }
+
+    public RealmConfiguration createConfiguration(String subDir, String name, Object module, byte[] key,
+            CompactOnLaunchCallback compactOnLaunchCallback) {
         RealmConfiguration.Builder builder = createConfigurationBuilder();
 
         File folder = getRoot();
@@ -149,6 +154,10 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
         if (key != null) {
             builder.encryptionKey(key);
+        }
+
+        if (compactOnLaunchCallback != null) {
+            builder.compactOnLaunch(compactOnLaunchCallback);
         }
 
         RealmConfiguration configuration = builder.build();
