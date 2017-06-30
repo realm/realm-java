@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 
 import io.realm.internal.InvalidRow;
@@ -254,7 +255,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
                         return object;
                     } else {
                         // Different target table
-                        throw new IllegalArgumentException(String.format("The object has a different type from list's." +
+                        throw new IllegalArgumentException(String.format(Locale.US,
+                                "The object has a different type from list's." +
                                 " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
                     }
                 } else if (realm.threadId == proxy.realmGet$proxyState().getRealm$realm().threadId) {

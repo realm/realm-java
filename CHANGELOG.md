@@ -23,6 +23,9 @@
 
 ### Bug Fixes
 
+* Bug in `isNull()`, `isNotNull()`, `isEmpty()`, and `isNotEmpty()` when queries involve nullable fields in link queries (#4856).
+* Rare crash in `RealmLog` when log level was set to `LogLevel.DEBUG`.   
+
 ### Internal
 
 * Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.
