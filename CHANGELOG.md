@@ -8,7 +8,8 @@
 
 ### Bug Fixes
 
-* Fixed a bug in `isNull()`, `isNotNull()`, `isEmpty()`, and `isNotEmpty()` when queries involve nullable fields in link queries (#4856).
+* Bug in `isNull()`, `isNotNull()`, `isEmpty()`, and `isNotEmpty()` when queries involve nullable fields in link queries (#4856).
+* Rare crash in `RealmLog` when log level was set to `LogLevel.DEBUG`.   
 
 ### Internal
 
