@@ -131,7 +131,8 @@ final class Backlink {
     public boolean validateSource() {
         // A @LinkingObjects cannot be @Required
         if (backlink.getAnnotation(Required.class) != null) {
-            Utils.error(String.format(Locale.US,
+            Utils.error(String.format(
+                    Locale.US,
                     "The @LinkingObjects field \"%s.%s\" cannot be @Required.",
                     targetClass,
                     targetField));
@@ -140,7 +141,8 @@ final class Backlink {
 
         // The annotation must have an argument, identifying the linked field
         if ((sourceField == null) || sourceField.equals("")) {
-            Utils.error(String.format(Locale.US,
+            Utils.error(String.format(
+                    Locale.US,
                     "The @LinkingObjects annotation for the field \"%s.%s\" must have a parameter identifying the link target.",
                     targetClass,
                     targetField));
@@ -149,7 +151,8 @@ final class Backlink {
 
         // Using link syntax to try to reference a linked field is not possible.
         if (sourceField.contains(".")) {
-            Utils.error(String.format(Locale.US,
+            Utils.error(String.format(
+                    Locale.US,
                     "The parameter to the @LinkingObjects annotation for the field \"%s.%s\" contains a '.'.  The use of '.' to specify fields in referenced classes is not supported.",
                     targetClass,
                     targetField));
@@ -158,7 +161,8 @@ final class Backlink {
 
         // The annotated element must be a RealmResult
         if (!Utils.isRealmResults(backlink)) {
-            Utils.error(String.format(Locale.US,
+            Utils.error(String.format(
+                    Locale.US,
                     "The field \"%s.%s\" is a \"%s\". Fields annotated with @LinkingObjects must be RealmResults.",
                     targetClass,
                     targetField,
@@ -167,7 +171,8 @@ final class Backlink {
         }
 
         if (sourceClass == null) {
-            Utils.error(String.format(Locale.US,
+            Utils.error(String.format(
+                    Locale.US,
                     "\"The field \"%s.%s\", annotated with @LinkingObjects, must specify a generic type.",
                     targetClass,
                     targetField));
@@ -176,7 +181,8 @@ final class Backlink {
 
         // A @LinkingObjects field must be final
         if (!backlink.getModifiers().contains(Modifier.FINAL)) {
-            Utils.error(String.format(Locale.US,
+            Utils.error(String.format(
+                    Locale.US,
                     "A @LinkingObjects field \"%s.%s\" must be final.",
                     targetClass,
                     targetField));
