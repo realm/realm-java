@@ -360,22 +360,25 @@ public class AuthTests extends BaseIntegrationTest {
     }
 
     // logging out 'user' should have the same impact on other instance(s) of the same user
+    // also verify that logging a user out allows another user to log in.
     @Test
     public void loggingOutUserShouldImpactOtherInstances() throws InterruptedException {
-        String username = UUID.randomUUID().toString();
-        String password = "password";
+        for (int i = 0; i < 3; i++) {
+            String username = UUID.randomUUID().toString();
+            String password = "password";
 
-        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        SyncUser currentUser = SyncUser.currentUser();
+            SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+            SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+            SyncUser currentUser = SyncUser.currentUser();
 
-        assertTrue(user.isValid());
-        assertEquals(user, currentUser);
+            assertTrue(user.isValid());
+            assertEquals(user, currentUser);
 
-        user.logout();
+            user.logout();
 
-        assertFalse(user.isValid());
-        assertFalse(currentUser.isValid());
+            assertFalse(user.isValid());
+            assertFalse(currentUser.isValid());
+        }
     }
 
     // logging out 'currentUser' should have the same impact on other instance(s) of the user
