@@ -2,6 +2,8 @@
 
 ### Breaking Changes
 
+* An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required model classes (#3398).
+
 ### Deprecated
 
 ### Enhancements
@@ -9,6 +11,8 @@
 ### Bug Fixes
 
 ### Internal
+
+* Use Object Store to do table initialization.
 
 ### Credits
 
@@ -34,7 +38,6 @@
 ### Breaking Changes
 
 * [ObjectServer] Updated protocol version to 18 which is only compatible with ROS > 1.6.0.
-* An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required model classes (#3398).
 
 ### Deprecated
 
@@ -76,7 +79,6 @@
 ### Internal
 
 * Factor out internal interface ManagedObject.
-* Use Object Store to do table initialization.
 
 ## 3.3.1 (2017-05-26)
 
