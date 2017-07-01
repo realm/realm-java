@@ -66,6 +66,9 @@ public enum ErrorCode {
 
     // 300 - 599 Reserved for Standard HTTP error codes
 
+    // user lookup endpoint returns 404 in case it couldn't honor the query
+    NOT_FOUND(404),
+
     // Realm Authentication Server response errors (600 - 699)
     INVALID_PARAMETERS(601),
     MISSING_PARAMETERS(602),
