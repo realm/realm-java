@@ -325,7 +325,6 @@ public final class SharedRealm implements Closeable, NativeObject {
                 isStringType, isNullable));
     }
 
-
     public void renameTable(String oldName, String newName) {
         nativeRenameTable(nativePtr, oldName, newName);
     }

@@ -27,9 +27,6 @@ import io.realm.internal.Table;
 import io.realm.internal.Util;
 import io.realm.internal.util.Pair;
 
-import static io.realm.RealmObjectSchema.SUPPORTED_SIMPLE_FIELDS;
-
-
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
  * to add, delete and change the classes in the Realm.
@@ -136,7 +133,7 @@ public class RealmSchema {
         RealmObjectSchema.checkLegalName(primaryKeyFieldName);
         String internalTableName = checkAndGetTableNameFromClassName(className);
 
-        RealmObjectSchema.FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(fieldType);
+        RealmObjectSchema.FieldMetaData metadata = RealmObjectSchema.getSupportedSimpleFields().get(fieldType);
         if (metadata == null || (metadata.realmType != RealmFieldType.STRING &&
                 metadata.realmType != RealmFieldType.INTEGER)) {
             throw new IllegalArgumentException(String.format("Realm doesn't support primary key field type '%s'.",

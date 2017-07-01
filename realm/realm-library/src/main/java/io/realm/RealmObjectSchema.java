@@ -588,6 +588,10 @@ public class RealmObjectSchema {
         return table;
     }
 
+    static final Map<Class<?>, FieldMetaData> getSupportedSimpleFields() {
+        return SUPPORTED_SIMPLE_FIELDS;
+    }
+
     private SchemaConnector getSchemaConnector() {
         return new SchemaConnector(schema);
     }
