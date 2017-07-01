@@ -366,19 +366,14 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     /**
-     * Updates the underlying schema based on the schema description.
+     * Initializes the underlying schema based on the schema description.
      * Calling this method must be done from inside a write transaction.
-     * <p>
-     * TODO: This method should not require the caller to get the native pointer.
-     * Instead, the signature should be something like:
-     * public <T extends RealmSchema & NativeObject> </T>void updateSchema(T schema, long version)
-     * ... that is: something that is a schema and that wraps a native object.
      *
-     * @param schemaNativePtr the pointer to a native schema object.
+     * @param schemaInfo the expected schema.
      * @param version the target version.
      */
-    public void updateSchema(long schemaNativePtr, long version) {
-        nativeUpdateSchema(nativePtr, schemaNativePtr, version);
+    public void updateSchema(OsSchemaInfo schemaInfo, long version) {
+        nativeUpdateSchema(nativePtr, schemaInfo.getNativePtr(), version);
     }
 
     public void setAutoRefresh(boolean enabled) {
