@@ -1080,7 +1080,7 @@ public class RealmTests {
                 return true;
             }
         });
-        assertTrue(results.first > results.second);
+        assertTrue(results.first.compareTo(results.second) > 0);
     }
 
     @Test
@@ -1092,7 +1092,7 @@ public class RealmTests {
                 return false;
             }
         });
-        assertTrue(results.first == results.second);
+        assertEquals(results.first, results.second);
     }
 
     @Test
