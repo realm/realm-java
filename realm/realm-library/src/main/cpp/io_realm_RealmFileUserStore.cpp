@@ -85,6 +85,20 @@ JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeLogoutUser(JNIEnv*
     CATCH_STD()
 }
 
+JNIEXPORT jboolean JNICALL Java_io_realm_RealmFileUserStore_nativeIsActive(JNIEnv* env, jclass, jstring j_identity)
+{
+    TR_ENTER()
+    try {
+        JStringAccessor identity(env, j_identity); // throws
+        const std::shared_ptr<SyncUser>& user = SyncManager::shared().get_existing_logged_in_user(identity);
+        if (user) {
+            return to_jbool(user->state() == SyncUser::State::Active);
+        }
+    }
+    CATCH_STD()
+    return JNI_FALSE;
+}
+
 JNIEXPORT jobjectArray JNICALL Java_io_realm_RealmFileUserStore_nativeGetAllUsers(JNIEnv* env, jclass)
 {
     TR_ENTER()

@@ -2,13 +2,14 @@ buildscript {
     ext.kotlin_version = '1.1.2-5'
     repositories {
         mavenLocal()
+        google()
         jcenter()
         maven { url 'https://jitpack.io' }
         maven { url "https://plugins.gradle.org/m2/" }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.3'
+        classpath 'com.android.tools.build:gradle:3.0.0-alpha4'
         classpath 'de.undercouch:gradle-download-task:3.1.1'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
         classpath 'com.novoda:gradle-android-command-plugin:1.5.0'
@@ -33,6 +34,7 @@ allprojects {
     version = file("${rootDir}/../version.txt").text.trim();
     repositories {
         mavenLocal()
+        google()
         jcenter()
     }
 }

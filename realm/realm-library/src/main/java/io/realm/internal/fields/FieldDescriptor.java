@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import io.realm.RealmFieldType;
@@ -273,7 +274,7 @@ public abstract class FieldDescriptor {
 
     private void verifyColumnType(String tableName, String columnName, RealmFieldType columnType, Set<RealmFieldType> validTypes) {
         if (!validTypes.contains(columnType)) {
-            throw new IllegalArgumentException(String.format(
+            throw new IllegalArgumentException(String.format(Locale.US,
                     "Invalid query: field '%s' in table '%s' is of invalid type '%s'.",
                     columnName, tableName, columnType.toString()));
         }
