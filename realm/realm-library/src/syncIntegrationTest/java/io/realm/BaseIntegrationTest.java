@@ -59,7 +59,6 @@ public class BaseIntegrationTest {
         SyncManager.Debug.skipOnlineChecking = true;
         try {
             HttpUtils.startSyncServer();
-            setupEnv();
         } catch (Exception e) {
             // Throwing an exception from this method will crash JUnit. Instead just log it.
             // If this setup method fails, all unit tests in the class extending it will most likely fail as well.
@@ -67,9 +66,17 @@ public class BaseIntegrationTest {
         }
     }
 
-    private static void setupEnv() throws IOException {
-        // TODO We should implement a more consistent reset method for all of Sync that reset
-        // everything completely including deleting all files.
+    @AfterClass
+    public static void tearDownTestClass() throws Exception {
+        try {
+            HttpUtils.stopSyncServer();
+        } catch (Exception e) {
+            Log.e(HttpUtils.TAG, "Failed to stop Sync Server" + Util.getStackTrace(e));
+        }
+    }
+
+    @Before
+    public void setupTest() throws IOException {
         deleteRosFiles();
         if (BaseRealm.applicationContext != null) {
             // Realm was already initialized. Reset all internal state
@@ -88,58 +95,29 @@ public class BaseIntegrationTest {
         RealmLog.setLevel(LogLevel.DEBUG);
     }
 
-    @AfterClass
-    public static void tearDownTestClass() throws Exception {
-        try {
-            HttpUtils.stopSyncServer();
-            resetEnv();
-        } catch (Exception e) {
-            Log.e(HttpUtils.TAG, "Failed to stop Sync Server" + Util.getStackTrace(e));
+    @After
+    public void teardownTest() {
+        if (looperThread.isTestComplete()) {
+            // Non-looper tests can reset here
+            resetTestEnvironment();
+        } else {
+            // Otherwise we need to wait for the test to complete
+            looperThread.runAfterTest(new Runnable() {
+                @Override
+                public void run() {
+                    resetTestEnvironment();
+                }
+            });
         }
     }
 
-    private static void resetEnv() {
+    private void resetTestEnvironment() {
+        for (SyncUser syncUser : SyncUser.all().values()) {
+            syncUser.logout();
+        }
         RealmLog.setLevel(originalLogLevel);
     }
 
-//    @Before
-//    public void setupTest() throws IOException {
-//        // TODO We should implement a more consistent reset method for all of Sync that reset
-//        // everything completely including deleting all files.
-//        deleteRosFiles();
-//        if (BaseRealm.applicationContext != null) {
-//            // Realm was already initialized. Reset all internal state
-//            // in order to be able fully re-initialize.
-//
-//            // This will set the 'm_metadata_manager' in 'sync_manager.cpp' to be 'null'
-//            // causing the SyncUser to remain in memory.
-//            // They're actually not persisted into disk.
-//            // move this call to 'tearDown' to clean in-memory & on-disk users
-//            // once https://github.com/realm/realm-object-store/issues/207 is resolved
-//            SyncManager.reset();
-//            BaseRealm.applicationContext = null; // Required for Realm.init() to work
-//        }
-//        Realm.init(InstrumentationRegistry.getContext());
-//        originalLogLevel = RealmLog.getLevel();
-//        RealmLog.setLevel(LogLevel.DEBUG);
-//    }
-//
-//    @After
-//    public void tearDownTest() throws IOException {
-//        if (looperThread.isTestComplete()) {
-//            // Non-looper tests can reset here
-//            RealmLog.setLevel(originalLogLevel);
-//        } else {
-//            // Otherwise we need to wait for the test to complete
-//            looperThread.runAfterTest(new Runnable() {
-//                @Override
-//                public void run() {
-//                    RealmLog.setLevel(originalLogLevel);
-//                }
-//            });
-//        }
-//    }
-//
     // Cleanup filesystem to make sure nothing lives for the next test.
     // Failing to do so might lead to DIVERGENT_HISTORY errors being thrown if Realms from
     // previous tests are being accessed.

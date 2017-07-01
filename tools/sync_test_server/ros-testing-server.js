@@ -32,7 +32,6 @@ function handleRequest(request, response) {
 }
 
 var syncServerChildProcess = null;
-var syncServerDir = null;
 
 function startRealmObjectServer(done) {
     // Hack for checking the ROS is fully initialized.
@@ -47,9 +46,6 @@ function startRealmObjectServer(done) {
         }
         temp.mkdir('ros', function(err, path) {
             if (!err) {
-                var oldCwd = process.cwd();
-                process.chdir(path);
-                syncServerDir = path;
                 winston.info("Starting sync server in ", path);
                 var env = Object.create( process.env );
                 winston.info(env.NODE_ENV);
@@ -76,7 +72,6 @@ function startRealmObjectServer(done) {
                 syncServerChildProcess.on('close', (code) => {
                     winston.info(`child process exited with code ${code}`);
                 });
-                process.chdir(oldCwd);
             }
         });
     });
@@ -86,16 +81,7 @@ function stopRealmObjectServer(callback) {
     if (syncServerChildProcess) {
         syncServerChildProcess.on('exit', function() {
             syncServerChildProcess = null;
-            exec('rm -r ' + syncServerDir, function (err, stdout, stderr) {
-                if (err) {
-                    winston.error(err);
-                    callback(err);
-                } else {
-                    winston.info("realm-object-server directory deleted: " + syncServerDir);
-                    syncServerDir = null;
-                    callback();
-                }
-            });
+            callback();
         });
         syncServerChildProcess.kill();
     } else {
