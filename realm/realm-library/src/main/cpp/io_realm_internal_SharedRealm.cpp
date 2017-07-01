@@ -474,7 +474,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTableWith
         Table* table;
         auto& group = shared_realm->read_group();
         table = LangBindHelper::add_table(group, table_name);
-        table->add_column(pkType, field_name, is_nullable);
+        size_t column_idx = table->add_column(pkType, field_name, is_nullable);
+        table->add_search_index(column_idx);
         ObjectStore::set_primary_key_for_object(group, class_name_str, field_name);
         return reinterpret_cast<jlong>(table);
     }
