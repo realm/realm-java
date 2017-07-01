@@ -665,6 +665,9 @@ public class RealmObjectSchema {
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Field name can not contain '.'");
         }
+        if (fieldName.length() > 63) {
+            throw new IllegalArgumentException("Field name is currently limited to max 63 characters.");
+        }
     }
 
     private void checkFieldNameIsAvailable(String fieldName) {
