@@ -18,6 +18,7 @@ package io.realm.entities;
 
 import io.realm.RealmObject;
 
+@SuppressWarnings("JavaLangClash")
 public class Thread extends RealmObject {
     private String name;
 

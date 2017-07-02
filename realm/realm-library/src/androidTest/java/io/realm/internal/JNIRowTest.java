@@ -134,7 +134,7 @@ public class JNIRowTest {
         UncheckedRow row = table.getUncheckedRow(rowIndex);
 
         row.setString(colStringIndex, "test");
-        assertEquals(row.getString(colStringIndex), "test");
+        assertEquals("test", row.getString(colStringIndex));
         row.setNull(colStringIndex);
         assertNull(row.getString(colStringIndex));
 
