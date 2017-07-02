@@ -52,8 +52,6 @@ import static org.junit.Assert.assertEquals;
 public class ProcessCommitTests extends BaseIntegrationTest {
 
     @Rule
-    public RunInLooperThread looperThread = new RunInLooperThread();
-    @Rule
     public RunWithRemoteService remoteService = new RunWithRemoteService();
 
     @Before

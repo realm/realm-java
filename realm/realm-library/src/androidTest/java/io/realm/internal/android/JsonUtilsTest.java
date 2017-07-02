@@ -48,7 +48,7 @@ public class JsonUtilsTest extends AndroidTestCase {
         String jsonDate = "/Date(1198908717056)/"; // 2007-12-27T23:11:57.056
         Date output = JsonUtils.stringToDate(jsonDate);
 
-        assertEquals(output.getTime(), 1198908717056L);
+        assertEquals(1198908717056L, output.getTime());
     }
 
     public void testNegativeLongDate() {

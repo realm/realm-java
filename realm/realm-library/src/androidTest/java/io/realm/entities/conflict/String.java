@@ -19,6 +19,7 @@ package io.realm.entities.conflict;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 
+@SuppressWarnings("JavaLangClash")
 public class String extends RealmObject {
     public String str;
     public RealmList<String> strList;
