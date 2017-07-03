@@ -43,6 +43,7 @@ import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.ChangePasswordResponse;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
+import io.realm.internal.network.LookupUserIdResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
@@ -426,6 +427,82 @@ public class SyncUser {
         }.start();
     }
 
+    /**
+     * Helper method for Admin users in order to lookup a {@code SyncUser} using the identity provider and the used username.
+     *
+     * @param provider identity providers {@link io.realm.SyncCredentials.IdentityProvider} used when the account was created.
+     * @param providerId username or email used to create the account for the first time,
+     *                   what is needed will depend on what type of {@link SyncCredentials} was used.
+     *
+     * @return {@code SyncUser} associated with the given identity provider and providerId, or {@code null} in case
+     * of an {@code invalid} provider or {@code providerId}.
+     * @throws ObjectServerError in case of an error.
+     */
+    public SyncUser retrieveUser(final String provider, final String providerId) throws ObjectServerError {
+        if (Util.isEmptyString(provider)) {
+            throw new IllegalArgumentException("Not-null 'provider' required.");
+        }
+
+        if (Util.isEmptyString(providerId)) {
+            throw new IllegalArgumentException("None empty 'providerId' required.");
+        }
+
+        if (!isAdmin()) {
+            throw new IllegalArgumentException("SyncUser needs to be admin in order to lookup other users ID.");
+        }
+
+        AuthenticationServer authServer = SyncManager.getAuthServer();
+        LookupUserIdResponse response = authServer.retrieveUser(getSyncUser().getUserToken(), provider, providerId, getAuthenticationUrl());
+        if (!response.isValid()) {
+            // the endpoint returns a 404 if it can't honor the query, either because
+            // - provider is not valid
+            // - provider_id is not valid
+            // - token used is not an admin one
+            // in this case we should return null instead of throwing
+            if (response.getError().getErrorCode() == ErrorCode.NOT_FOUND) {
+                return null;
+            } else {
+                throw response.getError();
+            }
+        } else {
+            SyncUser syncUser = SyncManager.getUserStore().get(response.getUserId());
+            if (syncUser != null) {
+                return syncUser;
+            } else {
+                // build an SynUser without a token
+                Token refreshToken = new Token(null, response.getUserId(), null, 0, null, response.isAdmin());
+                ObjectServerUser objectServerUser = new ObjectServerUser(refreshToken, getAuthenticationUrl());
+                objectServerUser.localLogout();
+                return new SyncUser(objectServerUser);
+            }
+        }
+    }
+
+    /**
+     * Asynchronously lookup a {@code SyncUser} using the identity provider and the used username.
+     * This is for Admin users only.
+     *
+     * @param provider identity providers {@link io.realm.SyncCredentials.IdentityProvider} used when the account was created.
+     * @param providerId  username or email used to create the account for the first time,
+     *                    what is needed will depend on what type of {@link SyncCredentials} was used.
+     * @param callback callback when the lookup has completed or failed. The callback will always happen on the same thread
+     * as this method is called on.
+     * @return representation of the async task that can be used to cancel it if needed.
+     */
+    public RealmAsyncTask retrieveUserAsync(final String provider, final String providerId, final Callback callback) {
+        checkLooperThread("Asynchronously retrieving user id is only possible from looper threads.");
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
+
+        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public SyncUser run() {
+                return retrieveUser(provider, providerId);
+            }
+        }.start();
+    }
+
     private static void checkLooperThread(String errorMessage) {
         AndroidCapabilities capabilities = new AndroidCapabilities();
         capabilities.checkCanDeliverNotification(errorMessage);
@@ -458,7 +535,7 @@ public class SyncUser {
      */
     public boolean isValid() {
         Token userToken = getSyncUser().getUserToken();
-        return syncUser.isLoggedIn() && userToken != null && userToken.expiresMs() > System.currentTimeMillis();
+        return syncUser.isLoggedIn() && userToken != null && userToken.expiresMs() > System.currentTimeMillis() && SyncManager.getUserStore().isActive(syncUser.getIdentity());
     }
 
     /**

@@ -29,9 +29,13 @@
 
 ### Enhancements
 
+* [ObjectServer] Adding user lookup API for administrators (#4828).
+
 ### Bug Fixes
 
 * Fixed a bug in `isNull()`, `isNotNull()`, `isEmpty()`, and `isNotEmpty()` when queries involve nullable fields in link queries (#4856).
+* Rare crash in `RealmLog` when log level was set to `LogLevel.DEBUG`.   
+* [ObjectServer] Fixed a bug related to the behaviour of `SyncUser#logout` and the use of invalid `SyncUser` with `SyncConfiguration` (#4822).
 
 ### Internal
 
