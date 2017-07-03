@@ -370,6 +370,12 @@ public class LinkingObjectsQueryTests extends QueryTests {
         assertEquals(1, realm.where(BacklinksTarget.class).isEmpty(BacklinksTarget.FIELD_PARENTS).count());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void equalTo_linkingObjectLast() {
+        createLinkedDataSet(realm);
+        realm.where(BacklinksTarget.class).equalTo(BacklinksTarget.FIELD_PARENTS, "parents");
+    }
+
     @Test
     public void isEmpty_acrossLink() {
         createIsEmptyDataSet(realm);
