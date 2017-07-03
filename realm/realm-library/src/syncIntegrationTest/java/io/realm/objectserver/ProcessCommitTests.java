@@ -31,6 +31,7 @@ import io.realm.BaseIntegrationTest;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
+import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncUser;
 import io.realm.objectserver.model.ProcessInfo;
@@ -49,7 +50,7 @@ import static org.junit.Assert.assertEquals;
 
 
 @RunWith(AndroidJUnit4.class)
-public class ProcessCommitTests extends BaseIntegrationTest {
+public class ProcessCommitTests extends StandardIntegrationTest {
 
     @Rule
     public RunWithRemoteService remoteService = new RunWithRemoteService();

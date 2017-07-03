@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.UiThreadTestRule;
 import android.util.Log;
@@ -29,6 +31,10 @@ import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Util;
 import io.realm.log.LogLevel;
@@ -37,8 +43,15 @@ import io.realm.objectserver.utils.HttpUtils;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
 
+import static org.junit.Assert.fail;
 
-public class BaseIntegrationTest {
+
+/**
+ * Base class used by Integration Tests.
+ * This class should not be used directly. Instead {@link StandardIntegrationTest} or {@link } should be
+ * used instead.
+ */
+public abstract class BaseIntegrationTest {
 
     private static int originalLogLevel;
 
@@ -54,8 +67,30 @@ public class BaseIntegrationTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-    @BeforeClass
-    public static void setupTestClass() throws Exception {
+    protected void prepareEnvironmentForTest() throws IOException {
+        // FIXME Trying to reset the device environment is crashing tests somehow
+//        deleteRosFiles();
+//        if (BaseRealm.applicationContext != null) {
+//            // Realm was already initialized. Reset all internal state
+//            // in order to be able fully re-initialize.
+//
+//            // This will set the 'm_metadata_manager' in 'sync_manager.cpp' to be 'null'
+//            // causing the SyncUser to remain in memory.
+//            // They're actually not persisted into disk.
+//            // move this call to 'tearDown' to clean in-memory & on-disk users
+//            // once https://github.com/realm/realm-object-store/issues/207 is resolved
+//            SyncManager.reset();
+//            BaseRealm.applicationContext = null; // Required for Realm.init() to work
+//        }
+//        Realm.init(InstrumentationRegistry.getContext());
+        originalLogLevel = RealmLog.getLevel();
+        RealmLog.setLevel(LogLevel.DEBUG);
+    }
+
+    /**
+     * Starts a new ROS instance that can be used for testing.
+     */
+    protected static void startSyncServer() {
         SyncManager.Debug.skipOnlineChecking = true;
         try {
             HttpUtils.startSyncServer();
@@ -66,8 +101,10 @@ public class BaseIntegrationTest {
         }
     }
 
-    @AfterClass
-    public static void tearDownTestClass() throws Exception {
+    /**
+     * Stops the ROS instance used for the test.
+     */
+    protected static void stopSyncServer() {
         try {
             HttpUtils.stopSyncServer();
         } catch (Exception e) {
@@ -75,46 +112,52 @@ public class BaseIntegrationTest {
         }
     }
 
-    @Before
-    public void setupTest() throws IOException {
-        deleteRosFiles();
-        if (BaseRealm.applicationContext != null) {
-            // Realm was already initialized. Reset all internal state
-            // in order to be able fully re-initialize.
+    /**
+     * Tries to restore the environment as best as possible after a test.
+     */
+    protected void restoreEnvironmentAfterTest() {
+        // Block until all users are logged out
+        final CountDownLatch allUsersLoggedOut = new CountDownLatch(1);
+        final HandlerThread ht = new HandlerThread("LoggingOutUsersThread");
+        ht.start();
+        Handler handler = new Handler(ht.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final AtomicInteger usersLoggedOut = new AtomicInteger(0);
+                final int activeUsers = SyncUser.all().size();
+                final AuthenticationListener listener = new AuthenticationListener() {
+                    @Override
+                    public void loggedIn(SyncUser user) {
+                        SyncManager.removeAuthenticationListener(this);
+                        fail("User logged in while exiting test: " + user);
+                    }
 
-            // This will set the 'm_metadata_manager' in 'sync_manager.cpp' to be 'null'
-            // causing the SyncUser to remain in memory.
-            // They're actually not persisted into disk.
-            // move this call to 'tearDown' to clean in-memory & on-disk users
-            // once https://github.com/realm/realm-object-store/issues/207 is resolved
-            SyncManager.reset();
-            BaseRealm.applicationContext = null; // Required for Realm.init() to work
-        }
-        Realm.init(InstrumentationRegistry.getContext());
-        originalLogLevel = RealmLog.getLevel();
-        RealmLog.setLevel(LogLevel.DEBUG);
-    }
+                    @Override
+                    public void loggedOut(SyncUser user) {
+                        if (usersLoggedOut.incrementAndGet() == activeUsers) {
+                            SyncManager.removeAuthenticationListener(this);
+                            allUsersLoggedOut.countDown();
+                        }
+                    }
+                };
+                SyncManager.addAuthenticationListener(listener);
 
-    @After
-    public void teardownTest() {
-        if (looperThread.isTestComplete()) {
-            // Non-looper tests can reset here
-            resetTestEnvironment();
-        } else {
-            // Otherwise we need to wait for the test to complete
-            looperThread.runAfterTest(new Runnable() {
-                @Override
-                public void run() {
-                    resetTestEnvironment();
+                Map<String, SyncUser> users = SyncUser.all();
+                if (users.isEmpty()) {
+                    SyncManager.removeAuthenticationListener(listener);
+                    allUsersLoggedOut.countDown();
+                } else {
+                    for (SyncUser user : users.values()) {
+                        user.logout();
+                    }
                 }
-            });
-        }
-    }
+           }
+        });
+        TestHelper.awaitOrFail(allUsersLoggedOut);
+        ht.quit();
 
-    private void resetTestEnvironment() {
-        for (SyncUser syncUser : SyncUser.all().values()) {
-            syncUser.logout();
-        }
+        // Reset log level
         RealmLog.setLevel(originalLogLevel);
     }
 
