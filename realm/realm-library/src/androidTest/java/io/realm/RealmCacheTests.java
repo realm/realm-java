@@ -115,7 +115,7 @@ public class RealmCacheTests {
             Realm.getInstance(configB); // Tries to open with key 2.
             fail();
         } catch (RealmFileException expected) {
-            assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
+            assertEquals(RealmFileException.Kind.ACCESS_ERROR, expected.getKind());
             // Deletes Realm so key 2 works. This should work as a Realm shouldn't be cached
             // if initialization failed.
             assertTrue(Realm.deleteRealm(configA));
@@ -164,7 +164,7 @@ public class RealmCacheTests {
             Realm.getInstance(wrongConfig);
             fail();
         } catch (RealmFileException expected) {
-            assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
+            assertEquals(RealmFileException.Kind.ACCESS_ERROR, expected.getKind());
         }
 
         // Tries again with proper key.

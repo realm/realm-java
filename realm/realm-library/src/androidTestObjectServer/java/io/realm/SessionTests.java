@@ -56,7 +56,7 @@ public class SessionTests {
     @Test
     public void get_syncValues() {
         SyncSession session = new SyncSession(configuration);
-        assertEquals("realm://objectserver.realm.io/JohnDoe/default", session.getServerUrl().toString());
+        assertEquals("realm://objectserver.realm.io/" + user.getIdentity() + "/default", session.getServerUrl().toString());
         assertEquals(user, session.getUser());
         assertEquals(configuration, session.getConfiguration());
     }

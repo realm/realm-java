@@ -20,6 +20,7 @@ import com.squareup.javawriter.JavaWriter;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -187,8 +188,8 @@ public class RealmJsonTypeHelper {
             // Only throw exception for primitive types.
             // For boxed types and String, exception will be thrown in the setter.
             String statementSetNullOrThrow = Utils.isPrimitiveType(fieldType) ?
-                    String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName) :
-                    String.format("((%s) obj).%s(null)", interfaceName, setter);
+                    String.format(Locale.US, Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName) :
+                    String.format(Locale.US, "((%s) obj).%s(null)", interfaceName, setter);
             // @formatter:off
             writer
                 .beginControlFlow("if (json.has(\"%s\"))", fieldName)
@@ -211,8 +212,8 @@ public class RealmJsonTypeHelper {
             // Only throw exception for primitive types. For boxed types and String, exception will be thrown in
             // the setter.
             String statementSetNullOrThrow = (Utils.isPrimitiveType(fieldType)) ?
-                    String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName) :
-                    String.format("((%s) obj).%s(null)", interfaceName, setter);
+                    String.format(Locale.US, Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName) :
+                    String.format(Locale.US, "((%s) obj).%s(null)", interfaceName, setter);
             // @formatter:off
             writer
                 .beginControlFlow("if (reader.peek() == JsonToken.NULL)")

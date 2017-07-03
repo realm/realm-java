@@ -29,8 +29,8 @@ android {
 }
 
 dependencies {
-    compile 'io.reactivex:rxandroid:1.1.0'
-    compile 'io.reactivex:rxjava:1.1.0'
-    compile 'com.jakewharton.rxbinding:rxbinding:0.3.0'
-    compile 'com.squareup.retrofit:retrofit:1.9.0'
+    implementation 'io.reactivex:rxandroid:1.1.0'
+    implementation 'io.reactivex:rxjava:1.1.0'
+    implementation 'com.jakewharton.rxbinding:rxbinding:0.3.0'
+    implementation 'com.squareup.retrofit:retrofit:1.9.0'
 }

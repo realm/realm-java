@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package io.realm.entities;
+package some.test;
 
 import io.realm.RealmObject;
 
-@SuppressWarnings("JavaLangClash")
-public class Thread extends RealmObject {
-    private String name;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+/**
+ * A model class to test non latin class name.
+ */
+public class ÁrvíztűrőTükörfúrógép extends RealmObject {
+    public String name;
+    public long 델타;
+    public long Δέλτα;
+    public float 貸借対照表;
 }

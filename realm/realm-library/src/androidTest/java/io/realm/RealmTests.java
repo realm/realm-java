@@ -213,7 +213,7 @@ public class RealmTests {
                     .build());
             fail();
         } catch (RealmFileException expected) {
-            assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
+            assertEquals(RealmFileException.Kind.PERMISSION_DENIED, expected.getKind());
         }
     }
 
@@ -230,7 +230,7 @@ public class RealmTests {
             Realm.getInstance(new RealmConfiguration.Builder(context).directory(folder).name(REALM_FILE).build());
             fail();
         } catch (RealmFileException expected) {
-            assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
+            assertEquals(RealmFileException.Kind.PERMISSION_DENIED, expected.getKind());
         }
     }
 
@@ -708,7 +708,7 @@ public class RealmTests {
             });
         } catch (RuntimeException ignored) {
             // Ensures that we pass a valuable error message to the logger for developers.
-            assertEquals(testLogger.message, "Could not cancel transaction, not currently in a transaction.");
+            assertEquals("Could not cancel transaction, not currently in a transaction.", testLogger.message);
         } finally {
             RealmLog.remove(testLogger);
         }
