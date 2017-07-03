@@ -48,7 +48,7 @@ try {
             stage('JVM tests') {
               try {
                 withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-                  sh "chmod +x gradlew && ./gradlew --no-daemon --console=plain assemble check javadoc -Ps3cfg=${env.S3CFG}"
+                  sh "chmod +x gradlew && ./gradlew --console=plain assemble check javadoc -Ps3cfg=${env.S3CFG}"
                 }
               } finally {
                 storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
@@ -98,7 +98,7 @@ try {
 
               stage('Publish to OJO') {
                 withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-                  sh "chmod +x gradlew && ./gradlew --no-daemon --console=plain -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
+                  sh "chmod +x gradlew && ./gradlew --console=plain -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
                 }
               }
             }
