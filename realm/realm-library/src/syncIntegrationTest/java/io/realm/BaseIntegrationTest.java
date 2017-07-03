@@ -40,6 +40,7 @@ import io.realm.internal.Util;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
 
@@ -117,45 +118,7 @@ public abstract class BaseIntegrationTest {
      */
     protected void restoreEnvironmentAfterTest() {
         // Block until all users are logged out
-        final CountDownLatch allUsersLoggedOut = new CountDownLatch(1);
-        final HandlerThread ht = new HandlerThread("LoggingOutUsersThread");
-        ht.start();
-        Handler handler = new Handler(ht.getLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                final AtomicInteger usersLoggedOut = new AtomicInteger(0);
-                final int activeUsers = SyncUser.all().size();
-                final AuthenticationListener listener = new AuthenticationListener() {
-                    @Override
-                    public void loggedIn(SyncUser user) {
-                        SyncManager.removeAuthenticationListener(this);
-                        fail("User logged in while exiting test: " + user);
-                    }
-
-                    @Override
-                    public void loggedOut(SyncUser user) {
-                        if (usersLoggedOut.incrementAndGet() == activeUsers) {
-                            SyncManager.removeAuthenticationListener(this);
-                            allUsersLoggedOut.countDown();
-                        }
-                    }
-                };
-                SyncManager.addAuthenticationListener(listener);
-
-                Map<String, SyncUser> users = SyncUser.all();
-                if (users.isEmpty()) {
-                    SyncManager.removeAuthenticationListener(listener);
-                    allUsersLoggedOut.countDown();
-                } else {
-                    for (SyncUser user : users.values()) {
-                        user.logout();
-                    }
-                }
-           }
-        });
-        TestHelper.awaitOrFail(allUsersLoggedOut);
-        ht.quit();
+        UserFactory.logoutAllUsers();
 
         // Reset log level
         RealmLog.setLevel(originalLogLevel);

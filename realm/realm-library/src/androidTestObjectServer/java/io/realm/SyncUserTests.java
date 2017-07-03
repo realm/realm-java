@@ -20,6 +20,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -40,6 +41,7 @@ import java.util.UUID;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.log.RealmLog;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
@@ -78,6 +80,11 @@ public class SyncUserTests {
     @Before
     public void setUp() {
         SyncManager.reset();
+    }
+
+    @After
+    public void after() {
+        UserFactory.logoutAllUsers();
     }
 
     @Test
