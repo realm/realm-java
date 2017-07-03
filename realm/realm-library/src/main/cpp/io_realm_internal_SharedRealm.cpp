@@ -611,6 +611,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNI
                                                             "(Lio/realm/internal/SharedRealm$MigrationCallback;JJ)V");
             migration_function = [&env, &j_shared_realm, &j_migration_callback, &shared_realm,
                                   &version](SharedRealm old_realm, SharedRealm realm, Schema&) {
+                // We rely on the behaviour that Object Store will share_from_this from the original Realm and
+                // begin_transaction on it. So the realm passed from OS here will be the same realm instance which
+                // j_shared_realm is holding.
                 REALM_ASSERT_RELEASE(shared_realm == realm);
                 env->CallVoidMethod(j_shared_realm, run_migration_callback_method, j_migration_callback,
                                     old_realm->schema_version(), version);
@@ -623,7 +626,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNI
         if (env->ExceptionCheck()) {
             return;
         }
-        static JavaClass migration_needed_class(env, "io/realm/exceptions/RealmMigrationNeededException");
+        static JavaClass migration_needed_class(env, JavaExceptionDef::RealmMigrationNeeded);
         static JavaMethod constructor(env, migration_needed_class, "<init>",
                                       "(Ljava/lang/String;Ljava/lang/String;)V");
 
@@ -633,6 +636,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNI
         env->Throw(reinterpret_cast<jthrowable>(migration_needed_exception));
     }
     catch (InvalidSchemaVersionException& e) {
+        // An exception has been thrown in the migration block.
+        if (env->ExceptionCheck()) {
+            return;
+        }
         // To match the old behaviour. Otherwise it will be converted to ISE in the CATCH_STD.
         ThrowException(env, IllegalArgument, e.what());
     }
