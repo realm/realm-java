@@ -750,7 +750,7 @@ public class DynamicRealmObjectTests {
                             .setObject(AllJavaTypes.FIELD_OBJECT, dObjDynamic);
                     fail();
                 } catch (IllegalArgumentException expected) {
-                    assertEquals(expected.getMessage(), "Cannot add an object from another Realm instance.");
+                    assertEquals("Cannot add an object from another Realm instance.", expected.getMessage());
                 }
 
                 dynamicRealm.cancelTransaction();
@@ -861,8 +861,7 @@ public class DynamicRealmObjectTests {
                     dynamicRealm.where(AllJavaTypes.CLASS_NAME).findFirst().setList(AllJavaTypes.FIELD_LIST, list);
                     fail();
                 } catch (IllegalArgumentException expected) {
-                    assertEquals(expected.getMessage(),
-                            "Each element in 'list' must belong to the same Realm instance.");
+                    assertEquals("Each element in 'list' must belong to the same Realm instance.", expected.getMessage());
                 }
 
                 dynamicRealm.cancelTransaction();

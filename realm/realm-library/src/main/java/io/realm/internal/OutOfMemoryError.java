@@ -21,7 +21,7 @@ package io.realm.internal;
  * Can be thrown when Realm runs out of memory.
  * A JVM that catches this will be able to cleanup, e.g. release other resources to avoid also running out of memory.
  */
-@SuppressWarnings("serial")
+@SuppressWarnings({"serial", "JavaLangClash"})
 @Keep
 public class OutOfMemoryError extends Error {
 
