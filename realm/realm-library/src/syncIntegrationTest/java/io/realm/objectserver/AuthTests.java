@@ -398,33 +398,50 @@ public class AuthTests extends BaseIntegrationTest {
         assertNull(SyncUser.currentUser());
     }
 
-    // verify that only one user at a time, can bee logged in.
+    // verify that multiple users can be logged in at the same time
     @Test
-    public void shouldAllowOnlyOneLoggedInUser() {
+    public void multipleUsersCanBeLoggedInSimultaneously() {
         final String password = "password";
+        final SyncUser[] users = new SyncUser[3];
 
-        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), password, true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        assertTrue(user.isValid());
+        for (int i = 0; i < users.length; i++) {
+            SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), password,
+                    true);
+            users[i] = SyncUser.login(credentials, Constants.AUTH_URL);
+        }
 
-        credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), password, true);
-        try {
-            SyncUser.login(credentials, Constants.AUTH_URL);
-            fail("Should not be possible to log in more than one user");
+        for (int i = 0; i < users.length; i++) {
+            assertTrue(users[i].isValid());
+        }
 
-        } catch (ObjectServerError ignore) { }
+        for (int i = 0; i < users.length; i++) {
+            users[i].logout();
+        }
+
+        for (int i = 0; i < users.length; i++) {
+            assertFalse(users[i].isValid());
+        }
     }
 
-    // verify that logging a user out allows another user to log in.
+    // verify that a single user can be logged out an back in.
     @Test
-    public void loggingOutUserShouldAllowSubsequentLogins() {
+    public void singleUserCanBeLoggedInAndOutRepeatedly() {
+        final String username = UUID.randomUUID().toString();
         final String password = "password";
 
-        for (int i = 0; i < 3; i++) {
-            SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), password, true);
-            SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-            assertTrue(user.isValid());
+        // register the user the first time
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
 
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(user.isValid());
+        user.logout();
+        assertFalse(user.isValid());
+
+        // on subsequent logins, the user is already registered.
+        credentials = credentials = SyncCredentials.usernamePassword(username, password, false);
+        for (int i = 0; i < 3; i++) {
+            user = SyncUser.login(credentials, Constants.AUTH_URL);
+            assertTrue(user.isValid());
             user.logout();
             assertFalse(user.isValid());
         }
