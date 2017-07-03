@@ -564,6 +564,13 @@ project.afterEvaluate {
         if (project.hasProperty('buildTargetABIs') && project.getProperty('buildTargetABIs').trim().isEmpty()) {
             variant.externalNativeBuildTasks[0].enabled = false
         }
+
+        // all Java files must be compiled before native build
+        android.libraryVariants.all { anotherVariant ->
+            if (variant.flavorName == anotherVariant.flavorName) {
+               variant.externalNativeBuildTasks[0].dependsOn("compile${anotherVariant.name.capitalize()}JavaWithJavac")
+            }
+        }
     }
 }
 
