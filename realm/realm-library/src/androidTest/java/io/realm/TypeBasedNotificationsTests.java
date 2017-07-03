@@ -877,7 +877,7 @@ public class TypeBasedNotificationsTests {
                     looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
-                            assertEquals(typebasedCommitInvocations.get(), 1);
+                            assertEquals(1, typebasedCommitInvocations.get());
                             looperThread.testComplete();
                         }
                     });
