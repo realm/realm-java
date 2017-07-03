@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.BacklinksTarget;
 import io.realm.entities.Cat;
 import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.rule.RunInLooperThread;
@@ -224,5 +225,22 @@ public class RealmChangeListenerTests {
         DynamicRealmObject allTypes = dynamicRealm.createObject(AllTypes.CLASS_NAME);
         allTypes.setString(AllTypes.FIELD_STRING, "test data 1");
         dynamicRealm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void listenerOnBacklinks() {
+        Realm realm = Realm.getInstance(looperThread.getConfiguration());
+        TestHelper.populateLinkedDataSet(realm);
+
+        RealmResults<BacklinksTarget> backlinksTargets = realm.where(BacklinksTarget.class).findAll();
+        assertEquals(4, backlinksTargets.size());
+
+        backlinksTargets.addChangeListener(new RealmChangeListener<RealmResults<BacklinksTarget>>() {
+            @Override
+            public void onChange(RealmResults<BacklinksTarget> backlinksTargets) {
+                
+            }
+        });
     }
 }
