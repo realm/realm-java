@@ -55,7 +55,7 @@ public class BaseIntegrationTest {
     public final ExpectedException thrown = ExpectedException.none();
 
     @BeforeClass
-    public static void setUp () throws Exception {
+    public static void setupTestClass() throws Exception {
         SyncManager.Debug.skipOnlineChecking = true;
         try {
             HttpUtils.startSyncServer();
@@ -67,7 +67,7 @@ public class BaseIntegrationTest {
     }
 
     @AfterClass
-    public static void tearDown () throws Exception {
+    public static void tearDownTestClass() throws Exception {
         try {
             HttpUtils.stopSyncServer();
         } catch (Exception e) {
@@ -77,8 +77,6 @@ public class BaseIntegrationTest {
 
     @Before
     public void setupTest() throws IOException {
-        // TODO We should implement a more consistent reset method for all of Sync that reset
-        // everything completely including deleting all files.
         deleteRosFiles();
         if (BaseRealm.applicationContext != null) {
             // Realm was already initialized. Reset all internal state
@@ -98,19 +96,26 @@ public class BaseIntegrationTest {
     }
 
     @After
-    public void tearDownTest() throws IOException {
+    public void teardownTest() {
         if (looperThread.isTestComplete()) {
             // Non-looper tests can reset here
-            RealmLog.setLevel(originalLogLevel);
+            resetTestEnvironment();
         } else {
             // Otherwise we need to wait for the test to complete
             looperThread.runAfterTest(new Runnable() {
                 @Override
                 public void run() {
-                    RealmLog.setLevel(originalLogLevel);
+                    resetTestEnvironment();
                 }
             });
         }
+    }
+
+    private void resetTestEnvironment() {
+        for (SyncUser syncUser : SyncUser.all().values()) {
+            syncUser.logout();
+        }
+        RealmLog.setLevel(originalLogLevel);
     }
 
     // Cleanup filesystem to make sure nothing lives for the next test.
