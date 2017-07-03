@@ -571,6 +571,10 @@ project.afterEvaluate {
                variant.externalNativeBuildTasks[0].dependsOn("compile${anotherVariant.name.capitalize()}JavaWithJavac")
             }
         }
+        // as of android gradle plugin 3.0.0-alpha5, generateJsonModel* triggers native build. Java files must be compiled before them.
+        android.buildTypes.all { buildType ->
+            tasks["generateJsonModel${variant.name.capitalize()}"].dependsOn "compile${variant.flavorName.capitalize()}${buildType.name.capitalize()}JavaWithJavac"
+        }
     }
 }
 
