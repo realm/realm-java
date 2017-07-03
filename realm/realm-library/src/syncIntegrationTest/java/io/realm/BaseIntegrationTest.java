@@ -70,20 +70,20 @@ public abstract class BaseIntegrationTest {
 
     protected void prepareEnvironmentForTest() throws IOException {
         // FIXME Trying to reset the device environment is crashing tests somehow
-//        deleteRosFiles();
-//        if (BaseRealm.applicationContext != null) {
-//            // Realm was already initialized. Reset all internal state
-//            // in order to be able fully re-initialize.
-//
-//            // This will set the 'm_metadata_manager' in 'sync_manager.cpp' to be 'null'
-//            // causing the SyncUser to remain in memory.
-//            // They're actually not persisted into disk.
-//            // move this call to 'tearDown' to clean in-memory & on-disk users
-//            // once https://github.com/realm/realm-object-store/issues/207 is resolved
-//            SyncManager.reset();
-//            BaseRealm.applicationContext = null; // Required for Realm.init() to work
-//        }
-//        Realm.init(InstrumentationRegistry.getContext());
+        deleteRosFiles();
+        if (BaseRealm.applicationContext != null) {
+            // Realm was already initialized. Reset all internal state
+            // in order to be able fully re-initialize.
+
+            // This will set the 'm_metadata_manager' in 'sync_manager.cpp' to be 'null'
+            // causing the SyncUser to remain in memory.
+            // They're actually not persisted into disk.
+            // move this call to 'tearDown' to clean in-memory & on-disk users
+            // once https://github.com/realm/realm-object-store/issues/207 is resolved
+            SyncManager.reset();
+            BaseRealm.applicationContext = null; // Required for Realm.init() to work
+        }
+        Realm.init(InstrumentationRegistry.getContext());
         originalLogLevel = RealmLog.getLevel();
         RealmLog.setLevel(LogLevel.DEBUG);
     }
