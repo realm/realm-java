@@ -168,7 +168,20 @@ public final class SharedRealm implements Closeable, NativeObject {
         void onSchemaVersionChanged(long currentVersion);
     }
 
+    /**
+     * The migration callback which will be called when the expected schema doesn't match the existing one in
+     * {@link #updateSchema(OsSchemaInfo, long, MigrationCallback)}.
+     */
     public interface MigrationCallback {
+
+        /**
+         * Call back function.
+         *
+         * @param sharedRealm the same {@link SharedRealm} instance of which
+         * {@link #updateSchema(OsSchemaInfo, long, MigrationCallback)} was called on.
+         * @param oldVersion the schema version of the existing Realm file.
+         * @param newVersion the expected schema version after migration.
+         */
         void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion);
     }
 
@@ -375,6 +388,7 @@ public final class SharedRealm implements Closeable, NativeObject {
      *
      * @param schemaInfo the expected schema.
      * @param version the target version.
+     * @param migrationCallback the callback will be called when the schema doesn't match.
      */
     public void updateSchema(OsSchemaInfo schemaInfo, long version, MigrationCallback migrationCallback) {
         nativeUpdateSchema(nativePtr, schemaInfo.getNativePtr(), version, migrationCallback);
@@ -490,6 +504,13 @@ public final class SharedRealm implements Closeable, NativeObject {
         pendingRows.clear();
     }
 
+    /**
+     * Called from JNI when the expected schema doesn't match the existing one.
+     *
+     * @param callback the {@link MigrationCallback} in the {@link RealmConfiguration}.
+     * @param oldVersion the schema version of the existing Realm file.
+     * @param newVersion the expected schema version after migration.
+     */
     @KeepMember
     private void runMigrationCallback(MigrationCallback callback, long oldVersion, long newVersion) {
         callback.onMigrationNeeded(this, oldVersion, newVersion);
