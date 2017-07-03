@@ -378,6 +378,26 @@ public class AuthTests extends BaseIntegrationTest {
         assertFalse(currentUser.isValid());
     }
 
+    // logging out 'currentUser' should have the same impact on other instance(s) of the user
+    @Test
+    public void loggingOutCurrentUserShouldImpactOtherInstances() throws InterruptedException {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser currentUser = SyncUser.currentUser();
+
+        assertTrue(user.isValid());
+        assertEquals(user, currentUser);
+
+        SyncUser.currentUser().logout();
+
+        assertFalse(user.isValid());
+        assertFalse(currentUser.isValid());
+        assertNull(SyncUser.currentUser());
+    }
+
     // verify that only one user at a time, can bee logged in.
     @Test
     public void shouldAllowOnlyOneLoggedInUser() {
@@ -408,25 +428,5 @@ public class AuthTests extends BaseIntegrationTest {
             user.logout();
             assertFalse(user.isValid());
         }
-    }
-
-    // logging out 'currentUser' should have the same impact on other instance(s) of the user
-    @Test
-    public void loggingOutCurrentUserShouldImpactOtherInstances() throws InterruptedException {
-        String username = UUID.randomUUID().toString();
-        String password = "password";
-
-        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        SyncUser currentUser = SyncUser.currentUser();
-
-        assertTrue(user.isValid());
-        assertEquals(user, currentUser);
-
-        SyncUser.currentUser().logout();
-
-        assertFalse(user.isValid());
-        assertFalse(currentUser.isValid());
-        assertNull(SyncUser.currentUser());
     }
 }
