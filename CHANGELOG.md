@@ -3,6 +3,7 @@
 ### Breaking Changes
 
 * An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required model classes (#3398).
+* Removed `io.realm.internal.OutOfMemoryError`. `java.lang.OutOfMemoryError` will be thrown instead.
 
 ### Deprecated
 
