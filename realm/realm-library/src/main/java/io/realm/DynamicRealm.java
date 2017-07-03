@@ -244,7 +244,7 @@ public class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * Create a {@link DynamicRealm} instance without associating it to any RealmCache.
+     * Creates a {@link DynamicRealm} instance without associating it to any RealmCache.
      *
      * @return a {@link DynamicRealm} instance.
      */
@@ -252,6 +252,13 @@ public class DynamicRealm extends BaseRealm {
         return new DynamicRealm(configuration);
     }
 
+    /**
+     * Creates a {@link DynamicRealm} instance with a given {@link SharedRealm} instance without owning it.
+     * This is designed to be used in the migration block when opening a typed Realm instance.
+     *
+     * @param sharedRealm the existing {@link SharedRealm} instance.
+     * @return a {@link DynamicRealm} instance.
+     */
     static DynamicRealm createInstance(SharedRealm sharedRealm) {
         return new DynamicRealm(sharedRealm);
     }

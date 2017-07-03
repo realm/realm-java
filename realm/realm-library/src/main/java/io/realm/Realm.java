@@ -444,6 +444,7 @@ public class Realm extends BaseRealm {
                     migrationCallback = new SharedRealm.MigrationCallback() {
                         @Override
                         public void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion) {
+                            // The sharedRealm here is the same instance of the typed Realm owned. No need to close it.
                             configuration.getMigration().migrate(DynamicRealm.createInstance(sharedRealm),
                                     oldVersion, newVersion);
                         }

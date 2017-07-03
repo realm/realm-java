@@ -75,6 +75,7 @@ abstract class BaseRealm implements Closeable {
     // cache. It is also null if the Realm is closed.
     private RealmCache realmCache;
     protected SharedRealm sharedRealm;
+    private boolean shouldCloseSharedRealm;
 
     protected final RealmSchema schema;
 
@@ -100,15 +101,19 @@ abstract class BaseRealm implements Closeable {
                                 }
                             }
                         }, true);
+        this.shouldCloseSharedRealm = true;
         this.schema = new RealmSchema(this);
     }
 
+    // Create a realm instance directly from a SharedRealm instance. This instance doesn't have the ownership of the
+    // given SharedRealm instance. The SharedRealm instance should not be closed when close() called.
     BaseRealm(SharedRealm sharedRealm) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = sharedRealm.getConfiguration();
         this.realmCache = null;
 
         this.sharedRealm = sharedRealm;
+        this.shouldCloseSharedRealm = false;
         this.schema = new RealmSchema(this);
     }
 
@@ -476,7 +481,7 @@ abstract class BaseRealm implements Closeable {
      */
     void doClose() {
         realmCache = null;
-        if (sharedRealm != null) {
+        if (sharedRealm != null && shouldCloseSharedRealm) {
             sharedRealm.close();
             sharedRealm = null;
         }
@@ -693,7 +698,7 @@ abstract class BaseRealm implements Closeable {
 
     @Override
     protected void finalize() throws Throwable {
-        if (sharedRealm != null && !sharedRealm.isClosed()) {
+        if (sharedRealm != null && !sharedRealm.isClosed() && shouldCloseSharedRealm) {
             RealmLog.warn("Remember to call close() on all Realm instances. " +
                     "Realm %s is being finalized without being closed, " +
                     "this can lead to running out of native memory.", configuration.getPath()
