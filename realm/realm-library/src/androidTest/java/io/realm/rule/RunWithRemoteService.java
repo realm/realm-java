@@ -51,7 +51,12 @@ import static junit.framework.Assert.fail;
  * 2. Add a base message id in {@link RemoteTestService}.
  * 3. Add the service into the AndroidManifest.xml. And the android:process property must be ":remote".
  * 4. Annotate your test case by {@link RunTestWithRemoteService} with your remote service class.
- * 5. You also need a looper in your test thread. Normally you can just use {@link RunTestInLooperThread}.
+ * 5. To run the tests on the looper thread:
+ *    a) Add {@link RunTestInLooperThread} to the tests.
+ *    b) Add {@code @RunTestWithRemoteService(remoteService = SimpleCommitRemoteService.class, onLooperThread = true)}
+ *       Please notice that {@code onLooperThread} needs to be set to true to avoid the remote service getting killed
+ *       before looper thread finished
+ *    c) Call {@code looperThread.runAfterTest(remoteService.afterRunnable)} to kill the remote service after test.
  * 6. When your looper thread starts, register the service messenger by calling
  * {@link RunWithRemoteService#createHandler(Looper)}.
  * 7. Trigger your first step in the remote service process by calling
@@ -86,6 +91,12 @@ public class RunWithRemoteService implements TestRule {
     private Messenger remoteMessenger;
     private Messenger localMessenger;
     private CountDownLatch serviceStartLatch;
+    public Runnable afterRunnable = new Runnable() {
+        @Override
+        public void run() {
+            after();
+        }
+    };
 
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -112,7 +123,7 @@ public class RunWithRemoteService implements TestRule {
         TestHelper.awaitOrFail(serviceStartLatch);
     }
 
-    public void after() {
+    private void after() {
         getContext().unbindService(serviceConnection);
 
         // Kill the remote process.
@@ -143,11 +154,13 @@ public class RunWithRemoteService implements TestRule {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                before(annotation.value());
+                before(annotation.remoteService());
                 try {
                     base.evaluate();
                 } finally {
-                    after();
+                    if (!annotation.onLooperThread()) {
+                        after();
+                    }
                 }
             }
         };
