@@ -27,6 +27,7 @@
 #include "io_realm_internal_SharedRealm.h"
 #include "shared_realm.hpp"
 #include "results.hpp"
+#include "java_exception_def.hpp"
 
 #include "jni_util/java_exception_thrower.hpp"
 
@@ -34,6 +35,7 @@ using namespace std;
 using namespace realm;
 using namespace realm::util;
 using namespace realm::jni_util;
+using namespace realm::_impl;
 
 // Caching classes and constructors for boxed types.
 jclass java_lang_long;
@@ -158,7 +160,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             break;
 
         case OutOfMemory:
-            jExceptionClass = env->FindClass("io/realm/internal/OutOfMemoryError");
+            jExceptionClass = env->FindClass(JavaExceptionDef::OutOfMemory);
             message = classStr + " " + itemStr;
             break;
 

@@ -20,3 +20,4 @@ using namespace realm::_impl;
 
 const char* JavaExceptionDef::IllegalState = "java/lang/IllegalStateException";
 const char* JavaExceptionDef::IllegalArgument = "java/lang/IllegalArgumentException";
+const char* JavaExceptionDef::OutOfMemory = "java/lang/OutOfMemoryError";
