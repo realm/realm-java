@@ -282,7 +282,7 @@ public class RealmInterprocessTest extends AndroidTestCase {
             public void run() {
                 // Step 1
                 testRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).build());
-                assertEquals(testRealm.where(AllTypes.class).count(), 0);
+                assertEquals(0, testRealm.where(AllTypes.class).count());
                 testRealm.beginTransaction();
                 testRealm.createObject(AllTypes.class);
                 testRealm.commitTransaction();
