@@ -9,7 +9,7 @@
 
 ### Enhancements
 
-* Added more detailed excpetion message for `RealmMigrationNeeded`.
+* Added more detailed exception message for `RealmMigrationNeeded`.
 
 ### Bug Fixes
 
