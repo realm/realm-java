@@ -6,7 +6,7 @@
 
 ### Enhancements
 
-* Added `static RealmObject.getRealm(RealmModel)`, `RealmObject.getRealm() and `DynamicRealmObject.getDynamicRealm()` (#4720).
+* Added `static RealmObject.getRealm(RealmModel)`, `RealmObject.getRealm()` and `DynamicRealmObject.getDynamicRealm()` (#4720).
 
 ### Bug Fixes
 
