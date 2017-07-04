@@ -9,7 +9,7 @@
 
 ### Enhancements
 
-* Added `RealmConfiguration.Builder.compactOn()` to compact the file on launch (#3739).
+* Added `RealmConfiguration.Builder.compactOnLaunch()` to compact the file on launch (#3739).
 
 ### Bug Fixes
 
