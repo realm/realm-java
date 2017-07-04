@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package io.realm.rule;
+package some.test;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import io.realm.RealmObject;
 
-import io.realm.services.RemoteTestService;
-
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * This should be used along with {@link RunWithRemoteService}. See comments there for usage.
+ * A model class to test non latin class name.
  */
-@Target(METHOD)
-@Retention(RUNTIME)
-public @interface RunTestWithRemoteService {
-    Class<? extends RemoteTestService> remoteService();
-    boolean onLooperThread();
+public class ÁrvíztűrőTükörfúrógép extends RealmObject {
+    public String name;
+    public long 델타;
+    public long Δέλτα;
+    public float 貸借対照表;
 }

@@ -52,8 +52,6 @@ import static org.junit.Assert.assertEquals;
 public class ProcessCommitTests extends BaseIntegrationTest {
 
     @Rule
-    public RunInLooperThread looperThread = new RunInLooperThread();
-    @Rule
     public RunWithRemoteService remoteService = new RunWithRemoteService();
 
     @Before
@@ -105,9 +103,10 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     // A. Open the same sync Realm and add one object.
     // 2. Get the notification, check if the change in A is received.
     @Test
-    @RunTestWithRemoteService(SimpleCommitRemoteService.class)
     @RunTestInLooperThread
+    @RunTestWithRemoteService(remoteService = SimpleCommitRemoteService.class, onLooperThread = true)
     public void expectSimpleCommit() {
+        looperThread.runAfterTest(remoteService.afterRunnable);
         remoteService.createHandler(Looper.myLooper());
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
@@ -180,9 +179,10 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     // 2. Check if the 100 objects are received.
     // #. Repeat B/2 10 times.
     @Test
-    @RunTestWithRemoteService(ALotCommitsRemoteService.class)
+    @RunTestWithRemoteService(remoteService = ALotCommitsRemoteService.class, onLooperThread = true)
     @RunTestInLooperThread
     public void expectALot() throws Throwable {
+        looperThread.runAfterTest(remoteService.afterRunnable);
         remoteService.createHandler(Looper.myLooper());
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);

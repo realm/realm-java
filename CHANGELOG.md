@@ -21,6 +21,8 @@
 
 ### Breaking Changes
 
+* An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required model classes (#3398).
+
 ### Deprecated
 
 ### Enhancements
@@ -28,6 +30,8 @@
 ### Bug Fixes
 
 ### Internal
+
+* Use Object Store to do table initialization.
 
 ### Credits
 
@@ -40,7 +44,14 @@
 
 ### Enhancements
 
+* [ObjectServer] Adding user lookup API for administrators (#4828).
+
 ### Bug Fixes
+
+* Fixed a bug in `isNull()`, `isNotNull()`, `isEmpty()`, and `isNotEmpty()` when queries involve nullable fields in link queries (#4856).
+* Fixed a bug in how to resolve field names when querying `@LinkingObjects` as the last field (#4864).
+* Rare crash in `RealmLog` when log level was set to `LogLevel.DEBUG`.
+* [ObjectServer] Fixed a bug related to the behaviour of `SyncUser#logout` and the use of invalid `SyncUser` with `SyncConfiguration` (#4822).
 
 ### Internal
 
@@ -93,7 +104,7 @@
 
 ### Internal
 
-* Factor out internal interface ManagedObject
+* Factor out internal interface ManagedObject.
 
 ## 3.3.1 (2017-05-26)
 

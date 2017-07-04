@@ -16,14 +16,16 @@
 
 package io.realm;
 
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
 import io.realm.internal.util.Pair;
-
 
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
@@ -33,14 +35,35 @@ import io.realm.internal.util.Pair;
  *
  * @see RealmMigration
  */
-public abstract class RealmSchema {
-    private ColumnIndices columnIndices; // Cached field look up
+public class RealmSchema {
+    static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
+
+    // Caches Dynamic Class objects given as Strings to Realm Tables
+    private final Map<String, Table> dynamicClassToTable = new HashMap<>();
+    // Caches Class objects (both model classes and proxy classes) to Realm Tables
+    private final Map<Class<? extends RealmModel>, Table> classToTable = new HashMap<>();
+    // Caches Class objects (both model classes and proxy classes) to their Schema object
+    private final Map<Class<? extends RealmModel>, RealmObjectSchema> classToSchema = new HashMap<>();
+    // Caches Class Strings to their Schema object
+    private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
+
+    private final BaseRealm realm;
+    // Cached field look up
+    private ColumnIndices columnIndices;
+
+    /**
+     * Creates a wrapper to easily manipulate the current schema of a Realm.
+     */
+    RealmSchema(BaseRealm realm) {
+        this.realm = realm;
+    }
 
     /**
      * @deprecated {@link RealmSchema} doesn't have to be released manually.
      */
     @Deprecated
-    public abstract void close();
+    public void close() {
+    }
 
     /**
      * Returns the Realm schema for a given class.
@@ -48,14 +71,32 @@ public abstract class RealmSchema {
      * @param className name of the class
      * @return schema object for that class or {@code null} if the class doesn't exists.
      */
-    public abstract RealmObjectSchema get(String className);
+    public RealmObjectSchema get(String className) {
+        checkEmpty(className, EMPTY_STRING_MSG);
+
+        String internalClassName = Table.getTableNameForClass(className);
+        if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }
+        Table table = realm.getSharedRealm().getTable(internalClassName);
+        return new RealmObjectSchema(realm, this, table);
+    }
 
     /**
      * Returns the {@link RealmObjectSchema}s for all RealmObject classes that can be saved in this Realm.
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
-    public abstract Set<RealmObjectSchema> getAll();
+    public Set<RealmObjectSchema> getAll() {
+        int tableCount = (int) realm.getSharedRealm().size();
+        Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
+        for (int i = 0; i < tableCount; i++) {
+            String tableName = realm.getSharedRealm().getTableName(i);
+            if (!Table.isModelTable(tableName)) {
+                continue;
+            }
+            schemas.add(new RealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName)));
+        }
+        return schemas;
+    }
 
     /**
      * Adds a new class to the Realm.
@@ -63,7 +104,16 @@ public abstract class RealmSchema {
      * @param className name of the class.
      * @return a Realm schema object for that class.
      */
-    public abstract RealmObjectSchema create(String className);
+    public RealmObjectSchema create(String className) {
+        // Adding a class is always permitted.
+        checkEmpty(className, EMPTY_STRING_MSG);
+
+        String internalTableName = Table.getTableNameForClass(className);
+        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
+        }
+        return new RealmObjectSchema(realm, this, realm.getSharedRealm().createTable(internalTableName));
+    }
 
     /**
      * Adds a new class to the Realm with a primary key field defined.
@@ -77,8 +127,29 @@ public abstract class RealmSchema {
      *                            the field.
      * @return a Realm schema object for that class.
      */
-    public abstract RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName,
-                                                                Class<?> fieldType, FieldAttribute... attributes);
+    public RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName, Class<?> fieldType,
+                                                       FieldAttribute... attributes) {
+        checkEmpty(className, EMPTY_STRING_MSG);
+        RealmObjectSchema.checkLegalName(primaryKeyFieldName);
+        String internalTableName = checkAndGetTableNameFromClassName(className);
+
+        RealmObjectSchema.FieldMetaData metadata = RealmObjectSchema.getSupportedSimpleFields().get(fieldType);
+        if (metadata == null || (metadata.realmType != RealmFieldType.STRING &&
+                metadata.realmType != RealmFieldType.INTEGER)) {
+            throw new IllegalArgumentException(String.format("Realm doesn't support primary key field type '%s'.",
+                    fieldType));
+        }
+        boolean isStringField = (metadata.realmType == RealmFieldType.STRING);
+
+        boolean nullable = metadata.defaultNullable;
+        if (RealmObjectSchema.containsAttribute(attributes, FieldAttribute.REQUIRED)) {
+            nullable = false;
+        }
+
+        return new RealmObjectSchema(realm, this,
+                realm.getSharedRealm().createTableWithPrimaryKey(internalTableName, primaryKeyFieldName,
+                        isStringField, nullable));
+    }
 
     /**
      * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
@@ -86,7 +157,17 @@ public abstract class RealmSchema {
      *
      * @param className name of the class to remove.
      */
-    public abstract void remove(String className);
+    public void remove(String className) {
+        realm.checkNotInSync(); // Destructive modifications are not permitted.
+        checkEmpty(className, EMPTY_STRING_MSG);
+        String internalTableName = Table.getTableNameForClass(className);
+        checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
+        Table table = getTable(className);
+        if (table.hasPrimaryKey()) {
+            table.setPrimaryKey(null);
+        }
+        realm.getSharedRealm().removeTable(internalTableName);
+    }
 
     /**
      * Renames a class already in the Realm.
@@ -95,7 +176,35 @@ public abstract class RealmSchema {
      * @param newClassName new class name.
      * @return a schema object for renamed class.
      */
-    public abstract RealmObjectSchema rename(String oldClassName, String newClassName);
+    public RealmObjectSchema rename(String oldClassName, String newClassName) {
+        realm.checkNotInSync(); // Destructive modifications are not permitted.
+        checkEmpty(oldClassName, "Class names cannot be empty or null");
+        checkEmpty(newClassName, "Class names cannot be empty or null");
+        String oldInternalName = Table.getTableNameForClass(oldClassName);
+        String newInternalName = Table.getTableNameForClass(newClassName);
+        checkHasTable(oldClassName, "Cannot rename class because it doesn't exist in this Realm: " + oldClassName);
+        if (realm.getSharedRealm().hasTable(newInternalName)) {
+            throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
+        }
+
+        // Checks if there is a primary key defined for the old class.
+        Table oldTable = getTable(oldClassName);
+        String pkField = null;
+        if (oldTable.hasPrimaryKey()) {
+            pkField = oldTable.getColumnName(oldTable.getPrimaryKey());
+            oldTable.setPrimaryKey(null);
+        }
+
+        realm.getSharedRealm().renameTable(oldInternalName, newInternalName);
+        Table table = realm.getSharedRealm().getTable(newInternalName);
+
+        // Sets the primary key for the new class if necessary.
+        if (pkField != null) {
+            table.setPrimaryKey(pkField);
+        }
+
+        return new RealmObjectSchema(realm, this, table);
+    }
 
     /**
      * Checks if a given class already exists in the schema.
@@ -103,15 +212,97 @@ public abstract class RealmSchema {
      * @param className class name to check.
      * @return {@code true} if the class already exists. {@code false} otherwise.
      */
-    public abstract boolean contains(String className);
+    public boolean contains(String className) {
+        return realm.getSharedRealm().hasTable(Table.getTableNameForClass(className));
+    }
 
-    abstract Table getTable(Class<? extends RealmModel> clazz);
+    private void checkEmpty(String str, String error) {
+        if (str == null || str.isEmpty()) {
+            throw new IllegalArgumentException(error);
+        }
+    }
 
-    abstract Table getTable(String className);
+    private void checkHasTable(String className, String errorMsg) {
+        String internalTableName = Table.getTableNameForClass(className);
+        if (!realm.getSharedRealm().hasTable(internalTableName)) {
+            throw new IllegalArgumentException(errorMsg);
+        }
+    }
 
-    abstract RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz);
+    private String checkAndGetTableNameFromClassName(String className) {
+        String internalTableName = Table.getTableNameForClass(className);
+        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
+        }
+        return internalTableName;
+    }
 
-    abstract RealmObjectSchema getSchemaForClass(String className);
+    Table getTable(String className) {
+        String tableName = Table.getTableNameForClass(className);
+        Table table = dynamicClassToTable.get(tableName);
+        if (table != null) { return table; }
+
+        table = realm.getSharedRealm().getTable(tableName);
+        dynamicClassToTable.put(tableName, table);
+
+        return table;
+    }
+
+    Table getTable(Class<? extends RealmModel> clazz) {
+        Table table = classToTable.get(clazz);
+        if (table != null) { return table; }
+
+        Class<? extends RealmModel> originalClass = Util.getOriginalModelClass(clazz);
+        if (isProxyClass(originalClass, clazz)) {
+            // If passed 'clazz' is the proxy, try again with model class.
+            table = classToTable.get(originalClass);
+        }
+        if (table == null) {
+            table = realm.getSharedRealm().getTable(realm.getConfiguration().getSchemaMediator().getTableName(originalClass));
+            classToTable.put(originalClass, table);
+        }
+        if (isProxyClass(originalClass, clazz)) {
+            // 'clazz' is the proxy class for 'originalClass'.
+            classToTable.put(clazz, table);
+        }
+
+        return table;
+    }
+
+    RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
+        RealmObjectSchema classSchema = classToSchema.get(clazz);
+        if (classSchema != null) { return classSchema; }
+
+        Class<? extends RealmModel> originalClass = Util.getOriginalModelClass(clazz);
+        if (isProxyClass(originalClass, clazz)) {
+            // If passed 'clazz' is the proxy, try again with model class.
+            classSchema = classToSchema.get(originalClass);
+        }
+        if (classSchema == null) {
+            Table table = getTable(clazz);
+            classSchema = new RealmObjectSchema(realm, this, table, getColumnInfo(originalClass));
+            classToSchema.put(originalClass, classSchema);
+        }
+        if (isProxyClass(originalClass, clazz)) {
+            // 'clazz' is the proxy class for 'originalClass'.
+            classToSchema.put(clazz, classSchema);
+        }
+
+        return classSchema;
+    }
+
+    RealmObjectSchema getSchemaForClass(String className) {
+        String tableName = Table.getTableNameForClass(className);
+        RealmObjectSchema dynamicSchema = dynamicClassToSchema.get(tableName);
+        if (dynamicSchema == null) {
+            if (!realm.getSharedRealm().hasTable(tableName)) {
+                throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
+            }
+            dynamicSchema = new RealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName));
+            dynamicClassToSchema.put(tableName, dynamicSchema);
+        }
+        return dynamicSchema;
+    }
 
     /**
      * Set the column index cache for this schema.
