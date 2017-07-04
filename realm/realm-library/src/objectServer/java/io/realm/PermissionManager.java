@@ -23,10 +23,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
-import java.util.LinkedHashMap;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -35,9 +34,9 @@ import io.realm.internal.permissions.BasePermissionApi;
 import io.realm.internal.permissions.ManagementModule;
 import io.realm.internal.permissions.PermissionChange;
 import io.realm.internal.permissions.PermissionModule;
-import io.realm.permissions.PermissionOffer;
 import io.realm.log.RealmLog;
 import io.realm.permissions.Permission;
+import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.PermissionRequest;
 
 
