@@ -38,11 +38,9 @@ import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.RemoteIntegrationTestService;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.RunTestWithRemoteService;
 import io.realm.rule.RunWithRemoteService;
-import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.services.RemoteTestService;
 
 import static org.junit.Assert.assertEquals;
@@ -111,7 +109,9 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
-        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, realmUrl).build();
+        final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user,realmUrl)
+                .directory(looperThread.getRoot())
+                .build();
         final Realm realm = Realm.getInstance(syncConfig);
         final RealmResults<ProcessInfo> all = realm.where(ProcessInfo.class).findAll();
         looperThread.keepStrongReference(all);
@@ -187,7 +187,9 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
-        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, realmUrl).build();
+        final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user,realmUrl)
+                .directory(looperThread.getRoot())
+                .build();
         final Realm realm = Realm.getInstance(syncConfig);
         final RealmResults<TestObject> all = realm.where(TestObject.class).findAllSorted("intProp");
         looperThread.keepStrongReference(all);
