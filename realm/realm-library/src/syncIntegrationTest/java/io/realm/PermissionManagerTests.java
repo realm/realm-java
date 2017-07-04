@@ -19,6 +19,7 @@ package io.realm;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -157,6 +158,76 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
 
     @Test
     @RunTestInLooperThread
+    public void getDefaultPermissions_returnLoadedResults() {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.getDefaultPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                assertTrue(permissions.isLoaded());
+                assertInitialPermissions(permissions);
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getDefaultPermissions_noLongerValidWhenPermissionManagerIsClosed() {
+        final PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.getDefaultPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                assertTrue(permissions.isValid());
+                pm.close();
+                assertFalse(permissions.isValid());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @Ignore("FIXME Add once `setPermissions` are implemented")
+    @RunTestInLooperThread
+    public void getDefaultPermissions_updatedWithNewRealms() {
+
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getDefaultPermissions_closed() throws IOException {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.close();
+
+        pm.getDefaultPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
+                assertEquals(IllegalStateException.class, error.getException().getClass());
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
     public void permissionManagerAsyncTask_handlePermissionRealmError() throws NoSuchFieldException, IllegalAccessException {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -164,8 +235,8 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
         // Simulate error in the permission Realm
         Field permissionConfigField = pm.getClass().getDeclaredField("permissionRealmError");
         permissionConfigField.setAccessible(true);
-        final ObjectServerError expectedError = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
-        permissionConfigField.set(pm, expectedError);
+        final ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
+        permissionConfigField.set(pm, error);
 
         PermissionManager.Callback<Void> callback = new PermissionManager.Callback<Void>() {
             @Override
@@ -175,7 +246,9 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(expectedError, error);
+                assertTrue(error.getErrorMessage().startsWith("Error occurred in Realm"));
+                assertTrue(error.getErrorMessage().contains("Permission Realm"));
+                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
                 looperThread.testComplete();
             }
         };
@@ -191,8 +264,8 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
         looperThread.closeAfterTest(pm);
 
         // Simulate error in the permission Realm
-        final ObjectServerError expectedError = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
-        setRealmError(pm, "managementRealmError", expectedError);
+        final ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
+        setRealmError(pm, "managementRealmError", error);
 
         PermissionManager.Callback<Void> callback = new PermissionManager.Callback<Void>() {
             @Override
@@ -202,7 +275,9 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(expectedError, error);
+                assertTrue(error.getErrorMessage().startsWith("Error occurred in Realm"));
+                assertTrue(error.getErrorMessage().contains("Management Realm"));
+                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
                 looperThread.testComplete();
             }
         };
