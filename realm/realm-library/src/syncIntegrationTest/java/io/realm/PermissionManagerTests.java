@@ -615,7 +615,7 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
     }
 
     private void runTask(final PermissionManager pm, final PermissionManager.Callback<Void> callback) {
-        new PermissionManager.AsyncTask<Void>(pm, callback) {
+        new PermissionManager.PermissionManagerTask<Void>(pm, callback) {
             @Override
             public void run() {
                 if (!checkAndReportInvalidState()) {

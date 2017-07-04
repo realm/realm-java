@@ -127,7 +127,7 @@ public class PermissionManager implements Closeable {
     private Realm defaultPermissionRealm;
 
     // Task list used to queue tasks until the underlying Realms are done opening (or failed doing so).
-    private Deque<AsyncTask> delayedTasks = new LinkedList<>();
+    private Deque<PermissionManagerTask> delayedTasks = new LinkedList<>();
 
     // List of tasks that are being processed. Used to keep strong references for listeners to work.
     // The task must remove itself from this list once it either completes
@@ -252,11 +252,11 @@ public class PermissionManager implements Closeable {
     }
 
     /**
-     * Makes an permission offer to users. The offer is represented by an offer token and the permission changes
+     * Makes a permission offer to users. The offer is represented by an offer token and the permission changes
      * described in the {@link PermissionOffer} do not take effect until the offer has been accepted by a user
      * calling {@link #acceptOffer(String, Callback)}.
      * <p>
-     * This can be used as a flexible way of sharing Realms with other users that might not be known at the time
+     * A permission offer can be used as a flexible way of sharing Realms with other users that might not be known at the time
      * of making the offer as well as enabling sharing across other channels like e-mail. If a specific user should be
      * granted access, using {@link #applyPermissions(PermissionRequest, Callback)} will be faster and quicker.
      * <p>
@@ -273,7 +273,7 @@ public class PermissionManager implements Closeable {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         if (offer.isOfferCreated()) {
-            throw new IllegalStateException("Offer is already created: " + offer);
+            throw new IllegalStateException("Offer has already been created: " + offer);
         }
         return addTask(new MakeOfferAsyncTask(this, offer, callback));
     }
@@ -309,7 +309,7 @@ public class PermissionManager implements Closeable {
     // start the task by sending it to this thread handler. This is done
     // in order to be able to provide the user with a RealmAsyncTask representation
     // of the work being done.
-    private RealmAsyncTask addTask(final AsyncTask task) {
+    private RealmAsyncTask addTask(final PermissionManagerTask task) {
         if (isReady()) {
             activateTask(task);
         } else {
@@ -321,14 +321,14 @@ public class PermissionManager implements Closeable {
     }
 
     // Park the task until all underlying Realms are ready
-    private void delayTask(AsyncTask task) {
+    private void delayTask(PermissionManagerTask task) {
         delayedTasks.add(task);
     }
 
     // Run any tasks that were delayed while the underlying Realms were being opened.
     // PRECONDITION: Underlying Realms are no longer in the process of being opened.
     private void runDelayedTasks() {
-        for (AsyncTask delayedTask : delayedTasks) {
+        for (PermissionManagerTask delayedTask : delayedTasks) {
             activateTask(delayedTask);
         }
         delayedTasks.clear();
@@ -336,7 +336,7 @@ public class PermissionManager implements Closeable {
 
     // Activate a task. All tasks are controlled by the Handler in order to make it asynchronous.
     // PRECONDITION: Underlying Realms are no longer in the process of being opened.
-    private void activateTask(AsyncTask task) {
+    private void activateTask(PermissionManagerTask task) {
         activeTasks.add(task);
         handler.post(task);
     }
@@ -506,7 +506,7 @@ public class PermissionManager implements Closeable {
 
     // Task responsible for loading the Permissions result and returning it to the user.
     // The Permission result is not considered available until the query has completed.
-    private class GetPermissionsAsyncTask extends AsyncTask<RealmResults<Permission>> {
+    private class GetPermissionsAsyncTask extends PermissionManagerTask<RealmResults<Permission>> {
 
         // Prevent permissions from being GC'ed until fully loaded.
         private RealmResults<Permission> loadingPermissions;
@@ -546,7 +546,7 @@ public class PermissionManager implements Closeable {
 
     // Task responsible for loading the Default Permissions result and returning it to the user.
     // The Permission result is not considered available until the query has completed.
-    private class GetDefaultPermissionsAsyncTask extends AsyncTask<RealmResults<Permission>> {
+    private class GetDefaultPermissionsAsyncTask extends PermissionManagerTask<RealmResults<Permission>> {
 
         // Prevent permissions from being GC'ed until fully loaded.
         private RealmResults<Permission> loadingPermissions;
@@ -585,7 +585,7 @@ public class PermissionManager implements Closeable {
 
     // Class encapsulating setting a Permission by writing a PermissionChange and waiting for it to
     // be processed.
-    private class ApplyPermissionTask extends AsyncTask<Void> {
+    private class ApplyPermissionTask extends PermissionManagerTask<Void> {
 
         private final PermissionChange unmanagedChangeRequest;
         private String changeRequestId;
@@ -664,7 +664,7 @@ public class PermissionManager implements Closeable {
         }
     }
 
-    private class MakeOfferAsyncTask extends AsyncTask<String> {
+    private class MakeOfferAsyncTask extends PermissionManagerTask<String> {
 
         private final PermissionOffer unmanagedOffer;
         private final String offerId;
@@ -743,13 +743,13 @@ public class PermissionManager implements Closeable {
     // Class encapsulating all async tasks exposed by the PermissionManager.
     // All subclasses are responsible for removing themselves from the activeTaskList when done.
     // Made package protected instead of private to facilitate testing
-    abstract static class AsyncTask<T> implements RealmAsyncTask, Runnable {
+    abstract static class PermissionManagerTask<T> implements RealmAsyncTask, Runnable {
 
         private final Callback<T> callback;
         private final PermissionManager permissionManager;
         private volatile boolean canceled = false;
 
-        public AsyncTask(PermissionManager permissionManager, Callback<T> callback) {
+        public PermissionManagerTask(PermissionManager permissionManager, Callback<T> callback) {
             this.callback = callback;
             this.permissionManager = permissionManager;
         }
