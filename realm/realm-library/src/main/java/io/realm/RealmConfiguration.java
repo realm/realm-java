@@ -701,6 +701,9 @@ public class RealmConfiguration {
          *                        the total file size (data + free space) and the total bytes used by data in the file.
          */
         public Builder compactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
+            if (compactOnLaunch == null) {
+                throw new IllegalArgumentException("A non-null compactOnLaunch must be provided");
+            }
             this.compactOnLaunch = compactOnLaunch;
             return this;
         }
