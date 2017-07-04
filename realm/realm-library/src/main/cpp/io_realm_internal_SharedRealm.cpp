@@ -52,6 +52,8 @@ static_assert(SchemaMode::Additive ==
 static_assert(SchemaMode::Manual == static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_MANUAL),
               "");
 
+static const char* c_table_name_exists_exception_msg = "Class already exists: '%1'.";
+
 static void finalize_shared_realm(jlong ptr);
 
 // Wrapper class for SyncConfig. This is required as we need to keep track of the Java session
@@ -454,6 +456,38 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNI
 
     return reinterpret_cast<jlong>(nullptr);
 }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTableWithPrimaryKeyField(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring j_table_name, jstring j_field_name, jboolean is_string_type,
+    jboolean is_nullable)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+
+    std::string class_name_str;
+    try {
+        std::string table_name(JStringAccessor(env, j_table_name));
+        class_name_str = std::string(table_name.substr(TABLE_PREFIX.length()));
+        JStringAccessor field_name(env, j_field_name); // throws
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        shared_realm->verify_in_write(); // throws
+        DataType pkType = is_string_type ? DataType::type_String : DataType::type_Int;
+        Table* table;
+        auto& group = shared_realm->read_group();
+        table = LangBindHelper::add_table(group, table_name);
+        size_t column_idx = table->add_column(pkType, field_name, is_nullable);
+        table->add_search_index(column_idx);
+        ObjectStore::set_primary_key_for_object(group, class_name_str, field_name);
+        return reinterpret_cast<jlong>(table);
+    }
+    catch (TableNameInUse& e) {
+        // We need to print the table name, so catch the exception here.
+        ThrowException(env, IllegalArgument, format(c_table_name_exists_exception_msg, class_name_str));
+    }
+    CATCH_STD()
+
+    return reinterpret_cast<jlong>(nullptr);
+}
+
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedRealm_nativeGetTableName(JNIEnv* env, jclass,
                                                                                 jlong shared_realm_ptr, jint index)

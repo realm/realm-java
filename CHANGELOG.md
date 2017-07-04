@@ -7,7 +7,11 @@
 
 ### Deprecated
 
+* `RealmObjectSchema.addPrimaryKey()` and `RealmObjectSchema.removePrimaryKey()`. Adding/removing/renaming primary key field won't be supported after 4.0.0. Use `RealmSchema.createWithPrimaryKeyField()` to create an object schema with a primary key field defined at the first place.
+
 ### Enhancements
+
+* Added `RealmSchema.createWithPrimaryKeyField()` to create an object schema with a primary key field defined.
 
 ### Bug Fixes
 

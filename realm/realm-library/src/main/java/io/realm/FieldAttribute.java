@@ -33,7 +33,10 @@ public enum FieldAttribute {
      * Marks a field as a primary key. This also implicitly mark it as {@link #INDEXED} and {@link #REQUIRED}.
      *
      * @see io.realm.annotations.PrimaryKey
+     * @deprecated adding or removing primary key after object schema gets created will be disallowed in
+     * realm-java 4.0.0.
      */
+    @Deprecated
     PRIMARY_KEY,
 
     /**
