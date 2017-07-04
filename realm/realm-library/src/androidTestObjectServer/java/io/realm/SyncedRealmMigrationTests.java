@@ -104,6 +104,9 @@ public class SyncedRealmMigrationTests {
         schema.create(className)
                 .addField(StringOnly.FIELD_CHARS, String.class)
                 .addField("newField", String.class);
+        // A schema version has to be set otherwise Object Store will try to initialize the schema again and reach an
+        // error branch. That is not a real case.
+        dynamicRealm.setVersion(0);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
