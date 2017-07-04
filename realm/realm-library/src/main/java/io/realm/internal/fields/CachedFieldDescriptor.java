@@ -80,10 +80,11 @@ class CachedFieldDescriptor extends FieldDescriptor {
             }
 
             columnType = tableInfo.getColumnType(columnName);
+            // we don't check the type of the last field in the chain since it is done in the C++ code
             if (i < nFields - 1) {
                 verifyInternalColumnType(currentTable, columnName, columnType);
-                currentTable = tableInfo.getLinkedTable(columnName);
             }
+            currentTable = tableInfo.getLinkedTable(columnName);
             columnIndices[i] = columnIndex;
             tableNativePointers[i] = (columnType != RealmFieldType.LINKING_OBJECTS)
                     ? NativeObject.NULLPTR
