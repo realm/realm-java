@@ -1379,7 +1379,7 @@ public class RealmObjectTests {
     @Test
     public void conflictingFieldName_readAndUpdate() {
         final ConflictingFieldName unmanaged = new ConflictingFieldName();
-        unmanaged.setRealm("realm");
+        unmanaged.setRealmString("realm");
         unmanaged.setRow("row");
         unmanaged.setIsCompleted("isCompleted");
         unmanaged.setListeners("listeners");
@@ -1395,7 +1395,7 @@ public class RealmObjectTests {
 
         // Tests those values are persisted.
         final ConflictingFieldName managed = realm.where(ConflictingFieldName.class).findFirst();
-        assertEquals("realm", managed.getRealm());
+        assertEquals("realm", managed.getRealmString());
         assertEquals("row", managed.getRow());
         assertEquals("isCompleted", managed.getIsCompleted());
         assertEquals("listeners", managed.getListeners());
@@ -1406,7 +1406,7 @@ public class RealmObjectTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                managed.setRealm("realm_updated");
+                managed.setRealmString("realm_updated");
                 managed.setRow("row_updated");
                 managed.setIsCompleted("isCompleted_updated");
                 managed.setListeners("listeners_updated");
@@ -1415,7 +1415,7 @@ public class RealmObjectTests {
             }
         });
 
-        assertEquals("realm_updated", managed.getRealm());
+        assertEquals("realm_updated", managed.getRealmString());
         assertEquals("row_updated", managed.getRow());
         assertEquals("isCompleted_updated", managed.getIsCompleted());
         assertEquals("listeners_updated", managed.getListeners());
@@ -1927,25 +1927,26 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void getRealmConfiguration_managedRealmObject() {
+    public void getRealm_managedRealmObject() {
         realm.beginTransaction();
         AllTypes object = realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        assertSame(realmConfig, object.getConfiguration());
+        assertSame(realm, object.getRealm());
+        assertSame(realm, RealmObject.getRealm(object));
     }
 
     @Test
-    public void getRealmConfiguration_managedRealmModel() {
+    public void getRealm_managedRealmModel() {
         realm.beginTransaction();
         AllTypesRealmModel object = realm.createObject(AllTypesRealmModel.class, 1L);
         realm.commitTransaction();
 
-        assertSame(realmConfig, RealmObject.getConfiguration(object));
+        assertSame(realm, RealmObject.getRealm(object));
     }
 
     @Test
-    public void getRealmConfiguration_DynamicRealmObject() {
+    public void getRealm_DynamicRealmObject() {
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realmConfig);
         //noinspection TryFinallyCanBeTryWithResources
         try {
@@ -1953,34 +1954,46 @@ public class RealmObjectTests {
             DynamicRealmObject object = dynamicRealm.createObject("AllTypesRealmModel", 1L);
             dynamicRealm.commitTransaction();
 
-            assertSame(realmConfig, object.getConfiguration());
+            try {
+                object.getRealm();
+                fail();
+            } catch (IllegalStateException expected) {
+                assertEquals(RealmObject.MSG_DYNAMIC_OBJECT, expected.getMessage());
+            }
+            try {
+                RealmObject.getRealm(object);
+                fail();
+            } catch (IllegalStateException expected) {
+                assertEquals(RealmObject.MSG_DYNAMIC_OBJECT, expected.getMessage());
+            }
         } finally {
             dynamicRealm.close();
         }
     }
 
     @Test
-    public void getRealmConfiguration_unmanagedRealmObjectReturnsNull() {
-        assertNull(new AllTypes().getConfiguration());
+    public void getRealm_unmanagedRealmObjectReturnsNull() {
+        assertNull(new AllTypes().getRealm());
+        assertNull(RealmObject.getRealm(new AllTypes()));
     }
 
     @Test
-    public void getRealmConfiguration_unmanagedRealmModelReturnsNull() {
-        assertNull(RealmObject.getConfiguration(new AllTypesRealmModel()));
+    public void getRealm_unmanagedRealmModelReturnsNull() {
+        assertNull(RealmObject.getRealm(new AllTypesRealmModel()));
     }
 
     @Test
-    public void getRealmConfiguration_null() {
+    public void getRealm_null() {
         try {
-            RealmObject.getConfiguration(null);
+            RealmObject.getRealm(null);
             fail();
-        } catch (IllegalArgumentException e) {
-            assertEquals(RealmObject.MSG_NULL_OBJECT, e.getMessage());
+        } catch (IllegalArgumentException expected) {
+            assertEquals(RealmObject.MSG_NULL_OBJECT, expected.getMessage());
         }
     }
 
     @Test
-    public void getRealmConfiguration_closedObjectThrows() {
+    public void getRealm_closedObjectThrows() {
         realm.beginTransaction();
         AllTypes object = realm.createObject(AllTypes.class);
         realm.commitTransaction();
@@ -1989,11 +2002,22 @@ public class RealmObjectTests {
         realm = null;
 
         try {
-            object.getConfiguration();
+            object.getRealm();
             fail();
         } catch (IllegalStateException e) {
             assertEquals(BaseRealm.CLOSED_REALM_MESSAGE, e.getMessage());
         }
+        try {
+            RealmObject.getRealm(object);
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(BaseRealm.CLOSED_REALM_MESSAGE, e.getMessage());
+        }
+    }
+
+    @Test
+    public void getRealm_closedDynamicRealmObjectThrows() {
+// move to DynamicRealmObjectTests
     }
 
     @Test
@@ -2004,7 +2028,13 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         try {
-            object.getConfiguration();
+            object.getRealm();
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(RealmObject.MSG_DELETED_OBJECT, e.getMessage());
+        }
+        try {
+            RealmObject.getRealm(object);
             fail();
         } catch (IllegalStateException e) {
             assertEquals(RealmObject.MSG_DELETED_OBJECT, e.getMessage());
@@ -2012,7 +2042,12 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void getRealmConfiguration_illegalThreadThrows() throws Throwable {
+    public void getRealmConfiguration_deletedDynamicRealmObjectThrows() {
+// move to DynamicRealmObjectTests
+    }
+
+    @Test
+    public void getRealm_illegalThreadThrows() throws Throwable {
         realm.beginTransaction();
         final AllTypes object = realm.createObject(AllTypes.class);
         realm.commitTransaction();
@@ -2023,7 +2058,15 @@ public class RealmObjectTests {
             @Override
             public void run() {
                 try {
-                    object.getConfiguration();
+                    object.getRealm();
+                    fail();
+                } catch (Throwable t) {
+                    throwable.set(t);
+                    threadFinished.countDown();
+                    return;
+                }
+                try {
+                    RealmObject.getRealm(object);
                     fail();
                 } catch (Throwable t) {
                     throwable.set(t);

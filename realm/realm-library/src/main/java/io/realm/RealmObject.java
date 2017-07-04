@@ -69,7 +69,8 @@ import rx.Observable;
 @RealmClass
 public abstract class RealmObject implements RealmModel, ManagableObject {
     static final String MSG_NULL_OBJECT = "'model' is null.";
-    static final String MSG_DELETED_OBJECT = "'model' is already deleted.";
+    static final String MSG_DELETED_OBJECT = "the object is already deleted.";
+    static final String MSG_DYNAMIC_OBJECT = "the object is an instance of DynamicRealmObject. Use DynamicRealmObject.getDynamicRealm() instead.";
 
     /**
      * Deletes the object from the Realm it is currently associated to.
@@ -289,26 +290,35 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
     }
 
     /**
-     * Gets {@link RealmConfiguration} from this object.
+     * Returns {@link Realm} instance where this {@link RealmObject} belongs.
+     * <p>
+     * You <b>must not</b> call {@link Realm#close()} against returned instance.
      *
-     * @return {@link RealmConfiguration} of the Realm where this object belongs to or {@code null} if unmanaged.
-     * @throws IllegalStateException if this object was already deleted from Realm or the corresponding Realm of this object was already closed.
+     * @return {@link Realm} instance where this object belongs to or {@code null} if this object is unmanaged.
+     * @throws IllegalStateException if this object is an instance of {@link DynamicRealmObject}
+     * or this object was already deleted or the corresponding {@link Realm} was already closed.
      */
-    public RealmConfiguration getConfiguration() {
-        return RealmObject.getConfiguration(this);
+    public Realm getRealm() {
+        return getRealm(this);
     }
 
     /**
-     * Gets {@link RealmConfiguration} from managed {@link RealmModel} instance such as {@link RealmObject} or {@link DynamicRealmObject}.
+     * returns {@link Realm} instance where the {@code model} belongs.
+     * <p>
+     * You <b>must not</b> call {@link Realm#close()} against returned instance.
      *
-     * @param model managed Realm object.
-     * @return {@link RealmConfiguration} of the Realm where the {@code model} belongs to or {@code null} if the {@code model} is unmanaged.
+     * @param model an {@link RealmModel} instance other than {@link DynamicRealmObject}.
+     * @return {@link Realm} instance where the {@code model} belongs or {@code null} if the {@code model} is unmanaged.
      * @throws IllegalArgumentException if the {@code model} is {@code null}.
-     * @throws IllegalStateException if the model was deleted or the corresponding Realm of the model was already closed.
+     * @throws IllegalStateException if the {@code model}  is an instance of {@link DynamicRealmObject}
+     * or this object was already deleted or the corresponding {@link Realm} was already closed.
      */
-    public static RealmConfiguration getConfiguration(RealmModel model) {
+    public static Realm getRealm(RealmModel model) {
         if (model == null) {
             throw new IllegalArgumentException(MSG_NULL_OBJECT);
+        }
+        if (model instanceof DynamicRealmObject) {
+            throw new IllegalStateException(MSG_DYNAMIC_OBJECT);
         }
         if (!(model instanceof RealmObjectProxy)) {
             return null;
@@ -319,7 +329,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
             throw new IllegalStateException(MSG_DELETED_OBJECT);
         }
 
-        return realm.getConfiguration();
+        return (Realm) realm;
     }
 
     /**
