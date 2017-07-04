@@ -26,21 +26,17 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import io.realm.internal.Util;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
-import io.realm.permissions.UserCondition;
 import io.realm.permissions.Permission;
 import io.realm.permissions.PermissionRequest;
-import io.realm.rule.RunInLooperThread;
+import io.realm.permissions.UserCondition;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -49,20 +45,13 @@ import static org.junit.Assert.fail;
 
 
 @RunWith(AndroidJUnit4.class)
-public class PermissionManagerTests extends BaseIntegrationTest {
-
-    @Rule
-    public RunInLooperThread looperThread = new RunInLooperThread();
-
-    @Rule
-    public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
+public class PermissionManagerTests extends IsolatedIntegrationTests {
 
     private SyncUser user;
-    private List<SyncUser> testUsers = new ArrayList<>();
 
     @Before
     public void setUpTest() {
-        user = createUniqueUserForTest();
+        user = UserFactory.createUniqueUser();
     }
 
     @Test
@@ -124,17 +113,20 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                 // Create new Realm, which should create a new Permission entry
                 SyncConfiguration config2 = new SyncConfiguration.Builder(user, Constants.USER_REALM_2).build();
                 final Realm secondRealm = Realm.getInstance(config2);
-                looperThread.keepStrongReference(secondRealm);
+                looperThread.closeAfterTest(secondRealm);
 
                 // Wait for the permission Result to report the new Realm
                 looperThread.keepStrongReference(permissions);
                 permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults<Permission> permissions) {
-                        // Should contain __permission, __management and the tests2 realm.
-                        assertEquals(3, permissions.size());
-                        secondRealm.close();
-                        looperThread.testComplete();
+                        Permission p = permissions.where().endsWith("path", "tests2").findFirst();
+                        if (p != null) {
+                            assertTrue(p.mayRead());
+                            assertTrue(p.mayWrite());
+                            assertTrue(p.mayManage());
+                            looperThread.testComplete();
+                        }
                     }
                 });
             }
@@ -366,7 +358,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void applyPermissions_nonAdminUserFails() {
-        SyncUser user2 = createUniqueUserForTest();
+        SyncUser user2 = UserFactory.createUniqueUser();
         String otherUsersUrl = createRemoteRealm(user2, "test");
 
         PermissionManager pm = user.getPermissionManager();
@@ -423,7 +415,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void applyPermissions_withUserId() {
-        final SyncUser user2 = createUniqueUserForTest();
+        final SyncUser user2 = UserFactory.createUniqueUser();
         String url = createRemoteRealm(user2, "test");
         PermissionManager pm2 = user2.getPermissionManager();
         looperThread.closeAfterTest(pm2);
@@ -572,17 +564,6 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                 }
             }
         });
-    }
-
-    private SyncUser createUniqueUserForTest() {
-        final SyncUser user = UserFactory.createUniqueUser();
-        looperThread.runAfterTest(new Runnable() {
-            @Override
-            public void run() {
-                user.logout();
-            }
-        });
-        return user;
     }
 
     private SyncUser createUserForTest(String username) {
