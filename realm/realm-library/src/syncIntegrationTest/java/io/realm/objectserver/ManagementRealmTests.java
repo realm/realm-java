@@ -31,6 +31,7 @@ import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
+import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncSession;
@@ -49,7 +50,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class ManagementRealmTests extends BaseIntegrationTest {
+public class ManagementRealmTests extends StandardIntegrationTest {
 
     // This is primarily a test making sure that an admin user actually connects correctly to ROS.
     // See https://github.com/realm/realm-java/issues/4750
