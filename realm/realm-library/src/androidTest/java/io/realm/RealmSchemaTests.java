@@ -123,6 +123,7 @@ public class RealmSchemaTests {
         assertEquals("pkField", objectSchema.getPrimaryKey());
         assertEquals(RealmFieldType.STRING, objectSchema.getFieldType("pkField"));
         assertFalse(objectSchema.isNullable("pkField"));
+        assertTrue(objectSchema.hasIndex("pkField"));
 
         // Nullable
         realmSchema.createWithPrimaryKeyField("FooNull", "pkField", String.class);
@@ -130,16 +131,19 @@ public class RealmSchemaTests {
         assertEquals("pkField", objectSchema.getPrimaryKey());
         assertEquals(RealmFieldType.STRING, objectSchema.getFieldType("pkField"));
         assertTrue(objectSchema.isNullable("pkField"));
+        assertTrue(objectSchema.hasIndex("pkField"));
     }
 
     @Test
-    public void createWithPrimaryKeyField_integer() {
+    public void createWithPrimaryKeyField_boxedInteger() {
         // Not nullable
-        realmSchema.createWithPrimaryKeyField("FooNonNull", "pkField", int.class);
+        realmSchema.createWithPrimaryKeyField("FooNonNull", "pkField", Integer.class,
+                FieldAttribute.REQUIRED);
         RealmObjectSchema objectSchema = realmSchema.getSchemaForClass("FooNonNull");
         assertEquals("pkField", objectSchema.getPrimaryKey());
         assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
         assertFalse(objectSchema.isNullable("pkField"));
+        assertTrue(objectSchema.hasIndex("pkField"));
 
         // Nullable
         realmSchema.createWithPrimaryKeyField("FooNull", "pkField", Integer.class);
@@ -147,13 +151,56 @@ public class RealmSchemaTests {
         assertEquals("pkField", objectSchema.getPrimaryKey());
         assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
         assertTrue(objectSchema.isNullable("pkField"));
+        assertTrue(objectSchema.hasIndex("pkField"));
+    }
+
+    @Test
+    public void createWithPrimaryKeyField_int() {
+        // Without Required
+        realmSchema.createWithPrimaryKeyField("Foo", "pkField", int.class);
+        RealmObjectSchema objectSchema = realmSchema.getSchemaForClass("Foo");
+        assertEquals("pkField", objectSchema.getPrimaryKey());
+        assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
+        assertFalse(objectSchema.isNullable("pkField"));
+        assertTrue(objectSchema.hasIndex("pkField"));
+
+        // With Required
+        realmSchema.createWithPrimaryKeyField("FooRequired", "pkField", int.class,
+                FieldAttribute.REQUIRED);
+        objectSchema = realmSchema.getSchemaForClass("FooRequired");
+        assertEquals("pkField", objectSchema.getPrimaryKey());
+        assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
+        assertFalse(objectSchema.isNullable("pkField"));
+        assertTrue(objectSchema.hasIndex("pkField"));
+    }
+
+    @Test
+    public void createWithPrimaryKeyField_explicitIndexed() {
+        realmSchema.createWithPrimaryKeyField("Foo", "pkField", int.class,
+                FieldAttribute.INDEXED);
+        RealmObjectSchema objectSchema = realmSchema.getSchemaForClass("Foo");
+        assertEquals("pkField", objectSchema.getPrimaryKey());
+        assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
+        assertFalse(objectSchema.isNullable("pkField"));
+        assertTrue(objectSchema.hasIndex("pkField"));
+    }
+
+    @Test
+    public void createWithPrimaryKeyField_explicitPrimaryKey() {
+        realmSchema.createWithPrimaryKeyField("Foo", "pkField", int.class,
+                FieldAttribute.PRIMARY_KEY);
+        RealmObjectSchema objectSchema = realmSchema.getSchemaForClass("Foo");
+        assertEquals("pkField", objectSchema.getPrimaryKey());
+        assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
+        assertFalse(objectSchema.isNullable("pkField"));
+        assertTrue(objectSchema.hasIndex("pkField"));
     }
 
     @Test
     public void createWithPrimaryKeyField_invalidClassNameThrows() {
-        String[] names = { null, "", TestHelper.getRandomString(57) };
+        String[] invalidNames = { null, "", TestHelper.getRandomString(57) };
 
-        for (String name : names) {
+        for (String name : invalidNames) {
             try {
                 realmSchema.createWithPrimaryKeyField(name, "pkField", int.class);
                 fail();
@@ -165,8 +212,8 @@ public class RealmSchemaTests {
 
     @Test
     public void createWithPrimaryKeyField_invalidFieldNameThrows() {
-        String[] fieldNames = new String[] { null, "", "foo.bar", TestHelper.getRandomString(65) };
-        for (String fieldName : fieldNames) {
+        String[] invalidFieldNames = new String[] { null, "", "foo.bar", TestHelper.getRandomString(65) };
+        for (String fieldName : invalidFieldNames) {
             try {
                 realmSchema.createWithPrimaryKeyField("Foo", fieldName, int.class);
                 fail();

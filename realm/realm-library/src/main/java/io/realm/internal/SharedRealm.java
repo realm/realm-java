@@ -579,7 +579,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName, boolean isPkTable);
 
     // Throw IAE if the table exists already.
-    // if isStringType is false, the PK field will be created as an integer PK field.
+    // If isStringType is false, the PK field will be created as an integer PK field.
     private static native long nativeCreateTableWithPrimaryKeyField(long nativeSharedRealmPtr, String tableName,
                                                                     String primaryKeyFieldName,
                                                                     boolean isStringType, boolean isNullable);
