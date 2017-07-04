@@ -1160,7 +1160,7 @@ public class DynamicRealmObjectTests {
                 AllJavaTypes.FIELD_DOUBLE, AllJavaTypes.FIELD_BOOLEAN, AllJavaTypes.FIELD_DATE,
                 AllJavaTypes.FIELD_BINARY, AllJavaTypes.FIELD_OBJECT, AllJavaTypes.FIELD_LIST};
         String[] keys = dObjTyped.getFieldNames();
-        // After the stable ID support, primary key field will be inserted first before others. So even FEILD_STRING is
+        // After the stable ID support, primary key field will be inserted first before others. So even FIELD_STRING is
         // the first defined field in the class, it will be inserted after FIELD_ID.
         // See ObjectStore::add_initial_columns #if REALM_HAVE_SYNC_STABLE_IDS branch.
         assertEquals(expectedKeys.length, keys.length);
