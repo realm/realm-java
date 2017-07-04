@@ -346,11 +346,12 @@ public class TestHelper {
         };
     }
 
+    // Generate a random string with only capital letters which is always a valid class/field name.
     public static String getRandomString(int length) {
         Random r = new Random();
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            sb.append((char) r.nextInt(128)); // Restrict to standard ASCII chars.
+            sb.append((char) r.nextInt(25) + 'A'); // Restrict to capital letters
         }
         return sb.toString();
     }
