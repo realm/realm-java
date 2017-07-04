@@ -49,8 +49,8 @@ import static org.junit.Assert.fail;
 
 /**
  * Base class used by Integration Tests.
- * This class should not be used directly. Instead {@link StandardIntegrationTest} or {@link } should be
- * used instead.
+ * This class should not be used directly. Instead {@link StandardIntegrationTest} or {@link IsolatedIntegrationTests }
+ * should be used instead.
  */
 public abstract class BaseIntegrationTest {
 

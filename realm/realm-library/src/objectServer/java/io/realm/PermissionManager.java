@@ -410,7 +410,6 @@ public class PermissionManager implements Closeable {
                     public void onChange(RealmResults <Permission> loadedPermissions) {
                         // FIXME Wait until both the __permission and __management Realm are available
                         // To unblock things we just return whenever either permission is present.
-                        RealmLog.error(Arrays.toString(loadedPermissions.toArray()));
                         if (loadedPermissions.size() > 0) {
                             loadingPermissions.removeChangeListener(this);
                             if (checkAndReportInvalidState()) { return; }
