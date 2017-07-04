@@ -1,6 +1,7 @@
 package io.realm.objectserver;
 
 import android.os.SystemClock;
+import android.text.style.TabStopSpan;
 
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -14,6 +15,7 @@ import io.realm.BaseIntegrationTest;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmResults;
+import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncManager;
@@ -30,7 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
+public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
 
     @Rule
     public Timeout globalTimeout = Timeout.seconds(10);

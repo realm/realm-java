@@ -20,6 +20,7 @@ import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncManager;
@@ -38,7 +39,7 @@ import static org.junit.Assert.assertNull;
 
 
 @RunWith(AndroidJUnit4.class)
-public class AuthTests extends BaseIntegrationTest {
+public class AuthTests extends StandardIntegrationTest {
 
     @Test
     public void login_userNotExist() {

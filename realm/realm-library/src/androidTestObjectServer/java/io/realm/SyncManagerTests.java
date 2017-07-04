@@ -18,6 +18,7 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,7 +27,9 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
@@ -65,7 +68,7 @@ public class SyncManagerTests {
 
             @Override
             public Collection<SyncUser> allUsers() {
-                return null;
+                return Collections.emptySet();
             }
 
             @Override
@@ -73,6 +76,12 @@ public class SyncManagerTests {
                 return true;
             }
         };
+    }
+
+    @After
+    public void tearDown() {
+        UserFactory.logoutAllUsers();
+        SyncManager.reset();
     }
 
     @Test
