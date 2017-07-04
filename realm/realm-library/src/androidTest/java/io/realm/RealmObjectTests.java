@@ -2016,11 +2016,6 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void getRealm_closedDynamicRealmObjectThrows() {
-// move to DynamicRealmObjectTests
-    }
-
-    @Test
     public void getRealmConfiguration_deletedObjectThrows() {
         realm.beginTransaction();
         AllTypes object = realm.createObject(AllTypes.class);
@@ -2039,11 +2034,6 @@ public class RealmObjectTests {
         } catch (IllegalStateException e) {
             assertEquals(RealmObject.MSG_DELETED_OBJECT, e.getMessage());
         }
-    }
-
-    @Test
-    public void getRealmConfiguration_deletedDynamicRealmObjectThrows() {
-// move to DynamicRealmObjectTests
     }
 
     @Test
