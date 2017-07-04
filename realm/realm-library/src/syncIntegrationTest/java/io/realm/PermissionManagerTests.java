@@ -20,7 +20,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -187,13 +186,9 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
         pm.getDefaultPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
-                try {
-                    assertTrue(permissions.isValid());
-                    pm.close();
-                    assertFalse(permissions.isValid());
-                } finally {
-                    user.logout();
-                }
+                assertTrue(permissions.isValid());
+                pm.close();
+                assertFalse(permissions.isValid());
                 looperThread.testComplete();
             }
 
@@ -455,8 +450,8 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
     public void applyPermissions_withUsername() {
         String user1Username = TestHelper.getRandomEmail();
         String user2Username = TestHelper.getRandomEmail();
-        final SyncUser user1 = createUserForTest(user1Username);
-        final SyncUser user2 = createUserForTest(user2Username);
+        final SyncUser user1 = UserFactory.createUser(user1Username);
+        final SyncUser user2 = UserFactory.createUser(user2Username);
         PermissionManager pm1 = user1.getPermissionManager();
         looperThread.closeAfterTest(pm1);
 
@@ -494,8 +489,8 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
     @Test
     @RunTestInLooperThread
     public void applyPermissions_usersWithNoExistingPermissions() {
-        final SyncUser user1 = createUserForTest("user1@realm.io");
-        final SyncUser user2 = createUserForTest("user2@realm.io");
+        final SyncUser user1 = UserFactory.createUser("user1@realm.io");
+        final SyncUser user2 = UserFactory.createUser("user2@realm.io");
         PermissionManager pm1 = user1.getPermissionManager();
         looperThread.closeAfterTest(pm1);
 
@@ -564,17 +559,6 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
                 }
             }
         });
-    }
-
-    private SyncUser createUserForTest(String username) {
-        final SyncUser user = UserFactory.createUser(username);
-        looperThread.runAfterTest(new Runnable() {
-            @Override
-            public void run() {
-                user.logout();
-            }
-        });
-        return user;
     }
 
     private void setRealmError(PermissionManager pm, String fieldName, ObjectServerError error) throws NoSuchFieldException,
