@@ -23,7 +23,7 @@ public class IsolatedIntegrationTests extends BaseIntegrationTest {
 
     @After
     public void teardownTest() {
-        if (looperThread.isTestComplete()) {
+        if (!looperThread.isRuleUsed() || looperThread.isTestComplete()) {
             // Non-looper tests can reset here
             restoreEnvironmentAfterTest();
             stopSyncServer();

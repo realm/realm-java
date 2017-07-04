@@ -84,7 +84,16 @@ public class SyncUserTests {
 
     @After
     public void after() {
-        UserFactory.logoutAllUsers();
+        if (!looperThread.isRuleUsed() || looperThread.isTestComplete()) {
+            UserFactory.logoutAllUsers();
+        } else {
+            looperThread.runAfterTest(new Runnable() {
+                @Override
+                public void run() {
+                    UserFactory.logoutAllUsers();
+                }
+            });
+        }
     }
 
     @Test
