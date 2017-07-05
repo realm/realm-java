@@ -693,6 +693,13 @@ public class RealmConfiguration {
         }
 
         /**
+         * Setting this will cause the Realm to compact the Realm file before returned to the user if it is needed.
+         */
+        public Builder compactOnLaunch() {
+            return compactOnLaunch(new DefaultCompactOnLaunchCallback());
+        }
+
+        /**
          * Sets this to determine if the Realm file should be compacted before returned to the user. It is passed the
          * total file size (data + free space) and the bytes used by data in the file.
          *
