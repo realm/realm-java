@@ -165,6 +165,18 @@ public class RealmJsonTypeHelper {
     }
     // @formatter:on
 
+    // @formatter:off
+    public static void emitFillRealmIntegerFromStream(String interfaceName, String getter, String setter, String fieldName, JavaWriter writer) throws IOException {
+        writer
+            .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
+                .emitStatement("reader.skipValue()")
+                .emitStatement("((%s) obj).%s(null)", interfaceName, setter)
+            .nextControlFlow("else")
+                .emitStatement("((%s) obj).%s().set((long) reader.nextLong())", interfaceName, getter, fieldName)
+            .endControlFlow();
+    }
+    //@formatter:on
+
     private static class SimpleTypeConverter implements JsonToRealmFieldTypeConverter {
         private final String castType;
         private final String jsonType;
@@ -209,8 +221,8 @@ public class RealmJsonTypeHelper {
                 String interfaceName, String setter, String fieldName,
                 String fieldType, JavaWriter writer, boolean isPrimaryKey)
                 throws IOException {
-            // Only throw exception for primitive types. For boxed types and String, exception will be thrown in
-            // the setter.
+            // Only throw exception for primitive types.
+            // For boxed types and String, exception will be thrown in the setter.
             String statementSetNullOrThrow = (Utils.isPrimitiveType(fieldType)) ?
                     String.format(Locale.US, Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName) :
                     String.format(Locale.US, "((%s) obj).%s(null)", interfaceName, setter);
@@ -232,8 +244,8 @@ public class RealmJsonTypeHelper {
         @Override
         public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass,
             String qualifiedRealmObjectProxyClass, String fieldName, JavaWriter writer) throws IOException {
-            // No error checking is done here for valid primary key types. This should be done by the annotation
-            // processor
+            // No error checking is done here for valid primary key types.
+            // This should be done by the annotation processor.
             writer
                 .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                     .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
@@ -337,6 +349,40 @@ public class RealmJsonTypeHelper {
                 String qualifiedRealmObjectClass, String qualifiedRealmObjectProxyClass, String fieldName, JavaWriter writer)
                 throws IOException {
             throw new IllegalArgumentException("'byte[]' is not allowed as a primary key value.");
+        }
+    }
+
+    private static class RealmIntegerTypeConverter implements JsonToRealmFieldTypeConverter {
+        // @formatter:off
+       @Override
+       public void emitTypeConversion(String interfaceName, String getter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
+           writer
+               .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                   .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                       .emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
+                   .nextControlFlow("else")
+                       .emitStatement("((%s) obj).%s().set(json.getLong(\"%s\"))", interfaceName, getter, fieldName)
+                   .endControlFlow()
+               .endControlFlow();
+       }
+       // @formatter:on
+
+        // @formatter:off
+       @Override
+       public void emitStreamTypeConversion(String interfaceName, String getter, String fieldName, String fieldType, JavaWriter writer, boolean isPrimaryKey) throws IOException {
+           writer
+               .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
+                   .emitStatement("reader.skipValue()")
+                   .emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
+               .nextControlFlow("else")
+                   .emitStatement("((%s) obj).%s().set(reader.nextLong(\"%s\"))", interfaceName, getter, fieldName)
+               .endControlFlow();
+       }
+       // @formatter:on
+
+        @Override
+        public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String qualifiedRealmObjectProxyClass, String fieldName, JavaWriter writer) throws IOException {
+            throw new IllegalArgumentException("'RealmInteger' is not allowed as a primary key value.");
         }
     }
 

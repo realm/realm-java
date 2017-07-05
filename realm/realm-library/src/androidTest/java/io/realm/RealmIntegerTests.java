@@ -19,18 +19,21 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.realm.entities.AllTypes;
+import io.realm.entities.Counters;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+
+
+// FIXME Counters: Need JSON tests.
 
 @RunWith(AndroidJUnit4.class)
 public class RealmIntegerTests {
@@ -59,228 +62,279 @@ public class RealmIntegerTests {
     }
 
     /**
-     * Validate basic constructor parameters and functions set, increment and decrement.
+     * Validate basic functions: set, increment and decrement.
      */
     @Test
-    public void basic() {
-        RealmInteger ri1 = new RealmInteger(10);
-        RealmInteger ri2 = new RealmInteger("10");
-        assertEquals(ri1, ri2);
-
-        ri1.set(15);
-        ri1.decrement(2);
-        ri2.increment(3);
-        assertEquals(ri1, ri2);
+    public void basic_unmanaged() {
+        testBasic(MutableRealmInteger.ofNull(), MutableRealmInteger.ofNull());
     }
 
     /**
-     * Validate various getters.
-     * Expected behaviour is that gets of smaller sized quantities should truncate on the left:
-     * that they should return exactly the rightmost N bits of the underlying value.
-     * <p>
-     * Caution. The assertion functions will cast back up to int
-     * if either arg is an int. That will cause sign extension.
+     * Validate basic equality semantics.
      */
     @Test
-    public void getters() {
-        RealmInteger ri = new RealmInteger(0x5555444433332211L);
+    public void equality_unmanaged() {
+        testEquality(new Counters(), new Counters());
+    }
 
-        // positive
-        assertEquals(0x5555444433332211L, ri.longValue());
-        assertEquals(0x033332211, ri.intValue());
-        assertEquals((short) 0x02211, ri.shortValue());
-        assertEquals((byte) 0x011, ri.byteValue());
+    /**
+     * Validate basic nullability semantics.
+     */
+    @Test
+    public void nullability_unmanaged() {
+        testNullability(new Counters());
+    }
 
-        assertEquals(6.1488962E18F, ri.floatValue());
-        assertEquals(6.1488959259517348E18, ri.doubleValue());
+    /**
+     * Validate basic validity/managed semantics.
+     */
+    @Test
+    public void validAndManaged_unmanaged() {
+        testValidityAndManagement(new Counters());
+    }
 
-        // negative
-        ri.set(0x8888444483338281L);
-        assertEquals(0x8888444483338281L, ri.longValue());
-        assertEquals(0x083338281, ri.intValue());
-        assertEquals((short) 0xf8281, ri.shortValue());
-        assertEquals((byte) 0xf81, ri.byteValue());
+    /**
+     * Validate basic functions: set, increment and decrement.
+     */
+    @Test
+    public void basic_managed() {
+        realm.beginTransaction();
+        Counters c1 = realm.createObject(Counters.class);
+        Counters c2 = realm.createObject(Counters.class);
+        testBasic(c1.columnCounter, c2.columnCounter);
+        realm.commitTransaction();
+    }
 
-        assertEquals(-8.6085554E18F, ri.floatValue());
-        assertEquals(-8.6085556266690468E18, ri.doubleValue());
+    /**
+     * Validate basic equality semantics.
+     */
+    @Test
+    public void equality_managed() {
+        realm.beginTransaction();
+        testEquality(realm.createObject(Counters.class), realm.createObject(Counters.class));
+        realm.commitTransaction();
+    }
+
+    /**
+     * Validate basic nullability semantics.
+     */
+    @Test
+    public void nullability_managed() {
+        realm.beginTransaction();
+        testNullability(realm.createObject(Counters.class));
+        realm.commitTransaction();
+    }
+
+    /**
+     * Validate basic validity/managed semantics.
+     */
+    @Test
+    public void validAndManaged_managed() {
+        realm.beginTransaction();
+        testValidityAndManagement(realm.createObject(Counters.class));
+        realm.commitTransaction();
+    }
+
+
+    /**
+     * Be absolutely certain that we can actually compare two longs.
+     */
+    @Test
+    public void compareTo_unmanaged() {
+        MutableRealmInteger ri1 = MutableRealmInteger.valueOf(0);
+        MutableRealmInteger ri2 = MutableRealmInteger.valueOf(Long.MAX_VALUE);
+        assertEquals(-1, ri1.compareTo(ri2));
+
+        ri2.decrement(Long.MAX_VALUE);
+        assertEquals(0, ri1.compareTo(ri2));
+
+        ri2.decrement(Long.MAX_VALUE);
+        assertEquals(1, ri1.compareTo(ri2));
     }
 
     /**
      * Be absolutely certain that we can actually compare two longs.
      */
     @Test
-    public void compareTo() {
-        RealmInteger ri1 = new RealmInteger(10);
-        RealmInteger ri2 = new RealmInteger("11");
-
+    public void compareTo_managed() {
+        realm.beginTransaction();
+        MutableRealmInteger ri1 = realm.createObject(Counters.class).getColumnCounter();
+        ri1.set(0);
+        MutableRealmInteger ri2 = realm.createObject(Counters.class).getColumnCounter();
+        ri2.set(Long.MAX_VALUE);
+        realm.commitTransaction();
         assertEquals(-1, ri1.compareTo(ri2));
-        ri2.decrement(1);
+
+        realm.beginTransaction();
+        ri2.decrement(Long.MAX_VALUE);
+        realm.commitTransaction();
         assertEquals(0, ri1.compareTo(ri2));
-        ri2.decrement(1);
+
+        realm.beginTransaction();
+        ri2.decrement(Long.MAX_VALUE);
+        realm.commitTransaction();
         assertEquals(1, ri1.compareTo(ri2));
     }
 
     /**
-     * Be absolutely certain that this overflows like a long, part I.
+     * Assure that an attempt to change the value of a managed MutableRealmInteger, outside a transaction, fails.
      */
-    @Test
-    public void increment_underFlowAndOverflow() {
-        RealmInteger ri = new RealmInteger(Long.MAX_VALUE);
-        ri.increment(1);
-        assertEquals(Long.MIN_VALUE, ri.longValue());
-
-        ri = new RealmInteger(1);
-        ri.increment(Long.MAX_VALUE);
-        assertEquals(Long.MIN_VALUE, ri.longValue());
-
-        ri = new RealmInteger(-1);
-        ri.increment(Long.MIN_VALUE);
-        assertEquals(Long.MAX_VALUE, ri.longValue());
-    }
-
-    /**
-     * Be absolutely certain that this overflows like a long, part II.
-     */
-    @Test
-    public void decrement_underFlowAndOverflow() {
-        RealmInteger ri = new RealmInteger(Long.MIN_VALUE);
-        ri.decrement(1);
-        assertEquals(Long.MAX_VALUE, ri.longValue());
-
-        ri = new RealmInteger(0);
-        ri.decrement(Long.MIN_VALUE);
-        assertEquals(Long.MIN_VALUE, ri.longValue());
-
-        ri = new RealmInteger(-2);
-        ri.decrement(Long.MAX_VALUE);
-        assertEquals(Long.MAX_VALUE, ri.longValue());
-    }
-
-    /**
-     * Assure that changes to a RealmInteger acquired from a managed object are reflected in the object.
-     */
-    @Ignore("not yet implemented")
-    @Test
-    public void isLive() {
-        RealmInteger unmanagedRI = new RealmInteger(5);
-
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class).setColumnRealmInteger(unmanagedRI);
-        realm.commitTransaction();
-
-        RealmInteger managedRI = realm.where(AllTypes.class).findFirst().getColumnRealmInteger();
-
-        realm.beginTransaction();
-        RealmInteger ri = realm.where(AllTypes.class).findFirst().getColumnRealmInteger();
-        ri.set(37);
-        ri.increment(17);
-        ri.decrement(7);
-        realm.commitTransaction();
-
-        assertEquals(5, unmanagedRI.longValue());
-        assertEquals(47, managedRI.longValue());
-    }
-
-    /**
-     * Assure that changes to a RealmInteger acquired from a managed object are reflected in the object.
-     */
-    @Ignore("not yet implemented")
-    @Test
-    public void copyToisLive() {
-        AllTypes at = realm.createObject(AllTypes.class);
-        at.setColumnRealmInteger(new RealmInteger(5));
-        RealmInteger unmanagedRI = at.getColumnRealmInteger();
-
-        realm.beginTransaction();
-        RealmInteger managedRI = realm.copyToRealm(at).getColumnRealmInteger();
-        realm.commitTransaction();
-
-        realm.beginTransaction();
-        RealmInteger ri = realm.where(AllTypes.class).findFirst().getColumnRealmInteger();
-        ri.set(37);
-        ri.increment(17);
-        ri.decrement(7);
-        realm.commitTransaction();
-
-        assertEquals(5, unmanagedRI.longValue());
-        assertEquals(47, managedRI.longValue());
-    }
-
-
-    /**
-     * Assure that a RealmInteger acquired from an unmanaged object is not affected by changes in the DB.
-     */
-    @Ignore("not yet implemented")
-    @Test
-    public void copyFromIsNotLive() {
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class).setColumnRealmInteger(new RealmInteger(5));
-        realm.commitTransaction();
-
-        AllTypes at = realm.where(AllTypes.class).findFirst();
-        RealmInteger managedRI = at.getColumnRealmInteger();
-        RealmInteger unmanagedRI = realm.copyFromRealm(at).getColumnRealmInteger();
-
-        realm.beginTransaction();
-        RealmInteger ri = realm.where(AllTypes.class).findFirst().getColumnRealmInteger();
-        ri.set(37);
-        ri.increment(17);
-        ri.decrement(7);
-        realm.commitTransaction();
-
-        assertEquals(5, unmanagedRI.longValue());
-        assertEquals(47, managedRI.longValue());
-    }
-
-    /**
-     * Assure that an attempt to change the value of a managed RealmInteger, outside a transaction, fails.
-     */
-    @Ignore("not yet implemented")
     @Test
     public void updateOutsideTransactionThrows() {
         realm.beginTransaction();
-        realm.createObject(AllTypes.class).setColumnRealmInteger(new RealmInteger(5));
+        realm.createObject(Counters.class).getColumnCounter().set(42);
         realm.commitTransaction();
 
-        RealmInteger managedRI = realm.where(AllTypes.class).findFirst().getColumnRealmInteger();
+        MutableRealmInteger managedRI = realm.where(Counters.class).findFirst().getColumnCounter();
         try {
             managedRI.set(1);
-            fail("Setting a managed RealmInteger outside a transaction should fail");
+            fail("Setting a managed MutableRealmInteger outside a transaction should fail");
         } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains("must be in a transaction"));
+            checkTransactionException(e);
         }
 
         try {
             managedRI.increment(1);
-            fail("Incrementing a managed RealmInteger outside a transaction should fail");
+            fail("Incrementing a managed MutableRealmInteger outside a transaction should fail");
         } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains("must be in a transaction"));
+            checkTransactionException(e);
         }
 
         try {
             managedRI.decrement(1);
-            fail("Decrementing a managed RealmInteger outside a transaction should fail");
+            fail("Decrementing a managed MutableRealmInteger outside a transaction should fail");
         } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains("must be in a transaction"));
+            checkTransactionException(e);
         }
     }
 
     /**
-     * Assure that an attempt to assign a RealmInteger field, outside a transaction, fails.
+     * Assure that changes to a MutableRealmInteger acquired from a managed object are reflected in the object.
      */
-    @Ignore("not yet implemented")
     @Test
-    public void assignOutsideTransactionThrows() {
+    public void isLive() {
         realm.beginTransaction();
-        AllTypes managedAllTypes = realm.createObject(AllTypes.class);
-        managedAllTypes.setColumnRealmInteger(new RealmInteger(5));
+        realm.createObject(Counters.class).getColumnCounter().set(42);
         realm.commitTransaction();
 
-        try {
-            managedAllTypes.setColumnRealmInteger(new RealmInteger(7));
-            fail("Assigning a managed RealmInteger outside a transaction should fail");
-        } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains("must be in a transaction"));
-        }
+        MutableRealmInteger managedRI = realm.where(Counters.class).findFirst().getColumnCounter();
+
+        realm.beginTransaction();
+        MutableRealmInteger ri = realm.where(Counters.class).findFirst().getColumnCounter();
+        ri.set(37);
+        ri.increment(17);
+        ri.decrement(7);
+        realm.commitTransaction();
+
+        assertEquals(Long.valueOf(47), managedRI.get());
+    }
+
+    /**
+     * Assure that changes to a MutableRealmInteger acquired from a managed object are reflected in the object.
+     */
+    @Test
+    public void copyToisLive() {
+        Counters obj = new Counters();
+        MutableRealmInteger unmanagedRI = obj.getColumnCounter();
+
+        realm.beginTransaction();
+        MutableRealmInteger managedRI = realm.copyToRealm(obj).getColumnCounter();
+        realm.commitTransaction();
+
+        realm.beginTransaction();
+        MutableRealmInteger ri = realm.where(Counters.class).findFirst().getColumnCounter();
+        ri.set(37);
+        ri.increment(17);
+        ri.decrement(7);
+        realm.commitTransaction();
+
+        assertEquals(Long.valueOf(42L), unmanagedRI.get());
+        assertEquals(Long.valueOf(47L), managedRI.get());
+    }
+
+
+    /**
+     * Assure that a MutableRealmInteger acquired from an unmanaged object is not affected by changes in the DB.
+     */
+    @Test
+    public void copyFromIsNotLive() {
+        realm.beginTransaction();
+        realm.createObject(Counters.class).getColumnCounter().set(42);
+        realm.commitTransaction();
+
+        Counters obj = realm.where(Counters.class).findFirst();
+        MutableRealmInteger managedRI = obj.getColumnCounter();
+        MutableRealmInteger unmanagedRI = realm.copyFromRealm(obj).getColumnCounter();
+
+        realm.beginTransaction();
+        MutableRealmInteger ri = realm.where(Counters.class).findFirst().getColumnCounter();
+        ri.set(37);
+        ri.increment(17);
+        ri.decrement(7);
+        realm.commitTransaction();
+
+        assertEquals(Long.valueOf(42L), unmanagedRI.get());
+        assertEquals(Long.valueOf(47L), managedRI.get());
+    }
+
+    private void checkTransactionException(IllegalStateException e) {
+        assertTrue(e.getMessage().contains("only be done from inside a transaction"));
+    }
+
+    private void testBasic(MutableRealmInteger r1, MutableRealmInteger r2) {
+        r1.set(10);
+        r2.set(Long.valueOf(10));
+
+        assertEquals(r1, r2);
+
+        r1.set(15);
+        r1.decrement(2);
+        r2.increment(3);
+        assertEquals(r1, r2);
+    }
+
+    private void testEquality(Counters c1, Counters c2) {
+        c1.columnCounter.set(7);
+        c2.columnCounter.set(Long.valueOf(7));
+        assert c1.columnCounter.equals(c2.columnCounter);
+        assert c1.columnCounter != c2.columnCounter;
+
+        MutableRealmInteger r1 = c1.columnCounter;
+        r1.increment(1);
+        assert r1.equals(c1.columnCounter);
+        assert r1 == c1.columnCounter;
+        assert c1.columnCounter.get().equals(8L);
+        assert !c1.columnCounter.equals(c2.columnCounter.get());
+        assert c1.columnCounter.get().intValue() == 8;
+
+        Long n = c1.columnCounter.get();
+        assert n.equals(Long.valueOf(8));
+        assert n.equals(c1.columnCounter.get());
+        assert n.intValue() == c1.columnCounter.get().intValue();
+
+        c1.columnCounter.increment(1);
+        assert n.intValue() != c1.columnCounter.get().intValue();
+        assert n.intValue() != r1.get().intValue();
+    }
+
+    private void testNullability(Counters c1) {
+        MutableRealmInteger r1 = c1.columnCounter;
+
+        assert !c1.columnCounter.isNull();
+        c1.columnCounter.set(null);
+        assert c1.columnCounter != null;
+        assert c1.columnCounter.isNull();
+        assert r1.isNull();
+        assert r1.get() == null;
+
+        assert r1.isValid();
+        assert !r1.isManaged();
+    }
+
+    private void testValidityAndManagement(Counters c1) {
+        MutableRealmInteger r1 = c1.columnCounter;
+
+        assert r1.isValid() == c1.isValid();
+        assert !r1.isManaged() == c1.isManaged();
     }
 }

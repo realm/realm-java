@@ -94,7 +94,8 @@ public class RealmProcessorTest {
                 .failsToCompile();
     }
 
-    // Disabled because it does not seem to find the generated interface file @Test
+    @Ignore("Disabled because it does not seem to find the generated interface file")
+    @Test
     public void compileSimpleProxyFile() throws Exception {
         ASSERT.about(javaSource())
                 .that(simpleProxy)
@@ -476,6 +477,36 @@ public class RealmProcessorTest {
                 .that(Arrays.asList(JavaFileObjects.forResource("some/test/InterfaceObjectReference.java"), customInterface))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
+    }
+
+    @Test
+    public void compileCounter() {
+        // FIXME Counters: Add test
+    }
+
+    @Test
+    public void compileStaticCounter() {
+        // FIXME Counters: Add test
+    }
+
+    @Test
+    public void compileIgnoredCounter() {
+        // FIXME Counters: Add test
+    }
+
+    @Test
+    public void compileRequiredCounter() {
+        // FIXME Counters: Add test
+    }
+
+    @Test
+    public void failOnPKCounter() {
+        // FIXME Counters: Add test
+    }
+
+    @Test
+    public void failOnIndexedCounter() {
+        // FIXME Counters: Add test
     }
 
     @Test
