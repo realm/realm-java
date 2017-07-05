@@ -28,7 +28,7 @@ import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
 
-public final class SharedRealm implements Closeable, NativeObject {
+public final class OsSharedRealm implements Closeable, NativeObject {
 
     // Const value for RealmFileException conversion
     public static final byte FILE_EXCEPTION_KIND_ACCESS_ERROR = 0;
@@ -41,7 +41,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     public static void initialize(File tempDirectory) {
-        if (SharedRealm.temporaryDirectory != null) {
+        if (OsSharedRealm.temporaryDirectory != null) {
             // already initialized
             return;
         }
@@ -58,7 +58,7 @@ public final class SharedRealm implements Closeable, NativeObject {
             temporaryDirectoryPath += "/";
         }
         nativeInit(temporaryDirectoryPath);
-        SharedRealm.temporaryDirectory = tempDirectory;
+        OsSharedRealm.temporaryDirectory = tempDirectory;
     }
 
     public static File getTemporaryDirectory() {
@@ -103,8 +103,8 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     private final List<WeakReference<PendingRow>> pendingRows = new CopyOnWriteArrayList<>();
-    public final List<WeakReference<Collection>> collections = new CopyOnWriteArrayList<>();
-    public final List<WeakReference<Collection.Iterator>> iterators = new ArrayList<>();
+    public final List<WeakReference<OsResults>> collections = new CopyOnWriteArrayList<>();
+    public final List<WeakReference<OsResults.Iterator>> iterators = new ArrayList<>();
 
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
@@ -176,9 +176,9 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     final NativeContext context;
 
-    private SharedRealm(long nativeConfigPtr,
-            RealmConfiguration configuration,
-            SchemaVersionListener schemaVersionListener) {
+    private OsSharedRealm(long nativeConfigPtr,
+                          RealmConfiguration configuration,
+                          SchemaVersionListener schemaVersionListener) {
         Capabilities capabilities = new AndroidCapabilities();
         RealmNotifier realmNotifier = new AndroidRealmNotifier(this, capabilities);
 
@@ -194,16 +194,16 @@ public final class SharedRealm implements Closeable, NativeObject {
         nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
     }
 
-    // This will create a SharedRealm where autoChangeNotifications is false,
+    // This will create a OsSharedRealm where autoChangeNotifications is false,
     // If autoChangeNotifications is true, an additional SharedGroup might be created in the OS's external commit helper.
     // That is not needed for some cases: eg.: An extra opened SharedGroup will cause a compact failure.
-    public static SharedRealm getInstance(RealmConfiguration config) {
+    public static OsSharedRealm getInstance(RealmConfiguration config) {
         return getInstance(config, null, false);
     }
 
 
-    public static SharedRealm getInstance(RealmConfiguration config, SchemaVersionListener schemaVersionListener,
-            boolean autoChangeNotifications) {
+    public static OsSharedRealm getInstance(RealmConfiguration config, SchemaVersionListener schemaVersionListener,
+                                            boolean autoChangeNotifications) {
         Object[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
         String syncUserIdentifier = (String) syncUserConf[0];
         String syncRealmUrl = (String) syncUserConf[1];
@@ -234,7 +234,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         try {
             ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(config);
 
-            return new SharedRealm(nativeConfigPtr, config, schemaVersionListener);
+            return new OsSharedRealm(nativeConfigPtr, config, schemaVersionListener);
         } finally {
             nativeCloseConfig(nativeConfigPtr);
         }
@@ -337,9 +337,9 @@ public final class SharedRealm implements Closeable, NativeObject {
         invokeSchemaChangeListenerIfSchemaChanged();
     }
 
-    public SharedRealm.VersionID getVersionID() {
+    public OsSharedRealm.VersionID getVersionID() {
         long[] versionId = nativeGetVersionID(nativePtr);
-        return new SharedRealm.VersionID(versionId[0], versionId[1]);
+        return new OsSharedRealm.VersionID(versionId[0], versionId[1]);
     }
 
     public boolean isClosed() {
@@ -412,7 +412,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         }
         synchronized (context) {
             nativeCloseSharedRealm(nativePtr);
-            // Don't reset the nativePtr since we still rely on Object Store to check if the given SharedRealm ptr
+            // Don't reset the nativePtr since we still rely on Object Store to check if the given OsSharedRealm ptr
             // is closed or not.
         }
     }
@@ -444,14 +444,14 @@ public final class SharedRealm implements Closeable, NativeObject {
     // The iterator will iterate on a snapshot Results if it is accessed inside a transaction.
     // See https://github.com/realm/realm-java/issues/3883 for more information.
     // Should only be called by Iterator's constructor.
-    void addIterator(Collection.Iterator iterator) {
+    void addIterator(OsResults.Iterator iterator) {
         iterators.add(new WeakReference<>(iterator));
     }
 
     // The detaching should happen before transaction begins.
     void detachIterators() {
-        for (WeakReference<Collection.Iterator> iteratorRef : iterators) {
-            Collection.Iterator iterator = iteratorRef.get();
+        for (WeakReference<OsResults.Iterator> iteratorRef : iterators) {
+            OsResults.Iterator iterator = iteratorRef.get();
             if (iterator != null) {
                 iterator.detach();
             }
@@ -461,8 +461,8 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     // Invalidates all iterators when a remote change notification is received.
     void invalidateIterators() {
-        for (WeakReference<Collection.Iterator> iteratorRef : iterators) {
-            Collection.Iterator iterator = iteratorRef.get();
+        for (WeakReference<OsResults.Iterator> iteratorRef : iterators) {
+            OsResults.Iterator iterator = iteratorRef.get();
             if (iterator != null) {
                 iterator.invalidate();
             }

@@ -32,7 +32,6 @@ import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -100,7 +99,7 @@ import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
@@ -646,13 +645,13 @@ public class RealmTests {
 
     @Test
     public void executeTransaction_null() {
-        SharedRealm.VersionID oldVersion = realm.sharedRealm.getVersionID();
+        OsSharedRealm.VersionID oldVersion = realm.osSharedRealm.getVersionID();
         try {
             realm.executeTransaction(null);
             fail("null transaction should throw");
         } catch (IllegalArgumentException ignored) {
         }
-        SharedRealm.VersionID newVersion = realm.sharedRealm.getVersionID();
+        OsSharedRealm.VersionID newVersion = realm.osSharedRealm.getVersionID();
         assertEquals(oldVersion, newVersion);
     }
 
@@ -1704,7 +1703,7 @@ public class RealmTests {
         assertEquals("Baz", realm.where(PrimaryKeyAsLong.class).findFirst().getName());
     }
 
-    // Tests that a collection of objects with references all gets copied.
+    // Tests that a osResults of objects with references all gets copied.
     @Test
     public void copyToRealmOrUpdate_iterableChildObjects() {
         DogPrimaryKey dog = new DogPrimaryKey(1, "Snoop");
@@ -3764,7 +3763,7 @@ public class RealmTests {
         });
 
         // We need to update index cache if the schema version was changed in the same thread.
-        realm.sharedRealm.invokeSchemaChangeListenerIfSchemaChanged();
+        realm.osSharedRealm.invokeSchemaChangeListenerIfSchemaChanged();
 
         // Verify that the index has changed.
         assertNotEquals(nameIndex, nameIndexNew);
@@ -3846,7 +3845,7 @@ public class RealmTests {
         realm.close();
         realm = null;
 
-        final File namedPipeDir = SharedRealm.getTemporaryDirectory();
+        final File namedPipeDir = OsSharedRealm.getTemporaryDirectory();
         assertTrue(namedPipeDir.isDirectory());
         TestHelper.deleteRecursively(namedPipeDir);
         //noinspection ResultOfMethodCallIgnored

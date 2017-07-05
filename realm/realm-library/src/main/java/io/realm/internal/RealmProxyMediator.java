@@ -58,13 +58,13 @@ public abstract class RealmProxyMediator {
      * Validates the backing table in Realm for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} model class to validate.
-     * @param sharedRealm the wrapper object of underlying native database to validate against.
+     * @param osSharedRealm the wrapper object of underlying native database to validate against.
      * @param allowExtraColumns if {@code} false, {@link io.realm.exceptions.RealmMigrationNeededException}
      * is thrown when the column count it more than expected.
      * @return the field indices map.
      */
     public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz,
-            SharedRealm sharedRealm,
+            OsSharedRealm osSharedRealm,
             boolean allowExtraColumns);
 
     /**
@@ -151,7 +151,7 @@ public abstract class RealmProxyMediator {
      * After being inserted any changes to the original objects will not be persisted.
      *
      * @param realm reference to the {@link Realm} where the objects will be inserted.
-     * @param objects Collection of {@link RealmObject} to insert or update. This must not be empty.
+     * @param objects OsResults of {@link RealmObject} to insert or update. This must not be empty.
      */
     public abstract void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects);
 
@@ -161,7 +161,7 @@ public abstract class RealmProxyMediator {
      * After being inserted any changes to the original objects will not be persisted.
      *
      * @param realm reference to the {@link Realm} where the objects will be inserted.
-     * @param objects Collection of {@link RealmObject} to insert or update. This must not be empty.
+     * @param objects OsResults of {@link RealmObject} to insert or update. This must not be empty.
      */
     public abstract void insert(Realm realm, Collection<? extends RealmModel> objects);
 

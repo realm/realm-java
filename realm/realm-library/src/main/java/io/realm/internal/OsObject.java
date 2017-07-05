@@ -94,9 +94,9 @@ public class OsObject implements NativeObject {
 
     private ObserverPairList<ObjectObserverPair> observerPairs = new ObserverPairList<ObjectObserverPair>();
 
-    public OsObject(SharedRealm sharedRealm, UncheckedRow row) {
-        nativePtr = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr());
-        sharedRealm.context.addReference(this);
+    public OsObject(OsSharedRealm osSharedRealm, UncheckedRow row) {
+        nativePtr = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr());
+        osSharedRealm.context.addReference(this);
     }
 
     @Override
@@ -148,13 +148,13 @@ public class OsObject implements NativeObject {
     /**
      * Create an object in the given table which doesn't have a primary key column defined.
      *
-     * @param table the table where the object is created. This table must be atached to {@link SharedRealm}.
+     * @param table the table where the object is created. This table must be atached to {@link OsSharedRealm}.
      * @return a newly created {@code UncheckedRow}.
      */
     public static UncheckedRow create(Table table) {
-        final SharedRealm sharedRealm = table.getSharedRealm();
-        return new UncheckedRow(sharedRealm.context, table,
-                nativeCreateNewObject(sharedRealm.getNativePtr(), table.getNativePtr()));
+        final OsSharedRealm osSharedRealm = table.getOsSharedRealm();
+        return new UncheckedRow(osSharedRealm.context, table,
+                nativeCreateNewObject(osSharedRealm.getNativePtr(), table.getNativePtr()));
     }
 
     /**
@@ -165,8 +165,8 @@ public class OsObject implements NativeObject {
      * @return a newly created row's index.
      */
     public static long createRow(Table table) {
-        final SharedRealm sharedRealm = table.getSharedRealm();
-        return nativeCreateRow(sharedRealm.getNativePtr(), table.getNativePtr());
+        final OsSharedRealm osSharedRealm = table.getOsSharedRealm();
+        return nativeCreateRow(osSharedRealm.getNativePtr(), table.getNativePtr());
     }
 
     private static long getAndVerifyPrimaryKeyColumnIndex(Table table) {
@@ -182,26 +182,26 @@ public class OsObject implements NativeObject {
      * Create an object in the given table which has a primary key column defined, and set the primary key with given
      * value.
      *
-     * @param table the table where the object is created. This table must be atached to {@link SharedRealm}.
+     * @param table the table where the object is created. This table must be atached to {@link OsSharedRealm}.
      * @return a newly created {@code UncheckedRow}.
      */
     public static UncheckedRow createWithPrimaryKey(Table table, Object primaryKeyValue) {
         long primaryKeyColumnIndex = getAndVerifyPrimaryKeyColumnIndex(table);
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
-        final SharedRealm sharedRealm = table.getSharedRealm();
+        final OsSharedRealm osSharedRealm = table.getOsSharedRealm();
 
         if (type == RealmFieldType.STRING) {
             if (primaryKeyValue != null && !(primaryKeyValue instanceof String)) {
                 throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
             }
-            return new UncheckedRow(sharedRealm.context, table,
-                    nativeCreateNewObjectWithStringPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+            return new UncheckedRow(osSharedRealm.context, table,
+                    nativeCreateNewObjectWithStringPrimaryKey(osSharedRealm.getNativePtr(), table.getNativePtr(),
                             primaryKeyColumnIndex, (String) primaryKeyValue));
 
         } else if (type == RealmFieldType.INTEGER) {
             long value = primaryKeyValue == null ? 0 : Long.parseLong(primaryKeyValue.toString());
-            return new UncheckedRow(sharedRealm.context, table,
-                    nativeCreateNewObjectWithLongPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+            return new UncheckedRow(osSharedRealm.context, table,
+                    nativeCreateNewObjectWithLongPrimaryKey(osSharedRealm.getNativePtr(), table.getNativePtr(),
                             primaryKeyColumnIndex, value, primaryKeyValue == null));
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
@@ -219,18 +219,18 @@ public class OsObject implements NativeObject {
     public static long createRowWithPrimaryKey(Table table, Object primaryKeyValue) {
         long primaryKeyColumnIndex = getAndVerifyPrimaryKeyColumnIndex(table);
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
-        final SharedRealm sharedRealm = table.getSharedRealm();
+        final OsSharedRealm osSharedRealm = table.getOsSharedRealm();
 
         if (type == RealmFieldType.STRING) {
             if (primaryKeyValue != null && !(primaryKeyValue instanceof String)) {
                 throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
             }
-            return nativeCreateRowWithStringPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+            return nativeCreateRowWithStringPrimaryKey(osSharedRealm.getNativePtr(), table.getNativePtr(),
                     primaryKeyColumnIndex, (String) primaryKeyValue);
 
         } else if (type == RealmFieldType.INTEGER) {
             long value = primaryKeyValue == null ? 0 : Long.parseLong(primaryKeyValue.toString());
-            return nativeCreateRowWithLongPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+            return nativeCreateRowWithLongPrimaryKey(osSharedRealm.getNativePtr(), table.getNativePtr(),
                     primaryKeyColumnIndex, value, primaryKeyValue == null);
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);

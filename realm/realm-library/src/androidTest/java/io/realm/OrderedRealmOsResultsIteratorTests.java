@@ -46,7 +46,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
-public class OrderedRealmCollectionIteratorTests extends CollectionTests {
+public class OrderedRealmOsResultsIteratorTests extends CollectionTests {
 
     private static final int TEST_SIZE = 10;
 
@@ -66,7 +66,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         return Arrays.asList(CollectionClass.values());
     }
 
-    public OrderedRealmCollectionIteratorTests(CollectionClass collectionType) {
+    public OrderedRealmOsResultsIteratorTests(CollectionClass collectionType) {
         this.collectionClass = collectionType;
     }
 
@@ -149,14 +149,14 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     private void assertResultsOrSnapshot() {
         if (collectionClass != CollectionClass.REALMRESULTS && !isSnapshot(collectionClass))  {
-            fail("Collection class " + collectionClass + "is not results or snapshot.");
+            fail("OsResults class " + collectionClass + "is not results or snapshot.");
         }
     }
 
     private void assertRealmList() {
         if (collectionClass != CollectionClass.UNMANAGED_REALMLIST &&
                 collectionClass != CollectionClass.MANAGED_REALMLIST)  {
-            fail("Collection class " + collectionClass + "is not RealmList.");
+            fail("OsResults class " + collectionClass + "is not RealmList.");
         }
     }
 
@@ -459,7 +459,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 }
                 break;
             default:
-                fail("Unknown collection class: " + collectionClass);
+                fail("Unknown osResults class: " + collectionClass);
         }
     }
 
@@ -672,7 +672,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             return;
         }
 
-        // Tests all standard collection methods.
+        // Tests all standard osResults methods.
         for (CollectionMethod method : CollectionMethod.values()) {
             collection = createCollection(realm, collectionClass, TEST_SIZE);
             realm.beginTransaction();

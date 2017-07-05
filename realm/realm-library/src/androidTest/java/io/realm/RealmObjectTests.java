@@ -1781,7 +1781,7 @@ public class RealmObjectTests {
         sameDog.setName("Jesper");
         realm.commitTransaction();
         // Try to trigger the listeners.
-        realm.sharedRealm.refresh();
+        realm.osSharedRealm.refresh();
         looperThread.testComplete();
     }
 

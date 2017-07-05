@@ -34,11 +34,11 @@ import static junit.framework.Assert.assertTrue;
 
 /**
  * Unit tests specific for {@link OrderedRealmCollectionSnapshot} that cannot be covered by
- * {@link OrderedRealmCollectionTests}, {@link ManagedRealmCollectionTests}, {@link UnManagedRealmCollectionTests} or
- * {@link RealmCollectionTests}.
+ * {@link OrderedRealmOsResultsTests}, {@link ManagedRealmOsResultsTests}, {@link UnManagedRealmOsResultsTests} or
+ * {@link RealmOsResultsTests}.
  */
 @RunWith(AndroidJUnit4.class)
-public class OrderedRealmCollectionSnapshotTests {
+public class OrderedRealmOsResultsSnapshotTests {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();

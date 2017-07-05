@@ -18,7 +18,7 @@ package io.realm;
 
 /**
  * {@link OrderedRealmCollectionChangeListener} can be registered with a {@link RealmResults} to receive a notification
- * with a {@link OrderedCollectionChangeSet} to describe the details of what have been changed in the collection from
+ * with a {@link OrderedCollectionChangeSet} to describe the details of what have been changed in the osResults from
  * last time.
  * <p>
  * Realm instances on a thread without an {@link android.os.Looper} cannot register a
@@ -30,10 +30,10 @@ package io.realm;
 public interface OrderedRealmCollectionChangeListener<T> {
 
     /**
-     * This will be called when the async query is finished the first time or the collection of objects has changed.
+     * This will be called when the async query is finished the first time or the osResults of objects has changed.
      *
-     * @param t the collection this listener is registered to.
-     * @param changeSet object with information about which rows in the collection were added, removed or modified.
+     * @param t the osResults this listener is registered to.
+     * @param changeSet object with information about which rows in the osResults were added, removed or modified.
      * {@code null} is returned the first time an async query is completed.
      */
     void onChange(T t, OrderedCollectionChangeSet changeSet);

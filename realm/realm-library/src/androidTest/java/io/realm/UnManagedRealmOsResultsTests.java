@@ -38,10 +38,10 @@ import static org.junit.Assert.fail;
  * Test class for all methods part of the the {@link RealmCollection} interface, that have a different behavior
  * than managed RealmCollection classes.
  *
- * See {@link ManagedRealmCollectionTests} for similar tests for the managed behavior.
+ * See {@link ManagedRealmOsResultsTests} for similar tests for the managed behavior.
  */
 @RunWith(Parameterized.class)
-public class UnManagedRealmCollectionTests extends CollectionTests {
+public class UnManagedRealmOsResultsTests extends CollectionTests {
 
     private static final int TEST_SIZE = 10;
 
@@ -57,7 +57,7 @@ public class UnManagedRealmCollectionTests extends CollectionTests {
         return Arrays.asList(UnManagedCollection.values());
     }
 
-    public UnManagedRealmCollectionTests(UnManagedCollection collectionType) {
+    public UnManagedRealmOsResultsTests(UnManagedCollection collectionType) {
         this.collectionClass = collectionType;
     }
 

@@ -9,9 +9,9 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
@@ -43,7 +43,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         long columnObjectIndex;
         long columnRealmListIndex;
 
-        AllTypesColumnInfo(SharedRealm realm, Table table) {
+        AllTypesColumnInfo(OsSharedRealm realm, Table table) {
             super(9);
             this.columnStringIndex = addColumnDetails(table, "columnString", RealmFieldType.STRING);
             this.columnLongIndex = addColumnDetails(table, "columnLong", RealmFieldType.INTEGER);
@@ -420,7 +420,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return realmObjectSchema;
     }
 
-    public static AllTypesColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
+    public static AllTypesColumnInfo validateTable(OsSharedRealm sharedRealm, boolean allowExtraColumns) {
         if (!sharedRealm.hasTable("class_AllTypes")) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "The 'AllTypes' class is missing from the schema for this Realm.");
         }

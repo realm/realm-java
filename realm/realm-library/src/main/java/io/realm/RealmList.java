@@ -30,6 +30,7 @@ import java.util.NoSuchElementException;
 
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
+import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import rx.Observable;
 
@@ -58,7 +59,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
     public static final String REMOVE_OUTSIDE_TRANSACTION_ERROR = "Objects can only be removed from inside a write transaction";
 
-    private final io.realm.internal.Collection collection;
+    private final OsResults osResults;
     protected Class<E> clazz;
     protected String className;
     final LinkView view;
@@ -73,7 +74,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist its elements in Realm.
      */
     public RealmList() {
-        collection = null;
+        osResults = null;
         view = null;
         unmanagedList = new ArrayList<>();
     }
@@ -91,7 +92,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         if (objects == null) {
             throw new IllegalArgumentException("The objects argument cannot be null");
         }
-        collection = null;
+        osResults = null;
         view = null;
         unmanagedList = new ArrayList<>(objects.length);
         Collections.addAll(unmanagedList, objects);
@@ -105,14 +106,14 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @param realm reference to Realm containing the data.
      */
     RealmList(Class<E> clazz, LinkView linkView, BaseRealm realm) {
-        this.collection = new io.realm.internal.Collection(realm.sharedRealm, linkView, null);
+        this.osResults = new OsResults(realm.osSharedRealm, linkView, null);
         this.clazz = clazz;
         this.view = linkView;
         this.realm = realm;
     }
 
     RealmList(String className, LinkView linkView, BaseRealm realm) {
-        this.collection = new io.realm.internal.Collection(realm.sharedRealm, linkView, null);
+        this.osResults = new OsResults(realm.osSharedRealm, linkView, null);
         this.view = linkView;
         this.realm = realm;
         this.className = className;
@@ -355,9 +356,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     }
 
     /**
-     * Removes one instance of the specified object from this {@code Collection} if one
+     * Removes one instance of the specified object from this {@code OsResults} if one
      * is contained. This implementation iterates over this
-     * {@code Collection} and tests each element {@code e} returned by the iterator,
+     * {@code OsResults} and tests each element {@code e} returned by the iterator,
      * whether {@code e} is equal to the given object. If {@code object != null}
      * then this test is performed using {@code object.equals(e)}, otherwise
      * using {@code object == null}. If an element equal to the given object is
@@ -367,7 +368,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * is thrown.
      *
      * @param object the object to remove.
-     * @return {@code true} if this {@code Collection} is modified, {@code false} otherwise.
+     * @return {@code true} if this {@code OsResults} is modified, {@code false} otherwise.
      * @throws ClassCastException if the object passed is not of the correct type.
      * @throws NullPointerException if {@code object} is {@code null}.
      */
@@ -380,20 +381,20 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     }
 
     /**
-     * Removes all occurrences in this {@code Collection} of each object in the
-     * specified {@code Collection}. After this method returns none of the
-     * elements in the passed {@code Collection} can be found in this {@code Collection}
+     * Removes all occurrences in this {@code OsResults} of each object in the
+     * specified {@code OsResults}. After this method returns none of the
+     * elements in the passed {@code OsResults} can be found in this {@code OsResults}
      * anymore.
      * <p>
-     * This implementation iterates over the {@code Collection} and tests each
+     * This implementation iterates over the {@code OsResults} and tests each
      * element {@code e} returned by the iterator, whether it is contained in
-     * the specified {@code Collection}. If this test is positive, then the {@code
+     * the specified {@code OsResults}. If this test is positive, then the {@code
      * remove} method is called on the iterator.
      *
-     * @param collection the collection of objects to remove.
-     * @return {@code true} if this {@code Collection} is modified, {@code false} otherwise.
-     * @throws ClassCastException if one or more elements of {@code collection} isn't of the correct type.
-     * @throws NullPointerException if {@code collection} is {@code null}.
+     * @param collection the osResults of objects to remove.
+     * @return {@code true} if this {@code OsResults} is modified, {@code false} otherwise.
+     * @throws ClassCastException if one or more elements of {@code osResults} isn't of the correct type.
+     * @throws NullPointerException if {@code osResults} is {@code null}.
      */
     @Override
     public boolean removeAll(Collection<?> collection) {
@@ -817,12 +818,12 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         if (className != null) {
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    new io.realm.internal.Collection(realm.sharedRealm, view, null),
+                    new OsResults(realm.osSharedRealm, view, null),
                     className);
         } else {
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    new io.realm.internal.Collection(realm.sharedRealm, view, null),
+                    new OsResults(realm.osSharedRealm, view, null),
                     clazz);
         }
     }
@@ -896,7 +897,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+        realm.osSharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
     }
 
     /**
@@ -934,7 +935,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.addListener(this, listener);
+        osResults.addListener(this, listener);
     }
 
     /**
@@ -947,7 +948,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.removeListener(this, listener);
+        osResults.removeListener(this, listener);
     }
 
     /**
@@ -985,7 +986,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public void addChangeListener(RealmChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.addListener(this, listener);
+        osResults.addListener(this, listener);
     }
 
     /**
@@ -998,7 +999,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public void removeChangeListener(RealmChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.removeListener(this, listener);
+        osResults.removeListener(this, listener);
     }
 
     /**
@@ -1009,7 +1010,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public void removeAllChangeListeners() {
         checkForAddRemoveListener(null, false);
-        collection.removeAllListeners();
+        osResults.removeAllListeners();
     }
 
     // Custom RealmList iterator.

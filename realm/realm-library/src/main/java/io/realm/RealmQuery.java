@@ -22,7 +22,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import io.realm.annotations.Required;
-import io.realm.internal.Collection;
+import io.realm.internal.OsResults;
 import io.realm.internal.LinkView;
 import io.realm.internal.PendingRow;
 import io.realm.internal.RealmObjectProxy;
@@ -131,7 +131,7 @@ public class RealmQuery<E extends RealmModel> {
         this.schema = realm.getSchema().getSchemaForClass(clazz);
         this.table = queryResults.getTable();
         this.linkView = null;
-        this.query = queryResults.getCollection().where();
+        this.query = queryResults.getOsResults().where();
     }
 
     private RealmQuery(BaseRealm realm, LinkView linkView, Class<E> clazz) {
@@ -156,7 +156,7 @@ public class RealmQuery<E extends RealmModel> {
         this.className = className;
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
-        this.query = queryResults.getCollection().where();
+        this.query = queryResults.getOsResults().where();
     }
 
     private RealmQuery(BaseRealm realm, LinkView linkView, String className) {
@@ -1552,7 +1552,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmResults<E> distinctAsync(String fieldName) {
         realm.checkIfValid();
 
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
+        realm.osSharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), query.getTable(), fieldName);
         return createRealmResults(query, null, distinctDescriptor, false);
     }
@@ -1754,7 +1754,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmResults<E> findAllAsync() {
         realm.checkIfValid();
 
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
+        realm.osSharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         return createRealmResults(query, null, null, false);
     }
 
@@ -1791,7 +1791,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmResults<E> findAllSortedAsync(final String fieldName, final Sort sortOrder) {
         realm.checkIfValid();
 
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
+        realm.osSharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldName, sortOrder);
         return createRealmResults(query, sortDescriptor, null, false);
     }
@@ -1864,7 +1864,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmResults<E> findAllSortedAsync(String[] fieldNames, final Sort[] sortOrders) {
         realm.checkIfValid();
 
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
+        realm.osSharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
         return createRealmResults(query, sortDescriptor, null, false);
     }
@@ -1929,12 +1929,12 @@ public class RealmQuery<E extends RealmModel> {
     public E findFirstAsync() {
         realm.checkIfValid();
 
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
+        realm.osSharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         Row row;
         if (realm.isInTransaction()) {
             // It is not possible to create async query inside a transaction. So immediately query the first object.
             // See OS Results::prepare_async()
-            row = new Collection(realm.sharedRealm, query).firstUncheckedRow();
+            row = new OsResults(realm.osSharedRealm, query).firstUncheckedRow();
         } else {
             // prepares an empty reference of the RealmObject which is backed by a pending query,
             // then update it once the query complete in the background.
@@ -1942,7 +1942,7 @@ public class RealmQuery<E extends RealmModel> {
             // TODO: The performance by the pending query will be a little bit worse than directly calling core's
             // Query.find(). The overhead comes with core needs to add all the row indices to the vector. However this
             // can be optimized by adding support of limit in OS's Results which is supported by core already.
-            row = new PendingRow(realm.sharedRealm, query, null, isDynamicQuery());
+            row = new PendingRow(realm.osSharedRealm, query, null, isDynamicQuery());
         }
         final E result;
         if (isDynamicQuery()) {
@@ -1967,11 +1967,11 @@ public class RealmQuery<E extends RealmModel> {
             SortDescriptor distinctDescriptor,
             boolean loadResults) {
         RealmResults<E> results;
-        Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
+        OsResults osResults = new OsResults(realm.osSharedRealm, query, sortDescriptor, distinctDescriptor);
         if (isDynamicQuery()) {
-            results = new RealmResults<>(realm, collection, className);
+            results = new RealmResults<>(realm, osResults, className);
         } else {
-            results = new RealmResults<>(realm, collection, clazz);
+            results = new RealmResults<>(realm, osResults, clazz);
         }
         if (loadResults) {
             results.load();

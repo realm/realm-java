@@ -130,7 +130,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
             throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: \'" + className + "\' (" + Integer.toString(className.length()) + ")");
         }
-        if (realm.sharedRealm.hasTable(internalTableName)) {
+        if (realm.osSharedRealm.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
         // in case this table has a primary key, we need to transfer it after renaming the table.
@@ -141,13 +141,13 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
             pkField = getPrimaryKey();
             table.setPrimaryKey(null);
         }
-        realm.sharedRealm.renameTable(table.getName(), internalTableName);
+        realm.osSharedRealm.renameTable(table.getName(), internalTableName);
         if (pkField != null && !pkField.isEmpty()) {
             try {
                 table.setPrimaryKey(pkField);
             } catch (Exception e) {
                 // revert the table name back when something goes wrong
-                realm.sharedRealm.renameTable(table.getName(), oldTableName);
+                realm.osSharedRealm.renameTable(table.getName(), oldTableName);
                 throw e;
             }
         }
@@ -212,7 +212,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     public StandardRealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
+        table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.osSharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
         return this;
     }
 
@@ -228,7 +228,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     public StandardRealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
+        table.addColumnLink(RealmFieldType.LIST, fieldName, realm.osSharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
         return this;
     }
 
@@ -578,7 +578,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         table.addColumnLink(
                 type,
                 name,
-                realm.getSharedRealm().getTable(Table.getTableNameForClass(linkedTo.getClassName())));
+                realm.getOsSharedRealm().getTable(Table.getTableNameForClass(linkedTo.getClassName())));
         return this;
     }
 

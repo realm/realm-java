@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
@@ -94,7 +94,7 @@ public class SyncConfiguration extends RealmConfiguration {
                                 long schemaVersion,
                                 RealmMigration migration,
                                 boolean deleteRealmIfMigrationNeeded,
-                                SharedRealm.Durability durability,
+                                OsSharedRealm.Durability durability,
                                 RealmProxyMediator schemaMediator,
                                 RxObservableFactory rxFactory,
                                 Realm.Transaction initialDataTransaction,
@@ -301,7 +301,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private Realm.Transaction initialDataTransaction;
         private File defaultFolder;
         private String defaultLocalFileName;
-        private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
+        private OsSharedRealm.Durability durability = OsSharedRealm.Durability.FULL;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
         private boolean readOnly = false;
         private boolean waitForServerChanges = false;
@@ -627,7 +627,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */
         public Builder inMemory() {
-            this.durability = SharedRealm.Durability.MEM_ONLY;
+            this.durability = OsSharedRealm.Durability.MEM_ONLY;
             return this;
         }
 

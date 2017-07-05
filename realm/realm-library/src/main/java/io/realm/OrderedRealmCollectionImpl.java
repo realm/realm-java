@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Locale;
 
-import io.realm.internal.Collection;
+import io.realm.internal.OsResults;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SortDescriptor;
@@ -16,7 +16,7 @@ import io.realm.internal.UncheckedRow;
 
 
 /**
- * General implementation for {@link OrderedRealmCollection} which is based on the {@code Collection}.
+ * General implementation for {@link OrderedRealmCollection} which is based on the {@code OsResults}.
  */
 abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         extends AbstractList<E> implements OrderedRealmCollection<E> {
@@ -27,29 +27,29 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     final Class<E> classSpec;   // Return type
     final String className;     // Class name used by DynamicRealmObjects
 
-    final Collection collection;
+    final OsResults osResults;
 
-    OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, Class<E> clazz) {
-        this(realm, collection, clazz, null);
+    OrderedRealmCollectionImpl(BaseRealm realm, OsResults osResults, Class<E> clazz) {
+        this(realm, osResults, clazz, null);
     }
 
-    OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, String className) {
-        this(realm, collection, null, className);
+    OrderedRealmCollectionImpl(BaseRealm realm, OsResults osResults, String className) {
+        this(realm, osResults, null, className);
     }
 
-    private OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, Class<E> clazz, String className) {
+    private OrderedRealmCollectionImpl(BaseRealm realm, OsResults osResults, Class<E> clazz, String className) {
         this.realm = realm;
-        this.collection = collection;
+        this.osResults = osResults;
         this.classSpec = clazz;
         this.className = className;
     }
 
     Table getTable() {
-        return collection.getTable();
+        return osResults.getTable();
     }
 
-    Collection getCollection() {
-        return collection;
+    OsResults getOsResults() {
+        return osResults;
     }
 
     /**
@@ -57,11 +57,11 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      */
     @Override
     public boolean isValid() {
-        return collection.isValid();
+        return osResults.isValid();
     }
 
     /**
-     * A {@link RealmResults} or a {@link OrderedRealmCollectionSnapshot} is always a managed collection.
+     * A {@link RealmResults} or a {@link OrderedRealmCollectionSnapshot} is always a managed osResults.
      *
      * @return {@code true}.
      * @see RealmCollection#isManaged()
@@ -108,7 +108,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public E get(int location) {
         realm.checkIfValid();
-        return realm.get(classSpec, className, collection.getUncheckedRow(location));
+        return realm.get(classSpec, className, osResults.getUncheckedRow(location));
     }
 
     /**
@@ -128,7 +128,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     private E firstImpl(boolean shouldThrow, E defaultValue) {
-        UncheckedRow row = collection.firstUncheckedRow();
+        UncheckedRow row = osResults.firstUncheckedRow();
 
         if (row != null) {
             return realm.get(classSpec, className, row);
@@ -159,7 +159,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     private E lastImpl(boolean shouldThrow, E defaultValue) {
-        UncheckedRow row = collection.lastUncheckedRow();
+        UncheckedRow row = osResults.lastUncheckedRow();
 
         if (row != null) {
             return realm.get(classSpec, className, row);
@@ -179,7 +179,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     public void deleteFromRealm(int location) {
         // TODO: Implement the delete in OS level and do check there!
         realm.checkIfValidAndInTransaction();
-        collection.delete(location);
+        osResults.delete(location);
     }
 
     /**
@@ -189,7 +189,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     public boolean deleteAllFromRealm() {
         realm.checkIfValid();
         if (size() > 0) {
-            collection.clear();
+            osResults.clear();
             return true;
         }
         return false;
@@ -245,7 +245,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Aggregates on child object fields are not supported: " + fieldName);
         }
-        long columnIndex = collection.getTable().getColumnIndex(fieldName);
+        long columnIndex = osResults.getTable().getColumnIndex(fieldName);
         if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format(Locale.US, "Field '%s' does not exist.", fieldName));
         }
@@ -258,10 +258,10 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public RealmResults<E> sort(String fieldName) {
         SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(getSchemaConnector(), collection.getTable(), fieldName, Sort.ASCENDING);
+                SortDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldName, Sort.ASCENDING);
 
-        Collection sortedCollection = collection.sort(sortDescriptor);
-        return createLoadedResults(sortedCollection);
+        OsResults sortedOsResults = osResults.sort(sortDescriptor);
+        return createLoadedResults(sortedOsResults);
     }
 
     /**
@@ -270,10 +270,10 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
         SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(getSchemaConnector(), collection.getTable(), fieldName, sortOrder);
+                SortDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldName, sortOrder);
 
-        Collection sortedCollection = collection.sort(sortDescriptor);
-        return createLoadedResults(sortedCollection);
+        OsResults sortedOsResults = osResults.sort(sortDescriptor);
+        return createLoadedResults(sortedOsResults);
     }
 
     /**
@@ -282,10 +282,10 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
         SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(getSchemaConnector(), collection.getTable(), fieldNames, sortOrders);
+                SortDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldNames, sortOrders);
 
-        Collection sortedCollection = collection.sort(sortDescriptor);
-        return createLoadedResults(sortedCollection);
+        OsResults sortedOsResults = osResults.sort(sortDescriptor);
+        return createLoadedResults(sortedOsResults);
     }
 
     /**
@@ -306,7 +306,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public int size() {
         if (isLoaded()) {
-            long size = collection.size();
+            long size = osResults.size();
             return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
         }
         return 0;
@@ -319,7 +319,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     public Number min(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        return collection.aggregateNumber(io.realm.internal.Collection.Aggregate.MINIMUM, columnIndex);
+        return osResults.aggregateNumber(OsResults.Aggregate.MINIMUM, columnIndex);
     }
 
     /**
@@ -329,7 +329,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     public Date minDate(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        return collection.aggregateDate(Collection.Aggregate.MINIMUM, columnIndex);
+        return osResults.aggregateDate(OsResults.Aggregate.MINIMUM, columnIndex);
     }
 
     /**
@@ -339,7 +339,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     public Number max(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        return collection.aggregateNumber(Collection.Aggregate.MAXIMUM, columnIndex);
+        return osResults.aggregateNumber(OsResults.Aggregate.MAXIMUM, columnIndex);
     }
 
     /**
@@ -356,7 +356,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        return collection.aggregateDate(Collection.Aggregate.MAXIMUM, columnIndex);
+        return osResults.aggregateDate(OsResults.Aggregate.MAXIMUM, columnIndex);
     }
 
 
@@ -367,7 +367,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     public Number sum(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        return collection.aggregateNumber(Collection.Aggregate.SUM, columnIndex);
+        return osResults.aggregateNumber(OsResults.Aggregate.SUM, columnIndex);
     }
 
     /**
@@ -378,7 +378,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
 
-        Number avg = collection.aggregateNumber(Collection.Aggregate.AVERAGE, columnIndex);
+        Number avg = osResults.aggregateNumber(OsResults.Aggregate.AVERAGE, columnIndex);
         return avg.doubleValue();
     }
 
@@ -448,7 +448,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     public boolean deleteLastFromRealm() {
         // TODO: Implement the deleteLast in OS level and do check there!
         realm.checkIfValidAndInTransaction();
-        return collection.deleteLast();
+        return osResults.deleteLast();
     }
 
     /**
@@ -460,7 +460,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     public boolean deleteFirstFromRealm() {
         // TODO: Implement the deleteLast in OS level and do check there!
         realm.checkIfValidAndInTransaction();
-        return collection.deleteFirst();
+        return osResults.deleteFirst();
     }
 
     /**
@@ -520,9 +520,9 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
-    private class RealmCollectionIterator extends Collection.Iterator<E> {
+    private class RealmCollectionIterator extends OsResults.Iterator<E> {
         RealmCollectionIterator() {
-            super(OrderedRealmCollectionImpl.this.collection);
+            super(OrderedRealmCollectionImpl.this.osResults);
         }
 
         @Override
@@ -534,16 +534,16 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public OrderedRealmCollectionSnapshot<E> createSnapshot() {
         if (className != null) {
-            return new OrderedRealmCollectionSnapshot<E>(realm, collection, className);
+            return new OrderedRealmCollectionSnapshot<E>(realm, osResults, className);
         } else {
-            return new OrderedRealmCollectionSnapshot<E>(realm, collection, classSpec);
+            return new OrderedRealmCollectionSnapshot<E>(realm, osResults, classSpec);
         }
     }
 
     // Custom RealmResults list iterator.
-    private class RealmCollectionListIterator extends Collection.ListIterator<E> {
+    private class RealmCollectionListIterator extends OsResults.ListIterator<E> {
         RealmCollectionListIterator(int start) {
-            super(OrderedRealmCollectionImpl.this.collection, start);
+            super(OrderedRealmCollectionImpl.this.osResults, start);
         }
 
         @Override
@@ -552,12 +552,12 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         }
     }
 
-    RealmResults<E> createLoadedResults(Collection newCollection) {
+    RealmResults<E> createLoadedResults(OsResults newOsResults) {
         RealmResults<E> results;
         if (className != null) {
-            results = new RealmResults<E>(realm, newCollection, className);
+            results = new RealmResults<E>(realm, newOsResults, className);
         } else {
-            results = new RealmResults<E>(realm, newCollection, classSpec);
+            results = new RealmResults<E>(realm, newOsResults, classSpec);
         }
         results.load();
         return results;

@@ -65,7 +65,7 @@ public interface UserStore {
     /**
      * Returns a collection of all users saved in the User store.
      *
-     * @return Collection of all users. If no users exist, an empty collection is returned.
+     * @return OsResults of all users. If no users exist, an empty collection is returned.
      */
     Collection<SyncUser> allUsers();
 

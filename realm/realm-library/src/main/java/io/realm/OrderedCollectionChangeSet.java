@@ -17,31 +17,31 @@
 package io.realm;
 
 /**
- * This interface describes the changes made to a collection during the last update.
+ * This interface describes the changes made to a osResults during the last update.
  * <p>
  * {@link OrderedCollectionChangeSet} is passed to the {@link OrderedRealmCollectionChangeListener} which is registered
  * by {@link RealmResults#addChangeListener(OrderedRealmCollectionChangeListener)}.
  * <p>
- * The change information is available in two formats: a simple array of row indices in the collection for each type of
+ * The change information is available in two formats: a simple array of row indices in the osResults for each type of
  * change, or an array of {@link Range}s.
  */
 public interface OrderedCollectionChangeSet {
     /**
-     * The deleted indices in the previous version of the collection.
+     * The deleted indices in the previous version of the osResults.
      *
      * @return the indices array. A zero-sized array will be returned if no objects were deleted.
      */
     int[] getDeletions();
 
     /**
-     * The inserted indices in the new version of the collection.
+     * The inserted indices in the new version of the osResults.
      *
      * @return the indices array. A zero-sized array will be returned if no objects were inserted.
      */
     int[] getInsertions();
 
     /**
-     * The modified indices in the new version of the collection.
+     * The modified indices in the new version of the osResults.
      * <p>
      * For {@link RealmResults}, this means that one or more of the properties of the object at the given index were
      * modified (or an object linked to by that object was modified).
@@ -51,21 +51,21 @@ public interface OrderedCollectionChangeSet {
     int[] getChanges();
 
     /**
-     * The deleted ranges of objects in the previous version of the collection.
+     * The deleted ranges of objects in the previous version of the osResults.
      *
      * @return the {@link Range} array. A zero-sized array will be returned if no objects were deleted.
      */
     Range[] getDeletionRanges();
 
     /**
-     * The inserted ranges of objects in the new version of the collection.
+     * The inserted ranges of objects in the new version of the osResults.
      *
      * @return the {@link Range} array. A zero-sized array will be returned if no objects were inserted.
      */
     Range[] getInsertionRanges();
 
     /**
-     * The modified ranges of objects in the new version of the collection.
+     * The modified ranges of objects in the new version of the osResults.
      *
      * @return the {@link Range} array. A zero-sized array will be returned if no objects were modified.
      */

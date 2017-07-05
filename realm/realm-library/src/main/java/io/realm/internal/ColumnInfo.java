@@ -244,7 +244,7 @@ public abstract class ColumnInfo {
      * @param sourceColumnName The name of the backlink source field.
      */
     @SuppressWarnings("unused")
-    protected final void addBacklinkDetails(SharedRealm realm, String columnName, String sourceTableName, String sourceColumnName) {
+    protected final void addBacklinkDetails(OsSharedRealm realm, String columnName, String sourceTableName, String sourceColumnName) {
         Table sourceTable = realm.getTable(Table.getTableNameForClass(sourceTableName));
         long columnIndex = sourceTable.getColumnIndex(sourceColumnName);
         indicesMap.put(columnName, new ColumnDetails(columnIndex, RealmFieldType.LINKING_OBJECTS, sourceTableName));

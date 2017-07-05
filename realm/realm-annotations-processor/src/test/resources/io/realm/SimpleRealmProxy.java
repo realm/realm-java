@@ -9,9 +9,9 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
@@ -35,7 +35,7 @@ public class SimpleRealmProxy extends some.test.Simple
         long nameIndex;
         long ageIndex;
 
-        SimpleColumnInfo(SharedRealm realm, Table table) {
+        SimpleColumnInfo(OsSharedRealm realm, Table table) {
             super(2);
             this.nameIndex = addColumnDetails(table, "name", RealmFieldType.STRING);
             this.ageIndex = addColumnDetails(table, "age", RealmFieldType.INTEGER);
@@ -150,7 +150,7 @@ public class SimpleRealmProxy extends some.test.Simple
         return realmObjectSchema;
     }
 
-    public static SimpleColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
+    public static SimpleColumnInfo validateTable(OsSharedRealm sharedRealm, boolean allowExtraColumns) {
         if (!sharedRealm.hasTable("class_Simple")) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "The 'Simple' class is missing from the schema for this Realm.");
         }

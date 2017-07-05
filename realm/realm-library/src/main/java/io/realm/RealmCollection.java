@@ -24,19 +24,19 @@ import io.realm.internal.ManagableObject;
 
 
 /**
- * {@code RealmCollection} is the root of the collection hierarchy that Realm supports. It defines operations on data
+ * {@code RealmCollection} is the root of the osResults hierarchy that Realm supports. It defines operations on data
  * collections and the behavior that they will have in all implementations of {@code RealmCollection}s.
  * <p>
  * Realm collections are "live" views to the underlying data. This means that they automatically will be kept up to
  * date. As a consequence, using methods like {@link Collections#unmodifiableCollection(Collection)} will not prevent
- * a collection from being modified.
+ * a osResults from being modified.
  *
- * @param <E> type of {@link RealmObject} stored in the collection.
+ * @param <E> type of {@link RealmObject} stored in the osResults.
  */
 public interface RealmCollection<E extends RealmModel> extends Collection<E>, ManagableObject {
 
     /**
-     * Returns a {@link RealmQuery}, which can be used to query for specific objects from this collection.
+     * Returns a {@link RealmQuery}, which can be used to query for specific objects from this osResults.
      *
      * @return a RealmQuery object.
      * @throws IllegalStateException if the Realm instance has been closed or queries are not otherwise available.
@@ -118,7 +118,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E>, Ma
     Date minDate(String fieldName);
 
     /**
-     * This deletes all objects in the collection from the underlying Realm as well as from the collection.
+     * This deletes all objects in the osResults from the underlying Realm as well as from the osResults.
      *
      * @return {@code true} if objects was deleted, {@code false} otherwise.
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
@@ -127,37 +127,37 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E>, Ma
     boolean deleteAllFromRealm();
 
     /**
-     * Checks if a collection has finished loading its data yet.
+     * Checks if a osResults has finished loading its data yet.
      *
      * @return {@code true} if data has been loaded and is available, {@code false} if data is still being loaded.
      */
     boolean isLoaded();
 
     /**
-     * Blocks the collection until all data are available.
+     * Blocks the osResults until all data are available.
      *
      * @return {@code true} if the data could be successfully loaded, {@code false} otherwise.
      */
     boolean load();
 
     /**
-     * Checks if the collection is still valid to use, i.e., the {@link io.realm.Realm} instance hasn't been closed. It
-     * will always return {@code true} for an unmanaged collection.
+     * Checks if the osResults is still valid to use, i.e., the {@link io.realm.Realm} instance hasn't been closed. It
+     * will always return {@code true} for an unmanaged osResults.
      *
-     * @return {@code true} if it is still valid to use or an unmanaged collection, {@code false} otherwise.
+     * @return {@code true} if it is still valid to use or an unmanaged osResults, {@code false} otherwise.
      */
     @Override
     boolean isValid();
 
     /**
-     * Checks if the collection is managed by Realm. A managed collection is just a wrapper around the data in the
-     * underlying Realm file. On Looper threads, a managed collection will be live-updated so it always points to the
+     * Checks if the osResults is managed by Realm. A managed osResults is just a wrapper around the data in the
+     * underlying Realm file. On Looper threads, a managed osResults will be live-updated so it always points to the
      * latest data. Managed collections are thread confined so that they cannot be accessed from other threads than the
      * one that created them.
      * <p>
      * <p>
-     * If this method returns {@code false}, the collection is unmanaged. An unmanaged collection is just a normal java
-     * collection, so it will not be live updated.
+     * If this method returns {@code false}, the osResults is unmanaged. An unmanaged osResults is just a normal java
+     * osResults, so it will not be live updated.
      * <p>
      *
      * @return {@code true} if this is a managed {@link RealmCollection}, {@code false} otherwise.
@@ -166,14 +166,14 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E>, Ma
     boolean isManaged();
 
     /**
-     * Tests whether this {@code Collection} contains the specified object. Returns
+     * Tests whether this {@code OsResults} contains the specified object. Returns
      * {@code true} if and only if at least one element {@code elem} in this
-     * {@code Collection} meets following requirement:
+     * {@code OsResults} meets following requirement:
      * {@code (object==null ? elem==null : object.equals(elem))}.
      *
      * @param object the object to search for.
-     * @return {@code true} if object is an element of this {@code Collection}, {@code false} otherwise.
-     * @throws NullPointerException if the object to look for is {@code null} and this {@code Collection} doesn't
+     * @return {@code true} if object is an element of this {@code OsResults}, {@code false} otherwise.
+     * @throws NullPointerException if the object to look for is {@code null} and this {@code OsResults} doesn't
      * support {@code null} elements.
      */
     @Override

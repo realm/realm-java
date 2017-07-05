@@ -352,7 +352,7 @@ public class ObjectChangeSetTests {
     }
 
     // Due to the fact that Object Store disallow adding notification block inside a transaction, the pending query
-    // for findFirstAsync needs to be executed first then move the listener from collection to the object before begin
+    // for findFirstAsync needs to be executed first then move the listener from osResults to the object before begin
     // transaction.
     @Test
     @RunTestInLooperThread(before = PopulateOneAllTypes.class)
