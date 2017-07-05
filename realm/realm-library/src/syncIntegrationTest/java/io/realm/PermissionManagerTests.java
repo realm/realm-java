@@ -30,10 +30,10 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Util;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
@@ -651,7 +651,7 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.TOKEN_EXPIRED, error.getErrorCode());
+                assertEquals(701, error.getErrorCode().intValue());
                 looperThread.testComplete();
             }
         });
@@ -660,7 +660,36 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
     @Test
     @RunTestInLooperThread
     public void acceptOffer_multipleUsers() {
-        looperThread.testComplete();
+        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
+
+        final SyncUser user2 = UserFactory.createUniqueUser();
+        final SyncUser user3 = UserFactory.createUniqueUser();
+        final PermissionManager pm2 = user2.getPermissionManager();
+        final PermissionManager pm3 = user3.getPermissionManager();
+        looperThread.closeAfterTest(pm2);
+        looperThread.closeAfterTest(pm3);
+
+        final AtomicInteger offersAccepted = new AtomicInteger(0);
+        PermissionManager.AcceptOfferCallback callback = new PermissionManager.AcceptOfferCallback() {
+            @Override
+            public void onSuccess(String url, Permission permission) {
+                assertEquals("/" + user.getIdentity() + "/test", permission.getPath());
+                assertTrue(permission.mayRead());
+                assertTrue(permission.mayWrite());
+                assertFalse(permission.mayManage());
+                if (offersAccepted.incrementAndGet() == 2) {
+                    looperThread.testComplete();
+                }
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        };
+
+        pm2.acceptOffer(offerToken, callback);
+        pm3.acceptOffer(offerToken, callback);
     }
 
     /**
