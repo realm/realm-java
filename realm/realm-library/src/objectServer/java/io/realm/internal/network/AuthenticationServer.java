@@ -66,4 +66,11 @@ public interface AuthenticationServer {
      * Changes a user's password using admin account.
      */
     ChangePasswordResponse changePassword(Token adminToken, String userID, String newPassword, URL authenticationUrl);
+
+    /**
+     * Looks up a {@code SyncUser} using the identity provider {@link io.realm.SyncCredentials.IdentityProvider}
+     * used when the account was created and the username or email used to create the account for the first time
+     * what is needed will depend on what type of {@link SyncCredentials} was used.
+     */
+    LookupUserIdResponse retrieveUser(Token adminToken, String provider, String providerId, URL authenticationUrl);
 }

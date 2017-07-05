@@ -888,7 +888,7 @@ public class RealmObjectSchemaTests {
         RealmConfiguration emptyConfig = configFactory.createConfiguration("empty");
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(emptyConfig);
         dynamicRealm.beginTransaction();
-        StandardRealmObjectSchema objectSchema = (StandardRealmObjectSchema) dynamicRealm.getSchema().create(className);
+        RealmObjectSchema objectSchema = dynamicRealm.getSchema().create(className);
 
         assertTrue(objectSchema.getFieldIndex(fieldName) < 0);
 
