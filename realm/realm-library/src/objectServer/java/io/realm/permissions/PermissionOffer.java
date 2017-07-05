@@ -180,9 +180,9 @@ public class PermissionOffer implements BasePermissionApi {
     }
 
     /**
-     * Check if the request was successfully handled by the Realm Object Server.
+     * Checks if the request was successfully handled by the Realm Object Server.
      *
-     * @return {@code true} if request was handled successfully. {@code false} if not. See {@link #getStatusMessage()}
+     * @return {@code true} if the request was handled successfully. {@code false} if not. See {@link #getStatusMessage()}
      *         for the full error message.
      */
     public boolean isOfferCreated() {
