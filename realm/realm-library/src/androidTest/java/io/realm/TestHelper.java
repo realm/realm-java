@@ -33,7 +33,6 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -48,6 +47,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationIndexTypes;
+import io.realm.entities.BacklinksSource;
+import io.realm.entities.BacklinksTarget;
 import io.realm.entities.NullTypes;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
@@ -346,11 +347,12 @@ public class TestHelper {
         };
     }
 
+    // Generate a random string with only capital letters which is always a valid class/field name.
     public static String getRandomString(int length) {
         Random r = new Random();
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            sb.append((char) r.nextInt(128)); // Restrict to standard ASCII chars.
+            sb.append((char) r.nextInt(26) + 'A'); // Restrict to capital letters
         }
         return sb.toString();
     }
@@ -1227,4 +1229,36 @@ public class TestHelper {
             return false;
         }
     }
+
+    public static void populateLinkedDataSet(Realm realm) {
+        realm.beginTransaction();
+        realm.delete(BacklinksSource.class);
+        realm.delete(BacklinksTarget.class);
+
+        BacklinksTarget target1 = realm.createObject(BacklinksTarget.class);
+        target1.setId(1);
+
+        BacklinksTarget target2 = realm.createObject(BacklinksTarget.class);
+        target2.setId(2);
+
+        BacklinksTarget target3 = realm.createObject(BacklinksTarget.class);
+        target3.setId(3);
+
+        BacklinksSource source1 = realm.createObject(BacklinksSource.class);
+        source1.setName("1");
+        source1.setChild(target1);
+        BacklinksSource source2 = realm.createObject(BacklinksSource.class);
+        source2.setName("2");
+        source2.setChild(target2);
+
+        BacklinksSource source3 = realm.createObject(BacklinksSource.class);
+        source3.setName("3");
+
+        BacklinksSource source4 = realm.createObject(BacklinksSource.class);
+        source4.setName("4");
+        source4.setChild(target1);
+
+        realm.commitTransaction();
+    }
+
 }

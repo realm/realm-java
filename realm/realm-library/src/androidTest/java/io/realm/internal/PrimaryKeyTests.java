@@ -66,7 +66,7 @@ public class PrimaryKeyTests {
     private Table getTableWithStringPrimaryKey() {
         sharedRealm = SharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
-        Table t = sharedRealm.createTable("TestTable");
+        Table t = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
         long column = t.addColumn(RealmFieldType.STRING, "colName", true);
         t.addSearchIndex(column);
         t.setPrimaryKey("colName");
@@ -76,7 +76,7 @@ public class PrimaryKeyTests {
     private Table getTableWithIntegerPrimaryKey() {
         sharedRealm = SharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
-        Table t = sharedRealm.createTable("TestTable");
+        Table t = sharedRealm.createTable(Table.getTableNameForClass("class_TestTable"));
         long column = t.addColumn(RealmFieldType.INTEGER, "colName");
         t.addSearchIndex(column);
         t.setPrimaryKey("colName");
@@ -91,7 +91,7 @@ public class PrimaryKeyTests {
         SharedRealm sharedRealm = SharedRealm.getInstance(config);
 
         sharedRealm.beginTransaction();
-        Table tbl = sharedRealm.createTable("EmployeeTable");
+        Table tbl = sharedRealm.createTable(Table.getTableNameForClass("EmployeeTable"));
         tbl.addColumn(RealmFieldType.STRING, "name");
         tbl.setPrimaryKey("name");
 
@@ -221,7 +221,7 @@ public class PrimaryKeyTests {
     public void migratePrimaryKeyTableIfNeeded_primaryKeyTableNeedSearchIndex() {
         sharedRealm = SharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
-        Table table = sharedRealm.createTable("TestTable");
+        Table table = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
         long column = table.addColumn(RealmFieldType.INTEGER, "PKColumn");
         table.addSearchIndex(column);
         table.setPrimaryKey(column);
@@ -236,7 +236,7 @@ public class PrimaryKeyTests {
         pkTable.removeSearchIndex(classColumn);
 
         // Tries to add a pk for another table.
-        Table table2 = sharedRealm.createTable("TestTable2");
+        Table table2 = sharedRealm.createTable(Table.getTableNameForClass("TestTable2"));
         long column2 = table2.addColumn(RealmFieldType.INTEGER, "PKColumn");
         table2.addSearchIndex(column2);
         try {

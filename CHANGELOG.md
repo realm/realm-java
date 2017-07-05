@@ -2,6 +2,8 @@
 
 ### Breaking Changes
 
+* [ObjectServer] Updated protocol version to 19 which is only compatible with ROS > 2.0.0.
+
 ### Deprecated
 
 ### Enhancements
@@ -12,6 +14,8 @@
 
 ### Internal
 
+* Upgraded to Realm Sync 2.0.0-rc9
+
 ### Credits
 
 
@@ -20,6 +24,7 @@
 ### Breaking Changes
 
 * An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required model classes (#3398).
+* Removed `io.realm.internal.OutOfMemoryError`. `java.lang.OutOfMemoryError` will be thrown instead.
 
 ### Deprecated
 
@@ -50,6 +55,7 @@
 * Fixed a bug in how to resolve field names when querying `@LinkingObjects` as the last field (#4864).
 * Rare crash in `RealmLog` when log level was set to `LogLevel.DEBUG`.
 * [ObjectServer] Fixed a bug related to the behaviour of `SyncUser#logout` and the use of invalid `SyncUser` with `SyncConfiguration` (#4822).
+* [ObjectServer] Not all error codes from the server were recognized correctly, resulting in UNKNOWN being reported instead.
 
 ### Internal
 
