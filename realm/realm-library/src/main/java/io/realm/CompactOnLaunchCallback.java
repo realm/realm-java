@@ -38,6 +38,5 @@ public interface CompactOnLaunchCallback {
      * @return {code true} to indicate an attempt to compact the file should be made. Otherwise, the compaction will be
      * skipped.
      */
-    @KeepMember
     boolean shouldCompact(long totalBytes, long usedBytes);
 }

@@ -209,7 +209,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
             JavaGlobalRef java_compact_on_launch_ref(env, compact_on_launch);
 
             auto should_compact_on_launch_function = [java_compact_on_launch_ref](size_t totalBytes, size_t usedBytes) {
-                JNIEnv* env = JniUtils::get_env(true);
+                JNIEnv* env = JniUtils::get_env(false);
                 return env->CallBooleanMethod(java_compact_on_launch_ref.get(), should_compact, totalBytes, usedBytes);
             };
             config.should_compact_on_launch_function = std::move(should_compact_on_launch_function);
