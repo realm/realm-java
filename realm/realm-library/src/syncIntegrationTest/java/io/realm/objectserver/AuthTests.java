@@ -423,7 +423,7 @@ public class AuthTests extends BaseIntegrationTest {
         }
     }
 
-    // verify that a single user can be logged out an back in.
+    // verify that a single user can be logged out and back in.
     @Test
     public void singleUserCanBeLoggedInAndOutRepeatedly() {
         final String username = UUID.randomUUID().toString();
