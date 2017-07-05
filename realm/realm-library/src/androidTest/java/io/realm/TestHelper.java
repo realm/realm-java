@@ -351,7 +351,7 @@ public class TestHelper {
         Random r = new Random();
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            sb.append((char) r.nextInt(25) + 'A'); // Restrict to capital letters
+            sb.append((char) r.nextInt(26) + 'A'); // Restrict to capital letters
         }
         return sb.toString();
     }
