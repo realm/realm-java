@@ -1067,7 +1067,12 @@ public class RealmTests {
         realm.commitTransaction();
         realm.close();
         long before = new File(realmConfig.getPath()).length();
-        realmConfig = configFactory.createConfiguration(REALM_NAME, compactOnLaunch);
+        RealmConfiguration.Builder builder = configFactory.createConfigurationBuilder();
+        File folder = configFactory.getRoot();
+        builder.directory(folder);
+        builder.name(REALM_NAME);
+        builder.compactOnLaunch(compactOnLaunch);
+        realmConfig = builder.build();
         realm = Realm.getInstance(realmConfig);
         realm.close();
         long after = new File(realmConfig.getPath()).length();
