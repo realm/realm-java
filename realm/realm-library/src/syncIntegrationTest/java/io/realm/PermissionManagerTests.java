@@ -638,6 +638,7 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
 
     @Test
     @RunTestInLooperThread
+    @Ignore("FIXME: Figure out how the time differs between emulator and server")
     public void acceptOffer_expiredThrows() {
         // Trying to guess how long CI is to process this. The offer cannot be created if it
         // already expired.
