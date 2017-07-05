@@ -18,6 +18,7 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,6 +57,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -1158,7 +1160,11 @@ public class DynamicRealmObjectTests {
                 AllJavaTypes.FIELD_DOUBLE, AllJavaTypes.FIELD_BOOLEAN, AllJavaTypes.FIELD_DATE,
                 AllJavaTypes.FIELD_BINARY, AllJavaTypes.FIELD_OBJECT, AllJavaTypes.FIELD_LIST};
         String[] keys = dObjTyped.getFieldNames();
-        assertArrayEquals(expectedKeys, keys);
+        // After the stable ID support, primary key field will be inserted first before others. So even FIELD_STRING is
+        // the first defined field in the class, it will be inserted after FIELD_ID.
+        // See ObjectStore::add_initial_columns #if REALM_HAVE_SYNC_STABLE_IDS branch.
+        assertEquals(expectedKeys.length, keys.length);
+        assertThat(Arrays.asList(expectedKeys), Matchers.hasItems(keys));
     }
 
     @Test

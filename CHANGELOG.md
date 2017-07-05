@@ -2,6 +2,8 @@
 
 ### Breaking Changes
 
+* [ObjectServer] Updated protocol version to 19 which is only compatible with ROS > 2.0.0.
+
 ### Deprecated
 
 ### Enhancements
@@ -9,6 +11,8 @@
 ### Bug Fixes
 
 ### Internal
+
+* Upgraded to Realm Sync 2.0.0-rc9
 
 ### Credits
 

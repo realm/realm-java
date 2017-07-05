@@ -188,6 +188,10 @@ public class RealmObjectSchema {
             }
         }
 
+        if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
+            checkAddPrimaryKeyForSync();
+        }
+
         checkNewFieldName(fieldName);
         boolean nullable = metadata.defaultNullable;
         if (containsAttribute(attributes, FieldAttribute.REQUIRED)) {
@@ -350,8 +354,10 @@ public class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist, the field cannot be a primary key or it already
      * has a primary key defined.
+     * @throws UnsupportedOperationException if this method is called on a synced Realm.
      */
     public RealmObjectSchema addPrimaryKey(String fieldName) {
+        checkAddPrimaryKeyForSync();
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
         if (table.hasPrimaryKey()) {
@@ -509,7 +515,10 @@ public class RealmObjectSchema {
         int columnCount = (int) table.getColumnCount();
         Set<String> columnNames = new LinkedHashSet<>(columnCount);
         for (int i = 0; i < columnCount; i++) {
-            columnNames.add(table.getColumnName(i));
+            String name = table.getColumnName(i);
+            if (!name.equals(Table.OBJECT_ID_COLUMN_NAME)) { // Filter out stable ID column
+                columnNames.add(name);
+            }
         }
         return columnNames;
     }
@@ -582,6 +591,10 @@ public class RealmObjectSchema {
         return table;
     }
 
+    static final Map<Class<?>, FieldMetaData> getSupportedSimpleFields() {
+        return SUPPORTED_SIMPLE_FIELDS;
+    }
+
     private SchemaConnector getSchemaConnector() {
         return new SchemaConnector(schema);
     }
@@ -635,7 +648,7 @@ public class RealmObjectSchema {
         }
     }
 
-    private boolean containsAttribute(FieldAttribute[] attributeList, FieldAttribute attribute) {
+    static boolean containsAttribute(FieldAttribute[] attributeList, FieldAttribute attribute) {
         if (attributeList == null || attributeList.length == 0) {
             return false;
         }
@@ -652,12 +665,15 @@ public class RealmObjectSchema {
         checkFieldNameIsAvailable(fieldName);
     }
 
-    private void checkLegalName(String fieldName) {
+    static void checkLegalName(String fieldName) {
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Field name can not be null or empty");
         }
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Field name can not contain '.'");
+        }
+        if (fieldName.length() > 63) {
+            throw new IllegalArgumentException("Field name is currently limited to max 63 characters.");
         }
     }
 
@@ -670,6 +686,12 @@ public class RealmObjectSchema {
     private void checkFieldExists(String fieldName) {
         if (table.getColumnIndex(fieldName) == Table.NO_MATCH) {
             throw new IllegalArgumentException("Field name doesn't exist on object '" + getClassName() + "': " + fieldName);
+        }
+    }
+
+    private void checkAddPrimaryKeyForSync() {
+        if (realm.configuration.isSyncConfiguration()) {
+            throw new UnsupportedOperationException("'addPrimaryKey' is not supported by synced Realms.");
         }
     }
 
@@ -732,7 +754,7 @@ public class RealmObjectSchema {
     }
 
     // Tuple containing data about each supported Java type.
-    private static final class FieldMetaData {
+    static final class FieldMetaData {
         final RealmFieldType realmType;
         final boolean defaultNullable;
 
