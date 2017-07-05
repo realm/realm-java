@@ -413,6 +413,7 @@ public class OrderedCollectionChangeSetTests {
         Realm realm = looperThread.getRealm();
         populateData(realm, 10);
         final RealmResults<Dog> results = realm.where(Dog.class).findAllSortedAsync(Dog.FIELD_AGE);
+        looperThread.keepStrongReference(results);
         results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
             @Override
             public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
