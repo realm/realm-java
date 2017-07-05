@@ -639,9 +639,12 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
     @Test
     @RunTestInLooperThread
     public void acceptOffer_expiredThrows() {
-        Date expiresAt = new Date(new Date().getTime() + TimeUnit.SECONDS.toMillis(5));
+        // Trying to guess how long CI is to process this. The offer cannot be created if it
+        // already expired.
+        long delayMillis = TimeUnit.SECONDS.toMillis(10);
+        Date expiresAt = new Date(new Date().getTime() + delayMillis);
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, expiresAt);
-        SystemClock.sleep(5000); // Make sure that the offer expires.
+        SystemClock.sleep(delayMillis); // Make sure that the offer expires.
         final SyncUser user2 = UserFactory.createUniqueUser();
         final PermissionManager pm = user2.getPermissionManager();
         looperThread.closeAfterTest(pm);
