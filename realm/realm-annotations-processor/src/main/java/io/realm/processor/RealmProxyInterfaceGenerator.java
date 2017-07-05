@@ -65,7 +65,11 @@ public class RealmProxyInterfaceGenerator {
                             fieldTypeCanonicalName,
                             metaData.getInternalGetter(fieldName),
                             EnumSet.of(Modifier.PUBLIC))
-                    .endMethod()
+                    .endMethod();
+
+            // Counters do not have setters.
+            if (Utils.isRealmInteger(field)) { continue; }
+            writer
                     .beginMethod(
                             "void",
                             metaData.getInternalSetter(fieldName),

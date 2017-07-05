@@ -88,12 +88,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
     }
 
-    private AllTypesColumnInfo columnInfo;
-    private ProxyState<some.test.AllTypes> proxyState;
-    private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
-    private RealmInteger columnCounterRealmInteger = RealmInteger.managedRealmInteger(null, -1);
-    private RealmList<some.test.AllTypes> columnRealmListRealmList;
-    private RealmResults<some.test.AllTypes> parentObjectsBacklinks;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -109,6 +103,13 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         fieldNames.add("columnRealmList");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
+    private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
+
+    private AllTypesColumnInfo columnInfo;
+    private ProxyState<some.test.AllTypes> proxyState;
+    private MutableRealmInteger.Managed columnCounterRealmInteger;
+    private RealmList<some.test.AllTypes> columnRealmListRealmList;
+    private RealmResults<some.test.AllTypes> parentObjectsBacklinks;
 
     AllTypesRealmProxy() {
         proxyState.setConstructionFinished();
@@ -126,6 +127,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
         proxyState.setExcludeFields$realm(context.getExcludeFields());
+        columnCounterRealmInteger = MutableRealmInteger.getManaged(this.proxyState, this.columnInfo.columnCounterIndex);
     }
 
     @Override
@@ -291,13 +293,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     @Override
-    public RealmInteger realmGet$columnCounter() {
+    public MutableRealmInteger realmGet$columnCounter() {
         proxyState.getRealm$realm().checkIfValid();
-        return columnCounterRealmInteger;
-    }
-
-    @Override
-    public void realmSet$columnCounter(RealmInteger value) {
+        return this.columnCounterRealmInteger;
     }
 
     @Override
@@ -424,7 +422,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         builder.addProperty("columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addProperty("columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addProperty("columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("columnCounter", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("columnCounter", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addLinkedProperty("columnObject", RealmFieldType.OBJECT, "AllTypes");
         builder.addLinkedProperty("columnRealmList", RealmFieldType.LIST, "AllTypes");
         return builder.build();
@@ -535,7 +533,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnCounter' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
         }
         if (columnTypes.get("columnCounter") != RealmFieldType.INTEGER) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'RealmInteger' for field 'columnCounter' in existing Realm file.");
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'MutableRealmInteger' for field 'columnCounter' in existing Realm file.");
         }
         if (!table.isColumnNullable(columnInfo.columnCounterIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'columnCounter' is required. Either set @Required to field 'columnCounter' or migrate using RealmObjectSchema.setNullable().");
@@ -785,7 +783,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             } else if (name.equals("columnCounter")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnCounter(null);
+                    ((AllTypesRealmProxyInterface) obj).realmGet$columnCounter().set(null);
                 } else {
                     ((AllTypesRealmProxyInterface) obj).realmGet$columnCounter().set((long) reader.nextLong());
                 }
@@ -880,8 +878,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         AllTypesRealmProxyInterface realmObjectSource = (AllTypesRealmProxyInterface) newObject;
         AllTypesRealmProxyInterface realmObjectCopy = (AllTypesRealmProxyInterface) realmObject;
 
-        ProxyState<some.test.AllTypes> proxyState = ((RealmObjectProxy) realmObject).realmGet$proxyState();
-
         realmObjectCopy.realmSet$columnLong(realmObjectSource.realmGet$columnLong());
         realmObjectCopy.realmSet$columnFloat(realmObjectSource.realmGet$columnFloat());
         realmObjectCopy.realmSet$columnDouble(realmObjectSource.realmGet$columnDouble());
@@ -889,7 +885,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         realmObjectCopy.realmSet$columnDate(realmObjectSource.realmGet$columnDate());
         realmObjectCopy.realmSet$columnBinary(realmObjectSource.realmGet$columnBinary());
 
-        realmObjectCopy.realmGet$columnCounter().set(realmObjectSource.realmGet$columnCounter().longValue());
+        realmObjectCopy.realmGet$columnCounter().set(realmObjectSource.realmGet$columnCounter().get());
 
         some.test.AllTypes columnObjectObj = realmObjectSource.realmGet$columnObject();
         if (columnObjectObj == null) {
@@ -953,9 +949,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (realmGet$columnBinary != null) {
             Table.nativeSetByteArray(tableNativePtr, columnInfo.columnBinaryIndex, rowIndex, realmGet$columnBinary, false);
         }
-        io.realm.RealmInteger realmGet$columnCounter = ((AllTypesRealmProxyInterface) object).realmGet$columnCounter();
-        if (realmGet$columnCounter != null) {
-            Table.nativeSetLong(tableNativePtr, columnInfo.columnCounterIndex, rowIndex, realmGet$columnCounter.longValue(), false);
+        io.realm.MutableRealmInteger realmGet$columnCounter = ((AllTypesRealmProxyInterface) object).realmGet$columnCounter();
+        if ((realmGet$columnCounter != null) && (realmGet$columnCounter.get() != null)) {
+            Table.nativeSetLong(tableNativePtr, columnInfo.columnCounterIndex, rowIndex, realmGet$columnCounter.get().longValue(), false);
         }
 
         some.test.AllTypes columnObjectObj = ((AllTypesRealmProxyInterface) object).realmGet$columnObject();
@@ -1022,9 +1018,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (realmGet$columnBinary != null) {
                 Table.nativeSetByteArray(tableNativePtr, columnInfo.columnBinaryIndex, rowIndex, realmGet$columnBinary, false);
             }
-            io.realm.RealmInteger realmGet$columnCounter = ((AllTypesRealmProxyInterface) object).realmGet$columnCounter();
-            if (realmGet$columnCounter != null) {
-                Table.nativeSetLong(tableNativePtr, columnInfo.columnCounterIndex, rowIndex, realmGet$columnCounter.longValue(), false);
+            io.realm.MutableRealmInteger realmGet$columnCounter = ((AllTypesRealmProxyInterface) object).realmGet$columnCounter();
+            if ((realmGet$columnCounter != null) && (realmGet$columnCounter.get() != null)) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.columnCounterIndex, rowIndex, realmGet$columnCounter.get().longValue(), false);
             }
             some.test.AllTypes columnObjectObj = ((AllTypesRealmProxyInterface) object).realmGet$columnObject();
             if (columnObjectObj != null) {
@@ -1084,9 +1080,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.columnBinaryIndex, rowIndex, false);
         }
-        io.realm.RealmInteger realmGet$columnCounter = ((AllTypesRealmProxyInterface) object).realmGet$columnCounter();
-        if (realmGet$columnCounter != null) {
-            Table.nativeSetLong(tableNativePtr, columnInfo.columnCounterIndex, rowIndex, realmGet$columnCounter.longValue(), false);
+        io.realm.MutableRealmInteger realmGet$columnCounter = ((AllTypesRealmProxyInterface) object).realmGet$columnCounter();
+        if ((realmGet$columnCounter != null) && (realmGet$columnCounter.get() != null)) {
+            Table.nativeSetLong(tableNativePtr, columnInfo.columnCounterIndex, rowIndex, realmGet$columnCounter.get().longValue(), false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.columnCounterIndex, rowIndex, false);
         }
@@ -1160,9 +1156,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             } else {
                 Table.nativeSetNull(tableNativePtr, columnInfo.columnBinaryIndex, rowIndex, false);
             }
-            io.realm.RealmInteger realmGet$columnCounter = ((AllTypesRealmProxyInterface) object).realmGet$columnCounter();
-            if (realmGet$columnCounter != null) {
-                Table.nativeSetLong(tableNativePtr, columnInfo.columnCounterIndex, rowIndex, realmGet$columnCounter.longValue(), false);
+            io.realm.MutableRealmInteger realmGet$columnCounter = ((AllTypesRealmProxyInterface) object).realmGet$columnCounter();
+            if ((realmGet$columnCounter != null) && (realmGet$columnCounter.get() != null)) {
+                Table.nativeSetLong(tableNativePtr, columnInfo.columnCounterIndex, rowIndex, realmGet$columnCounter.get().longValue(), false);
             } else {
                 Table.nativeSetNull(tableNativePtr, columnInfo.columnCounterIndex, rowIndex, false);
             }
@@ -1220,7 +1216,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         unmanagedCopy.realmSet$columnBoolean(realmSource.realmGet$columnBoolean());
         unmanagedCopy.realmSet$columnDate(realmSource.realmGet$columnDate());
         unmanagedCopy.realmSet$columnBinary(realmSource.realmGet$columnBinary());
-        unmanagedCopy.realmSet$columnCounter(realmSource.realmGet$columnCounter());
+        unmanagedCopy.realmGet$columnCounter().set(realmSource.realmGet$columnCounter().get());
 
         // Deep copy of columnObject
         unmanagedCopy.realmSet$columnObject(AllTypesRealmProxy.createDetachedCopy(realmSource.realmGet$columnObject(), currentDepth + 1, maxDepth, cache));
@@ -1251,7 +1247,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         realmObjectTarget.realmSet$columnBoolean(realmObjectSource.realmGet$columnBoolean());
         realmObjectTarget.realmSet$columnDate(realmObjectSource.realmGet$columnDate());
         realmObjectTarget.realmSet$columnBinary(realmObjectSource.realmGet$columnBinary());
-        realmObjectTarget.realmSet$columnCounter(realmObjectSource.realmGet$columnCounter());
+        realmObjectTarget.realmGet$columnCounter().set(realmObjectSource.realmGet$columnCounter().get());
         some.test.AllTypes columnObjectObj = realmObjectSource.realmGet$columnObject();
         if (columnObjectObj == null) {
             realmObjectTarget.realmSet$columnObject(null);
@@ -1316,7 +1312,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnCounter:");
-        stringBuilder.append(realmGet$columnCounter().longValue());
+        stringBuilder.append(realmGet$columnCounter().get());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnObject:");

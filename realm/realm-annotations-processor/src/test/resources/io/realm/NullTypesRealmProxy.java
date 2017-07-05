@@ -119,9 +119,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
     }
 
-    private NullTypesColumnInfo columnInfo;
-    private ProxyState<some.test.NullTypes> proxyState;
-    private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -148,6 +145,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         fieldNames.add("fieldObjectNull");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
+    private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
+
+    private NullTypesColumnInfo columnInfo;
+    private ProxyState<some.test.NullTypes> proxyState;
 
     NullTypesRealmProxy() {
         proxyState.setConstructionFinished();

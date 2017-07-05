@@ -495,8 +495,11 @@ public class ClassMetaData {
             Utils.error(String.format(Locale.US,
                     "Field \"%s\", a MutableRealmInteger, must be final.",
                     field.getSimpleName().toString()));
+            return false;
         }
+
         containsRealmInteger = true;
+
         return true;
     }
 

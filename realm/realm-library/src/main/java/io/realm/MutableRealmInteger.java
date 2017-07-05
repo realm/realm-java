@@ -38,10 +38,10 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     /**
      * Unmanaged Implementation.
      */
-    private static final class UnmanagedMutableRealmInteger extends MutableRealmInteger {
+    private static final class Unmanaged extends MutableRealmInteger {
         private Long value;
 
-        UnmanagedMutableRealmInteger(long value) {
+        Unmanaged(Long value) {
             this.value = value;
         }
 
@@ -57,16 +57,18 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
         @Override
         public void increment(long inc) {
-            if (value != null) {
-                value = Long.valueOf(value + inc);
+            if (value == null) {
+                throw new NullPointerException("Attempt to increment a null valued MutableRealmInteger");
             }
+            value = Long.valueOf(value + inc);
         }
 
         @Override
         public void decrement(long dec) {
-            if (value != null) {
-                value = Long.valueOf(value - dec);
+            if (value == null) {
+                throw new NullPointerException("Attempt to decrement a null valued MutableRealmInteger");
             }
+            value = Long.valueOf(value - dec);
         }
 
         @Override
@@ -84,13 +86,22 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     /**
      * Managed Implementation.
      */
-    static class ManagedMutableRealmInteger extends MutableRealmInteger {
+    // FIXME Counters: wire up to native increment method
+    static class Managed extends MutableRealmInteger {
         private final ProxyState<?> proxyState;
         private final BaseRealm realm;
         private final Row row;
         private final long columnIndex;
+        private Long value;
 
-        ManagedMutableRealmInteger(ProxyState<? extends RealmObject> proxyState, long columnIndex) {
+        /**
+         * Inject the proxy state into this managed RealmInteger.
+         *
+         * @param proxyState Proxy state object.  Contains refs to Realm and Row.
+         * @param columnIndex The index of the column that contains the MutableRealmInteger.
+         * @return a managed MutableRealmInteger.
+         */
+        Managed(ProxyState<? extends RealmObject> proxyState, long columnIndex) {
             this.proxyState = proxyState;
             this.realm = proxyState.getRealm$realm();
             this.row = proxyState.getRow$realm();
@@ -109,39 +120,43 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
         @Override
         public Long get() {
-            return null;
+            return value;
         }
 
-        @Override
-        public void set(Long value) {
-            // FIXME Counters: wire up to native increment method
 
-// Template code:
-//            if (proxyState.isUnderConstruction()) {
-//                if (!proxyState.getAcceptDefaultValue$realm()) {  // Wat?
-//                    return;
-//                }
-//
-//                row.getTable().setLong(columnIndex, row.getIndex(), value, true);
+//        // Template code:
+//        if (proxyState.isUnderConstruction()) {
+//            if (!proxyState.getAcceptDefaultValue$realm()) {  // Wat?
 //                return;
 //            }
 //
-//            realm.checkIfValidAndInTransaction();
-//            row.setLong(columnIndex, value);
+//            row.getTable().setLong(columnIndex, row.getIndex(), value, true);
+//            return;
+//        }
+//        row.setLong(columnIndex,value);
+        @Override
+        public void set(Long value) {
+            realm.checkIfValidAndInTransaction();
+            this.value = value;
         }
 
         @Override
         public void increment(long inc) {
-            realm.checkIfValidAndInTransaction();
-            // FIXME Counters: wire up to native increment method
+            Long val = get();
+            if (val == null) {
+                throw new NullPointerException("Attempt to increment a null valued MutableRealmInteger");
+            }
+            set(val + inc);
         }
 
         @Override
         public void decrement(long dec) {
-            realm.checkIfValidAndInTransaction();
-            // FIXME Counters: wire up to native increment method
+            Long val = get();
+            if (val == null) {
+                throw new NullPointerException("Attempt to decrement a null valued MutableRealmInteger");
+            }
+            set(val - dec);
         }
-
     }
 
     /**
@@ -150,7 +165,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      * @param value initial value.
      */
     public static MutableRealmInteger valueOf(Long value) {
-        return new UnmanagedMutableRealmInteger(value);
+        return new MutableRealmInteger.Unmanaged(value);
     }
 
     /**
@@ -181,13 +196,10 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
     /**
      * Creates a new, managed {@code MutableRealmInteger}.
-     *
-     * @param proxyState Proxy state object.  Contains refs to Realm and Row.
-     * @param columnIndex The index of the column that contains the MutableRealmInteger.
      * @return a managed MutableRealmInteger.
      */
-    static MutableRealmInteger managedRealmInteger(ProxyState<? extends RealmObject> proxyState, long columnIndex) {
-        return new ManagedMutableRealmInteger(proxyState, columnIndex);
+    static MutableRealmInteger.Managed getManaged(ProxyState<? extends RealmObject> proxyState, long columnIndex) {
+        return new Managed(proxyState, columnIndex);
     }
 
     /**
@@ -253,17 +265,18 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
     /**
      * RealmIntegers compare strictly by their values.
-     * Will NPE if either value is null
+     * Null is a legal value for a MutableRealmInteger: null < non-null
      *
      * @param o the compare target
      * @return -1, 0, or 1, depending on whether this object's value is &gt;, =, or &lt; the target's.
      */
     @Override
     public final int compareTo(MutableRealmInteger o) {
-        Long otherValue = o.get();
         Long thisValue = get();
-
-        return thisValue.compareTo(otherValue);
+        Long otherValue = o.get();
+        return (otherValue == null) ? ((thisValue != null) ? 1 : 0)
+                : (thisValue == null) ? ((otherValue != null) ? -1 : 0)
+                : thisValue.compareTo(otherValue);
     }
 
     /**
@@ -274,7 +287,8 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      */
     @Override
     public final int hashCode() {
-        return get().hashCode();
+        Long thisValue = get();
+        return (thisValue == null) ? 0 : thisValue.hashCode();
     }
 
     /**
@@ -288,6 +302,8 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     public final boolean equals(Object o) {
         if (o == this) { return true; }
         if (!(o instanceof MutableRealmInteger)) { return false; }
-        return get().equals(((MutableRealmInteger) o).get());
+        Long thisValue = get();
+        Long otherValue = ((MutableRealmInteger) o).get();
+        return  (thisValue == null) ? otherValue == null : thisValue.equals(otherValue);
     }
 }

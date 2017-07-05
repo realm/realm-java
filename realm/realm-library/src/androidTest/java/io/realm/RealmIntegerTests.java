@@ -19,6 +19,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -101,6 +102,9 @@ public class RealmIntegerTests {
         realm.beginTransaction();
         Counters c1 = realm.createObject(Counters.class);
         Counters c2 = realm.createObject(Counters.class);
+        realm.commitTransaction();
+
+        realm.beginTransaction();
         testBasic(c1.columnCounter, c2.columnCounter);
         realm.commitTransaction();
     }
@@ -111,7 +115,12 @@ public class RealmIntegerTests {
     @Test
     public void equality_managed() {
         realm.beginTransaction();
-        testEquality(realm.createObject(Counters.class), realm.createObject(Counters.class));
+        Counters c1 = realm.createObject(Counters.class);
+        Counters c2 = realm.createObject(Counters.class);
+        realm.commitTransaction();
+
+        realm.beginTransaction();
+        testEquality(c1, c2);
         realm.commitTransaction();
     }
 
@@ -121,7 +130,11 @@ public class RealmIntegerTests {
     @Test
     public void nullability_managed() {
         realm.beginTransaction();
-        testNullability(realm.createObject(Counters.class));
+        Counters c1 = realm.createObject(Counters.class);
+        realm.commitTransaction();
+
+        realm.beginTransaction();
+        testNullability(c1);
         realm.commitTransaction();
     }
 
@@ -131,7 +144,11 @@ public class RealmIntegerTests {
     @Test
     public void validAndManaged_managed() {
         realm.beginTransaction();
-        testValidityAndManagement(realm.createObject(Counters.class));
+        Counters c1 = realm.createObject(Counters.class);
+        realm.commitTransaction();
+
+        realm.beginTransaction();
+        testValidityAndManagement(c1);
         realm.commitTransaction();
     }
 
@@ -179,6 +196,7 @@ public class RealmIntegerTests {
     /**
      * Assure that an attempt to change the value of a managed MutableRealmInteger, outside a transaction, fails.
      */
+    @Ignore("Not yet wired to core")
     @Test
     public void updateOutsideTransactionThrows() {
         realm.beginTransaction();
@@ -211,6 +229,7 @@ public class RealmIntegerTests {
     /**
      * Assure that changes to a MutableRealmInteger acquired from a managed object are reflected in the object.
      */
+    @Ignore("Not yet wired to core")
     @Test
     public void isLive() {
         realm.beginTransaction();
@@ -232,10 +251,12 @@ public class RealmIntegerTests {
     /**
      * Assure that changes to a MutableRealmInteger acquired from a managed object are reflected in the object.
      */
+    @Ignore("Not yet wired to core")
     @Test
     public void copyToisLive() {
         Counters obj = new Counters();
         MutableRealmInteger unmanagedRI = obj.getColumnCounter();
+        unmanagedRI.set(42L);
 
         realm.beginTransaction();
         MutableRealmInteger managedRI = realm.copyToRealm(obj).getColumnCounter();
@@ -252,14 +273,14 @@ public class RealmIntegerTests {
         assertEquals(Long.valueOf(47L), managedRI.get());
     }
 
-
     /**
      * Assure that a MutableRealmInteger acquired from an unmanaged object is not affected by changes in the DB.
      */
+    @Ignore("Not yet wired to core")
     @Test
     public void copyFromIsNotLive() {
         realm.beginTransaction();
-        realm.createObject(Counters.class).getColumnCounter().set(42);
+        realm.createObject(Counters.class).getColumnCounter().set(42L);
         realm.commitTransaction();
 
         Counters obj = realm.where(Counters.class).findFirst();
@@ -281,60 +302,79 @@ public class RealmIntegerTests {
         assertTrue(e.getMessage().contains("only be done from inside a transaction"));
     }
 
+    @SuppressWarnings({"ReferenceEquality", "EqualsIncompatibleType"})
     private void testBasic(MutableRealmInteger r1, MutableRealmInteger r2) {
+        assertFalse(r1 == r2);
+
         r1.set(10);
         r2.set(Long.valueOf(10));
-
         assertEquals(r1, r2);
 
         r1.set(15);
         r1.decrement(2);
         r2.increment(3);
         assertEquals(r1, r2);
+
+        MutableRealmInteger r3 = r1;
+        r1.set(19);
+        assertEquals(19, r3.get().intValue());
     }
 
+    @SuppressWarnings({"ReferenceEquality", "EqualsIncompatibleType"})
     private void testEquality(Counters c1, Counters c2) {
         c1.columnCounter.set(7);
         c2.columnCounter.set(Long.valueOf(7));
-        assert c1.columnCounter.equals(c2.columnCounter);
-        assert c1.columnCounter != c2.columnCounter;
+        assertTrue(c1.columnCounter != c2.columnCounter);
+        assertTrue(c1.columnCounter.equals(c2.columnCounter));
 
         MutableRealmInteger r1 = c1.columnCounter;
         r1.increment(1);
-        assert r1.equals(c1.columnCounter);
-        assert r1 == c1.columnCounter;
-        assert c1.columnCounter.get().equals(8L);
-        assert !c1.columnCounter.equals(c2.columnCounter.get());
-        assert c1.columnCounter.get().intValue() == 8;
+        assertTrue(r1.equals(c1.columnCounter));
+        assertTrue(r1 == c1.columnCounter);
+        assertTrue(c1.columnCounter.get().equals(8L));
+        assertFalse(c1.columnCounter.equals(c2.columnCounter.get()));
+        assertTrue(c1.columnCounter.get().intValue() == 8);
 
         Long n = c1.columnCounter.get();
-        assert n.equals(Long.valueOf(8));
-        assert n.equals(c1.columnCounter.get());
-        assert n.intValue() == c1.columnCounter.get().intValue();
+        assertTrue(n.equals(Long.valueOf(8)));
+        assertTrue(n.equals(c1.columnCounter.get()));
+        assertTrue(n.intValue() == c1.columnCounter.get().intValue());
 
         c1.columnCounter.increment(1);
-        assert n.intValue() != c1.columnCounter.get().intValue();
-        assert n.intValue() != r1.get().intValue();
+        assertFalse(n.intValue() == c1.columnCounter.get().intValue());
+        assertFalse(n.intValue() == r1.get().intValue());
     }
 
     private void testNullability(Counters c1) {
         MutableRealmInteger r1 = c1.columnCounter;
 
-        assert !c1.columnCounter.isNull();
-        c1.columnCounter.set(null);
-        assert c1.columnCounter != null;
-        assert c1.columnCounter.isNull();
-        assert r1.isNull();
-        assert r1.get() == null;
+        c1.columnCounter.set(0L);
+        assertFalse(c1.columnCounter.isNull());
+        assertFalse(r1.isNull());
 
-        assert r1.isValid();
-        assert !r1.isManaged();
+        c1.columnCounter.set(null);
+        assertFalse(c1.columnCounter == null);
+        assertTrue(c1.columnCounter.isNull());
+        assertTrue(r1.isNull());
+
+        assertTrue(c1.columnCounter.get() == null);
+        assertTrue(r1.get() == null);
+
+        try {
+            c1.columnCounter.increment(5);
+            fail("Attempt to increment a null valued counter should throw NPE");
+        }
+        catch (NullPointerException ignore) { }
+        try {
+            c1.columnCounter.decrement(5);
+            fail("Attempt to decrement a null valued counter should throw NPE");
+        }
+        catch (NullPointerException ignore) { }
     }
 
     private void testValidityAndManagement(Counters c1) {
         MutableRealmInteger r1 = c1.columnCounter;
-
-        assert r1.isValid() == c1.isValid();
-        assert !r1.isManaged() == c1.isManaged();
+        assertTrue(r1.isManaged() == c1.isManaged());
+        assertTrue(r1.isValid() == c1.isValid());
     }
 }

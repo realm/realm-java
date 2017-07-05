@@ -68,9 +68,6 @@ public class BooleansRealmProxy extends some.test.Booleans
         }
     }
 
-    private BooleansColumnInfo columnInfo;
-    private ProxyState<some.test.Booleans> proxyState;
-    private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -80,6 +77,11 @@ public class BooleansRealmProxy extends some.test.Booleans
         fieldNames.add("anotherBoolean");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
+    private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
+
+    private BooleansColumnInfo columnInfo;
+    private ProxyState<some.test.Booleans> proxyState;
+
 
     BooleansRealmProxy() {
         proxyState.setConstructionFinished();

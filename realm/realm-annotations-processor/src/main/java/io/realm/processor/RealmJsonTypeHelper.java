@@ -47,6 +47,7 @@ public class RealmJsonTypeHelper {
         JAVA_TO_JSON_TYPES.put("java.lang.Double", new SimpleTypeConverter("double", "Double"));
         JAVA_TO_JSON_TYPES.put("java.lang.Boolean", new SimpleTypeConverter("boolean", "Boolean"));
         JAVA_TO_JSON_TYPES.put("java.lang.String", new SimpleTypeConverter("String", "String"));
+        JAVA_TO_JSON_TYPES.put("io.realm.MutableRealmInteger", new RealmIntegerTypeConverter());
         JAVA_TO_JSON_TYPES.put("java.util.Date", new DateTypeConverter());
         JAVA_TO_JSON_TYPES.put("byte[]", new ByteArrayTypeConverter());
     }
@@ -166,11 +167,11 @@ public class RealmJsonTypeHelper {
     // @formatter:on
 
     // @formatter:off
-    public static void emitFillRealmIntegerFromStream(String interfaceName, String getter, String setter, String fieldName, JavaWriter writer) throws IOException {
+    public static void emitFillRealmIntegerFromStream(String interfaceName, String getter, String fieldName, JavaWriter writer) throws IOException {
         writer
             .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
                 .emitStatement("reader.skipValue()")
-                .emitStatement("((%s) obj).%s(null)", interfaceName, setter)
+                .emitStatement("((%s) obj).%s().set(null)", interfaceName, getter)
             .nextControlFlow("else")
                 .emitStatement("((%s) obj).%s().set((long) reader.nextLong())", interfaceName, getter, fieldName)
             .endControlFlow();

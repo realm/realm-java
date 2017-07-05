@@ -62,9 +62,6 @@ public class SimpleRealmProxy extends some.test.Simple
         }
     }
 
-    private SimpleColumnInfo columnInfo;
-    private ProxyState<some.test.Simple> proxyState;
-    private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -72,6 +69,10 @@ public class SimpleRealmProxy extends some.test.Simple
         fieldNames.add("age");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
+    private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
+
+    private SimpleColumnInfo columnInfo;
+    private ProxyState<some.test.Simple> proxyState;
 
     SimpleRealmProxy() {
         proxyState.setConstructionFinished();
