@@ -60,6 +60,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -111,6 +112,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.util.ExceptionHolder;
 import io.realm.util.RealmThread;
 
+import static io.realm.TestHelper.awaitOrFail;
 import static io.realm.TestHelper.testNoObjectFound;
 import static io.realm.TestHelper.testOneObjectFound;
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -1110,6 +1112,40 @@ public class RealmTests {
             }
         });
         assertEquals(results.first, results.second);
+    }
+
+    @Test
+    public void compactOnLaunch_multipleThread() throws IOException {
+        final String REALM_NAME = "test.realm";
+        final CountDownLatch bgThreadDoneLatch = new CountDownLatch(1);
+        final AtomicInteger compactOnLaunchCount = new AtomicInteger(0);
+
+        final RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .name(REALM_NAME)
+                .compactOnLaunch(new CompactOnLaunchCallback() {
+                    @Override
+                    public boolean shouldCompact(long totalBytes, long usedBytes) {
+                        compactOnLaunchCount.incrementAndGet();
+                        return false;
+                    }
+                })
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm bgRealm = Realm.getInstance(realmConfig);
+                bgRealm.close();
+                bgThreadDoneLatch.countDown();
+            }
+        }).run();
+
+        awaitOrFail(bgThreadDoneLatch);
+        realm.close();
+
+        // FIXME: It should be 1. Current compactOnLaunch is called each time a Realm is opened on a new thread.
+        assertEquals(2, compactOnLaunchCount.get());
     }
 
     @Test
