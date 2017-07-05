@@ -19,7 +19,6 @@ package io.realm.objectserver;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -33,16 +32,15 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
-import io.realm.SyncCredentials;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.entities.Dog;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.internal.permissions.PermissionOffer;
+import io.realm.permissions.AccessLevel;
+import io.realm.permissions.PermissionOffer;
 import io.realm.internal.permissions.PermissionOfferResponse;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
@@ -69,7 +67,7 @@ public class ManagementRealmTests extends StandardIntegrationTest {
         });
         realm.beginTransaction();
         // Invalid Permission offer
-        realm.copyToRealm(new PermissionOffer("*", true, true, false, null));
+        realm.copyToRealm(new PermissionOffer("*", AccessLevel.WRITE, null));
         realm.commitTransaction();
         RealmResults <PermissionOffer> results = realm.where(PermissionOffer.class).findAllAsync();
         looperThread.keepStrongReference(results);
@@ -124,11 +122,7 @@ public class ManagementRealmTests extends StandardIntegrationTest {
         user1ManagementRealm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                boolean readPermission = true;
-                boolean readWritePermission = true;
-                boolean managePermission = false;
-                Date expiresAt = null;
-                PermissionOffer offer = new PermissionOffer(user1RealmUrl, readPermission, readWritePermission, managePermission, expiresAt);
+                PermissionOffer offer = new PermissionOffer(user1RealmUrl, AccessLevel.WRITE, null);
                 offerId.set(offer.getId());
                 realm.copyToRealm(offer);
             }
@@ -145,7 +139,7 @@ public class ManagementRealmTests extends StandardIntegrationTest {
                     @Override
                     public void onChange(RealmResults<PermissionOffer> offers) {
                         final PermissionOffer offer = offers.first(null);
-                        if (offer != null && offer.isSuccessful() && offer.getToken() != null) {
+                        if (offer != null && offer.isOfferCreated() && offer.getToken() != null) {
                             // 5. User2 uses the token to accept the offer
                             final String offerToken = offer.getToken();
                             final AtomicReference<String> offerResponseId = new AtomicReference<String>();

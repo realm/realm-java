@@ -21,6 +21,7 @@ import java.util.UUID;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
 import io.realm.permissions.AccessLevel;
 import io.realm.permissions.UserCondition;
@@ -32,7 +33,8 @@ import io.realm.permissions.PermissionRequest;
  *
  * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Controlling Permissions</a>
  */
-public class PermissionChange extends RealmObject {
+@RealmClass
+public class PermissionChange implements BasePermissionApi {
 
     // Base fields
     @PrimaryKey
@@ -122,15 +124,18 @@ public class PermissionChange extends RealmObject {
         this.mayManage = mayManage;
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getCreatedAt() {
         return createdAt;
     }
 
+    @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getUpdatedAt() {
         return updatedAt;
@@ -141,10 +146,12 @@ public class PermissionChange extends RealmObject {
      *
      * @return {@code null} if not yet processed. {@code 0} if successful, {@code >0} if an error happened. See {@link #getStatusMessage()}.
      */
+    @Override
     public Integer getStatusCode() {
         return statusCode;
     }
 
+    @Override
     public String getStatusMessage() {
         return statusMessage;
     }

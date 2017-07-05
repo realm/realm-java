@@ -23,7 +23,7 @@ import io.realm.internal.Util;
 
 /**
  * This class represents a condition for matching users on the Realm Object Server.
- * It is used when a request for changing existing permissions is done.
+ * It is used when a request for changing existing permissions is made.
  *
  * @see PermissionRequest
  * @see io.realm.PermissionManager#applyPermissions(PermissionRequest, PermissionManager.Callback)
@@ -51,7 +51,6 @@ public final class UserCondition {
      * Creates a condition for matching, exactly, a users id.
      *
      * @param userId user id to match against. No wildcards are allowed.
-     *
      * @see SyncUser#getIdentity()
      */
     public static UserCondition userId(String userId) {
@@ -97,9 +96,9 @@ public final class UserCondition {
     }
 
     /**
-     * Returns the keu in the user's metadata that is used for evaluating this condition.
+     * Returns the they in the users metadata that is used for evaluating this condition.
      *
-     * @return the key in the user's metadata.
+     * @return the key in the users metadata.
      */
     public String getKey() {
         return key;

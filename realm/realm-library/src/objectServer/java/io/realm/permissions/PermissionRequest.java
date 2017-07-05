@@ -30,7 +30,6 @@ import io.realm.internal.Util;
  * {@link PermissionManager}, where it can be fetched using
  * {@link PermissionManager#getPermissions(PermissionManager.Callback)}.
  *
- *
  * @see PermissionManager#applyPermissions(PermissionRequest, PermissionManager.Callback)
  * @see PermissionManager#getPermissions(PermissionManager.Callback)
  */
@@ -46,6 +45,7 @@ public final class PermissionRequest {
      * @param realmUrl the Realm URL whose permissions settings should be changed. Use {@code *} to change the
      * permissions of all Realms managed by the user sending this request. The user that wants to grant these permissions
      * must have administrative rights to those Realms.
+     *
      * @param condition the conditions used to match which users are effected.
      * @param accessLevel the {@link AccessLevel} to grant matching users. Setting the access level is absolute i.e., it
      * may revoke permissions for users that previously had a higher access level. To revoke all permissions, use

@@ -33,12 +33,14 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
 import io.realm.permissions.Permission;
+import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.PermissionRequest;
 import io.realm.permissions.UserCondition;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -81,13 +83,9 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
         pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
-                try {
-                    assertTrue(permissions.isValid());
-                    pm.close();
-                    assertFalse(permissions.isValid());
-                } finally {
-                    user.logout();
-                }
+                assertTrue(permissions.isValid());
+                pm.close();
+                assertFalse(permissions.isValid());
                 looperThread.testComplete();
             }
 
@@ -530,6 +528,54 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
         });
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void makeOffer() {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        String url = createRemoteRealm(user, "test");
+
+        PermissionOffer offer = new PermissionOffer(url, AccessLevel.WRITE);
+        pm.makeOffer(offer, new PermissionManager.Callback<String>() {
+            @Override
+            public void onSuccess(String offerToken) {
+                assertNotNull(offerToken);
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void makeOffer_noManageAccessThrows() {
+        // User 2 creates a Realm
+        SyncUser user2 = UserFactory.createUniqueUser();
+        String url = createRemoteRealm(user2, "test");
+
+        // User 1 tries to create an offer for it.
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        PermissionOffer offer = new PermissionOffer(url, AccessLevel.WRITE);
+        pm.makeOffer(offer, new PermissionManager.Callback<String>() {
+            @Override
+            public void onSuccess(String offerToken) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.ACCESS_DENIED, error.getErrorCode());
+                looperThread.testComplete();
+            }
+        });
+    }
+
     /**
      * Wait for a given permission to be present.
      *
@@ -569,7 +615,7 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
     }
 
     private void runTask(final PermissionManager pm, final PermissionManager.Callback<Void> callback) {
-        new PermissionManager.AsyncTask<Void>(pm, callback) {
+        new PermissionManager.PermissionManagerTask<Void>(pm, callback) {
             @Override
             public void run() {
                 if (!checkAndReportInvalidState()) {
