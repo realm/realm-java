@@ -1062,6 +1062,9 @@ public class RealmTests {
         RealmConfiguration realmConfig = configFactory.createConfiguration(REALM_NAME);
         Realm realm = Realm.getInstance(realmConfig);
         populateTestRealm(realm, 100);
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
         realm.close();
         long before = new File(realmConfig.getPath()).length();
         realmConfig = configFactory.createConfiguration(REALM_NAME, compactOnLaunch);
@@ -1080,7 +1083,7 @@ public class RealmTests {
                 return true;
             }
         });
-        assertTrue(results.first.compareTo(results.second) > 0);
+        assertTrue(results.first > results.second);
     }
 
     @Test
