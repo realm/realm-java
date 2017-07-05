@@ -693,8 +693,8 @@ public class RealmConfiguration {
         }
 
         /**
-         * Setting this will cause the Realm to compact the Realm file before returned to the user if the Realm file
-         * exceeds 50MB and its used bytes are less than 50%.
+         * Setting this will cause Realm to compact the Realm file if the Realm file has grown too large and a
+         * significant amount of space can be recovered. See {@link DefaultCompactOnLaunchCallback} for details.
          */
         public Builder compactOnLaunch() {
             return compactOnLaunch(new DefaultCompactOnLaunchCallback());

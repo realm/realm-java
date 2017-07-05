@@ -19,7 +19,8 @@ package io.realm;
 import io.realm.log.RealmLog;
 
 /**
- * The CompactOnLaunchCallback that checks whether the Realm file size exceeds 50 MB and its used bytes are less than 50%.
+ * The default implementation for determining if a file should be compacted or not. This implementation will only
+ * trigger if the file is above 50 MB and more than 50% can be reclaimed.
  */
 public class DefaultCompactOnLaunchCallback implements CompactOnLaunchCallback {
     @Override

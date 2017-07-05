@@ -1117,7 +1117,6 @@ public class RealmTests {
     @Test
     public void compactOnLaunch_multipleThread() throws IOException {
         final String REALM_NAME = "test.realm";
-        final CountDownLatch bgThreadDoneLatch = new CountDownLatch(1);
         final AtomicInteger compactOnLaunchCount = new AtomicInteger(0);
 
         final RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
@@ -1126,26 +1125,37 @@ public class RealmTests {
                     @Override
                     public boolean shouldCompact(long totalBytes, long usedBytes) {
                         compactOnLaunchCount.incrementAndGet();
-                        return false;
+                        return true;
                     }
                 })
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
 
-        new Thread(new Runnable() {
+        Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 Realm bgRealm = Realm.getInstance(realmConfig);
                 bgRealm.close();
-                bgThreadDoneLatch.countDown();
             }
-        }).run();
+        });
+        thread.start();
 
-        awaitOrFail(bgThreadDoneLatch);
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            fail();
+        }
+
         realm.close();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            fail();
+        }
 
         // FIXME: It should be 1. Current compactOnLaunch is called each time a Realm is opened on a new thread.
-        assertEquals(2, compactOnLaunchCount.get());
+        assertNotEquals(1, compactOnLaunchCount.get());
+        assertEquals(3, compactOnLaunchCount.get());
     }
 
     @Test
