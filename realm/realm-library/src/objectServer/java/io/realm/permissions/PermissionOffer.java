@@ -186,7 +186,7 @@ public class PermissionOffer implements BasePermissionApi {
      *         for the full error message.
      */
     public boolean isOfferCreated() {
-        return statusCode != null && statusCode == 0;
+        return !Util.isEmptyString(token);
     }
 
     /**

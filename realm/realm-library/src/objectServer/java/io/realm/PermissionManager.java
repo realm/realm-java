@@ -148,6 +148,7 @@ public class PermissionManager implements Closeable {
     // the result.
     private RealmResults<Permission> userPermissions;
     private RealmResults<Permission> defaultPermissions;
+    private RealmResults<PermissionOffer> offers;
 
     /**
      * FIXME Javadoc
@@ -307,11 +308,16 @@ public class PermissionManager implements Closeable {
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the list of offers created by this user. These offers can be revoked again by calling
+     * {@link #revokeOffer(String, ErrorCallback)} or sent to other users by sending the
+     * {@link PermissionOffer#getToken()}.
+     *
+     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
      */
-    public RealmAsyncTask getOffers(ErrorCallback callback) {
-        return null; // FIXME
+    public RealmAsyncTask getCreatedOffers(OffersCallback callback) {
+        checkIfValidThread();
+        checkCallbackNotNull(callback);
+        return addTask(new GetOffersAsyncTask(this, callback));
     }
 
     // Queue the task if the underlying Realms are not ready yet, otherwise
@@ -1041,6 +1047,49 @@ public class PermissionManager implements Closeable {
 
     }
 
+    // Task responsible for loading the Permissions result and returning it to the user.
+    // The Permission result is not considered available until the query has completed.
+    private class GetOffersAsyncTask extends PermissionManagerTask<RealmResults<Permission>> {
+
+        private final OffersCallback callback;
+        // Prevent permissions from being GC'ed until fully loaded.
+        private RealmResults<PermissionOffer> loadingOffers;
+
+        GetOffersAsyncTask(PermissionManager permissionManager, OffersCallback callback) {
+            super(permissionManager, callback);
+            this.callback = callback;
+        }
+
+        @Override
+        public void run() {
+            if (checkAndReportInvalidState()) { return; }
+            if (offers != null) {
+                notifyCallbackWithSuccess(offers);
+            } else {
+                // We only want offers that have been created.
+                loadingOffers = managementRealm.where(PermissionOffer.class)
+                        .equalTo("statusCode", 0)
+                        .findAllAsync();
+                loadingOffers.addChangeListener(new RealmChangeListener<RealmResults<PermissionOffer>>() {
+                    @Override
+                    public void onChange(RealmResults<PermissionOffer> loadedOffers) {
+                        loadedOffers.removeChangeListener(this);
+                        if (checkAndReportInvalidState()) { return; }
+                        if (offers == null) {
+                            offers = loadedOffers;
+                        }
+                        notifyCallbackWithSuccess(offers);
+                    }
+                });
+            }
+        }
+
+        private void notifyCallbackWithSuccess(RealmResults<PermissionOffer> permissions) {
+            callback.onSuccess(permissions);
+            activeTasks.remove(this);
+        }
+    }
+
     private interface ErrorCallback {
         /**
          * Called if an error happened while executing the task. The PermissionManager uses different underlying Realms,
@@ -1105,4 +1154,20 @@ public class PermissionManager implements Closeable {
          */
         void onSuccess(String realmUrl, Permission permission);
     }
+
+    /**
+     * Callback used when loading the list of {@link PermissionOffer}'s created by the user.
+     */
+    public interface OffersCallback extends ErrorCallback {
+        /**
+         * Called when all known offers are successfully loaded.
+         * <p>
+         * These offers will continue to synchronize with the server in the background. Register a
+         * {@link RealmChangeListener} to be notified about any further changes.
+         *
+         * @param offers The set of currently known offers.
+         */
+        void onSuccess(RealmResults<PermissionOffer> offers);
+    }
+
 }
