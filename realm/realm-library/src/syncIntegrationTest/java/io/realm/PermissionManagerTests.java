@@ -21,13 +21,12 @@ import android.os.HandlerThread;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -43,9 +42,7 @@ import io.realm.permissions.Permission;
 import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.PermissionRequest;
 import io.realm.permissions.UserCondition;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -55,20 +52,13 @@ import static org.junit.Assert.fail;
 
 
 @RunWith(AndroidJUnit4.class)
-public class PermissionManagerTests extends BaseIntegrationTest {
-
-    @Rule
-    public RunInLooperThread looperThread = new RunInLooperThread();
-
-    @Rule
-    public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
+public class PermissionManagerTests extends IsolatedIntegrationTests {
 
     private SyncUser user;
-    private List<SyncUser> testUsers = new ArrayList<>();
 
     @Before
     public void setUpTest() {
-        user = createUniqueUserForTest();
+        user = UserFactory.createUniqueUser();
     }
 
     @Test
@@ -99,13 +89,9 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         pm.getPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
-                try {
-                    assertTrue(permissions.isValid());
-                    pm.close();
-                    assertFalse(permissions.isValid());
-                } finally {
-                    user.logout();
-                }
+                assertTrue(permissions.isValid());
+                pm.close();
+                assertFalse(permissions.isValid());
                 looperThread.testComplete();
             }
 
@@ -137,7 +123,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                         })
                         .build();
                 final Realm secondRealm = Realm.getInstance(config2);
-                looperThread.keepStrongReference(secondRealm);
+                looperThread.closeAfterTest(secondRealm);
 
                 // Wait for the permission Result to report the new Realm
                 looperThread.keepStrongReference(permissions);
@@ -147,7 +133,9 @@ public class PermissionManagerTests extends BaseIntegrationTest {
                         RealmLog.error(Arrays.toString(permissions.toArray()));
                         Permission p = permissions.where().endsWith("path", "tests2").findFirst();
                         if (p != null) {
-                            secondRealm.close();
+                            assertTrue(p.mayRead());
+                            assertTrue(p.mayWrite());
+                            assertTrue(p.mayManage());
                             looperThread.testComplete();
                         }
                     }
@@ -184,6 +172,76 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
     @Test
     @RunTestInLooperThread
+    public void getDefaultPermissions_returnLoadedResults() {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.getDefaultPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                assertTrue(permissions.isLoaded());
+                assertInitialPermissions(permissions);
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getDefaultPermissions_noLongerValidWhenPermissionManagerIsClosed() {
+        final PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.getDefaultPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                assertTrue(permissions.isValid());
+                pm.close();
+                assertFalse(permissions.isValid());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @Ignore("FIXME Add once `setPermissions` are implemented")
+    @RunTestInLooperThread
+    public void getDefaultPermissions_updatedWithNewRealms() {
+
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getDefaultPermissions_closed() throws IOException {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.close();
+
+        pm.getDefaultPermissions(new PermissionManager.Callback<RealmResults<Permission>>() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
+                assertEquals(IllegalStateException.class, error.getException().getClass());
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
     public void permissionManagerAsyncTask_handlePermissionRealmError() throws NoSuchFieldException, IllegalAccessException {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -191,8 +249,8 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         // Simulate error in the permission Realm
         Field permissionConfigField = pm.getClass().getDeclaredField("permissionRealmError");
         permissionConfigField.setAccessible(true);
-        final ObjectServerError expectedError = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
-        permissionConfigField.set(pm, expectedError);
+        final ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
+        permissionConfigField.set(pm, error);
 
         PermissionManager.Callback<Void> callback = new PermissionManager.Callback<Void>() {
             @Override
@@ -202,7 +260,9 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(expectedError, error);
+                assertTrue(error.getErrorMessage().startsWith("Error occurred in Realm"));
+                assertTrue(error.getErrorMessage().contains("Permission Realm"));
+                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
                 looperThread.testComplete();
             }
         };
@@ -218,8 +278,8 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         looperThread.closeAfterTest(pm);
 
         // Simulate error in the permission Realm
-        final ObjectServerError expectedError = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
-        setRealmError(pm, "managementRealmError", expectedError);
+        final ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
+        setRealmError(pm, "managementRealmError", error);
 
         PermissionManager.Callback<Void> callback = new PermissionManager.Callback<Void>() {
             @Override
@@ -229,7 +289,9 @@ public class PermissionManagerTests extends BaseIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(expectedError, error);
+                assertTrue(error.getErrorMessage().startsWith("Error occurred in Realm"));
+                assertTrue(error.getErrorMessage().contains("Management Realm"));
+                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
                 looperThread.testComplete();
             }
         };
@@ -303,7 +365,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void applyPermissions_nonAdminUserFails() {
-        SyncUser user2 = createUniqueUserForTest();
+        SyncUser user2 = UserFactory.createUniqueUser();
         String otherUsersUrl = createRemoteRealm(user2, "test");
 
         PermissionManager pm = user.getPermissionManager();
@@ -360,7 +422,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void applyPermissions_withUserId() {
-        final SyncUser user2 = createUniqueUserForTest();
+        final SyncUser user2 = UserFactory.createUniqueUser();
         String url = createRemoteRealm(user2, "test");
         PermissionManager pm2 = user2.getPermissionManager();
         looperThread.closeAfterTest(pm2);
@@ -400,8 +462,8 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     public void applyPermissions_withUsername() {
         String user1Username = TestHelper.getRandomEmail();
         String user2Username = TestHelper.getRandomEmail();
-        final SyncUser user1 = createUserForTest(user1Username);
-        final SyncUser user2 = createUserForTest(user2Username);
+        final SyncUser user1 = UserFactory.createUser(user1Username);
+        final SyncUser user2 = UserFactory.createUser(user2Username);
         PermissionManager pm1 = user1.getPermissionManager();
         looperThread.closeAfterTest(pm1);
 
@@ -439,8 +501,8 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void applyPermissions_usersWithNoExistingPermissions() {
-        final SyncUser user1 = createUserForTest("user1@realm.io");
-        final SyncUser user2 = createUserForTest("user2@realm.io");
+        final SyncUser user1 = UserFactory.createUser("user1@realm.io");
+        final SyncUser user2 = UserFactory.createUser("user2@realm.io");
         PermissionManager pm1 = user1.getPermissionManager();
         looperThread.closeAfterTest(pm1);
 
@@ -506,7 +568,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     @RunTestInLooperThread
     public void makeOffer_noManageAccessThrows() {
         // User 2 creates a Realm
-        SyncUser user2 = createUniqueUserForTest();
+        SyncUser user2 = UserFactory.createUniqueUser();
         String url = createRemoteRealm(user2, "test");
 
         // User 1 tries to create an offer for it.
@@ -662,28 +724,6 @@ public class PermissionManagerTests extends BaseIntegrationTest {
         });
     }
 
-    private SyncUser createUniqueUserForTest() {
-        final SyncUser user = UserFactory.createUniqueUser();
-        looperThread.runAfterTest(new Runnable() {
-            @Override
-            public void run() {
-                user.logout();
-            }
-        });
-        return user;
-    }
-
-    private SyncUser createUserForTest(String username) {
-        final SyncUser user = UserFactory.createUser(username);
-        looperThread.runAfterTest(new Runnable() {
-            @Override
-            public void run() {
-                user.logout();
-            }
-        });
-        return user;
-    }
-
     private void setRealmError(PermissionManager pm, String fieldName, ObjectServerError error) throws NoSuchFieldException,
             IllegalAccessException {
         Field managementRealmErrorField = pm.getClass().getDeclaredField(fieldName);
@@ -692,7 +732,7 @@ public class PermissionManagerTests extends BaseIntegrationTest {
     }
 
     private void runTask(final PermissionManager pm, final PermissionManager.Callback<Void> callback) {
-        new PermissionManager.AsyncTask<Void>(pm, callback) {
+        new PermissionManager.PermissionManagerTask<Void>(pm, callback) {
             @Override
             public void run() {
                 if (!checkAndReportInvalidState()) {

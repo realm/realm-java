@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.BaseIntegrationTest;
 import io.realm.Realm;
+import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
@@ -23,7 +24,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class SyncSessionTests extends BaseIntegrationTest {
+public class SyncSessionTests extends StandardIntegrationTest {
     @Rule
     public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 

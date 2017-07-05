@@ -31,6 +31,7 @@ import io.realm.BaseIntegrationTest;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
+import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncUser;
 import io.realm.objectserver.model.ProcessInfo;
@@ -38,21 +39,17 @@ import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.RemoteIntegrationTestService;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.RunTestWithRemoteService;
 import io.realm.rule.RunWithRemoteService;
-import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.services.RemoteTestService;
 
 import static org.junit.Assert.assertEquals;
 
 
 @RunWith(AndroidJUnit4.class)
-public class ProcessCommitTests extends BaseIntegrationTest {
+public class ProcessCommitTests extends StandardIntegrationTest {
 
-    @Rule
-    public RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public RunWithRemoteService remoteService = new RunWithRemoteService();
 
@@ -105,14 +102,17 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     // A. Open the same sync Realm and add one object.
     // 2. Get the notification, check if the change in A is received.
     @Test
-    @RunTestWithRemoteService(SimpleCommitRemoteService.class)
     @RunTestInLooperThread
+    @RunTestWithRemoteService(remoteService = SimpleCommitRemoteService.class, onLooperThread = true)
     public void expectSimpleCommit() {
+        looperThread.runAfterTest(remoteService.afterRunnable);
         remoteService.createHandler(Looper.myLooper());
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
-        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, realmUrl).build();
+        final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user,realmUrl)
+                .directory(looperThread.getRoot())
+                .build();
         final Realm realm = Realm.getInstance(syncConfig);
         final RealmResults<ProcessInfo> all = realm.where(ProcessInfo.class).findAll();
         looperThread.keepStrongReference(all);
@@ -180,14 +180,17 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     // 2. Check if the 100 objects are received.
     // #. Repeat B/2 10 times.
     @Test
-    @RunTestWithRemoteService(ALotCommitsRemoteService.class)
+    @RunTestWithRemoteService(remoteService = ALotCommitsRemoteService.class, onLooperThread = true)
     @RunTestInLooperThread
     public void expectALot() throws Throwable {
+        looperThread.runAfterTest(remoteService.afterRunnable);
         remoteService.createHandler(Looper.myLooper());
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
-        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, realmUrl).build();
+        final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user,realmUrl)
+                .directory(looperThread.getRoot())
+                .build();
         final Realm realm = Realm.getInstance(syncConfig);
         final RealmResults<TestObject> all = realm.where(TestObject.class).findAllSorted("intProp");
         looperThread.keepStrongReference(all);

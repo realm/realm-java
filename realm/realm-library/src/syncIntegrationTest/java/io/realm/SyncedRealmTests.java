@@ -44,7 +44,7 @@ import static org.junit.Assert.fail;
  * Catch all class for tests that not naturally fit anywhere else.
  */
 @RunWith(AndroidJUnit4.class)
-public class SyncedRealmTests extends BaseIntegrationTest {
+public class SyncedRealmTests extends StandardIntegrationTest {
 
     @Test
     @UiThreadTest
