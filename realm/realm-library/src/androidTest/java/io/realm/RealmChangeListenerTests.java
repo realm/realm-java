@@ -232,7 +232,8 @@ public class RealmChangeListenerTests {
     // 1. adding a listener on the children
     // 2. modify parent
     // 3. at least one child is modified
-    // 4. listener is triggered
+    // 4. listener is not triggered (backlink)
+    // FIXME: will break when https://github.com/realm/realm-java/issues/4875 is solved
     @Test
     @RunTestInLooperThread
     public void listenerOnChildChangeParent() {
@@ -262,11 +263,14 @@ public class RealmChangeListenerTests {
         // backlinks are updated
         assertEquals(1, backlinksTargets.last().getParents().size());
         assertEquals(1, backlinksTargets.first().getParents().size());
-        assertEquals(1, nCalls[0]);
+        assertEquals(0, nCalls[0]);
         realm.close();
         looperThread.testComplete();
     }
 
+    // 1. adding a listener if on the parent
+    // 2. modify child
+    // 3. listener is triggered (forward link)
     @Test@RunTestInLooperThread
     public void listenerOnParentChangeChild() {
         final long[] nCalls = {0};
