@@ -18,6 +18,7 @@ package io.realm;
 
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
@@ -30,6 +31,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -637,8 +639,9 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
     @Test
     @RunTestInLooperThread
     public void acceptOffer_expiredThrows() {
-        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, new Date(0));
-
+        Date expiresAt = new Date(new Date().getTime() + TimeUnit.SECONDS.toMillis(5));
+        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, expiresAt);
+        SystemClock.sleep(5000); // Make sure that the offer expires.
         final SyncUser user2 = UserFactory.createUniqueUser();
         final PermissionManager pm = user2.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -651,7 +654,7 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(701, error.getErrorCode().intValue());
+                assertEquals(ErrorCode.EXPIRED_PERMISSION_OFFER, error.getErrorCode());
                 looperThread.testComplete();
             }
         });
