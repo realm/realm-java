@@ -637,8 +637,24 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
     @Test
     @RunTestInLooperThread
     public void acceptOffer_expiredThrows() {
-        looperThread.testComplete();
+        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, new Date(0));
 
+        final SyncUser user2 = UserFactory.createUniqueUser();
+        final PermissionManager pm = user2.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        pm.acceptOffer(offerToken, new PermissionManager.AcceptOfferCallback() {
+            @Override
+            public void onSuccess(String url, Permission permission) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.TOKEN_EXPIRED, error.getErrorCode());
+                looperThread.testComplete();
+            }
+        });
     }
 
     @Test
