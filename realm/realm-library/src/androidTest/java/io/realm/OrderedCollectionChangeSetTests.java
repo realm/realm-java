@@ -25,7 +25,6 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
@@ -402,7 +401,7 @@ public class OrderedCollectionChangeSetTests {
         realm.commitTransaction();
     }
 
-    // The change set should empty when the async query returns at the first time.
+    // The change set should be empty when the async query returns at the first time.
     @Test
     @RunTestInLooperThread
     public void emptyChangeSet_findAllAsync() {
@@ -418,27 +417,10 @@ public class OrderedCollectionChangeSetTests {
             @Override
             public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
                 assertSame(collection, results);
-                assertEquals(9, collection.size());
+                assertEquals(10, collection.size());
                 assertNull(changeSet);
                 looperThread.testComplete();
             }
         });
-
-        final CountDownLatch bgDeletionLatch = new CountDownLatch(1);
-        // beginTransaction() will make the async query return immediately. So we have to create an object in another
-        // thread. Also, the latch has to be counted down after transaction committed so the async query results can
-        // contain the modification in the background transaction.
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(looperThread.getConfiguration());
-                realm.beginTransaction();
-                realm.where(Dog.class).equalTo(Dog.FIELD_AGE, 0).findFirst().deleteFromRealm();
-                realm.commitTransaction();
-                realm.close();
-                bgDeletionLatch.countDown();
-            }
-        }).start();
-        TestHelper.awaitOrFail(bgDeletionLatch);
     }
 }
