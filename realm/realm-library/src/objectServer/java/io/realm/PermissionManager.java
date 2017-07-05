@@ -299,17 +299,21 @@ public class PermissionManager implements Closeable {
     }
 
     /**
-     * FIXME
-     * @param offerToken
-     * @return
+     * Revokes an existing offer. This will prevent any other users from accepting it. Users that already accepted it,
+     * will not be affected.
+     *
+     * @param offerToken token that should be revoked.
+     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
      */
-    public RealmAsyncTask revokeOffer(String offerToken, final ErrorCallback callback) {
-        return null; // FIXME
+    public RealmAsyncTask revokeOffer(String offerToken, final RevokeOfferCallback callback) {
+        checkIfValidThread();
+        checkCallbackNotNull(callback);
+        return addTask(new RevokeOfferAsyncTask(this, offerToken, callback));
     }
 
     /**
      * Returns the list of offers created by this user. These offers can be revoked again by calling
-     * {@link #revokeOffer(String, ErrorCallback)} or sent to other users by sending the
+     * {@link #revokeOffer(String, RevokeOfferCallback)} or sent to other users by sending the
      * {@link PermissionOffer#getToken()}.
      *
      * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
@@ -1090,6 +1094,69 @@ public class PermissionManager implements Closeable {
         }
     }
 
+    private class RevokeOfferAsyncTask extends PermissionManagerTask<Permission> {
+
+        private final String offerToken;
+        private final RevokeOfferCallback callback;
+        private RealmResults<PermissionOffer> matchingOffers;
+
+        public RevokeOfferAsyncTask(PermissionManager permissionManager, String offerToken, RevokeOfferCallback callback) {
+            super(permissionManager, callback);
+            this.offerToken = offerToken;
+            this.callback = callback;
+        }
+
+        @Override
+        public void run() {
+            if (checkAndReportInvalidState()) {
+                return;
+            }
+            matchingOffers  = managementRealm.where(PermissionOffer.class)
+                    .equalTo("token", offerToken)
+                    .findAllAsync();
+            matchingOffers.addChangeListener(new RealmChangeListener<RealmResults<PermissionOffer>>() {
+                @Override
+                public void onChange(final RealmResults<PermissionOffer> offers) {
+                    if (offers.size() == 1) {
+                        managementRealm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                // Make 100% sure the offer is still in the DB.
+                                // It could have been deleted between querying for it and the
+                                // transaction running. We will still call OnSuccess if the
+                                // offer was removed by someone else.
+                                PermissionOffer offer = realm.where(PermissionOffer.class)
+                                        .equalTo("token", offerToken)
+                                        .findFirst();
+                                if (offer != null) {
+                                    RealmObject.deleteFromRealm(offer);
+                                }
+                            }
+                        }, new Realm.Transaction.OnSuccess() {
+                            @Override
+                            public void onSuccess() {
+                                matchingOffers.removeAllChangeListeners();
+                                notifyCallbackWithSuccess();
+                            }
+                        }, new Realm.Transaction.OnError() {
+                            @Override
+                            public void onError(Throwable error) {
+                                matchingOffers.removeAllChangeListeners();
+                                notifyCallbackError(new ObjectServerError(ErrorCode.UNKNOWN, error));
+
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        private void notifyCallbackWithSuccess() {
+            callback.onSuccess();
+            activeTasks.remove(this);
+        }
+    }
+
     private interface ErrorCallback {
         /**
          * Called if an error happened while executing the task. The PermissionManager uses different underlying Realms,
@@ -1169,5 +1236,17 @@ public class PermissionManager implements Closeable {
          */
         void onSuccess(RealmResults<PermissionOffer> offers);
     }
+
+    /**
+     * Callback used when revoking an existing offer.
+     */
+    public interface RevokeOfferCallback extends ErrorCallback {
+        /**
+         * Called when the offer was successfully revoked successfully modified.
+         */
+        void onSuccess();
+    }
+
+
 
 }

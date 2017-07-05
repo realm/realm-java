@@ -38,8 +38,8 @@ import io.realm.internal.permissions.BasePermissionApi;
  * <p>
  * Permission offers can only be created by users that can manage the Realm, the offer is about.
  *
- * @see PermissionManager#makeOffer(PermissionOffer, PermissionManager.Callback)
- * @see PermissionManager#acceptOffer(String, PermissionManager.Callback)
+ * @see PermissionManager#makeOffer(PermissionOffer, PermissionManager.MakeOfferCallback)
+ * @see PermissionManager#acceptOffer(String, PermissionManager.AcceptOfferCallback)
  * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
  * documentation.
  */
@@ -81,7 +81,7 @@ public class PermissionOffer implements BasePermissionApi {
      * @param url specific url to Realm effected this offer encompasses all Realms manged by the user making the offer.
      * @param accessLevel the {@link AccessLevel} granted to the user accepting the offer.
      *
-     * @see PermissionManager#revokeOffer(String, PermissionManager.Callback)
+     * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
      */
     public PermissionOffer(String url, AccessLevel accessLevel) {
         this(url, accessLevel, null);
@@ -94,7 +94,7 @@ public class PermissionOffer implements BasePermissionApi {
      * @param accessLevel the {@link AccessLevel} granted to the user accepting the offer.
      * @param expiresAt the date and time when this offer expires.
      *
-     * @see PermissionManager#revokeOffer(String, PermissionManager.Callback)
+     * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
      */
     public PermissionOffer(String url, AccessLevel accessLevel, Date expiresAt) {
         validateUrl(url);

@@ -735,6 +735,93 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
         });
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void revokeOffer() {
+        // createOffer validates that the offer is actually in the __management Realm.
+        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
+        final PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        pm.revokeOffer(offerToken, new PermissionManager.RevokeOfferCallback() {
+            @Override
+            public void onSuccess() {
+                pm.getCreatedOffers(new PermissionManager.OffersCallback() {
+                    @Override
+                    public void onSuccess(RealmResults<PermissionOffer> offers) {
+                        assertEquals(0, offers.size());
+                        looperThread.testComplete();
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        fail(error.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void revokeOffer_afterOneAcceptedIt() {
+        // createOffer validates that the offer is actually in the __management Realm.
+        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
+
+        final SyncUser user2 = UserFactory.createUniqueUser();
+        final SyncUser user3 = UserFactory.createUniqueUser();
+        final PermissionManager pm1 = user.getPermissionManager();
+        final PermissionManager pm2 = user2.getPermissionManager();
+        final PermissionManager pm3 = user3.getPermissionManager();
+        looperThread.closeAfterTest(pm1);
+        looperThread.closeAfterTest(pm2);
+        looperThread.closeAfterTest(pm3);
+
+        pm2.acceptOffer(offerToken, new PermissionManager.AcceptOfferCallback() {
+            @Override
+            public void onSuccess(String realmUrl, Permission permission) {
+                pm1.revokeOffer(offerToken, new PermissionManager.RevokeOfferCallback() {
+                    @Override
+                    public void onSuccess() {
+                        pm3.acceptOffer(offerToken, new PermissionManager.AcceptOfferCallback() {
+                            @Override
+                            public void onSuccess(String realmUrl, Permission permission) {
+                                fail("Offer should have been revoked");
+                            }
+
+                            @Override
+                            public void onError(ObjectServerError error) {
+                                assertEquals(ErrorCode.INVALID_PARAMETERS, error.getErrorCode());
+                                looperThread.testComplete();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        fail(error.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    @Ignore("FIXME: Figure out why clocks on server/emulator on CI seem to differ")
+    public void revokeOffer_alreadyExpired() {
+        fail("Implement this");
+    }
 
     /**
      * Creates a offer for a newly created Realm.
