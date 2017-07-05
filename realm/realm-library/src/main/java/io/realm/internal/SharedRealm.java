@@ -225,7 +225,7 @@ public final class SharedRealm implements Closeable, NativeObject {
                 config.getSchemaVersion(),
                 enableFormatUpgrade,
                 autoChangeNotifications,
-                config.getCompactOnLaunch(),
+                config.getCompactOnLaunchCallback(),
                 syncRealmUrl,
                 syncRealmAuthUrl,
                 syncUserIdentifier,

@@ -16,20 +16,28 @@
 
 package io.realm;
 
-/**
- * CompactOnLaunchCallback interface is used to determine if it should be compacted before being returned to the user.
- */
+import io.realm.internal.Keep;
+import io.realm.internal.KeepMember;
 
+/**
+ * This interface is used to determine if a Realm file should be compacted the first time the file is opened and before
+ * the instance is returned.
+ * <p>
+ * Note that compacting a file can take a while, so compacting should generally only be done on a background thread or
+ * when used in combination with {@link Realm#getInstanceAsync(RealmConfiguration, Callback)}.
+ */
+@Keep
 public interface CompactOnLaunchCallback {
 
     /**
-     * This method determines if it should be compacted before returned to the user. It is passed the total file size
-     * (data + free space) and the total bytes used by data in the file.
+     * This method determines if the Realm file should be compacted before opened and returned to the user. It is passed
+     * the total file size (data + free space) and the bytes used by data in the file.
      *
-     * @param totalBytes the total file size (data + free space)
-     * @param usedBytes the total bytes used by data in the file
+     * @param totalBytes the total file size (data + free space).
+     * @param usedBytes the total bytes used by data in the file.
      * @return {code true} to indicate an attempt to compact the file should be made. Otherwise, the compaction will be
      * skipped.
      */
+    @KeepMember
     boolean shouldCompact(long totalBytes, long usedBytes);
 }

@@ -197,13 +197,13 @@ public class RealmConfiguration {
     }
 
     /**
-     * Returns a callback to determine if it should be compacted before being returned to the user.
+     * Returns a callback to determine if the Realm file should be compacted before being returned to the user.
      *
      * @return a callback called when opening a Realm for the first time during the life of a process to determine if
      * it should be compacted before being returned to the user. It is passed the total file size (data + free space)
      * and the total bytes used by data in the file.
      */
-    public CompactOnLaunchCallback getCompactOnLaunch() {
+    public CompactOnLaunchCallback getCompactOnLaunchCallback() {
         return compactOnLaunch;
     }
 
@@ -693,12 +693,12 @@ public class RealmConfiguration {
         }
 
         /**
-         * Sets compactOnLaunch to determine if it should be compacted before returned to the user. It is passed the
-         * total file size (data + free space) and the total bytes used by data in the file.
+         * Sets this to determine if the Realm file should be compacted before returned to the user. It is passed the
+         * total file size (data + free space) and the bytes used by data in the file.
          *
          * @param compactOnLaunch a callback called when opening a Realm for the first time during the life of a process
          *                        to determine if it should be compacted before being returned to the user. It is passed
-         *                        the total file size (data + free space) and the total bytes used by data in the file.
+         *                        the total file size (data + free space) and the bytes used by data in the file.
          */
         public Builder compactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
             if (compactOnLaunch == null) {
