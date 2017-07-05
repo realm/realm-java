@@ -396,7 +396,9 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery isNotEmpty(long[] columnIndices, long[] tablePtrs) {
-        return not().isEmpty(columnIndices, tablePtrs);
+        nativeIsNotEmpty(nativePtr, columnIndices, tablePtrs);
+        queryValidated = false;
+        return this;
     }
 
     // Searching methods.
@@ -413,27 +415,6 @@ public class TableQuery implements NativeObject {
     public long find() {
         validateQuery();
         return nativeFind(nativePtr, 0);
-    }
-
-    /**
-     * Imports a row from a worker thread to the caller thread.
-     *
-     * @param handoverRowPtr pointer to the handover row object
-     * @param sharedRealm the SharedRealm on the caller thread.
-     * @return the row pointer on the caller thread.
-     */
-    public static long importHandoverRow(long handoverRowPtr, SharedRealm sharedRealm) {
-        return nativeImportHandoverRowIntoSharedGroup(handoverRowPtr, sharedRealm.getNativePtr());
-    }
-
-    /**
-     * Handovers the query, so it can be used by other SharedGroup (in different thread)
-     *
-     * @param sharedRealm the SharedGroup holding the query
-     * @return native pointer to the handover query
-     */
-    public long handoverQuery(SharedRealm sharedRealm) {
-        return nativeHandoverQuery(sharedRealm.getNativePtr(), nativePtr);
     }
 
     //
@@ -636,17 +617,6 @@ public class TableQuery implements NativeObject {
         return nativeRemove(nativePtr);
     }
 
-    /**
-     * Converts a list of sort orders to their native values.
-     */
-    public static boolean[] getNativeSortOrderValues(Sort[] sortOrders) {
-        boolean[] nativeValues = new boolean[sortOrders.length];
-        for (int i = 0; i < sortOrders.length; i++) {
-            nativeValues[i] = sortOrders[i].getValue();
-        }
-        return nativeValues;
-    }
-
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
@@ -737,6 +707,8 @@ public class TableQuery implements NativeObject {
 
     private native void nativeIsEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
 
+    private native void nativeIsNotEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
+
     private native long nativeFind(long nativeQueryPtr, long fromTableRow);
 
     private native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
@@ -776,10 +748,6 @@ public class TableQuery implements NativeObject {
     private native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
 
     private native long nativeRemove(long nativeQueryPtr);
-
-    private native long nativeHandoverQuery(long callerSharedRealmPtr, long nativeQueryPtr);
-
-    private static native long nativeImportHandoverRowIntoSharedGroup(long handoverRowPtr, long callerSharedRealmPtr);
 
     private static native long nativeGetFinalizerPtr();
 }

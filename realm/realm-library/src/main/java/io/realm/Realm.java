@@ -38,8 +38,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -134,6 +134,8 @@ public class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
+    private static final Object defaultConfigurationLock = new Object();
+    // guarded by `defaultConfigurationLock`
     private static RealmConfiguration defaultConfiguration;
 
     /**
@@ -195,7 +197,7 @@ public class Realm extends BaseRealm {
             }
             checkFilesDirAvailable(context);
             RealmCore.loadLibrary(context);
-            defaultConfiguration = new RealmConfiguration.Builder(context).build();
+            setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             BaseRealm.applicationContext = context.getApplicationContext();
             SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
@@ -267,10 +269,15 @@ public class Realm extends BaseRealm {
      * was set and the thread opening the Realm was interrupted while the download was in progress.
      */
     public static Realm getDefaultInstance() {
-        if (defaultConfiguration == null) {
-            throw new IllegalStateException("Call `Realm.init(Context)` before calling this method.");
+        RealmConfiguration configuration = getDefaultConfiguration();
+        if (configuration == null) {
+            if (BaseRealm.applicationContext == null) {
+                throw new IllegalStateException("Call `Realm.init(Context)` before calling this method.");
+            } else {
+                throw new IllegalStateException("Set default configuration by using `Realm.setDefaultConfiguration(RealmConfiguration)`.");
+            }
         }
-        return RealmCache.createRealmOrGetFromCache(defaultConfiguration, Realm.class);
+        return RealmCache.createRealmOrGetFromCache(configuration, Realm.class);
     }
 
     /**
@@ -325,7 +332,20 @@ public class Realm extends BaseRealm {
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
-        defaultConfiguration = configuration;
+        synchronized (defaultConfigurationLock) {
+            defaultConfiguration = configuration;
+        }
+    }
+
+    /**
+     * Returns the default configuration for {@link #getDefaultInstance()}.
+     *
+     * @return default configuration object or {@code null} if no default configuration is specified.
+     */
+    public static RealmConfiguration getDefaultConfiguration() {
+        synchronized (defaultConfigurationLock) {
+            return defaultConfiguration;
+        }
     }
 
     /**
@@ -333,7 +353,9 @@ public class Realm extends BaseRealm {
      * fail until a new default configuration has been set using {@link #setDefaultConfiguration(RealmConfiguration)}.
      */
     public static void removeDefaultConfiguration() {
-        defaultConfiguration = null;
+        synchronized (defaultConfigurationLock) {
+            defaultConfiguration = null;
+        }
     }
 
     /**
@@ -386,12 +408,12 @@ public class Realm extends BaseRealm {
                     realm.doClose();
                     throw new RealmMigrationNeededException(
                             configuration.getPath(),
-                            String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
+                            String.format(Locale.US, "Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
                 }
                 if (requiredVersion < currentVersion) {
                     realm.doClose();
                     throw new IllegalArgumentException(
-                            String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
+                            String.format(Locale.US, "Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
                 }
             }
 
@@ -977,11 +999,11 @@ public class Realm extends BaseRealm {
         Table table = schema.getTable(clazz);
         // Checks and throws the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
-            throw new RealmException(String.format("'%s' has a primary key, use" +
+            throw new RealmException(String.format(Locale.US, "'%s' has a primary key, use" +
                     " 'createObject(Class<E>, Object)' instead.", table.getClassName()));
         }
         return configuration.getSchemaMediator().newInstance(clazz, this,
-                OsObject.create(sharedRealm, table),
+                OsObject.create(table),
                 schema.getColumnInfo(clazz),
                 acceptDefaultValue, excludeFields);
     }
@@ -1028,7 +1050,7 @@ public class Realm extends BaseRealm {
         Table table = schema.getTable(clazz);
 
         return configuration.getSchemaMediator().newInstance(clazz, this,
-                OsObject.createWithPrimaryKey(sharedRealm, table, primaryKeyValue),
+                OsObject.createWithPrimaryKey(table, primaryKeyValue),
                 schema.getColumnInfo(clazz),
                 acceptDefaultValue, excludeFields);
     }

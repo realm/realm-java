@@ -68,6 +68,10 @@ public class SyncManagerTests {
                 return null;
             }
 
+            @Override
+            public boolean isActive(String identity) {
+                return true;
+            }
         };
     }
 

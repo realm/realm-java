@@ -30,5 +30,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target(METHOD)
 @Retention(RUNTIME)
 public @interface RunTestWithRemoteService {
-    Class<? extends RemoteTestService> value();
+    Class<? extends RemoteTestService> remoteService();
+    boolean onLooperThread();
 }

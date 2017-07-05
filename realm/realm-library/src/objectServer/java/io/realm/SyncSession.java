@@ -17,12 +17,18 @@
 package io.realm;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Keep;
@@ -36,6 +42,7 @@ import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
+import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 
 /**
@@ -53,6 +60,8 @@ import io.realm.log.RealmLog;
 public class SyncSession {
     private final static ScheduledThreadPoolExecutor REFRESH_TOKENS_EXECUTOR = new ScheduledThreadPoolExecutor(1);
     private final static long REFRESH_MARGIN_DELAY = TimeUnit.SECONDS.toMillis(10);
+    private final static int DIRECTION_DOWNLOAD = 1;
+    private final static int DIRECTION_UPLOAD = 2;
 
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
@@ -64,6 +73,51 @@ public class SyncSession {
     private volatile boolean isClosed = false;
     private final AtomicReference<WaitForServerChangesWrapper> waitingForServerChanges = new AtomicReference<>(null);
     private final Object waitForChangesMutex = new Object();
+
+    // We need JavaId -> Listener so C++ can trigger callbacks without keeping a reference to the
+    // jobject, which would require a similar map on the C++ side.
+    // We need Listener -> Token map in order to remove the progress listener in C++ from Java.
+    private final Map<Long, Pair<ProgressListener, Progress>> listenerIdToProgressListenerMap = new HashMap<>();
+    private final Map<ProgressListener, Long> progressListenerToOsTokenMap = new IdentityHashMap<>();
+    // Counter used to assign all ProgressListeners on this session with a unique id.
+    // ListenerId is created by Java to enable C++ to reference the java listener without holding
+    // a reference to the actual object.
+    // ListenerToken is the same concept, but created by OS and represents the listener.
+    // We can unfortunately not just use the ListenerToken, since we need it to be available before
+    // we register the listener.
+    private final AtomicLong progressListenerId = new AtomicLong(-1);
+
+    // represent different states as defined in SyncSession::PublicState 'sync_session.hpp'
+    private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 0;
+    private static final byte STATE_VALUE_ACTIVE = 1;
+    private static final byte STATE_VALUE_DYING = 2;
+    private static final byte STATE_VALUE_INACTIVE = 3;
+    private static final byte STATE_VALUE_ERROR = 4;
+
+    public enum State {
+        WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
+        ACTIVE(STATE_VALUE_ACTIVE),
+        DYING(STATE_VALUE_DYING),
+        INACTIVE(STATE_VALUE_INACTIVE),
+        ERROR(STATE_VALUE_ERROR);
+
+        final byte value;
+
+        State(byte value) {
+            this.value = value;
+        }
+
+        static State fromByte(byte value) {
+            State[] stateCodes = values();
+            for (State state : stateCodes) {
+                if (state.value == value) {
+                    return state;
+                }
+            }
+
+            throw new IllegalArgumentException("Unknown state code: " + value);
+        }
+    }
 
     SyncSession(SyncConfiguration configuration) {
         this.configuration = configuration;
@@ -112,6 +166,123 @@ public class SyncSession {
                     errorMessage, getConfiguration()));
         } else {
             errorHandler.onError(this, new ObjectServerError(errCode, errorMessage));
+        }
+    }
+
+    /**
+     * Get the current session's state, as defined in {@link SyncSession.State}.
+     *
+     * Note that the state may change after this method returns, example: the authentication
+     * token will expire, causing the session to move to {@link State#WAITING_FOR_ACCESS_TOKEN}
+     * after it was in {@link State#ACTIVE}.
+     *
+     * @return the state of the session.
+     * @see SyncSession.State
+     */
+    @KeepMember
+    @SuppressWarnings("unused")
+    public State getState() {
+        byte state = nativeGetState(configuration.getPath());
+        if (state == -1) {
+            // session was not found, probably the Realm was closed
+            throw new IllegalStateException("Could not find session, Realm was probably closed");
+        }
+        return State.fromByte(state);
+    }
+
+    synchronized void notifyProgressListener(long listenerId, long transferredBytes, long transferableBytes) {
+        Pair<ProgressListener, Progress> listener = listenerIdToProgressListenerMap.get(listenerId);
+        if (listener != null) {
+            Progress newProgressNotification = new Progress(transferredBytes, transferableBytes);
+            if (!newProgressNotification.equals(listener.second)) {
+                listener.second = newProgressNotification;
+                listener.first.onChange(newProgressNotification);
+            }
+        } else {
+            RealmLog.debug("Trying unknown listener failed: " + listenerId);
+        }
+    }
+    
+    /**
+     * Adds a progress listener tracking changes that need to be downloaded from the Realm Object
+     * Server.
+     * <p>
+     * The {@link ProgressListener} will be triggered immediately when registered, and periodically
+     * afterwards.
+     *
+     * @param mode type of mode used. See {@link ProgressMode} for more information.
+     * @param listener the listener to register.
+     */
+    public synchronized void addDownloadProgressListener(ProgressMode mode, ProgressListener listener) {
+        addProgressListener(mode, DIRECTION_DOWNLOAD, listener);
+    }
+
+    /**
+     * Adds a progress listener tracking changes that need to be uploaded from the device to the
+     * Realm Object Server.
+     * <p>
+     * The {@link ProgressListener} will be triggered immediately when registered, and periodically
+     * afterwards.
+     *
+     * @param mode type of mode used. See {@link ProgressMode} for more information.
+     * @param listener the listener to register.
+     */
+    public synchronized void addUploadProgressListener(ProgressMode mode, ProgressListener listener) {
+        addProgressListener(mode, DIRECTION_UPLOAD, listener);
+    }
+
+    /**
+     * Removes a progress listener. If the listener wasn't registered, this method will do nothing.
+     *
+     * @param listener listener to remove.
+     */
+    public synchronized void removeProgressListener(ProgressListener listener) {
+        if (listener == null) {
+            return;
+        }
+        // If an exception is thrown somewhere in here, we will most likely leave the various
+        // maps in an inconsistent manner. Not much we can do about it.
+        Long token = progressListenerToOsTokenMap.remove(listener);
+        if (token != null) {
+            Iterator<Map.Entry<Long, Pair<ProgressListener, Progress>>> it = listenerIdToProgressListenerMap.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<Long, Pair<ProgressListener, Progress>> entry = it.next();
+                if (entry.getValue().first.equals(listener)) {
+                    it.remove();
+                    break;
+                }
+            }
+            nativeRemoveProgressListener(configuration.getPath(), token);
+        }
+    }
+
+    private void addProgressListener(ProgressMode mode, int direction, ProgressListener listener) {
+        checkProgressListenerArguments(mode, listener);
+        boolean isStreaming = (mode == ProgressMode.INDEFINITELY);
+        long listenerId = progressListenerId.incrementAndGet();
+
+        // A listener might be triggered immediately as part of `nativeAddProgressListener`, so
+        // we need to make sure it can be found by SyncManager.notifyProgressListener()
+        listenerIdToProgressListenerMap.put(listenerId, new Pair<ProgressListener, Progress>(listener, null));
+        long listenerToken = nativeAddProgressListener(configuration.getPath(), listenerId , direction, isStreaming);
+        if (listenerToken == 0) {
+            // ObjectStore did not register the listener. This can happen if a
+            // listener is registered with ProgressMode.CURRENT_CHANGES and no changes actually
+            // exists. In that case the listener was triggered immediately and we just need
+            // to clean it up, since it will never be called again.
+            listenerIdToProgressListenerMap.remove(listenerId);
+        } else {
+            // Listener was properly registered.
+            progressListenerToOsTokenMap.put(listener, listenerToken);
+        }
+    }
+
+    private void checkProgressListenerArguments(ProgressMode mode, ProgressListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Non-null 'listener' required.");
+        }
+        if (mode == null) {
+            throw new IllegalArgumentException("Non-null 'mode' required.");
         }
     }
 
@@ -465,11 +636,15 @@ public class SyncSession {
          */
         public void throwExceptionIfNeeded() {
             if (resultReceived && errorCode != null) {
-                throw new ObjectServerError(ErrorCode.UNKNOWN, String.format("Internal error (%d): %s", errorCode, errorMessage));
+                throw new ObjectServerError(ErrorCode.UNKNOWN,
+                        String.format(Locale.US, "Internal error (%d): %s", errorCode, errorMessage));
             }
         }
     }
 
-    private static native boolean nativeRefreshAccessToken(String path, String accessToken, String realmUrl);
-    private native boolean nativeWaitForDownloadCompletion(String path);
+    private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
+    private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
+    private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
+    private native boolean nativeWaitForDownloadCompletion(String localRealmPath);
+    private static native byte nativeGetState(String localRealmPath);
 }

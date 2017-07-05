@@ -206,8 +206,8 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
 {
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
+    shared_realm->verify_in_write(); // throws
     JStringAccessor str_accessor(env, pk_value); // throws
-    shared_realm->verify_in_write();             // throws
     if (!pk_value && !TBL_AND_COL_NULLABLE(env, &table, pk_column_ndx)) {
         return realm::npos;
     }

@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -85,7 +86,7 @@ public class RealmProxyClassGenerator {
         this.simpleClassName = metadata.getSimpleClassName();
         this.qualifiedClassName = metadata.getFullyQualifiedClassName();
         this.interfaceName = Utils.getProxyInterfaceName(simpleClassName);
-        this.qualifiedGeneratedClassName = String.format("%s.%s",
+        this.qualifiedGeneratedClassName = String.format(Locale.US, "%s.%s",
                 Constants.REALM_PACKAGE_NAME, Utils.getProxyClassName(simpleClassName));
 
         // See the configuration for the debug build type,
@@ -278,7 +279,7 @@ public class RealmProxyClassGenerator {
             } else if (Utils.isRealmList(field)) {
                 emitRealmList(writer, field, fieldName, fieldTypeCanonicalName);
             } else {
-                throw new UnsupportedOperationException(String.format(
+                throw new UnsupportedOperationException(String.format(Locale.US,
                         "Field \"%s\" of type \"%s\" is not supported.", fieldName, fieldTypeCanonicalName));
             }
 
@@ -1493,10 +1494,10 @@ public class RealmProxyClassGenerator {
             writer.beginControlFlow("if (rowIndex == Table.NO_MATCH)");
             if (Utils.isString(metadata.getPrimaryKey())) {
                 writer.emitStatement(
-                        "rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, primaryKeyValue)");
+                        "rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue)");
             } else {
                 writer.emitStatement(
-                        "rowIndex = OsObject.createRowWithPrimaryKey(realm.sharedRealm, table, ((%s) object).%s())",
+                        "rowIndex = OsObject.createRowWithPrimaryKey(table, ((%s) object).%s())",
                         interfaceName, primaryKeyGetter);
             }
 
@@ -1508,7 +1509,7 @@ public class RealmProxyClassGenerator {
             writer.endControlFlow();
             writer.emitStatement("cache.put(object, rowIndex)");
         } else {
-            writer.emitStatement("long rowIndex = OsObject.createRow(realm.sharedRealm, table)");
+            writer.emitStatement("long rowIndex = OsObject.createRow(table)");
             writer.emitStatement("cache.put(object, rowIndex)");
         }
     }

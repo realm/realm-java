@@ -21,6 +21,10 @@ import io.realm.RealmObject;
 import io.realm.annotations.Required;
 
 public class CatOwner extends RealmObject {
+    public static final String CLASS_NAME = "CatOwner";
+    public static final String FIELD_NAME = "name";
+    public static final String FIELD_CATS = "cats";
+
     @Required
     private String name;
     private RealmList<Cat> cats;
