@@ -1,3 +1,23 @@
+## 3.5.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+* An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required model classes (#3398).
+* Removed `io.realm.internal.OutOfMemoryError`. `java.lang.OutOfMemoryError` will be thrown instead.
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+* Use Object Store to do table initialization.
+
+### Credits
+
+
 ## 3.4.1 (YYYY-MM-DD)
 
 ### Breaking Changes
@@ -5,6 +25,8 @@
 ### Deprecated
 
 ### Enhancements
+
+* [ObjectServer] Adding user lookup API for administrators (#4828).
 
 ### Bug Fixes
 
@@ -17,6 +39,7 @@
 ### Internal
 
 * Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.
+
 
 
 ## 3.4.0 (2017-06-22)
@@ -64,7 +87,7 @@
 
 ### Internal
 
-* Factor out internal interface ManagedObject
+* Factor out internal interface ManagedObject.
 
 ## 3.3.1 (2017-05-26)
 

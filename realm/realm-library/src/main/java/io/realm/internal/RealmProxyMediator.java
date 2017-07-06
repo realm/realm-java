@@ -29,8 +29,6 @@ import java.util.Set;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
-import io.realm.RealmObjectSchema;
-import io.realm.RealmSchema;
 import io.realm.exceptions.RealmException;
 
 
@@ -46,13 +44,12 @@ import io.realm.exceptions.RealmException;
 public abstract class RealmProxyMediator {
 
     /**
-     * Creates a object schema for the given RealmObject class.
+     * Returns a map of model classes to their schema information which are defined in this mediator. Classes which have
+     * same class name but in different packages should have different names in the {@code OsObjectSchemaInfo}.
      *
-     * @param clazz the {@link RealmObject} model class to create object schema for.
-     * @param realmSchema the {@link RealmSchema} to associate the object schema with.
-     * @return the object schema.
+     * @return the map with classes and their schema information.
      */
-    public abstract RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema);
+    public abstract Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap();
 
     /**
      * Validates the backing table in Realm for the given RealmObject class.

@@ -36,6 +36,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String ACTION_LOGOUT = "revoke"; // Auth end point for logging out users
     private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
+    private static final String ACTION_LOOKUP_USER_ID = "api/providers"; // Auth end point for looking up user id
 
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
@@ -106,12 +107,33 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         }
     }
 
+    @Override
+    public LookupUserIdResponse retrieveUser(Token adminToken, String provider, String providerId, URL authenticationUrl) {
+        try {
+            return lookupUserId(buildLookupUserIdUrl(authenticationUrl, ACTION_LOOKUP_USER_ID, provider, providerId), adminToken.value());
+        } catch (Exception e) {
+            return LookupUserIdResponse.from(e);
+        }
+    }
+
     // Builds the URL for a specific auth endpoint
     private static URL buildActionUrl(URL authenticationUrl, String action) {
         final String baseUrlString = authenticationUrl.toExternalForm();
         try {
             String separator = baseUrlString.endsWith("/") ? "" : "/";
             return new URL(baseUrlString + separator + action);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static URL buildLookupUserIdUrl(URL authenticationUrl, String action, String provider, String providerId) {
+        String authURL = authenticationUrl.toExternalForm();
+        // we need the base URL without the '/auth' part
+        String baseUrlString = authURL.substring(0, authURL.indexOf(authenticationUrl.getPath()));
+        try {
+            String separator = baseUrlString.endsWith("/") ? "" : "/";
+            return new URL(baseUrlString + separator + action + "/" + provider + "/accounts/" + providerId);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
@@ -139,6 +161,14 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         Call call = client.newCall(request);
         Response response = call.execute();
         return ChangePasswordResponse.from(response);
+    }
+
+    private LookupUserIdResponse lookupUserId(URL lookupUserIdUrl, String token) throws Exception {
+        RealmLog.debug("Network request (lookupUserId): " + lookupUserIdUrl);
+        Request request = newAuthRequest(lookupUserIdUrl).get().header("Authorization", token).build();
+        Call call = client.newCall(request);
+        Response response = call.execute();
+        return LookupUserIdResponse.from(response);
     }
 
     private Request.Builder newAuthRequest(URL url) {
