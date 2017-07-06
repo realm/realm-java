@@ -1147,11 +1147,6 @@ public class RealmTests {
         }
 
         realm.close();
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            fail();
-        }
 
         // FIXME: It should be 1. Current compactOnLaunch is called each time a Realm is opened on a new thread.
         assertNotEquals(1, compactOnLaunchCount.get());
