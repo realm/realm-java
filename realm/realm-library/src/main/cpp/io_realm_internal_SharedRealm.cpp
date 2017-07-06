@@ -186,6 +186,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv* env
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
     JNIEnv* env, jclass, jstring realm_path, jbyteArray key, jbyte schema_mode, jboolean in_memory, jboolean cache,
     jlong /* schema_version */, jboolean enable_format_upgrade, jboolean auto_change_notification,
+    jobject compact_on_launch,
     REALM_UNUSED jstring sync_server_url, REALM_UNUSED jstring sync_server_auth_url,
     REALM_UNUSED jstring sync_user_identity, REALM_UNUSED jstring sync_refresh_token,
     REALM_UNUSED jboolean sync_client_validate_ssl, REALM_UNUSED jstring sync_ssl_trust_certificate_path)
@@ -204,6 +205,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
         config.cache = cache;
         config.disable_format_upgrade = !enable_format_upgrade;
         config.automatic_change_notifications = auto_change_notification;
+
+        if (compact_on_launch) {
+            static JavaMethod should_compact(env, compact_on_launch, "shouldCompact", "(JJ)Z");
+            JavaGlobalRef java_compact_on_launch_ref(env, compact_on_launch);
+
+            auto should_compact_on_launch_function = [java_compact_on_launch_ref](uint64_t totalBytes, uint64_t usedBytes) {
+                JNIEnv* env = JniUtils::get_env(false);
+                return env->CallBooleanMethod(java_compact_on_launch_ref.get(), should_compact,
+                                              static_cast<jlong>(totalBytes), static_cast<jlong>(usedBytes));
+            };
+            config.should_compact_on_launch_function = std::move(should_compact_on_launch_function);
+        }
+
         if (sync_server_url) {
             return reinterpret_cast<jlong>(
                 new JniConfigWrapper(env, config, sync_server_url, sync_server_auth_url, sync_user_identity,
