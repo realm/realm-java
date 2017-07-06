@@ -8,8 +8,8 @@
 
 ### Bug Fixes
 
-* Fixed a bug in `isNull()`, `isNotNull()`, `isEmpty()`, and `isNotEmpty()` when queries involve nullable fields in link queries (#4856).
-* Fixed a bug in how to resolve field names when querying `@LinkingObjects` as the last field (#4864).
+* Bug in `isNull()`, `isNotNull()`, `isEmpty()`, and `isNotEmpty()` when queries involve nullable fields in link queries (#4856).
+* Bug in how to resolve field names when querying `@LinkingObjects` as the last field (#4864).
 * Rare crash in `RealmLog` when log level was set to `LogLevel.DEBUG`.
 * [ObjectServer] Fixed a bug related to the behaviour of `SyncUser#logout` and the use of invalid `SyncUser` with `SyncConfiguration` (#4822).
 * [ObjectServer] Not all error codes from the server were recognized correctly, resulting in UNKNOWN being reported instead.
