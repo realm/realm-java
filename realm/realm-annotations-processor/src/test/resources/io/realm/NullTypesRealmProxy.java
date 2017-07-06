@@ -9,9 +9,9 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
@@ -54,7 +54,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         long fieldDateNullIndex;
         long fieldObjectNullIndex;
 
-        NullTypesColumnInfo(SharedRealm realm, Table table) {
+        NullTypesColumnInfo(OsSharedRealm realm, Table table) {
             super(21);
             this.fieldStringNotNullIndex = addColumnDetails(table, "fieldStringNotNull", RealmFieldType.STRING);
             this.fieldStringNullIndex = addColumnDetails(table, "fieldStringNull", RealmFieldType.STRING);
@@ -851,7 +851,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return realmObjectSchema;
     }
 
-    public static NullTypesColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
+    public static NullTypesColumnInfo validateTable(OsSharedRealm sharedRealm, boolean allowExtraColumns) {
         if (!sharedRealm.hasTable("class_NullTypes")) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "The 'NullTypes' class is missing from the schema for this Realm.");
         }

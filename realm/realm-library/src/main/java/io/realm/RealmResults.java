@@ -19,7 +19,6 @@ package io.realm;
 
 import android.annotation.SuppressLint;
 import android.os.Looper;
-import android.util.Log;
 
 import io.realm.internal.CheckedRow;
 import io.realm.internal.Collection;
@@ -66,7 +65,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
         Table srcTable = realm.getSchema().getTable(srcTableType);
         return new RealmResults<>(
                 realm,
-                Collection.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
+                Collection.createBacklinksCollection(realm.osSharedRealm, uncheckedRow, srcTable, srcFieldName),
                 srcTableType);
     }
 
@@ -74,7 +73,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
         return new RealmResults<>(
                 realm,
-                Collection.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),
+                Collection.createBacklinksCollection(realm.osSharedRealm, row, srcTable, srcFieldName),
                 Table.getClassNameForTable(srcTable.getName()));
     }
 
@@ -214,7 +213,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+        realm.osSharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
     }
 
     /**

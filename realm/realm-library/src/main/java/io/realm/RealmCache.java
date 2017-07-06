@@ -37,7 +37,7 @@ import io.realm.internal.Capabilities;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.RealmNotifier;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
@@ -293,9 +293,9 @@ final class RealmCache {
             copyAssetFileIfNeeded(configuration);
             boolean fileExists = configuration.realmExists();
 
-            SharedRealm sharedRealm = null;
+            OsSharedRealm osSharedRealm = null;
             try {
-                sharedRealm = SharedRealm.getInstance(configuration);
+                osSharedRealm = OsSharedRealm.getInstance(configuration);
 
                 // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
                 // before proceeding. We need to open the Realm instance first to start any potential underlying
@@ -308,25 +308,25 @@ final class RealmCache {
                         // download it again on the next attempt.
                         // Realm.deleteRealm() is under the same lock as this method and globalCount is still 0, so
                         // this should be safe.
-                        sharedRealm.close();
-                        sharedRealm = null;
+                        osSharedRealm.close();
+                        osSharedRealm = null;
                         Realm.deleteRealm(configuration);
                         throw t;
                     }
                 }
 
-                if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
-                    sharedRealm.beginTransaction();
-                    if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
-                        sharedRealm.commitTransaction();
+                if (Table.primaryKeyTableNeedsMigration(osSharedRealm)) {
+                    osSharedRealm.beginTransaction();
+                    if (Table.migratePrimaryKeyTableIfNeeded(osSharedRealm)) {
+                        osSharedRealm.commitTransaction();
                     } else {
-                        sharedRealm.cancelTransaction();
+                        osSharedRealm.cancelTransaction();
                     }
                 }
 
             } finally {
-                if (sharedRealm != null) {
-                    sharedRealm.close();
+                if (osSharedRealm != null) {
+                    osSharedRealm.close();
                 }
             }
 

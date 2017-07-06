@@ -36,134 +36,134 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
-public class SharedRealmTests {
+public class OsSharedRealmTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm osSharedRealm;
 
     @Before
     public void setUp() {
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        osSharedRealm = OsSharedRealm.getInstance(config);
     }
 
     @After
     public void tearDown() {
-        if (sharedRealm != null) {
-            sharedRealm.close();
+        if (osSharedRealm != null) {
+            osSharedRealm.close();
         }
     }
 
     @Test
     public void getVersionID() {
-        SharedRealm.VersionID versionID1 = sharedRealm.getVersionID();
-        sharedRealm.beginTransaction();
-        sharedRealm.commitTransaction();
-        SharedRealm.VersionID versionID2 = sharedRealm.getVersionID();
+        OsSharedRealm.VersionID versionID1 = osSharedRealm.getVersionID();
+        osSharedRealm.beginTransaction();
+        osSharedRealm.commitTransaction();
+        OsSharedRealm.VersionID versionID2 = osSharedRealm.getVersionID();
         assertFalse(versionID1.equals(versionID2));
     }
 
     @Test
     public void hasTable() {
-        assertFalse(sharedRealm.hasTable("MyTable"));
-        sharedRealm.beginTransaction();
-        sharedRealm.createTable("MyTable");
-        sharedRealm.commitTransaction();
-        assertTrue(sharedRealm.hasTable("MyTable"));
+        assertFalse(osSharedRealm.hasTable("MyTable"));
+        osSharedRealm.beginTransaction();
+        osSharedRealm.createTable("MyTable");
+        osSharedRealm.commitTransaction();
+        assertTrue(osSharedRealm.hasTable("MyTable"));
     }
 
     @Test
     public void getTable() {
-        assertFalse(sharedRealm.hasTable("MyTable"));
-        sharedRealm.beginTransaction();
-        sharedRealm.createTable("MyTable");
-        sharedRealm.commitTransaction();
-        assertTrue(sharedRealm.hasTable("MyTable"));
+        assertFalse(osSharedRealm.hasTable("MyTable"));
+        osSharedRealm.beginTransaction();
+        osSharedRealm.createTable("MyTable");
+        osSharedRealm.commitTransaction();
+        assertTrue(osSharedRealm.hasTable("MyTable"));
 
         // Table is existing, no need transaction to create it
-        assertTrue(sharedRealm.getTable("MyTable").isValid());
+        assertTrue(osSharedRealm.getTable("MyTable").isValid());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getTable_throwsIfTableNotExist() {
-        sharedRealm.getTable("NON_EXISTING");
+        osSharedRealm.getTable("NON_EXISTING");
     }
 
     @Test
     public void isInTransaction() {
-        assertFalse(sharedRealm.isInTransaction());
-        sharedRealm.beginTransaction();
-        assertTrue(sharedRealm.isInTransaction());
-        sharedRealm.cancelTransaction();
-        assertFalse(sharedRealm.isInTransaction());
+        assertFalse(osSharedRealm.isInTransaction());
+        osSharedRealm.beginTransaction();
+        assertTrue(osSharedRealm.isInTransaction());
+        osSharedRealm.cancelTransaction();
+        assertFalse(osSharedRealm.isInTransaction());
     }
 
     @Test
     public void isInTransaction_returnFalseWhenRealmClosed() {
-        sharedRealm.close();
-        assertFalse(sharedRealm.isInTransaction());
-        sharedRealm = null;
+        osSharedRealm.close();
+        assertFalse(osSharedRealm.isInTransaction());
+        osSharedRealm = null;
     }
 
     @Test
     public void removeTable() {
-        sharedRealm.beginTransaction();
-        sharedRealm.createTable("TableToRemove");
-        assertTrue(sharedRealm.hasTable("TableToRemove"));
-        sharedRealm.removeTable("TableToRemove");
-        assertFalse(sharedRealm.hasTable("TableToRemove"));
-        sharedRealm.commitTransaction();
+        osSharedRealm.beginTransaction();
+        osSharedRealm.createTable("TableToRemove");
+        assertTrue(osSharedRealm.hasTable("TableToRemove"));
+        osSharedRealm.removeTable("TableToRemove");
+        assertFalse(osSharedRealm.hasTable("TableToRemove"));
+        osSharedRealm.commitTransaction();
     }
 
     @Test
     public void removeTable_notInTransactionThrows() {
-        sharedRealm.beginTransaction();
-        sharedRealm.createTable("TableToRemove");
-        sharedRealm.commitTransaction();
+        osSharedRealm.beginTransaction();
+        osSharedRealm.createTable("TableToRemove");
+        osSharedRealm.commitTransaction();
         thrown.expect(IllegalStateException.class);
-        sharedRealm.removeTable("TableToRemove");
+        osSharedRealm.removeTable("TableToRemove");
     }
 
     @Test
     public void removeTable_tableNotExist() {
-        sharedRealm.beginTransaction();
-        assertFalse(sharedRealm.hasTable("TableToRemove"));
+        osSharedRealm.beginTransaction();
+        assertFalse(osSharedRealm.hasTable("TableToRemove"));
         thrown.expect(RealmError.class);
-        sharedRealm.removeTable("TableToRemove");
-        sharedRealm.cancelTransaction();
+        osSharedRealm.removeTable("TableToRemove");
+        osSharedRealm.cancelTransaction();
     }
 
     @Test
     public void renameTable() {
-        sharedRealm.beginTransaction();
-        sharedRealm.createTable("OldTable");
-        assertTrue(sharedRealm.hasTable("OldTable"));
-        sharedRealm.renameTable("OldTable", "NewTable");
-        assertFalse(sharedRealm.hasTable("OldTable"));
-        assertTrue(sharedRealm.hasTable("NewTable"));
-        sharedRealm.commitTransaction();
+        osSharedRealm.beginTransaction();
+        osSharedRealm.createTable("OldTable");
+        assertTrue(osSharedRealm.hasTable("OldTable"));
+        osSharedRealm.renameTable("OldTable", "NewTable");
+        assertFalse(osSharedRealm.hasTable("OldTable"));
+        assertTrue(osSharedRealm.hasTable("NewTable"));
+        osSharedRealm.commitTransaction();
     }
 
     @Test
     public void renameTable_notInTransactionThrows() {
-        sharedRealm.beginTransaction();
-        sharedRealm.createTable("OldTable");
-        sharedRealm.commitTransaction();
+        osSharedRealm.beginTransaction();
+        osSharedRealm.createTable("OldTable");
+        osSharedRealm.commitTransaction();
         thrown.expect(IllegalStateException.class);
-        sharedRealm.renameTable("OldTable", "NewTable");
+        osSharedRealm.renameTable("OldTable", "NewTable");
     }
 
     @Test
     public void renameTable_tableNotExist() {
-        sharedRealm.beginTransaction();
-        assertFalse(sharedRealm.hasTable("TableToRemove"));
+        osSharedRealm.beginTransaction();
+        assertFalse(osSharedRealm.hasTable("TableToRemove"));
         thrown.expect(RealmError.class);
-        sharedRealm.renameTable("TableToRemove", "newName");
-        sharedRealm.cancelTransaction();
+        osSharedRealm.renameTable("TableToRemove", "newName");
+        osSharedRealm.cancelTransaction();
     }
 
     @Test
@@ -171,8 +171,8 @@ public class SharedRealmTests {
         final AtomicBoolean listenerCalled = new AtomicBoolean(false);
         final AtomicLong schemaVersionFromListener = new AtomicLong(-1L);
 
-        sharedRealm.close();
-        sharedRealm = SharedRealm.getInstance(config, new SharedRealm.SchemaVersionListener() {
+        osSharedRealm.close();
+        osSharedRealm = OsSharedRealm.getInstance(config, new OsSharedRealm.SchemaVersionListener() {
             @Override
             public void onSchemaVersionChanged(long currentVersion) {
                 listenerCalled.set(true);
@@ -180,28 +180,28 @@ public class SharedRealmTests {
             }
         }, true);
 
-        final long before = sharedRealm.getSchemaVersion();
+        final long before = osSharedRealm.getSchemaVersion();
 
-        sharedRealm.beginTransaction();
+        osSharedRealm.beginTransaction();
         try {
             // Listener is not called if there was no schema change.
             assertFalse(listenerCalled.get());
 
             // Changes the schema version.
-            sharedRealm.setSchemaVersion(before + 1);
+            osSharedRealm.setSchemaVersion(before + 1);
         } finally {
-            sharedRealm.commitTransaction();
+            osSharedRealm.commitTransaction();
         }
 
         // Listener is not yet called.
         assertFalse(listenerCalled.get());
 
-        sharedRealm.beginTransaction();
+        osSharedRealm.beginTransaction();
         try {
             assertTrue(listenerCalled.get());
             assertEquals(before + 1, schemaVersionFromListener.get());
         } finally {
-            sharedRealm.cancelTransaction();
+            osSharedRealm.cancelTransaction();
         }
     }
 
@@ -210,8 +210,8 @@ public class SharedRealmTests {
         final AtomicBoolean listenerCalled = new AtomicBoolean(false);
         final AtomicLong schemaVersionFromListener = new AtomicLong(-1L);
 
-        sharedRealm.close();
-        sharedRealm = SharedRealm.getInstance(config, new SharedRealm.SchemaVersionListener() {
+        osSharedRealm.close();
+        osSharedRealm = OsSharedRealm.getInstance(config, new OsSharedRealm.SchemaVersionListener() {
             @Override
             public void onSchemaVersionChanged(long currentVersion) {
                 listenerCalled.set(true);
@@ -219,40 +219,40 @@ public class SharedRealmTests {
             }
         }, true);
 
-        final long before = sharedRealm.getSchemaVersion();
+        final long before = osSharedRealm.getSchemaVersion();
 
-        sharedRealm.refresh();
+        osSharedRealm.refresh();
         // Listener is not called if there was no schema change.
         assertFalse(listenerCalled.get());
 
-        sharedRealm.beginTransaction();
+        osSharedRealm.beginTransaction();
         try {
             // Changes the schema version.
-            sharedRealm.setSchemaVersion(before + 1);
+            osSharedRealm.setSchemaVersion(before + 1);
         } finally {
-            sharedRealm.commitTransaction();
+            osSharedRealm.commitTransaction();
         }
 
         // Listener is not yet called.
         assertFalse(listenerCalled.get());
 
-        sharedRealm.refresh();
+        osSharedRealm.refresh();
         assertTrue(listenerCalled.get());
         assertEquals(before + 1, schemaVersionFromListener.get());
     }
 
     @Test
     public void isClosed() {
-        sharedRealm.close();
-        assertTrue(sharedRealm.isClosed());
-        sharedRealm = null;
+        osSharedRealm.close();
+        assertTrue(osSharedRealm.isClosed());
+        osSharedRealm = null;
     }
 
     @Test
     public void close_twice() {
-        sharedRealm.close();
-        sharedRealm.close();
-        assertTrue(sharedRealm.isClosed());
-        sharedRealm = null;
+        osSharedRealm.close();
+        osSharedRealm.close();
+        assertTrue(osSharedRealm.isClosed());
+        osSharedRealm = null;
     }
 }

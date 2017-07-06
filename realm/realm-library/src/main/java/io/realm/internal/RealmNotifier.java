@@ -65,17 +65,17 @@ public abstract class RealmNotifier implements Closeable {
                 @Override
                 public void onCalled(RealmObserverPair pair, Object observer) {
                     //noinspection unchecked
-                    if (sharedRealm != null && !sharedRealm.isClosed()) {
+                    if (osSharedRealm != null && !osSharedRealm.isClosed()) {
                         pair.onChange(observer);
                     }
                 }
             };
 
-    protected RealmNotifier(SharedRealm sharedRealm) {
-        this.sharedRealm = sharedRealm;
+    protected RealmNotifier(OsSharedRealm osSharedRealm) {
+        this.osSharedRealm = osSharedRealm;
     }
 
-    private SharedRealm sharedRealm;
+    private OsSharedRealm osSharedRealm;
     // TODO: The only reason we have this is that async transactions is not supported by OS yet. And OS is using ALopper
     // which will be using a different message queue from which java is using to deliver remote Realm changes message.
     // We need a way to deliver the async transaction onSuccess callback to the caller thread after the caller Realm
@@ -112,17 +112,17 @@ public abstract class RealmNotifier implements Closeable {
     // Called from JavaBindingContext::before_notify.
     // This will be called in the caller thread when:
     // 1. Get changed notification by this/other Realm instances.
-    // 2. SharedRealm::refresh called.
+    // 2. OsSharedRealm::refresh called.
     // In both cases, this will be called before the any other callbacks (changed callbacks, async query callbacks.).
     // Package protected to avoid finding class by name in JNI.
     @SuppressWarnings("unused")
     void beforeNotify() {
         // For the stable iteration.
-        sharedRealm.invalidateIterators();
+        osSharedRealm.invalidateIterators();
     }
 
     /**
-     * Called when close SharedRealm to clean up any event left in to queue.
+     * Called when close OsSharedRealm to clean up any event left in to queue.
      */
     @Override
     public void close() {

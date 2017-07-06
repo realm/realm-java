@@ -23,7 +23,7 @@ import io.realm.internal.Keep;
  * Interface for custom loggers that can be registered at {@link RealmLog#add(RealmLogger)}.
  * The different log levels are described in {@link LogLevel}.
  */
-@Keep // This interface is used as a parameter type of a native method in SharedRealm.java
+@Keep // This interface is used as a parameter type of a native method in OsSharedRealm.java
 public interface RealmLogger {
 
     /**

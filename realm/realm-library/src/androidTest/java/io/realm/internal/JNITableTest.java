@@ -52,17 +52,17 @@ public class JNITableTest {
 
     @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm osSharedRealm;
 
     @Before
     public void setUp() {
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        osSharedRealm = OsSharedRealm.getInstance(config);
     }
 
     @Test
     public void tableToString() {
-        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table t = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 t.addColumn(RealmFieldType.STRING, "stringCol");
@@ -80,9 +80,9 @@ public class JNITableTest {
 
     @Test
     public void rowOperationsOnZeroRow() {
-        Table t = TestHelper.createTable(sharedRealm, "temp");
+        Table t = TestHelper.createTable(osSharedRealm, "temp");
 
-        sharedRealm.beginTransaction();
+        osSharedRealm.beginTransaction();
         // Removes rows without columns.
         try { t.moveLastOver(0);  fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException ignored) {}
         try { t.moveLastOver(10); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException ignored) {}
@@ -91,14 +91,14 @@ public class JNITableTest {
         t.addColumn(RealmFieldType.STRING, "");
         try { t.moveLastOver(0);  fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException ignored) {}
         try { t.moveLastOver(10); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException ignored) {}
-        sharedRealm.commitTransaction();
+        osSharedRealm.commitTransaction();
     }
 
     @Test
     public void zeroColOperations() {
-        Table tableZeroCols = TestHelper.createTable(sharedRealm, "temp");
+        Table tableZeroCols = TestHelper.createTable(osSharedRealm, "temp");
 
-        sharedRealm.beginTransaction();
+        osSharedRealm.beginTransaction();
         // Col operations
         try {
             tableZeroCols.removeColumn(0);
@@ -116,15 +116,15 @@ public class JNITableTest {
             tableZeroCols.renameColumn(10, "newName");
             fail("No columns in table");
         } catch (ArrayIndexOutOfBoundsException ignored) {}
-        sharedRealm.commitTransaction();
+        osSharedRealm.commitTransaction();
     }
 
     @Test
     public void findFirstNonExisting() {
-        Table t = TestHelper.createTableWithAllColumnTypes(sharedRealm);
-        sharedRealm.beginTransaction();
+        Table t = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
+        osSharedRealm.beginTransaction();
         TestHelper.addRowWithValues(t, new byte[] {1, 2, 3}, true, new Date(1384423149761L), 4.5D, 5.7F, 100, "string");
-        sharedRealm.commitTransaction();
+        osSharedRealm.commitTransaction();
 
         assertEquals(-1, t.findFirstBoolean(1, false));
         assertEquals(-1, t.findFirstDate(2, new Date(138442314986L)));
@@ -136,13 +136,13 @@ public class JNITableTest {
     @Test
     public void findFirst() {
         final int TEST_SIZE = 10;
-        Table t = TestHelper.createTableWithAllColumnTypes(sharedRealm);
-        sharedRealm.beginTransaction();
+        Table t = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
+        osSharedRealm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
             TestHelper.addRowWithValues(t, new byte[] {1, 2, 3}, true, new Date(i), (double) i, (float) i, i, "string " + i);
         }
         TestHelper.addRowWithValues(t, new byte[] {1, 2, 3}, true, new Date(TEST_SIZE), (double) TEST_SIZE, (float) TEST_SIZE, TEST_SIZE, "");
-        sharedRealm.commitTransaction();
+        osSharedRealm.commitTransaction();
 
         assertEquals(0, t.findFirstBoolean(1, true));
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -165,12 +165,12 @@ public class JNITableTest {
 
     @Test
     public void getValuesFromNonExistingColumn() {
-        Table t = TestHelper.createTableWithAllColumnTypes(sharedRealm);
-        sharedRealm.beginTransaction();
+        Table t = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
+        osSharedRealm.beginTransaction();
         for (int i = 0; i < 10; i++) {
             OsObject.createRow(t);
         }
-        sharedRealm.commitTransaction();
+        osSharedRealm.commitTransaction();
 
         try {
             t.getBinaryByteArray(-1, 0);
@@ -266,7 +266,7 @@ public class JNITableTest {
 
     @Test
     public void getNonExistingColumn() {
-        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table t = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 t.addColumn(RealmFieldType.INTEGER, "int");
@@ -282,7 +282,7 @@ public class JNITableTest {
 
     @Test
     public void setNulls() {
-        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table t = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 t.addColumn(RealmFieldType.STRING, "");
@@ -292,7 +292,7 @@ public class JNITableTest {
             }
         });
 
-        sharedRealm.beginTransaction();
+        osSharedRealm.beginTransaction();
         try {
             t.setString(0, 0, null, false);
             fail("null string not allowed");
@@ -301,7 +301,7 @@ public class JNITableTest {
             t.setDate(1, 0, null, false);
             fail("null Date not allowed");
         } catch (IllegalArgumentException ignored) { }
-        sharedRealm.commitTransaction();
+        osSharedRealm.commitTransaction();
     }
 
     @Test
@@ -310,25 +310,25 @@ public class JNITableTest {
         RealmConfiguration configuration = configFactory.createConfiguration();
         Realm.deleteRealm(configuration);
 
-        SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
+        OsSharedRealm osSharedRealm = OsSharedRealm.getInstance(configuration);
         //noinspection TryFinallyCanBeTryWithResources
         try {
 
             // Writes transaction must be run so we are sure a db exists with the correct table.
-            sharedRealm.beginTransaction();
-            sharedRealm.createTable(TABLE_NAME);
-            sharedRealm.commitTransaction();
+            osSharedRealm.beginTransaction();
+            osSharedRealm.createTable(TABLE_NAME);
+            osSharedRealm.commitTransaction();
 
-            Table table = sharedRealm.getTable(TABLE_NAME);
+            Table table = osSharedRealm.getTable(TABLE_NAME);
             assertEquals(TABLE_NAME, table.getName());
         } finally {
-            sharedRealm.close();
+            osSharedRealm.close();
         }
     }
 
     @Test
     public void shouldThrowWhenSetIndexOnWrongRealmFieldType() {
-        Table t = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table t = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
         for (long colIndex = 0; colIndex < t.getColumnCount(); colIndex++) {
 
             // All types supported addSearchIndex and removeSearchIndex.
@@ -339,7 +339,7 @@ public class JNITableTest {
                             t.getColumnType(colIndex) != RealmFieldType.DATE);
 
             // Tries to addSearchIndex().
-            sharedRealm.beginTransaction();
+            osSharedRealm.beginTransaction();
             try {
                 t.addSearchIndex(colIndex);
                 if (exceptionExpected) {
@@ -347,10 +347,10 @@ public class JNITableTest {
                 }
             } catch (IllegalArgumentException ignored) {
             }
-            sharedRealm.commitTransaction();
+            osSharedRealm.commitTransaction();
 
             // Tries to removeSearchIndex().
-            sharedRealm.beginTransaction();
+            osSharedRealm.beginTransaction();
             try {
                 // Currently core will do nothing if the column doesn't have a search index.
                 t.removeSearchIndex(colIndex);
@@ -359,7 +359,7 @@ public class JNITableTest {
                 }
             } catch (IllegalArgumentException ignored) {
             }
-            sharedRealm.commitTransaction();
+            osSharedRealm.commitTransaction();
 
             // Tries to hasSearchIndex() for all columnTypes.
             t.hasSearchIndex(colIndex);
@@ -368,7 +368,7 @@ public class JNITableTest {
 
     @Test
     public void columnName() {
-        TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 try {
@@ -382,7 +382,7 @@ public class JNITableTest {
 
     @Test
     public void tableNumbers() {
-        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table t = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 t.addColumn(RealmFieldType.INTEGER, "intCol");
@@ -413,10 +413,10 @@ public class JNITableTest {
         assertEquals(4, t.findFirstFloat(2, 300.0F)); // Find rows index for first float value of 300.0 in column 2.
 
         // Sets double and float.
-        sharedRealm.beginTransaction();
+        osSharedRealm.beginTransaction();
         t.setDouble(1, 2, -2.0D, false);
         t.setFloat(2, 2, -3.0F, false);
-        sharedRealm.commitTransaction();
+        osSharedRealm.commitTransaction();
 
         // Gets double tests.
         assertEquals(-2.0D, t.getDouble(1, 2));
@@ -443,7 +443,7 @@ public class JNITableTest {
             for (final boolean nullable : new boolean[] {Table.NOT_NULLABLE, Table.NULLABLE}) {
                 for (final String columnName : columnNames) {
                     final AtomicLong colIndexRef = new AtomicLong();
-                    Table table = TestHelper.createTable(sharedRealm, "temp" + tableIndex, new TestHelper.AdditionalTableSetup() {
+                    Table table = TestHelper.createTable(osSharedRealm, "temp" + tableIndex, new TestHelper.AdditionalTableSetup() {
                         @Override
                         public void execute(Table table) {
                             long colIndex = table.addColumn(columnType, columnName, nullable);
@@ -487,16 +487,16 @@ public class JNITableTest {
 
                     long colIndex = colIndexRef.get();
 
-                    sharedRealm.beginTransaction();
+                    osSharedRealm.beginTransaction();
                     table.convertColumnToNullable(colIndex);
-                    sharedRealm.commitTransaction();
+                    osSharedRealm.commitTransaction();
                     assertTrue(table.isColumnNullable(colIndex));
                     assertEquals(1, table.size());
                     assertEquals(2, table.getColumnCount());
                     assertTrue(table.getColumnIndex(columnName) >= 0);
                     assertEquals(colIndex, table.getColumnIndex(columnName));
 
-                    sharedRealm.beginTransaction();
+                    osSharedRealm.beginTransaction();
                     OsObject.createRow(table);
                     if (columnType == RealmFieldType.BINARY) {
                         table.setBinaryByteArray(colIndex, 0, null, false);
@@ -505,7 +505,7 @@ public class JNITableTest {
                     } else {
                         table.getCheckedRow(0).setNull(colIndex);
                     }
-                    sharedRealm.commitTransaction();
+                    osSharedRealm.commitTransaction();
 
                     assertEquals(2, table.size());
 
@@ -533,7 +533,7 @@ public class JNITableTest {
             for (final boolean nullable : new boolean[] {Table.NOT_NULLABLE, Table.NULLABLE}) {
                 for (final String columnName : columnNames) {
                     final AtomicLong colIndexRef = new AtomicLong();
-                    Table table = TestHelper.createTable(sharedRealm, "temp" + tableIndex, new TestHelper.AdditionalTableSetup() {
+                    Table table = TestHelper.createTable(osSharedRealm, "temp" + tableIndex, new TestHelper.AdditionalTableSetup() {
                         @Override
                         public void execute(Table table) {
                             long colIndex = table.addColumn(columnType, columnName, nullable);
@@ -574,16 +574,16 @@ public class JNITableTest {
 
                     long colIndex = colIndexRef.get();
 
-                    sharedRealm.beginTransaction();
+                    osSharedRealm.beginTransaction();
                     table.convertColumnToNotNullable(colIndex);
-                    sharedRealm.commitTransaction();
+                    osSharedRealm.commitTransaction();
                     assertFalse(table.isColumnNullable(colIndex));
                     assertEquals(2, table.size());
                     assertEquals(2, table.getColumnCount());
                     assertTrue(table.getColumnIndex(columnName) >= 0);
                     assertEquals(colIndex, table.getColumnIndex(columnName));
 
-                    sharedRealm.beginTransaction();
+                    osSharedRealm.beginTransaction();
                     OsObject.createRow(table);
                     try {
                         if (columnType == RealmFieldType.BINARY) {
@@ -599,7 +599,7 @@ public class JNITableTest {
                     } catch (IllegalArgumentException ignored) {
                     }
                     table.moveLastOver(table.size() -1);
-                    sharedRealm.commitTransaction();
+                    osSharedRealm.commitTransaction();
 
                     assertEquals(2, table.size());
 
@@ -631,7 +631,7 @@ public class JNITableTest {
     // Adds column and read back if it is nullable or not.
     @Test
     public void isNullable() {
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table table = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.STRING, "string1", Table.NOT_NULLABLE);
@@ -645,12 +645,12 @@ public class JNITableTest {
 
     @Test
     public void defaultValue_setAndGet() {
-        final SharedRealm sharedRealm = SharedRealm.getInstance(configFactory.createConfiguration());
+        final OsSharedRealm osSharedRealm = OsSharedRealm.getInstance(configFactory.createConfiguration());
         //noinspection TryFinallyCanBeTryWithResources
         try {
-            sharedRealm.beginTransaction();
-            final Table table = sharedRealm.createTable(Table.getTableNameForClass("DefaultValueTest"));
-            sharedRealm.commitTransaction();
+            osSharedRealm.beginTransaction();
+            final Table table = osSharedRealm.createTable(Table.getTableNameForClass("DefaultValueTest"));
+            osSharedRealm.commitTransaction();
 
             List<Pair<RealmFieldType, Object>> columnInfoList = Arrays.asList(
                     new Pair<RealmFieldType, Object>(RealmFieldType.STRING, "string value"),
@@ -674,7 +674,7 @@ public class JNITableTest {
                 }
             }
 
-            sharedRealm.beginTransaction();
+            osSharedRealm.beginTransaction();
             OsObject.createRow(table);
 
             ListIterator<Pair<RealmFieldType, Object>> it = columnInfoList.listIterator();
@@ -720,7 +720,7 @@ public class JNITableTest {
                         throw new RuntimeException("unexpected field type: " + type);
                 }
             }
-            sharedRealm.commitTransaction();
+            osSharedRealm.commitTransaction();
 
             // Checks if the value can be read after committing transaction.
             it = columnInfoList.listIterator();
@@ -760,18 +760,18 @@ public class JNITableTest {
             }
 
         } finally {
-            sharedRealm.close();
+            osSharedRealm.close();
         }
     }
 
     @Test
     public void defaultValue_setMultipleTimes() {
-        final SharedRealm sharedRealm = SharedRealm.getInstance(configFactory.createConfiguration());
+        final OsSharedRealm osSharedRealm = OsSharedRealm.getInstance(configFactory.createConfiguration());
         //noinspection TryFinallyCanBeTryWithResources
         try {
-            sharedRealm.beginTransaction();
-            final Table table = sharedRealm.createTable(Table.getTableNameForClass("DefaultValueTest"));
-            sharedRealm.commitTransaction();
+            osSharedRealm.beginTransaction();
+            final Table table = osSharedRealm.createTable(Table.getTableNameForClass("DefaultValueTest"));
+            osSharedRealm.commitTransaction();
 
             List<Pair<RealmFieldType, Object>> columnInfoList = Arrays.asList(
                     new Pair<RealmFieldType, Object>(RealmFieldType.STRING, new String[] {"string value1", "string value2"}),
@@ -795,7 +795,7 @@ public class JNITableTest {
                 }
             }
 
-            sharedRealm.beginTransaction();
+            osSharedRealm.beginTransaction();
             OsObject.createRow(table);
             OsObject.createRow(table); // For link field update.
 
@@ -851,7 +851,7 @@ public class JNITableTest {
                         throw new RuntimeException("unexpected field type: " + type);
                 }
             }
-            sharedRealm.commitTransaction();
+            osSharedRealm.commitTransaction();
 
             // Checks if the value can be read after committing transaction.
             it = columnInfoList.listIterator();
@@ -890,18 +890,18 @@ public class JNITableTest {
                 }
             }
         } finally {
-            sharedRealm.close();
+            osSharedRealm.close();
         }
     }
 
     @Test
     public void defaultValue_overwrittenByNonDefault() {
-        final SharedRealm sharedRealm = SharedRealm.getInstance(configFactory.createConfiguration());
+        final OsSharedRealm osSharedRealm = OsSharedRealm.getInstance(configFactory.createConfiguration());
         //noinspection TryFinallyCanBeTryWithResources
         try {
-            sharedRealm.beginTransaction();
-            final Table table = sharedRealm.createTable(Table.getTableNameForClass("DefaultValueTest"));
-            sharedRealm.commitTransaction();
+            osSharedRealm.beginTransaction();
+            final Table table = osSharedRealm.createTable(Table.getTableNameForClass("DefaultValueTest"));
+            osSharedRealm.commitTransaction();
 
             List<Pair<RealmFieldType, Object>> columnInfoList = Arrays.asList(
                     new Pair<RealmFieldType, Object>(RealmFieldType.STRING, new String[] {"string value1", "string value2"}),
@@ -925,7 +925,7 @@ public class JNITableTest {
                 }
             }
 
-            sharedRealm.beginTransaction();
+            osSharedRealm.beginTransaction();
             OsObject.createRow(table);
             OsObject.createRow(table); // For link field update.
 
@@ -965,10 +965,10 @@ public class JNITableTest {
                         throw new RuntimeException("unexpected field type: " + type);
                 }
             }
-            sharedRealm.commitTransaction();
+            osSharedRealm.commitTransaction();
 
             // Updates as non default.
-            sharedRealm.beginTransaction();
+            osSharedRealm.beginTransaction();
             it = columnInfoList.listIterator();
             for (int columnIndex = 0; columnIndex < columnInfoList.size(); columnIndex++) {
                 Pair<RealmFieldType, Object> columnInfo = it.next();
@@ -1012,7 +1012,7 @@ public class JNITableTest {
                         throw new RuntimeException("unexpected field type: " + type);
                 }
             }
-            sharedRealm.commitTransaction();
+            osSharedRealm.commitTransaction();
 
             // Checks if the value was overwritten.
             it = columnInfoList.listIterator();
@@ -1051,7 +1051,7 @@ public class JNITableTest {
                 }
             }
         } finally {
-            sharedRealm.close();
+            osSharedRealm.close();
         }
     }
 }

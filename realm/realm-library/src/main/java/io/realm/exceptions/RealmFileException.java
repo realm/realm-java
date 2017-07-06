@@ -18,7 +18,7 @@ package io.realm.exceptions;
 import java.util.Locale;
 
 import io.realm.internal.Keep;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.OsSharedRealm;
 
 
 /**
@@ -65,19 +65,19 @@ public class RealmFileException extends RuntimeException {
         // Created from byte values by JNI.
         static Kind getKind(byte value) {
             switch (value) {
-                case SharedRealm.FILE_EXCEPTION_KIND_ACCESS_ERROR:
+                case OsSharedRealm.FILE_EXCEPTION_KIND_ACCESS_ERROR:
                     return ACCESS_ERROR;
-                case SharedRealm.FILE_EXCEPTION_KIND_PERMISSION_DENIED:
+                case OsSharedRealm.FILE_EXCEPTION_KIND_PERMISSION_DENIED:
                     return PERMISSION_DENIED;
-                case SharedRealm.FILE_EXCEPTION_KIND_EXISTS:
+                case OsSharedRealm.FILE_EXCEPTION_KIND_EXISTS:
                     return EXISTS;
-                case SharedRealm.FILE_EXCEPTION_KIND_NOT_FOUND:
+                case OsSharedRealm.FILE_EXCEPTION_KIND_NOT_FOUND:
                     return NOT_FOUND;
-                case SharedRealm.FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE:
+                case OsSharedRealm.FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE:
                     return INCOMPATIBLE_LOCK_FILE;
-                case SharedRealm.FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED:
+                case OsSharedRealm.FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED:
                     return FORMAT_UPGRADE_REQUIRED;
-                case SharedRealm.FILE_EXCEPTION_KIND_BAD_HISTORY:
+                case OsSharedRealm.FILE_EXCEPTION_KIND_BAD_HISTORY:
                     return BAD_HISTORY;
                 default:
                     throw new RuntimeException("Unknown value for RealmFileException kind.");

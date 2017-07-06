@@ -57,7 +57,7 @@ import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.internal.Collection;
 import io.realm.internal.OsObject;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
@@ -214,29 +214,29 @@ public class TestHelper {
     /**
      * Creates an empty table whose name is "temp" with 1 column of all our supported column types, currently 7 columns.
      *
-     * @param sharedRealm A {@link SharedRealm} where the table is created.
+     * @param osSharedRealm A {@link OsSharedRealm} where the table is created.
      * @return created table.
      */
-    public static Table createTableWithAllColumnTypes(SharedRealm sharedRealm) {
-        return createTableWithAllColumnTypes(sharedRealm, "temp");
+    public static Table createTableWithAllColumnTypes(OsSharedRealm osSharedRealm) {
+        return createTableWithAllColumnTypes(osSharedRealm, "temp");
     }
 
     /**
      * Creates an empty table with 1 column of all our supported column types, currently 7 columns.
      *
-     * @param sharedRealm A {@link SharedRealm} where the table is created.
+     * @param osSharedRealm A {@link OsSharedRealm} where the table is created.
      * @param name name of the table.
      * @return created table.
      */
     @SuppressWarnings("WeakerAccess")
-    public static Table createTableWithAllColumnTypes(SharedRealm sharedRealm,
+    public static Table createTableWithAllColumnTypes(OsSharedRealm osSharedRealm,
             @SuppressWarnings("SameParameterValue") String name) {
-        boolean wasInTransaction = sharedRealm.isInTransaction();
+        boolean wasInTransaction = osSharedRealm.isInTransaction();
         if (!wasInTransaction) {
-            sharedRealm.beginTransaction();
+            osSharedRealm.beginTransaction();
         }
         try {
-            Table t = sharedRealm.createTable(name);
+            Table t = osSharedRealm.createTable(name);
 
             t.addColumn(RealmFieldType.BINARY, "binary");
             t.addColumn(RealmFieldType.BOOLEAN, "boolean");
@@ -249,43 +249,43 @@ public class TestHelper {
             return t;
         } catch (RuntimeException e) {
             if (!wasInTransaction) {
-                sharedRealm.cancelTransaction();
+                osSharedRealm.cancelTransaction();
             }
             throw e;
         } finally {
-            if (!wasInTransaction && sharedRealm.isInTransaction()) {
-                sharedRealm.commitTransaction();
+            if (!wasInTransaction && osSharedRealm.isInTransaction()) {
+                osSharedRealm.commitTransaction();
             }
         }
     }
 
-    public static Table createTable(SharedRealm sharedRealm, String name) {
-        return createTable(sharedRealm, name, null);
+    public static Table createTable(OsSharedRealm osSharedRealm, String name) {
+        return createTable(osSharedRealm, name, null);
     }
 
     public interface AdditionalTableSetup {
         void execute(Table table);
     }
 
-    public static Table createTable(SharedRealm sharedRealm, String name, AdditionalTableSetup additionalSetup) {
-        boolean wasInTransaction = sharedRealm.isInTransaction();
+    public static Table createTable(OsSharedRealm osSharedRealm, String name, AdditionalTableSetup additionalSetup) {
+        boolean wasInTransaction = osSharedRealm.isInTransaction();
         if (!wasInTransaction) {
-            sharedRealm.beginTransaction();
+            osSharedRealm.beginTransaction();
         }
         try {
-            Table table = sharedRealm.createTable(name);
+            Table table = osSharedRealm.createTable(name);
             if (additionalSetup != null) {
                 additionalSetup.execute(table);
             }
             return table;
         } catch (RuntimeException e) {
             if (!wasInTransaction) {
-                sharedRealm.cancelTransaction();
+                osSharedRealm.cancelTransaction();
             }
             throw e;
         } finally {
-            if (!wasInTransaction && sharedRealm.isInTransaction()) {
-                sharedRealm.commitTransaction();
+            if (!wasInTransaction && osSharedRealm.isInTransaction()) {
+                osSharedRealm.commitTransaction();
             }
         }
     }

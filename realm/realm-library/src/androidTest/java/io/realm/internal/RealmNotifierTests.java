@@ -69,8 +69,8 @@ public class RealmNotifierTests {
     public void tearDown() {
     }
 
-    private SharedRealm getSharedRealm(RealmConfiguration config) {
-        return SharedRealm.getInstance(config, null, true);
+    private OsSharedRealm getSharedRealm(RealmConfiguration config) {
+        return OsSharedRealm.getInstance(config, null, true);
     }
 
     @Test
@@ -90,18 +90,18 @@ public class RealmNotifierTests {
     @RunTestInLooperThread
     public void addChangeListener_byLocalChanges() {
         final AtomicBoolean commitReturns = new AtomicBoolean(false);
-        SharedRealm sharedRealm = getSharedRealm(looperThread.getConfiguration());
-        sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
+        OsSharedRealm osSharedRealm = getSharedRealm(looperThread.getConfiguration());
+        osSharedRealm.realmNotifier.addChangeListener(osSharedRealm, new RealmChangeListener<OsSharedRealm>() {
             @Override
-            public void onChange(SharedRealm sharedRealm) {
+            public void onChange(OsSharedRealm osSharedRealm) {
                 // Transaction has been committed in core, but commitTransaction hasn't returned in java.
                 assertFalse(commitReturns.get());
                 looperThread.testComplete();
-                sharedRealm.close();
+                osSharedRealm.close();
             }
         });
-        sharedRealm.beginTransaction();
-        sharedRealm.commitTransaction();
+        osSharedRealm.beginTransaction();
+        osSharedRealm.commitTransaction();
         commitReturns.set(true);
     }
 
@@ -109,10 +109,10 @@ public class RealmNotifierTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                SharedRealm sharedRealm = getSharedRealm(config);
-                sharedRealm.beginTransaction();
-                sharedRealm.commitTransaction();
-                sharedRealm.close();
+                OsSharedRealm osSharedRealm = getSharedRealm(config);
+                osSharedRealm.beginTransaction();
+                osSharedRealm.commitTransaction();
+                osSharedRealm.close();
             }
         }).start();
     }
@@ -128,16 +128,16 @@ public class RealmNotifierTests {
 
         looperThread.getRealm().close();
 
-        SharedRealm sharedRealm = getSharedRealm(looperThread.getConfiguration());
-        looperThread.keepStrongReference(sharedRealm);
-        sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
+        OsSharedRealm osSharedRealm = getSharedRealm(looperThread.getConfiguration());
+        looperThread.keepStrongReference(osSharedRealm);
+        osSharedRealm.realmNotifier.addChangeListener(osSharedRealm, new RealmChangeListener<OsSharedRealm>() {
             @Override
-            public void onChange(SharedRealm sharedRealm) {
+            public void onChange(OsSharedRealm osSharedRealm) {
                 int commits = commitCounter.get();
                 int listenerCount = listenerCounter.addAndGet(1);
                 assertEquals(commits, listenerCount);
                 if (commits == TIMES) {
-                    sharedRealm.close();
+                    osSharedRealm.close();
                     looperThread.testComplete();
                 } else {
                     makeRemoteChanges(looperThread.getConfiguration());
@@ -152,26 +152,26 @@ public class RealmNotifierTests {
     @Test
     @RunTestInLooperThread
     public void removeChangeListeners() {
-        SharedRealm sharedRealm = getSharedRealm(looperThread.getConfiguration());
+        OsSharedRealm osSharedRealm = getSharedRealm(looperThread.getConfiguration());
         Integer dummyObserver = 1;
         looperThread.keepStrongReference(dummyObserver);
-        looperThread.keepStrongReference(sharedRealm);
-        sharedRealm.realmNotifier.addChangeListener(dummyObserver, new RealmChangeListener<Integer>() {
+        looperThread.keepStrongReference(osSharedRealm);
+        osSharedRealm.realmNotifier.addChangeListener(dummyObserver, new RealmChangeListener<Integer>() {
             @Override
             public void onChange(Integer dummy) {
                 fail();
             }
         });
-        sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
+        osSharedRealm.realmNotifier.addChangeListener(osSharedRealm, new RealmChangeListener<OsSharedRealm>() {
             @Override
-            public void onChange(SharedRealm sharedRealm) {
-                sharedRealm.close();
+            public void onChange(OsSharedRealm osSharedRealm) {
+                osSharedRealm.close();
                 looperThread.testComplete();
             }
         });
 
         // This should only remove the listeners related with dummyObserver
-        sharedRealm.realmNotifier.removeChangeListeners(dummyObserver);
+        osSharedRealm.realmNotifier.removeChangeListeners(dummyObserver);
 
         makeRemoteChanges(looperThread.getConfiguration());
     }

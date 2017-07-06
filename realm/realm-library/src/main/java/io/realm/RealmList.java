@@ -105,14 +105,14 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @param realm reference to Realm containing the data.
      */
     RealmList(Class<E> clazz, LinkView linkView, BaseRealm realm) {
-        this.collection = new io.realm.internal.Collection(realm.sharedRealm, linkView, null);
+        this.collection = new io.realm.internal.Collection(realm.osSharedRealm, linkView, null);
         this.clazz = clazz;
         this.view = linkView;
         this.realm = realm;
     }
 
     RealmList(String className, LinkView linkView, BaseRealm realm) {
-        this.collection = new io.realm.internal.Collection(realm.sharedRealm, linkView, null);
+        this.collection = new io.realm.internal.Collection(realm.osSharedRealm, linkView, null);
         this.view = linkView;
         this.realm = realm;
         this.className = className;
@@ -817,12 +817,12 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         if (className != null) {
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    new io.realm.internal.Collection(realm.sharedRealm, view, null),
+                    new io.realm.internal.Collection(realm.osSharedRealm, view, null),
                     className);
         } else {
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    new io.realm.internal.Collection(realm.sharedRealm, view, null),
+                    new io.realm.internal.Collection(realm.osSharedRealm, view, null),
                     clazz);
         }
     }
@@ -896,7 +896,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+        realm.osSharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
     }
 
     /**

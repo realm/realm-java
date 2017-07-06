@@ -48,25 +48,25 @@ public class JNIRowTest {
 
     @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm osSharedRealm;
 
     @Before
     public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        osSharedRealm = OsSharedRealm.getInstance(config);
 
-        sharedRealm.beginTransaction();
+        osSharedRealm.beginTransaction();
     }
 
     @After
     public void tearDown() {
-        if (sharedRealm != null && sharedRealm.isInTransaction()) {
-            sharedRealm.cancelTransaction();
+        if (osSharedRealm != null && osSharedRealm.isInTransaction()) {
+            osSharedRealm.cancelTransaction();
         }
 
-        if (sharedRealm != null && !sharedRealm.isClosed()) {
-            sharedRealm.close();
+        if (osSharedRealm != null && !osSharedRealm.isClosed()) {
+            osSharedRealm.close();
         }
     }
 
@@ -74,7 +74,7 @@ public class JNIRowTest {
     public void nonNullValues() {
         final byte[] data = new byte[2];
 
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table table = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.STRING, "string");
@@ -121,7 +121,7 @@ public class JNIRowTest {
     @Test
     public void nullValues() {
 
-        Table table = TestHelper.createTable(sharedRealm, "temp");
+        Table table = TestHelper.createTable(osSharedRealm, "temp");
         long colStringIndex = table.addColumn(RealmFieldType.STRING, "string", true);
         long colIntIndex = table.addColumn(RealmFieldType.INTEGER, "integer", true);
         table.addColumn(RealmFieldType.FLOAT, "float");

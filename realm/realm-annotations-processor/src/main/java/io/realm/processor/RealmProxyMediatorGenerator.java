@@ -76,7 +76,7 @@ public class RealmProxyMediatorGenerator {
                 "java.util.Iterator",
                 "java.util.Collection",
                 "io.realm.internal.ColumnInfo",
-                "io.realm.internal.SharedRealm",
+                "io.realm.internal.OsSharedRealm",
                 "io.realm.internal.RealmObjectProxy",
                 "io.realm.internal.RealmProxyMediator",
                 "io.realm.internal.Row",
@@ -152,7 +152,7 @@ public class RealmProxyMediatorGenerator {
                 "validateTable",
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<? extends RealmModel>", "clazz", // Argument type & argument name
-                "SharedRealm", "sharedRealm",
+                "OsSharedRealm", "sharedRealm",
                 "boolean", "allowExtraColumns"
         );
         emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {

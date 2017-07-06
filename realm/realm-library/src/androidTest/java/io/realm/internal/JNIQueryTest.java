@@ -47,7 +47,7 @@ public class JNIQueryTest {
 
     @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm osSharedRealm;
     private Table table;
     private final long[] oneNullTable = new long[]{NativeObject.NULLPTR};
 
@@ -56,18 +56,18 @@ public class JNIQueryTest {
     public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        osSharedRealm = OsSharedRealm.getInstance(config);
     }
 
     @After
     public void tearDown() {
-        if (sharedRealm != null && !sharedRealm.isClosed()) {
-            sharedRealm.close();
+        if (osSharedRealm != null && !osSharedRealm.isClosed()) {
+            osSharedRealm.close();
         }
     }
 
     private void init() {
-        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        table = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.INTEGER, "number");
@@ -136,7 +136,7 @@ public class JNIQueryTest {
 
     @Test
     public void invalidColumnIndexEqualTo() {
-        Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table table = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
         TableQuery query = table.where();
 
         // Boolean
@@ -183,7 +183,7 @@ public class JNIQueryTest {
 
     @Test
     public void invalidColumnIndexNotEqualTo() {
-        Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table table = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
         TableQuery query = table.where();
 
 
@@ -226,7 +226,7 @@ public class JNIQueryTest {
 
     @Test
     public void invalidColumnIndexGreaterThan() {
-        Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table table = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
         TableQuery query = table.where();
 
         // Date
@@ -253,7 +253,7 @@ public class JNIQueryTest {
 
     @Test
     public void invalidColumnIndexGreaterThanOrEqual() {
-        Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table table = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
         TableQuery query = table.where();
 
         // Date
@@ -280,7 +280,7 @@ public class JNIQueryTest {
 
     @Test
     public void invalidColumnIndexLessThan() {
-        Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table table = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
         TableQuery query = table.where();
 
         // Date
@@ -307,7 +307,7 @@ public class JNIQueryTest {
 
     @Test
     public void invalidColumnIndexLessThanOrEqual() {
-        Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table table = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
         TableQuery query = table.where();
 
         // Date
@@ -334,7 +334,7 @@ public class JNIQueryTest {
 
     @Test
     public void invalidColumnIndexBetween() {
-        Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table table = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
         TableQuery query = table.where();
 
         // Date
@@ -361,7 +361,7 @@ public class JNIQueryTest {
 
     @Test
     public void invalidColumnIndexContains() {
-        Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table table = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
         TableQuery query = table.where();
 
         // String
@@ -383,7 +383,7 @@ public class JNIQueryTest {
     @SuppressWarnings("ConstantConditions")
     @Test
     public void nullInputQuery() {
-        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table t = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 t.addColumn(RealmFieldType.DATE, "dateCol");
@@ -420,7 +420,7 @@ public class JNIQueryTest {
     @Test
     public void shouldFind() {
         // Creates a table.
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table table = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.STRING, "username");
@@ -465,11 +465,11 @@ public class JNIQueryTest {
 
     @Test
     public void queryTestForNoMatches() {
-        Table t = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table t = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
 
-        sharedRealm.beginTransaction();
+        osSharedRealm.beginTransaction();
         TestHelper.addRowWithValues(t, new byte[]{1,2,3}, true, new Date(1384423149761L), 4.5d, 5.7f, 100, "string");
-        sharedRealm.commitTransaction();
+        osSharedRealm.commitTransaction();
 
         TableQuery q = t.where().greaterThan(new long[]{5}, oneNullTable, 1000); // No matches
 
@@ -480,7 +480,7 @@ public class JNIQueryTest {
     @Test
     public void queryWithWrongDataType() {
 
-        Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table table = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
 
         // Queries the table.
         TableQuery query = table.where();
@@ -561,7 +561,7 @@ public class JNIQueryTest {
 
     @Test
     public void columnIndexOutOfBounds() {
-        Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table table = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
 
         // Queries the table.
         TableQuery query = table.where();
@@ -663,7 +663,7 @@ public class JNIQueryTest {
     @Test
     public void maximumDate() {
 
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table table = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.DATE, "date");
@@ -680,7 +680,7 @@ public class JNIQueryTest {
     @Test
     public void minimumDate() {
 
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table table = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.DATE, "date");
@@ -702,7 +702,7 @@ public class JNIQueryTest {
         final Date distantPast = new Date(Long.MIN_VALUE);
         final Date distantFuture = new Date(Long.MAX_VALUE);
 
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table table = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.DATE, "date");
@@ -805,7 +805,7 @@ public class JNIQueryTest {
         final byte[] binary3 = new byte[] {0x09, 0x0a, 0x0b, 0x04};
         final byte[] binary4 = new byte[] {0x05, 0x0a, 0x0b, 0x10};
 
-        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table table = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.BINARY, "binary");

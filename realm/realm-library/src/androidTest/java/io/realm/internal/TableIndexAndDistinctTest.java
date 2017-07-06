@@ -43,31 +43,31 @@ public class TableIndexAndDistinctTest {
 
     @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm osSharedRealm;
     private Table table;
 
     @Before
     public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        osSharedRealm = OsSharedRealm.getInstance(config);
 
-        sharedRealm.beginTransaction();
+        osSharedRealm.beginTransaction();
     }
 
     @After
     public void tearDown() {
-        if (sharedRealm != null && sharedRealm.isInTransaction()) {
-            sharedRealm.cancelTransaction();
+        if (osSharedRealm != null && osSharedRealm.isInTransaction()) {
+            osSharedRealm.cancelTransaction();
         }
 
-        if (sharedRealm != null && !sharedRealm.isClosed()) {
-            sharedRealm.close();
+        if (osSharedRealm != null && !osSharedRealm.isClosed()) {
+            osSharedRealm.close();
         }
     }
 
     private void init() {
-        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        table = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.INTEGER, "number");
@@ -94,7 +94,7 @@ public class TableIndexAndDistinctTest {
     public void shouldTestSettingIndexOnMultipleColumns() {
 
         // Creates a table only with String type columns
-        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        Table t = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
                 t.addColumn(RealmFieldType.STRING, "col1");
@@ -127,7 +127,7 @@ public class TableIndexAndDistinctTest {
     public void shouldTestIndexOnWrongColumnType(Long index) {
 
         // Gets a table with all available column types.
-        Table t = TestHelper.createTableWithAllColumnTypes(sharedRealm);
+        Table t = TestHelper.createTableWithAllColumnTypes(osSharedRealm);
 
         // If column type is String, then throw the excepted exception.
         if (t.getColumnType(index).equals(RealmFieldType.STRING)){
