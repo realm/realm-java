@@ -23,10 +23,9 @@ import io.realm.internal.Row;
 /**
  * A MutableRealmInteger is a mutable, {@link java.lang.Long}-like numeric quantity.
  * MutableRealmInteger implementations are not thread safe.  Like all Realm objects,
- * managed RealmIntegers may not be moved across threads.  Unmanaged RealmObject
+ * managed MutableRealmIntegers may not be moved across threads.  Unmanaged MutableRealmIntegers
  * may be moved across threads but require safe publication.
  * <p>
- * It wraps an internal CRDT counter:
  *
  * @see <a href="https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type"></a>
  * <p>
@@ -86,16 +85,16 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     /**
      * Managed Implementation.
      */
-    // FIXME Counters: wire up to native increment method
+    // FIXME MutableRealmIntegers: wire up to native increment method
     static class Managed extends MutableRealmInteger {
         private final ProxyState<?> proxyState;
         private final BaseRealm realm;
         private final Row row;
         private final long columnIndex;
-        private Long value;
+        private Long value; // !!! FIXME: remove!
 
         /**
-         * Inject the proxy state into this managed RealmInteger.
+         * Inject the proxy state into this managed MutableRealmInteger.
          *
          * @param proxyState Proxy state object.  Contains refs to Realm and Row.
          * @param columnIndex The index of the column that contains the MutableRealmInteger.
@@ -242,7 +241,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      * Increments the {@code MutableRealmInteger}, adding the value of the argument.
      * Increment/decrement from all devices are reflected in the new value, which is guaranteed to converge.
      *
-     * @param inc quantity to be added to the counter.
+     * @param inc quantity to be added to the MutableRealmInteger.
      */
     public abstract void increment(long inc);
 
@@ -250,13 +249,13 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      * Decrements the {@code MutableRealmInteger}, subtracting the value of the argument.
      * Increment/decrement from all devices are reflected in the new value, which is guaranteed to converge.
      *
-     * @param dec quantity to be subtracted from the counter.
+     * @param dec quantity to be subtracted from the MutableRealmInteger.
      */
     public abstract void decrement(long dec);
 
 
     /**
-     * @return true if and only iff {@code get()} will return {@code null}.
+     * @return true if and only if {@code get()} will return {@code null}.
      */
     public final boolean isNull() {
         return get() == null;
@@ -264,24 +263,22 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
 
     /**
-     * RealmIntegers compare strictly by their values.
-     * Null is a legal value for a MutableRealmInteger: null < non-null
+     * MutableRealmIntegers compare strictly by their values.
+     * Null is a legal value for a MutableRealmInteger: null &lt; non-null
      *
      * @param o the compare target
-     * @return -1, 0, or 1, depending on whether this object's value is &gt;, =, or &lt; the target's.
+     * @return -1, 0, or 1, depending on whether this object's value is &lt;, =, or &gt; the target's.
      */
     @Override
     public final int compareTo(MutableRealmInteger o) {
         Long thisValue = get();
         Long otherValue = o.get();
-        return (otherValue == null) ? ((thisValue != null) ? 1 : 0)
-                : (thisValue == null) ? ((otherValue != null) ? -1 : 0)
-                : thisValue.compareTo(otherValue);
+        return (thisValue == null) ? ((otherValue == null) ? 0 : -1)
+                : (otherValue == null) ? 1 : thisValue.compareTo(otherValue);
     }
 
     /**
      * A MutableRealmInteger's hash code depends only on its value.
-     * Will NPE if either value is null
      *
      * @return true if the target has the same value.
      */
@@ -292,8 +289,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     }
 
     /**
-     * Two RealmIntegers are {@code .equals} if and only if their longValues are equal.
-     * Will NPE if either value is null
+     * Two MutableRealmIntegers are {@code .equals} if and only if their longValues are equal.
      *
      * @param o compare target
      * @return true if the target has the same value.

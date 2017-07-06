@@ -24,7 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.realm.entities.Counters;
+import io.realm.entities.MutableRealmIntegerTypes;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -34,10 +34,10 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 
-// FIXME Counters: Need JSON tests.
+// FIXME MutableRealmIntegerTypes: Need JSON tests.
 
 @RunWith(AndroidJUnit4.class)
-public class RealmIntegerTests {
+public class MutableRealmIntegerTests {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
@@ -75,7 +75,7 @@ public class RealmIntegerTests {
      */
     @Test
     public void equality_unmanaged() {
-        testEquality(new Counters(), new Counters());
+        testEquality(new MutableRealmIntegerTypes(), new MutableRealmIntegerTypes());
     }
 
     /**
@@ -83,7 +83,7 @@ public class RealmIntegerTests {
      */
     @Test
     public void nullability_unmanaged() {
-        testNullability(new Counters());
+        testNullability(new MutableRealmIntegerTypes());
     }
 
     /**
@@ -91,7 +91,7 @@ public class RealmIntegerTests {
      */
     @Test
     public void validAndManaged_unmanaged() {
-        testValidityAndManagement(new Counters());
+        testValidityAndManagement(new MutableRealmIntegerTypes());
     }
 
     /**
@@ -100,12 +100,12 @@ public class RealmIntegerTests {
     @Test
     public void basic_managed() {
         realm.beginTransaction();
-        Counters c1 = realm.createObject(Counters.class);
-        Counters c2 = realm.createObject(Counters.class);
+        MutableRealmIntegerTypes c1 = realm.createObject(MutableRealmIntegerTypes.class);
+        MutableRealmIntegerTypes c2 = realm.createObject(MutableRealmIntegerTypes.class);
         realm.commitTransaction();
 
         realm.beginTransaction();
-        testBasic(c1.columnCounter, c2.columnCounter);
+        testBasic(c1.columnMutableRealmInteger, c2.columnMutableRealmInteger);
         realm.commitTransaction();
     }
 
@@ -115,8 +115,8 @@ public class RealmIntegerTests {
     @Test
     public void equality_managed() {
         realm.beginTransaction();
-        Counters c1 = realm.createObject(Counters.class);
-        Counters c2 = realm.createObject(Counters.class);
+        MutableRealmIntegerTypes c1 = realm.createObject(MutableRealmIntegerTypes.class);
+        MutableRealmIntegerTypes c2 = realm.createObject(MutableRealmIntegerTypes.class);
         realm.commitTransaction();
 
         realm.beginTransaction();
@@ -130,7 +130,7 @@ public class RealmIntegerTests {
     @Test
     public void nullability_managed() {
         realm.beginTransaction();
-        Counters c1 = realm.createObject(Counters.class);
+        MutableRealmIntegerTypes c1 = realm.createObject(MutableRealmIntegerTypes.class);
         realm.commitTransaction();
 
         realm.beginTransaction();
@@ -144,7 +144,7 @@ public class RealmIntegerTests {
     @Test
     public void validAndManaged_managed() {
         realm.beginTransaction();
-        Counters c1 = realm.createObject(Counters.class);
+        MutableRealmIntegerTypes c1 = realm.createObject(MutableRealmIntegerTypes.class);
         realm.commitTransaction();
 
         realm.beginTransaction();
@@ -175,9 +175,9 @@ public class RealmIntegerTests {
     @Test
     public void compareTo_managed() {
         realm.beginTransaction();
-        MutableRealmInteger ri1 = realm.createObject(Counters.class).getColumnCounter();
+        MutableRealmInteger ri1 = realm.createObject(MutableRealmIntegerTypes.class).getColumnMutableRealmInteger();
         ri1.set(0);
-        MutableRealmInteger ri2 = realm.createObject(Counters.class).getColumnCounter();
+        MutableRealmInteger ri2 = realm.createObject(MutableRealmIntegerTypes.class).getColumnMutableRealmInteger();
         ri2.set(Long.MAX_VALUE);
         realm.commitTransaction();
         assertEquals(-1, ri1.compareTo(ri2));
@@ -200,10 +200,10 @@ public class RealmIntegerTests {
     @Test
     public void updateOutsideTransactionThrows() {
         realm.beginTransaction();
-        realm.createObject(Counters.class).getColumnCounter().set(42);
+        realm.createObject(MutableRealmIntegerTypes.class).getColumnMutableRealmInteger().set(42);
         realm.commitTransaction();
 
-        MutableRealmInteger managedRI = realm.where(Counters.class).findFirst().getColumnCounter();
+        MutableRealmInteger managedRI = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnMutableRealmInteger();
         try {
             managedRI.set(1);
             fail("Setting a managed MutableRealmInteger outside a transaction should fail");
@@ -233,13 +233,13 @@ public class RealmIntegerTests {
     @Test
     public void isLive() {
         realm.beginTransaction();
-        realm.createObject(Counters.class).getColumnCounter().set(42);
+        realm.createObject(MutableRealmIntegerTypes.class).getColumnMutableRealmInteger().set(42);
         realm.commitTransaction();
 
-        MutableRealmInteger managedRI = realm.where(Counters.class).findFirst().getColumnCounter();
+        MutableRealmInteger managedRI = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnMutableRealmInteger();
 
         realm.beginTransaction();
-        MutableRealmInteger ri = realm.where(Counters.class).findFirst().getColumnCounter();
+        MutableRealmInteger ri = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnMutableRealmInteger();
         ri.set(37);
         ri.increment(17);
         ri.decrement(7);
@@ -254,16 +254,16 @@ public class RealmIntegerTests {
     @Ignore("Not yet wired to core")
     @Test
     public void copyToisLive() {
-        Counters obj = new Counters();
-        MutableRealmInteger unmanagedRI = obj.getColumnCounter();
+        MutableRealmIntegerTypes obj = new MutableRealmIntegerTypes();
+        MutableRealmInteger unmanagedRI = obj.getColumnMutableRealmInteger();
         unmanagedRI.set(42L);
 
         realm.beginTransaction();
-        MutableRealmInteger managedRI = realm.copyToRealm(obj).getColumnCounter();
+        MutableRealmInteger managedRI = realm.copyToRealm(obj).getColumnMutableRealmInteger();
         realm.commitTransaction();
 
         realm.beginTransaction();
-        MutableRealmInteger ri = realm.where(Counters.class).findFirst().getColumnCounter();
+        MutableRealmInteger ri = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnMutableRealmInteger();
         ri.set(37);
         ri.increment(17);
         ri.decrement(7);
@@ -280,15 +280,15 @@ public class RealmIntegerTests {
     @Test
     public void copyFromIsNotLive() {
         realm.beginTransaction();
-        realm.createObject(Counters.class).getColumnCounter().set(42L);
+        realm.createObject(MutableRealmIntegerTypes.class).getColumnMutableRealmInteger().set(42L);
         realm.commitTransaction();
 
-        Counters obj = realm.where(Counters.class).findFirst();
-        MutableRealmInteger managedRI = obj.getColumnCounter();
-        MutableRealmInteger unmanagedRI = realm.copyFromRealm(obj).getColumnCounter();
+        MutableRealmIntegerTypes obj = realm.where(MutableRealmIntegerTypes.class).findFirst();
+        MutableRealmInteger managedRI = obj.getColumnMutableRealmInteger();
+        MutableRealmInteger unmanagedRI = realm.copyFromRealm(obj).getColumnMutableRealmInteger();
 
         realm.beginTransaction();
-        MutableRealmInteger ri = realm.where(Counters.class).findFirst().getColumnCounter();
+        MutableRealmInteger ri = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnMutableRealmInteger();
         ri.set(37);
         ri.increment(17);
         ri.decrement(7);
@@ -321,59 +321,61 @@ public class RealmIntegerTests {
     }
 
     @SuppressWarnings({"ReferenceEquality", "EqualsIncompatibleType"})
-    private void testEquality(Counters c1, Counters c2) {
-        c1.columnCounter.set(7);
-        c2.columnCounter.set(Long.valueOf(7));
-        assertTrue(c1.columnCounter != c2.columnCounter);
-        assertTrue(c1.columnCounter.equals(c2.columnCounter));
+    private void testEquality(MutableRealmIntegerTypes c1, MutableRealmIntegerTypes c2) {
+        assertFalse(c1 == c2);
 
-        MutableRealmInteger r1 = c1.columnCounter;
+        c1.columnMutableRealmInteger.set(7);
+        c2.columnMutableRealmInteger.set(Long.valueOf(7));
+        assertTrue(c1.columnMutableRealmInteger != c2.columnMutableRealmInteger);
+        assertTrue(c1.columnMutableRealmInteger.equals(c2.columnMutableRealmInteger));
+
+        MutableRealmInteger r1 = c1.columnMutableRealmInteger;
         r1.increment(1);
-        assertTrue(r1.equals(c1.columnCounter));
-        assertTrue(r1 == c1.columnCounter);
-        assertTrue(c1.columnCounter.get().equals(8L));
-        assertFalse(c1.columnCounter.equals(c2.columnCounter.get()));
-        assertTrue(c1.columnCounter.get().intValue() == 8);
+        assertTrue(r1.equals(c1.columnMutableRealmInteger));
+        assertTrue(r1 == c1.columnMutableRealmInteger);
+        assertTrue(c1.columnMutableRealmInteger.get().equals(8L));
+        assertFalse(c1.columnMutableRealmInteger.equals(c2.columnMutableRealmInteger.get()));
+        assertTrue(c1.columnMutableRealmInteger.get().intValue() == 8);
 
-        Long n = c1.columnCounter.get();
+        Long n = c1.columnMutableRealmInteger.get();
         assertTrue(n.equals(Long.valueOf(8)));
-        assertTrue(n.equals(c1.columnCounter.get()));
-        assertTrue(n.intValue() == c1.columnCounter.get().intValue());
+        assertTrue(n.equals(c1.columnMutableRealmInteger.get()));
+        assertTrue(n.intValue() == c1.columnMutableRealmInteger.get().intValue());
 
-        c1.columnCounter.increment(1);
-        assertFalse(n.intValue() == c1.columnCounter.get().intValue());
+        c1.columnMutableRealmInteger.increment(1);
+        assertFalse(n.intValue() == c1.columnMutableRealmInteger.get().intValue());
         assertFalse(n.intValue() == r1.get().intValue());
     }
 
-    private void testNullability(Counters c1) {
-        MutableRealmInteger r1 = c1.columnCounter;
+    private void testNullability(MutableRealmIntegerTypes c1) {
+        MutableRealmInteger r1 = c1.columnMutableRealmInteger;
 
-        c1.columnCounter.set(0L);
-        assertFalse(c1.columnCounter.isNull());
+        c1.columnMutableRealmInteger.set(0L);
+        assertFalse(c1.columnMutableRealmInteger.isNull());
         assertFalse(r1.isNull());
 
-        c1.columnCounter.set(null);
-        assertFalse(c1.columnCounter == null);
-        assertTrue(c1.columnCounter.isNull());
+        c1.columnMutableRealmInteger.set(null);
+        assertFalse(c1.columnMutableRealmInteger == null);
+        assertTrue(c1.columnMutableRealmInteger.isNull());
         assertTrue(r1.isNull());
 
-        assertTrue(c1.columnCounter.get() == null);
+        assertTrue(c1.columnMutableRealmInteger.get() == null);
         assertTrue(r1.get() == null);
 
         try {
-            c1.columnCounter.increment(5);
-            fail("Attempt to increment a null valued counter should throw NPE");
+            c1.columnMutableRealmInteger.increment(5);
+            fail("Attempt to increment a null valued MutableRealmInteger should throw NPE");
         }
         catch (NullPointerException ignore) { }
         try {
-            c1.columnCounter.decrement(5);
-            fail("Attempt to decrement a null valued counter should throw NPE");
+            c1.columnMutableRealmInteger.decrement(5);
+            fail("Attempt to decrement a null valued MutableRealmInteger should throw NPE");
         }
         catch (NullPointerException ignore) { }
     }
 
-    private void testValidityAndManagement(Counters c1) {
-        MutableRealmInteger r1 = c1.columnCounter;
+    private void testValidityAndManagement(MutableRealmIntegerTypes c1) {
+        MutableRealmInteger r1 = c1.columnMutableRealmInteger;
         assertTrue(r1.isManaged() == c1.isManaged());
         assertTrue(r1.isValid() == c1.isValid());
     }

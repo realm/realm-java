@@ -480,33 +480,33 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileCounter() {
-        // FIXME Counters: Add test
+    public void compileMutableRealmInteger() {
+        // FIXME MutableRealmIntegers: Add test
     }
 
     @Test
-    public void compileStaticCounter() {
-        // FIXME Counters: Add test
+    public void compileStaticMutableRealmInteger() {
+        // FIXME MutableRealmIntegers: Add test
     }
 
     @Test
-    public void compileIgnoredCounter() {
-        // FIXME Counters: Add test
+    public void compileIgnoredMutableRealmInteger() {
+        // FIXME MutableRealmIntegers: Add test
     }
 
     @Test
-    public void compileRequiredCounter() {
-        // FIXME Counters: Add test
+    public void compileRequiredMutableRealmInteger() {
+        // FIXME MutableRealmIntegers: Add test
     }
 
     @Test
-    public void failOnPKCounter() {
-        // FIXME Counters: Add test
+    public void failOnPKMutableRealmInteger() {
+        // FIXME MutableRealmIntegers: Add test
     }
 
     @Test
-    public void failOnIndexedCounter() {
-        // FIXME Counters: Add test
+    public void compileIndexedMutableRealmInteger() {
+        // FIXME MutableRealmIntegers: Add test
     }
 
     @Test

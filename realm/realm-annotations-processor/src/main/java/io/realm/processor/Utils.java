@@ -151,9 +151,9 @@ public class Utils {
     }
 
     /**
-     * @return {@code true} if a given field type is {@code RealmInteger}, {@code false} otherwise.
+     * @return {@code true} if a given field type is {@code MutableRealmInteger}, {@code false} otherwise.
      */
-    public static boolean isRealmInteger(VariableElement field) {
+    public static boolean isMutableRealmInteger(VariableElement field) {
         return typeUtils.isAssignable(field.asType(), realmInteger);
     }
 

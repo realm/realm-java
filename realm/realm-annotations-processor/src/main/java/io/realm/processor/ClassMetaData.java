@@ -63,7 +63,7 @@ public class ClassMetaData {
     private boolean containsToString;
     private boolean containsEquals;
     private boolean containsHashCode;
-    private boolean containsRealmInteger;
+    private boolean containsMutableRealmInteger;
 
     private final List<TypeMirror> validPrimaryKeyTypes;
     private final Types typeUtils;
@@ -146,8 +146,8 @@ public class ClassMetaData {
         return getInternalGetter(primaryKey.getSimpleName().toString());
     }
 
-    public boolean containsRealmInteger() {
-        return containsRealmInteger;
+    public boolean containsMutableRealmInteger() {
+        return containsMutableRealmInteger;
     }
 
     public boolean containsToString() {
@@ -338,7 +338,7 @@ public class ClassMetaData {
     private boolean checkForFinalFields() {
         for (VariableElement field : fields) {
             if (!field.getModifiers().contains(Modifier.FINAL)) { continue; }
-            if (Utils.isRealmInteger(field)) { continue; }
+            if (Utils.isMutableRealmInteger(field)) { continue; }
 
             Utils.error(String.format(Locale.US, "Class \"%s\" contains illegal final field \"%s\".", className,
                     field.getSimpleName().toString()));
@@ -398,8 +398,9 @@ public class ClassMetaData {
             return categorizeBacklinkField(field);
         }
 
-        // Similarly, a RealmInteger cannot be a @PrimaryKey, @Index or @LinkingObject.
-        if (Utils.isRealmInteger(field)) {
+        // Similarly, a MutableRealmInteger cannot be a @PrimaryKey or @LinkingObject.
+        // !!! FIXME: verify this.
+        if (Utils.isMutableRealmInteger(field)) {
             if (!categorizeMutableRealmIntegerField(field)) { return false; }
         }
 
@@ -498,7 +499,7 @@ public class ClassMetaData {
             return false;
         }
 
-        containsRealmInteger = true;
+        containsMutableRealmInteger = true;
 
         return true;
     }

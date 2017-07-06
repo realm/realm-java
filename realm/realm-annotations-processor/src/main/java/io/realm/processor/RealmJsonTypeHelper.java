@@ -47,7 +47,7 @@ public class RealmJsonTypeHelper {
         JAVA_TO_JSON_TYPES.put("java.lang.Double", new SimpleTypeConverter("double", "Double"));
         JAVA_TO_JSON_TYPES.put("java.lang.Boolean", new SimpleTypeConverter("boolean", "Boolean"));
         JAVA_TO_JSON_TYPES.put("java.lang.String", new SimpleTypeConverter("String", "String"));
-        JAVA_TO_JSON_TYPES.put("io.realm.MutableRealmInteger", new RealmIntegerTypeConverter());
+        JAVA_TO_JSON_TYPES.put("io.realm.MutableRealmInteger", new MutableRealmIntegerTypeConverter());
         JAVA_TO_JSON_TYPES.put("java.util.Date", new DateTypeConverter());
         JAVA_TO_JSON_TYPES.put("byte[]", new ByteArrayTypeConverter());
     }
@@ -167,7 +167,7 @@ public class RealmJsonTypeHelper {
     // @formatter:on
 
     // @formatter:off
-    public static void emitFillRealmIntegerFromStream(String interfaceName, String getter, String fieldName, JavaWriter writer) throws IOException {
+    public static void emitFillMutableRealmIntegerFromStream(String interfaceName, String getter, String fieldName, JavaWriter writer) throws IOException {
         writer
             .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
                 .emitStatement("reader.skipValue()")
@@ -353,7 +353,7 @@ public class RealmJsonTypeHelper {
         }
     }
 
-    private static class RealmIntegerTypeConverter implements JsonToRealmFieldTypeConverter {
+    private static class MutableRealmIntegerTypeConverter implements JsonToRealmFieldTypeConverter {
         // @formatter:off
        @Override
        public void emitTypeConversion(String interfaceName, String getter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
@@ -368,7 +368,7 @@ public class RealmJsonTypeHelper {
        }
        // @formatter:on
 
-        // @formatter:off
+       // @formatter:off
        @Override
        public void emitStreamTypeConversion(String interfaceName, String getter, String fieldName, String fieldType, JavaWriter writer, boolean isPrimaryKey) throws IOException {
            writer
@@ -383,7 +383,7 @@ public class RealmJsonTypeHelper {
 
         @Override
         public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String qualifiedRealmObjectProxyClass, String fieldName, JavaWriter writer) throws IOException {
-            throw new IllegalArgumentException("'RealmInteger' is not allowed as a primary key value.");
+            throw new IllegalArgumentException("'MutableRealmInteger' is not allowed as a primary key value.");
         }
     }
 

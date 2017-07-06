@@ -67,8 +67,8 @@ public class RealmProxyInterfaceGenerator {
                             EnumSet.of(Modifier.PUBLIC))
                     .endMethod();
 
-            // Counters do not have setters.
-            if (Utils.isRealmInteger(field)) { continue; }
+            // MutableRealmIntegers do not have setters.
+            if (Utils.isMutableRealmInteger(field)) { continue; }
             writer
                     .beginMethod(
                             "void",

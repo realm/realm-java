@@ -250,8 +250,8 @@ public class RealmProxyClassGenerator {
                 .emitField("ProxyState<" + qualifiedClassName + ">", "proxyState", EnumSet.of(Modifier.PRIVATE));
 
         for (VariableElement variableElement : metadata.getFields()) {
-            if (Utils.isRealmInteger(variableElement)) {
-                writer.emitField("MutableRealmInteger.Managed", realmIntegerFieldName(variableElement), EnumSet.of(Modifier.PRIVATE));
+            if (Utils.isMutableRealmInteger(variableElement)) {
+                writer.emitField("MutableRealmInteger.Managed", mutableRealmIntegerFieldName(variableElement), EnumSet.of(Modifier.PRIVATE));
             } else if (Utils.isRealmList(variableElement)) {
                 String genericType = Utils.getGenericTypeQualifiedName(variableElement);
                 writer.emitField("RealmList<" + genericType + ">", variableElement.getSimpleName().toString() +  "RealmList", EnumSet.of(Modifier.PRIVATE));
@@ -284,8 +284,8 @@ public class RealmProxyClassGenerator {
 
             if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
                 emitPrimitiveType(writer, field, fieldName, fieldTypeCanonicalName);
-            } else if (Utils.isRealmInteger(field)) {
-                emitRealmInteger(writer, field, fieldName, fieldTypeCanonicalName);
+            } else if (Utils.isMutableRealmInteger(field)) {
+                emitMutableRealmInteger(writer, field, fieldName, fieldTypeCanonicalName);
             } else if (Utils.isRealmModel(field)) {
                 emitRealmModel(writer, field, fieldName, fieldTypeCanonicalName);
             } else if (Utils.isRealmList(field)) {
@@ -397,11 +397,11 @@ public class RealmProxyClassGenerator {
     }
 
     //@formatter:off
-    private void emitRealmInteger(JavaWriter writer, VariableElement field, String fieldName, String fieldTypeCanonicalName) throws IOException {
+    private void emitMutableRealmInteger(JavaWriter writer, VariableElement field, String fieldName, String fieldTypeCanonicalName) throws IOException {
         writer.emitAnnotation("Override")
             .beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
                 .emitStatement("proxyState.getRealm$realm().checkIfValid()")
-                .emitStatement("return this.%sRealmInteger", fieldName)
+                .emitStatement("return this.%s", mutableRealmIntegerFieldName(field))
             .endMethod();
     }
     //@formatter:on
@@ -572,7 +572,7 @@ public class RealmProxyClassGenerator {
     }
 
     // Note that because of bytecode hackery, this method may run before the constructor!
-    // It may ever run before fields have been initialized.
+    // It may even run before fields have been initialized.
     //@formatter:off
     private void emitInjectContextMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
@@ -594,9 +594,9 @@ public class RealmProxyClassGenerator {
                 .emitStatement("proxyState.setExcludeFields$realm(context.getExcludeFields())");
 
         for (VariableElement variableElement : metadata.getFields()) {
-            if (!Utils.isRealmInteger(variableElement)) { continue; }
+            if (!Utils.isMutableRealmInteger(variableElement)) { continue; }
             writer.emitStatement("%1$s = MutableRealmInteger.getManaged(this.proxyState, this.columnInfo.%2$s)",
-                    realmIntegerFieldName(variableElement), columnIndexVarName(variableElement));
+                    mutableRealmIntegerFieldName(variableElement), columnIndexVarName(variableElement));
         }
 
         writer.endMethod()
@@ -773,7 +773,7 @@ public class RealmProxyClassGenerator {
             String fieldTypeQualifiedName = Utils.getFieldTypeQualifiedName(field);
             if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeQualifiedName)) {
                 emitValidateRealmType(writer, field, fieldName, fieldTypeQualifiedName);
-            } else if (Utils.isRealmInteger(field)) {
+            } else if (Utils.isMutableRealmInteger(field)) {
                 emitValidateRealmType(writer, field, fieldName, fieldTypeQualifiedName);
             } else if (Utils.isRealmModel(field)) { // Links
                 emitValidateRealmModelType(writer, field, fieldIndex, fieldName);
@@ -968,7 +968,7 @@ public class RealmProxyClassGenerator {
     //@formatter:on
 
     //@formatter:off
-    // FIXME Counters: Intitialize counters
+    // FIXME MutableRealmIntegers: initialize MutableRealmInteger
     private void emitCopyOrUpdateMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 qualifiedClassName, // Return type
@@ -1181,7 +1181,7 @@ public class RealmProxyClassGenerator {
     }
     //@formatter:on
 
-    // FIXME Counters: initialize counter values
+    // FIXME MutableRealmIntegers: initialize MutableRealmInteger
     private void emitInsertMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 "long", // Return type
@@ -1256,7 +1256,7 @@ public class RealmProxyClassGenerator {
                 .emitEmptyLine();
     }
 
-    // FIXME Counters: Intitalize the counter
+    // FIXME MutableRealmIntegers: initialize MutableRealmInteger
     private void emitInsertListMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 "void", // Return type
@@ -1337,7 +1337,7 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
-    // FIXME Counters: initialize the counter
+    // FIXME MutableRealmIntegers: initialize MutableRealmInteger
     private void emitInsertOrUpdateMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 "long", // Return type
@@ -1417,7 +1417,7 @@ public class RealmProxyClassGenerator {
                 .emitEmptyLine();
     }
 
-    // FIXME Counters: initialize the counter
+    // FIXME MutableRealmIntegers: initialize MutableRealmInteger
     private void emitInsertOrUpdateListMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 "void", // Return type
@@ -1639,7 +1639,7 @@ public class RealmProxyClassGenerator {
                         .endControlFlow()
                         .emitEmptyLine();
 
-            } else if (Utils.isRealmInteger(field)) {
+            } else if (Utils.isMutableRealmInteger(field)) {
                 writer.emitEmptyLine()
                         .emitStatement("realmObjectCopy.%1$s().set(realmObjectSource.%1$s().get())", getter);
             } else {
@@ -1654,7 +1654,7 @@ public class RealmProxyClassGenerator {
     }
 
     //@formatter:off
-    // FIXME Counters: initialize counter
+    // FIXME MutableRealmIntegers: initialize MutableRealmInteger
     private void emitCreateDetachedCopyMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 qualifiedClassName, // Return type
@@ -1713,7 +1713,7 @@ public class RealmProxyClassGenerator {
                         .emitStatement("unmanaged%sList.add(item)", fieldName)
                         .endControlFlow()
                         .endControlFlow();
-            } else if (Utils.isRealmInteger(field)) {
+            } else if (Utils.isMutableRealmInteger(field)) {
                 writer.emitStatement("unmanagedCopy.%s().set(realmSource.%s().get())", getter, getter);
             } else {
                 writer.emitStatement("unmanagedCopy.%s(realmSource.%s())", setter, getter);
@@ -1783,7 +1783,7 @@ public class RealmProxyClassGenerator {
                         .endControlFlow()
                         .endControlFlow();
 
-            } else if (Utils.isRealmInteger(field)) {
+            } else if (Utils.isMutableRealmInteger(field)) {
                 writer.emitStatement("realmObjectTarget.%s().set(realmObjectSource.%s().get())", getter, getter);
             } else {
                 if (field != metadata.getPrimaryKey()) {
@@ -1828,7 +1828,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("stringBuilder.append(\"RealmList<%s>[\").append(%s().size()).append(\"]\")",
                         genericTypeSimpleName,
                         metadata.getInternalGetter(fieldName));
-            } else if (Utils.isRealmInteger(field)) {
+            } else if (Utils.isMutableRealmInteger(field)) {
                 writer.emitStatement("stringBuilder.append(%s().get())", metadata.getInternalGetter(fieldName));
             } else {
                 if (metadata.isNullable(field)) {
@@ -2003,7 +2003,7 @@ public class RealmProxyClassGenerator {
                         Utils.getProxyClassSimpleName(field),
                         writer);
 
-            } else if (Utils.isRealmInteger(field)) {
+            } else if (Utils.isMutableRealmInteger(field)) {
                 RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
                         interfaceName,
                         metadata.getInternalGetter(fieldName),
@@ -2084,8 +2084,8 @@ public class RealmProxyClassGenerator {
                         Utils.getProxyClassSimpleName(field),
                         writer);
 
-            } else if (Utils.isRealmInteger(field)) {
-                RealmJsonTypeHelper.emitFillRealmIntegerFromStream(
+            } else if (Utils.isMutableRealmInteger(field)) {
+                RealmJsonTypeHelper.emitFillMutableRealmIntegerFromStream(
                         interfaceName,
                         metadata.getInternalGetter(fieldName),
                         fieldName,
@@ -2134,8 +2134,8 @@ public class RealmProxyClassGenerator {
         return variableElement.getSimpleName().toString() + "Index";
     }
 
-    private String realmIntegerFieldName(VariableElement variableElement) {
-        return variableElement.getSimpleName().toString() + "RealmInteger";
+    private String mutableRealmIntegerFieldName(VariableElement variableElement) {
+        return variableElement.getSimpleName().toString() + "MutableRealmInteger";
     }
 
     private String fieldIndexVariableReference(VariableElement variableElement) {
@@ -2158,7 +2158,7 @@ public class RealmProxyClassGenerator {
         if (type != null) {
             return type;
         }
-        if (Utils.isRealmInteger(field)) {
+        if (Utils.isMutableRealmInteger(field)) {
             return Constants.RealmFieldType.REALM_INTEGER;
         }
         if (Utils.isRealmModel(field)) {

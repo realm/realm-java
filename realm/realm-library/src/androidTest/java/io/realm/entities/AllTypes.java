@@ -33,7 +33,7 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_BOOLEAN = "columnBoolean";
     public static final String FIELD_DATE = "columnDate";
     public static final String FIELD_BINARY = "columnBinary";
-    public static final String FIELD_REALMINTEGER = "columnRealmInteger";
+    public static final String FIELD_MUTABLEREALMINTEGER = "columnMutableRealmInteger";
     public static final String FIELD_REALMOBJECT = "columnRealmObject";
     public static final String FIELD_REALMLIST = "columnRealmList";
 
@@ -51,7 +51,7 @@ public class AllTypes extends RealmObject {
     @Required
     private byte[] columnBinary = new byte[0];
 
-    private final MutableRealmInteger columnRealmInteger = MutableRealmInteger.ofNull();
+    private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.ofNull();
     private Dog columnRealmObject;
     private RealmList<Dog> columnRealmList;
 
@@ -108,7 +108,7 @@ public class AllTypes extends RealmObject {
     }
 
     public MutableRealmInteger getColumnRealmInteger() {
-        return columnRealmInteger;
+        return columnMutableRealmInteger;
     }
 
     public void setColumnBinary(byte[] columnBinary) {

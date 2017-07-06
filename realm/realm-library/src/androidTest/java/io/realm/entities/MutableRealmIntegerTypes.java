@@ -19,13 +19,13 @@ import io.realm.MutableRealmInteger;
 import io.realm.RealmObject;
 
 
-public class Counters extends RealmObject {
-    public static final String CLASS_NAME = "Counters";
-    public static final String FIELD_REALMINTEGER = "columnCounter";
+public class MutableRealmIntegerTypes extends RealmObject {
+    public static final String CLASS_NAME = "MutableRealmIntegerTypes";
+    public static final String FIELD_REALMINTEGER = "columnMutableRealmInteger";
 
-    public final MutableRealmInteger columnCounter = MutableRealmInteger.ofNull();
+    public final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.ofNull();
 
-    public MutableRealmInteger getColumnCounter() {
-        return columnCounter;
+    public MutableRealmInteger getColumnMutableRealmInteger() {
+        return columnMutableRealmInteger;
     }
 }

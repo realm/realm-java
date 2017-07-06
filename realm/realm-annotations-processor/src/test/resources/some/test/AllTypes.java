@@ -45,7 +45,7 @@ public class AllTypes extends RealmObject {
     @Required
     private byte[] columnBinary;
 
-    private final MutableRealmInteger columnCounter = MutableRealmInteger.valueOf(0);
+    private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.valueOf(0);
 
     private AllTypes columnObject;
 
@@ -198,11 +198,11 @@ public class AllTypes extends RealmObject {
         this.columnRealmList = columnRealmList;
     }
 
-    public MutableRealmInteger getColumnCounter() {
-        return realmGet$columnCounter();
+    public MutableRealmInteger getColumnMutableRealmInteger() {
+        return realmGet$columnMutableRealmInteger();
     }
 
-    public MutableRealmInteger realmGet$columnCounter() {
-        return columnCounter;
+    public MutableRealmInteger realmGet$columnMutableRealmInteger() {
+        return columnMutableRealmInteger;
     }
 }
