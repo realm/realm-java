@@ -17,6 +17,7 @@
 ### Internal
 
 * Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.
+* Renamed `io.realm.internal.SharedRealm` to `io.realm.internal.OsSharedRealm`,  `io.realm.internal.Collection` to `io.realm.internal.OsResults`, and `io.realm.internal.CollectionChangeSet` to `io.realm.internal.OsCollectionChangeSet` (#4215).
 
 
 ## 3.4.0 (2017-06-22)

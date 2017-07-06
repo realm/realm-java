@@ -57,7 +57,7 @@ import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.util.Pair;
@@ -200,7 +200,7 @@ public class Realm extends BaseRealm {
             setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             BaseRealm.applicationContext = context.getApplicationContext();
-            SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
+            OsSharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
         }
     }
 
@@ -468,7 +468,7 @@ public class Realm extends BaseRealm {
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 String className = Table.getClassNameForTable(mediator.getTableName(modelClass));
                 Pair<Class<? extends RealmModel>, String> key = Pair.<Class<? extends RealmModel>, String>create(modelClass, className);
-                columnInfoMap.put(key, mediator.validateTable(modelClass, realm.sharedRealm, false));
+                columnInfoMap.put(key, mediator.validateTable(modelClass, realm.osSharedRealm, false));
             }
 
             realm.getSchema().setInitialColumnIndices(
@@ -527,7 +527,7 @@ public class Realm extends BaseRealm {
                 schemaCreator = null;
 
                 // Object Store handles all update logic
-                realm.sharedRealm.updateSchema(schema.getNativePtr(), newVersion);
+                realm.osSharedRealm.updateSchema(schema.getNativePtr(), newVersion);
                 commitChanges = true;
             }
 
@@ -536,7 +536,7 @@ public class Realm extends BaseRealm {
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 String className = Table.getClassNameForTable(mediator.getTableName(modelClass));
                 Pair<Class<? extends RealmModel>, String> key = Pair.<Class<? extends RealmModel>, String>create(modelClass, className);
-                columnInfoMap.put(key, mediator.validateTable(modelClass, realm.sharedRealm, true));
+                columnInfoMap.put(key, mediator.validateTable(modelClass, realm.osSharedRealm, true));
             }
             realm.getSchema().setInitialColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
 
@@ -1094,7 +1094,7 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Copies a collection of RealmObjects to the Realm instance and returns their copy. Any further changes to the
+     * Copies a osResults of RealmObjects to the Realm instance and returns their copy. Any further changes to the
      * original RealmObjects will not be reflected in the Realm copies. This is a deep copy i.e., all referenced objects
      * will be copied. Objects already in this Realm will be ignored.
      * <p>
@@ -1104,7 +1104,7 @@ public class Realm extends BaseRealm {
      * @param objects the RealmObjects to copy to the Realm.
      * @return a list of the the converted RealmObjects that all has their properties managed by the Realm.
      * @throws io.realm.exceptions.RealmException if any of the objects has already been added to Realm.
-     * @throws java.lang.IllegalArgumentException if any of the elements in the input collection is {@code null}.
+     * @throws java.lang.IllegalArgumentException if any of the elements in the input osResults is {@code null}.
      */
     public <E extends RealmModel> List<E> copyToRealm(Iterable<E> objects) {
         if (objects == null) {
@@ -1540,19 +1540,19 @@ public class Realm extends BaseRealm {
         }
 
         // Avoid to call canDeliverNotification() in bg thread.
-        final boolean canDeliverNotification = sharedRealm.capabilities.canDeliverNotification();
+        final boolean canDeliverNotification = osSharedRealm.capabilities.canDeliverNotification();
 
         // If the user provided a Callback then we have to make sure the current Realm has an events looper to deliver
         // the results.
         if ((onSuccess != null || onError != null)) {
-            sharedRealm.capabilities.checkCanDeliverNotification("Callback cannot be delivered on current thread.");
+            osSharedRealm.capabilities.checkCanDeliverNotification("Callback cannot be delivered on current thread.");
         }
 
-        // We need to use the same configuration to open a background SharedRealm (i.e Realm)
+        // We need to use the same configuration to open a background OsSharedRealm (i.e Realm)
         // to perform the transaction
         final RealmConfiguration realmConfiguration = getConfiguration();
         // We need to deliver the callback even if the Realm is closed. So acquire a reference to the notifier here.
-        final RealmNotifier realmNotifier = sharedRealm.realmNotifier;
+        final RealmNotifier realmNotifier = osSharedRealm.realmNotifier;
 
         final Future<?> pendingTransaction = asyncTaskExecutor.submitTransaction(new Runnable() {
             @Override
@@ -1561,7 +1561,7 @@ public class Realm extends BaseRealm {
                     return;
                 }
 
-                SharedRealm.VersionID versionID = null;
+                OsSharedRealm.VersionID versionID = null;
                 Throwable exception = null;
 
                 final Realm bgRealm = Realm.getInstance(realmConfiguration);
@@ -1576,7 +1576,7 @@ public class Realm extends BaseRealm {
                     bgRealm.commitTransaction();
                     // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency
                     // problem. This is currently guaranteed by posting callbacks later below.
-                    versionID = bgRealm.sharedRealm.getVersionID();
+                    versionID = bgRealm.osSharedRealm.getVersionID();
                 } catch (final Throwable e) {
                     exception = e;
                 } finally {
@@ -1590,7 +1590,7 @@ public class Realm extends BaseRealm {
                 }
 
                 final Throwable backgroundException = exception;
-                final SharedRealm.VersionID backgroundVersionID = versionID;
+                final OsSharedRealm.VersionID backgroundVersionID = versionID;
                 // Cannot be interrupted anymore.
                 if (canDeliverNotification) {
                     if (backgroundVersionID != null && onSuccess != null) {
@@ -1604,8 +1604,8 @@ public class Realm extends BaseRealm {
                                     return;
                                 }
 
-                                if (sharedRealm.getVersionID().compareTo(backgroundVersionID) < 0) {
-                                    sharedRealm.realmNotifier.addTransactionCallback(new Runnable() {
+                                if (osSharedRealm.getVersionID().compareTo(backgroundVersionID) < 0) {
+                                    osSharedRealm.realmNotifier.addTransactionCallback(new Runnable() {
                                         @Override
                                         public void run() {
                                             onSuccess.onSuccess();
@@ -1786,7 +1786,7 @@ public class Realm extends BaseRealm {
      * already contains the entry for current schema version.
      */
     ColumnIndices updateSchemaCache(ColumnIndices[] globalCacheArray) {
-        final long currentSchemaVersion = sharedRealm.getSchemaVersion();
+        final long currentSchemaVersion = osSharedRealm.getSchemaVersion();
         final long cacheSchemaVersion = schema.getSchemaVersion();
         if (currentSchemaVersion == cacheSchemaVersion) {
             return null;
@@ -1808,7 +1808,7 @@ public class Realm extends BaseRealm {
             //noinspection CaughtExceptionImmediatelyRethrown
             try {
                 for (Class<? extends RealmModel> clazz : modelClasses) {
-                    final ColumnInfo columnInfo = mediator.validateTable(clazz, sharedRealm, true);
+                    final ColumnInfo columnInfo = mediator.validateTable(clazz, osSharedRealm, true);
                     String className = Table.getClassNameForTable(mediator.getTableName(clazz));
                     Pair<Class<? extends RealmModel>, String> key = Pair.<Class<? extends RealmModel>, String>create(clazz, className);
                     map.put(key, columnInfo);

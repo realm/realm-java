@@ -47,7 +47,7 @@ import static org.junit.Assert.fail;
 
 /**
  * Test class for all methods part of the the {@link RealmCollection} interface.
- * This class only tests collections that are managed by Realm. See {@link UnManagedRealmCollectionTests} for
+ * This class only tests collections that are managed by Realm. See {@link UnManagedRealmOsResultsTests} for
  * all tests targeting unmanaged collections.
  *
  * Methods tested in this class:
@@ -67,26 +67,26 @@ import static org.junit.Assert.fail;
  * + boolean isValid();
  * + BaseRealm getRealm();
  *
- * # Collection
+ * # OsResults
  *
  * - public boolean add(E object);
- * - public boolean addAll(Collection<? extends E> collection);
+ * - public boolean addAll(OsResults<? extends E> osResults);
  * - public void deleteAll();
  * - public boolean contains(Object object);
- * - public boolean containsAll(Collection<?> collection);
+ * - public boolean containsAll(OsResults<?> osResults);
  * - public boolean equals(Object object);
  * - public int hashCode();
  * - public boolean isEmpty();
  * - public Iterator<E> iterator();
  * - public boolean remove(Object object);
- * - public boolean removeAll(Collection<?> collection);
- * - public boolean retainAll(Collection<?> collection);
+ * - public boolean removeAll(OsResults<?> osResults);
+ * - public boolean retainAll(OsResults<?> osResults);
  * - public int size();
  * - public Object[] toArray();
  * - public <T> T[] toArray(T[] array);
  */
 @RunWith(Parameterized.class)
-public class ManagedRealmCollectionTests extends CollectionTests {
+public class ManagedRealmOsResultsTests extends CollectionTests {
 
     private static final int TEST_SIZE = 10;
 
@@ -106,7 +106,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         return Arrays.asList(ManagedCollection.values());
     }
 
-    public ManagedRealmCollectionTests(ManagedCollection collectionType) {
+    public ManagedRealmOsResultsTests(ManagedCollection collectionType) {
         this.collectionClass = collectionType;
     }
 
@@ -164,7 +164,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                 orderedCollection = realm.where(NullTypes.class).findAll();
                 break;
             default:
-                throw new AssertionError("Unknown collection: " + collectionClass);
+                throw new AssertionError("Unknown osResults: " + collectionClass);
         }
 
         if (isSnapshot(collectionClass)) {
@@ -194,7 +194,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                 orderedCollection = realm.where(NullTypes.class).findAll();
                 break;
             default:
-                throw new AssertionError("Unknown collection: " + collectionClass);
+                throw new AssertionError("Unknown osResults: " + collectionClass);
         }
 
         if (isSnapshot(collectionClass)) {
@@ -226,7 +226,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                 orderedCollection = realm.where(NullTypes.class).findAll();
                 break;
             default:
-                throw new AssertionError("Unknown collection: " + collectionClass);
+                throw new AssertionError("Unknown osResults: " + collectionClass);
         }
 
         if (isSnapshot(collectionClass)) {
@@ -257,7 +257,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                 break;
 
             default:
-                throw new AssertionError("Unknown collection: " + collectionClass);
+                throw new AssertionError("Unknown osResults: " + collectionClass);
         }
 
         if (isSnapshot(collectionClass)) {
@@ -558,8 +558,8 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertEquals(new Date(-YEAR_MILLIS * 20 * TEST_SIZE / 2), collection.minDate(AllJavaTypes.FIELD_DATE));
     }
 
-    // Deletes the last row in the collection then tests the aggregates methods.
-    // Since deletion will turn the corresponding object into invalid for collection snapshot, this tests if the
+    // Deletes the last row in the osResults then tests the aggregates methods.
+    // Since deletion will turn the corresponding object into invalid for osResults snapshot, this tests if the
     // aggregates methods ignore the invalid rows and return the correct result.
     @Test
     public void aggregates_deleteLastRow() {
@@ -650,8 +650,8 @@ public class ManagedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void deleteAllFromRealm() {
-        // If we have a self-referencing collection, removing all objects will crash
-        // any following method. To avoid that scenario we make sure to use a collection
+        // If we have a self-referencing osResults, removing all objects will crash
+        // any following method. To avoid that scenario we make sure to use a osResults
         // without cycles.
         int size = TEST_SIZE;
         if (collectionClass == ManagedCollection.MANAGED_REALMLIST) {

@@ -43,7 +43,7 @@ import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.entities.StringOnly;
-import io.realm.internal.Collection;
+import io.realm.internal.OsResults;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -102,15 +102,15 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     public void size_returns_Integer_MAX_VALUE_for_huge_results() {
-        final Collection collection = Mockito.mock(Collection.class);
-        final RealmResults<AllTypes> targetResult = TestHelper.newRealmResults(realm, collection, AllTypes.class);
+        final OsResults osResults = Mockito.mock(OsResults.class);
+        final RealmResults<AllTypes> targetResult = TestHelper.newRealmResults(realm, osResults, AllTypes.class);
 
-        Mockito.when(collection.isLoaded()).thenReturn(true);
-        Mockito.when(collection.size()).thenReturn(((long) Integer.MAX_VALUE) - 1);
+        Mockito.when(osResults.isLoaded()).thenReturn(true);
+        Mockito.when(osResults.size()).thenReturn(((long) Integer.MAX_VALUE) - 1);
         assertEquals(Integer.MAX_VALUE - 1, targetResult.size());
-        Mockito.when(collection.size()).thenReturn(((long) Integer.MAX_VALUE));
+        Mockito.when(osResults.size()).thenReturn(((long) Integer.MAX_VALUE));
         assertEquals(Integer.MAX_VALUE, targetResult.size());
-        Mockito.when(collection.size()).thenReturn(((long) Integer.MAX_VALUE) + 1);
+        Mockito.when(osResults.size()).thenReturn(((long) Integer.MAX_VALUE) + 1);
         assertEquals(Integer.MAX_VALUE, targetResult.size());
     }
 

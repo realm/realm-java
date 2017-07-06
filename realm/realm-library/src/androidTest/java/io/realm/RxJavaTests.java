@@ -473,9 +473,9 @@ public class RxJavaTests {
                 subscribedNotified.set(true);
             }
         });
-        assertEquals(1, realm.sharedRealm.realmNotifier.getListenersListSize());
+        assertEquals(1, realm.osSharedRealm.realmNotifier.getListenersListSize());
         subscription.unsubscribe();
-        assertEquals(0, realm.sharedRealm.realmNotifier.getListenersListSize());
+        assertEquals(0, realm.osSharedRealm.realmNotifier.getListenersListSize());
     }
 
     @Test
@@ -491,7 +491,7 @@ public class RxJavaTests {
             }
         });
         assertTrue(subscribedNotified.get());
-        assertEquals(1, realm.sharedRealm.realmNotifier.getListenersListSize());
+        assertEquals(1, realm.osSharedRealm.realmNotifier.getListenersListSize());
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -505,7 +505,7 @@ public class RxJavaTests {
             }
         }).start();
         TestHelper.awaitOrFail(unsubscribeCompleted);
-        assertEquals(1, realm.sharedRealm.realmNotifier.getListenersListSize());
+        assertEquals(1, realm.osSharedRealm.realmNotifier.getListenersListSize());
         // We cannot call subscription.unsubscribe() again, so manually close the extra Realm instance opened by
         // the Observable.
         realm.close();

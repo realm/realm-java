@@ -461,7 +461,7 @@ public class RealmAsyncQueryTests {
             @Override
             public void run() {
                 // Manually call refresh, so the did_change will be triggered.
-                foregroundRealm.sharedRealm.refresh();
+                foregroundRealm.osSharedRealm.refresh();
                 foregroundRealm.setAutoRefresh(true);
             }
         });

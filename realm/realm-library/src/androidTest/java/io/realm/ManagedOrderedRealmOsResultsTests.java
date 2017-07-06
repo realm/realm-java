@@ -64,7 +64,7 @@ import static org.junit.Assert.fail;
  * # List
  *
  *  - void add(int location, E object);
- *  - boolean addAll(int location, Collection<? extends E> collection);
+ *  - boolean addAll(int location, OsResults<? extends E> osResults);
  *  - E get(int location);
  *  - int indexOf(Object object);
  *  - int lastIndexOf(Object object);
@@ -89,31 +89,31 @@ import static org.junit.Assert.fail;
  * - boolean isValid();
  * - BaseRealm getRealm();
  *
- * # Collection
+ * # OsResults
  *
  * - public boolean add(E object);
- * - public boolean addAll(Collection<? extends E> collection);
+ * - public boolean addAll(OsResults<? extends E> osResults);
  * - public void deleteAll();
  * - public boolean contains(Object object);
- * - public boolean containsAll(Collection<?> collection);
+ * - public boolean containsAll(OsResults<?> osResults);
  * - public boolean equals(Object object);
  * - public int hashCode();
  * - public boolean isEmpty();
  * - public Iterator<E> iterator();
  * - public boolean remove(Object object);
- * - public boolean removeAll(Collection<?> collection);
- * - public boolean retainAll(Collection<?> collection);
+ * - public boolean removeAll(OsResults<?> osResults);
+ * - public boolean retainAll(OsResults<?> osResults);
  * - public int size();
  * - public Object[] toArray();
  * - public <T> T[] toArray(T[] array);
  *
- * @see RealmCollectionTests
- * @see ManagedRealmCollectionTests
- * @see UnManagedRealmCollectionTests
+ * @see RealmOsResultsTests
+ * @see ManagedRealmOsResultsTests
+ * @see UnManagedRealmOsResultsTests
  */
 
 @RunWith(Parameterized.class)
-public class ManagedOrderedRealmCollectionTests extends CollectionTests {
+public class ManagedOrderedRealmOsResultsTests extends CollectionTests {
 
     private static final int TEST_SIZE = 10;
     private final static int TEST_DATA_FIRST_HALF = (int) ((TEST_SIZE / 2.0D) - 1);
@@ -133,7 +133,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         return Arrays.asList(ManagedCollection.values());
     }
 
-    public ManagedOrderedRealmCollectionTests(ManagedCollection collectionType) {
+    public ManagedOrderedRealmOsResultsTests(ManagedCollection collectionType) {
         this.collectionClass = collectionType;
     }
 
@@ -190,7 +190,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                 orderedCollection = realm.where(NullTypes.class).findAll();
                 break;
             default:
-                throw new AssertionError("Unknown collection: " + collectionClass);
+                throw new AssertionError("Unknown osResults: " + collectionClass);
         }
 
         if (isSnapshot(collectionClass)) {
@@ -353,7 +353,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                 break;
 
             default:
-                throw new AssertionError("Unknown collection class: " + collectionClass);
+                throw new AssertionError("Unknown osResults class: " + collectionClass);
         }
 
         if (isSnapshot(collectionClass)) {
@@ -688,7 +688,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                 break;
 
             default:
-                throw new AssertionError("Unknown collection class: " + collectionClass);
+                throw new AssertionError("Unknown osResults class: " + collectionClass);
         }
         if (isSnapshot(collectionClass)) {
             orderedCollection = orderedCollection.createSnapshot();

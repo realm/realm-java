@@ -32,7 +32,7 @@ public abstract class CollectionTests {
 
     protected final static long YEAR_MILLIS = TimeUnit.DAYS.toMillis(365);
 
-    // Enumerates all known collection classes from the Realm API.
+    // Enumerates all known osResults classes from the Realm API.
     protected enum CollectionClass {
         MANAGED_REALMLIST, UNMANAGED_REALMLIST, REALMRESULTS,
         REALMRESULTS_SNAPSHOT_RESULTS_BASE, REALMRESULTS_SNAPSHOT_LIST_BASE
@@ -53,7 +53,7 @@ public abstract class CollectionTests {
     protected enum RealmCollectionMethod { WHERE, MIN, MAX, SUM, AVERAGE, MIN_DATE, MAX_DATE, DELETE_ALL_FROM_REALM, IS_VALID, IS_MANAGED
     }
 
-    // Enumerates all methods from the Collection interface
+    // Enumerates all methods from the OsResults interface
     protected enum CollectionMethod {
         ADD_OBJECT, ADD_ALL_OBJECTS, CLEAR, CONTAINS, CONTAINS_ALL, EQUALS, HASHCODE, IS_EMPTY, ITERATOR, REMOVE_OBJECT,
         REMOVE_ALL, RETAIN_ALL, SIZE, TO_ARRAY, TO_ARRAY_INPUT
@@ -128,7 +128,7 @@ public abstract class CollectionTests {
         obj.setFieldString("test data " + index);
     }
 
-    // Creates a collection that is based on a RealmList that was deleted.
+    // Creates a osResults that is based on a RealmList that was deleted.
     protected OrderedRealmCollection<CyclicType> populateCollectionOnDeletedLinkView(Realm realm, ManagedCollection collectionClass) {
         realm.beginTransaction();
         CyclicType parent = realm.createObject(CyclicType.class);
@@ -149,7 +149,7 @@ public abstract class CollectionTests {
                 result = parent.getObjects().where().equalTo(CyclicType.FIELD_NAME, "name_0").findAll();
                 break;
             default:
-                throw new AssertionError("Unknown collection: " + collectionClass);
+                throw new AssertionError("Unknown osResults: " + collectionClass);
         }
 
         realm.beginTransaction();
@@ -220,7 +220,7 @@ public abstract class CollectionTests {
                 break;
 
             default:
-                throw new AssertionError("Unknown collection: " + collectionClass);
+                throw new AssertionError("Unknown osResults: " + collectionClass);
         }
 
         if (isSnapshot(collectionClass)) {

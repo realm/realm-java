@@ -40,9 +40,9 @@ import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertArrayEquals;
 
 
-// Tests for the ordered collection fine grained notifications for both RealmResults and RealmList.
+// Tests for the ordered osResults fine grained notifications for both RealmResults and RealmList.
 @RunWith(Parameterized.class)
-public class OrderedCollectionChangeSetTests {
+public class OrderedOsResultsChangeSetTests {
 
     private enum ObservablesType {
         REALM_RESULTS, REALM_LIST
@@ -64,7 +64,7 @@ public class OrderedCollectionChangeSetTests {
         return Arrays.asList(ObservablesType.values());
     }
 
-    public OrderedCollectionChangeSetTests(ObservablesType type) {
+    public OrderedOsResultsChangeSetTests(ObservablesType type) {
         this.type = type;
     }
 
@@ -382,7 +382,7 @@ public class OrderedCollectionChangeSetTests {
         ChangesCheck changesCheck = new ChangesCheck() {
             @Override
             public void check(OrderedCollectionChangeSet changeSet) {
-                fail("The listener should not be triggered since the collection has no changes compared with before.");
+                fail("The listener should not be triggered since the osResults has no changes compared with before.");
             }
         };
 

@@ -41,7 +41,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Test class for all methods part of the the {@link RealmCollection} interface.
- * This class only tests methods that have the same behavior no matter if the collection is managed or not.
+ * This class only tests methods that have the same behavior no matter if the osResults is managed or not.
  *
  * Methods tested in this class:
  *
@@ -60,29 +60,29 @@ import static org.junit.Assert.assertTrue;
  * - boolean isValid();
  * - BaseRealm getRealm();
  *
- * # Collection
+ * # OsResults
  *
  * - public boolean add(E object);
- * - public boolean addAll(Collection<? extends E> collection);
+ * - public boolean addAll(OsResults<? extends E> osResults);
  * - public void deleteAll();
  * + public boolean contains(Object object);
- * + public boolean containsAll(Collection<?> collection);
+ * + public boolean containsAll(OsResults<?> osResults);
  * + public boolean equals(Object object);
  * + public int hashCode();
  * + public boolean isEmpty();
  * - public Iterator<E> iterator();
  * + public boolean remove(Object object);
- * + public boolean removeAll(Collection<?> collection);
- * + public boolean retainAll(Collection<?> collection);
+ * + public boolean removeAll(OsResults<?> osResults);
+ * + public boolean retainAll(OsResults<?> osResults);
  * + public int size();
  * + public Object[] toArray();
  * + public <T> T[] toArray(T[] array);
  **
- * @see ManagedRealmCollectionTests
- * @see UnManagedRealmCollectionTests
+ * @see ManagedRealmOsResultsTests
+ * @see UnManagedRealmOsResultsTests
  */
 @RunWith(Parameterized.class)
-public class RealmCollectionTests extends CollectionTests {
+public class RealmOsResultsTests extends CollectionTests {
 
     private static final int TEST_SIZE = 10;
 
@@ -98,7 +98,7 @@ public class RealmCollectionTests extends CollectionTests {
         return Arrays.asList(CollectionClass.values());
     }
 
-    public RealmCollectionTests(CollectionClass collectionType) {
+    public RealmOsResultsTests(CollectionClass collectionType) {
         this.collectionClass = collectionType;
     }
 
@@ -112,7 +112,7 @@ public class RealmCollectionTests extends CollectionTests {
     public void tearDown() {
         realm.close();
     }
-    
+
     private RealmCollection<AllJavaTypes> createCollection(CollectionClass collectionClass) {
         OrderedRealmCollection<AllJavaTypes> orderedCollection;
         switch (collectionClass) {
@@ -206,7 +206,7 @@ public class RealmCollectionTests extends CollectionTests {
                 break;
 
             default:
-                throw new AssertionError("Unknown collection: " + collectionClass);
+                throw new AssertionError("Unknown osResults: " + collectionClass);
         }
 
         if (isSnapshot(collectionClass)) {
@@ -247,7 +247,7 @@ public class RealmCollectionTests extends CollectionTests {
     }
 
     // Test that the custom equal methods is being used when testing if an object is part of the
-    // collection
+    // osResults
     @Test
     public void contains_customEqualMethod() {
         RealmCollection<CustomMethods> collection = createCustomMethodsCollection(realm, collectionClass);

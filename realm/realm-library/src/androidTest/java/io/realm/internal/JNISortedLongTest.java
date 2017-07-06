@@ -42,26 +42,26 @@ public class JNISortedLongTest {
 
     @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm osSharedRealm;
     private Table table;
 
     @Before
     public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        osSharedRealm = OsSharedRealm.getInstance(config);
     }
 
     @After
     public void tearDown() {
-        if (sharedRealm != null && !sharedRealm.isClosed()) {
-            sharedRealm.close();
+        if (osSharedRealm != null && !osSharedRealm.isClosed()) {
+            osSharedRealm.close();
         }
     }
 
     private void init() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
-        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        table = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.INTEGER, "number");

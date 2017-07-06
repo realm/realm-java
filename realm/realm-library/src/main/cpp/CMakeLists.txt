@@ -39,10 +39,10 @@ set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/${REAL
 set(classes_LIST
     io.realm.internal.Table io.realm.internal.CheckedRow
     io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
-    io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
+    io.realm.internal.TableQuery io.realm.internal.OsSharedRealm io.realm.internal.TestUtil
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.OsRealmSchema
-    io.realm.OsRealmObjectSchema io.realm.internal.Collection
-    io.realm.internal.NativeObjectReference io.realm.internal.CollectionChangeSet
+    io.realm.OsRealmObjectSchema io.realm.internal.OsResults
+    io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.

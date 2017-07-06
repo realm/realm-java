@@ -32,8 +32,8 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
@@ -72,7 +72,7 @@ abstract class BaseRealm implements Closeable {
     // Which RealmCache is this Realm associated to. It is null if the Realm instance is opened without being put into a
     // cache. It is also null if the Realm is closed.
     private RealmCache realmCache;
-    protected SharedRealm sharedRealm;
+    protected OsSharedRealm osSharedRealm;
 
     protected final RealmSchema schema;
 
@@ -88,9 +88,9 @@ abstract class BaseRealm implements Closeable {
         this.configuration = configuration;
         this.realmCache = null;
 
-        this.sharedRealm = SharedRealm.getInstance(configuration,
+        this.osSharedRealm = OsSharedRealm.getInstance(configuration,
                 !(this instanceof Realm) ? null :
-                        new SharedRealm.SchemaVersionListener() {
+                        new OsSharedRealm.SchemaVersionListener() {
                             @Override
                             public void onSchemaVersionChanged(long currentVersion) {
                                 if (realmCache != null) {
@@ -114,7 +114,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
-        sharedRealm.setAutoRefresh(autoRefresh);
+        osSharedRealm.setAutoRefresh(autoRefresh);
     }
 
     /**
@@ -123,7 +123,7 @@ abstract class BaseRealm implements Closeable {
      * @return the auto-refresh status.
      */
     public boolean isAutoRefresh() {
-        return sharedRealm.isAutoRefresh();
+        return osSharedRealm.isAutoRefresh();
     }
 
     /**
@@ -141,7 +141,7 @@ abstract class BaseRealm implements Closeable {
         if (isInTransaction()) {
             throw new IllegalStateException("Cannot refresh a Realm instance inside a transaction.");
         }
-        sharedRealm.refresh();
+        osSharedRealm.refresh();
     }
 
     /**
@@ -151,7 +151,7 @@ abstract class BaseRealm implements Closeable {
      */
     public boolean isInTransaction() {
         checkIfValid();
-        return sharedRealm.isInTransaction();
+        return osSharedRealm.isInTransaction();
     }
 
     protected <T extends BaseRealm> void addListener(RealmChangeListener<T> listener) {
@@ -159,9 +159,9 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalArgumentException("Listener should not be null");
         }
         checkIfValid();
-        sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+        osSharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
         //noinspection unchecked
-        sharedRealm.realmNotifier.addChangeListener((T) this, listener);
+        osSharedRealm.realmNotifier.addChangeListener((T) this, listener);
     }
 
     /**
@@ -177,9 +177,9 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalArgumentException("Listener should not be null");
         }
         checkIfValid();
-        sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+        osSharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
         //noinspection unchecked
-        sharedRealm.realmNotifier.removeChangeListener((T) this, listener);
+        osSharedRealm.realmNotifier.removeChangeListener((T) this, listener);
     }
 
     /**
@@ -210,8 +210,8 @@ abstract class BaseRealm implements Closeable {
      */
     protected void removeAllListeners() {
         checkIfValid();
-        sharedRealm.capabilities.checkCanDeliverNotification("removeListener cannot be called on current thread.");
-        sharedRealm.realmNotifier.removeChangeListeners(this);
+        osSharedRealm.capabilities.checkCanDeliverNotification("removeListener cannot be called on current thread.");
+        osSharedRealm.realmNotifier.removeChangeListeners(this);
     }
 
     /**
@@ -250,7 +250,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalArgumentException("The destination argument cannot be null");
         }
         checkIfValid();
-        sharedRealm.writeCopy(destination, key);
+        osSharedRealm.writeCopy(destination, key);
     }
 
     /**
@@ -272,10 +272,10 @@ abstract class BaseRealm implements Closeable {
         if (Looper.myLooper() != null) {
             throw new IllegalStateException("Cannot wait for changes inside a Looper thread. Use RealmChangeListeners instead.");
         }
-        boolean hasChanged = sharedRealm.waitForChange();
+        boolean hasChanged = osSharedRealm.waitForChange();
         if (hasChanged) {
             // Since this Realm instance has been waiting for change, advance realm & refresh realm.
-            sharedRealm.refresh();
+            osSharedRealm.refresh();
         }
         return hasChanged;
     }
@@ -295,10 +295,10 @@ abstract class BaseRealm implements Closeable {
                 @Override
                 public void onCall() {
                     // Checks if the Realm instance has been closed.
-                    if (sharedRealm == null || sharedRealm.isClosed()) {
+                    if (osSharedRealm == null || osSharedRealm.isClosed()) {
                         throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
                     }
-                    sharedRealm.stopWaitForChange();
+                    osSharedRealm.stopWaitForChange();
                 }
             });
         } else {
@@ -345,7 +345,7 @@ abstract class BaseRealm implements Closeable {
 
     void beginTransaction(boolean ignoreReadOnly) {
         checkIfValid();
-        sharedRealm.beginTransaction(ignoreReadOnly);
+        osSharedRealm.beginTransaction(ignoreReadOnly);
     }
 
     /**
@@ -356,7 +356,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void commitTransaction() {
         checkIfValid();
-        sharedRealm.commitTransaction();
+        osSharedRealm.commitTransaction();
     }
 
     /**
@@ -369,14 +369,14 @@ abstract class BaseRealm implements Closeable {
      */
     public void cancelTransaction() {
         checkIfValid();
-        sharedRealm.cancelTransaction();
+        osSharedRealm.cancelTransaction();
     }
 
     /**
      * Checks if a Realm's underlying resources are still available or not getting accessed from the wrong thread.
      */
     protected void checkIfValid() {
-        if (sharedRealm == null || sharedRealm.isClosed()) {
+        if (osSharedRealm == null || osSharedRealm.isClosed()) {
             throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
         }
 
@@ -387,7 +387,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     protected void checkIfInTransaction() {
-        if (!sharedRealm.isInTransaction()) {
+        if (!osSharedRealm.isInTransaction()) {
             throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
         }
     }
@@ -436,7 +436,7 @@ abstract class BaseRealm implements Closeable {
      * @return the schema version for the Realm file backing this Realm.
      */
     public long getVersion() {
-        return sharedRealm.getSchemaVersion();
+        return osSharedRealm.getSchemaVersion();
     }
 
     /**
@@ -465,9 +465,9 @@ abstract class BaseRealm implements Closeable {
      */
     void doClose() {
         realmCache = null;
-        if (sharedRealm != null) {
-            sharedRealm.close();
-            sharedRealm = null;
+        if (osSharedRealm != null) {
+            osSharedRealm.close();
+            osSharedRealm = null;
         }
         if (schema != null) {
             schema.close();
@@ -485,7 +485,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
         }
 
-        return sharedRealm == null || sharedRealm.isClosed();
+        return osSharedRealm == null || osSharedRealm.isClosed();
     }
 
     /**
@@ -495,12 +495,12 @@ abstract class BaseRealm implements Closeable {
      */
     public boolean isEmpty() {
         checkIfValid();
-        return sharedRealm.isEmpty();
+        return osSharedRealm.isEmpty();
     }
 
     // package protected so unit tests can access it
     void setVersion(long version) {
-        sharedRealm.setSchemaVersion(version);
+        osSharedRealm.setSchemaVersion(version);
     }
 
     /**
@@ -512,7 +512,7 @@ abstract class BaseRealm implements Closeable {
         return schema;
     }
 
-    // Used by RealmList/RealmResults, to create RealmObject from a Collection.
+    // Used by RealmList/RealmResults, to create RealmObject from a OsResults.
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
     <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, UncheckedRow row) {
         final boolean isDynamicRealmObject = dynamicClassName != null;
@@ -598,9 +598,9 @@ abstract class BaseRealm implements Closeable {
      * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {
-        SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
-        Boolean result = sharedRealm.compact();
-        sharedRealm.close();
+        OsSharedRealm osSharedRealm = OsSharedRealm.getInstance(configuration);
+        Boolean result = osSharedRealm.compact();
+        osSharedRealm.close();
         return result;
     }
 
@@ -678,7 +678,7 @@ abstract class BaseRealm implements Closeable {
 
     @Override
     protected void finalize() throws Throwable {
-        if (sharedRealm != null && !sharedRealm.isClosed()) {
+        if (osSharedRealm != null && !osSharedRealm.isClosed()) {
             RealmLog.warn("Remember to call close() on all Realm instances. " +
                     "Realm %s is being finalized without being closed, " +
                     "this can lead to running out of native memory.", configuration.getPath()
@@ -690,8 +690,8 @@ abstract class BaseRealm implements Closeable {
         super.finalize();
     }
 
-    SharedRealm getSharedRealm() {
-        return sharedRealm;
+    OsSharedRealm getOsSharedRealm() {
+        return osSharedRealm;
     }
 
     // Internal delegate for migrations.

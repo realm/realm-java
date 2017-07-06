@@ -165,12 +165,12 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     }
 
     private void registerToObjectNotifier() {
-        if (realm.sharedRealm == null || realm.sharedRealm.isClosed() || !row.isAttached()) {
+        if (realm.osSharedRealm == null || realm.osSharedRealm.isClosed() || !row.isAttached()) {
             return;
         }
 
         if (osObject == null) {
-            osObject = new OsObject(realm.sharedRealm, (UncheckedRow) row);
+            osObject = new OsObject(realm.osSharedRealm, (UncheckedRow) row);
             osObject.setObserverPairs(observerPairs);
             // We should never need observerPairs after pending row returns.
             observerPairs = null;

@@ -306,9 +306,9 @@ public class RealmCacheTests {
         Realm realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         Realm realmB = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         realmA.close();
-        assertNotNull(realmA.sharedRealm);
+        assertNotNull(realmA.osSharedRealm);
         realmB.close();
-        assertNull(realmB.sharedRealm);
+        assertNull(realmB.osSharedRealm);
         // No crash but warning in the log.
         realmB.close();
 
@@ -318,9 +318,9 @@ public class RealmCacheTests {
         DynamicRealm dynamicRealmB = RealmCache.createRealmOrGetFromCache(defaultConfig,
                 DynamicRealm.class);
         dynamicRealmA.close();
-        assertNotNull(dynamicRealmA.sharedRealm);
+        assertNotNull(dynamicRealmA.osSharedRealm);
         dynamicRealmB.close();
-        assertNull(dynamicRealmB.sharedRealm);
+        assertNull(dynamicRealmB.osSharedRealm);
         // No crash but warning in the log.
         dynamicRealmB.close();
 
@@ -328,9 +328,9 @@ public class RealmCacheTests {
         realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         dynamicRealmA = RealmCache.createRealmOrGetFromCache(defaultConfig, DynamicRealm.class);
         realmA.close();
-        assertNull(realmA.sharedRealm);
+        assertNull(realmA.osSharedRealm);
         dynamicRealmA.close();
-        assertNull(realmA.sharedRealm);
+        assertNull(realmA.osSharedRealm);
     }
 
     @Test

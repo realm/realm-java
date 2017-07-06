@@ -38,7 +38,6 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -50,8 +49,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Unit tests specific for RealmList that cannot be covered by {@link OrderedRealmCollectionTests},
- * {@link ManagedRealmCollectionTests}, {@link UnManagedRealmCollectionTests} or {@link RealmCollectionTests}.
+ * Unit tests specific for RealmList that cannot be covered by {@link OrderedRealmOsResultsTests},
+ * {@link ManagedRealmOsResultsTests}, {@link UnManagedRealmOsResultsTests} or {@link RealmOsResultsTests}.
  */
 @RunWith(AndroidJUnit4.class)
 public class RealmListTests extends CollectionTests {
