@@ -47,20 +47,20 @@ public class SortDescriptorTests {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-    private SharedRealm sharedRealm;
+    private OsSharedRealm osSharedRealm;
     private Table table;
 
     @Before
     public void setUp() {
         RealmConfiguration config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
-        sharedRealm.beginTransaction();
-        table = sharedRealm.createTable("test_table");
+        osSharedRealm = OsSharedRealm.getInstance(config);
+        osSharedRealm.beginTransaction();
+        table = osSharedRealm.createTable("test_table");
     }
 
     @After
     public void tearDown() {
-        sharedRealm.close();
+        osSharedRealm.close();
     }
 
     @Test

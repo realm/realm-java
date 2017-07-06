@@ -60,7 +60,7 @@ public class RealmProxyMediatorTests {
     @Test
     public void validateTable_noDuplicateIndexInIndexFields() {
         RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
-        CatRealmProxy.CatColumnInfo columnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+        CatRealmProxy.CatColumnInfo columnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.osSharedRealm, false);
 
         final Set<Long> indexSet = new HashSet<Long>();
         int indexCount = 0;
@@ -89,7 +89,7 @@ public class RealmProxyMediatorTests {
     public void validateTable_noDuplicateIndexInIndicesMap() {
         RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
         CatRealmProxy.CatColumnInfo columnInfo;
-        columnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+        columnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.osSharedRealm, false);
 
         final Set<Long> indexSet = new HashSet<Long>();
         int indexCount = 0;

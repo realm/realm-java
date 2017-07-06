@@ -48,7 +48,7 @@ public class JNITableInsertTest {
 
     @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm osSharedRealm;
 
     private List<Object> value = new ArrayList<>();
 
@@ -56,13 +56,13 @@ public class JNITableInsertTest {
     public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        osSharedRealm = OsSharedRealm.getInstance(config);
     }
 
     @After
     public void tearDown() {
-        if (sharedRealm != null && !sharedRealm.isClosed()) {
-            sharedRealm.close();
+        if (osSharedRealm != null && !osSharedRealm.isClosed()) {
+            osSharedRealm.close();
         }
     }
 
@@ -93,7 +93,7 @@ public class JNITableInsertTest {
                 final Object valueI = value.get(i);
                 final Object valueJ = value.get(j);
 
-                TestHelper.createTable(sharedRealm, "temp" + i + "_" + j, new TestHelper.AdditionalTableSetup() {
+                TestHelper.createTable(osSharedRealm, "temp" + i + "_" + j, new TestHelper.AdditionalTableSetup() {
                     @Override
                     public void execute(Table t) {
                         // If the objects matches no exception will be thrown.

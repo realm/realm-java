@@ -54,7 +54,7 @@ public class RealmProxyClassGenerator {
             "io.realm.internal.OsObject",
             "io.realm.internal.RealmObjectProxy",
             "io.realm.internal.Row",
-            "io.realm.internal.SharedRealm",
+            "io.realm.internal.OsSharedRealm",
             "io.realm.internal.Table",
             "io.realm.internal.android.JsonUtils",
             "io.realm.log.RealmLog",
@@ -173,7 +173,7 @@ public class RealmProxyClassGenerator {
         // constructor #1
         writer.beginConstructor(
                 EnumSet.noneOf(Modifier.class),
-                "SharedRealm", "realm", "Table", "table");
+                "OsSharedRealm", "realm", "Table", "table");
         writer.emitStatement("super(%s)", metadata.getFields().size());
         for (VariableElement field : metadata.getFields()) {
             writer.emitStatement(
@@ -670,7 +670,7 @@ public class RealmProxyClassGenerator {
                 columnInfoClassName(),        // Return type
                 "validateTable",              // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "SharedRealm", "sharedRealm", // Argument type & argument name
+                "OsSharedRealm", "sharedRealm", // Argument type & argument name
                 "boolean", "allowExtraColumns");
 
         writer.beginControlFlow(

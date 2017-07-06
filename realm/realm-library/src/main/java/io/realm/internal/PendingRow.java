@@ -29,16 +29,16 @@ public class PendingRow implements Row {
     private static final String QUERY_EXECUTED_MESSAGE =
             "The query has been executed. This 'PendingRow' is not valid anymore.";
 
-    private SharedRealm sharedRealm;
+    private OsSharedRealm osSharedRealm;
     private Collection pendingCollection;
     private RealmChangeListener<PendingRow> listener;
     private WeakReference<FrontEnd> frontEndRef;
     private boolean returnCheckedRow;
 
-    public PendingRow(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor,
-            final boolean returnCheckedRow) {
-        this.sharedRealm = sharedRealm;
-        pendingCollection = new Collection(sharedRealm, query, sortDescriptor, null);
+    public PendingRow(OsSharedRealm osSharedRealm, TableQuery query, SortDescriptor sortDescriptor,
+                      final boolean returnCheckedRow) {
+        this.osSharedRealm = osSharedRealm;
+        pendingCollection = new Collection(osSharedRealm, query, sortDescriptor, null);
 
         listener = new RealmChangeListener<PendingRow>() {
             @Override
@@ -48,7 +48,7 @@ public class PendingRow implements Row {
         };
         pendingCollection.addListener(this, listener);
         this.returnCheckedRow = returnCheckedRow;
-        sharedRealm.addPendingRow(this);
+        osSharedRealm.addPendingRow(this);
     }
 
     // To set the front end of this PendingRow.
@@ -210,7 +210,7 @@ public class PendingRow implements Row {
         pendingCollection.removeListener(this, listener);
         pendingCollection = null;
         listener = null;
-        sharedRealm.removePendingRow(this);
+        osSharedRealm.removePendingRow(this);
     }
 
     private void notifyFrontEnd() {

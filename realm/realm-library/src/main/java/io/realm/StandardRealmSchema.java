@@ -68,8 +68,8 @@ class StandardRealmSchema extends RealmSchema {
         checkEmpty(className, EMPTY_STRING_MSG);
 
         String internalClassName = Table.getTableNameForClass(className);
-        if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }
-        Table table = realm.getSharedRealm().getTable(internalClassName);
+        if (!realm.getOsSharedRealm().hasTable(internalClassName)) { return null; }
+        Table table = realm.getOsSharedRealm().getTable(internalClassName);
         return new StandardRealmObjectSchema(realm, this, table);
     }
 
@@ -80,14 +80,14 @@ class StandardRealmSchema extends RealmSchema {
      */
     @Override
     public Set<RealmObjectSchema> getAll() {
-        int tableCount = (int) realm.getSharedRealm().size();
+        int tableCount = (int) realm.getOsSharedRealm().size();
         Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
         for (int i = 0; i < tableCount; i++) {
-            String tableName = realm.getSharedRealm().getTableName(i);
+            String tableName = realm.getOsSharedRealm().getTableName(i);
             if (!Table.isModelTable(tableName)) {
                 continue;
             }
-            schemas.add(new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName)));
+            schemas.add(new StandardRealmObjectSchema(realm, this, realm.getOsSharedRealm().getTable(tableName)));
         }
         return schemas;
     }
@@ -107,7 +107,7 @@ class StandardRealmSchema extends RealmSchema {
         if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
             throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
         }
-        return new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().createTable(internalTableName));
+        return new StandardRealmObjectSchema(realm, this, realm.getOsSharedRealm().createTable(internalTableName));
     }
 
     /**
@@ -118,7 +118,7 @@ class StandardRealmSchema extends RealmSchema {
      */
     @Override
     public boolean contains(String className) {
-        return realm.getSharedRealm().hasTable(Table.getTableNameForClass(className));
+        return realm.getOsSharedRealm().hasTable(Table.getTableNameForClass(className));
     }
 
     /**
@@ -137,7 +137,7 @@ class StandardRealmSchema extends RealmSchema {
         if (table.hasPrimaryKey()) {
             table.setPrimaryKey(null);
         }
-        realm.getSharedRealm().removeTable(internalTableName);
+        realm.getOsSharedRealm().removeTable(internalTableName);
     }
 
     /**
@@ -155,7 +155,7 @@ class StandardRealmSchema extends RealmSchema {
         String oldInternalName = Table.getTableNameForClass(oldClassName);
         String newInternalName = Table.getTableNameForClass(newClassName);
         checkHasTable(oldClassName, "Cannot rename class because it doesn't exist in this Realm: " + oldClassName);
-        if (realm.getSharedRealm().hasTable(newInternalName)) {
+        if (realm.getOsSharedRealm().hasTable(newInternalName)) {
             throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
         }
 
@@ -167,8 +167,8 @@ class StandardRealmSchema extends RealmSchema {
             oldTable.setPrimaryKey(null);
         }
 
-        realm.getSharedRealm().renameTable(oldInternalName, newInternalName);
-        Table table = realm.getSharedRealm().getTable(newInternalName);
+        realm.getOsSharedRealm().renameTable(oldInternalName, newInternalName);
+        Table table = realm.getOsSharedRealm().getTable(newInternalName);
 
         // Sets the primary key for the new class if necessary.
         if (pkField != null) {
@@ -186,7 +186,7 @@ class StandardRealmSchema extends RealmSchema {
 
     private void checkHasTable(String className, String errorMsg) {
         String internalTableName = Table.getTableNameForClass(className);
-        if (!realm.getSharedRealm().hasTable(internalTableName)) {
+        if (!realm.getOsSharedRealm().hasTable(internalTableName)) {
             throw new IllegalArgumentException(errorMsg);
         }
     }
@@ -197,7 +197,7 @@ class StandardRealmSchema extends RealmSchema {
         Table table = dynamicClassToTable.get(tableName);
         if (table != null) { return table; }
 
-        table = realm.getSharedRealm().getTable(tableName);
+        table = realm.getOsSharedRealm().getTable(tableName);
         dynamicClassToTable.put(tableName, table);
 
         return table;
@@ -214,7 +214,7 @@ class StandardRealmSchema extends RealmSchema {
             table = classToTable.get(originalClass);
         }
         if (table == null) {
-            table = realm.getSharedRealm().getTable(realm.getConfiguration().getSchemaMediator().getTableName(originalClass));
+            table = realm.getOsSharedRealm().getTable(realm.getConfiguration().getSchemaMediator().getTableName(originalClass));
             classToTable.put(originalClass, table);
         }
         if (isProxyClass(originalClass, clazz)) {
@@ -253,10 +253,10 @@ class StandardRealmSchema extends RealmSchema {
         String tableName = Table.getTableNameForClass(className);
         StandardRealmObjectSchema dynamicSchema = dynamicClassToSchema.get(tableName);
         if (dynamicSchema == null) {
-            if (!realm.getSharedRealm().hasTable(tableName)) {
+            if (!realm.getOsSharedRealm().hasTable(tableName)) {
                 throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
-            dynamicSchema = new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName));
+            dynamicSchema = new StandardRealmObjectSchema(realm, this, realm.getOsSharedRealm().getTable(tableName));
             dynamicClassToSchema.put(tableName, dynamicSchema);
         }
         return dynamicSchema;

@@ -9,9 +9,9 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
@@ -37,7 +37,7 @@ public class BooleansRealmProxy extends some.test.Booleans
         long mCompletedIndex;
         long anotherBooleanIndex;
 
-        BooleansColumnInfo(SharedRealm realm, Table table) {
+        BooleansColumnInfo(OsSharedRealm realm, Table table) {
             super(4);
             this.doneIndex = addColumnDetails(table, "done", RealmFieldType.BOOLEAN);
             this.isReadyIndex = addColumnDetails(table, "isReady", RealmFieldType.BOOLEAN);
@@ -196,7 +196,7 @@ public class BooleansRealmProxy extends some.test.Booleans
         return realmObjectSchema;
     }
 
-    public static BooleansColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
+    public static BooleansColumnInfo validateTable(OsSharedRealm sharedRealm, boolean allowExtraColumns) {
         if (!sharedRealm.hasTable("class_Booleans")) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "The 'Booleans' class is missing from the schema for this Realm.");
         }

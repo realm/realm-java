@@ -4,10 +4,10 @@ package io.realm;
 import android.util.JsonReader;
 import io.realm.RealmObjectSchema;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import java.io.IOException;
 import java.util.Collection;
@@ -42,7 +42,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm, boolean allowExtraColumns) {
+    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, OsSharedRealm sharedRealm, boolean allowExtraColumns) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {

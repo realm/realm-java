@@ -142,7 +142,7 @@ public class DynamicRealm extends BaseRealm {
      */
     public RealmQuery<DynamicRealmObject> where(String className) {
         checkIfValid();
-        if (!sharedRealm.hasTable(Table.getTableNameForClass(className))) {
+        if (!osSharedRealm.hasTable(Table.getTableNameForClass(className))) {
             throw new IllegalArgumentException("Class does not exist in the Realm and cannot be queried: " + className);
         }
         return RealmQuery.createDynamicQuery(this, className);

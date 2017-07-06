@@ -42,16 +42,16 @@ public class JNIColumnInfoTest {
     @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
     @SuppressWarnings("FieldCanBeLocal")
-    private SharedRealm sharedRealm;
+    private OsSharedRealm osSharedRealm;
     private Table table;
 
     @Before
     public void setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        osSharedRealm = OsSharedRealm.getInstance(config);
 
-        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+        table = TestHelper.createTable(osSharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
                 table.addColumn(RealmFieldType.STRING, "firstName");

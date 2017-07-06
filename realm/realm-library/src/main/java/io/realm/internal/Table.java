@@ -49,16 +49,16 @@ public class Table implements TableSchema, NativeObject {
     private final long nativePtr;
     private final NativeContext context;
 
-    private final SharedRealm sharedRealm;
+    private final OsSharedRealm osSharedRealm;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
 
     Table(Table parent, long nativePointer) {
-        this(parent.sharedRealm, nativePointer);
+        this(parent.osSharedRealm, nativePointer);
     }
 
-    Table(SharedRealm sharedRealm, long nativePointer) {
-        this.context = sharedRealm.context;
-        this.sharedRealm = sharedRealm;
+    Table(OsSharedRealm osSharedRealm, long nativePointer) {
+        this.context = osSharedRealm.context;
+        this.osSharedRealm = osSharedRealm;
         this.nativePtr = nativePointer;
         context.addReference(this);
     }
@@ -191,7 +191,7 @@ public class Table implements TableSchema, NativeObject {
                 Table pkTable = getPrimaryKeyTable();
                 if (pkTable == null) {
                     throw new IllegalStateException(
-                            "Table is not created from a SharedRealm, primary key is not available");
+                            "Table is not created from an OsSharedRealm, primary key is not available");
                 }
                 long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getClassName());
                 if (pkRowIndex != NO_MATCH) {
@@ -420,8 +420,8 @@ public class Table implements TableSchema, NativeObject {
     // Getters
     //
 
-    SharedRealm getSharedRealm() {
-        return sharedRealm;
+    OsSharedRealm getOsSharedRealm() {
+        return osSharedRealm;
     }
 
     public long getLong(long columnIndex, long rowIndex) {
@@ -466,7 +466,7 @@ public class Table implements TableSchema, NativeObject {
     public Table getLinkTarget(long columnIndex) {
         long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
         // Copies context reference from parent.
-        return new Table(this.sharedRealm, nativeTablePointer);
+        return new Table(this.osSharedRealm, nativeTablePointer);
     }
 
     public boolean isNull(long columnIndex, long rowIndex) {
@@ -604,16 +604,16 @@ public class Table implements TableSchema, NativeObject {
     }
 
     private Table getPrimaryKeyTable() {
-        if (sharedRealm == null) {
+        if (osSharedRealm == null) {
             return null;
         }
 
         // FIXME: The PK table creation should be handle by Object Store after integration of OS Schema.
-        if (!sharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
-            sharedRealm.createTable(PRIMARY_KEY_TABLE_NAME);
+        if (!osSharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
+            osSharedRealm.createTable(PRIMARY_KEY_TABLE_NAME);
         }
 
-        Table pkTable = sharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
+        Table pkTable = osSharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
         if (pkTable.getColumnCount() == 0) {
             checkImmutable();
             long columnIndex = pkTable.addColumn(RealmFieldType.STRING, PRIMARY_KEY_CLASS_COLUMN_NAME);
@@ -640,22 +640,22 @@ public class Table implements TableSchema, NativeObject {
      * This will remove the prefix "class_" from all table names in the pk_column
      * Any database created on Realm-Java 0.84.1 and below will have this error.
      */
-    public static boolean migratePrimaryKeyTableIfNeeded(SharedRealm sharedRealm) {
-        if (sharedRealm == null || !sharedRealm.isInTransaction()) {
+    public static boolean migratePrimaryKeyTableIfNeeded(OsSharedRealm osSharedRealm) {
+        if (osSharedRealm == null || !osSharedRealm.isInTransaction()) {
             throwImmutable();
         }
-        if (!sharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
+        if (!osSharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
             return false;
         }
-        Table pkTable = sharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
-        return nativeMigratePrimaryKeyTableIfNeeded(sharedRealm.getGroupNative(), pkTable.nativePtr);
+        Table pkTable = osSharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
+        return nativeMigratePrimaryKeyTableIfNeeded(osSharedRealm.getGroupNative(), pkTable.nativePtr);
     }
 
-    public static boolean primaryKeyTableNeedsMigration(SharedRealm sharedRealm) {
-        if (!sharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
+    public static boolean primaryKeyTableNeedsMigration(OsSharedRealm osSharedRealm) {
+        if (!osSharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
             return false;
         }
-        Table pkTable = sharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
+        Table pkTable = osSharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
         return nativePrimaryKeyTableNeedsMigration(pkTable.nativePtr);
     }
 
@@ -672,10 +672,10 @@ public class Table implements TableSchema, NativeObject {
     }
 
     boolean isImmutable() {
-        return sharedRealm != null && !sharedRealm.isInTransaction();
+        return osSharedRealm != null && !osSharedRealm.isInTransaction();
     }
 
-    // This checking should be moved to SharedRealm level.
+    // This checking should be moved to OsSharedRealm level.
     void checkImmutable() {
         if (isImmutable()) {
             throwImmutable();

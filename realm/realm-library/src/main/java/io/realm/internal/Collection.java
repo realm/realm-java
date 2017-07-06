@@ -97,7 +97,7 @@ public class Collection implements NativeObject {
         protected int pos = -1;
 
         public Iterator(Collection collection) {
-            if (collection.sharedRealm.isClosed()) {
+            if (collection.osSharedRealm.isClosed()) {
                 throw new IllegalStateException(CLOSED_REALM_MESSAGE);
             }
 
@@ -108,10 +108,10 @@ public class Collection implements NativeObject {
                 return;
             }
 
-            if (collection.sharedRealm.isInTransaction()) {
+            if (collection.osSharedRealm.isInTransaction()) {
                 detach();
             } else {
-                iteratorCollection.sharedRealm.addIterator(this);
+                iteratorCollection.osSharedRealm.addIterator(this);
             }
         }
 
@@ -258,7 +258,7 @@ public class Collection implements NativeObject {
 
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
-    private final SharedRealm sharedRealm;
+    private final OsSharedRealm osSharedRealm;
     private final NativeContext context;
     private final Table table;
     private boolean loaded;
@@ -329,7 +329,7 @@ public class Collection implements NativeObject {
         }
     }
 
-    public static Collection createBacklinksCollection(SharedRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
+    public static Collection createBacklinksCollection(OsSharedRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
         long backlinksPtr = nativeCreateResultsFromBacklinks(
                 realm.getNativePtr(),
                 row.getNativePtr(),
@@ -338,35 +338,35 @@ public class Collection implements NativeObject {
         return new Collection(realm, srcTable, backlinksPtr, true);
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query,
-            SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
+    public Collection(OsSharedRealm osSharedRealm, TableQuery query,
+                      SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
         query.validateQuery();
 
-        this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
+        this.nativePtr = nativeCreateResults(osSharedRealm.getNativePtr(), query.getNativePtr(),
                 sortDescriptor,
                 distinctDescriptor);
 
-        this.sharedRealm = sharedRealm;
-        this.context = sharedRealm.context;
+        this.osSharedRealm = osSharedRealm;
+        this.context = osSharedRealm.context;
         this.table = query.getTable();
         this.context.addReference(this);
         this.loaded = false;
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor) {
-        this(sharedRealm, query, sortDescriptor, null);
+    public Collection(OsSharedRealm osSharedRealm, TableQuery query, SortDescriptor sortDescriptor) {
+        this(osSharedRealm, query, sortDescriptor, null);
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query) {
-        this(sharedRealm, query, null, null);
+    public Collection(OsSharedRealm osSharedRealm, TableQuery query) {
+        this(osSharedRealm, query, null, null);
     }
 
-    public Collection(SharedRealm sharedRealm, LinkView linkView, SortDescriptor sortDescriptor) {
-        this.nativePtr = nativeCreateResultsFromLinkView(sharedRealm.getNativePtr(), linkView.getNativePtr(),
+    public Collection(OsSharedRealm osSharedRealm, LinkView linkView, SortDescriptor sortDescriptor) {
+        this.nativePtr = nativeCreateResultsFromLinkView(osSharedRealm.getNativePtr(), linkView.getNativePtr(),
                 sortDescriptor);
 
-        this.sharedRealm = sharedRealm;
-        this.context = sharedRealm.context;
+        this.osSharedRealm = osSharedRealm;
+        this.context = osSharedRealm.context;
         this.table = linkView.getTargetTable();
         this.context.addReference(this);
         // Collection created from LinkView is loaded by default. So that the listener will be triggered first time
@@ -374,13 +374,13 @@ public class Collection implements NativeObject {
         this.loaded = true;
     }
 
-    private Collection(SharedRealm sharedRealm, Table table, long nativePtr) {
-        this(sharedRealm, table, nativePtr, false);
+    private Collection(OsSharedRealm osSharedRealm, Table table, long nativePtr) {
+        this(osSharedRealm, table, nativePtr, false);
     }
 
-    private Collection(SharedRealm sharedRealm, Table table, long nativePtr, boolean loaded) {
-        this.sharedRealm = sharedRealm;
-        this.context = sharedRealm.context;
+    private Collection(OsSharedRealm osSharedRealm, Table table, long nativePtr, boolean loaded) {
+        this.osSharedRealm = osSharedRealm;
+        this.context = osSharedRealm.context;
         this.table = table;
         this.nativePtr = nativePtr;
         this.context.addReference(this);
@@ -391,7 +391,7 @@ public class Collection implements NativeObject {
         if (isSnapshot) {
             return this;
         }
-        Collection collection = new Collection(sharedRealm, table, nativeCreateSnapshot(nativePtr));
+        Collection collection = new Collection(osSharedRealm, table, nativeCreateSnapshot(nativePtr));
         collection.isSnapshot = true;
         return collection;
     }
@@ -452,11 +452,11 @@ public class Collection implements NativeObject {
     }
 
     public Collection sort(SortDescriptor sortDescriptor) {
-        return new Collection(sharedRealm, table, nativeSort(nativePtr, sortDescriptor));
+        return new Collection(osSharedRealm, table, nativeSort(nativePtr, sortDescriptor));
     }
 
     public Collection distinct(SortDescriptor distinctDescriptor) {
-        return new Collection(sharedRealm, table, nativeDistinct(nativePtr, distinctDescriptor));
+        return new Collection(osSharedRealm, table, nativeDistinct(nativePtr, distinctDescriptor));
     }
 
     public boolean contains(UncheckedRow row) {
