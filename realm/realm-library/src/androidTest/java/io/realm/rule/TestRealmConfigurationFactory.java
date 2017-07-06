@@ -32,13 +32,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.realm.DynamicRealm;
+import io.realm.CompactOnLaunchCallback;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.RealmMigration;
-import io.realm.RealmObject;
-import io.realm.TestHelper;
-import io.realm.annotations.RealmModule;
 
 import static org.junit.Assert.assertTrue;
 
