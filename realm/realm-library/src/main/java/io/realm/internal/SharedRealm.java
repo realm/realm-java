@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import io.realm.CompactOnLaunchCallback;
 import io.realm.RealmConfiguration;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
@@ -224,6 +225,7 @@ public final class SharedRealm implements Closeable, NativeObject {
                 config.getSchemaVersion(),
                 enableFormatUpgrade,
                 autoChangeNotifications,
+                config.getCompactOnLaunchCallback(),
                 syncRealmUrl,
                 syncRealmAuthUrl,
                 syncUserIdentifier,
@@ -505,6 +507,7 @@ public final class SharedRealm implements Closeable, NativeObject {
             long schemaVersion,
             boolean enabledFormatUpgrade,
             boolean autoChangeNotification,
+            CompactOnLaunchCallback compactOnLaunch,
             String syncServerURL,
             String syncServerAuthURL,
             String syncUserIdentity,
