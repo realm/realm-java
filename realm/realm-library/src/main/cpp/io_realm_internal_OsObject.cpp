@@ -17,6 +17,9 @@
 #include "io_realm_internal_OsObject.h"
 
 #include <realm/row.hpp>
+#if REALM_ENABLE_SYNC
+#include <realm/sync/object.hpp>
+#endif
 #include <object_schema.hpp>
 #include <object.hpp>
 #include <shared_realm.hpp>
@@ -381,4 +384,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithStrin
     CATCH_STD()
 
     return realm::npos;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_OsObject_nativeGetObjectIdColumName(JNIEnv* env, jclass)
+{
+// TODO: Remove the macro and get the name from core when core has stable ID support.
+#if REALM_ENABLE_SYNC
+    const char* object_id_column_name = sync::object_id_column_name;
+#else
+    const char* object_id_column_name = "!OID";
+#endif
+    return to_jstring(env, object_id_column_name);
 }

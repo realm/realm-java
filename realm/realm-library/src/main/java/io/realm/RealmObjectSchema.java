@@ -26,6 +26,7 @@ import java.util.Set;
 
 import io.realm.annotations.Required;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsObject;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -516,7 +517,7 @@ public class RealmObjectSchema {
         Set<String> columnNames = new LinkedHashSet<>(columnCount);
         for (int i = 0; i < columnCount; i++) {
             String name = table.getColumnName(i);
-            if (!name.equals(Table.OBJECT_ID_COLUMN_NAME)) { // Filter out stable ID column
+            if (!OsObject.isObjectIdColumn(name)) {
                 columnNames.add(name);
             }
         }
