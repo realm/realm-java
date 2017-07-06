@@ -274,7 +274,7 @@ public class MutableRealmIntegerTests {
     }
 
     /**
-     * Assure that a MutableRealmInteger acquired from an unmanaged object is not affected by changes in the DB.
+     * Assure that a MutableRealmInteger acquired from an unmanaged object is not affected by changes in the Realm.
      */
     @Ignore("Not yet wired to core")
     @Test
