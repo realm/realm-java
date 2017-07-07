@@ -151,7 +151,7 @@ public abstract class RealmProxyMediator {
      * After being inserted any changes to the original objects will not be persisted.
      *
      * @param realm reference to the {@link Realm} where the objects will be inserted.
-     * @param objects OsResults of {@link RealmObject} to insert or update. This must not be empty.
+     * @param objects Collection of {@link RealmObject} to insert or update. This must not be empty.
      */
     public abstract void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects);
 
@@ -161,7 +161,7 @@ public abstract class RealmProxyMediator {
      * After being inserted any changes to the original objects will not be persisted.
      *
      * @param realm reference to the {@link Realm} where the objects will be inserted.
-     * @param objects OsResults of {@link RealmObject} to insert or update. This must not be empty.
+     * @param objects Collection of {@link RealmObject} to insert or update. This must not be empty.
      */
     public abstract void insert(Realm realm, Collection<? extends RealmModel> objects);
 

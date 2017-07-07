@@ -28,7 +28,7 @@ import io.realm.internal.UncheckedRow;
  * size and order of elements will never be changed after creation.
  * <p>
  * {@link OrderedRealmCollectionSnapshot} is useful when making changes which may impact the size or order of the
- * osResults in simple loops. For example:
+ * collection in simple loops. For example:
  * <pre>
  * {@code
  * final RealmResults<Dog>  dogs = realm.where(Dog.class).findAll();
@@ -204,7 +204,7 @@ public class OrderedRealmCollectionSnapshot<E extends RealmModel> extends Ordere
     }
 
     /**
-     * This deletes all objects in the osResults from the underlying Realm. All objects in the osResults snapshot
+     * This deletes all objects in the collection from the underlying Realm. All objects in the osResults snapshot
      * will become invalid.
      *
      * @return {@code true} if objects was deleted, {@code false} otherwise.

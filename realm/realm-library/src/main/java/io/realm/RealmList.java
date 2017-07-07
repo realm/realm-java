@@ -381,20 +381,20 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     }
 
     /**
-     * Removes all occurrences in this {@code OsResults} of each object in the
-     * specified {@code OsResults}. After this method returns none of the
-     * elements in the passed {@code OsResults} can be found in this {@code OsResults}
+     * Removes all occurrences in this {@code Collection} of each object in the
+     * specified {@code Collection}. After this method returns none of the
+     * elements in the passed {@code Collection} can be found in this {@code Collection}
      * anymore.
      * <p>
-     * This implementation iterates over the {@code OsResults} and tests each
+     * This implementation iterates over the {@code Collection} and tests each
      * element {@code e} returned by the iterator, whether it is contained in
-     * the specified {@code OsResults}. If this test is positive, then the {@code
+     * the specified {@code Collection}. If this test is positive, then the {@code
      * remove} method is called on the iterator.
      *
-     * @param collection the osResults of objects to remove.
-     * @return {@code true} if this {@code OsResults} is modified, {@code false} otherwise.
-     * @throws ClassCastException if one or more elements of {@code osResults} isn't of the correct type.
-     * @throws NullPointerException if {@code osResults} is {@code null}.
+     * @param collection the collection of objects to remove.
+     * @return {@code true} if this {@code Collection} is modified, {@code false} otherwise.
+     * @throws ClassCastException if one or more elements of {@code Collection} isn't of the correct type.
+     * @throws NullPointerException if {@code Collection} is {@code null}.
      */
     @Override
     public boolean removeAll(Collection<?> collection) {
