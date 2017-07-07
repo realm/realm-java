@@ -21,11 +21,11 @@ import io.realm.OrderedCollectionChangeSet;
 
 /**
  * Implementation of {@link OrderedCollectionChangeSet}. This class holds a pointer to the Object Store's
- * CollectionChangeSet and read from it only when needed. Creating an Java object from JNI when the collection
+ * OsCollectionChangeSet and read from it only when needed. Creating an Java object from JNI when the collection
  * notification arrives, is avoided since we also support the collection listeners without a change set parameter,
  * parsing the change set may not be necessary all the time.
  */
-public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeObject {
+public class OsCollectionChangeSet implements OrderedCollectionChangeSet, NativeObject {
 
     // Used in JNI.
     @SuppressWarnings("WeakerAccess")
@@ -42,7 +42,7 @@ public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeOb
     private static long finalizerPtr = nativeGetFinalizerPtr();
     private final long nativePtr;
 
-    public CollectionChangeSet(long nativePtr) {
+    public OsCollectionChangeSet(long nativePtr) {
         this.nativePtr = nativePtr;
         NativeContext.dummyContext.addReference(this);
     }

@@ -529,7 +529,7 @@ public class Collection implements NativeObject {
         // So it is possible it deliver a non-empty change set for the first async query returns. In this case, we
         // return an empty change set to user since it is considered as the first time async query returns.
         observerPairs.foreach(new Callback(nativeChangeSetPtr == 0 || !wasLoaded ?
-                null : new CollectionChangeSet(nativeChangeSetPtr)));
+                null : new OsCollectionChangeSet(nativeChangeSetPtr)));
     }
 
     public Mode getMode() {
