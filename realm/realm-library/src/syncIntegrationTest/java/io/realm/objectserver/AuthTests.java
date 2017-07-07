@@ -399,6 +399,55 @@ public class AuthTests extends StandardIntegrationTest {
         assertNull(SyncUser.currentUser());
     }
 
+    // verify that multiple users can be logged in at the same time
+    @Test
+    public void multipleUsersCanBeLoggedInSimultaneously() {
+        final String password = "password";
+        final SyncUser[] users = new SyncUser[3];
+
+        for (int i = 0; i < users.length; i++) {
+            SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), password,
+                    true);
+            users[i] = SyncUser.login(credentials, Constants.AUTH_URL);
+        }
+
+        for (int i = 0; i < users.length; i++) {
+            assertTrue(users[i].isValid());
+        }
+
+        for (int i = 0; i < users.length; i++) {
+            users[i].logout();
+        }
+
+        for (int i = 0; i < users.length; i++) {
+            assertFalse(users[i].isValid());
+        }
+    }
+
+    // verify that a single user can be logged out and back in.
+    @Test
+    public void singleUserCanBeLoggedInAndOutRepeatedly() {
+        final String username = UUID.randomUUID().toString();
+        final String password = "password";
+
+        // register the user the first time
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(user.isValid());
+        user.logout();
+        assertFalse(user.isValid());
+
+        // on subsequent logins, the user is already registered.
+        credentials = credentials = SyncCredentials.usernamePassword(username, password, false);
+        for (int i = 0; i < 3; i++) {
+            user = SyncUser.login(credentials, Constants.AUTH_URL);
+            assertTrue(user.isValid());
+            user.logout();
+            assertFalse(user.isValid());
+        }
+    }
+
     @Test
     public void retrieve() {
         final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
