@@ -94,6 +94,7 @@ public class RealmProcessorTest {
                 .failsToCompile();
     }
 
+    // FIXME: @Ignore("Disabled because it does not seem to find the generated interface file")
     @Ignore("Disabled because it does not seem to find the generated interface file")
     @Test
     public void compileSimpleProxyFile() throws Exception {

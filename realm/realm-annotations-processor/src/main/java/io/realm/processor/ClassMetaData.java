@@ -337,8 +337,12 @@ public class ClassMetaData {
 
     private boolean checkForFinalFields() {
         for (VariableElement field : fields) {
-            if (!field.getModifiers().contains(Modifier.FINAL)) { continue; }
-            if (Utils.isMutableRealmInteger(field)) { continue; }
+            if (!field.getModifiers().contains(Modifier.FINAL)) {
+                continue;
+            }
+            if (Utils.isMutableRealmInteger(field)) {
+                continue;
+            }
 
             Utils.error(String.format(Locale.US, "Class \"%s\" contains illegal final field \"%s\".", className,
                     field.getSimpleName().toString()));
