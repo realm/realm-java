@@ -21,6 +21,7 @@ import java.io.File;
 import io.realm.internal.Keep;
 
 
+// Constructed from JNI
 @Keep
 public final class RealmMigrationNeededException extends RuntimeException {
 

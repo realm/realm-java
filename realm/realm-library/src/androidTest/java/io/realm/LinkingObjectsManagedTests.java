@@ -536,7 +536,6 @@ public class LinkingObjectsManagedTests {
                     CoreMatchers.allOf(
                             CoreMatchers.containsString("Property 'BacklinksSource.name' has been added"),
                             CoreMatchers.containsString("Property 'BacklinksTarget.parents' has been removed")));
-            //assertTrue(expected.getMessage().contains("Field count is"));
         } finally {
             Realm.deleteRealm(realmConfig);
         }

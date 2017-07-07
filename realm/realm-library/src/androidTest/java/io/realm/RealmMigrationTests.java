@@ -19,7 +19,6 @@ package io.realm;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
@@ -38,13 +37,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
-import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
-import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.FieldOrder;
 import io.realm.entities.NullTypes;
-import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
@@ -74,6 +70,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -986,7 +983,7 @@ public class RealmMigrationTests {
                 fail("Failed on " + field);
             } catch (RealmMigrationNeededException e) {
                 assertThat(e.getMessage(), CoreMatchers.containsString(
-                        String.format("Property 'NullTypes.%s' has been made required", field)));
+                        String.format(Locale.US, "Property 'NullTypes.%s' has been made required", field)));
             }
         }
     }
@@ -1303,7 +1300,7 @@ public class RealmMigrationTests {
             realm = Realm.getInstance(config);
             fail();
         } catch (RuntimeException expected) {
-            assertEquals(exception, expected);
+            assertSame(exception, expected);
         } finally {
             if (realm != null) {
                 realm.close();
