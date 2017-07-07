@@ -21,7 +21,7 @@ import android.annotation.SuppressLint;
 import android.os.Looper;
 
 import io.realm.internal.CheckedRow;
-import io.realm.internal.Collection;
+import io.realm.internal.OsResults;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
@@ -65,7 +65,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
         Table srcTable = realm.getSchema().getTable(srcTableType);
         return new RealmResults<>(
                 realm,
-                Collection.createBacklinksCollection(realm.osSharedRealm, uncheckedRow, srcTable, srcFieldName),
+                OsResults.createBacklinksCollection(realm.osSharedRealm, uncheckedRow, srcTable, srcFieldName),
                 srcTableType);
     }
 
@@ -73,16 +73,16 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
         return new RealmResults<>(
                 realm,
-                Collection.createBacklinksCollection(realm.osSharedRealm, row, srcTable, srcFieldName),
+                OsResults.createBacklinksCollection(realm.osSharedRealm, row, srcTable, srcFieldName),
                 Table.getClassNameForTable(srcTable.getName()));
     }
 
-    RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
-        super(realm, collection, clazz);
+    RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz) {
+        super(realm, osResults, clazz);
     }
 
-    RealmResults(BaseRealm realm, Collection collection, String className) {
-        super(realm, collection, className);
+    RealmResults(BaseRealm realm, OsResults osResults, String className) {
+        super(realm, osResults, className);
     }
 
     /**
@@ -112,7 +112,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     @Override
     public boolean isLoaded() {
         realm.checkIfValid();
-        return collection.isLoaded();
+        return osResults.isLoaded();
     }
 
     /**
@@ -123,12 +123,12 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @Override
     public boolean load() {
-        // The Collection doesn't have to be loaded before accessing it if the query has not returned.
-        // Instead, accessing the Collection will just trigger the execution of query if needed. We add this flag is
+        // The OsResults doesn't have to be loaded before accessing it if the query has not returned.
+        // Instead, accessing the OsResults will just trigger the execution of query if needed. We add this flag is
         // only to keep the original behavior of those APIs. eg.: For a async RealmResults, before query returns, the
         // size() call should return 0 instead of running the query get the real size.
         realm.checkIfValid();
-        collection.load();
+        osResults.load();
         return true;
     }
 
@@ -167,7 +167,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     public void addChangeListener(RealmChangeListener<RealmResults<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.addListener(this, listener);
+        osResults.addListener(this, listener);
     }
 
     /**
@@ -205,7 +205,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmResults<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.addListener(this, listener);
+        osResults.addListener(this, listener);
     }
 
     private void checkForAddRemoveListener(Object listener, boolean checkListener) {
@@ -224,7 +224,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     public void removeAllChangeListeners() {
         checkForAddRemoveListener(null, false);
-        collection.removeAllListeners();
+        osResults.removeAllListeners();
     }
 
     /**
@@ -246,7 +246,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     public void removeChangeListener(RealmChangeListener<RealmResults<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.removeListener(this, listener);
+        osResults.removeListener(this, listener);
     }
 
     /**
@@ -259,7 +259,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmResults<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.removeListener(this, listener);
+        osResults.removeListener(this, listener);
     }
 
     /**
@@ -310,9 +310,9 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @Deprecated
     public RealmResults<E> distinct(String fieldName) {
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(new SchemaConnector(realm.getSchema()), collection.getTable(), fieldName);
-        Collection distinctCollection = collection.distinct(distinctDescriptor);
-        return createLoadedResults(distinctCollection);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(new SchemaConnector(realm.getSchema()), osResults.getTable(), fieldName);
+        OsResults distinctOsResults = osResults.distinct(distinctDescriptor);
+        return createLoadedResults(distinctOsResults);
     }
 
     /**

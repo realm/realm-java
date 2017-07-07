@@ -103,8 +103,8 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     private final List<WeakReference<PendingRow>> pendingRows = new CopyOnWriteArrayList<>();
-    public final List<WeakReference<Collection>> collections = new CopyOnWriteArrayList<>();
-    public final List<WeakReference<Collection.Iterator>> iterators = new ArrayList<>();
+    public final List<WeakReference<OsResults>> collections = new CopyOnWriteArrayList<>();
+    public final List<WeakReference<OsResults.Iterator>> iterators = new ArrayList<>();
 
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
@@ -444,14 +444,14 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     // The iterator will iterate on a snapshot Results if it is accessed inside a transaction.
     // See https://github.com/realm/realm-java/issues/3883 for more information.
     // Should only be called by Iterator's constructor.
-    void addIterator(Collection.Iterator iterator) {
+    void addIterator(OsResults.Iterator iterator) {
         iterators.add(new WeakReference<>(iterator));
     }
 
     // The detaching should happen before transaction begins.
     void detachIterators() {
-        for (WeakReference<Collection.Iterator> iteratorRef : iterators) {
-            Collection.Iterator iterator = iteratorRef.get();
+        for (WeakReference<OsResults.Iterator> iteratorRef : iterators) {
+            OsResults.Iterator iterator = iteratorRef.get();
             if (iterator != null) {
                 iterator.detach();
             }
@@ -461,8 +461,8 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     // Invalidates all iterators when a remote change notification is received.
     void invalidateIterators() {
-        for (WeakReference<Collection.Iterator> iteratorRef : iterators) {
-            Collection.Iterator iterator = iteratorRef.get();
+        for (WeakReference<OsResults.Iterator> iteratorRef : iterators) {
+            OsResults.Iterator iterator = iteratorRef.get();
             if (iterator != null) {
                 iterator.invalidate();
             }
