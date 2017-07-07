@@ -302,7 +302,7 @@ public class PermissionManager implements Closeable {
      * @param offerToken
      * @return
      */
-    public RealmAsyncTask revokeOffer(String offerToken, final ErrorCallback callback) {
+    public RealmAsyncTask revokeOffer(String offerToken, final PermissionManagerBaseCallback callback) {
         return null; // FIXME
     }
 
@@ -310,7 +310,7 @@ public class PermissionManager implements Closeable {
      * FIXME
      * @return
      */
-    public RealmAsyncTask getOffers(ErrorCallback callback) {
+    public RealmAsyncTask getOffers(PermissionManagerBaseCallback callback) {
         return null; // FIXME
     }
 
@@ -415,7 +415,7 @@ public class PermissionManager implements Closeable {
         }
     }
 
-    private void checkCallbackNotNull(ErrorCallback callback) {
+    private void checkCallbackNotNull(PermissionManagerBaseCallback callback) {
         if (callback == null) {
             throw new IllegalArgumentException("Non-null 'callback' required.");
         }
@@ -891,11 +891,11 @@ public class PermissionManager implements Closeable {
     // Made package protected instead of private to facilitate testing
     abstract static class PermissionManagerTask<T> implements RealmAsyncTask, Runnable {
 
-        private final ErrorCallback callback;
+        private final PermissionManagerBaseCallback callback;
         private final PermissionManager permissionManager;
         private volatile boolean canceled = false;
 
-        public PermissionManagerTask(PermissionManager permissionManager, ErrorCallback callback) {
+        public PermissionManagerTask(PermissionManager permissionManager, PermissionManagerBaseCallback callback) {
             this.callback = callback;
             this.permissionManager = permissionManager;
         }
@@ -1041,7 +1041,7 @@ public class PermissionManager implements Closeable {
 
     }
 
-    private interface ErrorCallback {
+    private interface PermissionManagerBaseCallback {
         /**
          * Called if an error happened while executing the task. The PermissionManager uses different underlying Realms,
          * and this error will report errors from all of these Realms combining them as best as possible.
@@ -1059,7 +1059,7 @@ public class PermissionManager implements Closeable {
     /**
      * Callback used when loading a set of permissions.
      */
-    public interface PermissionsCallback extends ErrorCallback {
+    public interface PermissionsCallback extends PermissionManagerBaseCallback {
         /**
          * Called when all known permissions are successfully loaded.
          * <p>
@@ -1074,7 +1074,7 @@ public class PermissionManager implements Closeable {
     /**
      * Callback used when modifying or creating new permissions.
      */
-    public interface ApplyPermissionsCallback extends ErrorCallback {
+    public interface ApplyPermissionsCallback extends PermissionManagerBaseCallback {
         /**
          * Called when the permissions where successfully modified.
          */
@@ -1084,7 +1084,7 @@ public class PermissionManager implements Closeable {
     /**
      * Callback used when making a permission offer for other users.
      */
-    public interface MakeOfferCallback extends ErrorCallback {
+    public interface MakeOfferCallback extends PermissionManagerBaseCallback {
         /**
          * Called when the offer was successfully created.
          *
@@ -1096,7 +1096,7 @@ public class PermissionManager implements Closeable {
     /**
      * Callback used when accepting a permission offer.
      */
-    public interface AcceptOfferCallback extends ErrorCallback {
+    public interface AcceptOfferCallback extends PermissionManagerBaseCallback {
         /**
          * Called when the offer was successfully accepted. This means that this user can now access this Realm.
          *
