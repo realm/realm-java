@@ -30,6 +30,7 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 * [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
 * Upgraded Realm Sync to 1.10.8
 * Let Object Store handle migration.
+* Renaming `io.realm.internal.CollectionChangeSet` to `io.realm.internal.OsCollectionChangeSet`.
 
 ## 3.5.1 (YYYY-MM-DD)
 
