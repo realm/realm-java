@@ -44,7 +44,7 @@ public abstract class RealmNotifier implements Closeable {
 // | BindingContext::did_change    |              |                                   |
 // | RealmNotifier.didChange       |              |                                   |
 // | process_available_async       |              |                                   |
-// | Collection listeners          |              |                                   |
+// | OsResults listeners          |              |                                   |
 // |-------------------------------+--------------+-----------------------------------|
 
     private static class RealmObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmChangeListener<T>> {

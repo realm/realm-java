@@ -55,7 +55,7 @@ import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
-import io.realm.internal.Collection;
+import io.realm.internal.OsResults;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
@@ -1008,19 +1008,19 @@ public class TestHelper {
      * This helper method is useful to create a mocked {@link RealmResults}.
      *
      * @param realm a {@link Realm} or a {@link DynamicRealm} instance.
-     * @param collection a {@link Collection} instance.
+     * @param osResults a {@link OsResults} instance.
      * @param tableClass a Class of Table.
      * @return a created {@link RealmResults} instance.
      */
     public static <T extends RealmObject> RealmResults<T> newRealmResults(
-            BaseRealm realm, Collection collection, Class<T> tableClass) {
+            BaseRealm realm, OsResults osResults, Class<T> tableClass) {
         //noinspection TryWithIdenticalCatches
         try {
             final Constructor<RealmResults> c = RealmResults.class.getDeclaredConstructor(
-                    BaseRealm.class, Collection.class, Class.class);
+                    BaseRealm.class, OsResults.class, Class.class);
             c.setAccessible(true);
             //noinspection unchecked
-            return c.newInstance(realm, collection, tableClass);
+            return c.newInstance(realm, osResults, tableClass);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (InstantiationException e) {

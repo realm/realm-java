@@ -22,7 +22,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import io.realm.annotations.Required;
-import io.realm.internal.Collection;
+import io.realm.internal.OsResults;
 import io.realm.internal.LinkView;
 import io.realm.internal.PendingRow;
 import io.realm.internal.RealmObjectProxy;
@@ -131,7 +131,7 @@ public class RealmQuery<E extends RealmModel> {
         this.schema = realm.getSchema().getSchemaForClass(clazz);
         this.table = queryResults.getTable();
         this.linkView = null;
-        this.query = queryResults.getCollection().where();
+        this.query = queryResults.getOsResults().where();
     }
 
     private RealmQuery(BaseRealm realm, LinkView linkView, Class<E> clazz) {
@@ -156,7 +156,7 @@ public class RealmQuery<E extends RealmModel> {
         this.className = className;
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
-        this.query = queryResults.getCollection().where();
+        this.query = queryResults.getOsResults().where();
     }
 
     private RealmQuery(BaseRealm realm, LinkView linkView, String className) {
@@ -1934,7 +1934,7 @@ public class RealmQuery<E extends RealmModel> {
         if (realm.isInTransaction()) {
             // It is not possible to create async query inside a transaction. So immediately query the first object.
             // See OS Results::prepare_async()
-            row = new Collection(realm.osSharedRealm, query).firstUncheckedRow();
+            row = new OsResults(realm.osSharedRealm, query).firstUncheckedRow();
         } else {
             // prepares an empty reference of the RealmObject which is backed by a pending query,
             // then update it once the query complete in the background.
@@ -1967,11 +1967,11 @@ public class RealmQuery<E extends RealmModel> {
             SortDescriptor distinctDescriptor,
             boolean loadResults) {
         RealmResults<E> results;
-        Collection collection = new Collection(realm.osSharedRealm, query, sortDescriptor, distinctDescriptor);
+        OsResults osResults = new OsResults(realm.osSharedRealm, query, sortDescriptor, distinctDescriptor);
         if (isDynamicQuery()) {
-            results = new RealmResults<>(realm, collection, className);
+            results = new RealmResults<>(realm, osResults, className);
         } else {
-            results = new RealmResults<>(realm, collection, clazz);
+            results = new RealmResults<>(realm, osResults, clazz);
         }
         if (loadResults) {
             results.load();
