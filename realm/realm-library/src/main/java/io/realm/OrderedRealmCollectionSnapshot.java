@@ -204,7 +204,7 @@ public class OrderedRealmCollectionSnapshot<E extends RealmModel> extends Ordere
     }
 
     /**
-     * This deletes all objects in the collection from the underlying Realm. All objects in the osResults snapshot
+     * This deletes all objects in the collection from the underlying Realm. All objects in the collection snapshot
      * will become invalid.
      *
      * @return {@code true} if objects was deleted, {@code false} otherwise.
