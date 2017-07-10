@@ -6,7 +6,7 @@ def buildSuccess = false
 def rosContainer
 try {
   node('android') {
-    timeout(time: 2, unit: 'HOURS') {
+    timeout(time: 1, unit: 'HOURS') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
 	stage('SCM') {
@@ -80,16 +80,7 @@ try {
                 try {
                   backgroundPid = startLogCatCollector()
                   forwardAdbPorts()
-                  // Run a full test for all flavours only on master. For each PR, ObjectServer tests should cover all tests in the Base flavour.
-                  // However, there are a few routines are different between ObjectServer and Base in the native code which is controlled by Macros.
-                  if (env.BRANCH_NAME == 'master') {
-                      gradle('realm', 'connectedAndroidTest')
-                  } else {
-                      // Build the Base flavour without running test.
-                      gradle('realm', 'assembleBaseDebug')
-                      // Only run test for ObjectServer flavour
-                      gradle('realm', 'connectedObjectServerDebugAndroidTest')
-                  }
+                  gradle('realm', 'connectedAndroidTest')
                   archiveLog = false;
                 } finally {
                   stopLogCatCollector(backgroundPid, archiveLog)
