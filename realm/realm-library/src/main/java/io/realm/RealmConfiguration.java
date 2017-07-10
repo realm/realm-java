@@ -52,7 +52,7 @@ import io.realm.rx.RxObservableFactory;
  * <p>
  * A minimal configuration can be created using:
  * <p>
- * {@code RealmConfiguration config = new RealmConfiguration.Builder(getContext()).build())}
+ * {@code RealmConfiguration config = new RealmConfiguration.Builder().build()}
  * <p>
  * This will create a RealmConfiguration with the following properties.
  * <ul>

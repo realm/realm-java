@@ -3972,7 +3972,7 @@ public class RealmTests {
                 realm.close();
                 bgThreadDone.countDown();
             }
-        }).run();
+        }).start();
         TestHelper.awaitOrFail(bgThreadDone);
 
         realm.refresh();
@@ -3996,7 +3996,7 @@ public class RealmTests {
                 realm.close();
                 bgThreadDone.countDown();
             }
-        }).run();
+        }).start();
         TestHelper.awaitOrFail(bgThreadDone);
 
         realm.refresh();
