@@ -18,7 +18,7 @@
 
 * Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.
 * Upgraded Realm Core to 2.8.6
-* Upgraded Realm Sync to 1.10.2
+* Upgraded Realm Sync to 1.10.5
 
 ## 3.4.0 (2017-06-22)
 
