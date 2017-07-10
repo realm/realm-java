@@ -50,19 +50,20 @@ import io.realm.annotations.Required;
  * Utility class for holding metadata for RealmProxy classes.
  */
 public class ClassMetaData {
-
     private final TypeElement classType; // Reference to model class.
     private final String className; // Model class simple name.
     private final List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
     private final List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
     private final Set<Backlink> backlinks = new HashSet<Backlink>();
     private final Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
+
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
     private boolean containsToString;
     private boolean containsEquals;
     private boolean containsHashCode;
+    private boolean containsMutableRealmInteger;
 
     private final List<TypeMirror> validPrimaryKeyTypes;
     private final Types typeUtils;
@@ -143,6 +144,10 @@ public class ClassMetaData {
 
     public String getPrimaryKeyGetter() {
         return getInternalGetter(primaryKey.getSimpleName().toString());
+    }
+
+    public boolean containsMutableRealmInteger() {
+        return containsMutableRealmInteger;
     }
 
     public boolean containsToString() {
@@ -332,11 +337,17 @@ public class ClassMetaData {
 
     private boolean checkForFinalFields() {
         for (VariableElement field : fields) {
-            if (field.getModifiers().contains(Modifier.FINAL)) {
-                Utils.error(String.format(Locale.US,
-                        "Class \"%s\" contains illegal final field \"%s\".", className, field.getSimpleName().toString()));
-                return false;
+            if (!field.getModifiers().contains(Modifier.FINAL)) {
+                continue;
             }
+            if (Utils.isMutableRealmInteger(field)) {
+                continue;
+            }
+
+            Utils.error(String.format(Locale.US, "Class \"%s\" contains illegal final field \"%s\".", className,
+                    field.getSimpleName().toString()));
+
+            return false;
         }
         return true;
     }
@@ -385,12 +396,19 @@ public class ClassMetaData {
             if (!categorizePrimaryKeyField(field)) { return false; }
         }
 
-        // Check @LinkingObjects last since it is not allowed to be either @Index, @Required or @PrimaryKey
+        // @LinkingObjects cannot be @PrimaryKey or @Index.
         if (field.getAnnotation(LinkingObjects.class) != null) {
+            // Do not add backlinks to fields list.
             return categorizeBacklinkField(field);
         }
 
-        // Standard field that appear valid (more fine grained checks might fail later).
+        // Similarly, a MutableRealmInteger cannot be a @PrimaryKey or @LinkingObject.
+        // !!! FIXME: verify this.
+        if (Utils.isMutableRealmInteger(field)) {
+            if (!categorizeMutableRealmIntegerField(field)) { return false; }
+        }
+
+        // Standard field that appears to be valid (more fine grained checks might fail later).
         fields.add(field);
 
         return true;
@@ -420,17 +438,21 @@ public class ClassMetaData {
         if (Utils.isPrimitiveType(variableElement)) {
             Utils.error(String.format(Locale.US,
                     "@Required annotation is unnecessary for primitive field \"%s\".", element));
-        } else if (Utils.isRealmList(variableElement) || Utils.isRealmModel(variableElement)) {
+            return;
+        }
+
+        if (Utils.isRealmList(variableElement) || Utils.isRealmModel(variableElement)) {
             Utils.error(String.format(Locale.US,
                     "Field \"%s\" with type \"%s\" cannot be @Required.", element, element.asType()));
-        } else {
-            // Should never get here - user should remove @Required
-            if (nullableFields.contains(variableElement)) {
-                Utils.error(String.format(Locale.US,
-                        "Field \"%s\" with type \"%s\" appears to be nullable. Consider removing @Required.",
-                        element,
-                        element.asType()));
-            }
+            return;
+        }
+
+        // Should never get here - user should remove @Required
+        if (nullableFields.contains(variableElement)) {
+            Utils.error(String.format(Locale.US,
+                    "Field \"%s\" with type \"%s\" appears to be nullable. Consider removing @Required.",
+                    element,
+                    element.asType()));
         }
     }
 
@@ -469,6 +491,19 @@ public class ClassMetaData {
         if (!backlink.validateSource()) { return false; }
 
         backlinks.add(backlink);
+
+        return true;
+    }
+
+    private boolean categorizeMutableRealmIntegerField(VariableElement field) {
+        if (!field.getModifiers().contains(Modifier.FINAL)) {
+            Utils.error(String.format(Locale.US,
+                    "Field \"%s\", a MutableRealmInteger, must be final.",
+                    field.getSimpleName().toString()));
+            return false;
+        }
+
+        containsMutableRealmInteger = true;
 
         return true;
     }
