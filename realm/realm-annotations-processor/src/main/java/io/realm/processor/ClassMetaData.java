@@ -403,7 +403,7 @@ public class ClassMetaData {
         }
 
         // Similarly, a MutableRealmInteger cannot be a @PrimaryKey or @LinkingObject.
-        // !!! FIXME: verify this.
+        // FIXME MutableRealmIntegers: verify this.
         if (Utils.isMutableRealmInteger(field)) {
             if (!categorizeMutableRealmIntegerField(field)) { return false; }
         }

@@ -91,7 +91,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         private final BaseRealm realm;
         private final Row row;
         private final long columnIndex;
-        private Long value; // !!! FIXME: remove!
+        private Long value; // FIXME MutableRealmIntegers: remove!
 
         /**
          * Inject the proxy state into this managed MutableRealmInteger.
