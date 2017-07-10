@@ -62,9 +62,13 @@ create_javah(TARGET jni_headers
     DEPENDS ${classes_PATH}
 )
 
-# Link to core/sync debug lib for debug build.
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+# Link to core/sync debug lib for debug build if it is debug build and linking with debug core is enabled.
+# FIXME: Ideally we should linking to debug core on CI for testing, but the assertions slow down the CI a lot.
+if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND ${ENABLE_DEBUG_CORE})
     set(debug_lib_SUFFIX "-dbg")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DREALM_DEBUG")
+else()
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")
 endif()
 
 # Configure import realm core lib
@@ -149,7 +153,7 @@ endif()
 # And this issue doesn't seem to impact the core compiling.
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 #-ggdb doesn't play well with -flto
-set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -Og -DREALM_DEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -Og")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set link flags
