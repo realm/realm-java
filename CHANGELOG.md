@@ -14,7 +14,7 @@
 
 ### Internal
 
-* Upgraded to Realm Sync 2.0.0-rc11.
+* Upgraded to Realm Sync 2.0.0-rc12.
 * Upgraded to Realm Core 3.0.0-rc3.
 
 ### Credits
