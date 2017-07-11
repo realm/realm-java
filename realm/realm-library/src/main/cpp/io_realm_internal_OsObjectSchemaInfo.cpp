@@ -30,11 +30,11 @@ static void finalize_object_schema(jlong ptr)
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeCreateRealmObjectSchema(JNIEnv* env, jclass,
-                                                                                        jstring className_)
+                                                                                                jstring j_name_str)
 {
     TR_ENTER()
     try {
-        JStringAccessor name(env, className_);
+        JStringAccessor name(env, j_name_str);
         ObjectSchema* object_schema = new ObjectSchema();
         object_schema->name = name;
         return reinterpret_cast<jlong>(object_schema);
@@ -50,22 +50,30 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetFinal
 }
 
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeAddProperty(JNIEnv* env, jclass, jlong native_ptr,
-                                                                         jlong property_ptr)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeAddProperty(JNIEnv* env, jclass,
+                                                                                   jlong native_ptr,
+                                                                                   jlong property_ptr,
+                                                                                   jboolean is_computed)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
         Property* property = reinterpret_cast<Property*>(property_ptr);
-        object_schema->persisted_properties.push_back(*property);
-        if (property->is_primary) {
-            object_schema->primary_key = property->name;
+        if (is_computed) {
+            object_schema->computed_properties.push_back(*property);
+        }
+        else {
+            object_schema->persisted_properties.push_back(*property);
+            if (property->is_primary) {
+                object_schema->primary_key = property->name;
+            }
         }
     }
     CATCH_STD()
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetClassName(JNIEnv* env, jclass, jlong nativePtr)
+JNIEXPORT jstring JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetClassName(JNIEnv* env, jclass,
+                                                                                       jlong nativePtr)
 {
     TR_ENTER_PTR(nativePtr)
     try {

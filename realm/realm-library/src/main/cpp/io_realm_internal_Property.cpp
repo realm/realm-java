@@ -31,12 +31,12 @@ static void finalize_property(jlong ptr)
     delete reinterpret_cast<Property*>(ptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateProperty__Ljava_lang_String_2IZZZ(
-    JNIEnv* env, jclass, jstring name_, jint type, jboolean is_primary, jboolean is_indexed, jboolean is_nullable)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedProperty(
+    JNIEnv* env, jclass, jstring j_name_str, jint type, jboolean is_primary, jboolean is_indexed, jboolean is_nullable)
 {
     TR_ENTER()
     try {
-        JStringAccessor str(env, name_);
+        JStringAccessor str(env, j_name_str);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
         std::unique_ptr<Property> property(
             new Property(str, p_type, "", "", to_bool(is_primary), to_bool(is_indexed), to_bool(is_nullable)));
@@ -54,16 +54,36 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateProperty__Lj
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_String_2(
-    JNIEnv* env, jclass, jstring name_, jint type, jstring linkedToName_)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedLinkProperty(JNIEnv* env, jclass,
+                                                                                          jstring j_name_str,
+                                                                                          jint type,
+                                                                                          jstring j_target_class_name)
 {
     TR_ENTER()
     try {
-        JStringAccessor name(env, name_);
-        JStringAccessor link_name(env, linkedToName_);
+        JStringAccessor name(env, j_name_str);
+        JStringAccessor link_name(env, j_target_class_name);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
         bool is_nullable = (p_type == PropertyType::Object);
         return reinterpret_cast<jlong>(new Property(name, p_type, link_name, "", false, false, is_nullable));
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateComputedLinkProperty(JNIEnv* env, jclass,
+                                                                                         jstring j_name_str,
+                                                                                         jstring j_source_class_name,
+                                                                                         jstring j_source_field_name)
+{
+    TR_ENTER()
+    try {
+        JStringAccessor name(env, j_name_str);
+        JStringAccessor target_class_name(env, j_source_class_name);
+        JStringAccessor target_field_name(env, j_source_field_name);
+
+        PropertyType p_type = PropertyType::LinkingObjects;
+        return reinterpret_cast<jlong>(new Property(name, p_type, target_class_name, target_field_name));
     }
     CATCH_STD()
     return 0;

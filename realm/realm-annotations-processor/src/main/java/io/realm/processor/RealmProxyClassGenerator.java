@@ -672,13 +672,13 @@ public class RealmProxyClassGenerator {
 
                 case OBJECT:
                     String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
-                    writer.emitStatement("builder.addLinkedProperty(\"%s\", RealmFieldType.OBJECT, \"%s\")",
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.OBJECT, \"%s\")",
                             fieldName, fieldTypeSimpleName);
                     break;
 
                 case LIST:
                     String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-                    writer.emitStatement("builder.addLinkedProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
                             fieldName, genericTypeSimpleName);
                     break;
 
@@ -686,13 +686,17 @@ public class RealmProxyClassGenerator {
                     String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
                     String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
                     String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
-                    writer.emitStatement("builder.addProperty(\"%s\", %s, %s, %s, %s)",
+                    writer.emitStatement("builder.addPersistedProperty(\"%s\", %s, %s, %s, %s)",
                             fieldName,
                             fieldType.getRealmType(),
                             primaryKeyFlag,
                             indexedFlag,
                             nullableFlag);
             }
+        }
+        for (Backlink backlink: metadata.getBacklinkFields()) {
+            writer.emitStatement("builder.addComputedLinkProperty(\"%s\", \"%s\", \"%s\")",
+                    backlink.getTargetField(), backlink.getSimpleSourceClass(), backlink.getSourceField());
         }
         writer.emitStatement("return builder.build()");
         writer.endMethod()

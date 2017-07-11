@@ -33,17 +33,18 @@ public class Property implements NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     Property(String name, RealmFieldType type, boolean isPrimary, boolean isIndexed, boolean isRequired) {
-        this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), isPrimary, isIndexed, !isRequired);
+        this.nativePtr = nativeCreatePersistedProperty(name, type.getNativeValue(), isPrimary, isIndexed, !isRequired);
         NativeContext.dummyContext.addReference(this);
     }
 
     Property(String name, RealmFieldType type, String linkedClassName) {
-        this.nativePtr = nativeCreateProperty(name, type.getNativeValue(), linkedClassName);
+        this.nativePtr = nativeCreatePersistedLinkProperty(name, type.getNativeValue(), linkedClassName);
         NativeContext.dummyContext.addReference(this);
     }
 
-    protected Property(long nativePtr) {
-        this.nativePtr = nativePtr;
+    Property(String name, String sourceClassName, String sourceFieldName) {
+        this.nativePtr = nativeCreateComputedLinkProperty(name, sourceClassName, sourceFieldName);
+        NativeContext.dummyContext.addReference(this);
     }
 
     @Override
@@ -56,9 +57,13 @@ public class Property implements NativeObject {
         return nativeFinalizerPtr;
     }
 
-    private static native long nativeCreateProperty(String name, int type, boolean isPrimary, boolean isIndexed, boolean isNullable);
+    private static native long nativeCreatePersistedProperty(
+            String name, int type, boolean isPrimary, boolean isIndexed, boolean isNullable);
 
-    private static native long nativeCreateProperty(String name, int type, String linkedToName);
+    private static native long nativeCreatePersistedLinkProperty(String name, int type, String linkedToName);
+
+    private static native long nativeCreateComputedLinkProperty(
+            String name, String sourceClassName, String sourceFieldName);
 
     private static native long nativeGetFinalizerPtr();
 }

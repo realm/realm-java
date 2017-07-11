@@ -165,7 +165,8 @@ public class RealmConfiguration {
      *
      * @return the mediator of the schema.
      */
-    RealmProxyMediator getSchemaMediator() {
+    // Protected for testing with mockito.
+    protected RealmProxyMediator getSchemaMediator() {
         return schemaMediator;
     }
 
