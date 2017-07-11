@@ -54,6 +54,7 @@ public class RealmProxyClassGenerator {
             "io.realm.internal.OsObject",
             "io.realm.internal.OsObjectSchemaInfo",
             "io.realm.internal.Property",
+            "io.realm.internal.ProxyUtils",
             "io.realm.internal.RealmObjectProxy",
             "io.realm.internal.Row",
             "io.realm.internal.SharedRealm",
@@ -130,6 +131,8 @@ public class RealmProxyClassGenerator {
         emitColumnInfoClass(writer);
 
         emitClassFields(writer);
+
+        emitInstanceFields(writer);
         emitConstructor(writer);
 
         emitInjectContextMethod(writer);
@@ -225,28 +228,30 @@ public class RealmProxyClassGenerator {
         }
         writer.endMethod();
 
-        writer.endType()
-                .emitEmptyLine();
+        writer.endType();
     }
 
+    //@formatter:off
     private void emitClassFields(JavaWriter writer) throws IOException {
-        // class members first
+        writer.emitEmptyLine()
+                .emitField("OsObjectSchemaInfo", "expectedObjectSchemaInfo",
+                EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL), "createExpectedObjectSchemaInfo()");
+
         writer.emitField("List<String>", "FIELD_NAMES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
-        writer.beginInitializer(true);
-        writer.emitStatement("List<String> fieldNames = new ArrayList<String>()");
-        for (VariableElement field : metadata.getFields()) {
-            writer.emitStatement("fieldNames.add(\"%s\")", field.getSimpleName().toString());
-        }
-        writer.emitStatement("FIELD_NAMES = Collections.unmodifiableList(fieldNames)");
-        writer.endInitializer();
+        writer.beginInitializer(true)
+            .emitStatement("List<String> fieldNames = new ArrayList<String>()");
+            for (VariableElement field : metadata.getFields()) {
+                writer.emitStatement("fieldNames.add(\"%s\")", field.getSimpleName().toString());
+            }
+        writer.emitStatement("FIELD_NAMES = Collections.unmodifiableList(fieldNames)")
+            .endInitializer();
+    }
+    //@formatter:on
 
-        writer.emitField("OsObjectSchemaInfo", "expectedObjectSchemaInfo",
-                EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL),
-                "createExpectedObjectSchemaInfo()");
-
-        // instance members
-        writer.emitEmptyLine();
-        writer.emitField(columnInfoClassName(), "columnInfo", EnumSet.of(Modifier.PRIVATE))
+    //@formatter:off
+    private void emitInstanceFields(JavaWriter writer) throws IOException {
+        writer.emitEmptyLine()
+                .emitField(columnInfoClassName(), "columnInfo", EnumSet.of(Modifier.PRIVATE))
                 .emitField("ProxyState<" + qualifiedClassName + ">", "proxyState", EnumSet.of(Modifier.PRIVATE));
 
         for (VariableElement variableElement : metadata.getFields()) {
@@ -254,17 +259,17 @@ public class RealmProxyClassGenerator {
                 writer.emitField("MutableRealmInteger.Managed", mutableRealmIntegerFieldName(variableElement), EnumSet.of(Modifier.PRIVATE));
             } else if (Utils.isRealmList(variableElement)) {
                 String genericType = Utils.getGenericTypeQualifiedName(variableElement);
-                writer.emitField("RealmList<" + genericType + ">", variableElement.getSimpleName().toString() +  "RealmList", EnumSet.of(Modifier.PRIVATE));
+                writer.emitField("RealmList<" + genericType + ">", variableElement.getSimpleName().toString() +
+                        "RealmList", EnumSet.of(Modifier.PRIVATE));
             }
         }
 
         for (Backlink backlink : metadata.getBacklinkFields()) {
-            writer.emitField(
-                    backlink.getTargetFieldType(),
-                    backlink.getTargetField() + BACKLINKS_FIELD_EXTENSION,
+            writer.emitField(backlink.getTargetFieldType(), backlink.getTargetField() + BACKLINKS_FIELD_EXTENSION,
                     EnumSet.of(Modifier.PRIVATE));
         }
     }
+    //@formatter:on
 
     //@formatter:off
     private void emitConstructor(JavaWriter writer) throws IOException {
@@ -805,19 +810,27 @@ public class RealmProxyClassGenerator {
     private void emitValidateRealmType(JavaWriter writer, VariableElement field, String fieldName, String fieldTypeQualifiedName)
             throws IOException {
 
-        // make sure types align
-        writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
-        emitMigrationNeededException(writer, "\"Missing field '%s' in existing Realm file. " +
-                "Either remove field or migrate using io.realm.internal.Table.addColumn()." +
-                "\")", fieldName);
-        writer.endControlFlow();
-        writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)", fieldName, getRealmTypeChecked(field).getRealmType());
-        emitMigrationNeededException(writer, "\"Invalid type '%s' for field '%s' in existing Realm file.\")",
-                Utils.getFieldTypeSimpleName(field), fieldName);
-        writer.endControlFlow();
+        // make field sure types align
+        writer.emitStatement(
+                "ProxyUtils.verifyField(sharedRealm, columnTypes, \"%s\", %s, \"%s\")",
+                fieldName, getRealmTypeChecked(field).getRealmType(), Utils.getFieldTypeSimpleName(field));
 
         // make sure that nullability matches
-        if (metadata.isNullable(field)) {
+        if (!metadata.isNullable(field)) {
+            writer.beginControlFlow("if (table.isColumnNullable(%s))", fieldIndexVariableReference(field));
+            if (Utils.isPrimitiveType(fieldTypeQualifiedName)) {
+                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
+                                " \"Field '%s' does support null values in the existing Realm file. " +
+                                "Use corresponding boxed type for field '%s' or migrate using RealmObjectSchema.setNullable().\")",
+                        fieldName, fieldName);
+            } else {
+                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
+                                " \"Field '%s' does support null values in the existing Realm file. " +
+                                "Remove @Required or @PrimaryKey from field '%s' or migrate using RealmObjectSchema.setNullable().\")",
+                        fieldName, fieldName);
+            }
+            writer.endControlFlow();
+        } else {
             writer.beginControlFlow("if (!table.isColumnNullable(%s))", fieldIndexVariableReference(field));
             // Check if the existing PrimaryKey does support null value for String, Byte, Short, Integer, & Long
             if (metadata.isPrimaryKey(field)) {
@@ -839,20 +852,6 @@ public class RealmProxyClassGenerator {
                         fieldName, fieldName);
             }
             writer.endControlFlow();
-        } else {
-            writer.beginControlFlow("if (table.isColumnNullable(%s))", fieldIndexVariableReference(field));
-            if (Utils.isPrimitiveType(fieldTypeQualifiedName)) {
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                " \"Field '%s' does support null values in the existing Realm file. " +
-                                "Use corresponding boxed type for field '%s' or migrate using RealmObjectSchema.setNullable().\")",
-                        fieldName, fieldName);
-            } else {
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                " \"Field '%s' does support null values in the existing Realm file. " +
-                                "Remove @Required or @PrimaryKey from field '%s' or migrate using RealmObjectSchema.setNullable().\")",
-                        fieldName, fieldName);
-            }
-            writer.endControlFlow();
         }
 
         // Validate @Index
@@ -868,14 +867,10 @@ public class RealmProxyClassGenerator {
             throws IOException {
         String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
 
-        writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
-        emitMigrationNeededException(writer, "\"Missing field '%s' in existing Realm file. " +
-                "Either remove field or migrate using io.realm.internal.Table.addColumn().\")", fieldName);
-        writer.endControlFlow();
-        writer.beginControlFlow("if (columnTypes.get(\"%s\") != RealmFieldType.OBJECT)", fieldName);
-        emitMigrationNeededException(writer, "\"Invalid type '%s' for field '%s'\")",
-                fieldTypeSimpleName, fieldName);
-        writer.endControlFlow();
+        // make field sure types align
+        writer.emitStatement(
+                "ProxyUtils.verifyField(sharedRealm, columnTypes, \"%s\", RealmFieldType.OBJECT, \"%s\")",
+                fieldName, Utils.getFieldTypeSimpleName(field));
         writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
         emitMigrationNeededException(writer, "\"Missing class '%s%s' for field '%s'\")",
                 Constants.TABLE_PREFIX, fieldTypeSimpleName, fieldName);
@@ -891,14 +886,13 @@ public class RealmProxyClassGenerator {
 
     private void emitValidateRealmListType(JavaWriter writer, VariableElement field, long fieldIndex, String fieldName)
             throws IOException {
+
         String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-        writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
-        emitMigrationNeededException(writer, "\"Missing field '%s'\")", fieldName);
-        writer.endControlFlow();
-        writer.beginControlFlow("if (columnTypes.get(\"%s\") != RealmFieldType.LIST)", fieldName);
-        emitMigrationNeededException(writer, "\"Invalid type '%s' for field '%s'\")",
-                genericTypeSimpleName, fieldName);
-        writer.endControlFlow();
+
+        writer.emitStatement(
+                "ProxyUtils.verifyField(sharedRealm, columnTypes, \"%s\", RealmFieldType.LIST, \"%s\")",
+                fieldName, genericTypeSimpleName);
+
         writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, genericTypeSimpleName);
         emitMigrationNeededException(writer, "\"Missing class '%s%s' for field '%s'\")",
                 Constants.TABLE_PREFIX, genericTypeSimpleName, fieldName);
