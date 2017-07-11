@@ -57,6 +57,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -1264,5 +1265,103 @@ public class DynamicRealmObjectTests {
         } catch (IllegalArgumentException e) {
             assertEquals("Illegal Argument: Field not found: nonExisting", e.getMessage());
         }
+    }
+
+    @Test
+    public void getDynamicRealm() {
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        dynamicRealm.refresh();
+        final DynamicRealmObject object = dynamicRealm.where(AllTypes.CLASS_NAME).findFirst();
+
+        assertSame(dynamicRealm, object.getDynamicRealm());
+    }
+
+    @Test
+    public void getRealm() {
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        dynamicRealm.refresh();
+        final DynamicRealmObject object = dynamicRealm.where(AllTypes.CLASS_NAME).findFirst();
+
+        thrown.expect(IllegalStateException.class);
+        object.getRealm();
+    }
+
+    @Test
+    public void getRealm_closedObjectThrows() {
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        dynamicRealm.refresh();
+        final DynamicRealmObject object = dynamicRealm.where(AllTypes.CLASS_NAME).findFirst();
+        dynamicRealm.close();
+        dynamicRealm = null;
+
+        try {
+            object.getDynamicRealm();
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(BaseRealm.CLOSED_REALM_MESSAGE, e.getMessage());
+        }
+    }
+
+    @Test
+    public void getRealmConfiguration_deletedObjectThrows() {
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        dynamicRealm.refresh();
+        final DynamicRealmObject object = dynamicRealm.where(AllTypes.CLASS_NAME).findFirst();
+        dynamicRealm.beginTransaction();
+        object.deleteFromRealm();
+        dynamicRealm.commitTransaction();
+
+        try {
+            object.getDynamicRealm();
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(RealmObject.MSG_DELETED_OBJECT, e.getMessage());
+        }
+    }
+
+    @Test
+    public void getRealm_illegalThreadThrows() throws Throwable {
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        dynamicRealm.refresh();
+        final DynamicRealmObject object = dynamicRealm.where(AllTypes.CLASS_NAME).findFirst();
+
+        final CountDownLatch threadFinished = new CountDownLatch(1);
+        final AtomicReference<Throwable> throwable = new AtomicReference<>();
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    object.getDynamicRealm();
+                    fail();
+                } catch (Throwable t) {
+                    throwable.set(t);
+                } finally {
+                    threadFinished.countDown();
+                }
+            }
+        });
+        thread.start();
+        TestHelper.awaitOrFail(threadFinished);
+
+        final Throwable thrownInTheThread = throwable.get();
+        if (!(thrownInTheThread instanceof IllegalStateException)) {
+            throw thrownInTheThread;
+        }
+        assertEquals(BaseRealm.INCORRECT_THREAD_MESSAGE, thrownInTheThread.getMessage());
     }
 }

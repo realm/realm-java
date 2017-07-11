@@ -18,7 +18,8 @@
 #define JAVA_SORT_DESCRIPTOR_HPP
 
 #include <jni.h>
-#include <realm/views.hpp>
+
+#include "descriptor_ordering.hpp"
 
 namespace realm {
 namespace _impl {
@@ -54,7 +55,7 @@ private:
     JNIEnv* m_env;
     jobject m_sort_desc_obj;
 
-    Table* get_table_ptr() const noexcept;
+    realm::Table* get_table_ptr() const noexcept;
     std::vector<std::vector<size_t>> get_column_indices() const noexcept;
     std::vector<bool> get_ascendings() const noexcept;
 };
