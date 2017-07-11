@@ -973,6 +973,23 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         return RealmResults.createDynamicBacklinkResults(realm, (CheckedRow) proxyState.getRow$realm(), realmObjectSchema.getTable(), srcFieldName);
     }
 
+    /**
+     * Returns {@link DynamicRealm} instance where this {@link DynamicRealmObject} belongs.
+     * <p>
+     * You <b>must not</b> call {@link DynamicRealm#close()} against returned instance.
+     *
+     * @return {@link DynamicRealm} instance where this object belongs.
+     * @throws IllegalStateException if this object was deleted or the corresponding {@link DynamicRealm} was already closed.
+     */
+    public DynamicRealm getDynamicRealm() {
+        final BaseRealm realm = realmGet$proxyState().getRealm$realm();
+        realm.checkIfValid();
+        if (!isValid()) {
+            throw new IllegalStateException(MSG_DELETED_OBJECT);
+        }
+        return (DynamicRealm) realm;
+    }
+
     @Override
     public void realm$injectObjectContext() {
         // nothing to do for DynamicRealmObject

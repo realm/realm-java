@@ -1,3 +1,24 @@
+## 4.0.0-BETA1 (YYYY-MM-DD)
+
+### Breaking Changes
+
+* [ObjectServer] Updated protocol version to 19 which is only compatible with ROS > 2.0.0.
+
+### Deprecated
+
+### Enhancements
+
+* Added `static RealmObject.getRealm(RealmModel)`, `RealmObject.getRealm()` and `DynamicRealmObject.getDynamicRealm()` (#4720).
+
+### Bug Fixes
+
+### Internal
+
+* Upgraded to Realm Sync 2.0.0-rc9
+
+### Credits
+
+
 ## 3.5.0 (2017-07-11)
 
 ### Breaking Changes
