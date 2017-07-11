@@ -70,7 +70,7 @@ public class SortDescriptor {
         return getInstance(proxy, table, fieldDescriptions, null, FieldDescriptor.NO_LINK_FIELD_TYPE, DISTINCT_VALID_FIELD_TYPES, "Distinct is not supported");
     }
 
-    static SortDescriptor getInstance(
+    private static SortDescriptor getInstance(
             FieldDescriptor.SchemaProxy proxy,
             Table table,
             String[] fieldDescriptions,
