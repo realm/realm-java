@@ -11,6 +11,7 @@ import io.realm.internal.LinkView;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.Property;
+import io.realm.internal.ProxyUtils;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
@@ -68,8 +69,6 @@ public class BooleansRealmProxy extends some.test.Booleans
         }
     }
 
-    private BooleansColumnInfo columnInfo;
-    private ProxyState<some.test.Booleans> proxyState;
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
@@ -80,6 +79,9 @@ public class BooleansRealmProxy extends some.test.Booleans
         fieldNames.add("anotherBoolean");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
+
+    private BooleansColumnInfo columnInfo;
+    private ProxyState<some.test.Booleans> proxyState;
 
     BooleansRealmProxy() {
         proxyState.setConstructionFinished();
@@ -227,39 +229,19 @@ public class BooleansRealmProxy extends some.test.Booleans
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
         }
 
-        if (!columnTypes.containsKey("done")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'done' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("done") != RealmFieldType.BOOLEAN) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'boolean' for field 'done' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "done", RealmFieldType.BOOLEAN, "boolean");
         if (table.isColumnNullable(columnInfo.doneIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'done' does support null values in the existing Realm file. Use corresponding boxed type for field 'done' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("isReady")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'isReady' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("isReady") != RealmFieldType.BOOLEAN) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'boolean' for field 'isReady' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "isReady", RealmFieldType.BOOLEAN, "boolean");
         if (table.isColumnNullable(columnInfo.isReadyIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'isReady' does support null values in the existing Realm file. Use corresponding boxed type for field 'isReady' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("mCompleted")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'mCompleted' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("mCompleted") != RealmFieldType.BOOLEAN) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'boolean' for field 'mCompleted' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "mCompleted", RealmFieldType.BOOLEAN, "boolean");
         if (table.isColumnNullable(columnInfo.mCompletedIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'mCompleted' does support null values in the existing Realm file. Use corresponding boxed type for field 'mCompleted' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("anotherBoolean")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'anotherBoolean' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("anotherBoolean") != RealmFieldType.BOOLEAN) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'boolean' for field 'anotherBoolean' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "anotherBoolean", RealmFieldType.BOOLEAN, "boolean");
         if (table.isColumnNullable(columnInfo.anotherBooleanIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'anotherBoolean' does support null values in the existing Realm file. Use corresponding boxed type for field 'anotherBoolean' or migrate using RealmObjectSchema.setNullable().");
         }
