@@ -30,7 +30,8 @@ public class OsObjectSchemaInfo implements NativeObject {
 
     public static class Builder {
         private String className;
-        private List<Property> propertyList = new ArrayList<Property>();
+        private List<Property> persistedPropertyList = new ArrayList<Property>();
+        private List<Property> computedPropertyList = new ArrayList<Property>();
 
         /**
          * Creates an empty builder for {@code OsObjectSchemaInfo}. This constructor is intended to be used by
@@ -43,7 +44,7 @@ public class OsObjectSchemaInfo implements NativeObject {
         }
 
         /**
-         * Adds a property to this builder.
+         * Adds a persisted non-link property to this builder.
          *
          * @param name the name of the property.
          * @param type the type of the property.
@@ -52,30 +53,51 @@ public class OsObjectSchemaInfo implements NativeObject {
          * @param isRequired set to false if this property is not nullable.
          * @return this {@code OsObjectSchemaInfo}.
          */
-        public Builder addProperty(String name, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
+        public Builder addPersistedProperty(String name, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
                                    boolean isRequired) {
             final Property property = new Property(name, type, isPrimaryKey, isIndexed, isRequired);
-            propertyList.add(property);
+            persistedPropertyList.add(property);
             return this;
         }
 
         /**
-         * Adds a linked property to this {@code OsObjectSchema}.
+         * Adds a persisted link property to this {@code OsObjectSchemaInfo}. A persisted link property will be stored
+         * in the Realm file's schema.
          *
-         * @param name the name of the linked property.
-         * @param type the type of the linked property.
-         * @return this {@code OsObjectSchemaInfo}.
+         * @param name the name of the link property.
+         * @param type the type of the link property. Can only be {@link RealmFieldType#OBJECT} or
+         * {@link RealmFieldType#LIST}.
+         * @return this {@code OsObjectSchemaInfo.Builder}.
          */
-        public Builder addLinkedProperty(String name, RealmFieldType type, String linkedClassName) {
+        public Builder addPersistedLinkProperty(String name, RealmFieldType type, String linkedClassName) {
             final Property property = new Property(name, type, linkedClassName);
-            propertyList.add(property);
+            persistedPropertyList.add(property);
+            return this;
+        }
+
+        /**
+         * Adds a computed link property to this {@code OsObjectSchemaInfo}. A computed link property doesn't store
+         * information in the Realm file's schema. This property type will always be
+         * {@link RealmFieldType#LINKING_OBJECTS}.
+         *
+         * @param name the name of the link property.
+         * @param targetClassname The class name of the property links to.
+         * @param targetFieldName The field name of the property links to.
+         * @return this {@code OsObjectSchemaInfo.Builder}.
+         */
+        public Builder addComputedLinkProperty(String name, String targetClassname, String targetFieldName) {
+            final Property property = new Property(name, targetClassname, targetFieldName);
+            computedPropertyList.add(property);
             return this;
         }
 
         public OsObjectSchemaInfo build() {
             OsObjectSchemaInfo info = new OsObjectSchemaInfo(className);
-            for (Property property : propertyList) {
-                nativeAddProperty(info.nativePtr, property.getNativePtr());
+            for (Property property : persistedPropertyList) {
+                nativeAddProperty(info.nativePtr, property.getNativePtr(), false);
+            }
+            for (Property property : computedPropertyList) {
+                nativeAddProperty(info.nativePtr, property.getNativePtr(), true);
             }
 
             return info;
@@ -127,7 +149,7 @@ public class OsObjectSchemaInfo implements NativeObject {
 
     private static native long nativeGetFinalizerPtr();
 
-    private static native void nativeAddProperty(long nativePtr, long nativePropertyPtr);
+    private static native void nativeAddProperty(long nativePtr, long nativePropertyPtr, boolean isComputed);
 
     private static native String nativeGetClassName(long nativePtr);
 }
