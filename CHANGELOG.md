@@ -10,24 +10,6 @@
 ### Enhancements
 
 * Added `RealmConfiguration.Builder.compactOnLaunch()` to compact the file on launch (#3739).
-
-### Bug Fixes
-
-### Internal
-
-* Use Object Store to do table initialization.
-
-### Credits
-
-
-## 3.4.1 (YYYY-MM-DD)
-
-### Breaking Changes
-
-### Deprecated
-
-### Enhancements
-
 * [ObjectServer] Adding user lookup API for administrators (#4828).
 
 ### Bug Fixes
@@ -41,6 +23,7 @@
 
 ### Internal
 
+* Use Object Store to do table initialization.
 * Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.
 * Upgraded Realm Core to 2.8.6
 * Upgraded Realm Sync to 1.10.5
