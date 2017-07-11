@@ -85,13 +85,11 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     /**
      * Managed Implementation.
      */
-    // FIXME MutableRealmIntegers: wire up to native increment method
     static class Managed extends MutableRealmInteger {
         private final ProxyState<?> proxyState;
         private final BaseRealm realm;
         private final Row row;
         private final long columnIndex;
-        private Long value; // FIXME MutableRealmIntegers: remove!
 
         /**
          * Inject the proxy state into this managed MutableRealmInteger.
@@ -119,42 +117,34 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
         @Override
         public Long get() {
-            return value;
+            return row.getTable().getLong(columnIndex, row.getIndex());
         }
 
-
-//        // Template code:
-//        if (proxyState.isUnderConstruction()) {
-//            if (!proxyState.getAcceptDefaultValue$realm()) {  // Wat?
-//                return;
-//            }
-//
-//            row.getTable().setLong(columnIndex, row.getIndex(), value, true);
-//            return;
-//        }
-//        row.setLong(columnIndex,value);
         @Override
         public void set(Long value) {
             realm.checkIfValidAndInTransaction();
-            this.value = value;
+
+            if (!proxyState.isUnderConstruction()) {
+                row.setLong(columnIndex, value);
+                return;
+            }
+
+            if (!proxyState.getAcceptDefaultValue$realm()) {  // Wat?
+                return;
+            }
+
+            row.getTable().setLong(columnIndex, row.getIndex(), value, true);
         }
 
         @Override
         public void increment(long inc) {
-            Long val = get();
-            if (val == null) {
-                throw new NullPointerException("Attempt to increment a null valued MutableRealmInteger");
-            }
-            set(val + inc);
+            realm.checkIfValidAndInTransaction();
+            row.getTable().incrementLong(columnIndex, row.getIndex(), inc);
         }
 
         @Override
         public void decrement(long dec) {
-            Long val = get();
-            if (val == null) {
-                throw new NullPointerException("Attempt to decrement a null valued MutableRealmInteger");
-            }
-            set(val - dec);
+            increment(-dec);
         }
     }
 
@@ -169,7 +159,6 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
     /**
      * Creates a new, unmanaged {@code MutableRealmInteger} whose value is null.
-     *
      */
     public static MutableRealmInteger ofNull() {
         return valueOf((Long) null);
@@ -195,6 +184,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
     /**
      * Creates a new, managed {@code MutableRealmInteger}.
+     *
      * @return a managed MutableRealmInteger.
      */
     static MutableRealmInteger.Managed getManaged(ProxyState<? extends RealmObject> proxyState, long columnIndex) {
@@ -273,8 +263,8 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     public final int compareTo(MutableRealmInteger o) {
         Long thisValue = get();
         Long otherValue = o.get();
-        return (thisValue == null) ? ((otherValue == null) ? 0 : -1)
-                : (otherValue == null) ? 1 : thisValue.compareTo(otherValue);
+        return (thisValue == null) ? ((otherValue == null) ? 0 : -1) : (otherValue == null) ? 1 : thisValue.compareTo
+                (otherValue);
     }
 
     /**
@@ -300,6 +290,6 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         if (!(o instanceof MutableRealmInteger)) { return false; }
         Long thisValue = get();
         Long otherValue = ((MutableRealmInteger) o).get();
-        return  (thisValue == null) ? otherValue == null : thisValue.equals(otherValue);
+        return (thisValue == null) ? otherValue == null : thisValue.equals(otherValue);
     }
 }
