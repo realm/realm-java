@@ -34,7 +34,8 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 
-// FIXME MutableRealmIntegerTypes: Need JSON tests.
+// FIXME MutableRealmInteger: Need JSON tests.
+// FIXME MutableRealmInteger: Need tests for @Required, @Index
 
 @RunWith(AndroidJUnit4.class)
 public class MutableRealmIntegerTests {
@@ -196,7 +197,6 @@ public class MutableRealmIntegerTests {
     /**
      * Assure that an attempt to change the value of a managed MutableRealmInteger, outside a transaction, fails.
      */
-    @Ignore("Not yet wired to core")
     @Test
     public void updateOutsideTransactionThrows() {
         realm.beginTransaction();
@@ -229,7 +229,6 @@ public class MutableRealmIntegerTests {
     /**
      * Assure that changes to a MutableRealmInteger acquired from a managed object are reflected in the object.
      */
-    @Ignore("Not yet wired to core")
     @Test
     public void isLive() {
         realm.beginTransaction();
@@ -251,7 +250,6 @@ public class MutableRealmIntegerTests {
     /**
      * Assure that changes to a MutableRealmInteger acquired from a managed object are reflected in the object.
      */
-    @Ignore("Not yet wired to core")
     @Test
     public void copyToisLive() {
         MutableRealmIntegerTypes obj = new MutableRealmIntegerTypes();
@@ -276,7 +274,6 @@ public class MutableRealmIntegerTests {
     /**
      * Assure that a MutableRealmInteger acquired from an unmanaged object is not affected by changes in the Realm.
      */
-    @Ignore("Not yet wired to core")
     @Test
     public void copyFromIsNotLive() {
         realm.beginTransaction();
@@ -366,12 +363,12 @@ public class MutableRealmIntegerTests {
             c1.columnMutableRealmInteger.increment(5);
             fail("Attempt to increment a null valued MutableRealmInteger should throw NPE");
         }
-        catch (NullPointerException ignore) { }
+        catch (IllegalArgumentException ignore) { }
         try {
             c1.columnMutableRealmInteger.decrement(5);
             fail("Attempt to decrement a null valued MutableRealmInteger should throw NPE");
         }
-        catch (NullPointerException ignore) { }
+        catch (IllegalArgumentException ignore) { }
     }
 
     private void testValidityAndManagement(MutableRealmIntegerTypes c1) {

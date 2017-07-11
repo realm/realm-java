@@ -403,7 +403,6 @@ public class ClassMetaData {
         }
 
         // Similarly, a MutableRealmInteger cannot be a @PrimaryKey or @LinkingObject.
-        // FIXME MutableRealmIntegers: verify this.
         if (Utils.isMutableRealmInteger(field)) {
             if (!categorizeMutableRealmIntegerField(field)) { return false; }
         }
@@ -414,19 +413,29 @@ public class ClassMetaData {
         return true;
     }
 
+    // The field has the @Index annotation. It's only valid for column types:
+    // STRING, DATE, INTEGER, BOOLEAN, and RealmMutableInteger
     private boolean categorizeIndexField(Element element, VariableElement variableElement) {
-        // The field has the @Index annotation. It's only valid for column types:
-        // STRING, DATE, INTEGER, BOOLEAN
-        Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(variableElement.asType().toString());
-        if (realmType != null) {
-            switch (realmType) {
-                case STRING:
-                case DATE:
-                case INTEGER:
-                case BOOLEAN:
-                    indexedFields.add(variableElement);
-                    return true;
+        boolean indexable = false;
+
+        if (Utils.isMutableRealmInteger(variableElement)) {
+            indexable = true;
+        } else {
+            Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(variableElement.asType().toString());
+            if (realmType != null) {
+                switch (realmType) {
+                    case STRING:
+                    case DATE:
+                    case INTEGER:
+                    case BOOLEAN:
+                        indexable = true;
+                }
             }
+        }
+
+        if (indexable) {
+            indexedFields.add(variableElement);
+            return true;
         }
 
         Utils.error(String.format(Locale.US, "Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
@@ -504,6 +513,7 @@ public class ClassMetaData {
         }
 
         containsMutableRealmInteger = true;
+
 
         return true;
     }

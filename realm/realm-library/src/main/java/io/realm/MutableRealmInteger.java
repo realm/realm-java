@@ -18,6 +18,7 @@ package io.realm;
 import io.realm.annotations.Beta;
 import io.realm.internal.ManagableObject;
 import io.realm.internal.Row;
+import io.realm.internal.Table;
 
 
 /**
@@ -45,6 +46,16 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         }
 
         @Override
+        public boolean isManaged() {
+            return false;
+        }
+
+        @Override
+        public boolean isValid() {
+            return true;
+        }
+
+        @Override
         public void set(Long newValue) {
             value = newValue;
         }
@@ -57,27 +68,19 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         @Override
         public void increment(long inc) {
             if (value == null) {
-                throw new NullPointerException("Attempt to increment a null valued MutableRealmInteger");
+                throw new IllegalArgumentException("Attempt to increment a null valued MutableRealmInteger");
             }
             value = Long.valueOf(value + inc);
         }
 
         @Override
         public void decrement(long dec) {
-            if (value == null) {
-                throw new NullPointerException("Attempt to decrement a null valued MutableRealmInteger");
-            }
-            value = Long.valueOf(value - dec);
+            increment(-dec);
         }
 
         @Override
-        public boolean isManaged() {
-            return false;
-        }
-
-        @Override
-        public boolean isValid() {
-            return true;
+        public boolean isNull() {
+            return get() == null;
         }
     }
 
@@ -117,7 +120,8 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
         @Override
         public Long get() {
-            return row.getTable().getLong(columnIndex, row.getIndex());
+            row.checkIfAttached();
+            return (isNull()) ? null : row.getLong(columnIndex);
         }
 
         @Override
@@ -125,15 +129,15 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
             realm.checkIfValidAndInTransaction();
 
             if (!proxyState.isUnderConstruction()) {
-                row.setLong(columnIndex, value);
+                setValue(value, false);
                 return;
             }
 
-            if (!proxyState.getAcceptDefaultValue$realm()) {  // Wat?
+            if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
 
-            row.getTable().setLong(columnIndex, row.getIndex(), value, true);
+            setValue(value, true);
         }
 
         @Override
@@ -146,8 +150,23 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         public void decrement(long dec) {
             increment(-dec);
         }
-    }
 
+        @Override
+        public boolean isNull() {
+            row.checkIfAttached();
+            return row.isNull(columnIndex);
+        }
+
+        private void setValue(Long value, boolean isDefault) {
+            Table t = row.getTable();
+            long i = row.getIndex();
+            if (value == null) {
+                t.setNull(columnIndex, i, isDefault);
+            } else {
+                t.setLong(columnIndex, i, value, isDefault);
+            }
+        }
+    }
     /**
      * Creates a new, unmanaged {@code MutableRealmInteger} with the specified initial value.
      *
@@ -247,10 +266,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     /**
      * @return true if and only if {@code get()} will return {@code null}.
      */
-    public final boolean isNull() {
-        return get() == null;
-    }
-
+    public abstract boolean isNull();
 
     /**
      * MutableRealmIntegers compare strictly by their values.
