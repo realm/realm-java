@@ -19,9 +19,23 @@
 ### Credits
 
 
-## 3.5.0 (2017-07-11)
+## 3.6.0 (YYYY-MM-DD)
 
-### Deprecated
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+
+## 3.5.1 (YYYY-MM-DD)
+
+### Bug Fixes
+
+### Internal
+
+
+## 3.5.0 (2017-07-11)
 
 ### Enhancements
 
