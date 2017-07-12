@@ -1,3 +1,12 @@
+## 3.6.0 (YYYY-MM-DD)
+
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+
 ## 3.5.1 (YYYY-MM-DD)
 
 ### Bug Fixes
