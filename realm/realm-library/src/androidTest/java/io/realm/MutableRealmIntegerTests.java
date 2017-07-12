@@ -19,7 +19,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -299,6 +298,12 @@ public class MutableRealmIntegerTests {
         assertTrue(e.getMessage().contains("only be done from inside a transaction"));
     }
 
+    /**
+     * FIXME: Add prose description of what this test does.
+     *
+     * @param r1 a MutableRealmInteger
+     * @param r2 another MutableRealmInteger
+     */
     @SuppressWarnings({"ReferenceEquality", "EqualsIncompatibleType"})
     private void testBasic(MutableRealmInteger r1, MutableRealmInteger r2) {
         assertFalse(r1 == r2);
@@ -317,6 +322,12 @@ public class MutableRealmIntegerTests {
         assertEquals(19, r3.get().intValue());
     }
 
+    /**
+     * FIXME: Add prose description of what this test does.
+     *
+     * @param c1 a MutableRealmIntegerTypes
+     * @param c2 another MutableRealmIntegerTypes
+     */
     @SuppressWarnings({"ReferenceEquality", "EqualsIncompatibleType"})
     private void testEquality(MutableRealmIntegerTypes c1, MutableRealmIntegerTypes c2) {
         assertFalse(c1 == c2);
@@ -331,7 +342,7 @@ public class MutableRealmIntegerTests {
         assertTrue(r1.equals(c1.columnMutableRealmInteger));
         assertTrue(r1 == c1.columnMutableRealmInteger);
         assertTrue(c1.columnMutableRealmInteger.get().equals(8L));
-        assertFalse(c1.columnMutableRealmInteger.equals(c2.columnMutableRealmInteger.get()));
+        assertFalse(c1.columnMutableRealmInteger.get().equals(c2.columnMutableRealmInteger.get()));
         assertTrue(c1.columnMutableRealmInteger.get().intValue() == 8);
 
         Long n = c1.columnMutableRealmInteger.get();
@@ -344,6 +355,11 @@ public class MutableRealmIntegerTests {
         assertFalse(n.intValue() == r1.get().intValue());
     }
 
+    /**
+     * FIXME: Add prose description of what this test does.
+     *
+     * @param c1 a MutableRealmIntegerTypes
+     */
     private void testNullability(MutableRealmIntegerTypes c1) {
         MutableRealmInteger r1 = c1.columnMutableRealmInteger;
 
@@ -363,12 +379,12 @@ public class MutableRealmIntegerTests {
             c1.columnMutableRealmInteger.increment(5);
             fail("Attempt to increment a null valued MutableRealmInteger should throw NPE");
         }
-        catch (IllegalArgumentException ignore) { }
+        catch (IllegalStateException ignore) { }
         try {
             c1.columnMutableRealmInteger.decrement(5);
             fail("Attempt to decrement a null valued MutableRealmInteger should throw NPE");
         }
-        catch (IllegalArgumentException ignore) { }
+        catch (IllegalStateException ignore) { }
     }
 
     private void testValidityAndManagement(MutableRealmIntegerTypes c1) {

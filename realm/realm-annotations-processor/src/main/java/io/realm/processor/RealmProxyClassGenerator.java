@@ -256,11 +256,10 @@ public class RealmProxyClassGenerator {
 
         for (VariableElement variableElement : metadata.getFields()) {
             if (Utils.isMutableRealmInteger(variableElement)) {
-                writer.emitField("MutableRealmInteger.Managed", mutableRealmIntegerFieldName(variableElement), EnumSet.of(Modifier.PRIVATE));
+                emitMutableRealmIntegerField(writer, variableElement);
             } else if (Utils.isRealmList(variableElement)) {
                 String genericType = Utils.getGenericTypeQualifiedName(variableElement);
-                writer.emitField("RealmList<" + genericType + ">", variableElement.getSimpleName().toString() +
-                        "RealmList", EnumSet.of(Modifier.PRIVATE));
+                writer.emitField("RealmList<" + genericType + ">", variableElement.getSimpleName().toString() + "RealmList", EnumSet.of(Modifier.PRIVATE));
             }
         }
 
@@ -268,6 +267,20 @@ public class RealmProxyClassGenerator {
             writer.emitField(backlink.getTargetFieldType(), backlink.getTargetField() + BACKLINKS_FIELD_EXTENSION,
                     EnumSet.of(Modifier.PRIVATE));
         }
+    }
+    //@formatter:on
+
+    //@formatter:off
+    private void emitMutableRealmIntegerField(JavaWriter writer, VariableElement variableElement) throws IOException{
+        writer.emitField("MutableRealmInteger.Managed",
+                mutableRealmIntegerFieldName(variableElement),
+                EnumSet.of(Modifier.PRIVATE, Modifier.FINAL),
+                String.format(
+                        "new MutableRealmInteger.Managed<%1$s>() {\n"
+                                + "    @Override protected ProxyState<%1$s> getProxyState() { return proxyState; }\n"
+                                + "    @Override protected long getColumnIndex() { return columnInfo.%2$s; }\n"
+                                + "}",
+                        qualifiedClassName, columnIndexVarName(variableElement)));
     }
     //@formatter:on
 
@@ -596,15 +609,8 @@ public class RealmProxyClassGenerator {
                 .emitStatement("proxyState.setRealm$realm(context.getRealm())")
                 .emitStatement("proxyState.setRow$realm(context.getRow())")
                 .emitStatement("proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue())")
-                .emitStatement("proxyState.setExcludeFields$realm(context.getExcludeFields())");
-
-        for (VariableElement variableElement : metadata.getFields()) {
-            if (!Utils.isMutableRealmInteger(variableElement)) { continue; }
-            writer.emitStatement("%1$s = MutableRealmInteger.getManaged(this.proxyState, this.columnInfo.%2$s)",
-                    mutableRealmIntegerFieldName(variableElement), columnIndexVarName(variableElement));
-        }
-
-        writer.endMethod()
+                .emitStatement("proxyState.setExcludeFields$realm(context.getExcludeFields())")
+                .endMethod()
                 .emitEmptyLine();
     }
     //@formatter:on

@@ -68,7 +68,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         @Override
         public void increment(long inc) {
             if (value == null) {
-                throw new IllegalArgumentException("Attempt to increment a null valued MutableRealmInteger");
+                throw new IllegalStateException("Attempt to increment a null valued MutableRealmInteger");
             }
             value = Long.valueOf(value + inc);
         }
@@ -77,56 +77,40 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         public void decrement(long dec) {
             increment(-dec);
         }
-
-        @Override
-        public boolean isNull() {
-            return get() == null;
-        }
     }
 
 
     /**
      * Managed Implementation.
+     * Proxies create new subclasses for each MutableRealmInteger field.
      */
-    static class Managed extends MutableRealmInteger {
-        private final ProxyState<?> proxyState;
-        private final BaseRealm realm;
-        private final Row row;
-        private final long columnIndex;
+    abstract static class Managed<T extends RealmModel> extends MutableRealmInteger {
+        protected abstract ProxyState<T> getProxyState();
 
-        /**
-         * Inject the proxy state into this managed MutableRealmInteger.
-         *
-         * @param proxyState Proxy state object.  Contains refs to Realm and Row.
-         * @param columnIndex The index of the column that contains the MutableRealmInteger.
-         * @return a managed MutableRealmInteger.
-         */
-        Managed(ProxyState<? extends RealmObject> proxyState, long columnIndex) {
-            this.proxyState = proxyState;
-            this.realm = proxyState.getRealm$realm();
-            this.row = proxyState.getRow$realm();
-            this.columnIndex = columnIndex;
-        }
+        protected abstract long getColumnIndex();
 
         @Override
-        public boolean isManaged() {
+        public final boolean isManaged() {
             return true;
         }
 
         @Override
-        public boolean isValid() {
-            return !realm.isClosed() && row.isAttached();
+        public final boolean isValid() {
+            return !getRealm().isClosed() && getRow().isAttached();
         }
 
         @Override
-        public Long get() {
+        public final Long get() {
+            Row row = getRow();
             row.checkIfAttached();
-            return (isNull()) ? null : row.getLong(columnIndex);
+            long columnIndex = getColumnIndex();
+            return (row.isNull(columnIndex)) ? null : row .getLong(columnIndex);
         }
 
         @Override
-        public void set(Long value) {
-            realm.checkIfValidAndInTransaction();
+        public final void set(Long value) {
+            ProxyState proxyState = getProxyState();
+            proxyState.getRealm$realm().checkIfValidAndInTransaction();
 
             if (!proxyState.isUnderConstruction()) {
                 setValue(value, false);
@@ -141,32 +125,38 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         }
 
         @Override
-        public void increment(long inc) {
-            realm.checkIfValidAndInTransaction();
-            row.getTable().incrementLong(columnIndex, row.getIndex(), inc);
+        public final void increment(long inc) {
+            getRealm().checkIfValidAndInTransaction();
+            Row row = getRow();
+            row.getTable().incrementLong(getColumnIndex(), row.getIndex(), inc);
         }
 
         @Override
-        public void decrement(long dec) {
+        public final void decrement(long dec) {
             increment(-dec);
         }
 
-        @Override
-        public boolean isNull() {
-            row.checkIfAttached();
-            return row.isNull(columnIndex);
+        private BaseRealm getRealm() {
+            return getProxyState().getRealm$realm();
+       }
+
+        private Row getRow() {
+            return getProxyState().getRow$realm();
         }
 
         private void setValue(Long value, boolean isDefault) {
+            Row row = getRow();
             Table t = row.getTable();
-            long i = row.getIndex();
+            long rowIndex = row.getIndex();
+            long columnIndex = getColumnIndex();
             if (value == null) {
-                t.setNull(columnIndex, i, isDefault);
+                t.setNull(columnIndex, rowIndex, isDefault);
             } else {
-                t.setLong(columnIndex, i, value, isDefault);
+                t.setLong(columnIndex, rowIndex, value, isDefault);
             }
         }
     }
+
     /**
      * Creates a new, unmanaged {@code MutableRealmInteger} with the specified initial value.
      *
@@ -199,15 +189,6 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      */
     public static MutableRealmInteger valueOf(String value) {
         return valueOf(Long.parseLong(value));
-    }
-
-    /**
-     * Creates a new, managed {@code MutableRealmInteger}.
-     *
-     * @return a managed MutableRealmInteger.
-     */
-    static MutableRealmInteger.Managed getManaged(ProxyState<? extends RealmObject> proxyState, long columnIndex) {
-        return new Managed(proxyState, columnIndex);
     }
 
     /**
@@ -262,11 +243,12 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      */
     public abstract void decrement(long dec);
 
-
     /**
      * @return true if and only if {@code get()} will return {@code null}.
      */
-    public abstract boolean isNull();
+    public final boolean isNull() {
+        return get() == null;
+    }
 
     /**
      * MutableRealmIntegers compare strictly by their values.
@@ -279,8 +261,9 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     public final int compareTo(MutableRealmInteger o) {
         Long thisValue = get();
         Long otherValue = o.get();
-        return (thisValue == null) ? ((otherValue == null) ? 0 : -1) : (otherValue == null) ? 1 : thisValue.compareTo
-                (otherValue);
+        return (thisValue == null)
+                ? ((otherValue == null) ? 0 : -1)
+                : ((otherValue == null) ? 1 : thisValue.compareTo (otherValue));
     }
 
     /**

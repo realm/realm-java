@@ -63,7 +63,6 @@ public class ClassMetaData {
     private boolean containsToString;
     private boolean containsEquals;
     private boolean containsHashCode;
-    private boolean containsMutableRealmInteger;
 
     private final List<TypeMirror> validPrimaryKeyTypes;
     private final Types typeUtils;
@@ -144,10 +143,6 @@ public class ClassMetaData {
 
     public String getPrimaryKeyGetter() {
         return getInternalGetter(primaryKey.getSimpleName().toString());
-    }
-
-    public boolean containsMutableRealmInteger() {
-        return containsMutableRealmInteger;
     }
 
     public boolean containsToString() {
@@ -505,17 +500,14 @@ public class ClassMetaData {
     }
 
     private boolean categorizeMutableRealmIntegerField(VariableElement field) {
-        if (!field.getModifiers().contains(Modifier.FINAL)) {
-            Utils.error(String.format(Locale.US,
-                    "Field \"%s\", a MutableRealmInteger, must be final.",
-                    field.getSimpleName().toString()));
-            return false;
+        if (field.getModifiers().contains(Modifier.FINAL)) {
+            return true;
         }
 
-        containsMutableRealmInteger = true;
-
-
-        return true;
+        Utils.error(String.format(Locale.US,
+                "Field \"%s\", a MutableRealmInteger, must be final.",
+                field.getSimpleName().toString()));
+        return false;
     }
 
     private boolean isValidPrimaryKeyType(TypeMirror type) {

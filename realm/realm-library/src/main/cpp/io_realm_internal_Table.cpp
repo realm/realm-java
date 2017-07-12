@@ -675,7 +675,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeIncrementLong(JNIEnv* 
 
     Table* table = TBL(nativeTablePtr);
     if (table->is_null(columnIndex, rowIndex)) {
-        ThrowException(env, IllegalArgument, "Cannot increment a MutableRealmInteger whose value is null. Set its value first.");
+        ThrowException(env, IllegalState, "Cannot increment a MutableRealmInteger whose value is null. Set its value first.");
         return;
     }
 

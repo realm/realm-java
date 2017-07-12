@@ -108,7 +108,11 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     private AllTypesColumnInfo columnInfo;
     private ProxyState<some.test.AllTypes> proxyState;
-    private MutableRealmInteger.Managed columnMutableRealmIntegerMutableRealmInteger;
+    private final MutableRealmInteger.Managed columnMutableRealmIntegerMutableRealmInteger =
+            new MutableRealmInteger.Managed<some.test.AllTypes>() {
+                @Override protected ProxyState<some.test.AllTypes> getProxyState() { return proxyState; }
+                @Override protected long getColumnIndex() { return columnInfo.columnMutableRealmIntegerIndex; }
+            };
     private RealmList<some.test.AllTypes> columnRealmListRealmList;
     private RealmResults<some.test.AllTypes> parentObjectsBacklinks;
 
@@ -128,7 +132,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
         proxyState.setExcludeFields$realm(context.getExcludeFields());
-        columnMutableRealmIntegerMutableRealmInteger = MutableRealmInteger.getManaged(this.proxyState, this.columnInfo.columnMutableRealmIntegerIndex);
     }
 
     @Override
