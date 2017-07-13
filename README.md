@@ -151,6 +151,16 @@ The full build may take an hour or more, to complete.
 
 Generating the Javadoc using the command above may generate warnings. The Javadoc is generated despite the warnings.
 
+
+### Upgrading Gradle Wrappers
+
+ All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer `gradleVersion` propertiy defined in `/realm.properties` in order to determine Geadle Version of generating wrappers. After generating Gradle Wrappers, we need to modify `gradle/wrapper/gradle-wrapper.properties` to use `*-all.zip` distribution instead of `*-bin.zip` distribution.
+
+We have a script `./tools/update_gradle_wrapper.sh` to automate these steps. When you update Gradle Wrappers, please obey the following steps.
+
+ 1. Edit `gradleVersion` property in defined in `/realm.properties` to new Gradle Wrapper version.
+ 2. Execute `/tools/update_gradle_wrapper.sh`.
+
 ### Gotchas
 
 The repository is organized in six Gradle projects:
