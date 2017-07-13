@@ -7,14 +7,12 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.SET_DEBUG_APP"/>
 
     <uses-sdk
         android:minSdkVersion="9"
         android:targetSdkVersion="22"/>
 
-    <application
-        android:debuggable="true">
+    <application>
         <uses-library android:name="android.test.runner"/>
         <service
             android:name=".services.RemoteProcessService"
