@@ -2935,10 +2935,7 @@ public class RealmQueryTests extends QueryTests {
         RealmResults<IndexedFields> results = realm.where(IndexedFields.class)
                 .equalTo(IndexedFields.FIELD_INDEXED_STRING, "rover", Case.INSENSITIVE)
                 .findAll();
-        // FIXME: This bug has not been fixed by the core on the master-4.0 right now.
-        // This test will failed when core gets updated.
-        //assertEquals(2, results.size());
-        assertEquals(1, results.size());
+        assertEquals(2, results.size());
     }
 
     @Test
