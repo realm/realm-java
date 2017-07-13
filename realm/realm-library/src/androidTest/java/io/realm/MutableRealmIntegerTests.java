@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.realm.entities.MutableRealmIntegerTypes;
+import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -34,7 +35,6 @@ import static junit.framework.Assert.fail;
 
 
 // FIXME MutableRealmInteger: Need JSON tests.
-// FIXME MutableRealmInteger: Need tests for @Required, @Index
 
 @RunWith(AndroidJUnit4.class)
 public class MutableRealmIntegerTests {
@@ -105,7 +105,7 @@ public class MutableRealmIntegerTests {
         realm.commitTransaction();
 
         realm.beginTransaction();
-        testBasic(c1.columnMutableRealmInteger, c2.columnMutableRealmInteger);
+        testBasic(c1.columnNullableMutableRealmInteger, c2.columnNullableMutableRealmInteger);
         realm.commitTransaction();
     }
 
@@ -152,6 +152,54 @@ public class MutableRealmIntegerTests {
         realm.commitTransaction();
     }
 
+    /**
+     * @Required MutableRealmIntegers should not be nullable.
+     * There are other tests testing nullabilty: just need to test @Required here.
+     * There is no attempt to control the nullability of an unmanaged MutableRealmInteger.
+     * And attempt to copy an unmanaged model object with a null-valued MutableRealmInteger
+     * into an @Required field should fail.
+     */
+    @Test
+    public void required() {
+        realm.beginTransaction();
+        MutableRealmIntegerTypes c1 = realm.createObject(MutableRealmIntegerTypes.class);
+        realm.commitTransaction();
+
+        Table table = realm.getTable(MutableRealmIntegerTypes.class);
+        assertFalse(table.isColumnNullable(table.getColumnIndex(MutableRealmIntegerTypes.FIELD_NONNULLABLE_MUTABLEREALMINTEGER)));
+
+        try {
+            c1.columnNonNullableMutableRealmInteger.set(null);
+            fail("should not be able to set an @Required MutableRealmInteger null");
+        } catch(IllegalStateException ignore) {
+        }
+
+        c1 = new MutableRealmIntegerTypes();
+        c1.columnNonNullableMutableRealmInteger.set(null);
+        realm.beginTransaction();
+        try {
+            MutableRealmIntegerTypes c2 = realm.copyToRealm(c1);
+            fail("should not be able to copy an null valute to a @Required MutableRealmInteger");
+        } catch(IllegalArgumentException ignore) {
+        }
+        realm.commitTransaction();
+    }
+
+
+    /**
+     * @Indexed MutableRealmIntegers should have indices.
+     * Without @Index they should not.
+     */
+    @Test
+    public void indexed() {
+        realm.beginTransaction();
+        MutableRealmIntegerTypes c1 = realm.createObject(MutableRealmIntegerTypes.class);
+        realm.commitTransaction();
+
+        Table table = realm.getTable(MutableRealmIntegerTypes.class);
+        assertTrue(table.hasSearchIndex(table.getColumnIndex(MutableRealmIntegerTypes.FIELD_INDEXED_MUTABLEREALMINTEGER)));
+        assertFalse(table.hasSearchIndex(table.getColumnIndex(MutableRealmIntegerTypes.FIELD_NULLABLE_MUTABLEEALMINTEGER)));
+    }
 
     /**
      * Be absolutely certain that we can actually compare two longs.
@@ -175,9 +223,9 @@ public class MutableRealmIntegerTests {
     @Test
     public void compareTo_managed() {
         realm.beginTransaction();
-        MutableRealmInteger ri1 = realm.createObject(MutableRealmIntegerTypes.class).getColumnMutableRealmInteger();
+        MutableRealmInteger ri1 = realm.createObject(MutableRealmIntegerTypes.class).getColumnNullableMutableRealmInteger();
         ri1.set(0);
-        MutableRealmInteger ri2 = realm.createObject(MutableRealmIntegerTypes.class).getColumnMutableRealmInteger();
+        MutableRealmInteger ri2 = realm.createObject(MutableRealmIntegerTypes.class).getColumnNullableMutableRealmInteger();
         ri2.set(Long.MAX_VALUE);
         realm.commitTransaction();
         assertEquals(-1, ri1.compareTo(ri2));
@@ -199,10 +247,10 @@ public class MutableRealmIntegerTests {
     @Test
     public void updateOutsideTransactionThrows() {
         realm.beginTransaction();
-        realm.createObject(MutableRealmIntegerTypes.class).getColumnMutableRealmInteger().set(42);
+        realm.createObject(MutableRealmIntegerTypes.class).getColumnNullableMutableRealmInteger().set(42);
         realm.commitTransaction();
 
-        MutableRealmInteger managedRI = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnMutableRealmInteger();
+        MutableRealmInteger managedRI = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnNullableMutableRealmInteger();
         try {
             managedRI.set(1);
             fail("Setting a managed MutableRealmInteger outside a transaction should fail");
@@ -231,13 +279,13 @@ public class MutableRealmIntegerTests {
     @Test
     public void isLive() {
         realm.beginTransaction();
-        realm.createObject(MutableRealmIntegerTypes.class).getColumnMutableRealmInteger().set(42);
+        realm.createObject(MutableRealmIntegerTypes.class).getColumnNullableMutableRealmInteger().set(42);
         realm.commitTransaction();
 
-        MutableRealmInteger managedRI = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnMutableRealmInteger();
+        MutableRealmInteger managedRI = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnNullableMutableRealmInteger();
 
         realm.beginTransaction();
-        MutableRealmInteger ri = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnMutableRealmInteger();
+        MutableRealmInteger ri = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnNullableMutableRealmInteger();
         ri.set(37);
         ri.increment(17);
         ri.decrement(7);
@@ -252,15 +300,15 @@ public class MutableRealmIntegerTests {
     @Test
     public void copyToisLive() {
         MutableRealmIntegerTypes obj = new MutableRealmIntegerTypes();
-        MutableRealmInteger unmanagedRI = obj.getColumnMutableRealmInteger();
+        MutableRealmInteger unmanagedRI = obj.getColumnNullableMutableRealmInteger();
         unmanagedRI.set(42L);
 
         realm.beginTransaction();
-        MutableRealmInteger managedRI = realm.copyToRealm(obj).getColumnMutableRealmInteger();
+        MutableRealmInteger managedRI = realm.copyToRealm(obj).getColumnNullableMutableRealmInteger();
         realm.commitTransaction();
 
         realm.beginTransaction();
-        MutableRealmInteger ri = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnMutableRealmInteger();
+        MutableRealmInteger ri = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnNullableMutableRealmInteger();
         ri.set(37);
         ri.increment(17);
         ri.decrement(7);
@@ -276,15 +324,15 @@ public class MutableRealmIntegerTests {
     @Test
     public void copyFromIsNotLive() {
         realm.beginTransaction();
-        realm.createObject(MutableRealmIntegerTypes.class).getColumnMutableRealmInteger().set(42L);
+        realm.createObject(MutableRealmIntegerTypes.class).getColumnNullableMutableRealmInteger().set(42L);
         realm.commitTransaction();
 
         MutableRealmIntegerTypes obj = realm.where(MutableRealmIntegerTypes.class).findFirst();
-        MutableRealmInteger managedRI = obj.getColumnMutableRealmInteger();
-        MutableRealmInteger unmanagedRI = realm.copyFromRealm(obj).getColumnMutableRealmInteger();
+        MutableRealmInteger managedRI = obj.getColumnNullableMutableRealmInteger();
+        MutableRealmInteger unmanagedRI = realm.copyFromRealm(obj).getColumnNullableMutableRealmInteger();
 
         realm.beginTransaction();
-        MutableRealmInteger ri = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnMutableRealmInteger();
+        MutableRealmInteger ri = realm.where(MutableRealmIntegerTypes.class).findFirst().getColumnNullableMutableRealmInteger();
         ri.set(37);
         ri.increment(17);
         ri.decrement(7);
@@ -299,7 +347,9 @@ public class MutableRealmIntegerTests {
     }
 
     /**
-     * FIXME: Add prose description of what this test does.
+     * Test basic arithmetic: set, increment, decrement and equals.
+     * Since the implementations of managed and unmanaged MutableRealmIntegers are completely
+     * different these tests should be run on both implementations.
      *
      * @param r1 a MutableRealmInteger
      * @param r2 another MutableRealmInteger
@@ -311,6 +361,7 @@ public class MutableRealmIntegerTests {
         r1.set(10);
         r2.set(Long.valueOf(10));
         assertEquals(r1, r2);
+        assertEquals(r2, r1);
 
         r1.set(15);
         r1.decrement(2);
@@ -320,10 +371,21 @@ public class MutableRealmIntegerTests {
         MutableRealmInteger r3 = r1;
         r1.set(19);
         assertEquals(19, r3.get().intValue());
+
+        assertFalse(r2.equals(r3));
+        assertFalse(r3.equals(r2));
     }
 
     /**
-     * FIXME: Add prose description of what this test does.
+     * Thorough tests of equality, as defined <a href="https://github.com/realm/realm-java/issues/4266#issuecomment-308772718">here</a>
+     * and in subsequent comments.  The general principles are:
+     * <ul>
+     *     <li>MutableRealmInteger.equals tests the value of the wrapped integer<./li>
+     *     <li>All references to a single MutableRealmInteger must be {@code .equals} to the same thing.</li>
+     *     <li>Except when set to {@code null} MutableRealmInteger does not distinguish boxed and primitive types.</li>
+     * </ul>
+     * Since the implementations of managed and unmanaged MutableRealmIntegers are completely
+     * different these tests should be run on both implementations.
      *
      * @param c1 a MutableRealmIntegerTypes
      * @param c2 another MutableRealmIntegerTypes
@@ -332,63 +394,72 @@ public class MutableRealmIntegerTests {
     private void testEquality(MutableRealmIntegerTypes c1, MutableRealmIntegerTypes c2) {
         assertFalse(c1 == c2);
 
-        c1.columnMutableRealmInteger.set(7);
-        c2.columnMutableRealmInteger.set(Long.valueOf(7));
-        assertTrue(c1.columnMutableRealmInteger != c2.columnMutableRealmInteger);
-        assertTrue(c1.columnMutableRealmInteger.equals(c2.columnMutableRealmInteger));
+        c1.columnNullableMutableRealmInteger.set(7);
+        c2.columnNullableMutableRealmInteger.set(Long.valueOf(7));
+        assertTrue(c1.columnNullableMutableRealmInteger != c2.columnNullableMutableRealmInteger);
+        assertTrue(c1.columnNullableMutableRealmInteger.equals(c2.columnNullableMutableRealmInteger));
 
-        MutableRealmInteger r1 = c1.columnMutableRealmInteger;
+        MutableRealmInteger r1 = c1.columnNullableMutableRealmInteger;
         r1.increment(1);
-        assertTrue(r1.equals(c1.columnMutableRealmInteger));
-        assertTrue(r1 == c1.columnMutableRealmInteger);
-        assertTrue(c1.columnMutableRealmInteger.get().equals(8L));
-        assertFalse(c1.columnMutableRealmInteger.get().equals(c2.columnMutableRealmInteger.get()));
-        assertTrue(c1.columnMutableRealmInteger.get().intValue() == 8);
+        assertTrue(r1.equals(c1.columnNullableMutableRealmInteger));
+        assertTrue(r1 == c1.columnNullableMutableRealmInteger);
+        assertTrue(c1.columnNullableMutableRealmInteger.get().equals(8L));
+        assertFalse(c1.columnNullableMutableRealmInteger.get().equals(c2.columnNullableMutableRealmInteger.get()));
+        assertTrue(c1.columnNullableMutableRealmInteger.get().intValue() == 8);
 
-        Long n = c1.columnMutableRealmInteger.get();
+        Long n = c1.columnNullableMutableRealmInteger.get();
         assertTrue(n.equals(Long.valueOf(8)));
-        assertTrue(n.equals(c1.columnMutableRealmInteger.get()));
-        assertTrue(n.intValue() == c1.columnMutableRealmInteger.get().intValue());
+        assertTrue(n.equals(c1.columnNullableMutableRealmInteger.get()));
+        assertTrue(n.intValue() == c1.columnNullableMutableRealmInteger.get().intValue());
 
-        c1.columnMutableRealmInteger.increment(1);
-        assertFalse(n.intValue() == c1.columnMutableRealmInteger.get().intValue());
+        c1.columnNullableMutableRealmInteger.increment(1);
+        assertFalse(n.intValue() == c1.columnNullableMutableRealmInteger.get().intValue());
         assertFalse(n.intValue() == r1.get().intValue());
     }
 
     /**
-     * FIXME: Add prose description of what this test does.
+     * Thorough tests of nullability, as defined <a href="https://github.com/realm/realm-java/issues/4266#issuecomment-308772718">here</a>
+     * and in subsequent comments.  The general principles are:
+     * <ul>
+     *     <li>Unless @Required, MutableRealmIntegers are nullable.</li>
+     *     <li>0L and null are distinct values.</li>
+     *     <li>All references to a single MutableRealmInteger must be {@code null} if any are./li>
+     *     <li>A null value cannot be incremented or decremented/li>
+     * </ul>
+     * Since the implementations of managed and unmanaged MutableRealmIntegers are completely
+     * different these tests should be run on both implementations.
      *
      * @param c1 a MutableRealmIntegerTypes
      */
     private void testNullability(MutableRealmIntegerTypes c1) {
-        MutableRealmInteger r1 = c1.columnMutableRealmInteger;
+        MutableRealmInteger r1 = c1.columnNullableMutableRealmInteger;
 
-        c1.columnMutableRealmInteger.set(0L);
-        assertFalse(c1.columnMutableRealmInteger.isNull());
+        c1.columnNullableMutableRealmInteger.set(0L);
+        assertFalse(c1.columnNullableMutableRealmInteger.isNull());
         assertFalse(r1.isNull());
 
-        c1.columnMutableRealmInteger.set(null);
-        assertFalse(c1.columnMutableRealmInteger == null);
-        assertTrue(c1.columnMutableRealmInteger.isNull());
+        c1.columnNullableMutableRealmInteger.set(null);
+        assertFalse(c1.columnNullableMutableRealmInteger == null);
+        assertTrue(c1.columnNullableMutableRealmInteger.isNull());
         assertTrue(r1.isNull());
 
-        assertTrue(c1.columnMutableRealmInteger.get() == null);
+        assertTrue(c1.columnNullableMutableRealmInteger.get() == null);
         assertTrue(r1.get() == null);
 
         try {
-            c1.columnMutableRealmInteger.increment(5);
-            fail("Attempt to increment a null valued MutableRealmInteger should throw NPE");
+            c1.columnNullableMutableRealmInteger.increment(5);
+            fail("Attempt to increment a null valued MutableRealmInteger should throw ISE");
         } catch (IllegalStateException ignore) {
         }
         try {
-            c1.columnMutableRealmInteger.decrement(5);
-            fail("Attempt to decrement a null valued MutableRealmInteger should throw NPE");
+            c1.columnNullableMutableRealmInteger.decrement(5);
+            fail("Attempt to decrement a null valued MutableRealmInteger should throw ISE");
         } catch (IllegalStateException ignore) {
         }
     }
 
     private void testValidityAndManagement(MutableRealmIntegerTypes c1) {
-        MutableRealmInteger r1 = c1.columnMutableRealmInteger;
+        MutableRealmInteger r1 = c1.columnNullableMutableRealmInteger;
         assertTrue(r1.isManaged() == c1.isManaged());
         assertTrue(r1.isValid() == c1.isValid());
     }

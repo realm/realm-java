@@ -23,14 +23,68 @@ import io.realm.internal.Table;
 
 /**
  * A MutableRealmInteger is a mutable, {@link java.lang.Long}-like numeric quantity.
- * MutableRealmInteger implementations are not thread safe.  Like all Realm objects,
- * managed MutableRealmIntegers may not be moved across threads.  Unmanaged MutableRealmIntegers
- * may be moved across threads but require safe publication.
+ * It behaves almost exactly as a reference to a {@link java.lang.Long}. More specifically:
+ * <ul>
+ * <li>The MutableRealmInteger may have the value {@code null}.</li>
+ * <li>The {@code .equals} operator compares the contained Long values. null-valued MutableRealmInteger are {@code .equals}</li>
+ * <li>The {@code .compareTo} operator compares the contained Long values.  It considers {@code null} &lt; any value.</li>
+ * <li>The {@code .increment} and {@code .decrement} operators throw {@code IllegalStateException} when applied to a null-valued MutableRealmInteger.</li>
+ * </ul>
  * <p>
  *
- * @see <a href="https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type"></a>
+ * MutableRealmIntegers are most interesting as members of a managed {@code RealmModel} object.
+ * When managed, the {@code .increment} and {@code .decrement} operators implement a
+ * <a href="https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type">conflict free replicated data type</a>:
+ * Simultaneous increments and decrements from multiple distributed clients will be aggregated correctly.
+ * For instance, if the value of {@code counter} for the user "Fred" is currently 0, then the following code,
+ * executed on two different devices, simultaneously, even if connected by only a slow, unreliable network,
+ * will <b>always</b> cause the value of {@code counter} to converge, eventually on the value 2.
+ * <pre>
+ * {@code
+ * MutableRealmInteger counter = realm.where(Users.class)
+ *     .equalTo("name", Fred)
+ *     .counter.increment(1);
+ * }
+ * </pre>
+ * Note that the {@code .set} operator must be used with extreme care. It destroys any guarantees of consistency.
  * <p>
- * TODO: More complete docs, including examples of use.
+ *
+ * MutableRealmIntegers may not be primary keys. Their implementations are not thread safe.
+ * Like all manage Realm objects, managed MutableRealmIntegers may not be moved across threads.
+ * Unmanaged MutableRealmIntegers may be moved across threads but require safe publication.
+ * <p>
+ *
+ * A MutableRealmInteger, in a model class, must always be declared final. For instance:
+ * <pre>
+ * {@code public final MutableRealmInteger counter = MutableRealmInteger.ofNull(); }
+ * </pre>
+ * Although this may work under very limited circumstances, developers are advised <b>not</b> to do it:
+ * <pre>
+ * {@code public final MutableRealmInteger counter = null; }
+ * </pre>
+ * Also note that when a MutableRealmInteger is {@code @Required}, it is better, though not required,
+ * to initialize it with a non-null value.
+ * <pre>
+ * {@code
+ * @Required
+ * public final MutableRealmInteger counter = MutableRealmInteger.valueOf(0L);
+ * }
+ * </pre>
+ *
+ *<p>
+ * A reference to a managed MutableRealmInteger is subject to all of the constraints that apply to the model object
+ * from which it was obtained: It can only be mutated within a transaction. It becomes invalid if
+ * the Realm backing it is closed. And so on. Use the {@code .isManaged} and {@code .isValid} operators to
+ * determine whether a MutableRealmInteger is in a consistent state. Note, in particular, that a reference
+ * to a managed MutableRealmInteger retains a reference to the model object to which it belongs.
+ * For example in this code:
+ * <pre>
+ * {@code
+ * MutableRealmInteger counter = realm.where(Users.class).findFirst().counter;
+ * }
+ * </pre>
+ * {@code counter} holds a reference to the {@code User} model object from which it was obtained.
+ * Neither can be GCed until all references to both are unreachable.
  */
 @Beta
 public abstract class MutableRealmInteger implements Comparable<MutableRealmInteger>, ManagableObject {

@@ -17,15 +17,33 @@ package io.realm.entities;
 
 import io.realm.MutableRealmInteger;
 import io.realm.RealmObject;
+import io.realm.annotations.Index;
+import io.realm.annotations.Required;
 
 
 public class MutableRealmIntegerTypes extends RealmObject {
     public static final String CLASS_NAME = "MutableRealmIntegerTypes";
-    public static final String FIELD_REALMINTEGER = "columnMutableRealmInteger";
+    public static final String FIELD_NULLABLE_MUTABLEEALMINTEGER = "columnNullableMutableRealmInteger";
+    public static final String FIELD_NONNULLABLE_MUTABLEREALMINTEGER = "columnNonNullableMutableRealmInteger";
+    public static final String FIELD_INDEXED_MUTABLEREALMINTEGER = "columnIndexedMutableRealmInteger";
 
-    public final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.ofNull();
+    public final MutableRealmInteger columnNullableMutableRealmInteger = MutableRealmInteger.ofNull();
 
-    public MutableRealmInteger getColumnMutableRealmInteger() {
-        return columnMutableRealmInteger;
+    @Required
+    public final MutableRealmInteger columnNonNullableMutableRealmInteger = MutableRealmInteger.valueOf(0L);
+
+    @Index
+    public final MutableRealmInteger columnIndexedMutableRealmInteger = MutableRealmInteger.ofNull();
+
+    public MutableRealmInteger getColumnNullableMutableRealmInteger() {
+        return columnNullableMutableRealmInteger;
+    }
+
+    public MutableRealmInteger getColumnNonNullableMutableRealmInteger() {
+        return columnNonNullableMutableRealmInteger;
+    }
+
+    public MutableRealmInteger getColumnIndexedMutableRealmInteger() {
+        return columnIndexedMutableRealmInteger;
     }
 }
