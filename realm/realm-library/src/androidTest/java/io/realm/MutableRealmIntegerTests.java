@@ -378,13 +378,13 @@ public class MutableRealmIntegerTests {
         try {
             c1.columnMutableRealmInteger.increment(5);
             fail("Attempt to increment a null valued MutableRealmInteger should throw NPE");
+        } catch (IllegalStateException ignore) {
         }
-        catch (IllegalStateException ignore) { }
         try {
             c1.columnMutableRealmInteger.decrement(5);
             fail("Attempt to decrement a null valued MutableRealmInteger should throw NPE");
+        } catch (IllegalStateException ignore) {
         }
-        catch (IllegalStateException ignore) { }
     }
 
     private void testValidityAndManagement(MutableRealmIntegerTypes c1) {
