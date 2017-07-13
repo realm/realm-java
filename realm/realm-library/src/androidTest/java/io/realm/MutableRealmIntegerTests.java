@@ -19,7 +19,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +33,8 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 
-// FIXME MutableRealmIntegerTypes: Need JSON tests.
+// FIXME MutableRealmInteger: Need JSON tests.
+// FIXME MutableRealmInteger: Need tests for @Required, @Index
 
 @RunWith(AndroidJUnit4.class)
 public class MutableRealmIntegerTests {
@@ -196,7 +196,6 @@ public class MutableRealmIntegerTests {
     /**
      * Assure that an attempt to change the value of a managed MutableRealmInteger, outside a transaction, fails.
      */
-    @Ignore("Not yet wired to core")
     @Test
     public void updateOutsideTransactionThrows() {
         realm.beginTransaction();
@@ -229,7 +228,6 @@ public class MutableRealmIntegerTests {
     /**
      * Assure that changes to a MutableRealmInteger acquired from a managed object are reflected in the object.
      */
-    @Ignore("Not yet wired to core")
     @Test
     public void isLive() {
         realm.beginTransaction();
@@ -251,7 +249,6 @@ public class MutableRealmIntegerTests {
     /**
      * Assure that changes to a MutableRealmInteger acquired from a managed object are reflected in the object.
      */
-    @Ignore("Not yet wired to core")
     @Test
     public void copyToisLive() {
         MutableRealmIntegerTypes obj = new MutableRealmIntegerTypes();
@@ -276,7 +273,6 @@ public class MutableRealmIntegerTests {
     /**
      * Assure that a MutableRealmInteger acquired from an unmanaged object is not affected by changes in the Realm.
      */
-    @Ignore("Not yet wired to core")
     @Test
     public void copyFromIsNotLive() {
         realm.beginTransaction();
@@ -302,6 +298,12 @@ public class MutableRealmIntegerTests {
         assertTrue(e.getMessage().contains("only be done from inside a transaction"));
     }
 
+    /**
+     * FIXME: Add prose description of what this test does.
+     *
+     * @param r1 a MutableRealmInteger
+     * @param r2 another MutableRealmInteger
+     */
     @SuppressWarnings({"ReferenceEquality", "EqualsIncompatibleType"})
     private void testBasic(MutableRealmInteger r1, MutableRealmInteger r2) {
         assertFalse(r1 == r2);
@@ -320,6 +322,12 @@ public class MutableRealmIntegerTests {
         assertEquals(19, r3.get().intValue());
     }
 
+    /**
+     * FIXME: Add prose description of what this test does.
+     *
+     * @param c1 a MutableRealmIntegerTypes
+     * @param c2 another MutableRealmIntegerTypes
+     */
     @SuppressWarnings({"ReferenceEquality", "EqualsIncompatibleType"})
     private void testEquality(MutableRealmIntegerTypes c1, MutableRealmIntegerTypes c2) {
         assertFalse(c1 == c2);
@@ -334,7 +342,7 @@ public class MutableRealmIntegerTests {
         assertTrue(r1.equals(c1.columnMutableRealmInteger));
         assertTrue(r1 == c1.columnMutableRealmInteger);
         assertTrue(c1.columnMutableRealmInteger.get().equals(8L));
-        assertFalse(c1.columnMutableRealmInteger.equals(c2.columnMutableRealmInteger.get()));
+        assertFalse(c1.columnMutableRealmInteger.get().equals(c2.columnMutableRealmInteger.get()));
         assertTrue(c1.columnMutableRealmInteger.get().intValue() == 8);
 
         Long n = c1.columnMutableRealmInteger.get();
@@ -347,6 +355,11 @@ public class MutableRealmIntegerTests {
         assertFalse(n.intValue() == r1.get().intValue());
     }
 
+    /**
+     * FIXME: Add prose description of what this test does.
+     *
+     * @param c1 a MutableRealmIntegerTypes
+     */
     private void testNullability(MutableRealmIntegerTypes c1) {
         MutableRealmInteger r1 = c1.columnMutableRealmInteger;
 
@@ -365,13 +378,13 @@ public class MutableRealmIntegerTests {
         try {
             c1.columnMutableRealmInteger.increment(5);
             fail("Attempt to increment a null valued MutableRealmInteger should throw NPE");
+        } catch (IllegalStateException ignore) {
         }
-        catch (NullPointerException ignore) { }
         try {
             c1.columnMutableRealmInteger.decrement(5);
             fail("Attempt to decrement a null valued MutableRealmInteger should throw NPE");
+        } catch (IllegalStateException ignore) {
         }
-        catch (NullPointerException ignore) { }
     }
 
     private void testValidityAndManagement(MutableRealmIntegerTypes c1) {

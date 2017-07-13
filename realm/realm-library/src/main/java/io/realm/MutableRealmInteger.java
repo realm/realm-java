@@ -18,6 +18,7 @@ package io.realm;
 import io.realm.annotations.Beta;
 import io.realm.internal.ManagableObject;
 import io.realm.internal.Row;
+import io.realm.internal.Table;
 
 
 /**
@@ -45,6 +46,16 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         }
 
         @Override
+        public boolean isManaged() {
+            return false;
+        }
+
+        @Override
+        public boolean isValid() {
+            return true;
+        }
+
+        @Override
         public void set(Long newValue) {
             value = newValue;
         }
@@ -57,104 +68,92 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         @Override
         public void increment(long inc) {
             if (value == null) {
-                throw new NullPointerException("Attempt to increment a null valued MutableRealmInteger");
+                throw new IllegalStateException("Attempt to increment a null valued MutableRealmInteger");
             }
             value = Long.valueOf(value + inc);
         }
 
         @Override
         public void decrement(long dec) {
-            if (value == null) {
-                throw new NullPointerException("Attempt to decrement a null valued MutableRealmInteger");
-            }
-            value = Long.valueOf(value - dec);
-        }
-
-        @Override
-        public boolean isManaged() {
-            return false;
-        }
-
-        @Override
-        public boolean isValid() {
-            return true;
+            increment(-dec);
         }
     }
 
 
     /**
      * Managed Implementation.
+     * Proxies create new subclasses for each MutableRealmInteger field.
      */
-    // FIXME MutableRealmIntegers: wire up to native increment method
-    static class Managed extends MutableRealmInteger {
-        private final ProxyState<?> proxyState;
-        private final BaseRealm realm;
-        private final Row row;
-        private final long columnIndex;
-        private Long value; // !!! FIXME: remove!
+    abstract static class Managed<T extends RealmModel> extends MutableRealmInteger {
+        protected abstract ProxyState<T> getProxyState();
 
-        /**
-         * Inject the proxy state into this managed MutableRealmInteger.
-         *
-         * @param proxyState Proxy state object.  Contains refs to Realm and Row.
-         * @param columnIndex The index of the column that contains the MutableRealmInteger.
-         * @return a managed MutableRealmInteger.
-         */
-        Managed(ProxyState<? extends RealmObject> proxyState, long columnIndex) {
-            this.proxyState = proxyState;
-            this.realm = proxyState.getRealm$realm();
-            this.row = proxyState.getRow$realm();
-            this.columnIndex = columnIndex;
-        }
+        protected abstract long getColumnIndex();
 
         @Override
-        public boolean isManaged() {
+        public final boolean isManaged() {
             return true;
         }
 
         @Override
-        public boolean isValid() {
-            return !realm.isClosed() && row.isAttached();
+        public final boolean isValid() {
+            return !getRealm().isClosed() && getRow().isAttached();
         }
 
         @Override
-        public Long get() {
-            return value;
-        }
-
-
-//        // Template code:
-//        if (proxyState.isUnderConstruction()) {
-//            if (!proxyState.getAcceptDefaultValue$realm()) {  // Wat?
-//                return;
-//            }
-//
-//            row.getTable().setLong(columnIndex, row.getIndex(), value, true);
-//            return;
-//        }
-//        row.setLong(columnIndex,value);
-        @Override
-        public void set(Long value) {
-            realm.checkIfValidAndInTransaction();
-            this.value = value;
+        public final Long get() {
+            Row row = getRow();
+            row.checkIfAttached();
+            long columnIndex = getColumnIndex();
+            return (row.isNull(columnIndex)) ? null : row .getLong(columnIndex);
         }
 
         @Override
-        public void increment(long inc) {
-            Long val = get();
-            if (val == null) {
-                throw new NullPointerException("Attempt to increment a null valued MutableRealmInteger");
+        public final void set(Long value) {
+            ProxyState proxyState = getProxyState();
+            proxyState.getRealm$realm().checkIfValidAndInTransaction();
+
+            if (!proxyState.isUnderConstruction()) {
+                setValue(value, false);
+                return;
             }
-            set(val + inc);
+
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+
+            setValue(value, true);
         }
 
         @Override
-        public void decrement(long dec) {
-            Long val = get();
-            if (val == null) {
-                throw new NullPointerException("Attempt to decrement a null valued MutableRealmInteger");
+        public final void increment(long inc) {
+            getRealm().checkIfValidAndInTransaction();
+            Row row = getRow();
+            row.getTable().incrementLong(getColumnIndex(), row.getIndex(), inc);
+        }
+
+        @Override
+        public final void decrement(long dec) {
+            increment(-dec);
+        }
+
+        private BaseRealm getRealm() {
+            return getProxyState().getRealm$realm();
+       }
+
+        private Row getRow() {
+            return getProxyState().getRow$realm();
+        }
+
+        private void setValue(Long value, boolean isDefault) {
+            Row row = getRow();
+            Table t = row.getTable();
+            long rowIndex = row.getIndex();
+            long columnIndex = getColumnIndex();
+            if (value == null) {
+                t.setNull(columnIndex, rowIndex, isDefault);
+            } else {
+                t.setLong(columnIndex, rowIndex, value, isDefault);
             }
-            set(val - dec);
         }
     }
 
@@ -169,7 +168,6 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
     /**
      * Creates a new, unmanaged {@code MutableRealmInteger} whose value is null.
-     *
      */
     public static MutableRealmInteger ofNull() {
         return valueOf((Long) null);
@@ -191,14 +189,6 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      */
     public static MutableRealmInteger valueOf(String value) {
         return valueOf(Long.parseLong(value));
-    }
-
-    /**
-     * Creates a new, managed {@code MutableRealmInteger}.
-     * @return a managed MutableRealmInteger.
-     */
-    static MutableRealmInteger.Managed getManaged(ProxyState<? extends RealmObject> proxyState, long columnIndex) {
-        return new Managed(proxyState, columnIndex);
     }
 
     /**
@@ -253,14 +243,12 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      */
     public abstract void decrement(long dec);
 
-
     /**
      * @return true if and only if {@code get()} will return {@code null}.
      */
     public final boolean isNull() {
         return get() == null;
     }
-
 
     /**
      * MutableRealmIntegers compare strictly by their values.
@@ -273,8 +261,9 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     public final int compareTo(MutableRealmInteger o) {
         Long thisValue = get();
         Long otherValue = o.get();
-        return (thisValue == null) ? ((otherValue == null) ? 0 : -1)
-                : (otherValue == null) ? 1 : thisValue.compareTo(otherValue);
+        return (thisValue == null)
+                ? ((otherValue == null) ? 0 : -1)
+                : ((otherValue == null) ? 1 : thisValue.compareTo (otherValue));
     }
 
     /**
@@ -300,6 +289,6 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         if (!(o instanceof MutableRealmInteger)) { return false; }
         Long thisValue = get();
         Long otherValue = ((MutableRealmInteger) o).get();
-        return  (thisValue == null) ? otherValue == null : thisValue.equals(otherValue);
+        return (thisValue == null) ? otherValue == null : thisValue.equals(otherValue);
     }
 }

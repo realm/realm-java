@@ -63,7 +63,6 @@ public class ClassMetaData {
     private boolean containsToString;
     private boolean containsEquals;
     private boolean containsHashCode;
-    private boolean containsMutableRealmInteger;
 
     private final List<TypeMirror> validPrimaryKeyTypes;
     private final Types typeUtils;
@@ -144,10 +143,6 @@ public class ClassMetaData {
 
     public String getPrimaryKeyGetter() {
         return getInternalGetter(primaryKey.getSimpleName().toString());
-    }
-
-    public boolean containsMutableRealmInteger() {
-        return containsMutableRealmInteger;
     }
 
     public boolean containsToString() {
@@ -403,7 +398,6 @@ public class ClassMetaData {
         }
 
         // Similarly, a MutableRealmInteger cannot be a @PrimaryKey or @LinkingObject.
-        // !!! FIXME: verify this.
         if (Utils.isMutableRealmInteger(field)) {
             if (!categorizeMutableRealmIntegerField(field)) { return false; }
         }
@@ -414,19 +408,29 @@ public class ClassMetaData {
         return true;
     }
 
+    // The field has the @Index annotation. It's only valid for column types:
+    // STRING, DATE, INTEGER, BOOLEAN, and RealmMutableInteger
     private boolean categorizeIndexField(Element element, VariableElement variableElement) {
-        // The field has the @Index annotation. It's only valid for column types:
-        // STRING, DATE, INTEGER, BOOLEAN
-        Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(variableElement.asType().toString());
-        if (realmType != null) {
-            switch (realmType) {
-                case STRING:
-                case DATE:
-                case INTEGER:
-                case BOOLEAN:
-                    indexedFields.add(variableElement);
-                    return true;
+        boolean indexable = false;
+
+        if (Utils.isMutableRealmInteger(variableElement)) {
+            indexable = true;
+        } else {
+            Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(variableElement.asType().toString());
+            if (realmType != null) {
+                switch (realmType) {
+                    case STRING:
+                    case DATE:
+                    case INTEGER:
+                    case BOOLEAN:
+                        indexable = true;
+                }
             }
+        }
+
+        if (indexable) {
+            indexedFields.add(variableElement);
+            return true;
         }
 
         Utils.error(String.format(Locale.US, "Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
@@ -496,16 +500,14 @@ public class ClassMetaData {
     }
 
     private boolean categorizeMutableRealmIntegerField(VariableElement field) {
-        if (!field.getModifiers().contains(Modifier.FINAL)) {
-            Utils.error(String.format(Locale.US,
-                    "Field \"%s\", a MutableRealmInteger, must be final.",
-                    field.getSimpleName().toString()));
-            return false;
+        if (field.getModifiers().contains(Modifier.FINAL)) {
+            return true;
         }
 
-        containsMutableRealmInteger = true;
-
-        return true;
+        Utils.error(String.format(Locale.US,
+                "Field \"%s\", a MutableRealmInteger, must be final.",
+                field.getSimpleName().toString()));
+        return false;
     }
 
     private boolean isValidPrimaryKeyType(TypeMirror type) {
