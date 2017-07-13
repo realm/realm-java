@@ -673,13 +673,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeIncrementLong(JNIEnv* 
         return;
     }
 
-    Table* table = TBL(nativeTablePtr);
-    if (table->is_null(columnIndex, rowIndex)) {
-        ThrowException(env, IllegalState, "Cannot increment a MutableRealmInteger whose value is null. Set its value first.");
-        return;
-    }
-
     try {
+        Table* table = TBL(nativeTablePtr);
+        if (table->is_null(columnIndex, rowIndex)) {
+            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
+                                 "Cannot increment a MutableRealmInteger whose value is null. Set its value first.");
+        }
+
         table->add_int(S(columnIndex), S(rowIndex), value);
     }
     CATCH_STD()

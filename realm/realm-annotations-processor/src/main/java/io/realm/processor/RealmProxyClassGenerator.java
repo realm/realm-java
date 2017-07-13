@@ -270,6 +270,9 @@ public class RealmProxyClassGenerator {
     }
     //@formatter:on
 
+    // The anonymous subclass of MutableRealmInteger.Managed holds a reference to this proxy.
+    // Even if all other references to the proxy are dropped, the proxy will not be GCed until
+    // the MutableInteger that it owns, also becomes unreachable.
     //@formatter:off
     private void emitMutableRealmIntegerField(JavaWriter writer, VariableElement variableElement) throws IOException{
         writer.emitField("MutableRealmInteger.Managed",
