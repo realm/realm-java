@@ -1089,8 +1089,7 @@ public class RealmProxyClassGenerator {
             writer.endControlFlow();
 
         } else if ("io.realm.MutableRealmInteger".equals(fieldType)) {
-            // FIXME MutableRealmInteger:
-            // While identical to the  semantics of Long, this may not be correct.
+            // FIXME MutableRealmInteger: While identical to the  semantics of Long, this may not be correct.
             writer
                     .emitStatement("Long %s = ((%s) object).%s().get()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
@@ -1710,7 +1709,6 @@ public class RealmProxyClassGenerator {
                         .endControlFlow()
                         .endControlFlow();
             } else if (Utils.isMutableRealmInteger(field)) {
-                // FIXME MutableRealmInteger:
                 // If the user initializes the unmanaged MutableRealmInteger to null, this will fail mysteriously.
                 writer.emitStatement("unmanagedCopy.%s().set(realmSource.%s().get())", getter, getter);
             } else {
