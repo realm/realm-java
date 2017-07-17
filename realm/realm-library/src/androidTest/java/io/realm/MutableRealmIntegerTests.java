@@ -156,7 +156,7 @@ public class MutableRealmIntegerTests {
      * @Required MutableRealmIntegers should not be nullable.
      * There are other tests testing nullabilty: just need to test @Required here.
      * There is no attempt to control the nullability of an unmanaged MutableRealmInteger.
-     * And attempt to copy an unmanaged model object with a null-valued MutableRealmInteger
+     * An attempt to copy an unmanaged model object with a null-valued MutableRealmInteger
      * into an @Required field should fail.
      */
     @Test
@@ -165,8 +165,9 @@ public class MutableRealmIntegerTests {
         MutableRealmIntegerTypes c1 = realm.createObject(MutableRealmIntegerTypes.class);
         realm.commitTransaction();
 
-        Table table = realm.getTable(MutableRealmIntegerTypes.class);
-        assertFalse(table.isColumnNullable(table.getColumnIndex(MutableRealmIntegerTypes.FIELD_NONNULLABLE_MUTABLEREALMINTEGER)));
+        assertFalse(
+                realm.getSchema().get("MutableRealmIntegerTypes")
+                        .isNullable(MutableRealmIntegerTypes.FIELD_NONNULLABLE_MUTABLEREALMINTEGER));
 
         try {
             c1.columnNonNullableMutableRealmInteger.set(null);
@@ -196,9 +197,12 @@ public class MutableRealmIntegerTests {
         MutableRealmIntegerTypes c1 = realm.createObject(MutableRealmIntegerTypes.class);
         realm.commitTransaction();
 
-        Table table = realm.getTable(MutableRealmIntegerTypes.class);
-        assertTrue(table.hasSearchIndex(table.getColumnIndex(MutableRealmIntegerTypes.FIELD_INDEXED_MUTABLEREALMINTEGER)));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex(MutableRealmIntegerTypes.FIELD_NULLABLE_MUTABLEEALMINTEGER)));
+        assertTrue(
+                realm.getSchema().get("MutableRealmIntegerTypes")
+                        .hasIndex(MutableRealmIntegerTypes.FIELD_INDEXED_MUTABLEREALMINTEGER));
+        assertFalse(
+                realm.getSchema().get("MutableRealmIntegerTypes")
+                        .hasIndex(MutableRealmIntegerTypes.FIELD_NULLABLE_MUTABLEEALMINTEGER));
     }
 
     /**

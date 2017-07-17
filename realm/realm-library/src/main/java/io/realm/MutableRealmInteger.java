@@ -25,7 +25,7 @@ import io.realm.internal.Table;
  * A MutableRealmInteger is a mutable, {@link java.lang.Long}-like numeric quantity.
  * It behaves almost exactly as a reference to a {@link java.lang.Long}. More specifically:
  * <ul>
- * <li>The MutableRealmInteger may have the value {@code null}.</li>
+ * <li>A MutableRealmInteger may have the value {@code null}.</li>
  * <li>The {@code .equals} operator compares the contained Long values. null-valued MutableRealmInteger are {@code .equals}</li>
  * <li>The {@code .compareTo} operator compares the contained Long values.  It considers {@code null} &lt; any value.</li>
  * <li>The {@code .increment} and {@code .decrement} operators throw {@code IllegalStateException} when applied to a null-valued MutableRealmInteger.</li>
@@ -46,7 +46,11 @@ import io.realm.internal.Table;
  *     .counter.increment(1);
  * }
  * </pre>
- * Note that the {@code .set} operator must be used with extreme care. It destroys any guarantees of consistency.
+ * Note that the {@link #set(Long)} operator must be used with extreme care. It will override any method calls
+ * to {@link #increment(long)} or {@link #decrement(long)}. Although the value of a MutableRealmInteger will
+ * always converge across devices the specific value will depend on the actual order in which operations took place.
+ * Mixing {@link #set(Long)} with {@link #increment(long)} is, therefore, not advised, unless fuzzy counting
+ * is acceptable.
  * <p>
  *
  * MutableRealmIntegers may not be primary keys. Their implementations are not thread safe.
@@ -74,7 +78,7 @@ import io.realm.internal.Table;
  *<p>
  * A reference to a managed MutableRealmInteger is subject to all of the constraints that apply to the model object
  * from which it was obtained: It can only be mutated within a transaction. It becomes invalid if
- * the Realm backing it is closed. And so on. Use the {@code .isManaged} and {@code .isValid} operators to
+ * the Realm backing it is closed. Use the {@link #isManaged}  and {@link #isManaged}  operators to
  * determine whether a MutableRealmInteger is in a consistent state. Note, in particular, that a reference
  * to a managed MutableRealmInteger retains a reference to the model object to which it belongs.
  * For example in this code:
