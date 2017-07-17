@@ -405,8 +405,7 @@ public class AuthTests extends BaseIntegrationTest {
         final SyncUser[] users = new SyncUser[3];
 
         for (int i = 0; i < users.length; i++) {
-            SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), password,
-                    true);
+            SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), password, true);
             users[i] = SyncUser.login(credentials, Constants.AUTH_URL);
         }
 
@@ -444,6 +443,21 @@ public class AuthTests extends BaseIntegrationTest {
             assertTrue(user.isValid());
             user.logout();
             assertFalse(user.isValid());
+        }
+    }
+
+    // verify that multiple users can be logged in at the same time
+    @Test
+    public void multipleUsersCanBeLoggedInSuccessively() {
+        final String password = "password";
+        final SyncUser[] users = new SyncUser[3];
+
+        for (int i = 0; i < users.length; i++) {
+            SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), password, true);
+            users[i] = SyncUser.login(credentials, Constants.AUTH_URL);
+            assertTrue(users[i].isValid());
+            users[i].logout();
+            assertFalse(users[i].isValid());
         }
     }
 
