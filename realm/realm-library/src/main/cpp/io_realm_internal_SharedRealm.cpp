@@ -681,7 +681,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNI
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         auto* schema = reinterpret_cast<Schema*>(schema_ptr);
-        shared_realm->update_schema(*schema, static_cast<uint64_t>(version), nullptr, true);
+        shared_realm->update_schema(*schema, static_cast<uint64_t>(version), nullptr, nullptr, true);
     }
     CATCH_STD()
 }
