@@ -17,34 +17,72 @@
 package io.realm.internal;
 
 import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
+import io.realm.TestHelper;
+import io.realm.rule.TestRealmConfigurationFactory;
 
-public class JNISortedLongTest extends TestCase {
-    Table table;
+import static org.junit.Assert.assertEquals;
 
-    void init() {
+
+@RunWith(AndroidJUnit4.class)
+public class JNISortedLongTest {
+
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private RealmConfiguration config;
+    private SharedRealm sharedRealm;
+    private Table table;
+
+    @Before
+    public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
-        table = new Table();
-        table.addColumn(RealmFieldType.INTEGER, "number");
-        table.addColumn(RealmFieldType.STRING, "name");
+        config = configFactory.createConfiguration();
+        sharedRealm = SharedRealm.getInstance(config);
+    }
 
-        table.add(1, "A");
-        table.add(10, "B");
-        table.add(20, "C");
-        table.add(30, "B");
-        table.add(40, "D");
-        table.add(50, "D");
-        table.add(60, "D");
-        table.add(60, "D");
+    @After
+    public void tearDown() {
+        if (sharedRealm != null && !sharedRealm.isClosed()) {
+            sharedRealm.close();
+        }
+    }
+
+    private void init() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
+        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+            @Override
+            public void execute(Table table) {
+                table.addColumn(RealmFieldType.INTEGER, "number");
+                table.addColumn(RealmFieldType.STRING, "name");
+
+                TestHelper.addRowWithValues(table, 1, "A");
+                TestHelper.addRowWithValues(table, 10, "B");
+                TestHelper.addRowWithValues(table, 20, "C");
+                TestHelper.addRowWithValues(table, 30, "B");
+                TestHelper.addRowWithValues(table, 40, "D");
+                TestHelper.addRowWithValues(table, 50, "D");
+                TestHelper.addRowWithValues(table, 60, "D");
+                TestHelper.addRowWithValues(table, 60, "D");
+            }
+        });
 
         assertEquals(8, table.size());
     }
 
-    public void testShouldTestSortedIntTable() {
+    @Test
+    public void shouldTestSortedIntTable() {
         init();
 
         // Before first entry.

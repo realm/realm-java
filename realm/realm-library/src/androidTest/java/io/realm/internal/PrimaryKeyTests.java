@@ -66,7 +66,7 @@ public class PrimaryKeyTests {
     private Table getTableWithStringPrimaryKey() {
         sharedRealm = SharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
-        Table t = sharedRealm.createTable("TestTable");
+        Table t = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
         long column = t.addColumn(RealmFieldType.STRING, "colName", true);
         t.addSearchIndex(column);
         t.setPrimaryKey("colName");
@@ -76,7 +76,7 @@ public class PrimaryKeyTests {
     private Table getTableWithIntegerPrimaryKey() {
         sharedRealm = SharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
-        Table t = sharedRealm.createTable("TestTable");
+        Table t = sharedRealm.createTable(Table.getTableNameForClass("class_TestTable"));
         long column = t.addColumn(RealmFieldType.INTEGER, "colName");
         t.addSearchIndex(column);
         t.setPrimaryKey("colName");
@@ -91,14 +91,14 @@ public class PrimaryKeyTests {
         SharedRealm sharedRealm = SharedRealm.getInstance(config);
 
         sharedRealm.beginTransaction();
-        Table tbl = sharedRealm.createTable("EmployeeTable");
+        Table tbl = sharedRealm.createTable(Table.getTableNameForClass("EmployeeTable"));
         tbl.addColumn(RealmFieldType.STRING, "name");
         tbl.setPrimaryKey("name");
 
         // Creates first entry with name "Foo".
-        tbl.setString(0, tbl.addEmptyRow(), "Foo", false);
+        tbl.setString(0, OsObject.createRow(tbl), "Foo", false);
 
-        long rowIndex = tbl.addEmptyRow();
+        long rowIndex = OsObject.createRow(tbl);
         try {
             tbl.setString(0, rowIndex, "Foo", false); // Tries to create 2nd entry with name Foo.
         } catch (RealmPrimaryKeyConstraintException e1) {
@@ -119,7 +119,7 @@ public class PrimaryKeyTests {
     public void addEmptyRowWithPrimaryKeyWrongTypeStringThrows() {
         Table t = getTableWithStringPrimaryKey();
         try {
-            OsObject.createWithPrimaryKey(sharedRealm, t, 42);
+            OsObject.createWithPrimaryKey(t, 42);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -129,7 +129,7 @@ public class PrimaryKeyTests {
     @Test
     public void addEmptyRowWithPrimaryKeyNullString() {
         Table t = getTableWithStringPrimaryKey();
-        OsObject.createWithPrimaryKey(sharedRealm, t, null);
+        OsObject.createWithPrimaryKey(t, null);
         assertEquals(1, t.size());
         sharedRealm.cancelTransaction();
     }
@@ -138,7 +138,7 @@ public class PrimaryKeyTests {
     public void addEmptyRowWithPrimaryKeyWrongTypeIntegerThrows() {
         Table t = getTableWithIntegerPrimaryKey();
         try {
-            OsObject.createWithPrimaryKey(sharedRealm, t, "Foo");
+            OsObject.createWithPrimaryKey(t, "Foo");
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -148,7 +148,7 @@ public class PrimaryKeyTests {
     @Test
     public void addEmptyRowWithPrimaryKeyString() {
         Table t = getTableWithStringPrimaryKey();
-        UncheckedRow row = OsObject.createWithPrimaryKey(sharedRealm, t, "Foo");
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, "Foo");
         assertEquals(1, t.size());
         assertEquals("Foo", row.getString(0));
         sharedRealm.cancelTransaction();
@@ -157,7 +157,7 @@ public class PrimaryKeyTests {
     @Test
     public void addEmptyRowWithPrimaryKeyLong() {
         Table t = getTableWithIntegerPrimaryKey();
-        UncheckedRow row = OsObject.createWithPrimaryKey(sharedRealm, t, 42);
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, 42);
         assertEquals(1, t.size());
         assertEquals(42L, row.getLong(0));
         sharedRealm.cancelTransaction();
@@ -221,7 +221,7 @@ public class PrimaryKeyTests {
     public void migratePrimaryKeyTableIfNeeded_primaryKeyTableNeedSearchIndex() {
         sharedRealm = SharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
-        Table table = sharedRealm.createTable("TestTable");
+        Table table = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
         long column = table.addColumn(RealmFieldType.INTEGER, "PKColumn");
         table.addSearchIndex(column);
         table.setPrimaryKey(column);
@@ -236,7 +236,7 @@ public class PrimaryKeyTests {
         pkTable.removeSearchIndex(classColumn);
 
         // Tries to add a pk for another table.
-        Table table2 = sharedRealm.createTable("TestTable2");
+        Table table2 = sharedRealm.createTable(Table.getTableNameForClass("TestTable2"));
         long column2 = table2.addColumn(RealmFieldType.INTEGER, "PKColumn");
         table2.addSearchIndex(column2);
         try {

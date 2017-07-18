@@ -26,6 +26,6 @@ public class IndexedFields extends RealmObject {
     public static final String FIELD_NON_INDEXED_STRING = "nonIndexedString";
 
     @Index
-    private String indexedString;
-    private String nonIndexedString;
+    public String indexedString;
+    public String nonIndexedString;
 }

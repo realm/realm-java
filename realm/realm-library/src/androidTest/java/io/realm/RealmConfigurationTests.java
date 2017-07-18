@@ -260,18 +260,15 @@ public class RealmConfigurationTests {
         }
     }
 
+    // Only Dog is included in the schema definition, but in order to create Dog, the Owner has to be defined as well.
     @Test
-    public void customSchemaDontIncludeLinkedClasses() {
+    public void schemaDoesNotContainAllDefinedObjectShouldThrow() {
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
                 .schema(Dog.class)
                 .build();
+        thrown.expect(IllegalStateException.class);
         realm = Realm.getInstance(config);
-        try {
-            assertEquals(3, realm.getTable(Owner.class).getColumnCount());
-            fail("Owner should to be part of the schema");
-        } catch (IllegalArgumentException ignored) {
-        }
     }
 
     @Test
@@ -903,7 +900,7 @@ public class RealmConfigurationTests {
             Realm.getInstance(configuration);
             fail();
         } catch (RealmFileException expected) {
-            assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
+            assertEquals(RealmFileException.Kind.ACCESS_ERROR, expected.getKind());
         }
     }
 
@@ -1010,6 +1007,24 @@ public class RealmConfigurationTests {
                     .assetFile("foo")
                     .readOnly()
                     .deleteRealmIfMigrationNeeded()
+                    .build();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    @Test
+    public void readOnly_compactOnLaunch_throws() {
+        try {
+            new RealmConfiguration.Builder()
+                    .assetFile("foo")
+                    .readOnly()
+                    .compactOnLaunch(new CompactOnLaunchCallback() {
+                        @Override
+                        public boolean shouldCompact(long totalBytes, long usedBytes) {
+                            return false;
+                        }
+                    })
                     .build();
             fail();
         } catch (IllegalStateException ignored) {

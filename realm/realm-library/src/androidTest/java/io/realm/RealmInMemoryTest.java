@@ -81,14 +81,14 @@ public class RealmInMemoryTest {
         dog.setName("DinoDog");
         testRealm.commitTransaction();
 
-        assertEquals(testRealm.where(Dog.class).count(), 1);
-        assertEquals(testRealm.where(Dog.class).findFirst().getName(), "DinoDog");
+        assertEquals(1, testRealm.where(Dog.class).count());
+        assertEquals("DinoDog", testRealm.where(Dog.class).findFirst().getName());
 
         testRealm.close();
         // After all references to the in-mem-realm closed,
         // in-mem-realm with same identifier should create a fresh new instance.
         testRealm = Realm.getInstance(inMemConf);
-        assertEquals(testRealm.where(Dog.class).count(), 0);
+        assertEquals(0, testRealm.where(Dog.class).count());
     }
 
     // Two in-memory Realms with different names should not affect each other.
@@ -110,12 +110,12 @@ public class RealmInMemoryTest {
         dog2.setName("UFODog");
         testRealm2.commitTransaction();
 
-        assertEquals(testRealm.where(Dog.class).count(), 1);
+        assertEquals(1, testRealm.where(Dog.class).count());
         //noinspection ConstantConditions
-        assertEquals(testRealm.where(Dog.class).findFirst().getName(), "DinoDog");
-        assertEquals(testRealm2.where(Dog.class).count(), 1);
+        assertEquals("DinoDog", testRealm.where(Dog.class).findFirst().getName());
+        assertEquals(1, testRealm2.where(Dog.class).count());
         //noinspection ConstantConditions
-        assertEquals(testRealm2.where(Dog.class).findFirst().getName(), "UFODog");
+        assertEquals("UFODog", testRealm2.where(Dog.class).findFirst().getName());
 
         testRealm2.close();
     }
@@ -161,13 +161,13 @@ public class RealmInMemoryTest {
         // Tests a normal Realm file.
         testRealm.writeCopyTo(new File(configFactory.getRoot(), fileName));
         Realm onDiskRealm = Realm.getInstance(conf);
-        assertEquals(onDiskRealm.where(Dog.class).count(), 1);
+        assertEquals(1, onDiskRealm.where(Dog.class).count());
         onDiskRealm.close();
 
         // Tests a encrypted Realm file.
         testRealm.writeEncryptedCopyTo(new File(configFactory.getRoot(), encFileName), key);
         onDiskRealm = Realm.getInstance(encConf);
-        assertEquals(onDiskRealm.where(Dog.class).count(), 1);
+        assertEquals(1, onDiskRealm.where(Dog.class).count());
         onDiskRealm.close();
         // Tests with a wrong key to see if it fails as expected.
         try {
@@ -178,7 +178,7 @@ public class RealmInMemoryTest {
             Realm.getInstance(wrongKeyConf);
             fail("Realm.getInstance should fail with RealmFileException");
         } catch (RealmFileException expected) {
-            assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
+            assertEquals(RealmFileException.Kind.ACCESS_ERROR, expected.getKind());
         }
     }
 
@@ -207,7 +207,7 @@ public class RealmInMemoryTest {
                 realm.commitTransaction();
 
                 try {
-                    assertEquals(realm.where(Dog.class).count(), 1);
+                    assertEquals(1, realm.where(Dog.class).count());
                 } catch (AssertionFailedError afe) {
                     threadError[0] = afe;
                     realm.close();
@@ -237,7 +237,7 @@ public class RealmInMemoryTest {
 
         // Refreshes will be ran in the next loop, manually refreshes it here.
         testRealm.waitForChange();
-        assertEquals(testRealm.where(Dog.class).count(), 1);
+        assertEquals(1, testRealm.where(Dog.class).count());
 
         // Step 3.
         // Releases the main thread Realm reference, and the worker thread holds the reference still.
@@ -246,7 +246,7 @@ public class RealmInMemoryTest {
         // Step 4.
         // Creates a new Realm reference in main thread and checks the data.
         testRealm = Realm.getInstance(inMemConf);
-        assertEquals(testRealm.where(Dog.class).count(), 1);
+        assertEquals(1, testRealm.where(Dog.class).count());
         testRealm.close();
 
         // Let the worker thread continue.
@@ -258,6 +258,6 @@ public class RealmInMemoryTest {
 
         // Since all previous Realm instances has been closed before, below will create a fresh new in-mem-realm instance.
         testRealm = Realm.getInstance(inMemConf);
-        assertEquals(testRealm.where(Dog.class).count(), 0);
+        assertEquals(0, testRealm.where(Dog.class).count());
     }
 }

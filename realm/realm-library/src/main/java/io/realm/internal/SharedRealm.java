@@ -23,7 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import io.realm.CompactOnLaunchCallback;
 import io.realm.RealmConfiguration;
+import io.realm.RealmFieldType;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
@@ -78,20 +80,13 @@ public final class SharedRealm implements Closeable, NativeObject {
         }
     }
 
-    // Public for static checking in JNI
-    @SuppressWarnings("WeakerAccess")
-    public static final byte SCHEMA_MODE_VALUE_AUTOMATIC = 0;
-    @SuppressWarnings("WeakerAccess")
-    public static final byte SCHEMA_MODE_VALUE_READONLY = 1;
-    @SuppressWarnings("WeakerAccess")
-    public static final byte SCHEMA_MODE_VALUE_RESET_FILE = 2;
-    @SuppressWarnings("WeakerAccess")
-    public static final byte SCHEMA_MODE_VALUE_ADDITIVE = 3;
-    @SuppressWarnings("WeakerAccess")
-    public static final byte SCHEMA_MODE_VALUE_MANUAL = 4;
+    private static final byte SCHEMA_MODE_VALUE_AUTOMATIC = 0;
+    private static final byte SCHEMA_MODE_VALUE_READONLY = 1;
+    private static final byte SCHEMA_MODE_VALUE_RESET_FILE = 2;
+    private static final byte SCHEMA_MODE_VALUE_ADDITIVE = 3;
+    private static final byte SCHEMA_MODE_VALUE_MANUAL = 4;
 
-    @SuppressWarnings("WeakerAccess")
-    public enum SchemaMode {
+    private enum SchemaMode {
         SCHEMA_MODE_AUTOMATIC(SCHEMA_MODE_VALUE_AUTOMATIC),
         SCHEMA_MODE_READONLY(SCHEMA_MODE_VALUE_READONLY),
         SCHEMA_MODE_RESET_FILE(SCHEMA_MODE_VALUE_RESET_FILE),
@@ -231,6 +226,7 @@ public final class SharedRealm implements Closeable, NativeObject {
                 config.getSchemaVersion(),
                 enableFormatUpgrade,
                 autoChangeNotifications,
+                config.getCompactOnLaunchCallback(),
                 syncRealmUrl,
                 syncRealmAuthUrl,
                 syncUserIdentifier,
@@ -312,7 +308,36 @@ public final class SharedRealm implements Closeable, NativeObject {
      * @return a created {@link Table} object.
      */
     public Table createTable(String name) {
-        return new Table(this, nativeCreateTable(nativePtr, name));
+        return new Table(this, nativeCreateTable(nativePtr, name, false));
+    }
+
+    /**
+     * Creates a primary key table with then given name. Native assertion will happen if the table with the same name
+     * exists. This function is different from {@link #createTable(String)} which will call {@code create_table()} from
+     * sync to do the creation. This will always call the core's {@code add_table()} to avoid creating the stable id
+     * column for pk table.
+     *
+     * @return a created {@link Table} object.
+     */
+    public Table createPkTable() {
+        return new Table(this, nativeCreateTable(nativePtr, Table.PRIMARY_KEY_TABLE_NAME, true));
+    }
+
+    /**
+     * Creates a {@link Table} and adds a primary key field to it. Native assertion will happen if the table with the
+     * same name exists.
+     *
+     * @param tableName the name of table.
+     * @param primaryKeyFieldName the name of primary key field.
+     * @param isStringType if this is true, the primary key field will be create as a string field. Otherwise it will
+     *                     be created as an integer field.
+     * @param isNullable if the primary key field is nullable or not.
+     * @return a creatd {@link Table} object.
+     */
+    public Table createTableWithPrimaryKey(String tableName, String primaryKeyFieldName, boolean isStringType,
+                                           boolean isNullable) {
+        return new Table(this, nativeCreateTableWithPrimaryKeyField(nativePtr, tableName, primaryKeyFieldName,
+                isStringType, isNullable));
     }
 
     public void renameTable(String oldName, String newName) {
@@ -373,19 +398,14 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     /**
-     * Updates the underlying schema based on the schema description.
+     * Initializes the underlying schema based on the schema description.
      * Calling this method must be done from inside a write transaction.
-     * <p>
-     * TODO: This method should not require the caller to get the native pointer.
-     * Instead, the signature should be something like:
-     * public <T extends RealmSchema & NativeObject> </T>void updateSchema(T schema, long version)
-     * ... that is: something that is a schema and that wraps a native object.
      *
-     * @param schemaNativePtr the pointer to a native schema object.
+     * @param schemaInfo the expected schema.
      * @param version the target version.
      */
-    public void updateSchema(long schemaNativePtr, long version) {
-        nativeUpdateSchema(nativePtr, schemaNativePtr, version);
+    public void updateSchema(OsSchemaInfo schemaInfo, long version) {
+        nativeUpdateSchema(nativePtr, schemaInfo.getNativePtr(), version);
     }
 
     public void setAutoRefresh(boolean enabled) {
@@ -517,6 +537,7 @@ public final class SharedRealm implements Closeable, NativeObject {
             long schemaVersion,
             boolean enabledFormatUpgrade,
             boolean autoChangeNotification,
+            CompactOnLaunchCallback compactOnLaunch,
             String syncServerURL,
             String syncServerAuthURL,
             String syncUserIdentity,
@@ -556,7 +577,15 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
 
     // Throw IAE if the table exists already.
-    private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName);
+    // FIXME: isPkTable should be removed after integration with OS schema. All the meta tables should be handled in
+    // the Object Store.
+    private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName, boolean isPkTable);
+
+    // Throw IAE if the table exists already.
+    // If isStringType is false, the PK field will be created as an integer PK field.
+    private static native long nativeCreateTableWithPrimaryKeyField(long nativeSharedRealmPtr, String tableName,
+                                                                    String primaryKeyFieldName,
+                                                                    boolean isStringType, boolean isNullable);
 
     private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);
 

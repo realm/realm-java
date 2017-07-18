@@ -38,7 +38,7 @@ ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '25.0.3'
+    buildToolsVersion '26.0.0'
 
     defaultConfig {
         minSdkVersion 9
@@ -62,6 +62,16 @@ android {
                 } else {
                     // armeabi is not supported anymore.
                     abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                }
+            }
+        }
+
+        buildTypes {
+            debug {
+                javaCompileOptions {
+                    annotationProcessorOptions {
+                        arguments += [ 'realm.suppressWarnings' : 'false' ]
+                    }
                 }
             }
         }
@@ -92,14 +102,20 @@ android {
     packagingOptions {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/LICENSE.txt'
+        // We did strip with cmake for release build.
+        // Please, Gradle, you are not that smart! Pleas DO NOT strip debug symbols for debug build!
+        doNotStrip "*/*/*.so"
     }
 
     lintOptions {
         abortOnError false
     }
 
+   flavorDimensions 'api'
+
     productFlavors {
         base {
+            dimension 'api'
             externalNativeBuild {
                 cmake {
                     arguments "-DREALM_FLAVOR=base"
@@ -108,6 +124,7 @@ android {
             consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-base.pro'
         }
         objectServer {
+            dimension 'api'
             externalNativeBuild {
                 cmake {
                     arguments "-DREALM_FLAVOR=objectServer"
@@ -146,26 +163,29 @@ repositories {
 
 dependencies {
 
-    provided 'io.reactivex.rxjava2:rxjava:2.1.0'
-    provided 'com.google.code.findbugs:findbugs-annotations:3.0.1'
+    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.0'
+    compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
-    compile "io.realm:realm-annotations:${version}"
-    compile 'com.getkeepsafe.relinker:relinker:1.2.2'
+    api "io.realm:realm-annotations:${version}"
+    implementation 'com.getkeepsafe.relinker:relinker:1.2.2'
 
     kaptObjectServer project(':realm-annotations-processor')
-    objectServerCompile 'com.squareup.okhttp3:okhttp:3.4.1'
+    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.4.1'
 
     kaptAndroidTest project(':realm-annotations-processor')
-    androidTestCompile fileTree(dir: 'testLibs', include: ['*.jar'])
-    androidTestCompile 'io.reactivex.rxjava2:rxjava:2.1.0'
-    androidTestCompile 'com.android.support:support-annotations:25.3.1'
-    androidTestCompile 'com.android.support.test:runner:0.5'
-    androidTestCompile 'com.android.support.test:rules:0.5'
-    androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
-    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
-    androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
-    androidTestCompile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    androidTestCompile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
+    androidTestImplementation 'io.reactivex:rxjava:1.1.0'
+    androidTestImplementation 'com.android.support:support-annotations:25.3.1'
+    androidTestImplementation 'com.android.support.test:runner:0.5'
+    androidTestImplementation 'com.android.support.test:rules:0.5'
+    androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
+    androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
+    androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+
+    // specify error prone version to prevent sudden failure
+    errorprone 'com.google.errorprone:error_prone_core:2.0.21'
 }
 
 task sourcesJar(type: Jar) {
@@ -230,10 +250,10 @@ task findbugs(type: FindBugs) {
         xml.enabled = false
         html.enabled = true
         xml {
-            destination "$project.buildDir/findbugs/findbugs-output.xml"
+            destination file("$project.buildDir/findbugs/findbugs-output.xml")
         }
         html {
-            destination "$project.buildDir/findbugs/findbugs-output.html"
+            destination file("$project.buildDir/findbugs/findbugs-output.html")
         }
     }
 }
@@ -257,7 +277,7 @@ task checkstyle(type: Checkstyle) {
 
     source 'src'
     include '*/java/**/*.java'
-    // Ingore tests for now.
+    // Ignore tests for now.
     exclude '*Test*/**'
 
     // empty classpath
@@ -347,7 +367,7 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
 
-            pom.withXml(createPomDependencies(["baseCompile", "compile"]))
+            pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
         }
 
         objectServerPublication(MavenPublication) {
@@ -358,7 +378,7 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
 
-            pom.withXml(createPomDependencies(["objectServerCompile", "compile"]))
+            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
         }
     }
     repositories {

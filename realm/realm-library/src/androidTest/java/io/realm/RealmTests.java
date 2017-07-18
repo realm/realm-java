@@ -60,6 +60,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -102,6 +103,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;
@@ -110,6 +112,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.util.ExceptionHolder;
 import io.realm.util.RealmThread;
 
+import static io.realm.TestHelper.awaitOrFail;
 import static io.realm.TestHelper.testNoObjectFound;
 import static io.realm.TestHelper.testOneObjectFound;
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -213,7 +216,7 @@ public class RealmTests {
                     .build());
             fail();
         } catch (RealmFileException expected) {
-            assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
+            assertEquals(RealmFileException.Kind.PERMISSION_DENIED, expected.getKind());
         }
     }
 
@@ -230,7 +233,7 @@ public class RealmTests {
             Realm.getInstance(new RealmConfiguration.Builder(context).directory(folder).name(REALM_FILE).build());
             fail();
         } catch (RealmFileException expected) {
-            assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
+            assertEquals(RealmFileException.Kind.PERMISSION_DENIED, expected.getKind());
         }
     }
 
@@ -708,7 +711,7 @@ public class RealmTests {
             });
         } catch (RuntimeException ignored) {
             // Ensures that we pass a valuable error message to the logger for developers.
-            assertEquals(testLogger.message, "Could not cancel transaction, not currently in a transaction.");
+            assertEquals("Could not cancel transaction, not currently in a transaction.", testLogger.message);
         } finally {
             RealmLog.remove(testLogger);
         }
@@ -835,36 +838,32 @@ public class RealmTests {
 
     // The test writes and reads random Strings.
     @Test
-    @Ignore("This test is slow. Move it to another testsuite that runs once a day on Jenkins")
     public void unicodeStrings() {
-        List<String> chars_array = getCharacterArray();
+        List<String> charsArray = getCharacterArray();
         // Change seed value for new random values.
         long seed = 20;
         Random random = new Random(seed);
 
-
-        String test_char = "";
-        String test_char_old = "";
-
-        int random_value;
+        StringBuilder testChar = new StringBuilder();
+        realm.beginTransaction();
         for (int i = 0; i < 1000; i++) {
-            random_value = random.nextInt(25);
+            testChar.setLength(0);
+            int length = random.nextInt(25);
 
-            for (int j = 0; j < random_value; j++) {
-                test_char = test_char_old + chars_array.get(random.nextInt(27261));
-                test_char_old = test_char;
+            for (int j = 0; j < length; j++) {
+                testChar.append(charsArray.get(random.nextInt(27261)));
             }
-            realm.beginTransaction();
             StringOnly stringOnly = realm.createObject(StringOnly.class);
-            stringOnly.setChars(test_char);
-            realm.commitTransaction();
 
+            // tests setter
+            stringOnly.setChars(testChar.toString());
+
+            // tests getter
             realm.where(StringOnly.class).findFirst().getChars();
 
-            realm.beginTransaction();
             realm.delete(StringOnly.class);
-            realm.commitTransaction();
         }
+        realm.cancelTransaction();
     }
 
     @Test
@@ -1058,6 +1057,142 @@ public class RealmTests {
         realm = Realm.getInstance(config);
         realm.close();
         Realm.deleteRealm(config);
+    }
+
+    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
+        return populateTestRealmAndCompactOnLaunch(compactOnLaunch, 100);
+    }
+
+    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch, int objects) {
+        final String REALM_NAME = "test.realm";
+        RealmConfiguration realmConfig = configFactory.createConfiguration(REALM_NAME);
+        Realm realm = Realm.getInstance(realmConfig);
+        populateTestRealm(realm, objects);
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+        realm.close();
+        long before = new File(realmConfig.getPath()).length();
+        if (compactOnLaunch != null) {
+            realmConfig = configFactory.createConfigurationBuilder()
+                    .name(REALM_NAME)
+                    .compactOnLaunch(compactOnLaunch)
+                    .build();
+        } else {
+            realmConfig = configFactory.createConfigurationBuilder()
+                    .name(REALM_NAME)
+                    .compactOnLaunch()
+                    .build();
+        }
+        realm = Realm.getInstance(realmConfig);
+        realm.close();
+        long after = new File(realmConfig.getPath()).length();
+        return new Pair(before, after);
+    }
+
+    @Test
+    public void compactOnLaunch_shouldCompact() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(new CompactOnLaunchCallback() {
+            @Override
+            public boolean shouldCompact(long totalBytes, long usedBytes) {
+                assertTrue(totalBytes > usedBytes);
+                return true;
+            }
+        });
+        assertTrue(results.first > results.second);
+    }
+
+    @Test
+    public void compactOnLaunch_shouldNotCompact() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(new CompactOnLaunchCallback() {
+            @Override
+            public boolean shouldCompact(long totalBytes, long usedBytes) {
+                assertTrue(totalBytes > usedBytes);
+                return false;
+            }
+        });
+        assertEquals(results.first, results.second);
+    }
+
+    @Test
+    public void compactOnLaunch_multipleThread() throws IOException {
+        final String REALM_NAME = "test.realm";
+        final AtomicInteger compactOnLaunchCount = new AtomicInteger(0);
+
+        final RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .name(REALM_NAME)
+                .compactOnLaunch(new CompactOnLaunchCallback() {
+                    @Override
+                    public boolean shouldCompact(long totalBytes, long usedBytes) {
+                        compactOnLaunchCount.incrementAndGet();
+                        return true;
+                    }
+                })
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm bgRealm = Realm.getInstance(realmConfig);
+                bgRealm.close();
+            }
+        });
+        thread.start();
+
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            fail();
+        }
+
+        realm.close();
+
+        // FIXME: It should be 1. Current compactOnLaunch is called each time a Realm is opened on a new thread.
+        assertNotEquals(1, compactOnLaunchCount.get());
+        assertEquals(3, compactOnLaunchCount.get());
+    }
+
+    @Test
+    public void compactOnLaunch_insufficientAmount() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(new CompactOnLaunchCallback() {
+            @Override
+            public boolean shouldCompact(long totalBytes, long usedBytes) {
+                final long thresholdSize = 50 * 1024 * 1024;
+                return (totalBytes > thresholdSize) && (((double) usedBytes / (double) totalBytes) < 0.5);
+            }
+        }, 100);
+        final long thresholdSize = 50 * 1024 * 1024;
+        assertTrue(results.first < thresholdSize);
+        assertEquals(results.first, results.second);
+    }
+
+    @Test
+    public void defaultCompactOnLaunch() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 30000);
+        final long thresholdSize = 50 * 1024 * 1024;
+        assertTrue(results.first > thresholdSize);
+        assertTrue(results.first > results.second);
+    }
+
+    @Test
+    public void defaultCompactOnLaunch_onlyCallback() {
+        DefaultCompactOnLaunchCallback callback = new DefaultCompactOnLaunchCallback();
+        final long thresholdSize = 50 * 1024 * 1024;
+        final long big = thresholdSize + 1024;
+        assertFalse(callback.shouldCompact(big, (long) (big * 0.6)));
+        assertTrue(callback.shouldCompact(big, (long) (big * 0.3)));
+        final long small = thresholdSize - 1024;
+        assertFalse(callback.shouldCompact(small, (long) (small * 0.6)));
+        assertFalse(callback.shouldCompact(small, (long) (small * 0.3)));
+    }
+
+    @Test
+    public void defaultCompactOnLaunch_insufficientAmount() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 100);
+        final long thresholdSize = 50 * 1024 * 1024;
+        assertTrue(results.first < thresholdSize);
+        assertEquals(results.first, results.second);
     }
 
     @Test
@@ -3977,7 +4112,7 @@ public class RealmTests {
                 realm.close();
                 bgThreadDone.countDown();
             }
-        }).run();
+        }).start();
         TestHelper.awaitOrFail(bgThreadDone);
 
         realm.refresh();
@@ -4001,7 +4136,7 @@ public class RealmTests {
                 realm.close();
                 bgThreadDone.countDown();
             }
-        }).run();
+        }).start();
         TestHelper.awaitOrFail(bgThreadDone);
 
         realm.refresh();

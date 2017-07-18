@@ -25,6 +25,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import io.realm.annotations.RealmModule;
@@ -51,7 +52,7 @@ import io.realm.rx.RxObservableFactory;
  * <p>
  * A minimal configuration can be created using:
  * <p>
- * {@code RealmConfiguration config = new RealmConfiguration.Builder(getContext()).build())}
+ * {@code RealmConfiguration config = new RealmConfiguration.Builder().build()}
  * <p>
  * This will create a RealmConfiguration with the following properties.
  * <ul>
@@ -97,6 +98,7 @@ public class RealmConfiguration {
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
     private final boolean readOnly;
+    private final CompactOnLaunchCallback compactOnLaunch;
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
@@ -112,7 +114,8 @@ public class RealmConfiguration {
             RealmProxyMediator schemaMediator,
             RxObservableFactory rxObservableFactory,
             Realm.Transaction initialDataTransaction,
-            boolean readOnly) {
+            boolean readOnly,
+            CompactOnLaunchCallback compactOnLaunch) {
         this.realmDirectory = realmDirectory;
         this.realmFileName = realmFileName;
         this.canonicalPath = canonicalPath;
@@ -126,6 +129,7 @@ public class RealmConfiguration {
         this.rxObservableFactory = rxObservableFactory;
         this.initialDataTransaction = initialDataTransaction;
         this.readOnly = readOnly;
+        this.compactOnLaunch = compactOnLaunch;
     }
 
     public File getRealmDirectory() {
@@ -190,6 +194,17 @@ public class RealmConfiguration {
      */
     String getAssetFilePath() {
         return assetFilePath;
+    }
+
+    /**
+     * Returns a callback to determine if the Realm file should be compacted before being returned to the user.
+     *
+     * @return a callback called when opening a Realm for the first time during the life of a process to determine if
+     * it should be compacted before being returned to the user. It is passed the total file size (data + free space)
+     * and the total bytes used by data in the file.
+     */
+    public CompactOnLaunchCallback getCompactOnLaunchCallback() {
+        return compactOnLaunch;
     }
 
     /**
@@ -271,6 +286,7 @@ public class RealmConfiguration {
             return false;
         }
         if (readOnly != that.readOnly) { return false; }
+        if (compactOnLaunch != null ? !compactOnLaunch.equals(that.compactOnLaunch) : that.compactOnLaunch != null) { return false; }
 
         return schemaMediator.equals(that.schemaMediator);
     }
@@ -290,6 +306,7 @@ public class RealmConfiguration {
         result = 31 * result + (rxObservableFactory != null ? rxObservableFactory.hashCode() : 0);
         result = 31 * result + (initialDataTransaction != null ? initialDataTransaction.hashCode() : 0);
         result = 31 * result + (readOnly ? 1 : 0);
+        result = 31 * result + (compactOnLaunch != null ? compactOnLaunch.hashCode() : 0);
 
         return result;
     }
@@ -322,7 +339,7 @@ public class RealmConfiguration {
     private static RealmProxyMediator getModuleMediator(String fullyQualifiedModuleClassName) {
         String[] moduleNameParts = fullyQualifiedModuleClassName.split("\\.");
         String moduleSimpleName = moduleNameParts[moduleNameParts.length - 1];
-        String mediatorName = String.format("io.realm.%s%s", moduleSimpleName, "Mediator");
+        String mediatorName = String.format(Locale.US, "io.realm.%s%s", moduleSimpleName, "Mediator");
         Class<?> clazz;
         //noinspection TryWithIdenticalCatches
         try {
@@ -364,6 +381,8 @@ public class RealmConfiguration {
         stringBuilder.append("schemaMediator: ").append(schemaMediator);
         stringBuilder.append("\n");
         stringBuilder.append("readOnly: ").append(readOnly);
+        stringBuilder.append("\n");
+        stringBuilder.append("compactOnLaunch: ").append(compactOnLaunch);
 
         return stringBuilder.toString();
     }
@@ -420,6 +439,7 @@ public class RealmConfiguration {
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
         private boolean readOnly;
+        private CompactOnLaunchCallback compactOnLaunch;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -450,6 +470,7 @@ public class RealmConfiguration {
             this.deleteRealmIfMigrationNeeded = false;
             this.durability = SharedRealm.Durability.FULL;
             this.readOnly = false;
+            this.compactOnLaunch = null;
             if (DEFAULT_MODULE != null) {
                 this.modules.add(DEFAULT_MODULE);
             }
@@ -500,7 +521,8 @@ public class RealmConfiguration {
                 throw new IllegalArgumentException("A non-null key must be provided");
             }
             if (key.length != KEY_LENGTH) {
-                throw new IllegalArgumentException(String.format("The provided key must be %s bytes. Yours was: %s",
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "The provided key must be %s bytes. Yours was: %s",
                         KEY_LENGTH, key.length));
             }
             this.key = Arrays.copyOf(key, key.length);
@@ -670,6 +692,30 @@ public class RealmConfiguration {
             return this;
         }
 
+        /**
+         * Setting this will cause Realm to compact the Realm file if the Realm file has grown too large and a
+         * significant amount of space can be recovered. See {@link DefaultCompactOnLaunchCallback} for details.
+         */
+        public Builder compactOnLaunch() {
+            return compactOnLaunch(new DefaultCompactOnLaunchCallback());
+        }
+
+        /**
+         * Sets this to determine if the Realm file should be compacted before returned to the user. It is passed the
+         * total file size (data + free space) and the bytes used by data in the file.
+         *
+         * @param compactOnLaunch a callback called when opening a Realm for the first time during the life of a process
+         *                        to determine if it should be compacted before being returned to the user. It is passed
+         *                        the total file size (data + free space) and the bytes used by data in the file.
+         */
+        public Builder compactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
+            if (compactOnLaunch == null) {
+                throw new IllegalArgumentException("A non-null compactOnLaunch must be provided");
+            }
+            this.compactOnLaunch = compactOnLaunch;
+            return this;
+        }
+
         private void addModule(Object module) {
             if (module != null) {
                 checkModule(module);
@@ -714,6 +760,9 @@ public class RealmConfiguration {
                 if (deleteRealmIfMigrationNeeded) {
                     throw new IllegalStateException("'deleteRealmIfMigrationNeeded()' and read-only Realms cannot be combined");
                 }
+                if (compactOnLaunch != null) {
+                    throw new IllegalStateException("'compactOnLaunch()' and read-only Realms cannot be combined");
+                }
             }
 
             if (rxFactory == null && isRxJavaAvailable()) {
@@ -732,7 +781,8 @@ public class RealmConfiguration {
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
                     initialDataTransaction,
-                    readOnly
+                    readOnly,
+                    compactOnLaunch
             );
         }
 

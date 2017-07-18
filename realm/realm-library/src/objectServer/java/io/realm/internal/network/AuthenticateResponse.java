@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
@@ -75,6 +76,13 @@ public class AuthenticateResponse extends AuthServerResponse {
     }
 
     /**
+     * Helper method for creating a failed response from an {@link Exception}.
+     */
+    public static AuthenticateResponse from(Exception exception) {
+        return AuthenticateResponse.from(new ObjectServerError(ErrorCode.fromException(exception), exception));
+    }
+
+    /**
      * Helper method for creating a valid user login response. The user returned will be assumed to have all permissions
      * and doesn't expire.
      *
@@ -125,14 +133,14 @@ public class AuthenticateResponse extends AuthServerResponse {
             if (accessToken == null) {
                 message = "accessToken = null";
             } else {
-                message = String.format("Identity %s; Path %s", accessToken.identity(), accessToken.path());
+                message = String.format(Locale.US, "Identity %s; Path %s", accessToken.identity(), accessToken.path());
             }
         } catch (JSONException ex) {
             accessToken = null;
             refreshToken = null;
             //noinspection ThrowableInstanceNeverThrown
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, ex);
-            message = String.format("Error %s", error.getErrorMessage());
+            message = String.format(Locale.US, "Error %s", error.getErrorMessage());
         }
         RealmLog.debug("AuthenticateResponse. " + message);
         setError(error);
