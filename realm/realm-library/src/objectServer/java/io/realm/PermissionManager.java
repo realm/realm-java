@@ -309,7 +309,7 @@ public class PermissionManager implements Closeable {
 
     /**
      * Returns the list of offers created by this user. These offers can be revoked again by calling
-     * {@link #revokeOffer(String, ErrorCallback)} or sent to other users by sending the
+     * {@link #revokeOffer(String, PermissionManagerBaseCallback)} or sent to other users by sending the
      * {@link PermissionOffer#getToken()}.
      *
      * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
@@ -1160,7 +1160,7 @@ public class PermissionManager implements Closeable {
     /**
      * Callback used when loading the list of {@link PermissionOffer}'s created by the user.
      */
-    public interface OffersCallback extends ErrorCallback {
+    public interface OffersCallback extends PermissionManagerBaseCallback {
         /**
          * Called when all known offers are successfully loaded.
          * <p>
