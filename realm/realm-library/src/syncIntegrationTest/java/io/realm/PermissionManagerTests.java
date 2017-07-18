@@ -773,10 +773,10 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
         // createOffer validates that the offer is actually in the __management Realm.
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
 
-        final SyncUser user2 = UserFactory.createUniqueUser();
-        final SyncUser user3 = UserFactory.createUniqueUser();
+        SyncUser user2 = UserFactory.createUniqueUser();
+        SyncUser user3 = UserFactory.createUniqueUser();
         final PermissionManager pm1 = user.getPermissionManager();
-        final PermissionManager pm2 = user2.getPermissionManager();
+        PermissionManager pm2 = user2.getPermissionManager();
         final PermissionManager pm3 = user3.getPermissionManager();
         looperThread.closeAfterTest(pm1);
         looperThread.closeAfterTest(pm2);
@@ -818,7 +818,7 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
 
     @Test
     @RunTestInLooperThread
-    @Ignore("FIXME: Figure out why clocks on server/emulator on CI seem to differ")
+    @Ignore("Figure out why clocks on server/emulator on CI seem to differ")
     public void revokeOffer_alreadyExpired() {
         fail("Implement this");
     }
