@@ -381,6 +381,8 @@ public class SyncSession {
                 switch (direction) {
                     case DIRECTION_DOWNLOAD: errorMsg = "It was not possible to download all remote changes."; break;
                     case DIRECTION_UPLOAD: errorMsg = "It was not possible upload all local changes."; break;
+                    default:
+                        throw new IllegalArgumentException("Unknown direction: " + direction);
                 }
 
                 throw new ObjectServerError(ErrorCode.UNKNOWN, errorMsg + " Has the SyncClient been started?");
