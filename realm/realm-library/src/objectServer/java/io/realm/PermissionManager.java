@@ -247,7 +247,7 @@ public class PermissionManager implements Closeable {
      * @param callback callback when the request either succeeded or failed.
      * @return async task representing the request. This can be used to cancel it if needed.
      */
-    public RealmAsyncTask applyPermissions(PermissionRequest request, final ApplyPermissionsCallback callback) {
+    public RealmAsyncTask applyPermissions(PermissionRequest request, ApplyPermissionsCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         return addTask(new ApplyPermissionTask(this, request, callback));
@@ -271,7 +271,7 @@ public class PermissionManager implements Closeable {
      * @see <a href="https://realm.io/docs/java/latest/#modifying-permissions">Modifying permissions</a> for a more
      * high level description.
      */
-    public RealmAsyncTask makeOffer(PermissionOffer offer, final MakeOfferCallback callback) {
+    public RealmAsyncTask makeOffer(PermissionOffer offer, MakeOfferCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         if (offer.isOfferCreated()) {
@@ -288,7 +288,7 @@ public class PermissionManager implements Closeable {
      * @param callback with the permission details that were accepted.
      * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
      */
-    public RealmAsyncTask acceptOffer(String offerToken, final AcceptOfferCallback callback) {
+    public RealmAsyncTask acceptOffer(String offerToken, AcceptOfferCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         if (Util.isEmptyString(offerToken)) {
@@ -302,7 +302,7 @@ public class PermissionManager implements Closeable {
      * @param offerToken
      * @return
      */
-    public RealmAsyncTask revokeOffer(String offerToken, final PermissionManagerBaseCallback callback) {
+    public RealmAsyncTask revokeOffer(String offerToken, PermissionManagerBaseCallback callback) {
         return null; // FIXME
     }
 
@@ -831,7 +831,7 @@ public class PermissionManager implements Closeable {
                     managedResponse = managementRealm.where(PermissionOfferResponse.class).equalTo("id", responseId).findFirstAsync();
                     RealmObject.addChangeListener(managedResponse, new RealmChangeListener<PermissionOfferResponse>() {
                         @Override
-                        public void onChange(PermissionOfferResponse response) {
+                        public void onChange(final PermissionOfferResponse response) {
                             if (checkAndReportInvalidState()) {
                                 RealmObject.removeChangeListener(managedResponse, this);
                                 return;
