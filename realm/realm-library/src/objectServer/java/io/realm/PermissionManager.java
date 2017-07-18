@@ -158,7 +158,7 @@ public class PermissionManager implements Closeable {
      *
      * @param user user to create manager for.
      */
-    private PermissionManager(final SyncUser user) {
+    private PermissionManager(SyncUser user) {
         this.user = user;
         threadId = Thread.currentThread().getId();
         managementRealmConfig = new SyncConfiguration.Builder(
@@ -214,7 +214,7 @@ public class PermissionManager implements Closeable {
      * @param callback
      * @return
      */
-    public RealmAsyncTask getPermissions(final PermissionsCallback callback) {
+    public RealmAsyncTask getPermissions(PermissionsCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         return addTask(new GetPermissionsAsyncTask(this, callback));
@@ -228,7 +228,7 @@ public class PermissionManager implements Closeable {
      * live query result, that will be auto-updated like any other {@link RealmResults}.
      * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
      */
-    public RealmAsyncTask getDefaultPermissions(final PermissionsCallback callback) {
+    public RealmAsyncTask getDefaultPermissions(PermissionsCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         return addTask(new GetDefaultPermissionsAsyncTask(this, callback));
@@ -318,7 +318,7 @@ public class PermissionManager implements Closeable {
     // start the task by sending it to this thread handler. This is done
     // in order to be able to provide the user with a RealmAsyncTask representation
     // of the work being done.
-    private RealmAsyncTask addTask(final PermissionManagerTask task) {
+    private RealmAsyncTask addTask(PermissionManagerTask task) {
         if (isReady()) {
             activateTask(task);
         } else {
@@ -612,7 +612,7 @@ public class PermissionManager implements Closeable {
 
         private final PermissionChange unmanagedChangeRequest;
         private final ApplyPermissionsCallback callback;
-        private String changeRequestId;
+        private final String changeRequestId;
         private PermissionChange managedChangeRequest;
         private RealmAsyncTask transactionTask;
 
@@ -831,7 +831,7 @@ public class PermissionManager implements Closeable {
                     managedResponse = managementRealm.where(PermissionOfferResponse.class).equalTo("id", responseId).findFirstAsync();
                     RealmObject.addChangeListener(managedResponse, new RealmChangeListener<PermissionOfferResponse>() {
                         @Override
-                        public void onChange(final PermissionOfferResponse response) {
+                        public void onChange(PermissionOfferResponse response) {
                             if (checkAndReportInvalidState()) {
                                 RealmObject.removeChangeListener(managedResponse, this);
                                 return;
@@ -839,7 +839,6 @@ public class PermissionManager implements Closeable {
                             handleServerStatusChanges(response, new Runnable() {
                                 @Override
                                 public void run() {
-                                    RealmObject.removeAllChangeListeners(managedResponse);
                                     grantedPermissionResults = permissionRealm.where(Permission.class).equalTo("path", response.getPath()).findAllAsync();
                                     grantedPermissionResults.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                                         @Override
