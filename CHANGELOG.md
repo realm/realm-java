@@ -1,11 +1,4 @@
-## 3.5.0 (YYYY-MM-DD)
-
-### Breaking Changes
-
-* An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required model classes (#3398).
-* Removed `io.realm.internal.OutOfMemoryError`. `java.lang.OutOfMemoryError` will be thrown instead.
-
-### Deprecated
+## 3.6.0 (YYYY-MM-DD)
 
 ### Enhancements
 
@@ -13,33 +6,38 @@
 
 ### Internal
 
-* Use Object Store to do table initialization.
 
-### Credits
+## 3.5.1 (YYYY-MM-DD)
+
+### Bug Fixes
+
+### Internal
 
 
-## 3.4.1 (YYYY-MM-DD)
-
-### Breaking Changes
-
-### Deprecated
+## 3.5.0 (2017-07-11)
 
 ### Enhancements
 
+* Added `RealmConfiguration.Builder.compactOnLaunch()` to compact the file on launch (#3739).
 * [ObjectServer] Adding user lookup API for administrators (#4828).
+* An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required model classes (#3398).
 
 ### Bug Fixes
 
 * Bug in `isNull()`, `isNotNull()`, `isEmpty()`, and `isNotEmpty()` when queries involve nullable fields in link queries (#4856).
-* Fixed a bug in how to resolve field names when querying `@LinkingObjects` as the last field (#4864).
+* Bug in how to resolve field names when querying `@LinkingObjects` as the last field (#4864).
 * Rare crash in `RealmLog` when log level was set to `LogLevel.DEBUG`.
-* [ObjectServer] Fixed a bug related to the behaviour of `SyncUser#logout` and the use of invalid `SyncUser` with `SyncConfiguration` (#4822).
+* Broken case insensitive query with indexed field (#4788).
+* [ObjectServer] Bug related to the behaviour of `SyncUser#logout` and the use of invalid `SyncUser` with `SyncConfiguration` (#4822).
 * [ObjectServer] Not all error codes from the server were recognized correctly, resulting in UNKNOWN being reported instead.
 
 ### Internal
 
+* Use Object Store to do table initialization.
 * Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.
-
+* Upgraded Realm Core to 2.8.6
+* Upgraded Realm Sync to 1.10.5
+* Removed `io.realm.internal.OutOfMemoryError`. `java.lang.OutOfMemoryError` will be thrown instead.
 
 
 ## 3.4.0 (2017-06-22)
@@ -62,10 +60,10 @@
 
 ### Bug Fixes
 
-* [ObjectServer] Fixed a bug which may crash when the JNI local reference limitation was reached on sync client thread.
+* [ObjectServer] Bug which may crash when the JNI local reference limitation was reached on sync client thread.
 * [ObjectServer] Retrying connections with exponential backoff, when encountering `ConnectException` (#4310).
 * When converting nullable BLOB field to required, `null` values should be converted to `byte[0]` instead of `byte[1]`.
-* Fixed a bug which may cause duplicated primary key values when migrating a nullable primary key field to not nullable. `RealmObjectSchema.setRequired()` and `RealmObjectSchema.setNullable()` will throw when converting a nullable primary key field with null values stored to a required primary key field.
+* Bug which may cause duplicated primary key values when migrating a nullable primary key field to not nullable. `RealmObjectSchema.setRequired()` and `RealmObjectSchema.setNullable()` will throw when converting a nullable primary key field with null values stored to a required primary key field.
 
 ### Internal
 
@@ -81,7 +79,7 @@
 
 ### Bug Fixes
 
-* [ObjectServer] Fixed a crash when an authentication error happens (#4726).
+* [ObjectServer] Crash when an authentication error happens (#4726).
 * [ObjectServer] Enabled encryption with Sync (#4561).
 * [ObjectServer] Admin users did not connect correctly to the server (#4750).
 
@@ -118,7 +116,7 @@
 
 * [ObjectServer] `schemaVersion` was mistakenly required in order to trigger migrations (#4658).
 * [ObjectServer] Fields removed from model classes will now correctly be hidden instead of throwing an exception when opening the Realm (#4658).
-* Fixed random crashes which were caused by a race condition in encrypted Realm (#4343).
+* Random crashes which were caused by a race condition in encrypted Realm (#4343).
 
 ### Internal
 
@@ -222,7 +220,7 @@
 
 * Crash with `LogicError` with `Bad version number` on notifier thread (#4369).
 * `Realm.migrateRealm(RealmConfiguration)` now fails correctly with an `IllegalArgumentException` if a `SyncConfiguration` is provided (#4075).
-* Fixed a potential cause for Realm file corruptions (never reported).
+* Potential cause for Realm file corruptions (never reported).
 * Add `@Override` annotation to proxy class accessors and stop using raw type in proxy classes in order to remove warnings from javac (#4329).
 * `findFirstAsync()` now returns an invalid object if there is no object matches the query condition instead of running the query repeatedly until it can find one (#4352).
 * [ObjectServer] Changing the log level after starting a session now works correctly (#4337).

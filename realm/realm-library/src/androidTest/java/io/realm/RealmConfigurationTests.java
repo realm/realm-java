@@ -1014,4 +1014,22 @@ public class RealmConfigurationTests {
         } catch (IllegalStateException ignored) {
         }
     }
+
+    @Test
+    public void readOnly_compactOnLaunch_throws() {
+        try {
+            new RealmConfiguration.Builder()
+                    .assetFile("foo")
+                    .readOnly()
+                    .compactOnLaunch(new CompactOnLaunchCallback() {
+                        @Override
+                        public boolean shouldCompact(long totalBytes, long usedBytes) {
+                            return false;
+                        }
+                    })
+                    .build();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
 }

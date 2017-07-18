@@ -721,7 +721,7 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
                             case 1:
                                 looperThread.testComplete();
                                 break;
-                            case 2:
+                            default:
                                 fail("To many offers: " + Arrays.toString(results.toArray()));
                         }
                     }

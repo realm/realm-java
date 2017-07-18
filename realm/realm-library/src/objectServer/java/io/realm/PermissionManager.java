@@ -159,7 +159,7 @@ public class PermissionManager implements Closeable {
      *
      * @param user user to create manager for.
      */
-    private PermissionManager(final SyncUser user) {
+    private PermissionManager(SyncUser user) {
         this.user = user;
         threadId = Thread.currentThread().getId();
         managementRealmConfig = new SyncConfiguration.Builder(
@@ -215,7 +215,7 @@ public class PermissionManager implements Closeable {
      * @param callback
      * @return
      */
-    public RealmAsyncTask getPermissions(final PermissionsCallback callback) {
+    public RealmAsyncTask getPermissions(PermissionsCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         return addTask(new GetPermissionsAsyncTask(this, callback));
@@ -229,7 +229,7 @@ public class PermissionManager implements Closeable {
      * live query result, that will be auto-updated like any other {@link RealmResults}.
      * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
      */
-    public RealmAsyncTask getDefaultPermissions(final PermissionsCallback callback) {
+    public RealmAsyncTask getDefaultPermissions(PermissionsCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         return addTask(new GetDefaultPermissionsAsyncTask(this, callback));
@@ -248,7 +248,7 @@ public class PermissionManager implements Closeable {
      * @param callback callback when the request either succeeded or failed.
      * @return async task representing the request. This can be used to cancel it if needed.
      */
-    public RealmAsyncTask applyPermissions(PermissionRequest request, final ApplyPermissionsCallback callback) {
+    public RealmAsyncTask applyPermissions(PermissionRequest request, ApplyPermissionsCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         return addTask(new ApplyPermissionTask(this, request, callback));
@@ -272,7 +272,7 @@ public class PermissionManager implements Closeable {
      * @see <a href="https://realm.io/docs/java/latest/#modifying-permissions">Modifying permissions</a> for a more
      * high level description.
      */
-    public RealmAsyncTask makeOffer(PermissionOffer offer, final MakeOfferCallback callback) {
+    public RealmAsyncTask makeOffer(PermissionOffer offer, MakeOfferCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         if (offer.isOfferCreated()) {
@@ -289,7 +289,7 @@ public class PermissionManager implements Closeable {
      * @param callback with the permission details that were accepted.
      * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
      */
-    public RealmAsyncTask acceptOffer(String offerToken, final AcceptOfferCallback callback) {
+    public RealmAsyncTask acceptOffer(String offerToken, AcceptOfferCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         if (Util.isEmptyString(offerToken)) {
@@ -328,7 +328,7 @@ public class PermissionManager implements Closeable {
     // start the task by sending it to this thread handler. This is done
     // in order to be able to provide the user with a RealmAsyncTask representation
     // of the work being done.
-    private RealmAsyncTask addTask(final PermissionManagerTask task) {
+    private RealmAsyncTask addTask(PermissionManagerTask task) {
         if (isReady()) {
             activateTask(task);
         } else {
@@ -425,7 +425,7 @@ public class PermissionManager implements Closeable {
         }
     }
 
-    private void checkCallbackNotNull(ErrorCallback callback) {
+    private void checkCallbackNotNull(PermissionManagerBaseCallback callback) {
         if (callback == null) {
             throw new IllegalArgumentException("Non-null 'callback' required.");
         }
@@ -622,7 +622,7 @@ public class PermissionManager implements Closeable {
 
         private final PermissionChange unmanagedChangeRequest;
         private final ApplyPermissionsCallback callback;
-        private String changeRequestId;
+        private final String changeRequestId;
         private PermissionChange managedChangeRequest;
         private RealmAsyncTask transactionTask;
 
@@ -849,7 +849,6 @@ public class PermissionManager implements Closeable {
                             handleServerStatusChanges(response, new Runnable() {
                                 @Override
                                 public void run() {
-                                    RealmObject.removeAllChangeListeners(managedResponse);
                                     grantedPermissionResults = permissionRealm.where(Permission.class).equalTo("path", response.getPath()).findAllAsync();
                                     grantedPermissionResults.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                                         @Override
@@ -901,11 +900,11 @@ public class PermissionManager implements Closeable {
     // Made package protected instead of private to facilitate testing
     abstract static class PermissionManagerTask<T> implements RealmAsyncTask, Runnable {
 
-        private final ErrorCallback callback;
+        private final PermissionManagerBaseCallback callback;
         private final PermissionManager permissionManager;
         private volatile boolean canceled = false;
 
-        public PermissionManagerTask(PermissionManager permissionManager, ErrorCallback callback) {
+        public PermissionManagerTask(PermissionManager permissionManager, PermissionManagerBaseCallback callback) {
             this.callback = callback;
             this.permissionManager = permissionManager;
         }
@@ -1089,8 +1088,11 @@ public class PermissionManager implements Closeable {
         }
 
         private void notifyCallbackWithSuccess(RealmResults<PermissionOffer> permissions) {
-            callback.onSuccess(permissions);
-            activeTasks.remove(this);
+            try {
+                callback.onSuccess(permissions);
+            } finally {
+                activeTasks.remove(this);
+            }
         }
     }
 
@@ -1157,7 +1159,7 @@ public class PermissionManager implements Closeable {
         }
     }
 
-    private interface ErrorCallback {
+    private interface PermissionManagerBaseCallback {
         /**
          * Called if an error happened while executing the task. The PermissionManager uses different underlying Realms,
          * and this error will report errors from all of these Realms combining them as best as possible.
@@ -1175,7 +1177,7 @@ public class PermissionManager implements Closeable {
     /**
      * Callback used when loading a set of permissions.
      */
-    public interface PermissionsCallback extends ErrorCallback {
+    public interface PermissionsCallback extends PermissionManagerBaseCallback {
         /**
          * Called when all known permissions are successfully loaded.
          * <p>
@@ -1190,7 +1192,7 @@ public class PermissionManager implements Closeable {
     /**
      * Callback used when modifying or creating new permissions.
      */
-    public interface ApplyPermissionsCallback extends ErrorCallback {
+    public interface ApplyPermissionsCallback extends PermissionManagerBaseCallback {
         /**
          * Called when the permissions where successfully modified.
          */
@@ -1200,7 +1202,7 @@ public class PermissionManager implements Closeable {
     /**
      * Callback used when making a permission offer for other users.
      */
-    public interface MakeOfferCallback extends ErrorCallback {
+    public interface MakeOfferCallback extends PermissionManagerBaseCallback {
         /**
          * Called when the offer was successfully created.
          *
@@ -1212,7 +1214,7 @@ public class PermissionManager implements Closeable {
     /**
      * Callback used when accepting a permission offer.
      */
-    public interface AcceptOfferCallback extends ErrorCallback {
+    public interface AcceptOfferCallback extends PermissionManagerBaseCallback {
         /**
          * Called when the offer was successfully accepted. This means that this user can now access this Realm.
          *
@@ -1225,7 +1227,7 @@ public class PermissionManager implements Closeable {
     /**
      * Callback used when loading the list of {@link PermissionOffer}'s created by the user.
      */
-    public interface OffersCallback extends ErrorCallback {
+    public interface OffersCallback extends PermissionManagerBaseCallback {
         /**
          * Called when all known offers are successfully loaded.
          * <p>
