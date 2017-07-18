@@ -11,6 +11,7 @@ import io.realm.internal.LinkView;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.Property;
+import io.realm.internal.ProxyUtils;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
@@ -62,8 +63,6 @@ public class SimpleRealmProxy extends some.test.Simple
         }
     }
 
-    private SimpleColumnInfo columnInfo;
-    private ProxyState<some.test.Simple> proxyState;
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
@@ -72,6 +71,9 @@ public class SimpleRealmProxy extends some.test.Simple
         fieldNames.add("age");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
+
+    private SimpleColumnInfo columnInfo;
+    private ProxyState<some.test.Simple> proxyState;
 
     SimpleRealmProxy() {
         proxyState.setConstructionFinished();
@@ -181,21 +183,11 @@ public class SimpleRealmProxy extends some.test.Simple
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
         }
 
-        if (!columnTypes.containsKey("name")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'name' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("name") != RealmFieldType.STRING) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'String' for field 'name' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "name", RealmFieldType.STRING, "String");
         if (!table.isColumnNullable(columnInfo.nameIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'name' is required. Either set @Required to field 'name' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("age")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'age' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("age") != RealmFieldType.INTEGER) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'int' for field 'age' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "age", RealmFieldType.INTEGER, "int");
         if (table.isColumnNullable(columnInfo.ageIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'age' does support null values in the existing Realm file. Use corresponding boxed type for field 'age' or migrate using RealmObjectSchema.setNullable().");
         }
