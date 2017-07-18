@@ -633,7 +633,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNI
                                     old_realm->schema_version(), version);
             };
         }
-        shared_realm->update_schema(*schema, static_cast<uint64_t>(version), migration_function, true);
+        shared_realm->update_schema(*schema, static_cast<uint64_t>(version), migration_function, nullptr, true);
     }
     catch (SchemaMismatchException& e) {
         // An exception has been thrown in the migration block.
