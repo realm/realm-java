@@ -28,10 +28,10 @@ import io.realm.internal.Util;
  * <p>
  * If the request is successful, a {@link Permission} entry will be added to each affected users
  * {@link PermissionManager}, where it can be fetched using
- * {@link PermissionManager#getPermissions(PermissionManager.Callback)}.
+ * {@link PermissionManager#getPermissions(PermissionManager.PermissionsCallback)}
  *
- * @see PermissionManager#applyPermissions(PermissionRequest, PermissionManager.Callback)
- * @see PermissionManager#getPermissions(PermissionManager.Callback)
+ * @see PermissionManager#applyPermissions(PermissionRequest, PermissionManager.ApplyPermissionsCallback)
+ * @see PermissionManager#getPermissions(PermissionManager.PermissionsCallback)
  */
 public final class PermissionRequest {
 

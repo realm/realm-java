@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package io.realm.entities;
+package io.realm;
 
-import io.realm.RealmObject;
-import io.realm.annotations.Index;
+import io.realm.log.RealmLog;
 
-
-public class IndexedFields extends RealmObject {
-
-    public static final String FIELD_INDEXED_STRING = "indexedString";
-    public static final String FIELD_NON_INDEXED_STRING = "nonIndexedString";
-
-    @Index
-    public String indexedString;
-    public String nonIndexedString;
+/**
+ * The default implementation for determining if a file should be compacted or not. This implementation will only
+ * trigger if the file is above 50 MB and more than 50% can be reclaimed.
+ */
+public class DefaultCompactOnLaunchCallback implements CompactOnLaunchCallback {
+    @Override
+    public boolean shouldCompact(long totalBytes, long usedBytes) {
+        final long thresholdSize = 50 * 1024 * 1024;
+        return (totalBytes > thresholdSize) && (((double) usedBytes / (double) totalBytes) < 0.5);
+    }
 }
