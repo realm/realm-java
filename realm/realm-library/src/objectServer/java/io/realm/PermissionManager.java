@@ -1146,7 +1146,12 @@ public class PermissionManager implements Closeable {
                                     public void onChange(Progress progress) {
                                         if (progress.isTransferComplete()) {
                                             session.removeProgressListener(this);
-                                            notifyCallbackWithSuccess();
+                                            handler.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    notifyCallbackWithSuccess();
+                                                }
+                                            });
                                         }
                                     }
                                 });
