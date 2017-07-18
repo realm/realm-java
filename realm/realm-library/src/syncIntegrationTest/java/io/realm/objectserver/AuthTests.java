@@ -446,4 +446,126 @@ public class AuthTests extends BaseIntegrationTest {
             assertFalse(user.isValid());
         }
     }
+
+    @Test
+    public void retrieve() {
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+
+        final String username = UUID.randomUUID().toString();
+        final String password = "password";
+        final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(user.isValid());
+
+        String identity = user.getIdentity();
+        SyncUser syncUser = adminUser.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, username);
+        assertNotNull(syncUser);
+        assertEquals(identity, syncUser.getIdentity());
+        assertFalse(syncUser.isAdmin());
+        assertTrue(syncUser.isValid());
+    }
+
+    @Test
+    public void retrieve_logout() {
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+
+        final String username = UUID.randomUUID().toString();
+        final String password = "password";
+        final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final String identity = user.getIdentity();
+        user.logout();
+        assertFalse(user.isValid());
+
+        SyncUser syncUser = adminUser.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, username);
+        assertNotNull(syncUser);
+        assertEquals(identity, syncUser.getIdentity());
+        assertFalse(syncUser.isAdmin());
+        assertFalse(syncUser.isValid());
+    }
+
+    @Test
+    public void retrieve_AdminUser() {
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        SyncUser syncUser = adminUser.retrieveUser(SyncCredentials.IdentityProvider.DEBUG, "admin");// TODO use enum for auth provider
+        assertNotNull(syncUser);
+        assertEquals(adminUser.getIdentity(), syncUser.getIdentity());
+        assertTrue(syncUser.isAdmin());
+        assertTrue(syncUser.isValid());
+    }
+
+    @Test
+    public void retrieve_unknownProviderId() {
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        SyncUser syncUser = adminUser.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, "doesNotExist");
+        assertNull(syncUser);
+    }
+
+    @Test
+    public void retrieve_invalidProvider() {
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        final String username = UUID.randomUUID().toString();
+        final String password = "password";
+        final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(user.isValid());
+
+        SyncUser syncUser = adminUser.retrieveUser("invalid", "username");
+        assertNull(syncUser);
+    }
+
+    @Test
+    public void retrieve_notAdmin() {
+        final String username1 = UUID.randomUUID().toString();
+        final String password1 = "password";
+        final SyncCredentials credentials1 = SyncCredentials.usernamePassword(username1, password1, true);
+        final SyncUser user1 = SyncUser.login(credentials1, Constants.AUTH_URL);
+        assertTrue(user1.isValid());
+
+        final String username2 = UUID.randomUUID().toString();
+        final String password2 = "password";
+        final SyncCredentials credentials2 = SyncCredentials.usernamePassword(username2, password2, true);
+        final SyncUser user2 = SyncUser.login(credentials2, Constants.AUTH_URL);
+        assertTrue(user2.isValid());
+
+        // trying to lookup user2 using user1 should not work (requires admin token)
+        try {
+            user1.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, username2);
+            fail("It should not be possible to lookup a user using non admin token");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void retrieve_async() {
+        final String username = UUID.randomUUID().toString();
+        final String password = "password";
+        final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        assertTrue(user.isValid());
+
+        // Login an admin user
+        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        assertTrue(adminUser.isValid());
+        assertTrue(adminUser.isAdmin());
+
+        final String identity = user.getIdentity();
+        adminUser.retrieveUserAsync("password", username, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser syncUser) {
+
+                assertNotNull(syncUser);
+                assertEquals(identity, syncUser.getIdentity());
+                assertFalse(syncUser.isAdmin());
+                assertTrue(syncUser.isValid());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.getErrorMessage());
+            }
+        });
+    }
 }

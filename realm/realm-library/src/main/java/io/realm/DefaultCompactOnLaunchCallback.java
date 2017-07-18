@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-#ifndef REALM_JNI_IMPL_EXCEPTION_DEF_HPP
-#define REALM_JNI_IMPL_EXCEPTION_DEF_HPP
+package io.realm;
 
-namespace realm {
-namespace _impl {
+import io.realm.log.RealmLog;
 
-// Definitions of Java exceptions which are used in JNI.
-class JavaExceptionDef {
-public:
-    // Class names
-    static const char* IllegalState;
-    static const char* IllegalArgument;
-    static const char* OutOfMemory;
-};
-
-} // namespace realm
-} // namespace jni_impl
-
-#endif
+/**
+ * The default implementation for determining if a file should be compacted or not. This implementation will only
+ * trigger if the file is above 50 MB and more than 50% can be reclaimed.
+ */
+public class DefaultCompactOnLaunchCallback implements CompactOnLaunchCallback {
+    @Override
+    public boolean shouldCompact(long totalBytes, long usedBytes) {
+        final long thresholdSize = 50 * 1024 * 1024;
+        return (totalBytes > thresholdSize) && (((double) usedBytes / (double) totalBytes) < 0.5);
+    }
+}

@@ -60,6 +60,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -102,6 +103,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;
@@ -110,6 +112,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.util.ExceptionHolder;
 import io.realm.util.RealmThread;
 
+import static io.realm.TestHelper.awaitOrFail;
 import static io.realm.TestHelper.testNoObjectFound;
 import static io.realm.TestHelper.testOneObjectFound;
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -1054,6 +1057,142 @@ public class RealmTests {
         realm = Realm.getInstance(config);
         realm.close();
         Realm.deleteRealm(config);
+    }
+
+    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
+        return populateTestRealmAndCompactOnLaunch(compactOnLaunch, 100);
+    }
+
+    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch, int objects) {
+        final String REALM_NAME = "test.realm";
+        RealmConfiguration realmConfig = configFactory.createConfiguration(REALM_NAME);
+        Realm realm = Realm.getInstance(realmConfig);
+        populateTestRealm(realm, objects);
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+        realm.close();
+        long before = new File(realmConfig.getPath()).length();
+        if (compactOnLaunch != null) {
+            realmConfig = configFactory.createConfigurationBuilder()
+                    .name(REALM_NAME)
+                    .compactOnLaunch(compactOnLaunch)
+                    .build();
+        } else {
+            realmConfig = configFactory.createConfigurationBuilder()
+                    .name(REALM_NAME)
+                    .compactOnLaunch()
+                    .build();
+        }
+        realm = Realm.getInstance(realmConfig);
+        realm.close();
+        long after = new File(realmConfig.getPath()).length();
+        return new Pair(before, after);
+    }
+
+    @Test
+    public void compactOnLaunch_shouldCompact() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(new CompactOnLaunchCallback() {
+            @Override
+            public boolean shouldCompact(long totalBytes, long usedBytes) {
+                assertTrue(totalBytes > usedBytes);
+                return true;
+            }
+        });
+        assertTrue(results.first > results.second);
+    }
+
+    @Test
+    public void compactOnLaunch_shouldNotCompact() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(new CompactOnLaunchCallback() {
+            @Override
+            public boolean shouldCompact(long totalBytes, long usedBytes) {
+                assertTrue(totalBytes > usedBytes);
+                return false;
+            }
+        });
+        assertEquals(results.first, results.second);
+    }
+
+    @Test
+    public void compactOnLaunch_multipleThread() throws IOException {
+        final String REALM_NAME = "test.realm";
+        final AtomicInteger compactOnLaunchCount = new AtomicInteger(0);
+
+        final RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .name(REALM_NAME)
+                .compactOnLaunch(new CompactOnLaunchCallback() {
+                    @Override
+                    public boolean shouldCompact(long totalBytes, long usedBytes) {
+                        compactOnLaunchCount.incrementAndGet();
+                        return true;
+                    }
+                })
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm bgRealm = Realm.getInstance(realmConfig);
+                bgRealm.close();
+            }
+        });
+        thread.start();
+
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            fail();
+        }
+
+        realm.close();
+
+        // FIXME: It should be 1. Current compactOnLaunch is called each time a Realm is opened on a new thread.
+        assertNotEquals(1, compactOnLaunchCount.get());
+        assertEquals(3, compactOnLaunchCount.get());
+    }
+
+    @Test
+    public void compactOnLaunch_insufficientAmount() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(new CompactOnLaunchCallback() {
+            @Override
+            public boolean shouldCompact(long totalBytes, long usedBytes) {
+                final long thresholdSize = 50 * 1024 * 1024;
+                return (totalBytes > thresholdSize) && (((double) usedBytes / (double) totalBytes) < 0.5);
+            }
+        }, 100);
+        final long thresholdSize = 50 * 1024 * 1024;
+        assertTrue(results.first < thresholdSize);
+        assertEquals(results.first, results.second);
+    }
+
+    @Test
+    public void defaultCompactOnLaunch() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 30000);
+        final long thresholdSize = 50 * 1024 * 1024;
+        assertTrue(results.first > thresholdSize);
+        assertTrue(results.first > results.second);
+    }
+
+    @Test
+    public void defaultCompactOnLaunch_onlyCallback() {
+        DefaultCompactOnLaunchCallback callback = new DefaultCompactOnLaunchCallback();
+        final long thresholdSize = 50 * 1024 * 1024;
+        final long big = thresholdSize + 1024;
+        assertFalse(callback.shouldCompact(big, (long) (big * 0.6)));
+        assertTrue(callback.shouldCompact(big, (long) (big * 0.3)));
+        final long small = thresholdSize - 1024;
+        assertFalse(callback.shouldCompact(small, (long) (small * 0.6)));
+        assertFalse(callback.shouldCompact(small, (long) (small * 0.3)));
+    }
+
+    @Test
+    public void defaultCompactOnLaunch_insufficientAmount() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 100);
+        final long thresholdSize = 50 * 1024 * 1024;
+        assertTrue(results.first < thresholdSize);
+        assertEquals(results.first, results.second);
     }
 
     @Test

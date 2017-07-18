@@ -9,6 +9,9 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.Property;
+import io.realm.internal.ProxyUtils;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
@@ -117,8 +120,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
     }
 
-    private NullTypesColumnInfo columnInfo;
-    private ProxyState<some.test.NullTypes> proxyState;
+    private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -145,6 +147,9 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         fieldNames.add("fieldObjectNull");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
+
+    private NullTypesColumnInfo columnInfo;
+    private ProxyState<some.test.NullTypes> proxyState;
 
     NullTypesRealmProxy() {
         proxyState.setConstructionFinished();
@@ -819,36 +824,34 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setLink(columnInfo.fieldObjectNullIndex, ((RealmObjectProxy)value).realmGet$proxyState().getRow$realm().getIndex());
     }
 
-    public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
-        if (realmSchema.contains("NullTypes")) {
-            return realmSchema.get("NullTypes");
-        }
-        RealmObjectSchema realmObjectSchema = realmSchema.create("NullTypes");
-        realmObjectSchema.add("fieldStringNotNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("fieldStringNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        realmObjectSchema.add("fieldBooleanNotNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("fieldBooleanNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        realmObjectSchema.add("fieldBytesNotNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("fieldBytesNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        realmObjectSchema.add("fieldByteNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("fieldByteNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        realmObjectSchema.add("fieldShortNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("fieldShortNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        realmObjectSchema.add("fieldIntegerNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("fieldIntegerNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        realmObjectSchema.add("fieldLongNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("fieldLongNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        realmObjectSchema.add("fieldFloatNotNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("fieldFloatNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        realmObjectSchema.add("fieldDoubleNotNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("fieldDoubleNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        realmObjectSchema.add("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        realmObjectSchema.add("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        if (!realmSchema.contains("NullTypes")) {
-            NullTypesRealmProxy.createRealmObjectSchema(realmSchema);
-        }
-        realmObjectSchema.add("fieldObjectNull", RealmFieldType.OBJECT, realmSchema.get("NullTypes"));
-        return realmObjectSchema;
+    private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("NullTypes");
+        builder.addProperty("fieldStringNotNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("fieldStringNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addProperty("fieldBooleanNotNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("fieldBooleanNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addProperty("fieldBytesNotNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("fieldBytesNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addProperty("fieldByteNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("fieldByteNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addProperty("fieldShortNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("fieldShortNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addProperty("fieldIntegerNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("fieldIntegerNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addProperty("fieldLongNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("fieldLongNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addProperty("fieldFloatNotNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("fieldFloatNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addProperty("fieldDoubleNotNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("fieldDoubleNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addProperty("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addProperty("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addLinkedProperty("fieldObjectNull", RealmFieldType.OBJECT, "NullTypes");
+        return builder.build();
+    }
+
+    public static OsObjectSchemaInfo getExpectedObjectSchemaInfo() {
+        return expectedObjectSchemaInfo;
     }
 
     public static NullTypesColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
@@ -878,192 +881,87 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
         }
 
-        if (!columnTypes.containsKey("fieldStringNotNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldStringNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldStringNotNull") != RealmFieldType.STRING) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'String' for field 'fieldStringNotNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldStringNotNull", RealmFieldType.STRING, "String");
         if (table.isColumnNullable(columnInfo.fieldStringNotNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldStringNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldStringNotNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldStringNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldStringNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldStringNull") != RealmFieldType.STRING) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'String' for field 'fieldStringNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldStringNull", RealmFieldType.STRING, "String");
         if (!table.isColumnNullable(columnInfo.fieldStringNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldStringNull' is required. Either set @Required to field 'fieldStringNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldBooleanNotNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldBooleanNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldBooleanNotNull") != RealmFieldType.BOOLEAN) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Boolean' for field 'fieldBooleanNotNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldBooleanNotNull", RealmFieldType.BOOLEAN, "Boolean");
         if (table.isColumnNullable(columnInfo.fieldBooleanNotNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldBooleanNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldBooleanNotNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldBooleanNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldBooleanNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldBooleanNull") != RealmFieldType.BOOLEAN) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Boolean' for field 'fieldBooleanNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldBooleanNull", RealmFieldType.BOOLEAN, "Boolean");
         if (!table.isColumnNullable(columnInfo.fieldBooleanNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldBooleanNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldBooleanNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldBytesNotNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldBytesNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldBytesNotNull") != RealmFieldType.BINARY) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'byte[]' for field 'fieldBytesNotNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldBytesNotNull", RealmFieldType.BINARY, "byte[]");
         if (table.isColumnNullable(columnInfo.fieldBytesNotNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldBytesNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldBytesNotNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldBytesNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldBytesNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldBytesNull") != RealmFieldType.BINARY) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'byte[]' for field 'fieldBytesNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldBytesNull", RealmFieldType.BINARY, "byte[]");
         if (!table.isColumnNullable(columnInfo.fieldBytesNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldBytesNull' is required. Either set @Required to field 'fieldBytesNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldByteNotNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldByteNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldByteNotNull") != RealmFieldType.INTEGER) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Byte' for field 'fieldByteNotNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldByteNotNull", RealmFieldType.INTEGER, "Byte");
         if (table.isColumnNullable(columnInfo.fieldByteNotNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldByteNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldByteNotNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldByteNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldByteNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldByteNull") != RealmFieldType.INTEGER) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Byte' for field 'fieldByteNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldByteNull", RealmFieldType.INTEGER, "Byte");
         if (!table.isColumnNullable(columnInfo.fieldByteNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldByteNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldByteNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldShortNotNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldShortNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldShortNotNull") != RealmFieldType.INTEGER) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Short' for field 'fieldShortNotNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldShortNotNull", RealmFieldType.INTEGER, "Short");
         if (table.isColumnNullable(columnInfo.fieldShortNotNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldShortNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldShortNotNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldShortNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldShortNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldShortNull") != RealmFieldType.INTEGER) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Short' for field 'fieldShortNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldShortNull", RealmFieldType.INTEGER, "Short");
         if (!table.isColumnNullable(columnInfo.fieldShortNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldShortNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldShortNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldIntegerNotNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldIntegerNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldIntegerNotNull") != RealmFieldType.INTEGER) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Integer' for field 'fieldIntegerNotNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldIntegerNotNull", RealmFieldType.INTEGER, "Integer");
         if (table.isColumnNullable(columnInfo.fieldIntegerNotNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldIntegerNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldIntegerNotNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldIntegerNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldIntegerNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldIntegerNull") != RealmFieldType.INTEGER) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Integer' for field 'fieldIntegerNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldIntegerNull", RealmFieldType.INTEGER, "Integer");
         if (!table.isColumnNullable(columnInfo.fieldIntegerNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldIntegerNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldIntegerNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldLongNotNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldLongNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldLongNotNull") != RealmFieldType.INTEGER) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Long' for field 'fieldLongNotNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldLongNotNull", RealmFieldType.INTEGER, "Long");
         if (table.isColumnNullable(columnInfo.fieldLongNotNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldLongNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldLongNotNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldLongNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldLongNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldLongNull") != RealmFieldType.INTEGER) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Long' for field 'fieldLongNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldLongNull", RealmFieldType.INTEGER, "Long");
         if (!table.isColumnNullable(columnInfo.fieldLongNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldLongNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldLongNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldFloatNotNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldFloatNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldFloatNotNull") != RealmFieldType.FLOAT) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Float' for field 'fieldFloatNotNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldFloatNotNull", RealmFieldType.FLOAT, "Float");
         if (table.isColumnNullable(columnInfo.fieldFloatNotNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldFloatNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldFloatNotNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldFloatNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldFloatNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldFloatNull") != RealmFieldType.FLOAT) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Float' for field 'fieldFloatNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldFloatNull", RealmFieldType.FLOAT, "Float");
         if (!table.isColumnNullable(columnInfo.fieldFloatNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldFloatNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldFloatNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldDoubleNotNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldDoubleNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldDoubleNotNull") != RealmFieldType.DOUBLE) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Double' for field 'fieldDoubleNotNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldDoubleNotNull", RealmFieldType.DOUBLE, "Double");
         if (table.isColumnNullable(columnInfo.fieldDoubleNotNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldDoubleNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldDoubleNotNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldDoubleNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldDoubleNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldDoubleNull") != RealmFieldType.DOUBLE) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Double' for field 'fieldDoubleNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldDoubleNull", RealmFieldType.DOUBLE, "Double");
         if (!table.isColumnNullable(columnInfo.fieldDoubleNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldDoubleNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldDoubleNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldDateNotNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldDateNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldDateNotNull") != RealmFieldType.DATE) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Date' for field 'fieldDateNotNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldDateNotNull", RealmFieldType.DATE, "Date");
         if (table.isColumnNullable(columnInfo.fieldDateNotNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldDateNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldDateNotNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldDateNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldDateNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldDateNull") != RealmFieldType.DATE) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'Date' for field 'fieldDateNull' in existing Realm file.");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldDateNull", RealmFieldType.DATE, "Date");
         if (!table.isColumnNullable(columnInfo.fieldDateNullIndex)) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldDateNull' is required. Either set @Required to field 'fieldDateNull' or migrate using RealmObjectSchema.setNullable().");
         }
-        if (!columnTypes.containsKey("fieldObjectNull")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldObjectNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("fieldObjectNull") != RealmFieldType.OBJECT) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'NullTypes' for field 'fieldObjectNull'");
-        }
+        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldObjectNull", RealmFieldType.OBJECT, "NullTypes");
         if (!sharedRealm.hasTable("class_NullTypes")) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing class 'class_NullTypes' for field 'fieldObjectNull'");
         }
