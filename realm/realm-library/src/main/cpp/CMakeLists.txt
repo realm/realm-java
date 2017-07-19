@@ -62,23 +62,25 @@ create_javah(TARGET jni_headers
     DEPENDS ${classes_PATH}
 )
 
-# TODO: Ideally the debug build should link with core's debug build. But core dbg lib has
-# some compile options problems with arm, especially with macro REALM_DEBUG. Link to core
-# dbg for debug build when that gets solved.
-# We always link to the non-dbg version of core libs for now.
-# This means only JNI part has debugging symbols with debug build.
-# Debugging with core source code will also be done though anther approach -- compiling the core
-# with cmake inside android project.
+# Link to core/sync debug lib for debug build if it is debug build and linking with debug core is enabled.
+# FIXME: Ideally we should linking to debug core on CI for testing, but the assertions slow down the CI a lot.
+if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND ${ENABLE_DEBUG_CORE})
+    set(debug_lib_SUFFIX "-dbg")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DREALM_DEBUG")
+else()
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")
+endif()
+
 # Configure import realm core lib
-set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-${ANDROID_ABI}.a)
+set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-${ANDROID_ABI}${debug_lib_SUFFIX}.a)
 # Workaround for old core's funny ABI nicknames
 if (NOT EXISTS ${core_lib_PATH})
     if (ARMEABI)
-        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm.a)
+        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm${debug_lib_SUFFIX}.a)
     elseif (ARMEABI_V7A)
-        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm-v7a.a)
+        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm-v7a${debug_lib_SUFFIX}.a)
     elseif (ARM64_V8A)
-        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm64.a)
+        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm64${debug_lib_SUFFIX}.a)
     else()
         message(FATAL_ERROR "Cannot find core lib file: ${core_lib_PATH}")
     endif()
@@ -93,15 +95,15 @@ set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_PAT
 
 if (build_SYNC)
     # Sync static library
-    set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-${ANDROID_ABI}.a)
+    set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-${ANDROID_ABI}${debug_lib_SUFFIX}.a)
     # Workaround for old core's funny ABI nicknames
     if (NOT EXISTS ${sync_lib_PATH})
         if (ARMEABI)
-            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm.a)
+            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm${debug_lib_SUFFIX}.a)
         elseif (ARMEABI_V7A)
-            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm-v7a.a)
+            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm-v7a${debug_lib_SUFFIX}.a)
         elseif (ARM64_V8A)
-            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm64.a)
+            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm64${debug_lib_SUFFIX}.a)
         else()
             message(FATAL_ERROR "Cannot find sync lib file: ${sync_lib_PATH}")
         endif()
@@ -176,7 +178,7 @@ endif()
 # And this issue doesn't seem to impact the core compiling.
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 #-ggdb doesn't play well with -flto
-set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -Og -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -Og")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set link flags
