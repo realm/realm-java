@@ -1,5 +1,5 @@
 project.ext.sdkVersion = 25
-project.ext.buildTools = '25.0.3'
+project.ext.buildTools = '26.0.0'
 
 // Don't cache SNAPSHOT (changing) dependencies.
 configurations.all {
@@ -17,14 +17,14 @@ allprojects {
 
     buildscript {
         repositories {
+            google()
             mavenLocal()
             jcenter()
             maven { url 'https://jitpack.io' }
         }
         dependencies {
-            classpath 'com.android.tools.build:gradle:2.3.2'
+            classpath 'com.android.tools.build:gradle:3.0.0-alpha4'
             classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
-            classpath 'com.github.JakeWharton:sdk-manager-plugin:0ce4cdf08009d79223850a59959d9d6e774d0f77'
             classpath 'com.novoda:gradle-android-command-plugin:1.5.0'
             classpath "io.realm:realm-gradle-plugin:${currentVersion}"
         }
@@ -36,6 +36,7 @@ allprojects {
     repositories {
         mavenLocal()
         jcenter()
+        google()
     }
 }
 

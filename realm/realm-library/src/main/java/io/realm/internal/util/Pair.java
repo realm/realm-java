@@ -27,8 +27,8 @@ package io.realm.internal.util;
  * objects.
  */
 public class Pair<F, S> {
-    public final F first;
-    public final S second;
+    public F first;
+    public S second;
 
     /**
      * Constructor for a Pair.

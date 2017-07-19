@@ -1,10 +1,11 @@
 buildscript {
     repositories {
         mavenLocal()
+        google()
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.2'
+        classpath 'com.android.tools.build:gradle:3.0.0-alpha4'
         classpath "io.realm:realm-gradle-plugin:${file("${rootDir}/../version.txt").text.trim()}"
     }
 }
@@ -26,7 +27,7 @@ apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.3"
+    buildToolsVersion "26.0.0"
 
     defaultConfig {
         minSdkVersion 15
@@ -47,14 +48,15 @@ android {
 
 repositories {
     mavenLocal()
+    google()
     jcenter()
 }
 
 dependencies {
-    androidTestCompile 'com.android.support.test:runner:0.5'
-    androidTestCompile 'com.android.support.test:rules:0.5'
-    androidTestCompile 'junit:junit:4.12'
-    androidTestCompile 'dk.ilios:spanner:0.6.0'
-    androidTestCompile 'com.opencsv:opencsv:3.4'
-    androidTestCompile 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:0.5'
+    androidTestImplementation 'com.android.support.test:rules:0.5'
+    androidTestImplementation 'junit:junit:4.12'
+    androidTestImplementation 'dk.ilios:spanner:0.6.0'
+    androidTestImplementation 'com.opencsv:opencsv:3.4'
+    androidTestImplementation 'junit:junit:4.12'
 }

@@ -332,7 +332,7 @@ public class DynamicRealmTests {
             });
         } catch (RuntimeException ignored) {
             // Ensures that we pass a valuable error message to the logger for developers.
-            assertEquals(testLogger.message, "Could not cancel transaction, not currently in a transaction.");
+            assertEquals("Could not cancel transaction, not currently in a transaction.", testLogger.message);
         } finally {
             RealmLog.remove(testLogger);
         }

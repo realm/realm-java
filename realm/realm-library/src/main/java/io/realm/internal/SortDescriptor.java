@@ -19,6 +19,7 @@ package io.realm.internal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import io.realm.RealmFieldType;
@@ -69,7 +70,7 @@ public class SortDescriptor {
         return getInstance(proxy, table, fieldDescriptions, null, FieldDescriptor.NO_LINK_FIELD_TYPE, DISTINCT_VALID_FIELD_TYPES, "Distinct is not supported");
     }
 
-    static SortDescriptor getInstance(
+    private static SortDescriptor getInstance(
             FieldDescriptor.SchemaProxy proxy,
             Table table,
             String[] fieldDescriptions,
@@ -103,7 +104,7 @@ public class SortDescriptor {
     // could do this in the field descriptor, but this provides a better error message
     private static void checkFieldType(FieldDescriptor descriptor, Set<RealmFieldType> legalTerminalTypes, String message, String fieldDescriptions) {
         if (!legalTerminalTypes.contains(descriptor.getFinalColumnType())) {
-            throw new IllegalArgumentException(String.format(
+            throw new IllegalArgumentException(String.format(Locale.US,
                     "%s on '%s' field '%s' in '%s'.", message, descriptor.getFinalColumnType(), descriptor.getFinalColumnName(), fieldDescriptions));
         }
     }

@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
@@ -23,6 +25,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.realm.objectserver.utils.Constants;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
@@ -47,6 +51,9 @@ public class SessionTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
+
     @Before
     public void setUp() {
         user = createTestUser();
@@ -56,9 +63,57 @@ public class SessionTests {
     @Test
     public void get_syncValues() {
         SyncSession session = new SyncSession(configuration);
-        assertEquals("realm://objectserver.realm.io/JohnDoe/default", session.getServerUrl().toString());
+        assertEquals("realm://objectserver.realm.io/" + user.getIdentity() + "/default", session.getServerUrl().toString());
         assertEquals(user, session.getUser());
         assertEquals(configuration, session.getConfiguration());
+    }
+
+    @Test
+    public void addDownloadProgressListener_nullThrows() {
+        SyncSession session = SyncManager.getSession(configuration);
+        try {
+            session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void addUploadProgressListener_nullThrows() {
+        SyncSession session = SyncManager.getSession(configuration);
+        try {
+            session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void removeProgressListener() {
+        Realm realm = Realm.getInstance(configuration);
+        SyncSession session = SyncManager.getSession(configuration);
+        ProgressListener[] listeners = new ProgressListener[] {
+                null,
+                new ProgressListener() {
+                    @Override
+                    public void onChange(Progress progress) {
+                        // Listener 1, not present
+                    }
+                },
+                new ProgressListener() {
+                    @Override
+                    public void onChange(Progress progress) {
+                        // Listener 2, present
+                    }
+                }
+        };
+        session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, listeners[2]);
+
+        // Check that remove works unconditionally for all input
+        for (ProgressListener listener : listeners) {
+            session.removeProgressListener(listener);
+        }
+        realm.close();
     }
 
     // Check that a Client Reset is correctly reported.
@@ -133,5 +188,31 @@ public class SessionTests {
 
         // Trigger error
         SyncManager.simulateClientReset(SyncManager.getSession(config));
+    }
+
+    @Test
+    @UiThreadTest
+    public void uploadAllLocalChanges_throwsOnUiThread() throws InterruptedException {
+        SyncUser user = createTestUser();
+        Realm realm = Realm.getInstance(configuration);
+        try {
+            SyncManager.getSession(configuration).uploadAllLocalChanges();
+        } catch (IllegalStateException ignored) {
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void downloadAllServerChanges_throwsOnUiThread() throws InterruptedException {
+        SyncUser user = createTestUser();
+        Realm realm = Realm.getInstance(configuration);
+        try {
+            SyncManager.getSession(configuration).downloadAllServerChanges();
+        } catch (IllegalStateException ignored) {
+        } finally {
+            realm.close();
+        }
     }
 }

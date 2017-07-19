@@ -16,6 +16,7 @@ package io.realm.internal.fields;
  */
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import io.realm.RealmFieldType;
@@ -64,7 +65,7 @@ class DynamicFieldDescriptor extends FieldDescriptor {
             columnIndex = currentTable.getColumnIndex(columnName);
             if (columnIndex < 0) {
                 throw new IllegalArgumentException(
-                        String.format("Invalid query: field '%s' not found in table '%s'.", columnName, tableName));
+                        String.format(Locale.US, "Invalid query: field '%s' not found in table '%s'.", columnName, tableName));
             }
 
             columnType = currentTable.getColumnType(columnIndex);

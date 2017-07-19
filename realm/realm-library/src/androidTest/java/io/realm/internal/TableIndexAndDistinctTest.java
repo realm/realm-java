@@ -16,26 +16,73 @@
 
 package io.realm.internal;
 
-import junit.framework.TestCase;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
+import io.realm.TestHelper;
+import io.realm.rule.TestRealmConfigurationFactory;
 
-public class TableIndexAndDistinctTest extends TestCase {
-    Table table;
 
-    void init() {
-        table = new Table();
-        table.addColumn(RealmFieldType.INTEGER, "number");
-        table.addColumn(RealmFieldType.STRING, "name");
+import static org.junit.Assert.assertEquals;
 
-        long i = 0;
-        table.add(0, "A");
-        table.add(1, "B");
-        table.add(2, "C");
-        table.add(3, "B");
-        table.add(4, "D");
-        table.add(5, "D");
-        table.add(6, "D");
+
+@RunWith(AndroidJUnit4.class)
+public class TableIndexAndDistinctTest {
+
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private RealmConfiguration config;
+    private SharedRealm sharedRealm;
+    private Table table;
+
+    @Before
+    public void setUp() throws Exception {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
+        config = configFactory.createConfiguration();
+        sharedRealm = SharedRealm.getInstance(config);
+
+        sharedRealm.beginTransaction();
+    }
+
+    @After
+    public void tearDown() {
+        if (sharedRealm != null && sharedRealm.isInTransaction()) {
+            sharedRealm.cancelTransaction();
+        }
+
+        if (sharedRealm != null && !sharedRealm.isClosed()) {
+            sharedRealm.close();
+        }
+    }
+
+    private void init() {
+        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+            @Override
+            public void execute(Table table) {
+                table.addColumn(RealmFieldType.INTEGER, "number");
+                table.addColumn(RealmFieldType.STRING, "name");
+
+                TestHelper.addRowWithValues(table, 0, "A");
+                TestHelper.addRowWithValues(table, 1, "B");
+                TestHelper.addRowWithValues(table, 2, "C");
+                TestHelper.addRowWithValues(table, 3, "B");
+                TestHelper.addRowWithValues(table, 4, "D");
+                TestHelper.addRowWithValues(table, 5, "D");
+                TestHelper.addRowWithValues(table, 6, "D");
+            }
+        });
+
         assertEquals(7, table.size());
     }
 
@@ -43,39 +90,44 @@ public class TableIndexAndDistinctTest extends TestCase {
      * Checks that Index can be set on multiple columns, with the String.
      * @param
      */
-    public void testShouldTestSettingIndexOnMultipleColumns() {
+    @Test
+    public void shouldTestSettingIndexOnMultipleColumns() {
 
         // Creates a table only with String type columns
-        Table t = new Table();
-        t.addColumn(RealmFieldType.STRING, "col1");
-        t.addColumn(RealmFieldType.STRING, "col2");
-        t.addColumn(RealmFieldType.STRING, "col3");
-        t.addColumn(RealmFieldType.STRING, "col4");
-        t.addColumn(RealmFieldType.STRING, "col5");
-        t.add("row1", "row2", "row3", "row4", "row5");
-        t.add("row1", "row2", "row3", "row4", "row5");
-        t.add("row1", "row2", "row3", "row4", "row5");
-        t.add("row1", "row2", "row3", "row4", "row5");
-        t.add("row1", "row2", "row3", "row4", "row5");
+        Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+            @Override
+            public void execute(Table t) {
+                t.addColumn(RealmFieldType.STRING, "col1");
+                t.addColumn(RealmFieldType.STRING, "col2");
+                t.addColumn(RealmFieldType.STRING, "col3");
+                t.addColumn(RealmFieldType.STRING, "col4");
+                t.addColumn(RealmFieldType.STRING, "col5");
+                TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
+                TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
+                TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
+                TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
+                TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
+            }
+        });
 
         for (long c=0;c<t.getColumnCount();c++){
             t.addSearchIndex(c);
             assertEquals(true, t.hasSearchIndex(c));
         }
+
     }
 
 
 // TODO: parametric test
 /*    *//**
      * Checks that all other column types than String throws exception.
-     * @param o
      *//*
 
     @Test(expectedExceptions = IllegalArgumentException.class, dataProvider = "columnIndex")
     public void shouldTestIndexOnWrongColumnType(Long index) {
 
         // Gets a table with all available column types.
-        Table t = TestHelper.getTableWithAllColumnTypes();
+        Table t = TestHelper.createTableWithAllColumnTypes(sharedRealm);
 
         // If column type is String, then throw the excepted exception.
         if (t.getColumnType(index).equals(RealmFieldType.STRING)){
@@ -85,12 +137,14 @@ public class TableIndexAndDistinctTest extends TestCase {
         t.addSearchIndex(index);
     }*/
 
-    public void testShouldCheckIndexIsOkOnColumn() {
+    @Test
+    public void shouldCheckIndexIsOkOnColumn() {
         init();
         table.addSearchIndex(1);
     }
 
-    public void testRemoveSearchIndex() {
+    @Test
+    public void removeSearchIndex() {
         init();
         table.addSearchIndex(1);
         assertEquals(true, table.hasSearchIndex(1));
@@ -99,7 +153,8 @@ public class TableIndexAndDistinctTest extends TestCase {
         assertEquals(false, table.hasSearchIndex(1));
     }
 
-    public void testRemoveSearchIndexNoop() {
+    @Test
+    public void removeSearchIndexNoOp() {
         init();
         assertEquals(false, table.hasSearchIndex(1));
 

@@ -21,8 +21,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
 import io.realm.SyncCredentials;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
@@ -38,6 +36,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String ACTION_LOGOUT = "revoke"; // Auth end point for logging out users
     private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
+    private static final String ACTION_LOOKUP_USER_ID = "api/providers"; // Auth end point for looking up user id
 
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
@@ -54,7 +53,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = AuthenticateRequest.userLogin(credentials).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
-            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
+            return AuthenticateResponse.from(e);
         }
     }
 
@@ -64,7 +63,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = AuthenticateRequest.realmLogin(refreshToken, serverUrl).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
-            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
+            return AuthenticateResponse.from(e);
         }
     }
 
@@ -74,7 +73,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = AuthenticateRequest.userRefresh(userToken, serverUrl).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
-            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
+            return AuthenticateResponse.from(e);
         }
     }
 
@@ -84,7 +83,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = LogoutRequest.create(userToken).toJson();
             return logout(buildActionUrl(authenticationUrl, ACTION_LOGOUT), requestBody);
         } catch (Exception e) {
-            return LogoutResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
+            return LogoutResponse.from(e);
         }
     }
 
@@ -93,8 +92,8 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         try {
             String requestBody = ChangePasswordRequest.create(userToken, newPassword).toJson();
             return changePassword(buildActionUrl(authenticationUrl, ACTION_CHANGE_PASSWORD), requestBody);
-        } catch (Throwable e) {
-            return ChangePasswordResponse.createFailure(new ObjectServerError(ErrorCode.UNKNOWN, e));
+        } catch (Exception e) {
+            return ChangePasswordResponse.from(e);
         }
     }
 
@@ -103,8 +102,17 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         try {
             String requestBody = ChangePasswordRequest.create(adminToken, userId, newPassword).toJson();
             return changePassword(buildActionUrl(authenticationUrl, ACTION_CHANGE_PASSWORD), requestBody);
-        } catch (Throwable e) {
-            return ChangePasswordResponse.createFailure(new ObjectServerError(ErrorCode.UNKNOWN, e));
+        } catch (Exception e) {
+            return ChangePasswordResponse.from(e);
+        }
+    }
+
+    @Override
+    public LookupUserIdResponse retrieveUser(Token adminToken, String provider, String providerId, URL authenticationUrl) {
+        try {
+            return lookupUserId(buildLookupUserIdUrl(authenticationUrl, ACTION_LOOKUP_USER_ID, provider, providerId), adminToken.value());
+        } catch (Exception e) {
+            return LookupUserIdResponse.from(e);
         }
     }
 
@@ -114,6 +122,18 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         try {
             String separator = baseUrlString.endsWith("/") ? "" : "/";
             return new URL(baseUrlString + separator + action);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static URL buildLookupUserIdUrl(URL authenticationUrl, String action, String provider, String providerId) {
+        String authURL = authenticationUrl.toExternalForm();
+        // we need the base URL without the '/auth' part
+        String baseUrlString = authURL.substring(0, authURL.indexOf(authenticationUrl.getPath()));
+        try {
+            String separator = baseUrlString.endsWith("/") ? "" : "/";
+            return new URL(baseUrlString + separator + action + "/" + provider + "/accounts/" + providerId);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
@@ -141,6 +161,14 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         Call call = client.newCall(request);
         Response response = call.execute();
         return ChangePasswordResponse.from(response);
+    }
+
+    private LookupUserIdResponse lookupUserId(URL lookupUserIdUrl, String token) throws Exception {
+        RealmLog.debug("Network request (lookupUserId): " + lookupUserIdUrl);
+        Request request = newAuthRequest(lookupUserIdUrl).get().header("Authorization", token).build();
+        Call call = client.newCall(request);
+        Response response = call.execute();
+        return LookupUserIdResponse.from(response);
     }
 
     private Request.Builder newAuthRequest(URL url) {

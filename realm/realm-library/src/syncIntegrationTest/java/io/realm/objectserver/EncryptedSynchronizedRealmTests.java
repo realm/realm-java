@@ -2,7 +2,6 @@ package io.realm.objectserver;
 
 import android.os.SystemClock;
 
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,6 +10,7 @@ import org.junit.rules.Timeout;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.BaseIntegrationTest;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -25,29 +25,15 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.rule.TestSyncConfigurationFactory;
-import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
+
     @Rule
     public Timeout globalTimeout = Timeout.seconds(10);
-
-    @Rule
-    public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
-
-    @Before
-    public void before() {
-        // This will set the 'm_metadata_manager' in 'sync_manager.cpp' to be 'null'
-        // causing the SyncUser to remain in memory.
-        // They're actually not persisted into disk.
-        // move this call to 'tearDown' to clean in-memory & on-disk users
-        // once https://github.com/realm/realm-object-store/issues/207 is resolved
-        SyncTestUtils.resetSyncMetadata();
-    }
 
     // Make sure the encryption is local, i.e after deleting a synced Realm
     // re-open it again with no (or different) key, should be possible.

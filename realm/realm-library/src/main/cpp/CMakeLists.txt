@@ -40,8 +40,8 @@ set(classes_LIST
     io.realm.internal.Table io.realm.internal.CheckedRow
     io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
-    io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.OsRealmSchema
-    io.realm.OsRealmObjectSchema io.realm.internal.Collection
+    io.realm.log.LogLevel io.realm.log.RealmLog io.realm.internal.Property io.realm.internal.OsSchemaInfo
+    io.realm.internal.OsObjectSchemaInfo io.realm.internal.Collection
     io.realm.internal.NativeObjectReference io.realm.internal.CollectionChangeSet
     io.realm.internal.OsObject
 )
@@ -62,23 +62,25 @@ create_javah(TARGET jni_headers
     DEPENDS ${classes_PATH}
 )
 
-# TODO: Ideally the debug build should link with core's debug build. But core dbg lib has
-# some compile options problems with arm, especially with macro REALM_DEBUG. Link to core
-# dbg for debug build when that gets solved.
-# We always link to the non-dbg version of core libs for now.
-# This means only JNI part has debugging symbols with debug build.
-# Debugging with core source code will also be done though anther approach -- compiling the core
-# with cmake inside android project.
+# Link to core/sync debug lib for debug build if it is debug build and linking with debug core is enabled.
+# FIXME: Ideally we should linking to debug core on CI for testing, but the assertions slow down the CI a lot.
+if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND ${ENABLE_DEBUG_CORE})
+    set(debug_lib_SUFFIX "-dbg")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DREALM_DEBUG")
+else()
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")
+endif()
+
 # Configure import realm core lib
-set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-${ANDROID_ABI}.a)
+set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-${ANDROID_ABI}${debug_lib_SUFFIX}.a)
 # Workaround for old core's funny ABI nicknames
 if (NOT EXISTS ${core_lib_PATH})
     if (ARMEABI)
-        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm.a)
+        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm${debug_lib_SUFFIX}.a)
     elseif (ARMEABI_V7A)
-        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm-v7a.a)
+        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm-v7a${debug_lib_SUFFIX}.a)
     elseif (ARM64_V8A)
-        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm64.a)
+        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm64${debug_lib_SUFFIX}.a)
     else()
         message(FATAL_ERROR "Cannot find core lib file: ${core_lib_PATH}")
     endif()
@@ -93,15 +95,15 @@ set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_PAT
 
 if (build_SYNC)
     # Sync static library
-    set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-${ANDROID_ABI}.a)
+    set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-${ANDROID_ABI}${debug_lib_SUFFIX}.a)
     # Workaround for old core's funny ABI nicknames
     if (NOT EXISTS ${sync_lib_PATH})
         if (ARMEABI)
-            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm.a)
+            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm${debug_lib_SUFFIX}.a)
         elseif (ARMEABI_V7A)
-            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm-v7a.a)
+            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm-v7a${debug_lib_SUFFIX}.a)
         elseif (ARM64_V8A)
-            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm64.a)
+            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm64${debug_lib_SUFFIX}.a)
         else()
             message(FATAL_ERROR "Cannot find sync lib file: ${sync_lib_PATH}")
         endif()
@@ -109,6 +111,31 @@ if (build_SYNC)
     add_library(lib_realm_sync STATIC IMPORTED)
     set_target_properties(lib_realm_sync PROPERTIES IMPORTED_LOCATION ${sync_lib_PATH}
                                                     IMPORTED_LINK_INTERFACE_LIBRARIES lib_realm_core)
+endif()
+
+# Download openssl lib
+# FIXME sync packed openssl with librealm-sync-android-xxx.a.
+# Remove this check after https://github.com/realm/realm-sync/issues/1469 fixed.
+if (NOT build_SYNC)
+    #string(TOLOWER "${CMAKE_BUILD_TYPE}" openssl_build_TYPE)
+    set(openssl_build_TYPE "release")
+    # FIXME Read the openssl version from core when the core/sync release has that information.
+    set(openssl_VERSION "1.0.2k")
+    set(openssl_FILENAME "openssl-${openssl_build_TYPE}-${openssl_VERSION}-Android-${ANDROID_ABI}")
+    set(openssl_URL "http://static.realm.io/downloads/openssl/${openssl_VERSION}/Android/${ANDROID_ABI}/${openssl_FILENAME}.tar.gz")
+
+    message(STATUS "Downloading OpenSSL...")
+    file(DOWNLOAD "${openssl_URL}" "${PROJECT_BINARY_DIR}/${openssl_FILENAME}.tar.gz")
+
+    message(STATUS "Uncompressing OpenSSL...")
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${PROJECT_BINARY_DIR}/${openssl_FILENAME}.tar.gz"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
+
+    message(STATUS "Importing OpenSSL...")
+    include(${PROJECT_BINARY_DIR}/${openssl_FILENAME}/openssl.cmake)
+    get_target_property(openssl_include_DIR crypto INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(crypto_LIB crypto IMPORTED_LOCATION)
+    get_target_property(ssl_LIB ssl IMPORTED_LOCATION)
 endif()
 
 # build application's shared lib
@@ -151,7 +178,7 @@ endif()
 # And this issue doesn't seem to impact the core compiling.
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 #-ggdb doesn't play well with -flto
-set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -Og -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -Og")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set link flags
@@ -200,7 +227,7 @@ add_dependencies(realm-jni jni_headers)
 if (build_SYNC)
     target_link_libraries(realm-jni log android lib_realm_sync)
 else()
-    target_link_libraries(realm-jni log android lib_realm_core)
+    target_link_libraries(realm-jni log android lib_realm_core crypto)
 endif()
 
 # Strip the release so files and backup the unstripped versions

@@ -3,6 +3,7 @@
 var winston = require('winston'); //logging
 const temp = require('temp');
 const spawn = require('child_process').spawn;
+const exec = require('child_process').exec;
 var http = require('http');
 var dispatcher = require('httpdispatcher');
 
@@ -32,55 +33,78 @@ function handleRequest(request, response) {
 
 var syncServerChildProcess = null;
 
-function startRealmObjectServer() {
-    stopRealmObjectServer();
-    temp.mkdir('ros', function(err, path) {
-        if (!err) {
-            winston.info("Starting sync server in ", path);
-            var env = Object.create( process.env );
-            winston.info(env.NODE_ENV);
-            env.NODE_ENV = 'development';
-            syncServerChildProcess = spawn('realm-object-server',
-                    ['--root', path,
-                    '--configuration', '/configuration.yml'],
-                    { env: env });
-            // local config:
-            syncServerChildProcess.stdout.on('data', (data) => {
-                winston.info(`stdout: ${data}`);
-            });
+function startRealmObjectServer(done) {
+    // Hack for checking the ROS is fully initialized.
+    // Consider the ROS is initialized fully only if log below shows twice
+    // "client: Closing Realm file: /tmp/ros117521-7-1eiqt7a/internal_data/permission/__auth.realm"
+    // https://github.com/realm/realm-object-server/issues/1297
+    var logFindingCounter = 2
 
-            syncServerChildProcess.stderr.on('data', (data) => {
-                winston.info(`stderr: ${data}`);
-            });
-
-            syncServerChildProcess.on('close', (code) => {
-                winston.info(`child process exited with code ${code}`);
-            });
+    stopRealmObjectServer(function(err) {
+        if(err) {
+          return;
         }
+        temp.mkdir('ros', function(err, path) {
+            if (!err) {
+                winston.info("Starting sync server in ", path);
+                var env = Object.create( process.env );
+                winston.info(env.NODE_ENV);
+                env.NODE_ENV = 'development';
+                syncServerChildProcess = spawn('realm-object-server',
+                        ['--root', path,
+                        '--configuration', '/configuration.yml'],
+                        { env: env, cwd: path});
+                // local config:
+                syncServerChildProcess.stdout.on('data', (data) => {
+                    if (logFindingCounter != 0 && /client: Closing Realm file: .*__auth.realm/.test(data)) {
+                        if (logFindingCounter == 1) {
+                            done()
+                        }
+                        logFindingCounter--
+                    }
+                    winston.info(`stdout: ${data}`);
+                });
+
+                syncServerChildProcess.stderr.on('data', (data) => {
+                    winston.info(`stderr: ${data}`);
+                });
+
+                syncServerChildProcess.on('close', (code) => {
+                    winston.info(`child process exited with code ${code}`);
+                });
+            }
+        });
     });
 }
 
-function stopRealmObjectServer() {
+function stopRealmObjectServer(callback) {
     if (syncServerChildProcess) {
+        syncServerChildProcess.on('exit', function() {
+            syncServerChildProcess = null;
+            callback();
+        });
         syncServerChildProcess.kill();
-        syncServerChildProcess = null;
+    } else {
+        callback();
     }
 }
 
 
 // start sync server
 dispatcher.onGet("/start", function(req, res) {
-    startRealmObjectServer();
-    res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.end('Starting a server');
+    startRealmObjectServer(() => {
+        res.writeHead(200, {'Content-Type': 'text/plain'});
+        res.end('Starting a server');
+    })
 });
 
 // stop a previously started sync server
 dispatcher.onGet("/stop", function(req, res) {
-    stopRealmObjectServer();
-    winston.info("Sync server stopped");
-    res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.end('Stopping the server');
+    stopRealmObjectServer(function() {
+      winston.info("Sync server stopped");
+      res.writeHead(200, {'Content-Type': 'text/plain'});
+      res.end('Stopping the server');
+    });
 });
 
 //Create and start the Http server
