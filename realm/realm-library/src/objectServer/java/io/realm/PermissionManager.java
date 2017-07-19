@@ -1205,46 +1205,6 @@ public class PermissionManager implements Closeable {
         void onSuccess(RealmResults<Permission> permissions);
     }
 
-    private interface PermissionManagerBaseCallback {
-        /**
-         * Called if an error happened while executing the task. The PermissionManager uses different underlying Realms,
-         * and this error will report errors from all of these Realms combining them as best as possible.
-         * <p>
-         * This means that if all Realms fail with the same error code, {@link ObjectServerError#getErrorCode()} will
-         * return that error code. If the underlying Realms fail for different reasons, {@link ErrorCode#UNKNOWN} will
-         * be returned. {@link ObjectServerError#getErrorMessage()} will always contain the full description of errors
-         * including the specific error code for each underlying Realm that failed.
-         *
-         * @param error error object describing what happened.
-         */
-        void onError(ObjectServerError error);
-    }
-
-    /**
-     * Callback used when loading a set of permissions.
-     */
-    public interface PermissionsCallback extends PermissionManagerBaseCallback {
-        /**
-         * Called when all known permissions are successfully loaded.
-         * <p>
-         * These permissions will continue to synchronize with the server in the background. Register a
-         * {@link RealmChangeListener} to be notified about any further changes.
-         *
-         * @param permissions The set of currently known permissions.
-         */
-        void onSuccess(RealmResults<Permission> permissions);
-    }
-
-    /**
-     * Callback used when modifying or creating new permissions.
-     */
-    public interface ApplyPermissionsCallback extends PermissionManagerBaseCallback {
-        /**
-         * Called when the permissions where successfully modified.
-         */
-        void onSuccess();
-    }
-
     /**
      * Callback used when modifying or creating new permissions.
      */
