@@ -30,10 +30,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import io.realm.internal.Util;
 import io.realm.internal.permissions.BasePermissionApi;
 import io.realm.internal.permissions.ManagementModule;
 import io.realm.internal.permissions.PermissionChange;
 import io.realm.internal.permissions.PermissionModule;
+import io.realm.internal.permissions.PermissionOfferResponse;
 import io.realm.log.RealmLog;
 import io.realm.permissions.Permission;
 import io.realm.permissions.PermissionOffer;
@@ -156,7 +158,7 @@ public class PermissionManager implements Closeable {
      *
      * @param user user to create manager for.
      */
-    private PermissionManager(final SyncUser user) {
+    private PermissionManager(SyncUser user) {
         this.user = user;
         threadId = Thread.currentThread().getId();
         managementRealmConfig = new SyncConfiguration.Builder(
@@ -212,7 +214,7 @@ public class PermissionManager implements Closeable {
      * @param callback
      * @return
      */
-    public RealmAsyncTask getPermissions(final Callback<RealmResults<Permission>> callback) {
+    public RealmAsyncTask getPermissions(PermissionsCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         return addTask(new GetPermissionsAsyncTask(this, callback));
@@ -226,7 +228,7 @@ public class PermissionManager implements Closeable {
      * live query result, that will be auto-updated like any other {@link RealmResults}.
      * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
      */
-    public RealmAsyncTask getDefaultPermissions(final Callback<RealmResults<Permission>> callback) {
+    public RealmAsyncTask getDefaultPermissions(PermissionsCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         return addTask(new GetDefaultPermissionsAsyncTask(this, callback));
@@ -239,13 +241,13 @@ public class PermissionManager implements Closeable {
      * {@link io.realm.permissions.AccessLevel}s for which Realm(s).
      * <p>
      * Once the request is successfully handled, a {@link Permission} entry is created in each user's
-     * {@link PermissionManager} and can be found using {@link PermissionManager#getPermissions(Callback)}.
+     * {@link PermissionManager} and can be found using {@link PermissionManager#getPermissions(PermissionsCallback)}.
      *
      * @param request request object describing which permissions to grant and to what Realm(s).
      * @param callback callback when the request either succeeded or failed.
      * @return async task representing the request. This can be used to cancel it if needed.
      */
-    public RealmAsyncTask applyPermissions(PermissionRequest request, final Callback<Void> callback) {
+    public RealmAsyncTask applyPermissions(PermissionRequest request, ApplyPermissionsCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         return addTask(new ApplyPermissionTask(this, request, callback));
@@ -254,11 +256,11 @@ public class PermissionManager implements Closeable {
     /**
      * Makes a permission offer to users. The offer is represented by an offer token and the permission changes
      * described in the {@link PermissionOffer} do not take effect until the offer has been accepted by a user
-     * calling {@link #acceptOffer(String, Callback)}.
+     * calling {@link #acceptOffer(String, AcceptOfferCallback)}.
      * <p>
      * A permission offer can be used as a flexible way of sharing Realms with other users that might not be known at the time
      * of making the offer as well as enabling sharing across other channels like e-mail. If a specific user should be
-     * granted access, using {@link #applyPermissions(PermissionRequest, Callback)} will be faster and quicker.
+     * granted access, using {@link #applyPermissions(PermissionRequest, ApplyPermissionsCallback)} will be faster and quicker.
      * <p>
      * An offer can be accepted by multiple users.
      *
@@ -269,7 +271,7 @@ public class PermissionManager implements Closeable {
      * @see <a href="https://realm.io/docs/java/latest/#modifying-permissions">Modifying permissions</a> for a more
      * high level description.
      */
-    public RealmAsyncTask makeOffer(PermissionOffer offer, final Callback<String> callback) {
+    public RealmAsyncTask makeOffer(PermissionOffer offer, MakeOfferCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         if (offer.isOfferCreated()) {
@@ -279,13 +281,20 @@ public class PermissionManager implements Closeable {
     }
 
     /**
-     * FIXME
-     * @param offerToken
-     * @param callback
-     * @return
+     * Accepts a permission offer sent by another user. Once this offer is accepted successfully, the permissions
+     * described by the token will be granted.
+     *
+     * @param offerToken token representing the permission offer.
+     * @param callback with the permission details that were accepted.
+     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
      */
-    public RealmAsyncTask acceptOffer(String offerToken, final Callback<Void> callback) {
-        return null; // FIXME
+    public RealmAsyncTask acceptOffer(String offerToken, AcceptOfferCallback callback) {
+        checkIfValidThread();
+        checkCallbackNotNull(callback);
+        if (Util.isEmptyString(offerToken)) {
+            throw new IllegalArgumentException("Non-empty 'offerToken' required.");
+        }
+        return addTask(new AcceptOfferAsyncTask(this, offerToken, callback));
     }
 
     /**
@@ -293,7 +302,7 @@ public class PermissionManager implements Closeable {
      * @param offerToken
      * @return
      */
-    public RealmAsyncTask revokeOffer(String offerToken, final Callback<Void> callback) {
+    public RealmAsyncTask revokeOffer(String offerToken, PermissionManagerBaseCallback callback) {
         return null; // FIXME
     }
 
@@ -301,7 +310,7 @@ public class PermissionManager implements Closeable {
      * FIXME
      * @return
      */
-    public RealmAsyncTask getOffers(Callback<RealmResults<PermissionOffer>> callback) {
+    public RealmAsyncTask getOffers(PermissionManagerBaseCallback callback) {
         return null; // FIXME
     }
 
@@ -309,7 +318,7 @@ public class PermissionManager implements Closeable {
     // start the task by sending it to this thread handler. This is done
     // in order to be able to provide the user with a RealmAsyncTask representation
     // of the work being done.
-    private RealmAsyncTask addTask(final PermissionManagerTask task) {
+    private RealmAsyncTask addTask(PermissionManagerTask task) {
         if (isReady()) {
             activateTask(task);
         } else {
@@ -406,7 +415,7 @@ public class PermissionManager implements Closeable {
         }
     }
 
-    private void checkCallbackNotNull(Callback<?> callback) {
+    private void checkCallbackNotNull(PermissionManagerBaseCallback callback) {
         if (callback == null) {
             throw new IllegalArgumentException("Non-null 'callback' required.");
         }
@@ -508,11 +517,13 @@ public class PermissionManager implements Closeable {
     // The Permission result is not considered available until the query has completed.
     private class GetPermissionsAsyncTask extends PermissionManagerTask<RealmResults<Permission>> {
 
+        private final PermissionsCallback callback;
         // Prevent permissions from being GC'ed until fully loaded.
         private RealmResults<Permission> loadingPermissions;
 
-        GetPermissionsAsyncTask(PermissionManager permissionManager, Callback<RealmResults<Permission>> callback) {
+        GetPermissionsAsyncTask(PermissionManager permissionManager, PermissionsCallback callback) {
             super(permissionManager, callback);
+            this.callback = callback;
         }
 
         @Override
@@ -542,17 +553,24 @@ public class PermissionManager implements Closeable {
                 });
             }
         }
+
+        private void notifyCallbackWithSuccess(RealmResults<Permission> permissions) {
+            callback.onSuccess(permissions);
+            activeTasks.remove(this);
+        }
     }
 
     // Task responsible for loading the Default Permissions result and returning it to the user.
     // The Permission result is not considered available until the query has completed.
     private class GetDefaultPermissionsAsyncTask extends PermissionManagerTask<RealmResults<Permission>> {
 
+        private final PermissionsCallback callback;
         // Prevent permissions from being GC'ed until fully loaded.
         private RealmResults<Permission> loadingPermissions;
 
-        GetDefaultPermissionsAsyncTask(PermissionManager permissionManager, Callback<RealmResults<Permission>> callback) {
+        GetDefaultPermissionsAsyncTask(PermissionManager permissionManager, PermissionsCallback callback) {
             super(permissionManager, callback);
+            this.callback = callback;
         }
 
         @Override
@@ -581,6 +599,11 @@ public class PermissionManager implements Closeable {
                 });
             }
         }
+
+        private void notifyCallbackWithSuccess(RealmResults<Permission> permissions) {
+            callback.onSuccess(permissions);
+            activeTasks.remove(this);
+        }
     }
 
     // Class encapsulating setting a Permission by writing a PermissionChange and waiting for it to
@@ -588,14 +611,16 @@ public class PermissionManager implements Closeable {
     private class ApplyPermissionTask extends PermissionManagerTask<Void> {
 
         private final PermissionChange unmanagedChangeRequest;
-        private String changeRequestId;
+        private final ApplyPermissionsCallback callback;
+        private final String changeRequestId;
         private PermissionChange managedChangeRequest;
         private RealmAsyncTask transactionTask;
 
-        public ApplyPermissionTask(PermissionManager manager, PermissionRequest request, Callback<Void> callback) {
+        public ApplyPermissionTask(PermissionManager manager, PermissionRequest request, ApplyPermissionsCallback callback) {
             super(manager, callback);
             this.unmanagedChangeRequest = PermissionChange.fromRequest(request);
             this.changeRequestId = unmanagedChangeRequest.getId();
+            this.callback = callback;
         }
 
         @Override
@@ -635,7 +660,12 @@ public class PermissionManager implements Closeable {
                                 RealmObject.removeChangeListener(managedChangeRequest, this);
                                 return;
                             }
-                            handleServerStatusChanges(permissionChange, null);
+                            handleServerStatusChanges(permissionChange, new Runnable() {
+                                @Override
+                                public void run() {
+                                    notifyCallbackWithSuccess();
+                                }
+                            });
                         }
                     });
                 }
@@ -655,6 +685,11 @@ public class PermissionManager implements Closeable {
             transactionTask = managementRealm.executeTransactionAsync(transaction, onSuccess, onError);
         }
 
+        private void notifyCallbackWithSuccess() {
+            callback.onSuccess();
+            activeTasks.remove(this);
+        }
+
         @Override
         public void cancel() {
             super.cancel();
@@ -668,13 +703,15 @@ public class PermissionManager implements Closeable {
 
         private final PermissionOffer unmanagedOffer;
         private final String offerId;
+        private final MakeOfferCallback callback;
         private PermissionOffer managedOffer;
         private RealmAsyncTask transactionTask;
 
-        public MakeOfferAsyncTask(PermissionManager permissionManager, PermissionOffer offer, Callback<String> callback) {
+        public MakeOfferAsyncTask(PermissionManager permissionManager, PermissionOffer offer, MakeOfferCallback callback) {
             super(permissionManager, callback);
             this.unmanagedOffer = offer;
             this.offerId = offer.getId();
+            this.callback = callback;
         }
 
         @Override
@@ -705,12 +742,17 @@ public class PermissionManager implements Closeable {
                     managedOffer = managementRealm.where(PermissionOffer.class).equalTo("id", offerId).findFirstAsync();
                     RealmObject.addChangeListener(managedOffer, new RealmChangeListener<PermissionOffer>() {
                         @Override
-                        public void onChange(PermissionOffer permissionOffer) {
+                        public void onChange(final PermissionOffer permissionOffer) {
                             if (checkAndReportInvalidState()) {
                                 RealmObject.removeChangeListener(managedOffer, this);
                                 return;
                             }
-                            handleServerStatusChanges(permissionOffer, permissionOffer.getToken());
+                            handleServerStatusChanges(permissionOffer, new Runnable() {
+                                @Override
+                                public void run() {
+                                    notifyCallbackWithSuccess(permissionOffer.getToken());
+                                }
+                            });
                         }
                     });
                 }
@@ -730,6 +772,109 @@ public class PermissionManager implements Closeable {
             transactionTask = managementRealm.executeTransactionAsync(transaction, onSuccess, onError);
         }
 
+        private void notifyCallbackWithSuccess(String token) {
+            callback.onSuccess(token);
+            activeTasks.remove(this);
+        }
+
+        @Override
+        public void cancel() {
+            super.cancel();
+            if (transactionTask != null) {
+                transactionTask.cancel();
+                transactionTask = null;
+            }
+        }
+    }
+
+    private class AcceptOfferAsyncTask extends PermissionManagerTask<Permission> {
+
+        private final PermissionOfferResponse unmanagedResponse;
+        private final String responseId;
+        private final AcceptOfferCallback callback;
+        private PermissionOfferResponse managedResponse;
+        private RealmAsyncTask transactionTask;
+        public RealmResults<Permission> grantedPermissionResults;
+
+        public AcceptOfferAsyncTask(PermissionManager permissionManager, String offerToken, AcceptOfferCallback callback) {
+            super(permissionManager, callback);
+            this.unmanagedResponse = new PermissionOfferResponse(offerToken);
+            this.responseId = unmanagedResponse.getId();
+            this.callback = callback;
+        }
+
+        @Override
+        public void run() {
+            if (checkAndReportInvalidState()) {
+                return;
+            }
+
+            // Save response object. It will be synchronized to the server where it will be processed.
+            Realm.Transaction transaction = new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    if (checkAndReportInvalidState()) { return; }
+                    realm.insertOrUpdate(unmanagedResponse);
+                }
+            };
+
+            // If the response was successfully written to Realm, we need to wait for it to be processed.
+            // Register a ChangeListener on the object and wait for the proper response code, which can then be
+            // converted to a proper response to the user.
+            Realm.Transaction.OnSuccess onSuccess = new Realm.Transaction.OnSuccess() {
+                @Override
+                public void onSuccess() {
+                    if (checkAndReportInvalidState()) { return; }
+
+                    // Find PermissionOffer object we just added
+                    // Wait for it to be processed
+                    managedResponse = managementRealm.where(PermissionOfferResponse.class).equalTo("id", responseId).findFirstAsync();
+                    RealmObject.addChangeListener(managedResponse, new RealmChangeListener<PermissionOfferResponse>() {
+                        @Override
+                        public void onChange(final PermissionOfferResponse response) {
+                            if (checkAndReportInvalidState()) {
+                                RealmObject.removeChangeListener(managedResponse, this);
+                                return;
+                            }
+                            handleServerStatusChanges(response, new Runnable() {
+                                @Override
+                                public void run() {
+                                    grantedPermissionResults = permissionRealm.where(Permission.class).equalTo("path", response.getPath()).findAllAsync();
+                                    grantedPermissionResults.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
+                                        @Override
+                                        public void onChange(RealmResults<Permission> permissions) {
+                                            if (!permissions.isEmpty()) {
+                                                grantedPermissionResults.removeChangeListener(this);
+                                                notifyCallbackWithSuccess(managedResponse.getRealmUrl(), permissions.first());
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            };
+
+            // Critical error: The PermissionChange could not be written to the Realm.
+            // Report it back to the user.
+            Realm.Transaction.OnError onError = new Realm.Transaction.OnError() {
+                @Override
+                public void onError(Throwable error) {
+                    if (checkAndReportInvalidState()) { return; }
+                    notifyCallbackError(new ObjectServerError(ErrorCode.UNKNOWN, error));
+                }
+            };
+
+            // Run
+            transactionTask = managementRealm.executeTransactionAsync(transaction, onSuccess, onError);
+        }
+
+        private void notifyCallbackWithSuccess(String url, Permission permission) {
+            callback.onSuccess(url, permission);
+            activeTasks.remove(this);
+        }
+
         @Override
         public void cancel() {
             super.cancel();
@@ -745,11 +890,11 @@ public class PermissionManager implements Closeable {
     // Made package protected instead of private to facilitate testing
     abstract static class PermissionManagerTask<T> implements RealmAsyncTask, Runnable {
 
-        private final Callback<T> callback;
+        private final PermissionManagerBaseCallback callback;
         private final PermissionManager permissionManager;
         private volatile boolean canceled = false;
 
-        public PermissionManagerTask(PermissionManager permissionManager, Callback<T> callback) {
+        public PermissionManagerTask(PermissionManager permissionManager, PermissionManagerBaseCallback callback) {
             this.callback = callback;
             this.permissionManager = permissionManager;
         }
@@ -822,7 +967,7 @@ public class PermissionManager implements Closeable {
         /**
          * Handle the status change from ROS and either call error or success callbacks.
          */
-        protected void handleServerStatusChanges(BasePermissionApi obj, T resultOnSuccess) {
+        protected void handleServerStatusChanges(BasePermissionApi obj, Runnable onSuccessDelegate) {
             Integer statusCode = obj.getStatusCode();
             if (statusCode != null) {
                 RealmObject.removeAllChangeListeners(obj);
@@ -832,7 +977,7 @@ public class PermissionManager implements Closeable {
                     ObjectServerError error = new ObjectServerError(errorCode, errorMsg);
                     notifyCallbackError(error);
                 } else if (statusCode == 0) {
-                    notifyCallbackWithSuccess(resultOnSuccess);
+                    onSuccessDelegate.run();
                 } else {
                     ErrorCode errorCode = ErrorCode.UNKNOWN;
                     String errorMsg = "Illegal status code: " + statusCode;
@@ -840,11 +985,6 @@ public class PermissionManager implements Closeable {
                     notifyCallbackError(error);
                 }
             }
-        }
-
-        protected final void notifyCallbackWithSuccess(T result) {
-            callback.onSuccess(result);
-            permissionManager.activeTasks.remove(this);
         }
 
         protected final void notifyCallbackError(ObjectServerError e) {
@@ -900,13 +1040,68 @@ public class PermissionManager implements Closeable {
 
     }
 
-    /**
-     * Callback used when an asynchronous task is complete.
-     *
-     * @param <T> the result in case of a success or {@link Void} if no result is available.
-     */
-    public interface Callback<T> {
-        void onSuccess(T t);
+    private interface PermissionManagerBaseCallback {
+        /**
+         * Called if an error happened while executing the task. The PermissionManager uses different underlying Realms,
+         * and this error will report errors from all of these Realms combining them as best as possible.
+         * <p>
+         * This means that if all Realms fail with the same error code, {@link ObjectServerError#getErrorCode()} will
+         * return that error code. If the underlying Realms fail for different reasons, {@link ErrorCode#UNKNOWN} will
+         * be returned. {@link ObjectServerError#getErrorMessage()} will always contain the full description of errors
+         * including the specific error code for each underlying Realm that failed.
+         *
+         * @param error error object describing what happened.
+         */
         void onError(ObjectServerError error);
+    }
+
+    /**
+     * Callback used when loading a set of permissions.
+     */
+    public interface PermissionsCallback extends PermissionManagerBaseCallback {
+        /**
+         * Called when all known permissions are successfully loaded.
+         * <p>
+         * These permissions will continue to synchronize with the server in the background. Register a
+         * {@link RealmChangeListener} to be notified about any further changes.
+         *
+         * @param permissions The set of currently known permissions.
+         */
+        void onSuccess(RealmResults<Permission> permissions);
+    }
+
+    /**
+     * Callback used when modifying or creating new permissions.
+     */
+    public interface ApplyPermissionsCallback extends PermissionManagerBaseCallback {
+        /**
+         * Called when the permissions where successfully modified.
+         */
+        void onSuccess();
+    }
+
+    /**
+     * Callback used when making a permission offer for other users.
+     */
+    public interface MakeOfferCallback extends PermissionManagerBaseCallback {
+        /**
+         * Called when the offer was successfully created.
+         *
+         * @param offerToken token representing the offer that can be sent to other users.
+         */
+        void onSuccess(String offerToken);
+    }
+
+    /**
+     * Callback used when accepting a permission offer.
+     */
+    public interface AcceptOfferCallback extends PermissionManagerBaseCallback {
+        /**
+         * Called when the offer was successfully accepted. This means that this user can now access this Realm.
+         *
+         * @param realmUrl The url pointing to the Realm for which the offer was created.
+         * @param permission The permissions granted.
+         */
+        void onSuccess(String realmUrl, Permission permission);
     }
 }
