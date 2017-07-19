@@ -8,6 +8,7 @@
   * `RealmList.asObservable()` has been renamed to `Realm.asFlowable()`.
   * `RealmResults.asObservable()` has been renamed to `Realm.asFlowable()`.
   * `RealmObject.asObservable()` has been renamed to `Realm.asFlowable()`.
+  * `RxObservableFactory` now return RxJava2 types instead of RxJava1 types.
 
 ### Deprecated
 
