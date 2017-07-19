@@ -13,10 +13,6 @@
 
 ### Enhancements
 
-* `RealmResults.asObservable()` has been added that publish a `Pair<RealmResults, OrderedCollectionChangeSet>` (#4277).
-* `RealmList.asObservable()` has been added that publish a `Pair<RealmList, OrderedCollectionChangeSet>` (#4277).
-* `Realm.asCompletable(Realm.Transaction)` has been added (#2126).
-* `DynamicRealm.asCompletable(Realm.Transaction)` has been added (#2126).
 * Added `static RealmObject.getRealm(RealmModel)`, `RealmObject.getRealm()` and `DynamicRealmObject.getDynamicRealm()` (#4720).
 
 ### Bug Fixes
@@ -32,6 +28,8 @@
 ## 3.6.0 (YYYY-MM-DD)
 
 ### Enhancements
+
+* [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
 
 ### Bug Fixes
 

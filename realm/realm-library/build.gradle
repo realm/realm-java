@@ -35,6 +35,8 @@ ext.coreDir = file(project.coreSourcePath ?
         "${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
 ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
 ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
+// Set to true to enable linking with debug core.
+ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false
 
 android {
     compileSdkVersion 25
@@ -54,7 +56,8 @@ android {
                         // because of the android.toolchain.cmake shipped with Android SDK CMake 3.6 doesn't work with our
                         // JNI build currently (lack of lto linking support).
                         // This file should be removed and use the one from Android SDK cmake package when it supports lto.
-                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
+                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}",
+                        "-DENABLE_DEBUG_CORE=$project.enableDebugCore"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {

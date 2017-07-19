@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
@@ -23,6 +25,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.realm.objectserver.utils.Constants;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
@@ -46,6 +50,9 @@ public class SessionTests {
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
+
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
 
     @Before
     public void setUp() {
@@ -181,5 +188,31 @@ public class SessionTests {
 
         // Trigger error
         SyncManager.simulateClientReset(SyncManager.getSession(config));
+    }
+
+    @Test
+    @UiThreadTest
+    public void uploadAllLocalChanges_throwsOnUiThread() throws InterruptedException {
+        SyncUser user = createTestUser();
+        Realm realm = Realm.getInstance(configuration);
+        try {
+            SyncManager.getSession(configuration).uploadAllLocalChanges();
+        } catch (IllegalStateException ignored) {
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void downloadAllServerChanges_throwsOnUiThread() throws InterruptedException {
+        SyncUser user = createTestUser();
+        Realm realm = Realm.getInstance(configuration);
+        try {
+            SyncManager.getSession(configuration).downloadAllServerChanges();
+        } catch (IllegalStateException ignored) {
+        } finally {
+            realm.close();
+        }
     }
 }
