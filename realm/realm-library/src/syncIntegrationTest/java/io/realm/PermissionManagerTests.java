@@ -638,7 +638,7 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
 
     @Test
     @RunTestInLooperThread
-    @Ignore("FIXME: Figure out how the time differs between emulator and server")
+    @Ignore("Figure out how the time differs between emulator and server")
     public void acceptOffer_expiredThrows() {
         // Trying to guess how long CI is to process this. The offer cannot be created if it
         // already expired.
@@ -700,7 +700,7 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
     }
 
     /**
-     * Creates a offer for a newly created Realm.
+     * Creates an offer for a newly created Realm.
      *
      * @param user User that should create the offer
      * @param realmName Realm to create
