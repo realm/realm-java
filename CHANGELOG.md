@@ -24,6 +24,8 @@
 
 ### Enhancements
 
+* [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
+
 ### Bug Fixes
 
 ### Internal
