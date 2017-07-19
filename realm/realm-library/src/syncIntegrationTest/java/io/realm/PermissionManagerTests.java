@@ -699,8 +699,45 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
         pm3.acceptOffer(offerToken, callback);
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void getCreatedOffers() {
+        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        pm.getCreatedOffers(new PermissionManager.OffersCallback() {
+            @Override
+            public void onSuccess(RealmResults<PermissionOffer> offers) {
+                RealmResults filteredOffers = offers.where()
+                        .equalTo("token", offerToken)
+                        .findAllAsync();
+                looperThread.keepStrongReference(offers);
+                filteredOffers.addChangeListener(new RealmChangeListener<RealmResults>() {
+                    @Override
+                    public void onChange(RealmResults results) {
+                        switch (results.size()) {
+                            case 0: return;
+                            case 1:
+                                looperThread.testComplete();
+                                break;
+                            default:
+                                fail("To many offers: " + Arrays.toString(results.toArray()));
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+
     /**
-     * Creates an offer for a newly created Realm.
+     * Creates a offer for a newly created Realm.
      *
      * @param user User that should create the offer
      * @param realmName Realm to create
