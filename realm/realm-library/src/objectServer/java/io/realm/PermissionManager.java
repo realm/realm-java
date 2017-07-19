@@ -897,8 +897,11 @@ public class PermissionManager implements Closeable {
     }
 
     // Class encapsulating all async tasks exposed by the PermissionManager.
-    // All subclasses are responsible for removing themselves from the activeTaskList when done.
     // Made package protected instead of private to facilitate testing
+    // IMPORTANT:
+    // - All subclasses are responsible for removing themselves from the activeTaskList when done.
+    // - All callbacks should start by checking `if (checkAndReportInvalidState()) { return; }`
+    //   This will abort the task if it was canceled or failed. It will also remove the task from the activeTaskList.
     abstract static class PermissionManagerTask<T> implements RealmAsyncTask, Runnable {
 
         private final PermissionManagerBaseCallback callback;
@@ -933,12 +936,15 @@ public class PermissionManager implements Closeable {
          * @return {@code true} if in a invalid state, {@code false} if in a valid one.
          */
         protected final boolean checkAndReportInvalidState() {
-            if (isCancelled()) { return true; }
+            if (isCancelled()) {
+                permissionManager.activeTasks.remove(this);
+                return true;
+            }
             // Closed check need to work around thread confinement
             if (permissionManager.closed) {
                 ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN,
                         new IllegalStateException("PermissionManager has been closed"));
-                notifyCallbackError(error);
+                notifyCallbackError(error); // This will remove the task from the task list
                 return true;
             }
 
@@ -971,7 +977,7 @@ public class PermissionManager implements Closeable {
             if (managementErrorHappened) { errors.put("Management Realm", managementError); }
             if (permissionErrorHappened) { errors.put("Permission Realm", permissionError); }
             if (defaultPermissionErrorHappened) { errors.put("Default Permission Realm", defaultPermissionError); }
-            notifyCallbackError(combineRealmErrors(errors));
+            notifyCallbackError(combineRealmErrors(errors)); // This will remove the task from the task list
             return true;
         }
 
@@ -1120,10 +1126,12 @@ public class PermissionManager implements Closeable {
             matchingOffers.addChangeListener(new RealmChangeListener<RealmResults<PermissionOffer>>() {
                 @Override
                 public void onChange(final RealmResults<PermissionOffer> offers) {
+                    if (checkAndReportInvalidState()) { return; }
                     if (!offers.isEmpty()) {
                         managementRealm.executeTransactionAsync(new Realm.Transaction() {
                             @Override
                             public void execute(Realm realm) {
+                                if (checkAndReportInvalidState()) { return; }
                                 // Make 100% sure the offer is still in the Realm.
                                 // It could have been deleted between querying for it and the
                                 // transaction running. We will still call OnSuccess if the
@@ -1140,6 +1148,7 @@ public class PermissionManager implements Closeable {
                             public void onSuccess() {
                                 // Don't notify user about success before changes have been uploaded to the server.
                                 matchingOffers.removeAllChangeListeners();
+                                if (checkAndReportInvalidState()) { return; }
                                 final SyncSession session = SyncManager.getSession(managementRealmConfig);
                                 session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
                                     @Override
@@ -1149,6 +1158,7 @@ public class PermissionManager implements Closeable {
                                             handler.post(new Runnable() {
                                                 @Override
                                                 public void run() {
+                                                    if (checkAndReportInvalidState()) { return; }
                                                     notifyCallbackWithSuccess();
                                                 }
                                             });
