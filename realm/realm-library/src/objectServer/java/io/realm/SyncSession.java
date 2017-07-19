@@ -370,11 +370,12 @@ public class SyncSession {
             throw new IllegalArgumentException("Unknown direction: " + direction);
         }
         if (!isClosed) {
+            String realmPath = configuration.getPath();
             WaitForSessionWrapper wrapper = new WaitForSessionWrapper();
             waitingForServerChanges.set(wrapper);
             boolean listenerRegistered = (direction == DIRECTION_DOWNLOAD)
-                    ? nativeWaitForDownloadCompletion(configuration.getPath())
-                    : nativeWaitForUploadCompletion(configuration.getPath());
+                    ? nativeWaitForDownloadCompletion(realmPath)
+                    : nativeWaitForUploadCompletion(realmPath);
             if (!listenerRegistered) {
                 waitingForServerChanges.set(null);
                 String errorMsg = "";
@@ -387,7 +388,12 @@ public class SyncSession {
 
                 throw new ObjectServerError(ErrorCode.UNKNOWN, errorMsg + " Has the SyncClient been started?");
             }
-            wrapper.waitForServerChanges();
+            try {
+                wrapper.waitForServerChanges();
+            } catch(InterruptedException e) {
+                waitingForServerChanges.set(null); // Ignore any results being sent if the wait was interrupted.
+                throw e;
+            }
 
             // This might return after the session was closed. In that case, just ignore any result
             try {
