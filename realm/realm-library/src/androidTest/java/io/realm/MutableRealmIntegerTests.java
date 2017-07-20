@@ -169,18 +169,20 @@ public class MutableRealmIntegerTests {
                 realm.getSchema().get("MutableRealmIntegerTypes")
                         .isNullable(MutableRealmIntegerTypes.FIELD_NONNULLABLE_MUTABLEREALMINTEGER));
 
+        realm.beginTransaction();
         try {
             c1.columnNonNullableMutableRealmInteger.set(null);
             fail("should not be able to set an @Required MutableRealmInteger null");
-        } catch(IllegalStateException ignore) {
+        } catch(IllegalArgumentException ignore) {
         }
+        realm.commitTransaction();
 
         c1 = new MutableRealmIntegerTypes();
         c1.columnNonNullableMutableRealmInteger.set(null);
         realm.beginTransaction();
         try {
             MutableRealmIntegerTypes c2 = realm.copyToRealm(c1);
-            fail("should not be able to copy an null valute to a @Required MutableRealmInteger");
+            fail("should not be able to copy a null value to a @Required MutableRealmInteger");
         } catch(IllegalArgumentException ignore) {
         }
         realm.commitTransaction();

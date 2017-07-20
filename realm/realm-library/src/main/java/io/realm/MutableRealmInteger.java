@@ -22,72 +22,69 @@ import io.realm.internal.Table;
 
 
 /**
- * A MutableRealmInteger is a mutable, {@link java.lang.Long}-like numeric quantity.
- * It behaves almost exactly as a reference to a {@link java.lang.Long}. More specifically:
+ * A {@code MutableRealmInteger} is a mutable, {@link Long}-like numeric quantity.
+ * It behaves almost exactly as a reference to a {@link Long}. More specifically:
  * <ul>
- * <li>A MutableRealmInteger may have the value {@code null}.</li>
- * <li>The {@code .equals} operator compares the contained Long values. null-valued MutableRealmInteger are {@code .equals}</li>
- * <li>The {@code .compareTo} operator compares the contained Long values.  It considers {@code null} &lt; any value.</li>
- * <li>The {@code .increment} and {@code .decrement} operators throw {@code IllegalStateException} when applied to a null-valued MutableRealmInteger.</li>
+ * <li>A {@code MutableRealmInteger} may have the value {@code null}.</li>
+ * <li>The {@link #equals} operator compares the contained {@link Long} values. {@code null}-valued {@code MutableRealmInteger} are {@code .equals}</li>
+ * <li>The {@link #compareTo} operator compares the contained {@link Long} values.  It considers {@code null} &lt; any non-{@code null} value.</li>
+ * <li>The {@link #increment} and {@link #decrement} operators throw {@link IllegalStateException} when applied to a {@code null}-valued {@code MutableRealmInteger}.</li>
  * </ul>
  * <p>
  *
- * MutableRealmIntegers are most interesting as members of a managed {@code RealmModel} object.
- * When managed, the {@code .increment} and {@code .decrement} operators implement a
+ * {@code MutableRealmInteger}s are most interesting as members of a managed {@link RealmModel} object.
+ * When managed, the {@link #increment} and {@link #decrement} operators implement a
  * <a href="https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type">conflict free replicated data type</a>:
  * Simultaneous increments and decrements from multiple distributed clients will be aggregated correctly.
- * For instance, if the value of {@code counter} for the user "Fred" is currently 0, then the following code,
- * executed on two different devices, simultaneously, even if connected by only a slow, unreliable network,
- * will <b>always</b> cause the value of {@code counter} to converge, eventually on the value 2.
+ * For instance, if the value of {@code counter} field for the object representing user "Fred" is currently 0,
+ * then the following code, executed on two different devices, simultaneously, even if connected by only a slow,
+ * unreliable network, will <b>always</b> cause the value of {@code counter} to converge, eventually on the value 2.
  * <pre>
- * {@code
- * MutableRealmInteger counter = realm.where(Users.class)
+ * <code> MutableRealmInteger counter = realm.where(Users.class)
  *     .equalTo("name", Fred)
- *     .counter.increment(1);
- * }
+ *     .counter.increment(1);</code>
  * </pre>
- * Note that the {@link #set(Long)} operator must be used with extreme care. It will override any method calls
- * to {@link #increment(long)} or {@link #decrement(long)}. Although the value of a MutableRealmInteger will
- * always converge across devices the specific value will depend on the actual order in which operations took place.
- * Mixing {@link #set(Long)} with {@link #increment(long)} is, therefore, not advised, unless fuzzy counting
- * is acceptable.
+ * Note that the {@link #set(Long)} operator must be used with extreme care. It will quash the effects of any prior calls
+ * to {@link #increment(long)} or {@link #decrement(long)}. Although the value of a {@code MutableRealmInteger} will
+ * always converge across devices, the specific value on which it converges will depend on the actual order in which
+ * operations took place. Mixing {@link #set(Long)} with {@link #increment(long)} and {@link #decrement(long)} is,
+ * therefore, not advised, unless fuzzy counting is acceptable.
  * <p>
  *
- * MutableRealmIntegers may not be primary keys. Their implementations are not thread safe.
- * Like all manage Realm objects, managed MutableRealmIntegers may not be moved across threads.
- * Unmanaged MutableRealmIntegers may be moved across threads but require safe publication.
+ * {@code MutableRealmInteger}s may not be primary keys. Their implementations are not thread safe.
+ * Like all managed Realm objects, managed {@code MutableRealmInteger}s may not be moved across threads.
+ * Unmanaged {@code MutableRealmInteger}s may be moved across threads but require safe publication.
  * <p>
  *
- * A MutableRealmInteger, in a model class, must always be declared final. For instance:
+ * A {@code MutableRealmInteger}, in a model class, must always be declared {@code final}. For instance:
  * <pre>
  * {@code public final MutableRealmInteger counter = MutableRealmInteger.ofNull(); }
  * </pre>
- * Although this may work under very limited circumstances, developers are advised <b>not</b> to do it:
- * <pre>
- * {@code public final MutableRealmInteger counter = null; }
- * </pre>
- * Also note that when a MutableRealmInteger is {@code @Required}, it is better, though not required,
- * to initialize it with a non-null value.
+ * Although initializing the {@code MutableRealmInteger} as {@code null} may work very limited circumstances,
+ * developers are advised <b>not</b> to do it:
  * <pre>
  * {@code
- * @Required
- * public final MutableRealmInteger counter = MutableRealmInteger.valueOf(0L);
- * }
+ *  public final MutableRealmInteger counter = null; // DO NOT DO THIS! }
+ * </pre>
+ * Also note that when a {@code MutableRealmInteger} is {@code @Required}, it is better, though not required,
+ * to initialize it with a non-null value.
+ * <pre>
+ * <code>
+ * {@literal @}Required
+ *  public final MutableRealmInteger counter = MutableRealmInteger.valueOf(0L);</code>
  * </pre>
  *
  *<p>
- * A reference to a managed MutableRealmInteger is subject to all of the constraints that apply to the model object
- * from which it was obtained: It can only be mutated within a transaction. It becomes invalid if
- * the Realm backing it is closed. Use the {@link #isManaged}  and {@link #isManaged}  operators to
- * determine whether a MutableRealmInteger is in a consistent state. Note, in particular, that a reference
- * to a managed MutableRealmInteger retains a reference to the model object to which it belongs.
- * For example in this code:
+ * A reference to a managed {@code MutableRealmInteger} is subject to all of the constraints that apply
+ * to the model object from which it was obtained: It can only be mutated within a transaction and
+ * it becomes invalid if the Realm backing it is closed. Use the {@code isManaged()}
+ * and {@code isValid()} operators to determine whether a {@code MutableRealmInteger} is
+ * in a consistent state. Note, in particular, that a reference to a managed {@code MutableRealmInteger}
+ * retains a reference to the model object to which it belongs. For example in this code:
  * <pre>
- * {@code
- * MutableRealmInteger counter = realm.where(Users.class).findFirst().counter;
- * }
+ * {@code MutableRealmInteger counter = realm.where(Users.class).findFirst().counter; }
  * </pre>
- * {@code counter} holds a reference to the {@code User} model object from which it was obtained.
+ * the {@code counter} holds a reference to the {@code User} model object from which it was obtained.
  * Neither can be GCed until all references to both are unreachable.
  */
 @Beta
@@ -140,7 +137,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
     /**
      * Managed Implementation.
-     * Proxies create new subclasses for each MutableRealmInteger field.
+     * Proxies create new subclasses for each {@code MutableRealmInteger} field.
      */
     abstract static class Managed<T extends RealmModel> extends MutableRealmInteger {
         protected abstract ProxyState<T> getProxyState();
@@ -204,13 +201,13 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
         private void setValue(Long value, boolean isDefault) {
             Row row = getRow();
-            Table t = row.getTable();
+            Table table = row.getTable();
             long rowIndex = row.getIndex();
             long columnIndex = getColumnIndex();
             if (value == null) {
-                t.setNull(columnIndex, rowIndex, isDefault);
+                table.setNull(columnIndex, rowIndex, isDefault);
             } else {
-                t.setLong(columnIndex, rowIndex, value, isDefault);
+                table.setLong(columnIndex, rowIndex, value, isDefault);
             }
         }
     }
@@ -225,7 +222,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     }
 
     /**
-     * Creates a new, unmanaged {@code MutableRealmInteger} whose value is null.
+     * Creates a new, unmanaged {@code MutableRealmInteger} whose value is {@code null}.
      */
     public static MutableRealmInteger ofNull() {
         return valueOf((Long) null);
@@ -241,9 +238,9 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     }
 
     /**
-     * Creates a new, unmmanaged {@code MutableRealmInteger} with the specified initial value.
+     * Creates a new, unmanaged {@code MutableRealmInteger} with the specified initial value.
      *
-     * @param value initial value: parsed by {@code Long.parseLong}.
+     * @param value initial value: parsed by {@link Long#parseLong}.
      */
     public static MutableRealmInteger valueOf(String value) {
         return valueOf(Long.parseLong(value));
@@ -267,8 +264,9 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
     /**
      * Sets the {@code MutableRealmInteger} value.
-     * Calling set() forcibly sets the MutableRealmInteger to the provided value. Doing this means that
-     * {@link #increment} and {@link #decrement} changes from other devices might be overridden.
+     * Calling {@code set} forcibly sets the {@code MutableRealmInteger} to the provided value.
+     * Doing this obliterates the effects of any calls to {@link #increment} and {@link #decrement} perceived
+     * before the call to {@code set}.
      *
      * @param newValue new value.
      */
@@ -276,8 +274,9 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
     /**
      * Sets the {@code MutableRealmInteger} value.
-     * Calling set() forcibly sets the MutableRealmInteger to the provided value. Doing this means that
-     * {@link #increment} and {@link #decrement} changes from other devices might be overridden.
+     * Calling {@link #set} forcibly sets the {@code MutableRealmInteger} to the provided value.
+     * Doing this obliterates the effects of any calls to {@link #increment} and {@link #decrement} perceived
+     * before the call to {@link #set}.
      *
      * @param newValue new value.
      */
@@ -289,7 +288,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      * Increments the {@code MutableRealmInteger}, adding the value of the argument.
      * Increment/decrement from all devices are reflected in the new value, which is guaranteed to converge.
      *
-     * @param inc quantity to be added to the MutableRealmInteger.
+     * @param inc quantity to be added to the {@code MutableRealmInteger}.
      */
     public abstract void increment(long inc);
 
@@ -297,20 +296,20 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      * Decrements the {@code MutableRealmInteger}, subtracting the value of the argument.
      * Increment/decrement from all devices are reflected in the new value, which is guaranteed to converge.
      *
-     * @param dec quantity to be subtracted from the MutableRealmInteger.
+     * @param dec quantity to be subtracted from the {@code MutableRealmInteger}.
      */
     public abstract void decrement(long dec);
 
     /**
-     * @return true if and only if {@code get()} will return {@code null}.
+     * @return true if and only if {@link #get} will return {@code null}.
      */
     public final boolean isNull() {
         return get() == null;
     }
 
     /**
-     * MutableRealmIntegers compare strictly by their values.
-     * Null is a legal value for a MutableRealmInteger: null &lt; non-null
+     * {@code MutableRealmInteger}s compare strictly by their values.
+     * Null is a legal value for a {@code MutableRealmInteger} and {@code null} &lt; any non-{@code null} value
      *
      * @param o the compare target
      * @return -1, 0, or 1, depending on whether this object's value is &lt;, =, or &gt; the target's.
@@ -325,7 +324,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     }
 
     /**
-     * A MutableRealmInteger's hash code depends only on its value.
+     * A {@code MutableRealmInteger}'s hash code is, exactly, the hash code of its value.
      *
      * @return true if the target has the same value.
      */
@@ -336,7 +335,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
     }
 
     /**
-     * Two MutableRealmIntegers are {@code .equals} if and only if their longValues are equal.
+     * Two {@code MutableRealmInteger}s are {@code .equals} if and only if their {@code longValues} are equal.
      *
      * @param o compare target
      * @return true if the target has the same value.

@@ -208,18 +208,19 @@ public class SimpleRealmProxy extends some.test.Simple
             throws JSONException {
         final List<String> excludeFields = Collections.<String> emptyList();
         some.test.Simple obj = realm.createObjectInternal(some.test.Simple.class, true, excludeFields);
+        final SimpleRealmProxyInterface objProxy = (SimpleRealmProxyInterface) obj;
         if (json.has("name")) {
             if (json.isNull("name")) {
-                ((SimpleRealmProxyInterface) obj).realmSet$name(null);
+                objProxy.realmSet$name(null);
             } else {
-                ((SimpleRealmProxyInterface) obj).realmSet$name((String) json.getString("name"));
+                objProxy.realmSet$name((String) json.getString("name"));
             }
         }
         if (json.has("age")) {
             if (json.isNull("age")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'age' to null.");
             } else {
-                ((SimpleRealmProxyInterface) obj).realmSet$age((int) json.getInt("age"));
+                objProxy.realmSet$age((int) json.getInt("age"));
             }
         }
         return obj;
@@ -229,32 +230,32 @@ public class SimpleRealmProxy extends some.test.Simple
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.Simple createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        some.test.Simple obj = new some.test.Simple();
+        final some.test.Simple obj = new some.test.Simple();
+        final SimpleRealmProxyInterface objProxy = (SimpleRealmProxyInterface) obj;
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
             if (false) {
             } else if (name.equals("name")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((SimpleRealmProxyInterface) obj).realmSet$name(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$name((String) reader.nextString());
                 } else {
-                    ((SimpleRealmProxyInterface) obj).realmSet$name((String) reader.nextString());
+                    reader.skipValue();
+                    objProxy.realmSet$name(null);
                 }
             } else if (name.equals("age")) {
-                if (reader.peek() == JsonToken.NULL) {
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$age((int) reader.nextInt());
+                } else {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field 'age' to null.");
-                } else {
-                    ((SimpleRealmProxyInterface) obj).realmSet$age((int) reader.nextInt());
                 }
             } else {
                 reader.skipValue();
             }
         }
         reader.endObject();
-        obj = realm.copyToRealm(obj);
-        return obj;
+        return realm.copyToRealm(obj);
     }
 
     public static some.test.Simple copyOrUpdate(Realm realm, some.test.Simple object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
