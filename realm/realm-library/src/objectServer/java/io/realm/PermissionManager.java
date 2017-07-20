@@ -299,17 +299,22 @@ public class PermissionManager implements Closeable {
     }
 
     /**
-     * FIXME
-     * @param offerToken
-     * @return
+     * Revokes an existing offer. This will prevent any other users from accepting it. Users that already accepted it,
+     * will not be affected. Revocation cannot happen until the device has talked to the server. The callback will
+     * not be notified until this has happened.
+     *
+     * @param offerToken token that should be revoked.
+     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
      */
-    public RealmAsyncTask revokeOffer(String offerToken, PermissionManagerBaseCallback callback) {
-        return null; // FIXME
+    public RealmAsyncTask revokeOffer(String offerToken, RevokeOfferCallback callback) {
+        checkIfValidThread();
+        checkCallbackNotNull(callback);
+        return addTask(new RevokeOfferAsyncTask(this, offerToken, callback));
     }
 
     /**
      * Returns the list of offers created by this user. These offers can be revoked again by calling
-     * {@link #revokeOffer(String, PermissionManagerBaseCallback)} or sent to other users by sending the
+     * {@link #revokeOffer(String, RevokeOfferCallback)} or sent to other users by sending the
      * {@link PermissionOffer#getToken()}.
      *
      * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
@@ -560,7 +565,7 @@ public class PermissionManager implements Closeable {
             }
         }
 
-        private void notifyCallbackWithSuccess(RealmResults<Permission> permissions) {
+        void notifyCallbackWithSuccess(RealmResults<Permission> permissions) {
             callback.onSuccess(permissions);
             activeTasks.remove(this);
         }
@@ -606,7 +611,7 @@ public class PermissionManager implements Closeable {
             }
         }
 
-        private void notifyCallbackWithSuccess(RealmResults<Permission> permissions) {
+        void notifyCallbackWithSuccess(RealmResults<Permission> permissions) {
             callback.onSuccess(permissions);
             activeTasks.remove(this);
         }
@@ -691,7 +696,7 @@ public class PermissionManager implements Closeable {
             transactionTask = managementRealm.executeTransactionAsync(transaction, onSuccess, onError);
         }
 
-        private void notifyCallbackWithSuccess() {
+        void notifyCallbackWithSuccess() {
             callback.onSuccess();
             activeTasks.remove(this);
         }
@@ -778,7 +783,7 @@ public class PermissionManager implements Closeable {
             transactionTask = managementRealm.executeTransactionAsync(transaction, onSuccess, onError);
         }
 
-        private void notifyCallbackWithSuccess(String token) {
+        void notifyCallbackWithSuccess(String token) {
             callback.onSuccess(token);
             activeTasks.remove(this);
         }
@@ -876,7 +881,7 @@ public class PermissionManager implements Closeable {
             transactionTask = managementRealm.executeTransactionAsync(transaction, onSuccess, onError);
         }
 
-        private void notifyCallbackWithSuccess(String url, Permission permission) {
+        void notifyCallbackWithSuccess(String url, Permission permission) {
             callback.onSuccess(url, permission);
             activeTasks.remove(this);
         }
@@ -892,8 +897,11 @@ public class PermissionManager implements Closeable {
     }
 
     // Class encapsulating all async tasks exposed by the PermissionManager.
-    // All subclasses are responsible for removing themselves from the activeTaskList when done.
     // Made package protected instead of private to facilitate testing
+    // IMPORTANT:
+    // - All subclasses are responsible for removing themselves from the activeTaskList when done.
+    // - All callbacks should start by checking `if (checkAndReportInvalidState()) { return; }`
+    //   This will abort the task if it was canceled or failed. It will also remove the task from the activeTaskList.
     abstract static class PermissionManagerTask<T> implements RealmAsyncTask, Runnable {
 
         private final PermissionManagerBaseCallback callback;
@@ -928,12 +936,15 @@ public class PermissionManager implements Closeable {
          * @return {@code true} if in a invalid state, {@code false} if in a valid one.
          */
         protected final boolean checkAndReportInvalidState() {
-            if (isCancelled()) { return true; }
+            if (isCancelled()) {
+                permissionManager.activeTasks.remove(this);
+                return true;
+            }
             // Closed check need to work around thread confinement
             if (permissionManager.closed) {
                 ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN,
                         new IllegalStateException("PermissionManager has been closed"));
-                notifyCallbackError(error);
+                notifyCallbackError(error); // This will remove the task from the task list
                 return true;
             }
 
@@ -966,7 +977,7 @@ public class PermissionManager implements Closeable {
             if (managementErrorHappened) { errors.put("Management Realm", managementError); }
             if (permissionErrorHappened) { errors.put("Permission Realm", permissionError); }
             if (defaultPermissionErrorHappened) { errors.put("Default Permission Realm", defaultPermissionError); }
-            notifyCallbackError(combineRealmErrors(errors));
+            notifyCallbackError(combineRealmErrors(errors)); // This will remove the task from the task list
             return true;
         }
 
@@ -1083,12 +1094,94 @@ public class PermissionManager implements Closeable {
             }
         }
 
-        private void notifyCallbackWithSuccess(RealmResults<PermissionOffer> permissions) {
+        void notifyCallbackWithSuccess(RealmResults<PermissionOffer> permissions) {
             try {
                 callback.onSuccess(permissions);
             } finally {
                 activeTasks.remove(this);
             }
+        }
+    }
+
+    private class RevokeOfferAsyncTask extends PermissionManagerTask<Permission> {
+
+        private final String offerToken;
+        private final RevokeOfferCallback callback;
+        private RealmResults<PermissionOffer> matchingOffers;
+
+        public RevokeOfferAsyncTask(PermissionManager permissionManager, String offerToken, RevokeOfferCallback callback) {
+            super(permissionManager, callback);
+            this.offerToken = offerToken;
+            this.callback = callback;
+        }
+
+        @Override
+        public void run() {
+            if (checkAndReportInvalidState()) {
+                return;
+            }
+            matchingOffers = managementRealm.where(PermissionOffer.class)
+                    .equalTo("token", offerToken)
+                    .findAllAsync();
+            matchingOffers.addChangeListener(new RealmChangeListener<RealmResults<PermissionOffer>>() {
+                @Override
+                public void onChange(final RealmResults<PermissionOffer> offers) {
+                    if (checkAndReportInvalidState()) { return; }
+                    if (!offers.isEmpty()) {
+                        managementRealm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                if (checkAndReportInvalidState()) { return; }
+                                // Make 100% sure the offer is still in the Realm.
+                                // It could have been deleted between querying for it and the
+                                // transaction running. We will still call OnSuccess if the
+                                // offer was removed by someone else.
+                                RealmResults<PermissionOffer> offers = realm.where(PermissionOffer.class)
+                                        .equalTo("token", offerToken)
+                                        .findAll();
+                                if (!offers.isEmpty()) {
+                                    offers.deleteAllFromRealm();
+                                }
+                            }
+                        }, new Realm.Transaction.OnSuccess() {
+                            @Override
+                            public void onSuccess() {
+                                // Don't notify user about success before changes have been uploaded to the server.
+                                matchingOffers.removeAllChangeListeners();
+                                if (checkAndReportInvalidState()) { return; }
+                                final SyncSession session = SyncManager.getSession(managementRealmConfig);
+                                session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
+                                    @Override
+                                    public void onChange(Progress progress) {
+                                        if (progress.isTransferComplete()) {
+                                            session.removeProgressListener(this);
+                                            handler.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    if (checkAndReportInvalidState()) { return; }
+                                                    notifyCallbackWithSuccess();
+                                                }
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                        }, new Realm.Transaction.OnError() {
+                            @Override
+                            public void onError(Throwable error) {
+                                matchingOffers.removeAllChangeListeners();
+                                notifyCallbackError(new ObjectServerError(ErrorCode.UNKNOWN, error));
+
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        void notifyCallbackWithSuccess() {
+            callback.onSuccess();
+            activeTasks.remove(this);
         }
     }
 
@@ -1170,6 +1263,16 @@ public class PermissionManager implements Closeable {
          * @param offers The set of currently known offers.
          */
         void onSuccess(RealmResults<PermissionOffer> offers);
+    }
+
+    /**
+     * Callback used when revoking an existing offer.
+     */
+    public interface RevokeOfferCallback extends PermissionManagerBaseCallback {
+        /**
+         * Called when the offer was successfully revoked successfully modified.
+         */
+        void onSuccess();
     }
 
 }

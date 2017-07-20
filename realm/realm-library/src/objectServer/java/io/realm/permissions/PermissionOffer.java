@@ -81,7 +81,7 @@ public class PermissionOffer implements BasePermissionApi {
      * @param url specific url to Realm effected this offer encompasses all Realms manged by the user making the offer.
      * @param accessLevel the {@link AccessLevel} granted to the user accepting the offer.
      *
-     * @see PermissionManager#revokeOffer(String, PermissionManager.PermissionManagerBaseCallback)
+     * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
      */
     public PermissionOffer(String url, AccessLevel accessLevel) {
         this(url, accessLevel, null);
@@ -94,7 +94,7 @@ public class PermissionOffer implements BasePermissionApi {
      * @param accessLevel the {@link AccessLevel} granted to the user accepting the offer.
      * @param expiresAt the date and time when this offer expires.
      *
-     * @see PermissionManager#revokeOffer(String, PermissionManager.PermissionManagerBaseCallback)
+     * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
      */
     public PermissionOffer(String url, AccessLevel accessLevel, Date expiresAt) {
         validateUrl(url);
