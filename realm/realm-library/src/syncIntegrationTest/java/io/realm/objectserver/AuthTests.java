@@ -350,6 +350,7 @@ public class AuthTests extends BaseIntegrationTest {
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         RealmConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
         user.logout();
+        assertTrue(user.isLoggedOut());
         assertFalse(user.isValid());
 
         try {
@@ -357,6 +358,21 @@ public class AuthTests extends BaseIntegrationTest {
             fail("SyncUser is not longer valid, it should not be possible to get a Realm instance");
         } catch (IllegalStateException expected) {
         }
+    }
+
+    @Test
+    public void logout_currentUserMoreThanOne() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        final RealmConfiguration config1 = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .build();
+        SyncUser.currentUser().logout();
+        SyncUser user2 = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        try {
+            Realm.getInstance(config1);
+            fail("SyncUser is not longer valid, it should not be possible to get a Realm instance");
+        } catch (IllegalStateException expected) {
+        }
+        assertEquals(user2, SyncUser.currentUser());
     }
 
     // logging out 'user' should have the same impact on other instance(s) of the same user

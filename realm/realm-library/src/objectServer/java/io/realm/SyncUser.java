@@ -535,7 +535,16 @@ public class SyncUser {
      */
     public boolean isValid() {
         Token userToken = getSyncUser().getUserToken();
-        return syncUser.isLoggedIn() && userToken != null && userToken.expiresMs() > System.currentTimeMillis() && SyncManager.getUserStore().isActive(syncUser.getIdentity());
+        return userToken != null && userToken.expiresMs() > System.currentTimeMillis() && !isLoggedOut();
+    }
+
+    /**
+     * Returns whether the user is logged out from the Realm Object Server or not.
+     *
+     * @return  {@code true} if the user was logged out,  {@code false} otherwise.
+     */
+    public boolean isLoggedOut() {
+        return !syncUser.isLoggedIn() || !SyncManager.getUserStore().isActive(syncUser.getIdentity());
     }
 
     /**

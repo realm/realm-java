@@ -91,7 +91,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             // make sure the user is still valid
             SyncUser user = syncConfig.getUser();
             if (!user.isValid()) {
-                if (user.getAccessToken() == null) {
+                if (user.isLoggedOut()) {
                     throw new IllegalStateException("The SyncUser is already logged out and can not use the provided configuration to open a Realm.");
                 } else {
                     // user was not logged out but the `refresh_token` is not longer valid
