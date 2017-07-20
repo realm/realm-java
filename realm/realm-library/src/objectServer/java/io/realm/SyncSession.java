@@ -28,6 +28,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -72,6 +73,10 @@ public class SyncSession {
     private AtomicBoolean onGoingAccessTokenQuery = new AtomicBoolean(false);
     private volatile boolean isClosed = false;
     private final AtomicReference<WaitForSessionWrapper> waitingForServerChanges = new AtomicReference<>(null);
+
+    // Keeps track of how many times `uploadAllLocalChanges()` or `downloadAllServerChanges()` have
+    // been called. This is needed so we can correctly ignore canceled requests.
+    private final AtomicInteger waitCounter = new AtomicInteger(0);
     private final Object waitForChangesMutex = new Object();
 
     // We need JavaId -> Listener so C++ can trigger callbacks without keeping a reference to the
@@ -302,10 +307,18 @@ public class SyncSession {
     // If the native listener was successfully registered, Object Store guarantees that this method will be called at
     // least once, even if the session is closed.
     @SuppressWarnings("unused")
-    private void notifyAllChangesSent(Long errorcode, String errorMessage) {
+    private void notifyAllChangesSent(int callbackId, Long errorcode, String errorMessage) {
         WaitForSessionWrapper wrapper = waitingForServerChanges.get();
         if (wrapper != null) {
-            wrapper.handleResult(errorcode, errorMessage);
+            // Only react to callback if the callback is "active"
+            // A callback can only become inactive if the thread was interrupted:
+            // 1. Call `downloadAllServerChanges()` (callback = 1)
+            // 2. Interrupt it
+            // 3. Call `uploadAllLocalChanges()` ( callback = 2)
+            // 4. Sync notifies session that callback:1 is done. It should be ignored.
+            if (waitCounter.get() == callbackId) {
+                wrapper.handleResult(errorcode, errorMessage);
+            }
         }
     }
 
@@ -373,9 +386,10 @@ public class SyncSession {
             String realmPath = configuration.getPath();
             WaitForSessionWrapper wrapper = new WaitForSessionWrapper();
             waitingForServerChanges.set(wrapper);
+            int callbackId = waitCounter.incrementAndGet();
             boolean listenerRegistered = (direction == DIRECTION_DOWNLOAD)
-                    ? nativeWaitForDownloadCompletion(realmPath)
-                    : nativeWaitForUploadCompletion(realmPath);
+                    ? nativeWaitForDownloadCompletion(callbackId, realmPath)
+                    : nativeWaitForUploadCompletion(callbackId, realmPath);
             if (!listenerRegistered) {
                 waitingForServerChanges.set(null);
                 String errorMsg = "";
@@ -702,7 +716,7 @@ public class SyncSession {
     private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
     private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
-    private native boolean nativeWaitForDownloadCompletion(String localRealmPath);
-    private native boolean nativeWaitForUploadCompletion(String localRealmPath);
+    private native boolean nativeWaitForDownloadCompletion(int callbackId, String localRealmPath);
+    private native boolean nativeWaitForUploadCompletion(int callbackId, String localRealmPath);
     private static native byte nativeGetState(String localRealmPath);
 }
