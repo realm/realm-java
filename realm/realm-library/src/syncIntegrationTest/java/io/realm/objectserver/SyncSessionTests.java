@@ -121,8 +121,6 @@ public class SyncSessionTests extends BaseIntegrationTest {
                 .createSyncConfigurationBuilder(adminUser, userConfig.getServerUrl().toString())
                 .build();
 
-        final CountDownLatch userInterruptLatch = new CountDownLatch(1);
-        final CountDownLatch adminInterruptLatch = new CountDownLatch(1);
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -133,7 +131,7 @@ public class SyncSessionTests extends BaseIntegrationTest {
                 SyncSession userSession = SyncManager.getSession(userConfig);
                 try {
                     // 1. Start download (which will be interrupted)
-                    userInterruptLatch.countDown();
+                    Thread.currentThread().interrupt();
                     userSession.downloadAllServerChanges();
                 } catch (InterruptedException ignored) {
                     assertFalse(Thread.currentThread().isInterrupted());
@@ -150,7 +148,7 @@ public class SyncSessionTests extends BaseIntegrationTest {
                 SyncSession adminSession = SyncManager.getSession(adminConfig);
                 try {
                     // 3. Start upload (which will be interrupted)
-                    adminInterruptLatch.countDown();
+                    Thread.currentThread().interrupt();
                     adminSession.uploadAllLocalChanges();
                 } catch (InterruptedException ignored) {
                     assertFalse(Thread.currentThread().isInterrupted()); // clear interrupted flag
@@ -167,11 +165,6 @@ public class SyncSessionTests extends BaseIntegrationTest {
             }
         });
         t.start();
-
-        TestHelper.awaitOrFail(userInterruptLatch);
-        t.interrupt();
-        TestHelper.awaitOrFail(adminInterruptLatch);
-        t.interrupt();
         t.join();
     }
 }
