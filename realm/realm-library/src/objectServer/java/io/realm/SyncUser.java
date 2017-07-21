@@ -540,8 +540,11 @@ public class SyncUser {
 
     /**
      * Returns whether the user is logged out from the Realm Object Server or not.
-     *
+     * Note, a user can be logged in and still be invalid if his/her access has expired.
+     * <p>
+     * Use {@link #isValid()`} to check if the user is still valid.
      * @return  {@code true} if the user was logged out,  {@code false} otherwise.
+     * @see #isValid()
      */
     public boolean isLoggedOut() {
         return !syncUser.isLoggedIn() || !SyncManager.getUserStore().isActive(syncUser.getIdentity());
