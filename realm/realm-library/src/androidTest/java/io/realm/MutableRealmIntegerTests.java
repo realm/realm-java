@@ -15,16 +15,23 @@
  */
 package io.realm;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import io.realm.entities.MutableRealmIntegerTypes;
-import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -33,8 +40,6 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
-
-// FIXME MutableRealmInteger: Need JSON tests.
 
 @RunWith(AndroidJUnit4.class)
 public class MutableRealmIntegerTests {
@@ -174,6 +179,7 @@ public class MutableRealmIntegerTests {
             c1.columnNonNullableMutableRealmInteger.set(null);
             fail("should not be able to set an @Required MutableRealmInteger null");
         } catch(IllegalArgumentException ignore) {
+            checkException(ignore, "is not nullable");
         }
         realm.commitTransaction();
 
@@ -184,6 +190,7 @@ public class MutableRealmIntegerTests {
             MutableRealmIntegerTypes c2 = realm.copyToRealm(c1);
             fail("should not be able to copy a null value to a @Required MutableRealmInteger");
         } catch(IllegalArgumentException ignore) {
+            checkException(ignore, "is not nullable");
         }
         realm.commitTransaction();
     }
@@ -348,8 +355,93 @@ public class MutableRealmIntegerTests {
         assertEquals(Long.valueOf(47L), managedRI.get());
     }
 
-    private void checkTransactionException(IllegalStateException e) {
-        assertTrue(e.getMessage().contains("only be done from inside a transaction"));
+    @Test
+    public void testJSON() throws JSONException {
+        JSONObject json = new JSONObject();
+        realm.beginTransaction();
+        MutableRealmIntegerTypes obj = realm.createObjectFromJson(MutableRealmIntegerTypes.class, json);
+        realm.commitTransaction();
+        assertTrue(obj.columnNullableMutableRealmInteger.isNull());
+
+        json = new JSONObject();
+        json.put("columnNullableMutableRealmInteger", 8589934592L);
+        realm.beginTransaction();
+        obj = realm.createObjectFromJson(MutableRealmIntegerTypes.class, json);
+        realm.commitTransaction();
+        assertEquals(Long.valueOf(8589934592L), obj.columnNullableMutableRealmInteger.get());
+
+        json = new JSONObject();
+        json.put("columnNullableMutableRealmInteger", 22);
+        realm.beginTransaction();
+        obj = realm.createObjectFromJson(MutableRealmIntegerTypes.class, json);
+        realm.commitTransaction();
+        assertEquals(Long.valueOf(22), obj.columnNullableMutableRealmInteger.get());
+
+        json = new JSONObject();
+        json.put("columnNullableMutableRealmInteger", JSONObject.NULL);
+        realm.beginTransaction();
+        obj = realm.createObjectFromJson(MutableRealmIntegerTypes.class, json);
+        realm.commitTransaction();
+        assertTrue(obj.columnNullableMutableRealmInteger.isNull());
+
+        json = new JSONObject();
+        json.put("columnNonNullableMutableRealmInteger", JSONObject.NULL);
+        realm.beginTransaction();
+        try {
+            obj = realm.createObjectFromJson(MutableRealmIntegerTypes.class, json);
+            fail("Attempt to set @Required Mutable Realm Integer null, from JSON, should fail");
+        } catch (IllegalArgumentException ignore) {
+            checkException(ignore, "is not nullable");
+        }
+        realm.commitTransaction();
+    }
+
+    @Test
+    public void testStream() throws IOException {
+        Context context = InstrumentationRegistry.getTargetContext();
+
+        InputStream in = TestHelper.loadJsonFromAssets(context, "empty.json");
+        realm.beginTransaction();
+        MutableRealmIntegerTypes obj = realm.createObjectFromJson(MutableRealmIntegerTypes.class, in);
+        realm.commitTransaction();
+        assertTrue(obj.columnNullableMutableRealmInteger.isNull());
+
+        in = TestHelper.loadJsonFromAssets(context, "mutablerealminteger-long.json");
+        realm.beginTransaction();
+        obj = realm.createObjectFromJson(MutableRealmIntegerTypes.class, in);
+        realm.commitTransaction();
+        assertEquals(Long.valueOf(8589934592L), obj.columnNullableMutableRealmInteger.get());
+
+        in = TestHelper.loadJsonFromAssets(context, "mutablerealminteger-int.json");
+        realm.beginTransaction();
+        obj = realm.createObjectFromJson(MutableRealmIntegerTypes.class, in);
+        realm.commitTransaction();
+        assertEquals(Long.valueOf(22), obj.columnNullableMutableRealmInteger.get());
+
+        in = TestHelper.loadJsonFromAssets(context, "mutablerealminteger-null.json");
+        realm.beginTransaction();
+        obj = realm.createObjectFromJson(MutableRealmIntegerTypes.class, in);
+        realm.commitTransaction();
+        assertTrue(obj.columnNullableMutableRealmInteger.isNull());
+
+        in = TestHelper.loadJsonFromAssets(context, "mutablerealminteger-required-null.json");
+        realm.beginTransaction();
+        try {
+            obj = realm.createObjectFromJson(MutableRealmIntegerTypes.class, in);
+            fail("Attempt to set @Required Mutable Realm Integer null, from JSON, should fail");
+        } catch (IllegalArgumentException ignore) {
+            checkException(ignore, "is not nullable");
+        }
+        realm.commitTransaction();
+    }
+
+    private void checkTransactionException(Exception e) {
+        checkException(e, "only be done from inside a transaction");
+    }
+
+    private void checkException(Exception e, String expected) {
+        System.out.println("Expecting: " + expected + ", got: " + e);
+        assertTrue(e.getMessage().contains(expected));
     }
 
     /**
@@ -456,11 +548,13 @@ public class MutableRealmIntegerTests {
             c1.columnNullableMutableRealmInteger.increment(5);
             fail("Attempt to increment a null valued MutableRealmInteger should throw ISE");
         } catch (IllegalStateException ignore) {
+            checkException(ignore, "Set its value first");
         }
         try {
             c1.columnNullableMutableRealmInteger.decrement(5);
             fail("Attempt to decrement a null valued MutableRealmInteger should throw ISE");
         } catch (IllegalStateException ignore) {
+            checkException(ignore, "Set its value first");
         }
     }
 

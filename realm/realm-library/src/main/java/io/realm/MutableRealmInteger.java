@@ -123,7 +123,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         @Override
         public void increment(long inc) {
             if (value == null) {
-                throw new IllegalStateException("Attempt to increment a null valued MutableRealmInteger");
+                throw new IllegalStateException("Cannot increment a MutableRealmInteger whose value is null. Set its value first.");
             }
             value = Long.valueOf(value + inc);
         }
