@@ -71,7 +71,7 @@ public class SyncSession {
     private RealmAsyncTask refreshTokenNetworkRequest;
     private AtomicBoolean onGoingAccessTokenQuery = new AtomicBoolean(false);
     private volatile boolean isClosed = false;
-    private final AtomicReference<WaitForServerChangesWrapper> waitingForServerChanges = new AtomicReference<>(null);
+    private final AtomicReference<WaitForSessionWrapper> waitingForServerChanges = new AtomicReference<>(null);
     private final Object waitForChangesMutex = new Object();
 
     // We need JavaId -> Listener so C++ can trigger callbacks without keeping a reference to the
@@ -294,14 +294,16 @@ public class SyncSession {
         clearScheduledAccessTokenRefresh();
     }
 
-    // This method will be called once all changes have been downloaded.
-    // This method might be called on another thread than the one that called `downloadAllServerChanges`.
+    // This method will be called once all changes have been downloaded or uploaded.
+    // This method might be called on another thread than the one that called `downloadAllServerChanges` or
+    // `uploadAllLocalChanges()`
+    //
     // Be very careful with synchronized blocks.
     // If the native listener was successfully registered, Object Store guarantees that this method will be called at
     // least once, even if the session is closed.
     @SuppressWarnings("unused")
-    private void notifyAllChangesDownloaded(Long errorcode, String errorMessage) {
-        WaitForServerChangesWrapper wrapper = waitingForServerChanges.get();
+    private void notifyAllChangesSent(Long errorcode, String errorMessage) {
+        WaitForSessionWrapper wrapper = waitingForServerChanges.get();
         if (wrapper != null) {
             wrapper.handleResult(errorcode, errorMessage);
         }
@@ -328,26 +330,74 @@ public class SyncSession {
         // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
         // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
         synchronized (waitForChangesMutex) {
-            if (!isClosed) {
-                WaitForServerChangesWrapper wrapper = new WaitForServerChangesWrapper();
-                waitingForServerChanges.set(wrapper);
-                boolean listenerRegistered = nativeWaitForDownloadCompletion(configuration.getPath());
-                if (!listenerRegistered) {
-                    waitingForServerChanges.set(null);
-                    throw new ObjectServerError(ErrorCode.UNKNOWN, "It was not possible to download all changes. Has the SyncClient been started?");
-                }
-                wrapper.waitForServerChanges();
+            waitForChanges(DIRECTION_DOWNLOAD);
+        }
+    }
 
-                // This might return after the session was closed. In that case, just ignore any result
-                try {
-                    if (!isClosed) {
-                        if (!wrapper.isSuccess()) {
-                            wrapper.throwExceptionIfNeeded();
-                        }
-                    }
-                } finally {
-                    waitingForServerChanges.set(null);
+    /**
+     * Calling this method will block until all known local changes have been uploaded to the server.
+     * This will involve network access, so calling this method should only be done from a non-UI thread.
+     * <p>
+     * If the device is offline, this method might never return.
+     * <p>
+     * This method cannot be called before the session has been started.
+     *
+     * @throws IllegalStateException if called on the Android main thread.
+     * @throws InterruptedException if the thread was interrupted while downloading was in progress.
+     */
+    public void uploadAllLocalChanges() throws InterruptedException {
+        checkIfNotOnMainThread("uploadAllLocalChanges() cannot be called from the main thread.");
+
+        // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
+        // an async listener there and let it callback to the Java Session when done. This feels icky at best, but
+        // since all operations on the SyncSession operate under a shared mutex, we would prevent all other actions on the
+        // session, including trying to stop it.
+        // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
+        // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
+        synchronized (waitForChangesMutex) {
+            waitForChanges(DIRECTION_UPLOAD);
+        }
+    }
+
+    /**
+     * This method should only be called when guarded by the {@link #waitForChangesMutex}.
+     * It will block into all changes have been either uploaded or downloaded depending on the chosen direction.
+     *
+     * @param direction either {@link #DIRECTION_DOWNLOAD} or {@link #DIRECTION_UPLOAD}
+     */
+    private void waitForChanges(int direction) throws InterruptedException {
+        if (direction != DIRECTION_DOWNLOAD && direction != DIRECTION_UPLOAD) {
+            throw new IllegalArgumentException("Unknown direction: " + direction);
+        }
+        if (!isClosed) {
+            WaitForSessionWrapper wrapper = new WaitForSessionWrapper();
+            waitingForServerChanges.set(wrapper);
+            boolean listenerRegistered = (direction == DIRECTION_DOWNLOAD)
+                    ? nativeWaitForDownloadCompletion(configuration.getPath())
+                    : nativeWaitForUploadCompletion(configuration.getPath());
+            if (!listenerRegistered) {
+                waitingForServerChanges.set(null);
+                String errorMsg = "";
+                switch (direction) {
+                    case DIRECTION_DOWNLOAD: errorMsg = "It was not possible to download all remote changes."; break;
+                    case DIRECTION_UPLOAD: errorMsg = "It was not possible upload all local changes."; break;
+                    default:
+                        throw new IllegalArgumentException("Unknown direction: " + direction);
                 }
+
+                throw new ObjectServerError(ErrorCode.UNKNOWN, errorMsg + " Has the SyncClient been started?");
+            }
+            wrapper.waitForServerChanges();
+
+            // This might return after the session was closed. In that case, just ignore any result
+            try {
+                if (!isClosed) {
+                    if (!wrapper.isSuccess()) {
+                        wrapper.throwExceptionIfNeeded();
+                    }
+                }
+            } finally {
+                waitingForServerChanges.set(null);
             }
         }
     }
@@ -596,10 +646,11 @@ public class SyncSession {
         }
     }
 
-    // Wrapper class for handling the async operations of the underlying SyncSession calling `async_wait_for_download_completion`
-    private static class WaitForServerChangesWrapper {
+    // Wrapper class for handling the async operations of the underlying SyncSession calling
+    // `async_wait_for_download_completion` or `async_wait_for_upload_completion`
+    private static class WaitForSessionWrapper {
 
-        private final CountDownLatch waitForChanges = new CountDownLatch(1);
+        private final CountDownLatch waiter = new CountDownLatch(1);
         private volatile boolean resultReceived = false;
         private Long errorCode = null;
         private String errorMessage;
@@ -609,12 +660,12 @@ public class SyncSession {
          */
         public void waitForServerChanges() throws InterruptedException {
             if (!resultReceived) {
-                waitForChanges.await();
+                waiter.await();
             }
         }
 
         /**
-         * Process the result of a waiting action. This will also unblock anyone who called {@link #waitForChanges}.
+         * Process the result of a waiting action. This will also unblock anyone who called {@link #waiter}.
          *
          * @param errorCode error code if an error occurred, {@code null} if changes were successfully downloaded.
          * @param errorMessage error message (if any).
@@ -623,7 +674,7 @@ public class SyncSession {
             this.errorCode = errorCode;
             this.errorMessage = errorMessage;
             this.resultReceived = true;
-            waitForChanges.countDown();
+            waiter.countDown();
         }
 
         public boolean isSuccess() {
@@ -646,5 +697,6 @@ public class SyncSession {
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
     private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
     private native boolean nativeWaitForDownloadCompletion(String localRealmPath);
+    private native boolean nativeWaitForUploadCompletion(String localRealmPath);
     private static native byte nativeGetState(String localRealmPath);
 }

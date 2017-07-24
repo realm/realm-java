@@ -19,6 +19,8 @@ package io.realm.internal;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmFieldType;
 
 
@@ -145,8 +147,9 @@ public abstract class ColumnInfo {
     /**
      * Returns the table linked in the described table, to the named column.
      *
-     * @return the class name of the linked table, or null if the column is a primitive type.
+     * @return the class name of the linked table, or {@code null} if the column is a primitive type.
      */
+    @Nullable
     public String getLinkedTable(String columnName) {
         ColumnDetails details = indicesMap.get(columnName);
         return (details == null) ? null : details.linkTable;
