@@ -297,7 +297,7 @@ public class SimpleRealmProxy extends some.test.Simple
         }
         Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativePtr();
-        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.getSchema().getColumnInfo(some.test.Simple.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
         String realmGet$name = ((SimpleRealmProxyInterface) object).realmGet$name();
@@ -311,7 +311,7 @@ public class SimpleRealmProxy extends some.test.Simple
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativePtr();
-        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.getSchema().getColumnInfo(some.test.Simple.class);
         some.test.Simple object = null;
         while (objects.hasNext()) {
             object = (some.test.Simple) objects.next();
@@ -338,7 +338,7 @@ public class SimpleRealmProxy extends some.test.Simple
         }
         Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativePtr();
-        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.getSchema().getColumnInfo(some.test.Simple.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
         String realmGet$name = ((SimpleRealmProxyInterface) object).realmGet$name();
@@ -354,7 +354,7 @@ public class SimpleRealmProxy extends some.test.Simple
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativePtr();
-        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.getSchema().getColumnInfo(some.test.Simple.class);
         some.test.Simple object = null;
         while (objects.hasNext()) {
             object = (some.test.Simple) objects.next();

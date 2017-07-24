@@ -138,6 +138,7 @@ public class Realm extends BaseRealm {
     private static final Object defaultConfigurationLock = new Object();
     // guarded by `defaultConfigurationLock`
     private static RealmConfiguration defaultConfiguration;
+    private final RealmSchema schema;
 
     /**
      * The constructor is private to enforce the use of the static one.
@@ -147,6 +148,7 @@ public class Realm extends BaseRealm {
      */
     private Realm(RealmCache cache) {
         super(cache);
+        schema = new ImmutableRealmSchema(this);
     }
 
     /**
@@ -155,6 +157,19 @@ public class Realm extends BaseRealm {
     @Override
     public Observable<Realm> asObservable() {
         return configuration.getRxFactory().from(this);
+    }
+
+    /**
+     * Returns the schema for this Realm. The schema is immutable.
+     * Any attempt to modify it will result in an {@link UnsupportedOperationException}.
+     * <p>
+     * The schema can only be modified using {@link DynamicRealm#getSchema()} or through an migration.
+     *
+     * @return The {@link RealmSchema} for this Realm.
+     */
+    @Override
+    public RealmSchema getSchema() {
+        return schema;
     }
 
     /**

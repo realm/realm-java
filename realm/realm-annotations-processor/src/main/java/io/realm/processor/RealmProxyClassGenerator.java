@@ -1007,7 +1007,7 @@ public class RealmProxyClassGenerator {
                     .beginControlFlow("if (rowIndex != Table.NO_MATCH)")
                     .beginControlFlow("try")
                     .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex)," +
-                            " realm.schema.getColumnInfo(%s.class)," +
+                            " realm.getSchema().getColumnInfo(%s.class)," +
                             " false, Collections.<String> emptyList())", qualifiedClassName)
                     .emitStatement("realmObject = new %s()", qualifiedGeneratedClassName)
                     .emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
@@ -1154,7 +1154,7 @@ public class RealmProxyClassGenerator {
 
         writer.emitStatement("Table table = realm.getTable(%s.class)", qualifiedClassName);
         writer.emitStatement("long tableNativePtr = table.getNativePtr()");
-        writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)",
+        writer.emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)",
                 columnInfoClassName(), columnInfoClassName(), qualifiedClassName);
 
         if (metadata.hasPrimaryKey()) {
@@ -1223,7 +1223,7 @@ public class RealmProxyClassGenerator {
 
         writer.emitStatement("Table table = realm.getTable(%s.class)", qualifiedClassName);
         writer.emitStatement("long tableNativePtr = table.getNativePtr()");
-        writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)",
+        writer.emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)",
                 columnInfoClassName(), columnInfoClassName(), qualifiedClassName);
         if (metadata.hasPrimaryKey()) {
             writer.emitStatement("long pkColumnIndex = table.getPrimaryKey()");
@@ -1309,7 +1309,7 @@ public class RealmProxyClassGenerator {
 
         writer.emitStatement("Table table = realm.getTable(%s.class)", qualifiedClassName);
         writer.emitStatement("long tableNativePtr = table.getNativePtr()");
-        writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)",
+        writer.emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)",
                 columnInfoClassName(), columnInfoClassName(), qualifiedClassName);
 
         if (metadata.hasPrimaryKey()) {
@@ -1382,7 +1382,7 @@ public class RealmProxyClassGenerator {
 
         writer.emitStatement("Table table = realm.getTable(%s.class)", qualifiedClassName);
         writer.emitStatement("long tableNativePtr = table.getNativePtr()");
-        writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)",
+        writer.emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)",
                 columnInfoClassName(), columnInfoClassName(), qualifiedClassName);
         if (metadata.hasPrimaryKey()) {
             writer.emitStatement("long pkColumnIndex = table.getPrimaryKey()");
@@ -1901,7 +1901,7 @@ public class RealmProxyClassGenerator {
                     .emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
                     .beginControlFlow("try")
                     .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex)," +
-                            " realm.schema.getColumnInfo(%s.class)," +
+                            " realm.getSchema().getColumnInfo(%s.class)," +
                             " false, Collections.<String> emptyList())", qualifiedClassName)
                     .emitStatement("obj = new %s()", qualifiedGeneratedClassName)
                     .nextControlFlow("finally")
