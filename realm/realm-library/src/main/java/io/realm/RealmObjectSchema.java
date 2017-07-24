@@ -26,6 +26,7 @@ import java.util.Set;
 
 import io.realm.annotations.Required;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsObject;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -242,9 +243,29 @@ public abstract class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist, the field cannot be a primary key or it already
      * has a primary key defined.
+<<<<<<< HEAD
      * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      */
     public abstract RealmObjectSchema addPrimaryKey(String fieldName);
+=======
+     * @throws UnsupportedOperationException if this method is called on a synced Realm.
+     */
+    public RealmObjectSchema addPrimaryKey(String fieldName) {
+        checkAddPrimaryKeyForSync();
+        checkLegalName(fieldName);
+        checkFieldExists(fieldName);
+        if (table.hasPrimaryKey()) {
+            throw new IllegalStateException("A primary key is already defined");
+        }
+        table.setPrimaryKey(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
+        if (!table.hasSearchIndex(columnIndex)) {
+            // No exception will be thrown since adding PrimaryKey implies the column has an index.
+            table.addSearchIndex(columnIndex);
+        }
+        return this;
+    }
+>>>>>>> origin/master-4.0
 
     /**
      * Removes the primary key from this class. This is the same as removing the {@link io.realm.annotations.PrimaryKey}
@@ -354,7 +375,10 @@ public abstract class RealmObjectSchema {
         int columnCount = (int) table.getColumnCount();
         Set<String> columnNames = new LinkedHashSet<>(columnCount);
         for (int i = 0; i < columnCount; i++) {
-            columnNames.add(table.getColumnName(i));
+            String name = table.getColumnName(i);
+            if (!OsObject.isObjectIdColumn(name)) {
+                columnNames.add(name);
+            }
         }
         return columnNames;
     }
@@ -419,6 +443,10 @@ public abstract class RealmObjectSchema {
         return table;
     }
 
+    static final Map<Class<?>, FieldMetaData> getSupportedSimpleFields() {
+        return SUPPORTED_SIMPLE_FIELDS;
+    }
+
     private SchemaConnector getSchemaConnector() {
         return new SchemaConnector(schema);
     }
@@ -444,12 +472,64 @@ public abstract class RealmObjectSchema {
         return columnInfo.getColumnIndex(fieldName);
     }
 
+<<<<<<< HEAD
     void checkLegalName(String fieldName) {
+=======
+    // Invariant: Field was just added. This method is responsible for cleaning up attributes if it fails.
+    private void addModifiers(String fieldName, FieldAttribute[] attributes) {
+        boolean indexAdded = false;
+        try {
+            if (attributes != null && attributes.length > 0) {
+                if (containsAttribute(attributes, FieldAttribute.INDEXED)) {
+                    addIndex(fieldName);
+                    indexAdded = true;
+                }
+
+                if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
+                    // Note : adding primary key implies application of FieldAttribute.INDEXED attribute.
+                    addPrimaryKey(fieldName);
+                    indexAdded = true;
+                }
+
+                // REQUIRED is being handled when adding the column using addField through the nullable parameter.
+            }
+        } catch (Exception e) {
+            // If something went wrong, revert all attributes.
+            long columnIndex = getColumnIndex(fieldName);
+            if (indexAdded) {
+                table.removeSearchIndex(columnIndex);
+            }
+            throw (RuntimeException) e;
+        }
+    }
+
+    static boolean containsAttribute(FieldAttribute[] attributeList, FieldAttribute attribute) {
+        if (attributeList == null || attributeList.length == 0) {
+            return false;
+        }
+        for (FieldAttribute anAttributeList : attributeList) {
+            if (anAttributeList == attribute) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void checkNewFieldName(String fieldName) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+    }
+
+    static void checkLegalName(String fieldName) {
+>>>>>>> origin/master-4.0
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Field name can not be null or empty");
         }
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Field name can not contain '.'");
+        }
+        if (fieldName.length() > 63) {
+            throw new IllegalArgumentException("Field name is currently limited to max 63 characters.");
         }
     }
 
@@ -459,7 +539,17 @@ public abstract class RealmObjectSchema {
         }
     }
 
+<<<<<<< HEAD
     long getColumnIndex(String fieldName) {
+=======
+    private void checkAddPrimaryKeyForSync() {
+        if (realm.configuration.isSyncConfiguration()) {
+            throw new UnsupportedOperationException("'addPrimaryKey' is not supported by synced Realms.");
+        }
+    }
+
+    private long getColumnIndex(String fieldName) {
+>>>>>>> origin/master-4.0
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
             throw new IllegalArgumentException(

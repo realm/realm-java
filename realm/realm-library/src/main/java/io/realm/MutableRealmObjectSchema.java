@@ -86,6 +86,10 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             }
         }
 
+        if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
+            checkAddPrimaryKeyForSync();
+        }
+
         checkNewFieldName(fieldName);
         boolean nullable = metadata.defaultNullable;
         if (containsAttribute(attributes, FieldAttribute.REQUIRED)) {
