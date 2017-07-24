@@ -1954,7 +1954,7 @@ public class RealmProxyClassGenerator {
                     .emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
                     .beginControlFlow("try")
                         .emitStatement(
-                                "objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.getSchema.getColumnInfo(%s.class), false, Collections.<String> emptyList())",
+                                "objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.getSchema().getColumnInfo(%s.class), false, Collections.<String> emptyList())",
                                 qualifiedClassName)
                         .emitStatement("obj = new %s()", qualifiedGeneratedClassName)
                     .nextControlFlow("finally")

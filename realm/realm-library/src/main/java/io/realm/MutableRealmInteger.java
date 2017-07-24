@@ -42,6 +42,7 @@ import io.realm.internal.Table;
  * <pre>
  * <code> MutableRealmInteger counter = realm.where(Users.class)
  *     .equalTo("name", Fred)
+ *     .findFirst()
  *     .counter.increment(1);</code>
  * </pre>
  * Note that the {@link #set(Long)} operator must be used with extreme care. It will quash the effects of any prior calls

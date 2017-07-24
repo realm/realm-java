@@ -440,7 +440,6 @@ public class MutableRealmIntegerTests {
     }
 
     private void checkException(Exception e, String expected) {
-        System.out.println("Expecting: " + expected + ", got: " + e);
         assertTrue(e.getMessage().contains(expected));
     }
 
