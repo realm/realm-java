@@ -33,7 +33,7 @@ import org.json.JSONObject;
 
 @SuppressWarnings("all")
 public class AllTypesRealmProxy extends some.test.AllTypes
-        implements RealmObjectProxy, AllTypesRealmProxyInterface {
+    implements RealmObjectProxy, AllTypesRealmProxyInterface {
 
     static final class AllTypesColumnInfo extends ColumnInfo {
         long columnStringIndex;
@@ -108,8 +108,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     private AllTypesColumnInfo columnInfo;
     private ProxyState<some.test.AllTypes> proxyState;
-    private final MutableRealmInteger.Managed columnMutableRealmIntegerMutableRealmInteger =
-            new MutableRealmInteger.Managed<some.test.AllTypes>() {
+    private final MutableRealmInteger.Managed columnMutableRealmIntegerMutableRealmInteger = new MutableRealmInteger.Managed<some.test.AllTypes>() {
                 @Override protected ProxyState<some.test.AllTypes> getProxyState() { return proxyState; }
                 @Override protected long getColumnIndex() { return columnInfo.columnMutableRealmIntegerIndex; }
             };
@@ -553,7 +552,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     @SuppressWarnings("cast")
     public static some.test.AllTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-            throws JSONException {
+        throws JSONException {
         final List<String> excludeFields = new ArrayList<String>(2);
         some.test.AllTypes obj = null;
         if (update) {
@@ -592,77 +591,75 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 throw new IllegalArgumentException("JSON object doesn't have the primary key field 'columnString'.");
             }
         }
+
+        final AllTypesRealmProxyInterface objProxy = (AllTypesRealmProxyInterface) obj;
         if (json.has("columnLong")) {
             if (json.isNull("columnLong")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'columnLong' to null.");
             } else {
-                ((AllTypesRealmProxyInterface) obj).realmSet$columnLong((long) json.getLong("columnLong"));
+                objProxy.realmSet$columnLong((long) json.getLong("columnLong"));
             }
         }
         if (json.has("columnFloat")) {
             if (json.isNull("columnFloat")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'columnFloat' to null.");
             } else {
-                ((AllTypesRealmProxyInterface) obj).realmSet$columnFloat((float) json.getDouble("columnFloat"));
+                objProxy.realmSet$columnFloat((float) json.getDouble("columnFloat"));
             }
         }
         if (json.has("columnDouble")) {
             if (json.isNull("columnDouble")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'columnDouble' to null.");
             } else {
-                ((AllTypesRealmProxyInterface) obj).realmSet$columnDouble((double) json.getDouble("columnDouble"));
+                objProxy.realmSet$columnDouble((double) json.getDouble("columnDouble"));
             }
         }
         if (json.has("columnBoolean")) {
             if (json.isNull("columnBoolean")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'columnBoolean' to null.");
             } else {
-                ((AllTypesRealmProxyInterface) obj).realmSet$columnBoolean((boolean) json.getBoolean("columnBoolean"));
+                objProxy.realmSet$columnBoolean((boolean) json.getBoolean("columnBoolean"));
             }
         }
         if (json.has("columnDate")) {
             if (json.isNull("columnDate")) {
-                ((AllTypesRealmProxyInterface) obj).realmSet$columnDate(null);
+                objProxy.realmSet$columnDate(null);
             } else {
                 Object timestamp = json.get("columnDate");
                 if (timestamp instanceof String) {
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnDate(JsonUtils.stringToDate((String) timestamp));
+                    objProxy.realmSet$columnDate(JsonUtils.stringToDate((String) timestamp));
                 } else {
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnDate(new Date(json.getLong("columnDate")));
+                    objProxy.realmSet$columnDate(new Date(json.getLong("columnDate")));
                 }
             }
         }
         if (json.has("columnBinary")) {
             if (json.isNull("columnBinary")) {
-                ((AllTypesRealmProxyInterface) obj).realmSet$columnBinary(null);
+                objProxy.realmSet$columnBinary(null);
             } else {
-                ((AllTypesRealmProxyInterface) obj).realmSet$columnBinary(JsonUtils.stringToBytes(json.getString("columnBinary")));
+                objProxy.realmSet$columnBinary(JsonUtils.stringToBytes(json.getString("columnBinary")));
             }
         }
         if (json.has("columnMutableRealmInteger")) {
-            if (json.isNull("columnMutableRealmInteger")) {
-                throw new IllegalArgumentException("Trying to set non-nullable field 'columnMutableRealmInteger' to null.");
-            } else {
-                ((AllTypesRealmProxyInterface) obj).realmGet$columnMutableRealmInteger().set(json.getLong("columnMutableRealmInteger"));
-            }
+            objProxy.realmGet$columnMutableRealmInteger().set((json.isNull("columnMutableRealmInteger")) ? null : json.getLong("columnMutableRealmInteger"));
         }
         if (json.has("columnObject")) {
             if (json.isNull("columnObject")) {
-                ((AllTypesRealmProxyInterface) obj).realmSet$columnObject(null);
+                objProxy.realmSet$columnObject(null);
             } else {
                 some.test.AllTypes columnObjectObj = AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json.getJSONObject("columnObject"), update);
-                ((AllTypesRealmProxyInterface) obj).realmSet$columnObject(columnObjectObj);
+                objProxy.realmSet$columnObject(columnObjectObj);
             }
         }
         if (json.has("columnRealmList")) {
             if (json.isNull("columnRealmList")) {
-                ((AllTypesRealmProxyInterface) obj).realmSet$columnRealmList(null);
+                objProxy.realmSet$columnRealmList(null);
             } else {
-                ((AllTypesRealmProxyInterface) obj).realmGet$columnRealmList().clear();
+                objProxy.realmGet$columnRealmList().clear();
                 JSONArray array = json.getJSONArray("columnRealmList");
                 for (int i = 0; i < array.length(); i++) {
                     some.test.AllTypes item = AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update);
-                    ((AllTypesRealmProxyInterface) obj).realmGet$columnRealmList().add(item);
+                    objProxy.realmGet$columnRealmList().add(item);
                 }
             }
         }
@@ -672,93 +669,95 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     @SuppressWarnings("cast")
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.AllTypes createUsingJsonStream(Realm realm, JsonReader reader)
-            throws IOException {
+        throws IOException {
         boolean jsonHasPrimaryKey = false;
-        some.test.AllTypes obj = new some.test.AllTypes();
+        final some.test.AllTypes obj = new some.test.AllTypes();
+        final AllTypesRealmProxyInterface objProxy = (AllTypesRealmProxyInterface) obj;
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
             if (false) {
             } else if (name.equals("columnString")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnString(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$columnString((String) reader.nextString());
                 } else {
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnString((String) reader.nextString());
+                    reader.skipValue();
+                    objProxy.realmSet$columnString(null);
                 }
                 jsonHasPrimaryKey = true;
             } else if (name.equals("columnLong")) {
-                if (reader.peek() == JsonToken.NULL) {
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$columnLong((long) reader.nextLong());
+                } else {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field 'columnLong' to null.");
-                } else {
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnLong((long) reader.nextLong());
                 }
             } else if (name.equals("columnFloat")) {
-                if (reader.peek() == JsonToken.NULL) {
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$columnFloat((float) reader.nextDouble());
+                } else {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field 'columnFloat' to null.");
-                } else {
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnFloat((float) reader.nextDouble());
                 }
             } else if (name.equals("columnDouble")) {
-                if (reader.peek() == JsonToken.NULL) {
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$columnDouble((double) reader.nextDouble());
+                } else {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field 'columnDouble' to null.");
-                } else {
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnDouble((double) reader.nextDouble());
                 }
             } else if (name.equals("columnBoolean")) {
-                if (reader.peek() == JsonToken.NULL) {
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$columnBoolean((boolean) reader.nextBoolean());
+                } else {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field 'columnBoolean' to null.");
-                } else {
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnBoolean((boolean) reader.nextBoolean());
                 }
             } else if (name.equals("columnDate")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnDate(null);
+                    objProxy.realmSet$columnDate(null);
                 } else if (reader.peek() == JsonToken.NUMBER) {
                     long timestamp = reader.nextLong();
                     if (timestamp > -1) {
-                        ((AllTypesRealmProxyInterface) obj).realmSet$columnDate(new Date(timestamp));
+                        objProxy.realmSet$columnDate(new Date(timestamp));
                     }
                 } else {
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnDate(JsonUtils.stringToDate(reader.nextString()));
+                    objProxy.realmSet$columnDate(JsonUtils.stringToDate(reader.nextString()));
                 }
             } else if (name.equals("columnBinary")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnBinary(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$columnBinary(JsonUtils.stringToBytes(reader.nextString()));
                 } else {
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnBinary(JsonUtils.stringToBytes(reader.nextString()));
+                    reader.skipValue();
+                    objProxy.realmSet$columnBinary(null);
                 }
             } else if (name.equals("columnMutableRealmInteger")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((AllTypesRealmProxyInterface) obj).realmGet$columnMutableRealmInteger().set(null);
+                Long val = null;
+                if (reader.peek() != JsonToken.NULL) {
+                    val = reader.nextLong()
                 } else {
-                    ((AllTypesRealmProxyInterface) obj).realmGet$columnMutableRealmInteger().set((long) reader.nextLong());
+                    reader.skipValue();
                 }
+                objProxy.realmGet$columnMutableRealmInteger().set(val);
             } else if (name.equals("columnObject")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnObject(null);
+                    objProxy.realmSet$columnObject(null);
                 } else {
                     some.test.AllTypes columnObjectObj = AllTypesRealmProxy.createUsingJsonStream(realm, reader);
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnObject(columnObjectObj);
+                    objProxy.realmSet$columnObject(columnObjectObj);
                 }
             } else if (name.equals("columnRealmList")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnRealmList(null);
+                    objProxy.realmSet$columnRealmList(null);
                 } else {
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnRealmList(new RealmList<some.test.AllTypes>());
+                    objProxy.realmSet$columnRealmList(new RealmList<some.test.AllTypes>());
                     reader.beginArray();
                     while (reader.hasNext()) {
                         some.test.AllTypes item = AllTypesRealmProxy.createUsingJsonStream(realm, reader);
-                        ((AllTypesRealmProxyInterface) obj).realmGet$columnRealmList().add(item);
+                        objProxy.realmGet$columnRealmList().add(item);
                     }
                     reader.endArray();
                 }
@@ -770,8 +769,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (!jsonHasPrimaryKey) {
             throw new IllegalArgumentException("JSON object doesn't have the primary key field 'columnString'.");
         }
-        obj = realm.copyToRealm(obj);
-        return obj;
+        return realm.copyToRealm(obj);
     }
 
     public static some.test.AllTypes copyOrUpdate(Realm realm, some.test.AllTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {

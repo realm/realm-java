@@ -1089,7 +1089,6 @@ public class RealmProxyClassGenerator {
             writer.endControlFlow();
 
         } else if ("io.realm.MutableRealmInteger".equals(fieldType)) {
-            // FIXME MutableRealmInteger: While identical to the  semantics of Long, this may not be correct.
             writer
                     .emitStatement("Long %s = ((%s) object).%s().get()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
@@ -1928,50 +1927,55 @@ public class RealmProxyClassGenerator {
         } else {
             String pkType = Utils.isString(metadata.getPrimaryKey()) ? "String" : "Long";
             writer
-                    .emitStatement("%s obj = null", qualifiedClassName)
-                    .beginControlFlow("if (update)")
+                .emitStatement("%s obj = null", qualifiedClassName)
+                .beginControlFlow("if (update)")
                     .emitStatement("Table table = realm.getTable(%s.class)", qualifiedClassName)
                     .emitStatement("long pkColumnIndex = table.getPrimaryKey()")
                     .emitStatement("long rowIndex = Table.NO_MATCH");
             if (metadata.isNullable(metadata.getPrimaryKey())) {
                 writer
-                        .beginControlFlow("if (json.isNull(\"%s\"))", metadata.getPrimaryKey().getSimpleName())
+                    .beginControlFlow("if (json.isNull(\"%s\"))", metadata.getPrimaryKey().getSimpleName())
                         .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
-                        .nextControlFlow("else")
-                        .emitStatement("rowIndex = table.findFirst%s(pkColumnIndex, json.get%s(\"%s\"))",
+                    .nextControlFlow("else")
+                        .emitStatement(
+                                "rowIndex = table.findFirst%s(pkColumnIndex, json.get%s(\"%s\"))",
                                 pkType, pkType, metadata.getPrimaryKey().getSimpleName())
-                        .endControlFlow();
+                    .endControlFlow();
             } else {
                 writer
-                        .beginControlFlow("if (!json.isNull(\"%s\"))", metadata.getPrimaryKey().getSimpleName())
-                        .emitStatement("rowIndex = table.findFirst%s(pkColumnIndex, json.get%s(\"%s\"))",
+                    .beginControlFlow("if (!json.isNull(\"%s\"))", metadata.getPrimaryKey().getSimpleName())
+                        .emitStatement(
+                                "rowIndex = table.findFirst%s(pkColumnIndex, json.get%s(\"%s\"))",
                                 pkType, pkType, metadata.getPrimaryKey().getSimpleName())
-                        .endControlFlow();
+                    .endControlFlow();
             }
             writer
-                    .beginControlFlow("if (rowIndex != Table.NO_MATCH)")
+                .beginControlFlow("if (rowIndex != Table.NO_MATCH)")
                     .emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
                     .beginControlFlow("try")
-                    .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex)," +
-                            " realm.getSchema().getColumnInfo(%s.class)," +
-                            " false, Collections.<String> emptyList())", qualifiedClassName)
-                    .emitStatement("obj = new %s()", qualifiedGeneratedClassName)
+                        .emitStatement(
+                                "objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.getSchema().getColumnInfo(%s.class), false, Collections.<String> emptyList())",
+                                qualifiedClassName)
+                        .emitStatement("obj = new %s()", qualifiedGeneratedClassName)
                     .nextControlFlow("finally")
-                    .emitStatement("objectContext.clear()")
+                        .emitStatement("objectContext.clear()")
                     .endControlFlow()
-                    .endControlFlow()
-                    .endControlFlow();
+                .endControlFlow()
+            .endControlFlow();
 
             writer.beginControlFlow("if (obj == null)");
             buildExcludeFieldsList(writer, metadata.getFields());
             String primaryKeyFieldType = metadata.getPrimaryKey().asType().toString();
             String primaryKeyFieldName = metadata.getPrimaryKey().getSimpleName().toString();
-            RealmJsonTypeHelper.emitCreateObjectWithPrimaryKeyValue(qualifiedClassName, qualifiedGeneratedClassName,
-                    primaryKeyFieldType, primaryKeyFieldName, writer);
+            RealmJsonTypeHelper.emitCreateObjectWithPrimaryKeyValue(
+                    qualifiedClassName, qualifiedGeneratedClassName, primaryKeyFieldType, primaryKeyFieldName, writer);
             writer.endControlFlow();
         }
         //@formatter:on
 
+        writer
+                .emitEmptyLine()
+                .emitStatement("final %1$s objProxy = (%1$s) obj", interfaceName);
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
             String qualifiedFieldType = field.asType().toString();
@@ -1981,7 +1985,7 @@ public class RealmProxyClassGenerator {
             }
             if (Utils.isRealmModel(field)) {
                 RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
-                        interfaceName,
+                        "objProxy",
                         metadata.getInternalSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
@@ -1991,7 +1995,7 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isRealmList(field)) {
                 RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
-                        interfaceName,
+                        "objProxy",
                         metadata.getInternalGetter(fieldName),
                         metadata.getInternalSetter(fieldName),
                         fieldName,
@@ -2001,7 +2005,7 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isMutableRealmInteger(field)) {
                 RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
-                        interfaceName,
+                        "objProxy",
                         metadata.getInternalGetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
@@ -2009,7 +2013,7 @@ public class RealmProxyClassGenerator {
 
             } else {
                 RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
-                        interfaceName,
+                        "objProxy",
                         metadata.getInternalSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
@@ -2049,12 +2053,12 @@ public class RealmProxyClassGenerator {
         if (metadata.hasPrimaryKey()) {
             writer.emitStatement("boolean jsonHasPrimaryKey = false");
         }
-        writer.emitStatement("%s obj = new %s()", qualifiedClassName, qualifiedClassName);
+        writer.emitStatement("final %s obj = new %s()", qualifiedClassName, qualifiedClassName);
+        writer.emitStatement("final %1$s objProxy = (%1$s) obj", interfaceName);
         writer.emitStatement("reader.beginObject()");
         writer.beginControlFlow("while (reader.hasNext())");
         writer.emitStatement("String name = reader.nextName()");
         writer.beginControlFlow("if (false)");
-
         Collection<VariableElement> fields = metadata.getFields();
         for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
@@ -2063,7 +2067,7 @@ public class RealmProxyClassGenerator {
 
             if (Utils.isRealmModel(field)) {
                 RealmJsonTypeHelper.emitFillRealmObjectFromStream(
-                        interfaceName,
+                        "objProxy",
                         metadata.getInternalSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
@@ -2073,7 +2077,7 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isRealmList(field)) {
                 RealmJsonTypeHelper.emitFillRealmListFromStream(
-                        interfaceName,
+                        "objProxy",
                         metadata.getInternalGetter(fieldName),
                         metadata.getInternalSetter(fieldName),
                         ((DeclaredType) field.asType()).getTypeArguments().get(0).toString(),
@@ -2081,17 +2085,19 @@ public class RealmProxyClassGenerator {
                         writer);
 
             } else if (Utils.isMutableRealmInteger(field)) {
-                RealmJsonTypeHelper.emitFillMutableRealmIntegerFromStream(
-                        interfaceName,
+                RealmJsonTypeHelper.emitFillJavaTypeFromStream(
+                        "objProxy",
+                        metadata,
                         metadata.getInternalGetter(fieldName),
                         fieldName,
+                        qualifiedFieldType,
                         writer
                 );
-
             } else {
                 RealmJsonTypeHelper.emitFillJavaTypeFromStream(
-                        interfaceName,
+                        "objProxy",
                         metadata,
+                        metadata.getInternalSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
                         writer
@@ -2112,8 +2118,7 @@ public class RealmProxyClassGenerator {
                     .endControlFlow();
         }
 
-        writer.emitStatement("obj = realm.copyToRealm(obj)");
-        writer.emitStatement("return obj");
+        writer.emitStatement("return realm.copyToRealm(obj)");
         writer.endMethod();
         writer.emitEmptyLine();
     }
