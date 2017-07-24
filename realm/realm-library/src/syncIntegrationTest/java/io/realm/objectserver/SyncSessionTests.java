@@ -1,7 +1,6 @@
 package io.realm.objectserver;
 
 import android.os.SystemClock;
-import android.support.test.annotation.UiThreadTest;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Rule;
@@ -49,7 +48,7 @@ public class SyncSessionTests extends BaseIntegrationTest {
     }
 
     @Test
-    public void getState_inactive() {
+    public void getState_throwOnClosedSession() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
@@ -58,10 +57,11 @@ public class SyncSessionTests extends BaseIntegrationTest {
         Realm realm = Realm.getInstance(syncConfiguration);
 
         SyncSession session = SyncManager.getSession(syncConfiguration);
-        user.logout();
-        assertEquals(SyncSession.State.INACTIVE, session.getState());
-
         realm.close();
+        user.logout();
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage("Could not find session, Realm was probably closed");
+        session.getState();
     }
 
     @Test

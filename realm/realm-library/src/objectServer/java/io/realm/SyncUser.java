@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -44,7 +43,6 @@ import io.realm.internal.network.ChangePasswordResponse;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.network.LookupUserIdResponse;
-import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 import io.realm.permissions.PermissionModule;
@@ -62,15 +60,19 @@ import io.realm.permissions.PermissionModule;
  * as sensitive data.
  */
 public class SyncUser {
+    private final String identity;
+    private final Token refreshToken;
+    private final URL authenticationUrl;
+    // maps all RealmConfiguration and accessToken, using this SyncUser.
+    private final Map<SyncConfiguration, Token> realms = new HashMap<SyncConfiguration, Token>();
 
     private static class ManagementConfig {
         private SyncConfiguration managementRealmConfig;
 
-        synchronized SyncConfiguration initAndGetManagementRealmConfig(
-                ObjectServerUser syncUser, final SyncUser user) {
+        synchronized SyncConfiguration initAndGetManagementRealmConfig(final SyncUser user) {
             if (managementRealmConfig == null) {
                 managementRealmConfig = new SyncConfiguration.Builder(
-                        user, getManagementRealmUrl(syncUser.getAuthenticationUrl()))
+                        user, getManagementRealmUrl(user.getAuthenticationUrl()))
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
                             public void onError(SyncSession session, ObjectServerError error) {
@@ -92,13 +94,12 @@ public class SyncUser {
         }
     }
 
-
     private final ManagementConfig managementConfig = new ManagementConfig();
 
-    private final ObjectServerUser syncUser;
-
-    private SyncUser(ObjectServerUser user) {
-        this.syncUser = user;
+    SyncUser(Token refreshToken, URL authenticationUrl) {
+        this.identity = refreshToken.identity();
+        this.authenticationUrl = authenticationUrl;
+        this.refreshToken = refreshToken;
     }
 
     /**
@@ -147,21 +148,11 @@ public class SyncUser {
             JSONObject obj = new JSONObject(user);
             URL authUrl = new URL(obj.getString("authUrl"));
             Token userToken = Token.from(obj.getJSONObject("userToken"));//TODO rename to refresh_token
-            ObjectServerUser syncUser = new ObjectServerUser(userToken, authUrl);
-            JSONArray realmTokens = obj.getJSONArray("realms");
-            for (int i = 0; i < realmTokens.length(); i++) {
-                JSONObject token = realmTokens.getJSONObject(i);
-                URI uri = new URI(token.getString("uri"));
-                ObjectServerUser.AccessDescription realmDesc = ObjectServerUser.AccessDescription.fromJson(token.getJSONObject("description"));
-                syncUser.addRealm(uri, realmDesc);
-            }
-            return new SyncUser(syncUser);
+            return new SyncUser(userToken, authUrl);
         } catch (JSONException e) {
             throw new IllegalArgumentException("Could not parse user json: " + user, e);
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("URL in JSON not valid: " + user, e);
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("URI is not valid: " + user, e);
         }
     }
 
@@ -202,8 +193,7 @@ public class SyncUser {
                 result = server.loginUser(credentials, authUrl);
             }
             if (result.isValid()) {
-                ObjectServerUser syncUser = new ObjectServerUser(result.getRefreshToken(), authUrl);
-                SyncUser user = new SyncUser(syncUser);
+                SyncUser user = new SyncUser(result.getRefreshToken(), authUrl);
                 RealmLog.info("Succeeded authenticating user.\n%s", user);
                 SyncManager.getUserStore().put(user);
                 SyncManager.notifyUserLoggedIn(user);
@@ -254,39 +244,32 @@ public class SyncUser {
     public void logout() {
         // Acquire lock to prevent users creating new instances
         synchronized (Realm.class) {
-            if (!syncUser.isLoggedIn()) {
+            if (isLoggedOut()) {
                 return; // Already local/global logout status
             }
-
             // Ensure that we can log out. If any Realm file is still open we should abort before doing anything
             // else.
-            Collection<SyncSession> sessions = syncUser.getSessions();
-            for (SyncSession session : sessions) {
-                SyncConfiguration config = session.getConfiguration();
-                if (Realm.getGlobalInstanceCount(config) > 0) {
+            for (SyncConfiguration syncConfiguration : realms.keySet()) {
+                if (Realm.getGlobalInstanceCount(syncConfiguration) > 0) {
                     throw new IllegalStateException("A Realm controlled by this user is still open. Close all Realms " +
-                            "before logging out: " + config.getPath());
+                            "before logging out: " + syncConfiguration.getPath());
                 }
             }
 
-            SyncManager.getUserStore().remove(syncUser.getIdentity());
+            SyncManager.getUserStore().remove(identity);
 
             // Delete all Realms if needed.
-            for (ObjectServerUser.AccessDescription desc : syncUser.getRealms()) {
-                // FIXME: This will always be false since SyncConfiguration.Builder.deleteRealmOnLogout() is
-                // disabled. Make sure this works for Realm opened in the client thread/other processes.
-                if (desc.deleteOnLogout) {
-                    File realmFile = new File(desc.localPath);
-                    if (realmFile.exists() && !Util.deleteRealm(desc.localPath, realmFile.getParentFile(), realmFile.getName())) {
-                        RealmLog.error("Could not delete Realm when user logged out: " + desc.localPath);
+            for (SyncConfiguration syncConfiguration : realms.keySet()) {
+                if (syncConfiguration.shouldDeleteRealmOnLogout()) {
+                    File realmFile = new File(syncConfiguration.getPath());
+                    if (realmFile.exists() && !Util.deleteRealm(syncConfiguration.getPath(), realmFile.getParentFile(), realmFile.getName())) {
+                        RealmLog.error("Could not delete Realm when user logged out: " + syncConfiguration.getPath());
                     }
                 }
             }
 
             // Remove all local tokens, preventing further connections.
-            final Token userToken = syncUser.getUserToken();
-            syncUser.clearTokens();
-            syncUser.localLogout();
+            realms.clear();
 
             // Finally revoke server token. The local user is logged out in any case.
             final AuthenticationServer server = SyncManager.getAuthServer();
@@ -296,7 +279,7 @@ public class SyncUser {
 
                 @Override
                 protected LogoutResponse execute() {
-                    return server.logout(userToken, getAuthenticationUrl());
+                    return server.logout(refreshToken, getAuthenticationUrl());
                 }
 
                 @Override
@@ -327,7 +310,7 @@ public class SyncUser {
             throw new IllegalArgumentException("Not-null 'newPassword' required.");
         }
         AuthenticationServer authServer = SyncManager.getAuthServer();
-        ChangePasswordResponse response = authServer.changePassword(getSyncUser().getUserToken(), newPassword, getAuthenticationUrl());
+        ChangePasswordResponse response = authServer.changePassword(refreshToken, newPassword, getAuthenticationUrl());
         if (!response.isValid()) {
             throw response.getError();
         }
@@ -364,7 +347,7 @@ public class SyncUser {
             }
 
             AuthenticationServer authServer = SyncManager.getAuthServer();
-            ChangePasswordResponse response = authServer.changePassword(getSyncUser().getUserToken(), userId, newPassword, getAuthenticationUrl());
+            ChangePasswordResponse response = authServer.changePassword(refreshToken, userId, newPassword, getAuthenticationUrl());
             if (!response.isValid()) {
                 throw response.getError();
             }
@@ -452,7 +435,7 @@ public class SyncUser {
         }
 
         AuthenticationServer authServer = SyncManager.getAuthServer();
-        LookupUserIdResponse response = authServer.retrieveUser(getSyncUser().getUserToken(), provider, providerId, getAuthenticationUrl());
+        LookupUserIdResponse response = authServer.retrieveUser(refreshToken, provider, providerId, getAuthenticationUrl());
         if (!response.isValid()) {
             // the endpoint returns a 404 if it can't honor the query, either because
             // - provider is not valid
@@ -469,11 +452,9 @@ public class SyncUser {
             if (syncUser != null) {
                 return syncUser;
             } else {
-                // build an SynUser without a token
+                // build a SynUser without a token
                 Token refreshToken = new Token(null, response.getUserId(), null, 0, null, response.isAdmin());
-                ObjectServerUser objectServerUser = new ObjectServerUser(refreshToken, getAuthenticationUrl());
-                objectServerUser.localLogout();
-                return new SyncUser(objectServerUser);
+                return new SyncUser(refreshToken, getAuthenticationUrl());
             }
         }
     }
@@ -519,7 +500,14 @@ public class SyncUser {
      * @see #fromJson(String)
      */
     public String toJson() {
-        return syncUser.toJson();
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("authUrl", authenticationUrl);
+            obj.put("userToken", refreshToken.toJson());
+            return obj.toString();
+        } catch (JSONException e) {
+            throw new RuntimeException("Could not convert SyncUser to JSON", e);
+        }
     }
 
     /**
@@ -534,8 +522,18 @@ public class SyncUser {
      * @return {@code true} if the User is logged into the Realm Object Server, {@code false} otherwise.
      */
     public boolean isValid() {
-        Token userToken = getSyncUser().getUserToken();
-        return syncUser.isLoggedIn() && userToken != null && userToken.expiresMs() > System.currentTimeMillis() && SyncManager.getUserStore().isActive(syncUser.getIdentity());
+        return refreshToken != null && refreshToken.expiresMs() > System.currentTimeMillis() && !isLoggedOut();
+    }
+
+    /**
+     * Returns whether the user is logged out from the Realm Object Server or not.
+     * Note, a user can be logged in and still be invalid if his/her access has expired.
+     * <p>
+     * Use {@link #isValid()} to check if the user is still valid.
+     * @return  {@code true} if the user was logged out,  {@code false} otherwise.
+     */
+    public boolean isLoggedOut() {
+        return !SyncManager.getUserStore().isActive(identity);
     }
 
     /**
@@ -546,7 +544,7 @@ public class SyncUser {
      * @return {@code true} if the user is an administrator on the Realm Object Server, {@code false} otherwise.
      */
     public boolean isAdmin() {
-        return syncUser.isAdmin();
+        return refreshToken.isAdmin();
     }
 
     /**
@@ -557,7 +555,7 @@ public class SyncUser {
      * {@code null} is returned.
      */
     public String getIdentity() {
-        return syncUser.getIdentity();
+        return identity;
     }
 
     /**
@@ -567,7 +565,7 @@ public class SyncUser {
      * @return the user's access token. If this user has logged out or the login has expired {@code null} is returned.
      */
     public Token getAccessToken() {
-        return syncUser.getUserToken();
+        return refreshToken;
     }
 
     /**
@@ -579,16 +577,34 @@ public class SyncUser {
      * @see <a href="https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
      */
     public Realm getManagementRealm() {
-        return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(syncUser, this));
+        return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(this));
     }
 
+    /**
+     * Checks if the user has access to the given Realm. Being authenticated means that the
+     * user is know by the Realm Object Server and have been granted access to the given Realm.
+     *
+     * Authenticating will happen automatically as part of opening a Realm.
+     */
+    boolean isRealmAuthenticated(SyncConfiguration configuration) {
+        Token token = realms.get(configuration);
+        return token != null && token.expiresMs() > System.currentTimeMillis();
+    }
+
+    Token getAccessToken(SyncConfiguration configuration) {
+        return realms.get(configuration);
+    }
+
+    void addRealm(SyncConfiguration syncConfiguration, Token accessToken) {
+        realms.put(syncConfiguration, accessToken);
+    }
     /**
      * Returns the {@link URL} where this user was authenticated.
      *
      * @return {@link URL} where the user was authenticated.
      */
     public URL getAuthenticationUrl() {
-        return syncUser.getAuthenticationUrl();
+        return authenticationUrl;
     }
 
     // Creates the URL to the permission Realm based on the authentication URL.
@@ -605,36 +621,45 @@ public class SyncUser {
         }
     }
 
+    // what defines a user is it's identity(Token) and authURL (as required by the constructor)
+    //
+    // not the list of Realms it's managing, furthermore, trying to include the `realms` in the `hashCode` will
+    // end in a StackOverFlow, since we need to calculate the `hashCode` of the SyncConfiguration which itself
+    // contains a reference to the SyncUser.
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-        SyncUser user = (SyncUser) o;
+        SyncUser syncUser = (SyncUser) o;
 
-        return syncUser.equals(user.syncUser);
-
+        if (!refreshToken.equals(syncUser.refreshToken)) return false;
+        return authenticationUrl.equals(syncUser.authenticationUrl);
     }
 
     @Override
     public int hashCode() {
-        return syncUser.hashCode();
+        int result = refreshToken.hashCode();
+        result = 31 * result + authenticationUrl.hashCode();
+        return result;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("{");
-        sb.append("UserId: ").append(syncUser.getIdentity());
+        sb.append("UserId: ").append(identity);
         sb.append(", AuthUrl: ").append(getAuthenticationUrl());
         sb.append(", IsValid: ").append(isValid());
-        sb.append(", Sessions: ").append(syncUser.getSessions().size());
+        String[] allSessions = nativeAllSessionsPath(identity);
+        if (allSessions != null && allSessions.length > 0) {
+            sb.append(", Sessions: ");
+            for (String path : allSessions) {
+                sb.append("\n\tpath: ").append(path);
+            }
+            sb.append('\n');
+        }
         sb.append("}");
         return sb.toString();
-    }
-
-    // Expose internal representation for other package protected classes
-    ObjectServerUser getSyncUser() {
-        return syncUser;
     }
 
     // Class wrapping requests made against the auth server. Is also responsible for calling with success/error on the
@@ -705,4 +730,6 @@ public class SyncUser {
 
         void onError(ObjectServerError error);
     }
+
+    private static native String[] nativeAllSessionsPath(String userIdentity);
 }

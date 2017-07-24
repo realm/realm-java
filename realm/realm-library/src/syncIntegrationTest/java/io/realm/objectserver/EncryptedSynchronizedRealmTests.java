@@ -230,10 +230,10 @@ public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
         assertEquals("Hi Alice", allSortedAdmin.get(0).getChars());
         assertEquals("Hi Bob", allSortedAdmin.get(1).getChars());
 
+        adminRealm.close();
         adminUser.logout();
-        user.logout();
 
         realm.close();
-        adminRealm.close();
+        user.logout();
     }
 }

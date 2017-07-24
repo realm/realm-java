@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * A User Store backed by a Realm file to store user.
+ * A User Store backed by a Realm file to store users.
  */
 public class RealmFileUserStore implements UserStore {
 
@@ -32,7 +32,7 @@ public class RealmFileUserStore implements UserStore {
     public void put(SyncUser user) {
         String userJson = user.toJson();
         // create or update token (userJson) using identity
-        nativeUpdateOrCreateUser(user.getIdentity(), userJson, user.getSyncUser().getAuthenticationUrl().toString());
+        nativeUpdateOrCreateUser(user.getIdentity(), userJson, user.getAuthenticationUrl().toString());
     }
 
     /**

@@ -31,6 +31,9 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -39,6 +42,7 @@ import java.util.UUID;
 
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -48,6 +52,7 @@ import static io.realm.util.SyncTestUtils.createTestAdminUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -57,6 +62,20 @@ import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public class SyncUserTests {
+
+    private static final URL authUrl;
+    private static final Constructor<SyncUser> SYNC_USER_CONSTRUCTOR;
+    static {
+        try {
+            authUrl = new URL("http://localhost/auth");
+            SYNC_USER_CONSTRUCTOR = SyncUser.class.getDeclaredConstructor(Token.class, URL.class);
+            SYNC_USER_CONSTRUCTOR.setAccessible(true);
+        } catch (MalformedURLException e) {
+            throw new ExceptionInInitializerError(e);
+        } catch (NoSuchMethodException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
@@ -77,6 +96,49 @@ public class SyncUserTests {
     @Before
     public void setUp() {
         SyncManager.reset();
+    }
+
+    private static SyncUser createFakeUser(String id) {
+        final Token token = new Token("token_value", id, "path_value", Long.MAX_VALUE, null);
+        try {
+            return SYNC_USER_CONSTRUCTOR.newInstance(token, authUrl);
+        } catch (InstantiationException e) {
+            fail(e.getMessage());
+        } catch (IllegalAccessException e) {
+            fail(e.getMessage());
+        } catch (InvocationTargetException e) {
+            fail(e.getMessage());
+        }
+        return null;
+    }
+
+    @Test
+    public void equals_validUser() {
+        final SyncUser user1 = createFakeUser("id_value");
+        final SyncUser user2 = createFakeUser("id_value");
+        assertTrue(user1.equals(user2));
+    }
+
+    @Test
+    public void equals_loggedOutUser() {
+        final SyncUser user1 = createFakeUser("id_value");
+        final SyncUser user2 = createFakeUser("id_value");
+        user1.logout();
+        user2.logout();
+        assertTrue(user1.equals(user2));
+    }
+
+    @Test
+    public void hashCode_validUser() {
+        final SyncUser user = createFakeUser("id_value");
+        assertNotEquals(0, user.hashCode());
+    }
+
+    @Test
+    public void hashCode_loggedOutUser() {
+        final SyncUser user = createFakeUser("id_value");
+        user.logout();
+        assertNotEquals(0, user.hashCode());
     }
 
     @Test

@@ -15,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.realm.AuthenticationListener;
 import io.realm.BaseIntegrationTest;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
@@ -35,6 +36,8 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 
 @RunWith(AndroidJUnit4.class)
@@ -259,56 +262,78 @@ public class AuthTests extends BaseIntegrationTest {
     }
 
     @Test
+    @RunTestInLooperThread
     public void changePassword_throwWhenUserIsLoggedOut() {
         String username = UUID.randomUUID().toString();
         String password = "password";
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        user.logout();
+        SyncManager.addAuthenticationListener(new AuthenticationListener() {
+            @Override
+            public void loggedIn(SyncUser user) {
+                SyncManager.removeAuthenticationListener(this);
+                // callback is happening on different thread, all assertions needs to be done on looper thread
+                looperThread.postRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        fail("loggedIn should not be invoked");
+                    }
+                });
+            }
 
-        thrown.expect(ObjectServerError.class);
-        user.changePassword("new-password");
+            @Override
+            public void loggedOut(SyncUser user) {
+                SyncManager.removeAuthenticationListener(this);
+                try {
+                    user.changePassword("new-password");
+                    looperThread.postRunnable(new Runnable() {
+                        @Override
+                        public void run() {
+                            fail("changePassword should throw ObjectServerError (INVALID CREDENTIALS)");
+                        }
+                    });
+                } catch (ObjectServerError expected) {
+                }
+                looperThread.testComplete();
+            }
+        });
+        user.logout();
     }
 
-    // Cached instances of RealmConfiguration should not be allowed to be used if the user is no longer valid
     @Test
-    public void cachedInstanceShouldThrowIfUserBecomeInvalid() throws InterruptedException {
+    public void cachedInstanceShouldNotThrowIfRefreshTokenExpires() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
 
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final SyncUser user = spy(SyncUser.login(credentials, Constants.AUTH_URL));
+
+        when(user.isValid()).thenReturn(true, true, false);
         final RealmConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
         Realm realm = Realm.getInstance(configuration);
-
-        user.logout();
         assertFalse(user.isValid());
-
         final CountDownLatch backgroundThread = new CountDownLatch(1);
-        // Should throw when using the invalid configuration form a different thread
+        // Should not throw when using an expired refresh_token form a different thread
+        // It should be able to open a Realm with an expired token
         new Thread() {
             @Override
             public void run() {
-                try {
-                    Realm.getInstance(configuration);
-                    fail("Invalid SyncConfiguration should throw");
-                } catch (IllegalStateException expected) {
-                } finally {
-                    backgroundThread.countDown();
-                }
+                assertFalse(user.isValid());
+                Realm instance = Realm.getInstance(configuration);
+                instance.close();
+                backgroundThread.countDown();
             }
         }.start();
 
         backgroundThread.await();
 
-        // it is ok to return the cached instance, since this use case is legit
-        // user refresh token can timeout, or the token can be revoked from ROS
-        // while running the Realm instance. So it doesn't make sense to break this behaviour
+        // It should be able to open a cached Realm with expired token
         Realm cachedInstance = Realm.getInstance(configuration);
         assertNotNull(cachedInstance);
 
         realm.close();
         cachedInstance.close();
+        user.logout();
     }
 
     @Test

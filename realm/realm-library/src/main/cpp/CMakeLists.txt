@@ -51,7 +51,7 @@ set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
         io.realm.ClientResetRequiredError io.realm.RealmFileUserStore
-        io.realm.SyncManager io.realm.SyncSession
+        io.realm.SyncManager io.realm.SyncSession io.realm.SyncUser
     )
 endif()
 create_javah(TARGET jni_headers
@@ -175,6 +175,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFileUserStore.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncUser.cpp
     )
 endif()
 
