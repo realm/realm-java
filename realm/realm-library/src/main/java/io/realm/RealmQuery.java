@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
+import javax.annotation.Nullable;
+
 import io.realm.annotations.Required;
 import io.realm.internal.Collection;
 import io.realm.internal.LinkView;
@@ -1642,6 +1644,7 @@ public class RealmQuery<E extends RealmModel> {
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
+    @Nullable
     public Number min(String fieldName) {
         realm.checkIfValid();
 
@@ -1668,6 +1671,7 @@ public class RealmQuery<E extends RealmModel> {
      * {@code null} values are ignored.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
+    @Nullable
     public Date minimumDate(String fieldName) {
         realm.checkIfValid();
 
@@ -1684,6 +1688,7 @@ public class RealmQuery<E extends RealmModel> {
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
+    @Nullable
     public Number max(String fieldName) {
         realm.checkIfValid();
 
@@ -1710,6 +1715,7 @@ public class RealmQuery<E extends RealmModel> {
      * {@code null} values are ignored.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
+    @Nullable
     public Date maximumDate(String fieldName) {
         realm.checkIfValid();
 
@@ -1909,6 +1915,7 @@ public class RealmQuery<E extends RealmModel> {
      * @return the object found or {@code null} if no object matches the query conditions.
      * @see io.realm.RealmObject
      */
+    @Nullable
     public E findFirst() {
         realm.checkIfValid();
 

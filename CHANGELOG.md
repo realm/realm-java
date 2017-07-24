@@ -25,6 +25,7 @@
 ### Enhancements
 
 * [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
+* Added `Nullable` annotation to methods that may return `null` in order to improve Kotlin usability. This also introduced a dependency to `com.google.code.findbugs:jsr305`.
 
 ### Bug Fixes
 
