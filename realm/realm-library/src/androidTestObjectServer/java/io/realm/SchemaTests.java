@@ -165,6 +165,8 @@ public class SchemaTests {
 
     @Test
     public void addPrimaryKey_notAllowed() {
+        // Init schema
+        Realm.getInstance(config).close();
         String className = "StringOnly";
         String fieldName = "chars";
         DynamicRealm realm = DynamicRealm.getInstance(config);
@@ -179,13 +181,15 @@ public class SchemaTests {
             fail();
         } catch (UnsupportedOperationException ignored) {
         } finally {
-            realm.commitTransaction();
+            realm.cancelTransaction();
             realm.close();
         }
     }
 
     @Test
     public void addField_withPrimaryKeyModifier_notAllowed() {
+        // Init schema
+        Realm.getInstance(config).close();
         String className = "StringOnly";
         DynamicRealm realm = DynamicRealm.getInstance(config);
 
@@ -194,11 +198,11 @@ public class SchemaTests {
         assertNotNull(objectSchema);
 
         try {
-            objectSchema.addField("foo", String.class, FieldAttribute.PRIMARY_KEY);
+            objectSchema.addField("bar", String.class, FieldAttribute.PRIMARY_KEY);
             fail();
         } catch (UnsupportedOperationException ignored) {
         } finally {
-            realm.commitTransaction();
+            realm.cancelTransaction();
             realm.close();
         }
     }
