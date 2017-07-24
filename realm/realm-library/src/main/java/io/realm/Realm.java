@@ -160,7 +160,10 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Returns the immutable schema for this Realm.
+     * Returns the schema for this Realm. The schema is immutable.
+     * Any attempt to modify it will result in an {@link UnsupportedOperationException}.
+     * <p>
+     * The schema can only be modified using {@link DynamicRealm#getSchema()} or through an migration.
      *
      * @return The {@link RealmSchema} for this Realm.
      */

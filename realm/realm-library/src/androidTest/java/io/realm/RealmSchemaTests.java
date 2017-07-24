@@ -238,12 +238,12 @@ public class RealmSchemaTests {
 
     @Test
     public void remove() {
-        if (type == SchemaType.MUTABLE) {
-            realmSchema.remove(AllJavaTypes.CLASS_NAME);
-            assertFalse(realmSchema.contains(AllJavaTypes.CLASS_NAME));
-        } else {
+        if (type == SchemaType.IMMUTABLE) {
             thrown.expect(UnsupportedOperationException.class);
             realmSchema.remove(AllJavaTypes.CLASS_NAME);
+        } else {
+            realmSchema.remove(AllJavaTypes.CLASS_NAME);
+            assertFalse(realmSchema.contains(AllJavaTypes.CLASS_NAME));
         }
     }
 

@@ -240,6 +240,12 @@ public class RealmObjectSchemaTests {
                 fail();
             } catch (UnsupportedOperationException ignore) {
             }
+
+            try {
+                schema.removeField("test");
+                fail();
+            } catch (UnsupportedOperationException ignore) {
+            }
             return;
         }
         for (FieldType fieldType : FieldType.values()) {
