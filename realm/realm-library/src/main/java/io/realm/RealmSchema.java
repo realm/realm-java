@@ -21,6 +21,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
@@ -29,14 +31,17 @@ import io.realm.internal.util.Pair;
 
 
 /**
- * Class for interacting with the Realm schema using a dynamic API. This makes it possible
- * to add, delete and change the classes in the Realm.
+ * Class for interacting with the Realm schema. This makes it possible to inspect, add, delete and change the classes in
+ * the Realm.
+ * <p>
+ * {@link Realm#getSchema()} returns an immutable {@code RealmSchema} which can only be used for inspecting. Use
+ * {@link DynamicRealm#getSchema()} to get a mutable schema.
  * <p>
  * All changes must happen inside a write transaction for the particular Realm.
  *
  * @see RealmMigration
  */
-public class RealmSchema {
+public abstract class RealmSchema {
     static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
 
     // Caches Dynamic Class objects given as Strings to Realm Tables
@@ -48,7 +53,7 @@ public class RealmSchema {
     // Caches Class Strings to their Schema object
     private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
 
-    private final BaseRealm realm;
+    final BaseRealm realm;
     // Cached field look up
     private ColumnIndices columnIndices;
 
@@ -67,22 +72,19 @@ public class RealmSchema {
     }
 
     /**
-     * Returns the Realm schema for a given class.
+     * Returns the {@link RealmObjectSchema} for a given class. If this {@link RealmSchema} is immutable, an immutable
+     * {@link RealmObjectSchema} will be returned. Otherwise, it returns an mutable {@link RealmObjectSchema}.
      *
      * @param className name of the class
      * @return schema object for that class or {@code null} if the class doesn't exists.
      */
-    public RealmObjectSchema get(String className) {
-        checkEmpty(className, EMPTY_STRING_MSG);
-
-        String internalClassName = Table.getTableNameForClass(className);
-        if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }
-        Table table = realm.getSharedRealm().getTable(internalClassName);
-        return new RealmObjectSchema(realm, this, table);
-    }
+    @Nullable
+    public abstract RealmObjectSchema get(String className);
 
     /**
-     * Returns the {@link RealmObjectSchema}s for all RealmObject classes that can be saved in this Realm.
+     * Returns the {@link RealmObjectSchema}s for all RealmObject classes that can be saved in this Realm. If this
+     * {@link RealmSchema} is immutable, an immutable {@link RealmObjectSchema} set will be returned. Otherwise, it
+     * returns an mutable {@link RealmObjectSchema} set.
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
@@ -90,11 +92,10 @@ public class RealmSchema {
         int tableCount = (int) realm.getSharedRealm().size();
         Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
         for (int i = 0; i < tableCount; i++) {
-            String tableName = realm.getSharedRealm().getTableName(i);
-            if (!Table.isModelTable(tableName)) {
-                continue;
+            RealmObjectSchema objectSchema = get(realm.getSharedRealm().getTableName(i));
+            if (objectSchema != null) {
+                schemas.add(objectSchema);
             }
-            schemas.add(new RealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName)));
         }
         return schemas;
     }
@@ -104,35 +105,18 @@ public class RealmSchema {
      *
      * @param className name of the class.
      * @return a Realm schema object for that class.
+     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable.
      */
-    public RealmObjectSchema create(String className) {
-        // Adding a class is always permitted.
-        checkEmpty(className, EMPTY_STRING_MSG);
-
-        String internalTableName = Table.getTableNameForClass(className);
-        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
-            throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
-        }
-        return new RealmObjectSchema(realm, this, realm.getSharedRealm().createTable(internalTableName));
-    }
+    public abstract RealmObjectSchema create(String className);
 
     /**
      * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
      * to it will throw an {@link IllegalStateException}. Removes those classes or fields first.
      *
      * @param className name of the class to remove.
+     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable.
      */
-    public void remove(String className) {
-        realm.checkNotInSync(); // Destructive modifications are not permitted.
-        checkEmpty(className, EMPTY_STRING_MSG);
-        String internalTableName = Table.getTableNameForClass(className);
-        checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
-        Table table = getTable(className);
-        if (table.hasPrimaryKey()) {
-            table.setPrimaryKey(null);
-        }
-        realm.getSharedRealm().removeTable(internalTableName);
-    }
+    public abstract void remove(String className);
 
     /**
      * Renames a class already in the Realm.
@@ -140,36 +124,9 @@ public class RealmSchema {
      * @param oldClassName old class name.
      * @param newClassName new class name.
      * @return a schema object for renamed class.
+     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable.
      */
-    public RealmObjectSchema rename(String oldClassName, String newClassName) {
-        realm.checkNotInSync(); // Destructive modifications are not permitted.
-        checkEmpty(oldClassName, "Class names cannot be empty or null");
-        checkEmpty(newClassName, "Class names cannot be empty or null");
-        String oldInternalName = Table.getTableNameForClass(oldClassName);
-        String newInternalName = Table.getTableNameForClass(newClassName);
-        checkHasTable(oldClassName, "Cannot rename class because it doesn't exist in this Realm: " + oldClassName);
-        if (realm.getSharedRealm().hasTable(newInternalName)) {
-            throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
-        }
-
-        // Checks if there is a primary key defined for the old class.
-        Table oldTable = getTable(oldClassName);
-        String pkField = null;
-        if (oldTable.hasPrimaryKey()) {
-            pkField = oldTable.getColumnName(oldTable.getPrimaryKey());
-            oldTable.setPrimaryKey(null);
-        }
-
-        realm.getSharedRealm().renameTable(oldInternalName, newInternalName);
-        Table table = realm.getSharedRealm().getTable(newInternalName);
-
-        // Sets the primary key for the new class if necessary.
-        if (pkField != null) {
-            table.setPrimaryKey(pkField);
-        }
-
-        return new RealmObjectSchema(realm, this, table);
-    }
+    public abstract RealmObjectSchema rename(String oldClassName, String newClassName);
 
     /**
      * Checks if a given class already exists in the schema.
@@ -181,13 +138,13 @@ public class RealmSchema {
         return realm.getSharedRealm().hasTable(Table.getTableNameForClass(className));
     }
 
-    private void checkEmpty(String str, String error) {
+    void checkEmpty(String str, String error) {
         if (str == null || str.isEmpty()) {
             throw new IllegalArgumentException(error);
         }
     }
 
-    private void checkHasTable(String className, String errorMsg) {
+    void checkHasTable(String className, String errorMsg) {
         String internalTableName = Table.getTableNameForClass(className);
         if (!realm.getSharedRealm().hasTable(internalTableName)) {
             throw new IllegalArgumentException(errorMsg);
@@ -226,6 +183,7 @@ public class RealmSchema {
         return table;
     }
 
+    // Returns an immutable RealmObjectSchema for internal usage only.
     RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
         RealmObjectSchema classSchema = classToSchema.get(clazz);
         if (classSchema != null) { return classSchema; }
@@ -237,7 +195,7 @@ public class RealmSchema {
         }
         if (classSchema == null) {
             Table table = getTable(clazz);
-            classSchema = new RealmObjectSchema(realm, this, table, getColumnInfo(originalClass));
+            classSchema = new ImmutableRealmObjectSchema(realm, this, table, getColumnInfo(originalClass));
             classToSchema.put(originalClass, classSchema);
         }
         if (isProxyClass(originalClass, clazz)) {
@@ -248,6 +206,7 @@ public class RealmSchema {
         return classSchema;
     }
 
+    // Returns an immutable RealmObjectSchema for internal usage only.
     RealmObjectSchema getSchemaForClass(String className) {
         String tableName = Table.getTableNameForClass(className);
         RealmObjectSchema dynamicSchema = dynamicClassToSchema.get(tableName);
@@ -255,7 +214,7 @@ public class RealmSchema {
             if (!realm.getSharedRealm().hasTable(tableName)) {
                 throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
-            dynamicSchema = new RealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName));
+            dynamicSchema = new ImmutableRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName));
             dynamicClassToSchema.put(tableName, dynamicSchema);
         }
         return dynamicSchema;
@@ -298,7 +257,7 @@ public class RealmSchema {
         columnIndices.copyFrom(schemaVersion);
     }
 
-    final boolean isProxyClass(Class<? extends RealmModel> modelClass, Class<? extends RealmModel> testee) {
+    private boolean isProxyClass(Class<? extends RealmModel> modelClass, Class<? extends RealmModel> testee) {
         return modelClass.equals(testee);
     }
 

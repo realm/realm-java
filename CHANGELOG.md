@@ -3,6 +3,7 @@
 ### Enhancements
 
 * [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
+* Added `Nullable` annotation to methods that may return `null` in order to improve Kotlin usability. This also introduced a dependency to `com.google.code.findbugs:jsr305`.
 
 ### Bug Fixes
 
@@ -12,6 +13,8 @@
 ## 3.5.1 (YYYY-MM-DD)
 
 ### Bug Fixes
+
+* Potential crash after using `Realm.getSchema()` to change the schema of a typed Realm. `Realm.getSchema()` now returns an immutable `RealmSchema` instance.
 
 ### Internal
 

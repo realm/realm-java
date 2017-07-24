@@ -1399,7 +1399,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
-        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
+        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.NullTypes.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
         String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringNotNull();
@@ -1497,7 +1497,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
-        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
+        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.NullTypes.class);
         some.test.NullTypes object = null;
         while (objects.hasNext()) {
             object = (some.test.NullTypes) objects.next();
@@ -1608,7 +1608,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
-        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
+        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.NullTypes.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
         String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringNotNull();
@@ -1748,7 +1748,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
-        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
+        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.NullTypes.class);
         some.test.NullTypes object = null;
         while (objects.hasNext()) {
             object = (some.test.NullTypes) objects.next();

@@ -384,7 +384,7 @@ public class BooleansRealmProxy extends some.test.Booleans
         }
         Table table = realm.getTable(some.test.Booleans.class);
         long tableNativePtr = table.getNativePtr();
-        BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(some.test.Booleans.class);
+        BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.getSchema().getColumnInfo(some.test.Booleans.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
         Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface) object).realmGet$done(), false);
@@ -397,7 +397,7 @@ public class BooleansRealmProxy extends some.test.Booleans
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.Booleans.class);
         long tableNativePtr = table.getNativePtr();
-        BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(some.test.Booleans.class);
+        BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.getSchema().getColumnInfo(some.test.Booleans.class);
         some.test.Booleans object = null;
         while (objects.hasNext()) {
             object = (some.test.Booleans) objects.next();
@@ -423,7 +423,7 @@ public class BooleansRealmProxy extends some.test.Booleans
         }
         Table table = realm.getTable(some.test.Booleans.class);
         long tableNativePtr = table.getNativePtr();
-        BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(some.test.Booleans.class);
+        BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.getSchema().getColumnInfo(some.test.Booleans.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
         Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface) object).realmGet$done(), false);
@@ -436,7 +436,7 @@ public class BooleansRealmProxy extends some.test.Booleans
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.Booleans.class);
         long tableNativePtr = table.getNativePtr();
-        BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(some.test.Booleans.class);
+        BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.getSchema().getColumnInfo(some.test.Booleans.class);
         some.test.Booleans object = null;
         while (objects.hasNext()) {
             object = (some.test.Booleans) objects.next();
