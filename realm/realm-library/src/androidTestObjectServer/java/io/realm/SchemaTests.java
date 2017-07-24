@@ -32,6 +32,7 @@ import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.fail;
@@ -130,10 +131,12 @@ public class SchemaTests {
         DynamicRealm realm = DynamicRealm.getInstance(config);
         String className = "StringOnly";
         String fieldName = "chars";
+        final RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        assertNotNull(objectSchema);
         realm.beginTransaction();
-        assertTrue(realm.getSchema().get(className).hasField(fieldName));
+        assertTrue(objectSchema.hasField(fieldName));
         try {
-            realm.getSchema().get(className).removeField(fieldName);
+            objectSchema.removeField(fieldName);
             fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
@@ -149,11 +152,13 @@ public class SchemaTests {
         String className = "StringOnly";
 
         DynamicRealm realm = DynamicRealm.getInstance(config);
+        final RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        assertNotNull(objectSchema);
         realm.beginTransaction();
-        realm.getSchema().get(className).addField("foo", String.class);
+        objectSchema.addField("foo", String.class);
         realm.commitTransaction();
 
-        assertTrue(realm.getSchema().get(className).hasField("foo"));
+        assertTrue(objectSchema.hasField("foo"));
 
         realm.close();
     }
@@ -161,10 +166,11 @@ public class SchemaTests {
     @Test
     public void addPrimaryKey_notAllowed() {
         String className = "StringOnly";
-        Realm realm = Realm.getInstance(config);
+        DynamicRealm realm = DynamicRealm.getInstance(config);
 
         realm.beginTransaction();
         RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        assertNotNull(objectSchema);
         objectSchema.addField("foo", String.class);
 
         try {
@@ -180,10 +186,11 @@ public class SchemaTests {
     @Test
     public void addField_withPrimaryKeyModifier_notAllowed() {
         String className = "StringOnly";
-        Realm realm = Realm.getInstance(config);
+        DynamicRealm realm = DynamicRealm.getInstance(config);
 
         realm.beginTransaction();
         RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        assertNotNull(objectSchema);
 
         try {
             objectSchema.addField("foo", String.class, FieldAttribute.PRIMARY_KEY);
@@ -202,6 +209,7 @@ public class SchemaTests {
         Realm realm = Realm.getInstance(config);
 
         RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        assertNotNull(objectSchema);
         Set<String> names = objectSchema.getFieldNames();
         assertEquals(1, names.size());
         assertEquals(StringOnly.FIELD_CHARS, names.iterator().next());
