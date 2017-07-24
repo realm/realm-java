@@ -1316,7 +1316,7 @@ public class RealmObjectTests {
                 .migration(new RealmMigration() {
                     @Override
                     public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                        final Table table = realm.schema.getTable(StringAndInt.class);
+                        final Table table = realm.getSchema().getTable(StringAndInt.class);
                         final long strIndex = table.getColumnIndex("str");
                         final long numberIndex = table.getColumnIndex("number");
 

@@ -16,15 +16,15 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.List;
@@ -42,19 +42,41 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(Parameterized.class)
 public class RealmSchemaTests {
+
+    private enum SchemaType {
+        MUTABLE(MutableRealmObjectSchema.class),
+        IMMUTABLE(ImmutableRealmObjectSchema.class);
+
+        final Class<? extends RealmObjectSchema> objectSchemaClass;
+
+        SchemaType(Class<? extends RealmObjectSchema> objectSchemaClass) {
+            this.objectSchemaClass = objectSchemaClass;
+        }
+    }
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-    private DynamicRealm realm;
+    private BaseRealm realm;
     private RealmSchema realmSchema;
+    private SchemaType type;
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<SchemaType> data() {
+        return Arrays.asList(SchemaType.values());
+    }
+
+    public RealmSchemaTests(SchemaType type) {
+        this.type = type;
+    }
 
     @Before
     public void setUp() {
@@ -63,7 +85,11 @@ public class RealmSchemaTests {
                         DogPrimaryKey.class)
                 .build();
         Realm.getInstance(realmConfig).close(); // create Schema
-        realm = DynamicRealm.getInstance(realmConfig);
+        if (type == SchemaType.MUTABLE) {
+            realm = DynamicRealm.getInstance(realmConfig);
+        } else {
+            realm = Realm.getInstance(realmConfig);
+        }
         realmSchema = this.realm.getSchema();
         realm.beginTransaction();
     }
@@ -82,6 +108,7 @@ public class RealmSchemaTests {
         List<String> expectedTables = Arrays.asList(
                 AllJavaTypes.CLASS_NAME, "Owner", "Cat", "Dog", "DogPrimaryKey", "PrimaryKeyAsString");
         for (RealmObjectSchema objectSchema : objectSchemas) {
+            assertThat(objectSchema, CoreMatchers.instanceOf(type.objectSchemaClass));
             if (!expectedTables.contains(objectSchema.getClassName())) {
                 fail(objectSchema.getClassName() + " was not found");
             }
@@ -90,12 +117,21 @@ public class RealmSchemaTests {
 
     @Test
     public void create() {
-        realmSchema.create("Foo");
-        assertTrue(realmSchema.contains("Foo"));
+        if (type == SchemaType.MUTABLE) {
+            realmSchema.create("Foo");
+            assertTrue(realmSchema.contains("Foo"));
+        } else {
+            thrown.expect(UnsupportedOperationException.class);
+            realmSchema.create("Foo");
+        }
     }
 
     @Test
     public void create_invalidNameThrows() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
         String[] names = { null, "", TestHelper.getRandomString(57) };
 
         for (String name : names) {
@@ -110,6 +146,10 @@ public class RealmSchemaTests {
 
     @Test
     public void create_duplicatedNameThrows() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
         realmSchema.create("Foo");
         thrown.expect(IllegalArgumentException.class);
         realmSchema.create("Foo");
@@ -247,6 +287,7 @@ public class RealmSchemaTests {
         RealmObjectSchema objectSchema = realmSchema.get(AllJavaTypes.CLASS_NAME);
         assertNotNull(objectSchema);
         assertEquals(AllJavaTypes.CLASS_NAME, objectSchema.getClassName());
+        assertThat(objectSchema, CoreMatchers.instanceOf(type.objectSchemaClass));
     }
 
     @Test
@@ -256,13 +297,22 @@ public class RealmSchemaTests {
 
     @Test
     public void rename() {
-        realmSchema.rename("Owner", "Owner2");
-        assertFalse(realmSchema.contains("Owner"));
-        assertTrue(realmSchema.contains("Owner2"));
+        if (type == SchemaType.MUTABLE) {
+            realmSchema.rename("Owner", "Owner2");
+            assertFalse(realmSchema.contains("Owner"));
+            assertTrue(realmSchema.contains("Owner2"));
+        } else {
+            thrown.expect(UnsupportedOperationException.class);
+            realmSchema.rename("Owner", "Owner2");
+        }
     }
 
     @Test
     public void rename_invalidArgumentThrows() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
         String[] illegalNames = new String[] { null, "" };
 
         // Tests as first parameter.
@@ -286,12 +336,16 @@ public class RealmSchemaTests {
 
     @Test
     public void rename_shouldChangeInfoInPKTable() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
         final String NEW_NAME = "NewPrimaryKeyAsString";
         assertTrue(realmSchema.contains(PrimaryKeyAsString.CLASS_NAME));
         realmSchema.rename(PrimaryKeyAsString.CLASS_NAME, NEW_NAME);
         assertFalse(realmSchema.contains(PrimaryKeyAsString.CLASS_NAME));
         assertTrue(realmSchema.contains(NEW_NAME));
-        RealmObjectSchema objectSchema = realmSchema.getSchemaForClass(NEW_NAME);
+        RealmObjectSchema objectSchema = realmSchema.get(NEW_NAME);
 
         assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, objectSchema.getPrimaryKey());
 
@@ -312,12 +366,21 @@ public class RealmSchemaTests {
 
     @Test
     public void remove() {
-        realmSchema.remove(AllJavaTypes.CLASS_NAME);
-        assertFalse(realmSchema.contains(AllJavaTypes.CLASS_NAME));
+        if (type == SchemaType.IMMUTABLE) {
+            thrown.expect(UnsupportedOperationException.class);
+            realmSchema.remove(AllJavaTypes.CLASS_NAME);
+        } else {
+            realmSchema.remove(AllJavaTypes.CLASS_NAME);
+            assertFalse(realmSchema.contains(AllJavaTypes.CLASS_NAME));
+        }
     }
 
     @Test
     public void remove_invalidArgumentThrows() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
         try {
             realmSchema.remove("Foo");
             fail();
@@ -335,6 +398,10 @@ public class RealmSchemaTests {
     // class. This also include transitive dependencies.
     @Test
     public void remove_classWithReferencesThrows() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
         try {
             realmSchema.remove("Cat");
             fail();
@@ -351,6 +418,10 @@ public class RealmSchemaTests {
 
     @Test
     public void remove_shouldRemoveInfoFromPKTable() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
         assertTrue(realmSchema.contains(PrimaryKeyAsString.CLASS_NAME));
         realmSchema.remove(PrimaryKeyAsString.CLASS_NAME);
         assertFalse(realmSchema.contains(PrimaryKeyAsString.CLASS_NAME));

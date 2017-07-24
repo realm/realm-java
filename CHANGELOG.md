@@ -36,6 +36,8 @@
 
 ### Bug Fixes
 
+* Potential crash after using `Realm.getSchema()` to change the schema of a typed Realm. `Realm.getSchema()` now returns an immutable `RealmSchema` instance.
+
 ### Internal
 
 

@@ -289,17 +289,18 @@ public class SyncedRealmMigrationTests {
                 .build();
 
         // Initialize schema
-        Realm realm = Realm.getInstance(config);
-        realm.beginTransaction();
-        RealmObjectSchema objectSchema = realm.getSchema().getSchemaForClass(StringOnly.class);
+        Realm.getInstance(config).close();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
+        dynamicRealm.beginTransaction();
+        RealmObjectSchema objectSchema = dynamicRealm.getSchema().get(StringOnly.CLASS_NAME);
         // Add one extra field which doesn't exist in the typed Realm.
         objectSchema.addField("oneMoreField", int.class);
-        realm.commitTransaction();
+        dynamicRealm.commitTransaction();
         // Clear column indices cache.
-        realm.close();
+        dynamicRealm.close();
 
         // Verify schema again.
-        realm = Realm.getInstance(config);
+        Realm realm = Realm.getInstance(config);
         realm.close();
     }
 
