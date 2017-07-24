@@ -350,7 +350,6 @@ public class AuthTests extends BaseIntegrationTest {
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         RealmConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
         user.logout();
-        assertTrue(user.isLoggedOut());
         assertFalse(user.isValid());
 
         try {
