@@ -16,15 +16,19 @@
 
 package io.realm;
 
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import io.realm.entities.IndexedFields;
+import io.realm.entities.PrimaryKeyAsInteger;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -100,6 +104,9 @@ public class SyncedRealmMigrationTests {
         schema.create(className)
                 .addField(StringOnly.FIELD_CHARS, String.class)
                 .addField("newField", String.class);
+        // A schema version has to be set otherwise Object Store will try to initialize the schema again and reach an
+        // error branch. That is not a real case.
+        dynamicRealm.setVersion(0);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
@@ -108,9 +115,8 @@ public class SyncedRealmMigrationTests {
         RealmObjectSchema stringOnlySchema = realm.getSchema().get(className);
         try {
             assertTrue(stringOnlySchema.hasField(StringOnly.FIELD_CHARS));
-            // TODO Field is currently hidden, but should the field be visible in the schema
-            assertFalse(stringOnlySchema.hasField("newField"));
-            assertEquals(1, stringOnlySchema.getFieldNames().size());
+            assertTrue(stringOnlySchema.hasField("newField"));
+            assertEquals(2, stringOnlySchema.getFieldNames().size());
         } finally {
             realm.close();
         }
@@ -118,6 +124,10 @@ public class SyncedRealmMigrationTests {
 
     // Check that a Realm cannot be opened if it contain breaking schema changes, like changing a primary key
     @Test
+    @Ignore("This test will throw earlier when trying to add a PK field. That case is already covered by" +
+            " SchemaTest.addField_withPrimaryKeyModifier_notAllowed(). Although this test will still be valuable for" +
+            "Object Store schema integration.")
+    // FIXME: Enabled this after OS schema integration.
     public void breakingSchemaChange_throws() {
         SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
                 .schema(PrimaryKeyAsString.class)
@@ -291,6 +301,21 @@ public class SyncedRealmMigrationTests {
 
         // Verify schema again.
         Realm realm = Realm.getInstance(config);
+        realm.close();
+    }
+
+    // The stable_id_migration.realm is created with sync v1.8.5 with one object created for each object schema.
+    @Test
+    @Ignore("Not supported by sync right now.")
+    public void stableIDMigrationCauseClientReset() throws IOException {
+        SyncConfiguration config = configFactory
+                .createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .schema(StringOnly.class, PrimaryKeyAsString.class, PrimaryKeyAsInteger.class)
+                .name("stable_id_migration.realm")
+                .build();
+        configFactory.copyRealmFromAssets(InstrumentationRegistry.getContext(), "stable_id_migration.realm", config);
+        Realm realm = Realm.getInstance(config);
+        // TODO: Should the local realm be cleaned? It contains one object for each object schema in the realm.
         realm.close();
     }
 }

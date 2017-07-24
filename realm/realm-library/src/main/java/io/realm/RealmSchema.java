@@ -29,7 +29,6 @@ import io.realm.internal.Table;
 import io.realm.internal.Util;
 import io.realm.internal.util.Pair;
 
-
 /**
  * Class for interacting with the Realm schema. This makes it possible to inspect, add, delete and change the classes in
  * the Realm.
@@ -108,6 +107,22 @@ public abstract class RealmSchema {
      * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable.
      */
     public abstract RealmObjectSchema create(String className);
+
+    /**
+     * Adds a new class to the Realm with a primary key field defined.
+     *
+     * @param className           name of the class.
+     * @param primaryKeyFieldName name of the primary key field.
+     * @param fieldType           type of field to add. Only {@code byte}, {@code short}, {@code int}, {@code long}
+     *                            and their boxed types or the {@code String} is supported.
+     * @param attributes          set of attributes for this field. This method implicitly adds
+     *                            {@link FieldAttribute#PRIMARY_KEY} and {@link FieldAttribute#INDEXED} attributes to
+     *                            the field.
+     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable.
+     * @return a Realm schema object for that class.
+     */
+    public abstract RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName, Class<?> fieldType,
+                                                       FieldAttribute... attributes);
 
     /**
      * Removes a class from the Realm. All data will be removed. Removing a class while other classes point

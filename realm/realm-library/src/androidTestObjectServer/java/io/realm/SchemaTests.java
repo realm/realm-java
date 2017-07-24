@@ -25,8 +25,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Set;
+
 import io.realm.entities.StringOnly;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
 import static junit.framework.Assert.assertEquals;
@@ -37,14 +39,14 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class SchemaTests {
     @Rule
-    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
     private SyncConfiguration config;
 
     @Before
     public void setUp() {
         SyncUser user = SyncTestUtils.createTestUser();
-        config = new SyncConfiguration.Builder(user, "realm://objectserver.realm.io/~/default").build();
+        config = configFactory.createSyncConfigurationBuilder(user, "realm://objectserver.realm.io/~/default").build();
     }
 
     @After
@@ -153,6 +155,56 @@ public class SchemaTests {
 
         assertTrue(realm.getSchema().get(className).hasField("foo"));
 
+        realm.close();
+    }
+
+    @Test
+    public void addPrimaryKey_notAllowed() {
+        String className = "StringOnly";
+        Realm realm = Realm.getInstance(config);
+
+        realm.beginTransaction();
+        RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        objectSchema.addField("foo", String.class);
+
+        try {
+            objectSchema.addPrimaryKey("foo");
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        } finally {
+            realm.commitTransaction();
+            realm.close();
+        }
+    }
+
+    @Test
+    public void addField_withPrimaryKeyModifier_notAllowed() {
+        String className = "StringOnly";
+        Realm realm = Realm.getInstance(config);
+
+        realm.beginTransaction();
+        RealmObjectSchema objectSchema = realm.getSchema().get(className);
+
+        try {
+            objectSchema.addField("foo", String.class, FieldAttribute.PRIMARY_KEY);
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        } finally {
+            realm.commitTransaction();
+            realm.close();
+        }
+    }
+
+    // Special column "__OID" should be hidden from users.
+    @Test
+    public void getFieldNames_stableIdColumnShouldBeHidden() {
+        String className = "StringOnly";
+        Realm realm = Realm.getInstance(config);
+
+        RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        Set<String> names = objectSchema.getFieldNames();
+        assertEquals(1, names.size());
+        assertEquals(StringOnly.FIELD_CHARS, names.iterator().next());
         realm.close();
     }
 }

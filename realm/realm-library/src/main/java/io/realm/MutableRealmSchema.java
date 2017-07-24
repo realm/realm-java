@@ -50,6 +50,31 @@ class MutableRealmSchema extends RealmSchema {
     }
 
     @Override
+    public RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName, Class<?> fieldType,
+                                                       FieldAttribute... attributes) {
+        checkEmpty(className, EMPTY_STRING_MSG);
+        RealmObjectSchema.checkLegalName(primaryKeyFieldName);
+        String internalTableName = checkAndGetTableNameFromClassName(className);
+
+        RealmObjectSchema.FieldMetaData metadata = RealmObjectSchema.getSupportedSimpleFields().get(fieldType);
+        if (metadata == null || (metadata.realmType != RealmFieldType.STRING &&
+                metadata.realmType != RealmFieldType.INTEGER)) {
+            throw new IllegalArgumentException(String.format("Realm doesn't support primary key field type '%s'.",
+                    fieldType));
+        }
+        boolean isStringField = (metadata.realmType == RealmFieldType.STRING);
+
+        boolean nullable = metadata.defaultNullable;
+        if (MutableRealmObjectSchema.containsAttribute(attributes, FieldAttribute.REQUIRED)) {
+            nullable = false;
+        }
+
+        return new MutableRealmObjectSchema(realm, this,
+                realm.getSharedRealm().createTableWithPrimaryKey(internalTableName, primaryKeyFieldName,
+                        isStringField, nullable));
+    }
+
+    @Override
     public void remove(String className) {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
         checkEmpty(className, EMPTY_STRING_MSG);
@@ -91,5 +116,13 @@ class MutableRealmSchema extends RealmSchema {
         }
 
         return new MutableRealmObjectSchema(realm, this, table);
+    }
+
+    private String checkAndGetTableNameFromClassName(String className) {
+        String internalTableName = Table.getTableNameForClass(className);
+        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
+        }
+        return internalTableName;
     }
 }
