@@ -74,8 +74,6 @@ abstract class BaseRealm implements Closeable {
     private RealmCache realmCache;
     protected SharedRealm sharedRealm;
 
-    protected final RealmSchema schema;
-
     // Create a realm instance and associate it to a RealmCache.
     BaseRealm(RealmCache cache) {
         this(cache.getConfiguration());
@@ -98,7 +96,6 @@ abstract class BaseRealm implements Closeable {
                                 }
                             }
                         }, true);
-        this.schema = new RealmSchema(this);
     }
 
     /**
@@ -469,9 +466,6 @@ abstract class BaseRealm implements Closeable {
             sharedRealm.close();
             sharedRealm = null;
         }
-        if (schema != null) {
-            schema.close();
-        }
     }
 
     /**
@@ -508,9 +502,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @return The {@link RealmSchema} for this Realm.
      */
-    public RealmSchema getSchema() {
-        return schema;
-    }
+    public abstract RealmSchema getSchema();
 
     // Used by RealmList/RealmResults, to create RealmObject from a Collection.
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
@@ -522,16 +514,16 @@ abstract class BaseRealm implements Closeable {
             //noinspection unchecked
             result = (E) new DynamicRealmObject(this, CheckedRow.getFromRow(row));
         } else {
-            result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
+            result = configuration.getSchemaMediator().newInstance(clazz, this, row, getSchema().getColumnInfo(clazz),
                     false, Collections.<String>emptyList());
         }
         return result;
     }
 
     <E extends RealmModel> E get(Class<E> clazz, long rowIndex, boolean acceptDefaultValue, List<String> excludeFields) {
-        Table table = schema.getTable(clazz);
+        Table table = getSchema().getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
-        return configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
+        return configuration.getSchemaMediator().newInstance(clazz, this, row, getSchema().getColumnInfo(clazz),
                 acceptDefaultValue, excludeFields);
     }
 
@@ -540,7 +532,7 @@ abstract class BaseRealm implements Closeable {
     // TODO: Remove this after RealmList is backed by OS Results.
     <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
         final boolean isDynamicRealmObject = dynamicClassName != null;
-        final Table table = isDynamicRealmObject ? schema.getTable(dynamicClassName) : schema.getTable(clazz);
+        final Table table = isDynamicRealmObject ? getSchema().getTable(dynamicClassName) : getSchema().getTable(clazz);
 
         E result;
         if (isDynamicRealmObject) {
@@ -551,7 +543,7 @@ abstract class BaseRealm implements Closeable {
         } else {
             result = configuration.getSchemaMediator().newInstance(clazz, this,
                     (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE,
-                    schema.getColumnInfo(clazz), false, Collections.<String>emptyList());
+                    getSchema().getColumnInfo(clazz), false, Collections.<String>emptyList());
         }
 
         return result;
@@ -564,8 +556,8 @@ abstract class BaseRealm implements Closeable {
      */
     public void deleteAll() {
         checkIfValid();
-        for (RealmObjectSchema objectSchema : schema.getAll()) {
-            schema.getTable(objectSchema.getClassName()).clear();
+        for (RealmObjectSchema objectSchema : getSchema().getAll()) {
+            getSchema().getTable(objectSchema.getClassName()).clear();
         }
     }
 
