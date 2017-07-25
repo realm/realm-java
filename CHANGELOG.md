@@ -35,6 +35,7 @@
 * Broken case insensitive query with indexed field (#4788).
 * [ObjectServer] Bug related to the behaviour of `SyncUser#logout` and the use of invalid `SyncUser` with `SyncConfiguration` (#4822).
 * [ObjectServer] Not all error codes from the server were recognized correctly, resulting in UNKNOWN being reported instead.
+* [ObjectServer] Prevent the use of a `SyncUser` that explicitly logged out, to open a Realm (#4975).
 
 ### Internal
 
