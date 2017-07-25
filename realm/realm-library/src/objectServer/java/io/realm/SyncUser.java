@@ -522,18 +522,7 @@ public class SyncUser {
      * @return {@code true} if the User is logged into the Realm Object Server, {@code false} otherwise.
      */
     public boolean isValid() {
-        return refreshToken != null && refreshToken.expiresMs() > System.currentTimeMillis() && !isLoggedOut();
-    }
-
-    /**
-     * Returns whether the user is logged out from the Realm Object Server or not.
-     * Note, a user can be logged in and still be invalid if his/her access has expired.
-     * <p>
-     * Use {@link #isValid()} to check if the user is still valid.
-     * @return  {@code true} if the user was logged out,  {@code false} otherwise.
-     */
-    public boolean isLoggedOut() {
-        return !SyncManager.getUserStore().isActive(identity);
+        return refreshToken != null && refreshToken.expiresMs() > System.currentTimeMillis() && SyncManager.getUserStore().isActive(identity);
     }
 
     /**

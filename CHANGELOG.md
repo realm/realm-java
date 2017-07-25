@@ -3,6 +3,7 @@
 ### Enhancements
 
 * [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
+* Added `Nullable` annotation to methods that may return `null` in order to improve Kotlin usability. This also introduced a dependency to `com.google.code.findbugs:jsr305`.
 
 ### Bug Fixes
 
@@ -12,6 +13,8 @@
 ## 3.5.1 (YYYY-MM-DD)
 
 ### Bug Fixes
+
+* Potential crash after using `Realm.getSchema()` to change the schema of a typed Realm. `Realm.getSchema()` now returns an immutable `RealmSchema` instance.
 
 ### Internal
 
@@ -32,6 +35,7 @@
 * Broken case insensitive query with indexed field (#4788).
 * [ObjectServer] Bug related to the behaviour of `SyncUser#logout` and the use of invalid `SyncUser` with `SyncConfiguration` (#4822).
 * [ObjectServer] Not all error codes from the server were recognized correctly, resulting in UNKNOWN being reported instead.
+* [ObjectServer] Prevent the use of a `SyncUser` that explicitly logged out, to open a Realm (#4975).
 
 ### Internal
 

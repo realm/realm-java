@@ -19,6 +19,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
+import javax.annotation.Nullable;
+
 import io.realm.exceptions.RealmException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.LinkView;
@@ -317,6 +319,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @return the {@link DynamicRealmObject} representation of the linked object or {@code null} if no object is linked.
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain links to other objects.
      */
+    @Nullable
     public DynamicRealmObject getObject(String fieldName) {
         proxyState.getRealm$realm().checkIfValid();
 

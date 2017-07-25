@@ -32,6 +32,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.Nullable;
+
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Capabilities;
 import io.realm.internal.ColumnIndices;
@@ -356,7 +358,7 @@ final class RealmCache {
 
             if (realmClass == Realm.class && refAndCount.globalCount == 0) {
                 // Stores a copy of local ColumnIndices as a global cache.
-                RealmCache.storeColumnIndices(typedColumnIndicesArray, realm.schema.getImmutableColumnIndicies());
+                RealmCache.storeColumnIndices(typedColumnIndicesArray, realm.getSchema().getImmutableColumnIndicies());
             }
             // This is the first instance in current thread, increase the global count.
             refAndCount.globalCount++;
@@ -616,6 +618,7 @@ final class RealmCache {
      * @param schemaVersion requested version of the schema.
      * @return {@link ColumnIndices} instance for specified schema version. {@code null} if not found.
      */
+    @Nullable
     static ColumnIndices findColumnIndices(ColumnIndices[] array, long schemaVersion) {
         for (int i = array.length - 1; 0 <= i; i--) {
             final ColumnIndices candidate = array[i];
