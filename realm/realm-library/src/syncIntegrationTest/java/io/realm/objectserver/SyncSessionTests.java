@@ -3,6 +3,8 @@ package io.realm.objectserver;
 import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -140,7 +142,7 @@ public class SyncSessionTests extends BaseIntegrationTest {
             user.logout();
             fail("Should not be able to logout with two open Realm instances");
         } catch (IllegalStateException e) {
-            assertEquals("A Realm controlled by this user is still open. Close all Realms before logging out: " + syncConfiguration1.getPath(), e.getMessage());
+            Assert.assertThat(e.getMessage(), CoreMatchers.containsString("A Realm controlled by this user is still open. Close all Realms before logging out"));
         }
 
         realm1.close();
@@ -149,7 +151,7 @@ public class SyncSessionTests extends BaseIntegrationTest {
             user.logout();
             fail("Should not be able to logout with one open Realm instance");
         } catch (IllegalStateException e) {
-            assertEquals("A Realm controlled by this user is still open. Close all Realms before logging out: " + syncConfiguration2.getPath(), e.getMessage());
+            Assert.assertThat(e.getMessage(), CoreMatchers.containsString("A Realm controlled by this user is still open. Close all Realms before logging out"));
         }
 
         realm2.close();
