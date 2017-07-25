@@ -36,6 +36,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsString;
+import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -117,12 +118,21 @@ public class RealmSchemaTests {
 
     @Test
     public void create() {
-        if (type == SchemaType.MUTABLE) {
-            realmSchema.create("Foo");
-            assertTrue(realmSchema.contains("Foo"));
-        } else {
+        final String[] validClassNames = {
+                TestHelper.getRandomString(1),
+                "Darby",
+                TestHelper.getRandomString(Table.CLASS_NAME_MAX_LENGTH)
+        };
+
+        if (type == SchemaType.IMMUTABLE) {
             thrown.expect(UnsupportedOperationException.class);
-            realmSchema.create("Foo");
+            realmSchema.create(validClassNames[0]);
+            return;
+        }
+
+        for (String validClassName : validClassNames) {
+            realmSchema.create(validClassName);
+            assertTrue(realmSchema.contains(validClassName));
         }
     }
 
