@@ -32,7 +32,7 @@ class ImmutableRealmSchema extends RealmSchema {
 
     @Override
     public RealmObjectSchema get(String className) {
-        checkEmpty(className, EMPTY_STRING_MSG);
+        checkNotEmpty(className, EMPTY_STRING_MSG);
 
         String internalClassName = Table.getTableNameForClass(className);
         if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }

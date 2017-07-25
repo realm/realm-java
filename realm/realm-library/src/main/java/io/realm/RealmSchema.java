@@ -153,7 +153,7 @@ public abstract class RealmSchema {
         return realm.getSharedRealm().hasTable(Table.getTableNameForClass(className));
     }
 
-    void checkEmpty(String str, String error) {
+    void checkNotEmpty(String str, String error) {
         if (str == null || str.isEmpty()) {
             throw new IllegalArgumentException(error);
         }
