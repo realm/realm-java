@@ -245,7 +245,7 @@ public class SyncUser {
         // Acquire lock to prevent users creating new instances
         synchronized (Realm.class) {
             if (!SyncManager.getUserStore().isActive(identity)) {
-                return; // Already logged out
+                return; // Already logged out status
             }
             // Ensure that we can log out. If any Realm file is still open we should abort before doing anything
             // else.
@@ -623,13 +623,13 @@ public class SyncUser {
         SyncUser syncUser = (SyncUser) o;
 
         if (!refreshToken.equals(syncUser.refreshToken)) return false;
-        return authenticationUrl.equals(syncUser.authenticationUrl);
+        return authenticationUrl.toExternalForm().equals(syncUser.authenticationUrl.toExternalForm());
     }
 
     @Override
     public int hashCode() {
         int result = refreshToken.hashCode();
-        result = 31 * result + authenticationUrl.hashCode();
+        result = 31 * result + authenticationUrl.toExternalForm().hashCode();
         return result;
     }
 
