@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
-
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
@@ -25,11 +23,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.Dog;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -38,8 +40,12 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(Parameterized.class)
 public class RealmObjectSchemaTests {
+
+    private enum ObjectSchemaType {
+        MUTABLE, IMMUTABLE
+    }
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
@@ -47,19 +53,43 @@ public class RealmObjectSchemaTests {
     public final ExpectedException thrown = ExpectedException.none();
 
     private RealmObjectSchema DOG_SCHEMA;
-    private DynamicRealm realm;
+    private BaseRealm realm;
     private RealmObjectSchema schema;
     private RealmSchema realmSchema;
+    private ObjectSchemaType type;
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<ObjectSchemaType> data() {
+        return Arrays.asList(ObjectSchemaType.values());
+    }
+
+    public RealmObjectSchemaTests(ObjectSchemaType type) {
+        this.type = type;
+    }
 
     @Before
     public void setUp() {
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         Realm.getInstance(realmConfig).close(); // Creates Schema.
+
         realm = DynamicRealm.getInstance(realmConfig);
-        realmSchema = realm.getSchema();
-        DOG_SCHEMA = realmSchema.get("Dog");
         realm.beginTransaction();
-        schema = realmSchema.create("NewClass");
+        realm.getSchema().create("NewClass");
+        realm.commitTransaction();
+        realm.close();
+
+        if (type == ObjectSchemaType.MUTABLE)  {
+            realm = DynamicRealm.getInstance(realmConfig);
+            realmSchema = realm.getSchema();
+            DOG_SCHEMA = realmSchema.get("Dog");
+            schema = realmSchema.get("NewClass");
+        } else {
+            realm = Realm.getInstance(realmConfig);
+            realmSchema = realm.getSchema();
+            DOG_SCHEMA = realmSchema.get("Dog");
+            schema = realmSchema.get("NewClass");
+        }
+        realm.beginTransaction();
     }
 
     @After
@@ -194,6 +224,30 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void addRemoveField() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            try {
+                schema.addField("test", int.class);
+                fail();
+            } catch (UnsupportedOperationException ignore) {
+            }
+            try {
+                schema.addRealmObjectField("test", DOG_SCHEMA);
+                fail();
+            } catch (UnsupportedOperationException ignore) {
+            }
+            try {
+                schema.addRealmListField("test", DOG_SCHEMA);
+                fail();
+            } catch (UnsupportedOperationException ignore) {
+            }
+
+            try {
+                schema.removeField("test");
+                fail();
+            } catch (UnsupportedOperationException ignore) {
+            }
+            return;
+        }
         for (FieldType fieldType : FieldType.values()) {
             String fieldName = "foo";
             switch (fieldType) {
@@ -222,6 +276,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void addField_nameAlreadyExistsThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         for (SchemaFieldType schemaFieldType : SchemaFieldType.values()) {
             switch (schemaFieldType) {
                 case SIMPLE:
@@ -266,6 +323,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void addField_illegalFieldNameThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         String[] fieldNames = new String[] { null, "", "foo.bar", TestHelper.getRandomString(65) };
         for (SchemaFieldType schemaFieldType : SchemaFieldType.values()) {
             for (String fieldName : fieldNames) {
@@ -286,6 +346,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void requiredFieldAttribute() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         for (FieldType fieldType : FieldType.values()) {
             String fieldName = "foo";
             switch (fieldType) {
@@ -302,6 +365,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void indexedFieldAttribute() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         for (IndexFieldType fieldType : IndexFieldType.values()) {
             String fieldName = "foo";
             switch (fieldType) {
@@ -315,6 +381,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void invalidIndexedFieldAttributeThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         for (InvalidIndexFieldType fieldType : InvalidIndexFieldType.values()) {
             String fieldName = "foo";
             try {
@@ -327,6 +396,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void primaryKeyFieldAttribute() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
@@ -350,6 +422,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void invalidPrimaryKeyFieldAttributeThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         for (InvalidPrimaryKeyFieldType fieldType : InvalidPrimaryKeyFieldType.values()) {
             String fieldName = "foo";
             try {
@@ -362,6 +437,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void addPrimaryKeyFieldModifier_alreadyExistsThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType());
@@ -378,6 +456,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void addPrimaryKeyFieldModifier_illegalFieldTypeThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         String fieldName = "foo";
         for (InvalidPrimaryKeyFieldType fieldType : InvalidPrimaryKeyFieldType.values()) {
             switch (fieldType) {
@@ -396,13 +477,16 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void addPrimaryKeyFieldModifier_duplicateValues() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             final String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType());
 
             // Creates multiple objects with same values.
-            realm.createObject(schema.getClassName());
-            realm.createObject(schema.getClassName());
+            ((DynamicRealm)realm).createObject(schema.getClassName());
+            ((DynamicRealm)realm).createObject(schema.getClassName());
 
             try {
                 schema.addPrimaryKey(fieldName);
@@ -417,6 +501,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void addIndexFieldModifier_illegalFieldTypeThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         String fieldName = "foo";
         for (InvalidIndexFieldType fieldType : InvalidIndexFieldType.values()) {
             switch (fieldType) {
@@ -435,6 +522,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void addIndexFieldModifier_alreadyIndexedThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         for (IndexFieldType fieldType : IndexFieldType.values()) {
             String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType());
@@ -450,6 +540,11 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void setRemoveNullable() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            thrown.expect(UnsupportedOperationException.class);
+            schema.setNullable("test", true);
+            return;
+        }
         for (FieldType fieldType : FieldType.values()) {
             String fieldName = "foo";
             switch (fieldType) {
@@ -486,6 +581,11 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void setRemoveRequired() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            thrown.expect(UnsupportedOperationException.class);
+            schema.setRequired("test", true);
+            return;
+        }
         for (FieldType fieldType : FieldType.values()) {
             String fieldName = "foo";
             switch (fieldType) {
@@ -524,6 +624,9 @@ public class RealmObjectSchemaTests {
     // according to the field type.
     @Test
     public void setRequired_nullValueBecomesDefaultValue() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         for (FieldType fieldType : FieldType.values()) {
             String fieldName = fieldType.name();
             switch (fieldType) {
@@ -537,7 +640,7 @@ public class RealmObjectSchemaTests {
                         break;
                     }
                     schema.addField(fieldName, fieldType.getType());
-                    DynamicRealmObject object = realm.createObject(schema.getClassName());
+                    DynamicRealmObject object = ((DynamicRealm)realm).createObject(schema.getClassName());
                     assertTrue(object.isNull(fieldName));
                     schema.setRequired(fieldName, true);
                     assertFalse(object.isNull(fieldName));
@@ -563,6 +666,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void setRequired_true_onPrimaryKeyField_containsNullValues_shouldThrow() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             String className = fieldType.getType().getSimpleName() + "Class";
             String fieldName = "primaryKey";
@@ -571,7 +677,7 @@ public class RealmObjectSchemaTests {
                 continue;
             }
             schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
-            DynamicRealmObject object = realm.createObject(schema.getClassName(), null);
+            DynamicRealmObject object = ((DynamicRealm)realm).createObject(schema.getClassName(), null);
             assertTrue(object.isNull(fieldName));
             try {
                 schema.setRequired(fieldName, true);
@@ -597,8 +703,8 @@ public class RealmObjectSchemaTests {
             } else {
                 schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY, FieldAttribute.REQUIRED);
             }
-            realm.createObject(schema.getClassName(), "1");
-            realm.createObject(schema.getClassName(), "2");
+            ((DynamicRealm)realm).createObject(schema.getClassName(), "1");
+            ((DynamicRealm)realm).createObject(schema.getClassName(), "2");
             assertTrue(schema.hasPrimaryKey());
             assertTrue(schema.hasIndex(fieldName));
 
@@ -606,7 +712,7 @@ public class RealmObjectSchemaTests {
             assertTrue(schema.hasPrimaryKey());
             assertTrue(schema.hasIndex(fieldName));
 
-            RealmResults<DynamicRealmObject> results = realm.where(className).findAllSorted(fieldName);
+            RealmResults<DynamicRealmObject> results = ((DynamicRealm)realm).where(className).findAllSorted(fieldName);
             assertEquals(2, results.size());
             if (fieldType == PrimaryKeyFieldType.STRING) {
                 assertEquals("1", results.get(0).getString(fieldName));
@@ -621,11 +727,17 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void setRequired_true_onPrimaryKeyField() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         setRequired_onPrimaryKeyField(true);
     }
 
     @Test
     public void setRequired_false_onPrimaryKeyField() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         setRequired_onPrimaryKeyField(false);
     }
 
@@ -649,16 +761,36 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void setRequired_true_onIndexedField() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         setRequired_onIndexedField(true);
     }
 
     @Test
     public void setRequired_false_onIndexedField() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         setRequired_onIndexedField(false);
     }
 
     @Test
     public void setRemovePrimaryKey() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            try {
+                schema.addPrimaryKey("test");
+                fail();
+            } catch (UnsupportedOperationException ignore){
+
+            }
+            try {
+                schema.removePrimaryKey();
+                fail();
+            } catch (UnsupportedOperationException ignore){
+            }
+            return;
+        }
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType());
@@ -676,6 +808,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void removeNonExistingPrimaryKeyThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         String fieldName = "foo";
         schema.addField(fieldName, String.class);
 
@@ -685,6 +820,19 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void setRemoveIndex() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            try {
+                schema.addIndex("test");
+                fail();
+            } catch (UnsupportedOperationException ignore) {
+            }
+            try {
+                schema.removeIndex("test");
+                fail();
+            } catch (UnsupportedOperationException ignore) {
+            }
+            return;
+        }
         for (IndexFieldType fieldType : IndexFieldType.values()) {
             String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType(), FieldAttribute.INDEXED);
@@ -697,6 +845,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void removeNonExistingIndexThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         String fieldName = "foo";
         schema.addField(fieldName, String.class);
 
@@ -706,6 +857,11 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void removeField() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            thrown.expect(UnsupportedOperationException.class);
+            DOG_SCHEMA.removeField(Dog.FIELD_HEIGHT);
+            return;
+        }
         String fieldName = "foo";
         schema.addField(fieldName, String.class);
         assertTrue(schema.hasField(fieldName));
@@ -715,6 +871,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void removeField_withPrimaryKey() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         String fieldName = "foo";
         schema.addField(fieldName, String.class, FieldAttribute.PRIMARY_KEY);
         assertTrue(schema.hasField(fieldName));
@@ -726,6 +885,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void removeField_nonExistingFieldThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         String fieldName = "foo";
 
         thrown.expect(IllegalStateException.class);
@@ -734,6 +896,11 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void renameField() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            thrown.expect(UnsupportedOperationException.class);
+            schema.renameField("test", "test1");
+            return;
+        }
         String oldFieldName = "old";
         String newFieldName = "new";
         schema.addField(oldFieldName, String.class);
@@ -746,6 +913,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void renameField_nonExistingFieldThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         String oldFieldName = "old";
         String newFieldName = "new";
 
@@ -755,6 +925,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void renameField_toIllegalNameThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         String oldFieldName = "old";
         String newFieldName = "";
         schema.addField(oldFieldName, String.class);
@@ -765,6 +938,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void renameField_withPrimaryKey() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         String fieldName = "foo";
         schema.addField(fieldName, String.class, FieldAttribute.PRIMARY_KEY);
         assertTrue(schema.hasField(fieldName));
@@ -781,17 +957,31 @@ public class RealmObjectSchemaTests {
     public void setGetClassName() {
         assertEquals("Dog", DOG_SCHEMA.getClassName());
         String newClassName = "Darby";
-        DOG_SCHEMA.setClassName(newClassName);
-        assertEquals(newClassName, DOG_SCHEMA.getClassName());
-        assertTrue(realmSchema.contains(newClassName));
+        if (type == ObjectSchemaType.MUTABLE) {
+            DOG_SCHEMA.setClassName(newClassName);
+            assertEquals(newClassName, DOG_SCHEMA.getClassName());
+            assertTrue(realmSchema.contains(newClassName));
+        } else {
+            thrown.expect(UnsupportedOperationException.class);
+            DOG_SCHEMA.setClassName(newClassName);
+        }
     }
 
     @Test
     public void transform() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            thrown.expect(UnsupportedOperationException.class);
+            DOG_SCHEMA.transform(new RealmObjectSchema.Function() {
+                @Override
+                public void apply(DynamicRealmObject obj) {
+                }
+            });
+            return;
+        }
         String className = DOG_SCHEMA.getClassName();
-        DynamicRealmObject dog1 = realm.createObject(className);
+        DynamicRealmObject dog1 = ((DynamicRealm)realm).createObject(className);
         dog1.setInt("age", 1);
-        DynamicRealmObject dog2 = realm.createObject(className);
+        DynamicRealmObject dog2 = ((DynamicRealm)realm).createObject(className);
         dog2.setInt("age", 2);
 
         DOG_SCHEMA.transform(new RealmObjectSchema.Function() {
@@ -800,25 +990,28 @@ public class RealmObjectSchemaTests {
                 obj.setInt("age", obj.getInt("age") + 1);
             }
         });
-        assertEquals(5, realm.where("Dog").sum("age").intValue());
+        assertEquals(5, ((DynamicRealm)realm).where("Dog").sum("age").intValue());
     }
 
     @Test
     public void transformObjectReferences() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         String className = DOG_SCHEMA.getClassName();
-        DynamicRealmObject dog1 = realm.createObject(className);
+        DynamicRealmObject dog1 = ((DynamicRealm)realm).createObject(className);
         dog1.setInt("age", 1);
 
         DOG_SCHEMA.transform(new RealmObjectSchema.Function() {
             @Override
             public void apply(DynamicRealmObject dog) {
-                DynamicRealmObject owner = realm.createObject("Owner");
+                DynamicRealmObject owner = ((DynamicRealm)realm).createObject("Owner");
                 owner.setString("name", "John");
                 dog.setObject("owner", owner);
             }
         });
         //noinspection ConstantConditions
-        assertEquals("John", realm.where("Dog").findFirst().getObject("owner").getString("name"));
+        assertEquals("John", ((DynamicRealm)realm).where("Dog").findFirst().getObject("owner").getString("name"));
     }
 
     @Test
@@ -836,7 +1029,7 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void getFieldType() {
-        schema = realmSchema.getSchemaForClass("AllJavaTypes");
+        schema = realmSchema.get("AllJavaTypes");
         assertEquals(RealmFieldType.STRING, schema.getFieldType(AllJavaTypes.FIELD_STRING));
         assertEquals(RealmFieldType.BINARY, schema.getFieldType(AllJavaTypes.FIELD_BINARY));
         assertEquals(RealmFieldType.BOOLEAN, schema.getFieldType(AllJavaTypes.FIELD_BOOLEAN));
