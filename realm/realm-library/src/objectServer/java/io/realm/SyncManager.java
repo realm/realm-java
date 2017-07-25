@@ -242,7 +242,7 @@ public class SyncManager {
     }
 
     // Return the currently configured User store.
-    static UserStore getUserStore() {
+    public static UserStore getUserStore() {
         return userStore;
     }
 
