@@ -244,8 +244,8 @@ public class SyncUser {
     public void logout() {
         // Acquire lock to prevent users creating new instances
         synchronized (Realm.class) {
-            if (isLoggedOut()) {
-                return; // Already local/global logout status
+            if (!SyncManager.getUserStore().isActive(identity)) {
+                return; // Already logged out
             }
             // Ensure that we can log out. If any Realm file is still open we should abort before doing anything
             // else.

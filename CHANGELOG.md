@@ -6,8 +6,10 @@
 * Added `Nullable` annotation to methods that may return `null` in order to improve Kotlin usability. This also introduced a dependency to `com.google.code.findbugs:jsr305`.
 
 ### Bug Fixes
+* [ObjectServer] Added `SyncUser.logout()` throw an exception now, when associated Realms are instances are not closed (#4962).
 
 ### Internal
+* [ObjectServer] removed `ObjectServerUser` and it's inner classes, in a step to reduce `SyncUser` complexity (#3741).
 
 
 ## 3.5.1 (YYYY-MM-DD)

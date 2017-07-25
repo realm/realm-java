@@ -37,6 +37,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Calendar;
 import java.util.Map;
 import java.util.UUID;
 
@@ -417,5 +418,32 @@ public class SyncUserTests {
 
         thrown.expect(IllegalStateException.class);
         user.changePassword("user-id", "new-password");
+    }
+
+    // JSON format changed in 3.6.0 (removed unnecessary fields), this regression test
+    // makes sure we can still deserialize a valid SyncUser from the old format.
+    @Test
+    public void fromJson_WorkWithRemovedObjectServerUser() {
+        String oldSyncUserJSON = "{\"authUrl\":\"http:\\/\\/192.168.1.151:9080\\/auth\",\"userToken\":{\"token\":\"eyJpZGVudGl0eSI6IjY4OWQ5MGMxNDIyYTIwMmZkNTljNDYwM2M0ZTRmNmNjIiwiZXhwaXJlcyI6MTgxNjM1ODE4NCwiYXBwX2lkIjoiaW8ucmVhbG0ucmVhbG10YXNrcyIsImFjY2VzcyI6WyJyZWZyZXNoIl0sImlzX2FkbWluIjpmYWxzZSwic2FsdCI6MC4yMTEwMjQyNDgwOTEyMzg1NH0=:lEDa83o1zu8rkwdZVpTyunLHh1wmjxPPSGmZQNxdEM7xDmpbiU7V+8dgDWGevJNHMFluNDAOmrcAOI9TLfhI4rMDl70NI1K9rv\\/Aeq5uIOzq\\/Gf7JTeTUKY5Z7yRoppd8NArlNBKesLFxzdLRlfm1hflF9wH23xQXA19yUZ67JIlkhDPL5e3bau8O3Pr\\/St0unW3KzPOiZUk1l9KRrs2iMCCiXCfq4rf6rp7B2M7rBUMQm68GnB1Ot7l1CblxEWcREcbpyhBKTWIOFRGMwg2TW\\/zRR3cRNglx+ZC4FOeO0mfkX+nf+slyFODAnQkOzPZcGO8xc3I1emafX58Wl\\/Guw==\",\"token_data\":{\"identity\":\"689d90c1422a202fd59c4603c4e4f6cc\",\"path\":\"\",\"expires\":1816358184,\"access\":[\"unknown\"],\"is_admin\":false}},\"realms\":[]}";
+        SyncUser syncUser = SyncUser.fromJson(oldSyncUserJSON);
+
+        // Note: we can't call isValid() and expect it to be true
+        //       since the user is not persisted in the UserStore
+        //       isValid() requires SyncManager.getUserStore().isActive(identity)
+        //       to return true as well.
+        Token accessToken = syncUser.getAccessToken();
+        assertNotNull(accessToken);
+        // refresh token should expire in 10 years (July 23, 2027)
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(accessToken.expiresMs());
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        int month = calendar.get(Calendar.MONTH);
+        int year = calendar.get(Calendar.YEAR);
+
+        assertEquals(23, day);
+        assertEquals(Calendar.JULY, month);
+        assertEquals(2027, year);
+
+        assertEquals("http://192.168.1.151:9080/auth", syncUser.getAuthenticationUrl().toString());
     }
 }
