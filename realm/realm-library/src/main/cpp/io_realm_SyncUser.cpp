@@ -36,7 +36,6 @@ Java_io_realm_SyncUser_nativeAllSessionsPath(JNIEnv *env, jclass, jstring sync_u
         std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_identity);
 
         if (!user) {
-            // TODO throw  maybe  already logged out
             return nullptr;
         }
         auto sessions = user.get()->all_sessions();

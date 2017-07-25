@@ -571,7 +571,7 @@ public class SyncUser {
 
     /**
      * Checks if the user has access to the given Realm. Being authenticated means that the
-     * user is know by the Realm Object Server and have been granted access to the given Realm.
+     * user is known by the Realm Object Server and have been granted access to the given Realm.
      *
      * Authenticating will happen automatically as part of opening a Realm.
      */
