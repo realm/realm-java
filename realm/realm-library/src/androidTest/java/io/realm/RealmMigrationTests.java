@@ -489,12 +489,12 @@ public class RealmMigrationTests {
         realm.close();
 
         final String tooLongClassName = "MigrationNameIsLongerThan57Char_ThisShouldThrowAnException";
+        assertEquals(58, tooLongClassName.length());
 
         // Gets ready for the 2nd version migration.
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                assertEquals(58, tooLongClassName.length());
                 realm.getSchema()
                         .get(MigrationPrimaryKey.CLASS_NAME)
                         .setClassName(tooLongClassName);
