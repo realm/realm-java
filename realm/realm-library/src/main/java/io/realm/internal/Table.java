@@ -31,7 +31,7 @@ import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 public class Table implements TableSchema, NativeObject {
 
     private static final String TABLE_PREFIX = Util.getTablePrefix();
-    public static final int TABLE_NAME_MAX_LENGTH = 62; // Max length of table names
+    private static final int TABLE_NAME_MAX_LENGTH = 63; // Max length of table names
     public static final int CLASS_NAME_MAX_LENGTH = TABLE_NAME_MAX_LENGTH - TABLE_PREFIX.length(); // Max length of class names
     public static final long INFINITE = -1;
     public static final boolean NULLABLE = true;
