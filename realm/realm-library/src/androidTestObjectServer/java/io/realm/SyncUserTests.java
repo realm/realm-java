@@ -356,4 +356,22 @@ public class SyncUserTests {
         thrown.expect(IllegalStateException.class);
         user.changePassword("user-id", "new-password");
     }
+
+    @Test
+    public void allSessions() {
+        SyncUser user = createTestUser();
+        assertEquals(0, user.allSessions().size());
+        String url1 = "realm://objectserver.realm.io/default";
+        SyncConfiguration configuration1 = new SyncConfiguration.Builder(user, url1).build();
+        Realm realm1 = Realm.getInstance(configuration1);
+        assertEquals(1, user.allSessions().size());
+        String url2 = "realm://objectserver.realm.io/~/default";
+        SyncConfiguration configuration2 = new SyncConfiguration.Builder(user, url2).build();
+        Realm realm2 = Realm.getInstance(configuration2);
+        assertEquals(2, user.allSessions().size());
+        realm1.close();
+        assertEquals(1, user.allSessions().size());
+        realm2.close();
+        assertEquals(0, user.allSessions().size());
+    }
 }
