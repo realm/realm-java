@@ -666,6 +666,25 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLong(JNIEnv* env, j
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeIncrementLong(JNIEnv* env, jclass, jlong nativeTablePtr,
+                                                                  jlong columnIndex, jlong rowIndex, jlong value)
+{
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Int)) {
+        return;
+    }
+
+    try {
+        Table* table = TBL(nativeTablePtr);
+        if (table->is_null(columnIndex, rowIndex)) {
+            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
+                                 "Cannot increment a MutableRealmInteger whose value is null. Set its value first.");
+        }
+
+        table->add_int(S(columnIndex), S(rowIndex), value);
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLongUnique(JNIEnv* env, jclass, jlong nativeTablePtr,
                                                                         jlong columnIndex, jlong rowIndex,
                                                                         jlong value)

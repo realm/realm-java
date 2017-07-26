@@ -896,8 +896,7 @@ public class RealmMigrationTests {
     // change the schema version, no migration is needed. But then, null cannot be used as a value.
     @Test
     public void openPreNullWithRequired() throws IOException {
-        configFactory.copyRealmFromAssets(context,
-                "string-only-required-pre-null-0.82.2.realm", Realm.DEFAULT_REALM_NAME);
+        configFactory.copyRealmFromAssets(context, "string-only-required-pre-null-0.82.2.realm", Realm.DEFAULT_REALM_NAME);
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(0)
                 .schema(StringOnlyRequired.class)
