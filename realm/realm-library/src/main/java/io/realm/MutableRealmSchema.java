@@ -58,7 +58,7 @@ class MutableRealmSchema extends RealmSchema {
     @Override
     public RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName, Class<?> fieldType,
                                                        FieldAttribute... attributes) {
-        checkEmpty(className, EMPTY_STRING_MSG);
+        checkNotEmpty(className, EMPTY_STRING_MSG);
         RealmObjectSchema.checkLegalName(primaryKeyFieldName);
         String internalTableName = checkAndGetTableNameFromClassName(className);
 
