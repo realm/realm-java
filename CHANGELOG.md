@@ -3,6 +3,7 @@
 ### Bug Fixes
 
 * Potential crash after using `Realm.getSchema()` to change the schema of a typed Realm. `Realm.getSchema()` now returns an immutable `RealmSchema` instance.
+* `Realm.copyToRealmOrUpdate()` might result a `RealmList` field contains duplicated elements (#4957).
 
 ### Internal
 
