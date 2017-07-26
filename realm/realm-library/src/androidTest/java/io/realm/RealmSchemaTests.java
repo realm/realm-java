@@ -142,11 +142,12 @@ public class RealmSchemaTests {
             return;
         }
 
-        String[] names = { null, "", TestHelper.getRandomString(57) };
+        String[] names = { null, "", TestHelper.getRandomString(58) };
 
         for (String name : names) {
             try {
                 realmSchema.create(name);
+                fail();
             } catch (IllegalArgumentException ignored) {
             }
             assertFalse(String.format("'%s' failed", name), realmSchema.contains(name));

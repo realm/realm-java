@@ -491,10 +491,11 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                final String tooLongClassName = "MigrationNameIsLongerThan57Char_ThisShouldThrowAnException";
+                assertEquals(58, tooLongClassName.length());
                 realm.getSchema()
                         .get(MigrationPrimaryKey.CLASS_NAME)
-                        // 57 characters
-                        .setClassName("MigrationNameIsLongerThan56CharThisShouldThrowAnException");
+                        .setClassName(tooLongClassName);
             }
         };
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
