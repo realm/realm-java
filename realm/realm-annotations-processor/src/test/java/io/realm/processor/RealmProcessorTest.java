@@ -69,6 +69,12 @@ public class RealmProcessorTest {
     private JavaFileObject backlinksNotFound = JavaFileObjects.forResource("some/test/Backlinks_NotFound.java");
     private JavaFileObject backlinksNonFinalField = JavaFileObjects.forResource("some/test/Backlinks_NotFinal.java");
     private JavaFileObject backlinksWrongType = JavaFileObjects.forResource("some/test/Backlinks_WrongType.java");
+    private JavaFileObject counter = JavaFileObjects.forResource("some/test/Counter.java");
+    private JavaFileObject counterIgnored = JavaFileObjects.forResource("some/test/Counter_Ignored.java");
+    private JavaFileObject counterIndexed = JavaFileObjects.forResource("some/test/Counter_Indexed.java");
+    private JavaFileObject counterPK = JavaFileObjects.forResource("some/test/Counter_PK.java");
+    private JavaFileObject counterRequired = JavaFileObjects.forResource("some/test/Counter_Required.java");
+    private JavaFileObject counterStatic = JavaFileObjects.forResource("some/test/Counter_Static.java");
     private JavaFileObject nonLatinName = JavaFileObjects.forResource("some/test/ÁrvíztűrőTükörfúrógép.java");
 
     @Test
@@ -94,7 +100,9 @@ public class RealmProcessorTest {
                 .failsToCompile();
     }
 
-    // Disabled because it does not seem to find the generated interface file @Test
+    // FIXME: @Ignore("Disabled because it does not seem to find the generated interface file")
+    @Ignore("Disabled because it does not seem to find the generated interface file")
+    @Test
     public void compileSimpleProxyFile() throws Exception {
         ASSERT.about(javaSource())
                 .that(simpleProxy)
@@ -474,6 +482,54 @@ public class RealmProcessorTest {
     public void compileWithInterfaceForObject() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(JavaFileObjects.forResource("some/test/InterfaceObjectReference.java"), customInterface))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileMutableRealmInteger() {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(counter))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileIgnoredMutableRealmInteger() {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(counterIgnored))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileIndexedMutableRealmInteger() {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(counterIndexed))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void failOnPKMutableRealmInteger() {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(counterPK))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileRequiredMutableRealmInteger() {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(counterRequired))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileStaticMutableRealmInteger() {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(counterStatic))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

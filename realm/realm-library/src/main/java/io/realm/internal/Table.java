@@ -520,6 +520,12 @@ public class Table implements TableSchema, NativeObject {
         nativeSetLong(nativePtr, columnIndex, rowIndex, value, isDefault);
     }
 
+    // must not be called on a primary key field
+    public void incrementLong(long columnIndex, long rowIndex, long value) {
+        checkImmutable();
+        nativeIncrementLong(nativePtr, columnIndex, rowIndex, value);
+    }
+
     public void setBoolean(long columnIndex, long rowIndex, boolean value, boolean isDefault) {
         checkImmutable();
         nativeSetBoolean(nativePtr, columnIndex, rowIndex, value, isDefault);
@@ -931,6 +937,8 @@ public class Table implements TableSchema, NativeObject {
     public static native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value, boolean isDefault);
 
     public static native void nativeSetLongUnique(long nativeTablePtr, long columnIndex, long rowIndex, long value);
+
+    public static native void nativeIncrementLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
 
     public static native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value, boolean isDefault);
 
