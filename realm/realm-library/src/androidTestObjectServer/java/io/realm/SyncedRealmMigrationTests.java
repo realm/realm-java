@@ -37,6 +37,7 @@ import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -210,6 +211,7 @@ public class SyncedRealmMigrationTests {
 
         Realm realm = Realm.getInstance(config); // Opening at different schema version (42) should rebuild indexes
         RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
+        assertNotNull(indexedFieldsSchema );
         assertTrue(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
         assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
         realm.close();
