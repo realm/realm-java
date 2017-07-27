@@ -208,20 +208,11 @@ public class SyncedRealmMigrationTests {
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
-        try {
-            Realm realm = Realm.getInstance(config); // Opening at different schema version (42) should rebuild indexes
-            fail();
-        } catch (RealmMigrationNeededException ignored) {
-        }
-
-// FIXME: This is the intended behaviour
-//        RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
-//        try {
-//            assertTrue(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
-//            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
-//        } finally {
-//            realm.close();
-//        }
+        Realm realm = Realm.getInstance(config); // Opening at different schema version (42) should rebuild indexes
+        RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
+        assertTrue(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
+        assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
+        realm.close();
     }
 
     // Check that indexes are being added if other fields are being added as well
