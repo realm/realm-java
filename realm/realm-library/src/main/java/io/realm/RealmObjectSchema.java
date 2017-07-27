@@ -26,6 +26,7 @@ import java.util.Set;
 
 import io.realm.annotations.Required;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsObject;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -242,7 +243,7 @@ public abstract class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist, the field cannot be a primary key or it already
      * has a primary key defined.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or this method is called on a synced Realm.
      */
     public abstract RealmObjectSchema addPrimaryKey(String fieldName);
 
@@ -354,7 +355,10 @@ public abstract class RealmObjectSchema {
         int columnCount = (int) table.getColumnCount();
         Set<String> columnNames = new LinkedHashSet<>(columnCount);
         for (int i = 0; i < columnCount; i++) {
-            columnNames.add(table.getColumnName(i));
+            String name = table.getColumnName(i);
+            if (!OsObject.isObjectIdColumn(name)) {
+                columnNames.add(name);
+            }
         }
         return columnNames;
     }
@@ -419,6 +423,10 @@ public abstract class RealmObjectSchema {
         return table;
     }
 
+    static final Map<Class<?>, FieldMetaData> getSupportedSimpleFields() {
+        return SUPPORTED_SIMPLE_FIELDS;
+    }
+
     private SchemaConnector getSchemaConnector() {
         return new SchemaConnector(schema);
     }
@@ -444,12 +452,15 @@ public abstract class RealmObjectSchema {
         return columnInfo.getColumnIndex(fieldName);
     }
 
-    void checkLegalName(String fieldName) {
+    static void checkLegalName(String fieldName) {
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Field name can not be null or empty");
         }
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Field name can not contain '.'");
+        }
+        if (fieldName.length() > 63) {
+            throw new IllegalArgumentException("Field name is currently limited to max 63 characters.");
         }
     }
 
