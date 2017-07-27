@@ -23,7 +23,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -158,7 +157,7 @@ public class MutableRealmIntegerTests {
     }
 
     /**
-     * @Required MutableRealmIntegers should not be nullable.
+     * {@literal @}Required MutableRealmIntegers should not be nullable.
      * There are other tests testing nullabilty: just need to test @Required here.
      * There is no attempt to control the nullability of an unmanaged MutableRealmInteger.
      * An attempt to copy an unmanaged model object with a null-valued MutableRealmInteger
@@ -197,8 +196,8 @@ public class MutableRealmIntegerTests {
 
 
     /**
-     * @Indexed MutableRealmIntegers should have indices.
-     * Without @Index they should not.
+     * MutableRealmIntegers annotated with {@literal @}Index should have indices.
+     * Without {@literal @}Index they should not.
      */
     @Test
     public void indexed() {
@@ -311,7 +310,7 @@ public class MutableRealmIntegerTests {
      * Assure that changes to a MutableRealmInteger acquired from a managed object are reflected in the object.
      */
     @Test
-    public void copyToisLive() {
+    public void copyToIsLive() {
         MutableRealmIntegerTypes obj = new MutableRealmIntegerTypes();
         MutableRealmInteger unmanagedRI = obj.getColumnNullableMutableRealmInteger();
         unmanagedRI.set(42L);
