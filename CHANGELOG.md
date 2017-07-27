@@ -1,4 +1,10 @@
-## 4.0.0-BETA1 (YYYY-MM-DD)
+## 4.0.0-BETA2 (2017-07-27)
+
+### Bug Fixes
+
+* [ObjectServer] `metatable` might not be created for sync 2.0.0 (https://github.com/realm/realm-object-store/issues/502).
+
+## 4.0.0-BETA1 (2017-07-13)
 
 ### Breaking Changes
 
