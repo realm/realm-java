@@ -2,7 +2,7 @@
 
 ### Bug Fixes
 
-* [ObjectServer] Realm no longer throws a native “unsupported instruction” exception in some cases when opening a synced Realm asynchronously.
+* [ObjectServer] Realm no longer throws a native “unsupported instruction” exception in some cases when opening a synced Realm asynchronously (https://github.com/realm/realm-object-store/issues/502).
 
 ## 4.0.0-BETA1 (2017-07-13)
 
