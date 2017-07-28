@@ -188,6 +188,8 @@ public class RealmSchemaTests {
             assertFalse(objectSchema.isNullable("pkField"));
             assertTrue(objectSchema.hasIndex("pkField"));
 
+            realmSchema.remove(validClassName);
+
             // Nullable
             realmSchema.createWithPrimaryKeyField(validClassName, "pkField", String.class);
             objectSchema = realmSchema.getSchemaForClass(validClassName);
@@ -222,6 +224,8 @@ public class RealmSchemaTests {
             assertFalse(objectSchema.isNullable("pkField"));
             assertTrue(objectSchema.hasIndex("pkField"));
 
+            realmSchema.remove(validClassName);
+
             // Nullable
             realmSchema.createWithPrimaryKeyField(validClassName, "pkField", Integer.class);
             objectSchema = realmSchema.getSchemaForClass(validClassName);
@@ -255,6 +259,8 @@ public class RealmSchemaTests {
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
             assertTrue(objectSchema.hasIndex("pkField"));
+
+            realmSchema.remove(validClassName);
 
             // Nullable
             realmSchema.createWithPrimaryKeyField(validClassName, "pkField", int.class);
