@@ -181,8 +181,8 @@ public class RealmSchemaTests {
 
         for (String validClassName : validClassNames) {
             // Not nullable
-            realmSchema.createWithPrimaryKeyField(validClassName, "pkField", String.class, FieldAttribute.REQUIRED);
-            RealmObjectSchema objectSchema = realmSchema.getSchemaForClass(validClassName);
+            RealmObjectSchema objectSchema = realmSchema.createWithPrimaryKeyField(validClassName,
+                    "pkField", String.class, FieldAttribute.REQUIRED);
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.STRING, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
@@ -191,8 +191,8 @@ public class RealmSchemaTests {
             realmSchema.remove(validClassName);
 
             // Nullable
-            realmSchema.createWithPrimaryKeyField(validClassName, "pkField", String.class);
-            objectSchema = realmSchema.getSchemaForClass(validClassName);
+            objectSchema = realmSchema.createWithPrimaryKeyField(validClassName,
+                    "pkField", String.class);
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.STRING, objectSchema.getFieldType("pkField"));
             assertTrue(objectSchema.isNullable("pkField"));
@@ -216,9 +216,9 @@ public class RealmSchemaTests {
 
         for (String validClassName : validClassNames) {
             // Not nullable
-            realmSchema.createWithPrimaryKeyField(validClassName, "pkField", Integer.class,
-                    FieldAttribute.REQUIRED);
-            RealmObjectSchema objectSchema = realmSchema.getSchemaForClass(validClassName);
+
+            RealmObjectSchema objectSchema = realmSchema.createWithPrimaryKeyField(validClassName,
+                    "pkField", Integer.class, FieldAttribute.REQUIRED);
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
@@ -227,8 +227,8 @@ public class RealmSchemaTests {
             realmSchema.remove(validClassName);
 
             // Nullable
-            realmSchema.createWithPrimaryKeyField(validClassName, "pkField", Integer.class);
-            objectSchema = realmSchema.getSchemaForClass(validClassName);
+
+            objectSchema = realmSchema.createWithPrimaryKeyField(validClassName, "pkField", Integer.class);
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertTrue(objectSchema.isNullable("pkField"));
@@ -252,9 +252,9 @@ public class RealmSchemaTests {
 
         for (String validClassName : validClassNames) {
             // Not nullable
-            realmSchema.createWithPrimaryKeyField(validClassName, "pkField", int.class,
-                    FieldAttribute.REQUIRED);
-            RealmObjectSchema objectSchema = realmSchema.getSchemaForClass(validClassName);
+
+            RealmObjectSchema objectSchema = realmSchema.createWithPrimaryKeyField(validClassName,
+                    "pkField", int.class, FieldAttribute.REQUIRED);
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
@@ -263,8 +263,8 @@ public class RealmSchemaTests {
             realmSchema.remove(validClassName);
 
             // Nullable
-            realmSchema.createWithPrimaryKeyField(validClassName, "pkField", int.class);
-            objectSchema = realmSchema.getSchemaForClass(validClassName);
+
+            objectSchema = realmSchema.createWithPrimaryKeyField(validClassName, "pkField", int.class);
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
