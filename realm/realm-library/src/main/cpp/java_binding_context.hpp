@@ -26,8 +26,11 @@
 
 namespace realm {
 
-namespace _impl {
+namespace jni_util {
+class JavaClass;
+}
 
+namespace _impl {
 // Binding context which will be called from OS.
 class JavaBindingContext final : public BindingContext {
 private:
@@ -39,6 +42,7 @@ private:
     // A weak global ref to the implementation of RealmNotifier
     // Java should hold a strong ref to it as long as the SharedRealm lives
     jni_util::JavaGlobalWeakRef m_java_notifier;
+    jni_util::JavaClass const& get_notifier_class(JNIEnv*);
 
 public:
     virtual ~JavaBindingContext(){};
