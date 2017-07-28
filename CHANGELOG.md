@@ -2,7 +2,7 @@
 
 ### Bug Fixes
 
-* [ObjectServer] `metatable` might not be created for sync 2.0.0 (https://github.com/realm/realm-object-store/issues/502).
+* [ObjectServer] Realm no longer throws a native “unsupported instruction” exception in some cases when opening a synced Realm asynchronously (https://github.com/realm/realm-object-store/issues/502).
 
 ## 4.0.0-BETA1 (2017-07-13)
 
