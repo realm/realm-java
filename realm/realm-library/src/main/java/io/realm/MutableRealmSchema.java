@@ -66,6 +66,7 @@ class MutableRealmSchema extends RealmSchema {
             table.setPrimaryKey(null);
         }
         realm.getSharedRealm().removeTable(internalTableName);
+        dynamicClassToSchema.remove(internalTableName);
     }
 
     @Override
@@ -96,6 +97,12 @@ class MutableRealmSchema extends RealmSchema {
             table.setPrimaryKey(pkField);
         }
 
-        return new MutableRealmObjectSchema(realm, this, table);
+        RealmObjectSchema objectSchema = dynamicClassToSchema.remove(oldInternalName);
+        if (objectSchema == null) {
+            objectSchema = new MutableRealmObjectSchema(realm, this, table);
+        }
+        dynamicClassToSchema.put(newInternalName, objectSchema);
+
+        return objectSchema;
     }
 }

@@ -49,7 +49,7 @@ public abstract class RealmSchema {
     // Caches Class objects (both model classes and proxy classes) to their Schema object
     private final Map<Class<? extends RealmModel>, RealmObjectSchema> classToSchema = new HashMap<>();
     // Caches Class Strings to their Schema object
-    private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
+    final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
 
     final BaseRealm realm;
     // Cached field look up
@@ -207,7 +207,7 @@ public abstract class RealmSchema {
     RealmObjectSchema getSchemaForClass(String className) {
         String tableName = Table.getTableNameForClass(className);
         RealmObjectSchema dynamicSchema = dynamicClassToSchema.get(tableName);
-        if (dynamicSchema == null) {
+        if (dynamicSchema == null || !dynamicSchema.getClassName().equals(className)) {
             if (!realm.getSharedRealm().hasTable(tableName)) {
                 throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
