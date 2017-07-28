@@ -26,7 +26,9 @@ import io.realm.SyncCredentials;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
+import io.realm.entities.StringOnly;
 import io.realm.objectserver.utils.Constants;
+import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
 
@@ -476,6 +478,62 @@ public class AuthTests extends BaseIntegrationTest {
         assertTrue(user.isValid());
         user.logout();
         assertFalse(user.isValid());
+
+        // on subsequent logins, the user is already registered.
+        credentials = credentials = SyncCredentials.usernamePassword(username, password, false);
+        for (int i = 0; i < 3; i++) {
+            user = SyncUser.login(credentials, Constants.AUTH_URL);
+            assertTrue(user.isValid());
+            user.logout();
+            assertFalse(user.isValid());
+        }
+    }
+
+    @Test
+//    @RunTestInLooperThread
+    public void reactivatingLoggedOutUser() throws InterruptedException {// similar to testLogBackInSameRealmUpload
+        final String username = UUID.randomUUID().toString();
+        final String password = "password";
+
+        // register the user the first time
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
+
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final SyncConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+                .waitForInitialRemoteData()
+                .modules(new StringOnlyModule())
+                .build();
+        Realm realm = Realm.getInstance(configuration);
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(StringOnly.class).setChars("1");
+            }
+        });
+
+        SyncManager.getSession(configuration).uploadAllLocalChanges();
+        // upload something with the reactivated user
+        // delete local state
+        // make sure everything was uploaded/downloaded
+        realm.close();
+        user.logout();
+        Realm.deleteRealm(configuration);
+
+        // re-opening the Realm should do nothing (no data synced back)
+        Realm realm2 = Realm.getInstance(configuration);//TODO variant with new configuration (waitforInintData) + logged out user
+        assertTrue(realm2.isEmpty());
+        realm2.close();
+
+        // reactivate the user
+
+//        new Thread() {
+//            @Override
+//            public synchronized void start() {
+//                // reactivating
+//            }
+//        }
+        // reactivating the user in
+
 
         // on subsequent logins, the user is already registered.
         credentials = credentials = SyncCredentials.usernamePassword(username, password, false);

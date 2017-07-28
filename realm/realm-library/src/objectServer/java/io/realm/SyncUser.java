@@ -19,7 +19,6 @@ package io.realm;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -230,43 +229,50 @@ public class SyncUser {
     }
 
     /**
-     * Logs out the user from the Realm Object Server. Once the Object Server has confirmed the logout any registered
-     * {@link AuthenticationListener} will be notified and user credentials will be deleted from this device.
+     * Log a user out, destroying their server state, unregistering them from the SDK, and removing
+     * any synced Realms associated with them, from on-disk storage on next app launch (or directly
+     * if all instances are closed).
+     * If the user is already logged out or in an error state, this method does nothing.
      *
-     * @throws IllegalStateException if any Realms owned by this user is still open. They should be closed before
-     * logging out.
+     * This method should be called whenever the application is committed to not using a user again
+     * unless they are recreated. Failing to call this method may result in unused files and metadata
+     * needlessly taking up space.
+     *
+     * Once the Object Server has confirmed the logout any registered {@link AuthenticationListener}
+     * will be notified and user credentials will be deleted from this device.
      */
-    /* FIXME: Add this back to the javadoc when enable SyncConfiguration.Builder#deleteRealmOnLogout()
-     <p>
-     Any Realms owned by the user will be deleted if {@link SyncConfiguration.Builder#deleteRealmOnLogout()} is
-     also set.
-     */
+//    /* FIXME: Add this back to the javadoc when enable SyncConfiguration.Builder#deleteRealmOnLogout()
+//     <p>
+//     Any Realms owned by the user will be deleted if {@link SyncConfiguration.Builder#deleteRealmOnLogout()} is
+//     also set.
+//     */
     public void logout() {
         // Acquire lock to prevent users creating new instances
         synchronized (Realm.class) {
             if (!SyncManager.getUserStore().isActive(identity)) {
                 return; // Already logged out status
             }
-            // Ensure that we can log out. If any Realm file is still open we should abort before doing anything
-            // else.
-            for (SyncConfiguration syncConfiguration : realms.keySet()) {
-                if (Realm.getGlobalInstanceCount(syncConfiguration) > 0) {
-                    throw new IllegalStateException("A Realm controlled by this user is still open. Close all Realms " +
-                            "before logging out: " + syncConfiguration.getPath());
-                }
-            }
 
+//            // The ObjectStore will delete the associated Realms after the next app launch
+//            // we can also have an optimistic approach and try to delete these Realms unless there's
+//            // a remaining instance open.
+//            for (final SyncConfiguration syncConfiguration : realms.keySet()) {
+//                RealmCache.invokeWithGlobalRefCount(syncConfiguration, new RealmCache.Callback() {
+//                    @Override
+//                    public void onResult(int count) {
+//                        if (count == 0) {
+//                            // all instances are closed, remove the Realm
+//                            File realmFile = new File(syncConfiguration.getPath());
+//                            if (realmFile.exists() && !Util.deleteRealm(syncConfiguration.getPath(), realmFile.getParentFile(), realmFile.getName())) {
+//                                RealmLog.error("Could not delete Realm when user logged out: " + syncConfiguration.getPath());
+//                            }
+//                        }
+//                    }
+//                });
+//            }
+
+            // Mark the user as logged out in the ObjectStore
             SyncManager.getUserStore().remove(identity);
-
-            // Delete all Realms if needed.
-            for (SyncConfiguration syncConfiguration : realms.keySet()) {
-                if (syncConfiguration.shouldDeleteRealmOnLogout()) {
-                    File realmFile = new File(syncConfiguration.getPath());
-                    if (realmFile.exists() && !Util.deleteRealm(syncConfiguration.getPath(), realmFile.getParentFile(), realmFile.getName())) {
-                        RealmLog.error("Could not delete Realm when user logged out: " + syncConfiguration.getPath());
-                    }
-                }
-            }
 
             // Remove all local tokens, preventing further connections.
             realms.clear();
@@ -274,8 +280,8 @@ public class SyncUser {
             // Finally revoke server token. The local user is logged out in any case.
             final AuthenticationServer server = SyncManager.getAuthServer();
             ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
-            //noinspection unused
-            final Future<?> future = networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
+
+            Future<?> submit = networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
 
                 @Override
                 protected LogoutResponse execute() {
