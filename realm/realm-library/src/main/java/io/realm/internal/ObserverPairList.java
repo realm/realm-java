@@ -54,7 +54,7 @@ public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
 
         // The two pairs will be treated as the same only when the observers are the same and the listeners are equal.
         @Override
-        public boolean equals(@Nullable Object obj) {
+        public boolean equals(Object obj) {
             if (this == obj) {
                 return true;
             }

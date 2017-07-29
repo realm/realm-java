@@ -847,7 +847,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     @Override
-    public boolean equals(@Nullable Object o) {
+    public boolean equals(Object o) {
         proxyState.getRealm$realm().checkIfValid();
 
         if (this == o) {

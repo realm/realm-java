@@ -349,7 +349,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      * @return true if the target has the same value.
      */
     @Override
-    public final boolean equals(@Nullable Object o) {
+    public final boolean equals(Object o) {
         if (o == this) { return true; }
         if (!(o instanceof MutableRealmInteger)) { return false; }
         Long thisValue = get();
