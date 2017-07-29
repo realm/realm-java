@@ -98,7 +98,7 @@ class MutableRealmSchema extends RealmSchema {
         }
 
         RealmObjectSchema objectSchema = dynamicClassToSchema.remove(oldInternalName);
-        if (objectSchema == null) {
+        if (objectSchema == null || !objectSchema.getTable().isValid() || !objectSchema.getClassName().equals(newInternalName)) {
             objectSchema = new MutableRealmObjectSchema(realm, this, table);
         }
         dynamicClassToSchema.put(newInternalName, objectSchema);
