@@ -99,9 +99,7 @@ public class RealmSchemaTests {
 
     @After
     public void tearDown() {
-        if (realm.isInTransaction()) {
-            realm.cancelTransaction();
-        }
+        realm.cancelTransaction();
         realm.close();
     }
 
