@@ -21,6 +21,8 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.annotation.Nullable;
+
 
 /**
  * An ObserverPairList holds a list of ObserverPairs. An {@link ObserverPair} is pair containing an observer and a
@@ -52,7 +54,7 @@ public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
 
         // The two pairs will be treated as the same only when the observers are the same and the listeners are equal.
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(@Nullable Object obj) {
             if (this == obj) {
                 return true;
             }

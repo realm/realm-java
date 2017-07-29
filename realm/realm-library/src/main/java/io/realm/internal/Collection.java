@@ -20,6 +20,8 @@ import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.NoSuchElementException;
 
+import javax.annotation.Nonnull;
+
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
@@ -61,7 +63,7 @@ public class Collection implements NativeObject {
         }
 
         @Override
-        public void onChange(T collection, OrderedCollectionChangeSet changes) {
+        public void onChange(@Nonnull T collection, @Nonnull OrderedCollectionChangeSet changes) {
             listener.onChange(collection);
         }
 

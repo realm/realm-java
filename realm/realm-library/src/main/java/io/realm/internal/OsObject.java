@@ -16,6 +16,9 @@
 
 package io.realm.internal;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.realm.ObjectChangeSet;
 import io.realm.RealmFieldType;
 import io.realm.RealmModel;
@@ -49,7 +52,7 @@ public class OsObject implements NativeObject {
         }
 
         @Override
-        public boolean isFieldChanged(String fieldName) {
+        public boolean isFieldChanged(@Nonnull String fieldName) {
             for (String name : changedFields) {
                 if (name.equals(fieldName)) {
                     return true;
@@ -65,7 +68,7 @@ public class OsObject implements NativeObject {
             super(observer, listener);
         }
 
-        public void onChange(T observer, ObjectChangeSet changeSet) {
+        public void onChange(T observer, @Nullable ObjectChangeSet changeSet) {
             listener.onChange(observer, changeSet);
         }
     }

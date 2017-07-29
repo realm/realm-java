@@ -32,6 +32,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.Nonnull;
+
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
@@ -258,7 +260,7 @@ public class CollectionTests {
         looperThread.keepStrongReference(collection);
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
-            public void onChange(Collection collection1) {
+            public void onChange(@Nonnull Collection collection1) {
                 assertEquals(collection, collection1);
                 assertEquals(4, collection1.size());
                 sharedRealm.close();
@@ -278,7 +280,7 @@ public class CollectionTests {
         final Collection collection = new Collection(sharedRealm, table.where());
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
-            public void onChange(Collection collection1) {
+            public void onChange(@Nonnull Collection collection1) {
                 assertEquals(collection, collection1);
                 assertEquals(4, collection1.size());
                 sharedRealm.close();
@@ -296,7 +298,7 @@ public class CollectionTests {
         assertEquals(4, collection.size()); // See `populateData()`
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
-            public void onChange(Collection element) {
+            public void onChange(@Nonnull Collection element) {
                 if (latch.getCount() == 2) {
                     // triggered by beginTransaction
                     assertEquals(4, collection.size());
@@ -324,7 +326,7 @@ public class CollectionTests {
         collection.size();
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
-            public void onChange(Collection element) {
+            public void onChange(@Nonnull Collection element) {
                 assertEquals(1, latch.getCount());
                 latch.countDown();
             }
@@ -347,7 +349,7 @@ public class CollectionTests {
         looperThread.keepStrongReference(collection);
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
-            public void onChange(Collection collection1) {
+            public void onChange(@Nonnull Collection collection1) {
                 assertEquals(collection, collection1);
                 assertEquals(5, collection1.size());
                 sharedRealm.close();
@@ -369,7 +371,7 @@ public class CollectionTests {
         assertEquals(4, collection.size()); // Trigger the query to run.
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
-            public void onChange(Collection collection1) {
+            public void onChange(@Nonnull Collection collection1) {
                 assertEquals(collection, collection1);
                 assertEquals(5, collection1.size());
                 sharedRealm.close();
@@ -393,7 +395,7 @@ public class CollectionTests {
         looperThread.keepStrongReference(collection);
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
-            public void onChange(Collection collection1) {
+            public void onChange(@Nonnull Collection collection1) {
                 switch (listenerCounter.getAndIncrement()) {
                     case 0:
                         assertEquals(4, collection1.size());
@@ -474,7 +476,7 @@ public class CollectionTests {
         assertFalse(iterator.isDetached(sharedRealm));
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
-            public void onChange(Collection element) {
+            public void onChange(@Nonnull Collection element) {
                 try {
                     iterator.checkValid();
                     fail();
@@ -512,7 +514,7 @@ public class CollectionTests {
         thrown.expect(IllegalStateException.class);
         snapshot.addListener(snapshot, new RealmChangeListener<Collection>() {
             @Override
-            public void onChange(Collection element) {
+            public void onChange(@Nonnull Collection element) {
             }
         });
     }
@@ -523,7 +525,7 @@ public class CollectionTests {
         final Collection collection = new Collection(sharedRealm, table.where());
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
-            public void onChange(Collection element) {
+            public void onChange(@Nonnull Collection element) {
                 assertTrue(collection.isLoaded());
                 looperThread.testComplete();
             }

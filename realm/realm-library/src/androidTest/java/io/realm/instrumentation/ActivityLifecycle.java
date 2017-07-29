@@ -16,6 +16,8 @@
 
 package io.realm.instrumentation;
 
+import javax.annotation.Nonnull;
+
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
@@ -45,6 +47,6 @@ public class ActivityLifecycle implements Lifecycle, RealmChangeListener<RealmRe
     }
 
     @Override
-    public void onChange(RealmResults<AllTypes> object) {
+    public void onChange(@Nonnull RealmResults<AllTypes> object) {
     }
 }
