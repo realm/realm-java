@@ -32,6 +32,7 @@ import java.util.Set;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Dog;
+import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -955,15 +956,23 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void setGetClassName() {
-        assertEquals("Dog", DOG_SCHEMA.getClassName());
-        String newClassName = "Darby";
-        if (type == ObjectSchemaType.MUTABLE) {
-            DOG_SCHEMA.setClassName(newClassName);
-            assertEquals(newClassName, DOG_SCHEMA.getClassName());
-            assertTrue(realmSchema.contains(newClassName));
-        } else {
+        final String[] validClassNames = {
+                TestHelper.getRandomString(1),
+                "Darby",
+                TestHelper.getRandomString(Table.CLASS_NAME_MAX_LENGTH)
+        };
+
+        if (type == ObjectSchemaType.IMMUTABLE) {
             thrown.expect(UnsupportedOperationException.class);
-            DOG_SCHEMA.setClassName(newClassName);
+            DOG_SCHEMA.setClassName(validClassNames[0]);
+            return;
+        }
+
+        assertEquals("Dog", DOG_SCHEMA.getClassName());
+        for (String validClassName : validClassNames) {
+            DOG_SCHEMA.setClassName(validClassName);
+            assertEquals(validClassName, DOG_SCHEMA.getClassName());
+            assertTrue(realmSchema.contains(validClassName));
         }
     }
 

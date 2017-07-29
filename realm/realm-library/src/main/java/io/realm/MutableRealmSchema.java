@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import java.util.Locale;
+
 import io.realm.internal.Table;
 
 /**
@@ -29,7 +31,7 @@ class MutableRealmSchema extends RealmSchema {
 
     @Override
     public RealmObjectSchema get(String className) {
-        checkEmpty(className, EMPTY_STRING_MSG);
+        checkNotEmpty(className, EMPTY_STRING_MSG);
 
         String internalClassName = Table.getTableNameForClass(className);
         if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }
@@ -40,11 +42,15 @@ class MutableRealmSchema extends RealmSchema {
     @Override
     public RealmObjectSchema create(String className) {
         // Adding a class is always permitted.
-        checkEmpty(className, EMPTY_STRING_MSG);
+        checkNotEmpty(className, EMPTY_STRING_MSG);
 
         String internalTableName = Table.getTableNameForClass(className);
-        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
-            throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: " + className.length());
+        if (className.length() > Table.CLASS_NAME_MAX_LENGTH) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.US,
+                            "Class name is too long. Limit is %1$d characters: %2$s",
+                            Table.CLASS_NAME_MAX_LENGTH,
+                            className.length()));
         }
         return new MutableRealmObjectSchema(realm, this, realm.getSharedRealm().createTable(internalTableName));
     }
@@ -52,7 +58,7 @@ class MutableRealmSchema extends RealmSchema {
     @Override
     public void remove(String className) {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
-        checkEmpty(className, EMPTY_STRING_MSG);
+        checkNotEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = Table.getTableNameForClass(className);
         checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
         Table table = getTable(className);
@@ -65,8 +71,8 @@ class MutableRealmSchema extends RealmSchema {
     @Override
     public RealmObjectSchema rename(String oldClassName, String newClassName) {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
-        checkEmpty(oldClassName, "Class names cannot be empty or null");
-        checkEmpty(newClassName, "Class names cannot be empty or null");
+        checkNotEmpty(oldClassName, "Class names cannot be empty or null");
+        checkNotEmpty(newClassName, "Class names cannot be empty or null");
         String oldInternalName = Table.getTableNameForClass(oldClassName);
         String newInternalName = Table.getTableNameForClass(newClassName);
         checkHasTable(oldClassName, "Cannot rename class because it doesn't exist in this Realm: " + oldClassName);
