@@ -322,4 +322,43 @@ public class RealmSchemaTests {
         objectSchema.addPrimaryKey(PrimaryKeyAsString.FIELD_PRIMARY_KEY);
         assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, objectSchema.getPrimaryKey());
     }
+
+    @Test
+    public void remove_then_cancel() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
+        realmSchema.create("foo");
+        // getSchemaForClass is an internal method, but used from DynamicRealmObject and RealmQuery
+        realmSchema.getSchemaForClass("foo"); // make cache entry
+
+        realmSchema.remove("foo");
+        realm.cancelTransaction();
+
+        final RealmObjectSchema foo = realmSchema.getSchemaForClass("foo");
+        assertEquals("foo", foo.getClassName());
+    }
+
+    @Test
+    public void rename_then_cancel() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
+        realmSchema.create("foo");
+        // getSchemaForClass is an internal method, but used from DynamicRealmObject and RealmQuery
+        final RealmObjectSchema foo = realmSchema.getSchemaForClass("foo");
+
+        realmSchema.rename("foo", "bar");
+
+        realm.cancelTransaction();
+
+        try {
+            realmSchema.getSchemaForClass("bar");
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertTrue(expected.getMessage().contains("doesn't exist"));
+        }
+    }
 }
