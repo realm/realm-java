@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import javax.annotation.Nullable;
+
 import io.realm.log.RealmLog;
 
 
@@ -111,7 +113,7 @@ public class Progress {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 

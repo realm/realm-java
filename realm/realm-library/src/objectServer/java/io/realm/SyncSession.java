@@ -31,6 +31,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.realm.internal.Keep;
 import io.realm.internal.KeepMember;
 import io.realm.internal.SyncObjectServerFacade;
@@ -237,6 +240,7 @@ public class SyncSession {
      * @param listener listener to remove.
      */
     public synchronized void removeProgressListener(ProgressListener listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             return;
         }
@@ -278,9 +282,11 @@ public class SyncSession {
     }
 
     private void checkProgressListenerArguments(ProgressMode mode, ProgressListener listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Non-null 'listener' required.");
         }
+        //noinspection ConstantConditions
         if (mode == null) {
             throw new IllegalArgumentException("Non-null 'mode' required.");
         }
@@ -460,7 +466,7 @@ public class SyncSession {
          * @param session {@link SyncSession} this error happened on.
          * @param error type of error.
          */
-        void onError(SyncSession session, ObjectServerError error);
+        void onError(@Nonnull SyncSession session, @Nonnull ObjectServerError error);
     }
 
     // Return the access token for the Realm this Session is connected to.

@@ -283,6 +283,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalArgumentException.class);
+        //noinspection ConstantConditions
         user.changePassword(null);
     }
 
@@ -291,6 +292,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalArgumentException.class);
+        //noinspection ConstantConditions
         user.changePassword(null, "new-password");
     }
 
@@ -299,7 +301,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalStateException.class);
-        user.changePasswordAsync(null, new SyncUser.Callback() {
+        user.changePasswordAsync("password", new SyncUser.Callback() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -336,6 +338,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalArgumentException.class);
+        //noinspection ConstantConditions
         user.changePasswordAsync("new-password", null);
     }
 
@@ -345,6 +348,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalArgumentException.class);
+        //noinspection ConstantConditions
         user.changePasswordAsync("user-id", "new-password", null);
     }
 

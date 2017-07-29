@@ -26,6 +26,8 @@ import org.junit.runner.RunWith;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nonnull;
+
 import io.realm.BaseIntegrationTest;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
@@ -99,7 +101,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
         SyncConfiguration config1 = new SyncConfiguration.Builder(user1, user1RealmUrl).
                 errorHandler(new SyncSession.ErrorHandler() {
                     @Override
-                    public void onError(SyncSession session, ObjectServerError error) {
+                    public void onError(@Nonnull SyncSession session, @Nonnull ObjectServerError error) {
                         fail("Realm 1 unexpected error: " + error);
                     }
                 })
