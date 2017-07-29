@@ -207,7 +207,7 @@ public abstract class RealmSchema {
     RealmObjectSchema getSchemaForClass(String className) {
         String tableName = Table.getTableNameForClass(className);
         RealmObjectSchema dynamicSchema = dynamicClassToSchema.get(tableName);
-        if (dynamicSchema == null || !dynamicSchema.getClassName().equals(className)) {
+        if (dynamicSchema == null || !dynamicSchema.getTable().isValid() || !dynamicSchema.getClassName().equals(className)) {
             if (!realm.getSharedRealm().hasTable(tableName)) {
                 throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
