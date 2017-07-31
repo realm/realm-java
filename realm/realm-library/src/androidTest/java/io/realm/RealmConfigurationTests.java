@@ -18,7 +18,6 @@ package io.realm;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -31,16 +30,13 @@ import android.test.MoreAsserts;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Set;
 
 import io.realm.entities.AllTypes;
-import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnimalModule;
 import io.realm.entities.AssetFileModule;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
-import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
