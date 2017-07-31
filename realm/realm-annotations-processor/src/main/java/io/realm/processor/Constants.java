@@ -51,6 +51,7 @@ public class Constants {
         STRING("STRING", "String"),
         DATE("DATE", "Date"),
         BINARY("BINARY", "BinaryByteArray"),
+        REALM_INTEGER("INTEGER", "Long"),
         OBJECT("OBJECT", "Object"),
         LIST("LIST", "List"),
         BACKLINK("BACKLINK", null);

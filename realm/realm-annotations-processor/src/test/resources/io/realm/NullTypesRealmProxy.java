@@ -989,162 +989,163 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             excludeFields.add("fieldObjectNull");
         }
         some.test.NullTypes obj = realm.createObjectInternal(some.test.NullTypes.class, true, excludeFields);
+        final NullTypesRealmProxyInterface objProxy = (NullTypesRealmProxyInterface) obj;
         if (json.has("fieldStringNotNull")) {
             if (json.isNull("fieldStringNotNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNotNull(null);
+                objProxy.realmSet$fieldStringNotNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNotNull((String) json.getString("fieldStringNotNull"));
+                objProxy.realmSet$fieldStringNotNull((String) json.getString("fieldStringNotNull"));
             }
         }
         if (json.has("fieldStringNull")) {
             if (json.isNull("fieldStringNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNull(null);
+                objProxy.realmSet$fieldStringNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNull((String) json.getString("fieldStringNull"));
+                objProxy.realmSet$fieldStringNull((String) json.getString("fieldStringNull"));
             }
         }
         if (json.has("fieldBooleanNotNull")) {
             if (json.isNull("fieldBooleanNotNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNotNull(null);
+                objProxy.realmSet$fieldBooleanNotNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNotNull((boolean) json.getBoolean("fieldBooleanNotNull"));
+                objProxy.realmSet$fieldBooleanNotNull((boolean) json.getBoolean("fieldBooleanNotNull"));
             }
         }
         if (json.has("fieldBooleanNull")) {
             if (json.isNull("fieldBooleanNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNull(null);
+                objProxy.realmSet$fieldBooleanNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNull((boolean) json.getBoolean("fieldBooleanNull"));
+                objProxy.realmSet$fieldBooleanNull((boolean) json.getBoolean("fieldBooleanNull"));
             }
         }
         if (json.has("fieldBytesNotNull")) {
             if (json.isNull("fieldBytesNotNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNotNull(null);
+                objProxy.realmSet$fieldBytesNotNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNotNull(JsonUtils.stringToBytes(json.getString("fieldBytesNotNull")));
+                objProxy.realmSet$fieldBytesNotNull(JsonUtils.stringToBytes(json.getString("fieldBytesNotNull")));
             }
         }
         if (json.has("fieldBytesNull")) {
             if (json.isNull("fieldBytesNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNull(null);
+                objProxy.realmSet$fieldBytesNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNull(JsonUtils.stringToBytes(json.getString("fieldBytesNull")));
+                objProxy.realmSet$fieldBytesNull(JsonUtils.stringToBytes(json.getString("fieldBytesNull")));
             }
         }
         if (json.has("fieldByteNotNull")) {
             if (json.isNull("fieldByteNotNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNotNull(null);
+                objProxy.realmSet$fieldByteNotNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNotNull((byte) json.getInt("fieldByteNotNull"));
+                objProxy.realmSet$fieldByteNotNull((byte) json.getInt("fieldByteNotNull"));
             }
         }
         if (json.has("fieldByteNull")) {
             if (json.isNull("fieldByteNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNull(null);
+                objProxy.realmSet$fieldByteNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNull((byte) json.getInt("fieldByteNull"));
+                objProxy.realmSet$fieldByteNull((byte) json.getInt("fieldByteNull"));
             }
         }
         if (json.has("fieldShortNotNull")) {
             if (json.isNull("fieldShortNotNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNotNull(null);
+                objProxy.realmSet$fieldShortNotNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNotNull((short) json.getInt("fieldShortNotNull"));
+                objProxy.realmSet$fieldShortNotNull((short) json.getInt("fieldShortNotNull"));
             }
         }
         if (json.has("fieldShortNull")) {
             if (json.isNull("fieldShortNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNull(null);
+                objProxy.realmSet$fieldShortNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNull((short) json.getInt("fieldShortNull"));
+                objProxy.realmSet$fieldShortNull((short) json.getInt("fieldShortNull"));
             }
         }
         if (json.has("fieldIntegerNotNull")) {
             if (json.isNull("fieldIntegerNotNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNotNull(null);
+                objProxy.realmSet$fieldIntegerNotNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNotNull((int) json.getInt("fieldIntegerNotNull"));
+                objProxy.realmSet$fieldIntegerNotNull((int) json.getInt("fieldIntegerNotNull"));
             }
         }
         if (json.has("fieldIntegerNull")) {
             if (json.isNull("fieldIntegerNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNull(null);
+                objProxy.realmSet$fieldIntegerNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNull((int) json.getInt("fieldIntegerNull"));
+                objProxy.realmSet$fieldIntegerNull((int) json.getInt("fieldIntegerNull"));
             }
         }
         if (json.has("fieldLongNotNull")) {
             if (json.isNull("fieldLongNotNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNotNull(null);
+                objProxy.realmSet$fieldLongNotNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNotNull((long) json.getLong("fieldLongNotNull"));
+                objProxy.realmSet$fieldLongNotNull((long) json.getLong("fieldLongNotNull"));
             }
         }
         if (json.has("fieldLongNull")) {
             if (json.isNull("fieldLongNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNull(null);
+                objProxy.realmSet$fieldLongNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNull((long) json.getLong("fieldLongNull"));
+                objProxy.realmSet$fieldLongNull((long) json.getLong("fieldLongNull"));
             }
         }
         if (json.has("fieldFloatNotNull")) {
             if (json.isNull("fieldFloatNotNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNotNull(null);
+                objProxy.realmSet$fieldFloatNotNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNotNull((float) json.getDouble("fieldFloatNotNull"));
+                objProxy.realmSet$fieldFloatNotNull((float) json.getDouble("fieldFloatNotNull"));
             }
         }
         if (json.has("fieldFloatNull")) {
             if (json.isNull("fieldFloatNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNull(null);
+                objProxy.realmSet$fieldFloatNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNull((float) json.getDouble("fieldFloatNull"));
+                objProxy.realmSet$fieldFloatNull((float) json.getDouble("fieldFloatNull"));
             }
         }
         if (json.has("fieldDoubleNotNull")) {
             if (json.isNull("fieldDoubleNotNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNotNull(null);
+                objProxy.realmSet$fieldDoubleNotNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNotNull((double) json.getDouble("fieldDoubleNotNull"));
+                objProxy.realmSet$fieldDoubleNotNull((double) json.getDouble("fieldDoubleNotNull"));
             }
         }
         if (json.has("fieldDoubleNull")) {
             if (json.isNull("fieldDoubleNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNull(null);
+                objProxy.realmSet$fieldDoubleNull(null);
             } else {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNull((double) json.getDouble("fieldDoubleNull"));
+                objProxy.realmSet$fieldDoubleNull((double) json.getDouble("fieldDoubleNull"));
             }
         }
         if (json.has("fieldDateNotNull")) {
             if (json.isNull("fieldDateNotNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNotNull(null);
+                objProxy.realmSet$fieldDateNotNull(null);
             } else {
                 Object timestamp = json.get("fieldDateNotNull");
                 if (timestamp instanceof String) {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNotNull(JsonUtils.stringToDate((String) timestamp));
+                    objProxy.realmSet$fieldDateNotNull(JsonUtils.stringToDate((String) timestamp));
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNotNull(new Date(json.getLong("fieldDateNotNull")));
+                    objProxy.realmSet$fieldDateNotNull(new Date(json.getLong("fieldDateNotNull")));
                 }
             }
         }
         if (json.has("fieldDateNull")) {
             if (json.isNull("fieldDateNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNull(null);
+                objProxy.realmSet$fieldDateNull(null);
             } else {
                 Object timestamp = json.get("fieldDateNull");
                 if (timestamp instanceof String) {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNull(JsonUtils.stringToDate((String) timestamp));
+                    objProxy.realmSet$fieldDateNull(JsonUtils.stringToDate((String) timestamp));
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNull(new Date(json.getLong("fieldDateNull")));
+                    objProxy.realmSet$fieldDateNull(new Date(json.getLong("fieldDateNull")));
                 }
             }
         }
         if (json.has("fieldObjectNull")) {
             if (json.isNull("fieldObjectNull")) {
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldObjectNull(null);
+                objProxy.realmSet$fieldObjectNull(null);
             } else {
                 some.test.NullTypes fieldObjectNullObj = NullTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json.getJSONObject("fieldObjectNull"), update);
-                ((NullTypesRealmProxyInterface) obj).realmSet$fieldObjectNull(fieldObjectNullObj);
+                objProxy.realmSet$fieldObjectNull(fieldObjectNullObj);
             }
         }
         return obj;
@@ -1154,184 +1155,187 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.NullTypes createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        some.test.NullTypes obj = new some.test.NullTypes();
+        final some.test.NullTypes obj = new some.test.NullTypes();
+        final NullTypesRealmProxyInterface objProxy = (NullTypesRealmProxyInterface) obj;
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
             if (false) {
             } else if (name.equals("fieldStringNotNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNotNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldStringNotNull((String) reader.nextString());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNotNull((String) reader.nextString());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldStringNotNull(null);
                 }
             } else if (name.equals("fieldStringNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldStringNull((String) reader.nextString());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNull((String) reader.nextString());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldStringNull(null);
                 }
             } else if (name.equals("fieldBooleanNotNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNotNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldBooleanNotNull((boolean) reader.nextBoolean());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNotNull((boolean) reader.nextBoolean());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldBooleanNotNull(null);
                 }
             } else if (name.equals("fieldBooleanNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldBooleanNull((boolean) reader.nextBoolean());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNull((boolean) reader.nextBoolean());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldBooleanNull(null);
                 }
             } else if (name.equals("fieldBytesNotNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNotNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldBytesNotNull(JsonUtils.stringToBytes(reader.nextString()));
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNotNull(JsonUtils.stringToBytes(reader.nextString()));
+                    reader.skipValue();
+                    objProxy.realmSet$fieldBytesNotNull(null);
                 }
             } else if (name.equals("fieldBytesNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldBytesNull(JsonUtils.stringToBytes(reader.nextString()));
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNull(JsonUtils.stringToBytes(reader.nextString()));
+                    reader.skipValue();
+                    objProxy.realmSet$fieldBytesNull(null);
                 }
             } else if (name.equals("fieldByteNotNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNotNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldByteNotNull((byte) reader.nextInt());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNotNull((byte) reader.nextInt());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldByteNotNull(null);
                 }
             } else if (name.equals("fieldByteNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldByteNull((byte) reader.nextInt());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNull((byte) reader.nextInt());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldByteNull(null);
                 }
             } else if (name.equals("fieldShortNotNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNotNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldShortNotNull((short) reader.nextInt());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNotNull((short) reader.nextInt());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldShortNotNull(null);
                 }
             } else if (name.equals("fieldShortNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldShortNull((short) reader.nextInt());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNull((short) reader.nextInt());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldShortNull(null);
                 }
             } else if (name.equals("fieldIntegerNotNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNotNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldIntegerNotNull((int) reader.nextInt());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNotNull((int) reader.nextInt());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldIntegerNotNull(null);
                 }
             } else if (name.equals("fieldIntegerNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldIntegerNull((int) reader.nextInt());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNull((int) reader.nextInt());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldIntegerNull(null);
                 }
             } else if (name.equals("fieldLongNotNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNotNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldLongNotNull((long) reader.nextLong());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNotNull((long) reader.nextLong());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldLongNotNull(null);
                 }
             } else if (name.equals("fieldLongNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldLongNull((long) reader.nextLong());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNull((long) reader.nextLong());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldLongNull(null);
                 }
             } else if (name.equals("fieldFloatNotNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNotNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldFloatNotNull((float) reader.nextDouble());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNotNull((float) reader.nextDouble());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldFloatNotNull(null);
                 }
             } else if (name.equals("fieldFloatNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldFloatNull((float) reader.nextDouble());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNull((float) reader.nextDouble());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldFloatNull(null);
                 }
             } else if (name.equals("fieldDoubleNotNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNotNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldDoubleNotNull((double) reader.nextDouble());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNotNull((double) reader.nextDouble());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldDoubleNotNull(null);
                 }
             } else if (name.equals("fieldDoubleNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNull(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$fieldDoubleNull((double) reader.nextDouble());
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNull((double) reader.nextDouble());
+                    reader.skipValue();
+                    objProxy.realmSet$fieldDoubleNull(null);
                 }
             } else if (name.equals("fieldDateNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNotNull(null);
+                    objProxy.realmSet$fieldDateNotNull(null);
                 } else if (reader.peek() == JsonToken.NUMBER) {
                     long timestamp = reader.nextLong();
                     if (timestamp > -1) {
-                        ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNotNull(new Date(timestamp));
+                        objProxy.realmSet$fieldDateNotNull(new Date(timestamp));
                     }
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNotNull(JsonUtils.stringToDate(reader.nextString()));
+                    objProxy.realmSet$fieldDateNotNull(JsonUtils.stringToDate(reader.nextString()));
                 }
             } else if (name.equals("fieldDateNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNull(null);
+                    objProxy.realmSet$fieldDateNull(null);
                 } else if (reader.peek() == JsonToken.NUMBER) {
                     long timestamp = reader.nextLong();
                     if (timestamp > -1) {
-                        ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNull(new Date(timestamp));
+                        objProxy.realmSet$fieldDateNull(new Date(timestamp));
                     }
                 } else {
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNull(JsonUtils.stringToDate(reader.nextString()));
+                    objProxy.realmSet$fieldDateNull(JsonUtils.stringToDate(reader.nextString()));
                 }
             } else if (name.equals("fieldObjectNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldObjectNull(null);
+                    objProxy.realmSet$fieldObjectNull(null);
                 } else {
                     some.test.NullTypes fieldObjectNullObj = NullTypesRealmProxy.createUsingJsonStream(realm, reader);
-                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldObjectNull(fieldObjectNullObj);
+                    objProxy.realmSet$fieldObjectNull(fieldObjectNullObj);
                 }
             } else {
                 reader.skipValue();
             }
         }
         reader.endObject();
-        obj = realm.copyToRealm(obj);
-        return obj;
+        return realm.copyToRealm(obj);
     }
 
     public static some.test.NullTypes copyOrUpdate(Realm realm, some.test.NullTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().threadId != realm.threadId) {
-            throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
-        }
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-            return object;
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
+            final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
+            if (otherRealm.threadId != realm.threadId) {
+                throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
+            }
+            if (otherRealm.getPath().equals(realm.getPath())) {
+                return object;
+            }
         }
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         RealmObjectProxy cachedRealmObject = cache.get(object);
@@ -1396,7 +1400,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
-        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
+        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.NullTypes.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
         String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringNotNull();
@@ -1494,7 +1498,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
-        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
+        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.NullTypes.class);
         some.test.NullTypes object = null;
         while (objects.hasNext()) {
             object = (some.test.NullTypes) objects.next();
@@ -1605,7 +1609,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
-        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
+        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.NullTypes.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
         String realmGet$fieldStringNotNull = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringNotNull();
@@ -1745,7 +1749,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
-        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
+        NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.NullTypes.class);
         some.test.NullTypes object = null;
         while (objects.hasNext()) {
             object = (some.test.NullTypes) objects.next();

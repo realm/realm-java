@@ -20,6 +20,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.ManagableObject;
 
 
@@ -54,6 +56,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E>, Ma
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
+    @Nullable
     Number min(String fieldName);
 
     /**
@@ -66,6 +69,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E>, Ma
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
+    @Nullable
     Number max(String fieldName);
 
     /**
@@ -102,6 +106,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E>, Ma
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
+    @Nullable
     Date maxDate(String fieldName);
 
     /**
@@ -115,6 +120,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E>, Ma
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
+    @Nullable
     Date minDate(String fieldName);
 
     /**

@@ -23,7 +23,7 @@ import java.net.ConnectException;
  */
 public enum ErrorCode {
 
-    // See https://github.com/realm/realm-sync/blob/master/doc/protocol_17.md
+    // See https://github.com/realm/realm-sync/blob/master/doc/protocol.md
     // See https://github.com/realm/realm-object-server/blob/master/object-server/doc/problems.md
 
     // Realm Java errors (0-49)
@@ -44,6 +44,13 @@ public enum ErrorCode {
     REUSE_OF_SESSION_IDENT(107),     // Overlapping reuse of session identifier (BIND)
     BOUND_IN_OTHER_SESSION(108),     // Client file bound in other session (IDENT)
     BAD_MESSAGE_ORDER(109),          // Bad input message order
+    BAD_ORIGIN_FILE_IDENT(110),      // Bad origin file identifier in changeset header (DOWNLOAD)
+    BAD_SERVER_VERSION_DOWNLOAD(111),// Bad server version in changeset header (DOWNLOAD)
+    BAD_CHANGESET_DOWNLOAD(112),     // Bad changeset (DOWNLOAD)
+    BAD_REQUEST_IDENT(113),          // Bad request identifier (MARK)
+    BAD_ERROR_CODE(114),             // Bad error code (ERROR)
+    BAD_COMPRESSION(115),            // Bad compression (DOWNLOAD)
+    BAD_CLIENT_VERSION_DOWNLOAD(116),// Bad last integrated client version in changeset header (DOWNLOAD)
 
     // Session level errors (200 - 299)
     SESSION_CLOSED(200, Category.RECOVERABLE),      // Session closed (no error)
