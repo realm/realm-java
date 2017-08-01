@@ -517,7 +517,7 @@ public class RealmProcessorTest {
     public void failsOnLinkingObjectsWithLinkedFields() throws IOException {
         RealmSyntheticTestClass javaFileObject = createBacklinkTestClass()
                 // Defining a backlink more than one levels back is not supported.
-                // It can be queried though: `equalTo("selectedFieldParents.selectedFieldParents")
+                // It can be queried though: equalTo("selectedFieldParents.selectedFieldParents")
                 .clearAnnotations()
                 .annotation("LinkingObjects(\"child.id\")")
                 .builder().build();
@@ -616,7 +616,7 @@ public class RealmProcessorTest {
                 .compilesWithoutError();
     }
 
-    // This method constructs a synthetic class that *should* compile correctly.
+    // This method constructs a synthetic Backlinks test class that *should* compile correctly.
     // It returns the ref to the backlinked Field.  Tests can modify the
     // field in perverse ways, to verify failure modes.
     private RealmSyntheticTestClass.Field createBacklinkTestClass() {
@@ -627,8 +627,8 @@ public class RealmProcessorTest {
                     .type("RealmResults<BacklinkTarget>")
                     .modifiers(Modifier.PUBLIC, Modifier.FINAL)
                     .annotation("LinkingObjects(\"child\")")
+                    .initializer("null")
                     .hasGetter(false)
-                    .hasSetter(false)
-                    .initializer("null");
+                    .hasSetter(false);
     }
 }
