@@ -369,9 +369,8 @@ public class SyncUserTests {
 
         SyncConfiguration configuration1 = new SyncConfiguration.Builder(user, url1).build();
         Realm realm1 = Realm.getInstance(configuration1);
-        assertEquals(1, user.allSessions().size());
-
         List<SyncSession> allSessions = user.allSessions();
+        assertEquals(1, allSessions.size());
         Iterator<SyncSession> iter = allSessions.iterator();
         SyncSession session = iter.next();
         assertEquals(user, session.getUser());
@@ -379,28 +378,27 @@ public class SyncUserTests {
 
         SyncConfiguration configuration2 = new SyncConfiguration.Builder(user, url2).build();
         Realm realm2 = Realm.getInstance(configuration2);
-        assertEquals(2, user.allSessions().size());
-
         allSessions = user.allSessions();
+        assertEquals(2, allSessions.size());
         iter = allSessions.iterator();
-        String indivisualUrl = url2.replace("~", user.getIdentity());
+        String individualUrl = url2.replace("~", user.getIdentity());
         int foundCount = 0;
         while (iter.hasNext()) {
             session = iter.next();
             assertEquals(user, session.getUser());
-            if (indivisualUrl.equals(session.getServerUrl().toString())) {
+            if (individualUrl.equals(session.getServerUrl().toString())) {
                 foundCount++;
             }
         }
         assertEquals(1, foundCount);
         realm1.close();
-        assertEquals(1, user.allSessions().size());
 
         allSessions = user.allSessions();
+        assertEquals(1, allSessions.size());
         iter = allSessions.iterator();
         session = iter.next();
         assertEquals(user, session.getUser());
-        assertEquals(indivisualUrl, session.getServerUrl().toString());
+        assertEquals(individualUrl, session.getServerUrl().toString());
 
         realm2.close();
         assertEquals(0, user.allSessions().size());
