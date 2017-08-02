@@ -127,11 +127,10 @@ public:
 
         // Get logged in user
         JStringAccessor user_id(env, j_sync_user_id);
-        JStringAccessor realm_url(env, sync_realm_url);
-        SyncUserIdentifier sync_user_identifier = {user_id, realm_url};
+        JStringAccessor realm_auth_url(env, sync_realm_auth_url);
+        SyncUserIdentifier sync_user_identifier = {user_id, realm_auth_url};
         std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(sync_user_identifier);
         if (!user) {
-            JStringAccessor realm_auth_url(env, sync_realm_auth_url);
             JStringAccessor refresh_token(env, sync_refresh_token);
             user = SyncManager::shared().get_user(sync_user_identifier, refresh_token);
         }
@@ -148,6 +147,7 @@ public:
             std::copy_n(m_config.encryption_key.begin(), 64, sync_encryption_key->begin());
         }
 
+        JStringAccessor realm_url(env, sync_realm_url);
         m_config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
             user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler),
             nullptr, sync_encryption_key, to_bool(sync_client_validate_ssl), ssl_trust_certificate_path});
