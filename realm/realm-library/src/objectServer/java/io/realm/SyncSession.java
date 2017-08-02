@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Keep;
-import io.realm.internal.KeepMember;
 import io.realm.internal.SyncObjectServerFacade;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.async.RealmAsyncTaskImpl;
@@ -153,7 +152,6 @@ public class SyncSession {
     }
 
     // This callback will happen on the thread running the Sync Client.
-    @KeepMember
     void notifySessionError(int errorCode, String errorMessage) {
         if (errorHandler == null) {
             return;
@@ -179,7 +177,6 @@ public class SyncSession {
      * @return the state of the session.
      * @see SyncSession.State
      */
-    @KeepMember
     @SuppressWarnings("unused")
     public State getState() {
         byte state = nativeGetState(configuration.getPath());
