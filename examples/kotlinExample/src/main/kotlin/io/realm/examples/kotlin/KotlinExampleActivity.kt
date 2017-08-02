@@ -97,7 +97,7 @@ class KotlinExampleActivity : Activity() {
         }
 
         // Find the first person (no query conditions) and read a field
-        val person = realm.where(Person::class.java).findFirst()
+        val person = realm.where(Person::class.java).findFirst()!!
         showStatus(person.name + ": " + person.age)
 
         // Update person in a transaction

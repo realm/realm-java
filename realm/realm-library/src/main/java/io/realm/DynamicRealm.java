@@ -48,12 +48,16 @@ import io.realm.log.RealmLog;
  */
 public class DynamicRealm extends BaseRealm {
 
+    private final RealmSchema schema;
+
     private DynamicRealm(RealmCache cache) {
         super(cache);
+        this.schema = new MutableRealmSchema(this);
     }
 
     private DynamicRealm(RealmConfiguration configuration) {
         super(configuration);
+        this.schema = new MutableRealmSchema(this);
     }
 
     /**
@@ -252,6 +256,16 @@ public class DynamicRealm extends BaseRealm {
     @Override
     public Flowable<DynamicRealm> asFlowable() {
         return configuration.getRxFactory().from(this);
+    }
+
+    /**
+     * Returns the mutable schema for this Realm.
+     *
+     * @return The {@link RealmSchema} for this Realm.
+     */
+    @Override
+    public RealmSchema getSchema() {
+        return schema;
     }
 
     /**

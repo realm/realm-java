@@ -32,6 +32,7 @@ import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.fail;
@@ -51,7 +52,6 @@ public class SchemaTests {
 
     @After
     public void tearDown() throws Exception {
-        Realm.deleteRealm(config);
     }
 
     @Test
@@ -76,7 +76,10 @@ public class SchemaTests {
 
     @Test
     public void disallow_removeClass() {
-        Realm realm = Realm.getInstance(config);
+        // Init schema
+        Realm.getInstance(config).close();
+
+        DynamicRealm realm = DynamicRealm.getInstance(config);
         String className = "StringOnly";
         realm.beginTransaction();
         assertTrue(realm.getSchema().contains(className));
@@ -92,7 +95,7 @@ public class SchemaTests {
 
     @Test
     public void allow_createClass() {
-        Realm realm = Realm.getInstance(config);
+        DynamicRealm realm = DynamicRealm.getInstance(config);
         String className = "Dogplace";
         realm.beginTransaction();
         realm.getSchema().create("Dogplace");
@@ -103,7 +106,10 @@ public class SchemaTests {
 
     @Test
     public void disallow_renameClass() {
-        Realm realm = Realm.getInstance(config);
+        // Init schema
+        Realm.getInstance(config).close();
+
+        DynamicRealm realm = DynamicRealm.getInstance(config);
         String className = "StringOnly";
         realm.beginTransaction();
         try {
@@ -119,13 +125,18 @@ public class SchemaTests {
 
     @Test
     public void disallow_removeField() {
-        Realm realm = Realm.getInstance(config);
+        // Init schema
+        Realm.getInstance(config).close();
+
+        DynamicRealm realm = DynamicRealm.getInstance(config);
         String className = "StringOnly";
         String fieldName = "chars";
+        final RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        assertNotNull(objectSchema);
+        assertTrue(objectSchema.hasField(fieldName));
         realm.beginTransaction();
-        assertTrue(realm.getSchema().get(className).hasField(fieldName));
         try {
-            realm.getSchema().get(className).removeField(fieldName);
+            objectSchema.removeField(fieldName);
             fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
@@ -136,51 +147,62 @@ public class SchemaTests {
 
     @Test
     public void allow_addField() {
+        // Init schema
+        Realm.getInstance(config).close();
         String className = "StringOnly";
-        Realm realm = Realm.getInstance(config);
 
+        DynamicRealm realm = DynamicRealm.getInstance(config);
+        final RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        assertNotNull(objectSchema);
         realm.beginTransaction();
-        realm.getSchema().get(className).addField("foo", String.class);
+        objectSchema.addField("foo", String.class);
         realm.commitTransaction();
 
-        assertTrue(realm.getSchema().get(className).hasField("foo"));
+        assertTrue(objectSchema.hasField("foo"));
 
         realm.close();
     }
 
     @Test
     public void addPrimaryKey_notAllowed() {
+        // Init schema
+        Realm.getInstance(config).close();
         String className = "StringOnly";
-        Realm realm = Realm.getInstance(config);
+        String fieldName = "chars";
+        DynamicRealm realm = DynamicRealm.getInstance(config);
+
+        RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        assertNotNull(objectSchema);
+        assertTrue(objectSchema.hasField(fieldName));
 
         realm.beginTransaction();
-        RealmObjectSchema objectSchema = realm.getSchema().get(className);
-        objectSchema.addField("foo", String.class);
-
         try {
-            objectSchema.addPrimaryKey("foo");
+            objectSchema.addPrimaryKey(fieldName);
             fail();
         } catch (UnsupportedOperationException ignored) {
         } finally {
-            realm.commitTransaction();
+            realm.cancelTransaction();
             realm.close();
         }
     }
 
     @Test
     public void addField_withPrimaryKeyModifier_notAllowed() {
+        // Init schema
+        Realm.getInstance(config).close();
         String className = "StringOnly";
-        Realm realm = Realm.getInstance(config);
+        DynamicRealm realm = DynamicRealm.getInstance(config);
 
         realm.beginTransaction();
         RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        assertNotNull(objectSchema);
 
         try {
-            objectSchema.addField("foo", String.class, FieldAttribute.PRIMARY_KEY);
+            objectSchema.addField("bar", String.class, FieldAttribute.PRIMARY_KEY);
             fail();
         } catch (UnsupportedOperationException ignored) {
         } finally {
-            realm.commitTransaction();
+            realm.cancelTransaction();
             realm.close();
         }
     }
@@ -192,6 +214,7 @@ public class SchemaTests {
         Realm realm = Realm.getInstance(config);
 
         RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        assertNotNull(objectSchema);
         Set<String> names = objectSchema.getFieldNames();
         assertEquals(1, names.size());
         assertEquals(StringOnly.FIELD_CHARS, names.iterator().next());
