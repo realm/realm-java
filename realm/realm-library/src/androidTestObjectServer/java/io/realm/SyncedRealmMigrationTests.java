@@ -37,6 +37,7 @@ import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -208,20 +209,15 @@ public class SyncedRealmMigrationTests {
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
+        Realm realm = Realm.getInstance(config); // Opening at different schema version (42) should rebuild indexes
         try {
-            Realm realm = Realm.getInstance(config); // Opening at different schema version (42) should rebuild indexes
-            fail();
-        } catch (RealmMigrationNeededException ignored) {
+            RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
+            assertNotNull(indexedFieldsSchema );
+            assertTrue(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
+            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
+        } finally {
+            realm.close();
         }
-
-// FIXME: This is the intended behaviour
-//        RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
-//        try {
-//            assertTrue(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
-//            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
-//        } finally {
-//            realm.close();
-//        }
     }
 
     // Check that indexes are being added if other fields are being added as well
@@ -289,17 +285,18 @@ public class SyncedRealmMigrationTests {
                 .build();
 
         // Initialize schema
-        Realm realm = Realm.getInstance(config);
-        realm.beginTransaction();
-        RealmObjectSchema objectSchema = realm.getSchema().getSchemaForClass(StringOnly.class);
+        Realm.getInstance(config).close();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
+        dynamicRealm.beginTransaction();
+        RealmObjectSchema objectSchema = dynamicRealm.getSchema().get(StringOnly.CLASS_NAME);
         // Add one extra field which doesn't exist in the typed Realm.
         objectSchema.addField("oneMoreField", int.class);
-        realm.commitTransaction();
+        dynamicRealm.commitTransaction();
         // Clear column indices cache.
-        realm.close();
+        dynamicRealm.close();
 
         // Verify schema again.
-        realm = Realm.getInstance(config);
+        Realm realm = Realm.getInstance(config);
         realm.close();
     }
 

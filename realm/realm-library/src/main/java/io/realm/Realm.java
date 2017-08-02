@@ -46,6 +46,8 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.Nullable;
+
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -138,6 +140,7 @@ public class Realm extends BaseRealm {
     private static final Object defaultConfigurationLock = new Object();
     // guarded by `defaultConfigurationLock`
     private static RealmConfiguration defaultConfiguration;
+    private final RealmSchema schema;
 
     /**
      * The constructor is private to enforce the use of the static one.
@@ -147,6 +150,7 @@ public class Realm extends BaseRealm {
      */
     private Realm(RealmCache cache) {
         super(cache);
+        schema = new ImmutableRealmSchema(this);
     }
 
     /**
@@ -155,6 +159,19 @@ public class Realm extends BaseRealm {
     @Override
     public Observable<Realm> asObservable() {
         return configuration.getRxFactory().from(this);
+    }
+
+    /**
+     * Returns the schema for this Realm. The schema is immutable.
+     * Any attempt to modify it will result in an {@link UnsupportedOperationException}.
+     * <p>
+     * The schema can only be modified using {@link DynamicRealm#getSchema()} or through an migration.
+     *
+     * @return The {@link RealmSchema} for this Realm.
+     */
+    @Override
+    public RealmSchema getSchema() {
+        return schema;
     }
 
     /**
@@ -343,6 +360,7 @@ public class Realm extends BaseRealm {
      *
      * @return default configuration object or {@code null} if no default configuration is specified.
      */
+    @Nullable
     public static RealmConfiguration getDefaultConfiguration() {
         synchronized (defaultConfigurationLock) {
             return defaultConfiguration;
@@ -706,6 +724,7 @@ public class Realm extends BaseRealm {
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @see #createOrUpdateObjectFromJson(Class, org.json.JSONObject)
      */
+    @Nullable
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, JSONObject json) {
         if (clazz == null || json == null) {
             return null;
@@ -759,6 +778,7 @@ public class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      */
+    @Nullable
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
             return null;
@@ -822,6 +842,7 @@ public class Realm extends BaseRealm {
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws IOException if something went wrong with the input stream.
      */
+    @Nullable
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
         if (clazz == null || inputStream == null) {
@@ -1723,6 +1744,7 @@ public class Realm extends BaseRealm {
      * @return newly created indices information for current schema version. Or {@code null} if {@code globalCacheArray}
      * already contains the entry for current schema version.
      */
+    @Nullable
     ColumnIndices updateSchemaCache(ColumnIndices[] globalCacheArray) {
         final long currentSchemaVersion = sharedRealm.getSchemaVersion();
         final long cacheSchemaVersion = schema.getSchemaVersion();
@@ -1769,6 +1791,7 @@ public class Realm extends BaseRealm {
      * @throws RealmException if unable to create an instance of the module.
      * @see io.realm.RealmConfiguration.Builder#modules(Object, Object...)
      */
+    @Nullable
     public static Object getDefaultModule() {
         String moduleName = "io.realm.DefaultRealmModule";
         Class<?> clazz;
