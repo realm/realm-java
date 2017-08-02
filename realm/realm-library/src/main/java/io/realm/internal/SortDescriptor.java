@@ -37,7 +37,7 @@ import io.realm.internal.fields.FieldDescriptor;
  * <p>
  * Sort descriptors do not support Linking Objects, either internally or as terminal types.
  */
-@KeepMember
+@Keep
 public class SortDescriptor {
     //@VisibleForTesting
     final static Set<RealmFieldType> SORT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -128,21 +128,18 @@ public class SortDescriptor {
     }
 
     // Called by JNI.
-    @KeepMember
     @SuppressWarnings("unused")
     long[][] getColumnIndices() {
         return columnIndices;
     }
 
     // Called by JNI.
-    @KeepMember
     @SuppressWarnings("unused")
     boolean[] getAscendings() {
         return ascendings;
     }
 
     // Called by JNI.
-    @KeepMember
     @SuppressWarnings("unused")
     private long getTablePtr() {
         return table.getNativePtr();
