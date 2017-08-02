@@ -19,6 +19,8 @@ package io.realm.internal;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmModel;
 import io.realm.internal.util.Pair;
 
@@ -109,6 +111,7 @@ public final class ColumnIndices {
      * @param clazz the class for which to get the ColumnInfo.
      * @return the corresponding {@link ColumnInfo} object, or {@code null} if not found.
      */
+    @Nullable
     public ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
         return classes.get(clazz);
     }
@@ -119,6 +122,7 @@ public final class ColumnIndices {
      * @param className the simple name of the class for which to get the ColumnInfo.
      * @return the corresponding {@link ColumnInfo} object, or {@code null} if not found.
      */
+    @Nullable
     public ColumnInfo getColumnInfo(String className) {
         return classesByName.get(className);
     }
