@@ -16,18 +16,13 @@
 
 package io.realm.processor;
 
-import com.google.testing.compile.JavaFileObjects;
-
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
 
 import javax.lang.model.element.Modifier;
-import javax.tools.JavaFileObject;
 
-import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
 import static org.truth0.Truth.ASSERT;
 
@@ -77,6 +72,7 @@ public class RealmCounterProcessorTest {
                 .compilesWithoutError();
     }
 
+    // TODO: This seems like a "gottcha".  We should warn.
     @Test
     public void compileStaticMutableRealmInteger() throws IOException {
         RealmSyntheticTestClass javaFileObject = createCounterTestClass()

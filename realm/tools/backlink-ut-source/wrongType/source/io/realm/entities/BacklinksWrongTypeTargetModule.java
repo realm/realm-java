@@ -18,5 +18,4 @@ package io.realm.entities;
 import io.realm.annotations.RealmModule;
 
 @RealmModule(classes = {BacklinksWrongTypeTarget.class})
-public class BacklinksWrongTypeTargetModule {
-}
+public class BacklinksWrongTypeTargetModule { }

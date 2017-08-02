@@ -19,10 +19,10 @@ package io.realm;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -544,7 +544,7 @@ public class LinkingObjectsManagedTests {
         } catch (IOException e) {
             fail("Failed copying realm");
         } catch (RealmMigrationNeededException expected) {
-            assertTrue(expected.getMessage().contains("Field count is"));
+            assertTrue(expected.getMessage().contains("Field count is more than expected"));
         } finally {
             Realm.deleteRealm(realmConfig);
         }
@@ -566,7 +566,6 @@ public class LinkingObjectsManagedTests {
      * single class `BacklinksTarget`, though, basic validation should pass. Backlink validation,
      * however, should fail, seeking the `BacklinksSource` table.
      */
-    @Ignore("Need to rebuild the test library")
     @Test
     public void migration_backlinkedSourceClassDoesntExist() throws IOException {
         final String realmName = "backlinks-missingSourceClass.realm";
@@ -608,7 +607,6 @@ public class LinkingObjectsManagedTests {
      * validate its table.  If we have been living clean lives, though, the validator for
      * `BacklinksMissingFieldTarget` should notice that there is no field named `BacklinksMissingFieldSource.xxxchild`.
      */
-    @Ignore("Need to rebuild the test library")
     @Test
     public void migration_backlinkedSourceFieldDoesntExist() {
         final String realmName = "backlinks-missingSourceField.realm";
@@ -637,20 +635,19 @@ public class LinkingObjectsManagedTests {
      * Table validation should fail if the backlinked column points to a field of the wrong type.
      * This test is built in almost exactly the way as was `migration_backlinkedSourceFieldDoesntExist`
      * The realm `backlinks-sourceFieldWrongType.realm` was constructed with classes `BacklinksWrongTypeTarget`
-     * and `BacklinksWrongTypeSource`.  Again, these two classes are nearly identical in their counterparts
+     * and `BacklinksWrongTypeSource`.  Again, these two classes are nearly identical to their counterparts
      * `BacklinkSource` and `BacklinkTarget` except for their names.  Unlike `BacklinkSource`,
      * `BacklinksWrongTypeSource` has two fields, `child` and `childId`. The first is exactly as it is in
      * `BacklinkSource`, the second is of type `Integer`.  To construct `backlinks-wrong-type-target.jar`
-     * I reversed the names of the two fields in `BacklinkSource`, and made then adjusted `parents` in
+     * I reversed the names of the two fields in `BacklinkSource` and then adjusted `parents` in
      * `BacklinkTarget` to point to `childId`.
      * All of the proxies in in the two jars should correctly validate their tables.  The backlink validation
      * for `BacklinksWrongTypeTarget` should notice, though, that its `parents` field points to an object
      * of the wrong type, `Integer`, instead of `BacklinksWrongTypeSource`.
      */
-    @Ignore("Need to rebuild the test library")
     @Test
     public void migration_backlinkedSourceFieldWrongType() {
-        final String realmName = "backlinks-sourceFieldWrongType.realm";
+        final String realmName = "backlinks-fieldWrongType.realm";
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .name(realmName)
@@ -666,6 +663,7 @@ public class LinkingObjectsManagedTests {
         } catch (IOException e) {
             fail("Failed copying realm");
         } catch (RealmMigrationNeededException expected) {
+            Log.d("TEST", "Fail: " + expected);
             assertTrue(expected.getMessage().contains("is not a RealmObject type"));
         } finally {
             Realm.deleteRealm(realmConfig);

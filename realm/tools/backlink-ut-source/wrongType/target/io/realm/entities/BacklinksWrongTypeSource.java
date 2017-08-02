@@ -19,22 +19,11 @@ import io.realm.RealmObject;
 
 public class BacklinksWrongTypeSource extends RealmObject {
     private Integer child;
-
     private BacklinksWrongTypeTarget childId;
 
-    public Integer getChildId() {
-        return child;
-    }
+    public Integer getChildId() { return child; }
+    public void setChildId(Integer childId) { this.child = childId; }
 
-    public void setChildId(Integer childId) {
-        this.child = childId;
-    }
-
-    public BacklinksWrongTypeTarget getChild() {
-        return childId;
-    }
-
-    public void setChild(BacklinksWrongTypeTarget child) {
-        this.childId = childId;
-    }
+    public BacklinksWrongTypeTarget getChild() { return childId; }
+    public void setChild(BacklinksWrongTypeTarget child) { this.childId = childId; }
 }

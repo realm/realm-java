@@ -18,13 +18,12 @@ package io.realm.entities;
 import io.realm.RealmObject;
 
 public class BacklinksMissingFieldSource extends RealmObject {
+    private String name;
     private BacklinksMissingFieldTarget child;
 
-    public BacklinksMissingFieldTarget getChild() {
-        return child;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setChild(BacklinksMissingFieldTarget child) {
-        this.child = child;
-    }
+    public BacklinksMissingFieldTarget getChild() { return child; }
+    public void setChild(BacklinksMissingFieldTarget child) { this.child = child; }
 }

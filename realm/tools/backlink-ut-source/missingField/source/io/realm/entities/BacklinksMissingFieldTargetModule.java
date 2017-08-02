@@ -18,5 +18,4 @@ package io.realm.entities;
 import io.realm.annotations.RealmModule;
 
 @RealmModule(classes = {BacklinksMissingFieldTarget.class})
-public class BacklinksMissingFieldTargetModule {
-}
+public class BacklinksMissingFieldTargetModule { }

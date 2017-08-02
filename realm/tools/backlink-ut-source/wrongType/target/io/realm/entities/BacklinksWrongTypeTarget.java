@@ -25,15 +25,8 @@ public class BacklinksWrongTypeTarget extends RealmObject {
     @LinkingObjects("childId")
     private final RealmResults<BacklinksWrongTypeSource> parents = null;
 
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public RealmResults<BacklinksWrongTypeSource> getParents() {
-        return parents;
-    }
+    public RealmResults<BacklinksWrongTypeSource> getParents() { return parents; }
 }
