@@ -22,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -397,7 +398,7 @@ public class RealmConfigurationTests {
                 .directory(configFactory.getRoot())
                 .schemaVersion(42)
                 .build());
-        assertEquals(42, realm.getSchema().getSchemaVersion());
+        assertEquals(42, realm.getVersion());
     }
 
     @Test
@@ -831,7 +832,7 @@ public class RealmConfigurationTests {
 
         realm = Realm.getInstance(configuration);
         realm.close();
-        verify(transaction, times(1)).execute(realm);
+        verify(transaction, times(1)).execute(Mockito.any(Realm.class));
 
         realm = Realm.getInstance(configuration);
         realm.close();

@@ -33,8 +33,8 @@ import java.util.regex.Pattern;
 
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
@@ -76,8 +76,7 @@ public class SyncConfiguration extends RealmConfiguration {
     static final int MAX_FULL_PATH_LENGTH = 256;
     static final int MAX_FILE_NAME_LENGTH = 255;
     private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
-
-    private final URI serverUrl;
+private final URI serverUrl;
     private final SyncUser user;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
@@ -94,7 +93,7 @@ public class SyncConfiguration extends RealmConfiguration {
                                 long schemaVersion,
                                 RealmMigration migration,
                                 boolean deleteRealmIfMigrationNeeded,
-                                SharedRealm.Durability durability,
+                                OsRealmConfig.Durability durability,
                                 RealmProxyMediator schemaMediator,
                                 RxObservableFactory rxFactory,
                                 Realm.Transaction initialDataTransaction,
@@ -302,7 +301,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private Realm.Transaction initialDataTransaction;
         private File defaultFolder;
         private String defaultLocalFileName;
-        private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
+        private OsRealmConfig.Durability durability = OsRealmConfig.Durability.FULL;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
         private boolean readOnly = false;
         private boolean waitForServerChanges = false;
@@ -628,7 +627,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */
         public Builder inMemory() {
-            this.durability = SharedRealm.Durability.MEM_ONLY;
+            this.durability = OsRealmConfig.Durability.MEM_ONLY;
             return this;
         }
 
@@ -703,18 +702,12 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Setting this will cause the Realm to become read only and all write transactions made against this Realm will
-         * fail with an {@link IllegalStateException}.
-         * <p>
-         * This in particular mean that {@link #initialData(Realm.Transaction)} will not work in combination with a
-         * read only Realm and setting this will result in a {@link IllegalStateException} being thrown.
-         * </p>
-         * Marking a Realm as read only only applies to the Realm in this process. Other processes and devices can still
-         * write to the Realm.
+         * @deprecated readOnly is not supported by Synced Realm.
+         * @throws UnsupportedOperationException this is not supported by synced Realm.
          */
+        @Deprecated
         public SyncConfiguration.Builder readOnly() {
-            this.readOnly = true;
-            return this;
+            throw new UnsupportedOperationException("'readOnly()' is not supported by synced Realm.");
         }
 
         private String MD5(String in) {

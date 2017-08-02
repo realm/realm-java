@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-#include <jni.h>
 #include "io_realm_internal_Property.h"
 
-#include <stdexcept>
-#include <object-store/src/property.hpp>
-#include <object-store/src/object_store.hpp>
+#include <property.hpp>
+#include <object_store.hpp>
 
 #include "util.hpp"
 
@@ -107,4 +105,33 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetFinalizerPtr(JN
 {
     TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_property);
+}
+
+JNIEXPORT jint JNICALL Java_io_realm_internal_Property_nativeGetType(JNIEnv*, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr);
+    auto& property = *reinterpret_cast<Property*>(native_ptr);
+    return static_cast<jint>(property.type);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetColumnIndex(JNIEnv*, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr);
+    auto& property = *reinterpret_cast<Property*>(native_ptr);
+    return static_cast<jlong>(property.table_column);
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Property_nativeGetLinkedObjectName(JNIEnv* env, jclass,
+                                                                                    jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr);
+    try {
+        auto& property = *reinterpret_cast<Property*>(native_ptr);
+        std::string name = property.object_type;
+        if (!name.empty()) {
+            return to_jstring(env, name);
+        }
+    }
+    CATCH_STD()
+    return nullptr;
 }

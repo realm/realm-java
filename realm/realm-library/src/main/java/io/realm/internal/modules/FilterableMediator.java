@@ -34,10 +34,10 @@ import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Util;
 
 
@@ -85,10 +85,9 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm,
-            boolean allowExtraColumns) {
+    public ColumnInfo createColumnInfo(Class<? extends RealmModel> clazz, OsSchemaInfo osSchemaInfo) {
         checkSchemaHasClass(clazz);
-        return originalMediator.validateTable(clazz, sharedRealm, allowExtraColumns);
+        return originalMediator.createColumnInfo(clazz, osSchemaInfo);
     }
 
     @Override

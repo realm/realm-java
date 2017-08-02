@@ -25,13 +25,11 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmError;
 import io.realm.rule.TestRealmConfigurationFactory;
 
-import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
@@ -166,79 +164,48 @@ public class SharedRealmTests {
         sharedRealm.cancelTransaction();
     }
 
-    @Test
-    public void beginTransaction_SchemaVersionListener() {
-        final AtomicBoolean listenerCalled = new AtomicBoolean(false);
-        final AtomicLong schemaVersionFromListener = new AtomicLong(-1L);
 
-        sharedRealm.close();
-        sharedRealm = SharedRealm.getInstance(config, new SharedRealm.SchemaVersionListener() {
-            @Override
-            public void onSchemaVersionChanged(long currentVersion) {
-                listenerCalled.set(true);
-                schemaVersionFromListener.set(currentVersion);
-            }
-        }, true);
-
-        final long before = sharedRealm.getSchemaVersion();
-
+    private void changeSchemaByAnotherRealm() {
+        SharedRealm sharedRealm = SharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
-        try {
-            // Listener is not called if there was no schema change.
-            assertFalse(listenerCalled.get());
-
-            // Changes the schema version.
-            sharedRealm.setSchemaVersion(before + 1);
-        } finally {
-            sharedRealm.commitTransaction();
-        }
-
-        // Listener is not yet called.
-        assertFalse(listenerCalled.get());
-
-        sharedRealm.beginTransaction();
-        try {
-            assertTrue(listenerCalled.get());
-            assertEquals(before + 1, schemaVersionFromListener.get());
-        } finally {
-            sharedRealm.cancelTransaction();
-        }
+        sharedRealm.createTable("NewTable");
+        sharedRealm.commitTransaction();
     }
 
     @Test
-    public void refresh_SchemaVersionListener() {
+    public void registerSchemaChangedCallback_beginTransaction() {
         final AtomicBoolean listenerCalled = new AtomicBoolean(false);
-        final AtomicLong schemaVersionFromListener = new AtomicLong(-1L);
 
-        sharedRealm.close();
-        sharedRealm = SharedRealm.getInstance(config, new SharedRealm.SchemaVersionListener() {
+        assertFalse(sharedRealm.hasTable("NewTable"));
+
+        sharedRealm.registerSchemaChangedCallback(new SharedRealm.SchemaChangedCallback() {
             @Override
-            public void onSchemaVersionChanged(long currentVersion) {
+            public void onSchemaChanged() {
+                assertTrue(sharedRealm.hasTable("NewTable"));
                 listenerCalled.set(true);
-                schemaVersionFromListener.set(currentVersion);
             }
-        }, true);
-
-        final long before = sharedRealm.getSchemaVersion();
-
-        sharedRealm.refresh();
-        // Listener is not called if there was no schema change.
-        assertFalse(listenerCalled.get());
-
+        });
+        changeSchemaByAnotherRealm();
         sharedRealm.beginTransaction();
-        try {
-            // Changes the schema version.
-            sharedRealm.setSchemaVersion(before + 1);
-        } finally {
-            sharedRealm.commitTransaction();
-        }
+        assertTrue(listenerCalled.get());
+    }
 
-        // Listener is not yet called.
-        assertFalse(listenerCalled.get());
+    @Test
+    public void registerSchemaChangedCallback_refresh() {
+        final AtomicBoolean listenerCalled = new AtomicBoolean(false);
 
+        assertFalse(sharedRealm.hasTable("NewTable"));
+
+        sharedRealm.registerSchemaChangedCallback(new SharedRealm.SchemaChangedCallback() {
+            @Override
+            public void onSchemaChanged() {
+                assertTrue(sharedRealm.hasTable("NewTable"));
+                listenerCalled.set(true);
+            }
+        });
+        changeSchemaByAnotherRealm();
         sharedRealm.refresh();
         assertTrue(listenerCalled.get());
-        assertEquals(before + 1, schemaVersionFromListener.get());
     }
 
     @Test

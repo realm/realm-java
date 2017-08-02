@@ -26,13 +26,13 @@ import android.support.test.runner.AndroidJUnit4;
 
 import junit.framework.AssertionFailedError;
 
+import org.hamcrest.CoreMatchers;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -113,7 +113,6 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.util.ExceptionHolder;
 import io.realm.util.RealmThread;
 
-import static io.realm.TestHelper.awaitOrFail;
 import static io.realm.TestHelper.testNoObjectFound;
 import static io.realm.TestHelper.testOneObjectFound;
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -123,6 +122,8 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -3915,49 +3916,51 @@ public class RealmTests {
         assertFalse(bgRealmChangeResult.get());
     }
 
+    // Check if the column indices cache is refreshed if the index of a defined column is changed by another Realm
+    // instance.
     @Test
-    public void schemaIndexCacheIsUpdatedAfterSchemaChange() {
-        final AtomicLong nameIndexNew = new AtomicLong(-1L);
+    public void nonAdditiveSchemaChangesWhenTypedRealmExists() throws InterruptedException {
+        final String TEST_CHARS = "TEST_CHARS";
+        final RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schema(StringOnly.class)
+                .name("schemaChangeTest")
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+        StringOnlyRealmProxy.StringOnlyColumnInfo columnInfo
+                = (StringOnlyRealmProxy.StringOnlyColumnInfo) realm.getSchema().getColumnInfo(StringOnly.class);
+        assertEquals(0, columnInfo.charsIndex);
 
-        // get the pre-update index for the "name" column.
-        CatRealmProxy.CatColumnInfo catColumnInfo
-                = (CatRealmProxy.CatColumnInfo) realm.getSchema().getColumnInfo(Cat.class);
-        final long nameIndex = catColumnInfo.nameIndex;
+        realm.beginTransaction();
+        StringOnly stringOnly = realm.createObject(StringOnly.class);
+        stringOnly.setChars(TEST_CHARS);
+        realm.commitTransaction();
 
-        // Change the index of the column "name".
-        realm.executeTransaction(new Realm.Transaction() {
+        Thread thread = new Thread(new Runnable() {
             @Override
-            public void execute(Realm realm) {
-                final Table catTable = realm.getSchema().getTable(Cat.CLASS_NAME);
-                final long nameIndex = catTable.getColumnIndex(Cat.FIELD_NAME);
-                catTable.removeColumn(nameIndex);
-                final long newIndex = catTable.addColumn(RealmFieldType.STRING, Cat.FIELD_NAME, true);
-                realm.setVersion(realm.getConfiguration().getSchemaVersion() + 1);
-                nameIndexNew.set(newIndex);
+            public void run() {
+                // Here we try to change the column index of FIELD_CHARS from 0 to 1.
+                DynamicRealm realm = DynamicRealm.getInstance(realmConfig);
+                realm.beginTransaction();
+                RealmObjectSchema stringOnlySchema = realm.getSchema().get(StringOnly.CLASS_NAME);
+                assertEquals(0, stringOnlySchema.getColumnIndex(StringOnly.FIELD_CHARS));
+                Table table = stringOnlySchema.getTable();
+                // Please notice that we cannot do it by removing/adding a column since it is not allowed by Object
+                // Store. Do it by using the internal API insertColumn.
+                table.insertColumn(0, RealmFieldType.INTEGER, "NewColumn");
+                assertEquals(1, stringOnlySchema.getColumnIndex(StringOnly.FIELD_CHARS));
+                realm.commitTransaction();
+                realm.close();
             }
         });
+        thread.start();
+        thread.join();
+        realm.refresh();
 
-        // We need to update index cache if the schema version was changed in the same thread.
-        realm.sharedRealm.invokeSchemaChangeListenerIfSchemaChanged();
-
-        // Verify that the index has changed.
-        assertNotEquals(nameIndex, nameIndexNew);
-
-        // Verify that the index in the ColumnInfo has been updated.
-        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.getSchema().getColumnInfo(Cat.class);
-        assertEquals(nameIndexNew.get(), catColumnInfo.nameIndex);
-        assertEquals(nameIndexNew.get(), (long) catColumnInfo.getColumnIndex(Cat.FIELD_NAME));
-
-        // Checks by actual get and set.
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                final Cat cat = realm.createObject(Cat.class);
-                cat.setName("pochi");
-            }
-        });
-        //noinspection ConstantConditions
-        assertEquals("pochi", realm.where(Cat.class).findFirst().getName());
+        // The columnInfo object should never be changed.
+        assertSame(columnInfo, realm.getSchema().getColumnInfo(StringOnly.class));
+        assertEquals(TEST_CHARS, stringOnly.getChars());
+        assertEquals(1, columnInfo.charsIndex);
+        realm.close();
     }
 
     @Test
@@ -4236,7 +4239,8 @@ public class RealmTests {
             realm.beginTransaction();
             fail();
         } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().startsWith("Write transactions cannot be used "));
+            assertThat(e.getMessage(),
+                    CoreMatchers.containsString("Can't perform transactions on read-only Realms."));
         } finally {
             realm.close();
         }

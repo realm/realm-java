@@ -32,6 +32,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
@@ -52,7 +53,6 @@ import rx.Observable;
  */
 @SuppressWarnings("WeakerAccess")
 abstract class BaseRealm implements Closeable {
-    protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE =
             "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE =
@@ -76,30 +76,53 @@ abstract class BaseRealm implements Closeable {
     private RealmCache realmCache;
     protected SharedRealm sharedRealm;
     private boolean shouldCloseSharedRealm;
+    private SharedRealm.SchemaChangedCallback schemaChangedCallback = new SharedRealm.SchemaChangedCallback() {
+        @Override
+        public void onSchemaChanged() {
+            RealmSchema schema = getSchema();
+            if (schema != null) {
+                schema.refresh();
+            }
+        }
+    };
 
     // Create a realm instance and associate it to a RealmCache.
-    BaseRealm(RealmCache cache) {
-        this(cache.getConfiguration());
+    BaseRealm(RealmCache cache, OsSchemaInfo schemaInfo) {
+        this(cache.getConfiguration(), schemaInfo);
         this.realmCache = cache;
     }
 
     // Create a realm instance without associating it to any RealmCache.
-    BaseRealm(RealmConfiguration configuration) {
+    BaseRealm(final RealmConfiguration configuration, OsSchemaInfo schemaInfo) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.realmCache = null;
 
-        this.sharedRealm = SharedRealm.getInstance(configuration,
-                !(this instanceof Realm) ? null :
-                        new SharedRealm.SchemaVersionListener() {
-                            @Override
-                            public void onSchemaVersionChanged(long currentVersion) {
-                                if (realmCache != null) {
-                                    realmCache.updateSchemaCache((Realm) BaseRealm.this);
-                                }
-                            }
-                        }, true);
+        SharedRealm.MigrationCallback migrationCallback = null;
+        if (schemaInfo != null && configuration.getMigration() != null) {
+            migrationCallback = createMigrationCallback(configuration.getMigration());
+        }
+
+        SharedRealm.InitializationCallback initializationCallback = null;
+        final Realm.Transaction initialDataTransaction = configuration.getInitialDataTransaction();
+        if (initialDataTransaction != null) {
+            initializationCallback = new SharedRealm.InitializationCallback() {
+                @Override
+                public void onInit(SharedRealm sharedRealm) {
+                    initialDataTransaction.execute(Realm.createInstance(sharedRealm));
+                }
+            };
+        }
+
+        OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(configuration)
+                .autoUpdateNotification(true)
+                .migrationCallback(migrationCallback)
+                .schemaInfo(schemaInfo)
+                .initializationCallback(initializationCallback);
+        this.sharedRealm = SharedRealm.getInstance(configBuilder);
         this.shouldCloseSharedRealm = true;
+
+        sharedRealm.registerSchemaChangedCallback(schemaChangedCallback);
     }
 
     // Create a realm instance directly from a SharedRealm instance. This instance doesn't have the ownership of the
@@ -352,12 +375,8 @@ abstract class BaseRealm implements Closeable {
      * incompatible schema changes.
      */
     public void beginTransaction() {
-        beginTransaction(false);
-    }
-
-    void beginTransaction(boolean ignoreReadOnly) {
         checkIfValid();
-        sharedRealm.beginTransaction(ignoreReadOnly);
+        sharedRealm.beginTransaction();
     }
 
     /**
@@ -617,12 +636,10 @@ abstract class BaseRealm implements Closeable {
      * @param configuration configuration for the Realm that should be migrated. If this is a SyncConfiguration this
      * method does nothing.
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}.
-     * @param cause which triggers this migration.
      * @throws FileNotFoundException if the Realm file doesn't exist.
      * @throws IllegalArgumentException if the provided configuration is a {@link SyncConfiguration}.
      */
-    protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
-                                       final RealmMigrationNeededException cause)
+    protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration)
             throws FileNotFoundException {
 
         if (configuration == null) {
@@ -630,9 +647,6 @@ abstract class BaseRealm implements Closeable {
         }
         if (configuration.isSyncConfiguration()) {
             throw new IllegalArgumentException("Manual migrations are not supported for synced Realms");
-        }
-        if (migration == null && configuration.getMigration() == null) {
-            throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided", cause);
         }
 
         final AtomicBoolean fileNotFound = new AtomicBoolean(false);
@@ -651,34 +665,24 @@ abstract class BaseRealm implements Closeable {
                     return;
                 }
 
-                DynamicRealm realm = null;
                 RealmProxyMediator mediator = configuration.getSchemaMediator();
                 OsSchemaInfo schemaInfo = new OsSchemaInfo(mediator.getExpectedObjectSchemaInfoMap().values());
+                SharedRealm.MigrationCallback migrationCallback = null;
+                final RealmMigration migrationToBeApplied = migration != null ? migration : configuration.getMigration();
+                if (migrationToBeApplied != null) {
+                    migrationCallback = createMigrationCallback(migrationToBeApplied);
+                }
+                OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(configuration)
+                        .autoUpdateNotification(false)
+                        .schemaInfo(schemaInfo)
+                        .migrationCallback(migrationCallback);
+                SharedRealm sharedRealm = null;
                 try {
-                    // Create a DynamicRealm WITHOUT putting it into a RealmCache to avoid recursive locks and call init
-                    // steps multiple times (copy asset file / initialData transaction).
-                    realm = DynamicRealm.createInstance(configuration);
-                    realm.beginTransaction();
-                    SharedRealm.MigrationCallback migrationCallback = null;
-                    if (configuration.getMigration() != null) {
-                        migrationCallback = new SharedRealm.MigrationCallback() {
-                            @Override
-                            public void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion) {
-                                configuration.getMigration().migrate(DynamicRealm.createInstance(sharedRealm),
-                                        oldVersion, newVersion);
-                            }
-                        };
-                    }
-                    realm.sharedRealm.updateSchema(schemaInfo, configuration.getSchemaVersion(), migrationCallback);
-                    realm.commitTransaction();
-                } catch (RuntimeException e) {
-                    if (realm != null) {
-                        realm.cancelTransaction();
-                    }
-                    throw e;
+                    sharedRealm =
+                            SharedRealm.getInstance(configBuilder);
                 } finally {
-                    if (realm != null) {
-                        realm.close();
+                    if (sharedRealm != null) {
+                        sharedRealm.close();
                     }
                 }
             }
@@ -690,9 +694,19 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    private static SharedRealm.MigrationCallback createMigrationCallback(final RealmMigration migration) {
+        return new SharedRealm.MigrationCallback() {
+            @Override
+            public void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion) {
+                migration.migrate(
+                        DynamicRealm.createInstance(sharedRealm), oldVersion, newVersion);
+            }
+        };
+    }
+
     @Override
     protected void finalize() throws Throwable {
-        if (sharedRealm != null && !sharedRealm.isClosed() && shouldCloseSharedRealm) {
+        if (shouldCloseSharedRealm && sharedRealm != null && !sharedRealm.isClosed()) {
             RealmLog.warn("Remember to call close() on all Realm instances. " +
                     "Realm %s is being finalized without being closed, " +
                     "this can lead to running out of native memory.", configuration.getPath()

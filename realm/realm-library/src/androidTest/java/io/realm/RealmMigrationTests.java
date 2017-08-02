@@ -406,10 +406,14 @@ public class RealmMigrationTests {
                 .schema(MigrationClassRenamed.class)
                 .migration(migration)
                 .build();
+        // Trigger migration
         Realm realm = Realm.getInstance(realmConfig);
+        realm.close();
 
-        assertTrue(realm.getSchema().get(MigrationClassRenamed.CLASS_NAME).hasPrimaryKey());
-        assertFalse(realm.getSchema().get(MigrationPrimaryKey.CLASS_NAME).hasPrimaryKey());
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(realmConfig);
+        assertTrue(dynamicRealm.getSchema().get(MigrationClassRenamed.CLASS_NAME).hasPrimaryKey());
+        assertFalse(dynamicRealm.getSchema().get(MigrationPrimaryKey.CLASS_NAME).hasPrimaryKey());
+        dynamicRealm.close();
     }
 
     // Test to show that renaming a class does not effect the primary key.
@@ -470,9 +474,13 @@ public class RealmMigrationTests {
                 .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
+        realm.close();
 
-        assertTrue(realm.getSchema().get(MigrationClassRenamed.CLASS_NAME).hasPrimaryKey());
-        assertFalse(realm.getSchema().get(MigrationPrimaryKey.CLASS_NAME).hasPrimaryKey());
+        // We cannot access 'MigrationPrimaryKey' from a typed Realm since it is not part of the pre-defined schema.
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(realmConfig);
+        assertTrue(dynamicRealm.getSchema().get(MigrationClassRenamed.CLASS_NAME).hasPrimaryKey());
+        assertFalse(dynamicRealm.getSchema().get(MigrationPrimaryKey.CLASS_NAME).hasPrimaryKey());
+        dynamicRealm.close();
     }
 
     @Test
@@ -975,6 +983,7 @@ public class RealmMigrationTests {
             @SuppressWarnings("unchecked")
             RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                     .schemaVersion(1)
+                    .name(field)
                     .schema(NullTypes.class)
                     .migration(migration)
                     .build();
@@ -1041,6 +1050,7 @@ public class RealmMigrationTests {
             @SuppressWarnings("unchecked")
             RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                     .schemaVersion(1)
+                    .name(field)
                     .schema(NullTypes.class)
                     .migration(migration)
                     .build();

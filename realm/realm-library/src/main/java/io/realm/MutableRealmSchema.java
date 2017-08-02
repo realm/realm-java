@@ -26,7 +26,7 @@ import io.realm.internal.Table;
 class MutableRealmSchema extends RealmSchema {
 
     MutableRealmSchema(BaseRealm realm) {
-        super(realm);
+        super(realm, null);
     }
 
     @Override

@@ -1,5 +1,9 @@
 ## 3.6.0 (YYYY-MM-DD)
 
+### Breaking Changes
+
+* [ObjectServer] Read-only is not supported by synced Realm. "SyncConfigration.readOnly()" will always throw `UnsupportedOperationException`.
+
 ### Enhancements
 
 * [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.

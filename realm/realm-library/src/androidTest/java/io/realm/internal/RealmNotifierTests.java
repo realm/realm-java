@@ -70,7 +70,9 @@ public class RealmNotifierTests {
     }
 
     private SharedRealm getSharedRealm(RealmConfiguration config) {
-        return SharedRealm.getInstance(config, null, true);
+        OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config)
+                .autoUpdateNotification(true);
+        return SharedRealm.getInstance(configBuilder);
     }
 
     @Test
