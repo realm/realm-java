@@ -48,8 +48,8 @@ public class RealmFileUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
-    public SyncUser get(String identity) {
-        String userJson = nativeGetUser(identity);
+    public SyncUser get(String identity, String authUrl) {
+        String userJson = nativeGetUser(identity, authUrl);
         return toSyncUserOrNull(userJson);
     }
 
@@ -57,8 +57,8 @@ public class RealmFileUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
-    public void remove(String identity) {
-        nativeLogoutUser(identity);
+    public void remove(String identity, String authUrl) {
+        nativeLogoutUser(identity, authUrl);
     }
 
     /**
@@ -81,8 +81,8 @@ public class RealmFileUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
-    public boolean isActive(String identity) {
-        return nativeIsActive(identity);
+    public boolean isActive(String identity, String authenticationUrl) {
+        return nativeIsActive(identity, authenticationUrl);
     }
 
     private static SyncUser toSyncUserOrNull(String userJson) {
@@ -96,13 +96,13 @@ public class RealmFileUserStore implements UserStore {
     protected static native String nativeGetCurrentUser();
 
     // returns json data (token) of the specified user
-    protected static native String nativeGetUser(String identity);
+    protected static native String nativeGetUser(String identity, String authUrl);
 
     protected static native String[] nativeGetAllUsers();
 
     protected static native void nativeUpdateOrCreateUser(String identity, String jsonToken, String url);
 
-    protected static native void nativeLogoutUser(String identity);
+    protected static native void nativeLogoutUser(String identity, String authUrl);
 
-    protected static native boolean nativeIsActive(String identity);
+    protected static native boolean nativeIsActive(String identity, String authUrl);
 }
