@@ -269,7 +269,7 @@ public class SyncUser {
                 }
             }
 
-            SyncManager.getUserStore().remove(syncUser.getIdentity());
+            SyncManager.getUserStore().remove(syncUser.getIdentity(), getAuthenticationUrl().toString());
 
             // Delete all Realms if needed.
             for (ObjectServerUser.AccessDescription desc : syncUser.getRealms()) {
@@ -465,7 +465,7 @@ public class SyncUser {
                 throw response.getError();
             }
         } else {
-            SyncUser syncUser = SyncManager.getUserStore().get(response.getUserId());
+            SyncUser syncUser = SyncManager.getUserStore().get(response.getUserId(), getAuthenticationUrl().toString());
             if (syncUser != null) {
                 return syncUser;
             } else {
@@ -535,7 +535,8 @@ public class SyncUser {
      */
     public boolean isValid() {
         Token userToken = getSyncUser().getUserToken();
-        return userToken != null && userToken.expiresMs() > System.currentTimeMillis() && SyncManager.getUserStore().isActive(syncUser.getIdentity());
+        return userToken != null && userToken.expiresMs() > System.currentTimeMillis() &&
+                SyncManager.getUserStore().isActive(getIdentity(), getAuthenticationUrl().toString());
     }
 
     /**

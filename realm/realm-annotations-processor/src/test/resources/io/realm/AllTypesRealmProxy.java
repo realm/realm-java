@@ -854,6 +854,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         RealmList<some.test.AllTypes> columnRealmListList = realmObjectSource.realmGet$columnRealmList();
         if (columnRealmListList != null) {
             RealmList<some.test.AllTypes> columnRealmListRealmList = realmObjectCopy.realmGet$columnRealmList();
+            columnRealmListRealmList.clear();
             for (int i = 0; i < columnRealmListList.size(); i++) {
                 some.test.AllTypes columnRealmListItem = columnRealmListList.get(i);
                 some.test.AllTypes cachecolumnRealmList = (some.test.AllTypes) cache.get(columnRealmListItem);
