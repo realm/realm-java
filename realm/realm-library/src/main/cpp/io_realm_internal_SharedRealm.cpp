@@ -437,6 +437,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         if (!shared_realm->read_group().has_table(name)) {
             std::string name_str = name;
+            if (name_str.find(TABLE_PREFIX) == 0) {
+                name_str = name_str.substr(TABLE_PREFIX.length());
+            }
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                  format("The class '%1' doesn't exist in this Realm.", name_str));
         }
