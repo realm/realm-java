@@ -151,6 +151,15 @@ public class OsRealmConfig implements NativeObject {
         this.nativePtr = nativeCreate(config.getPath(), false, true);
         NativeContext.dummyContext.addReference(this);
 
+        // Retrieve Sync settings first. We need syncRealmUrl to identify if this is a SyncConfig
+        Object[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(realmConfiguration);
+        String syncUserIdentifier = (String) syncUserConf[0];
+        String syncRealmUrl = (String) syncUserConf[1];
+        String syncRealmAuthUrl = (String) syncUserConf[2];
+        String syncRefreshToken = (String) syncUserConf[3];
+        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncUserConf[4]));
+        String syncSslTrustCertificatePath = (String) syncUserConf[5];
+
         // Set encryption key
         byte[] key = config.getEncryptionKey();
         if (key != null) {
@@ -162,23 +171,6 @@ public class OsRealmConfig implements NativeObject {
 
         // Set auto update notification
         nativeEnableChangeNotification(nativePtr, autoUpdateNotification);
-
-        // Sync config
-        Object[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(realmConfiguration);
-        String syncUserIdentifier = (String) syncUserConf[0];
-        String syncRealmUrl = (String) syncUserConf[1];
-        String syncRealmAuthUrl = (String) syncUserConf[2];
-        String syncRefreshToken = (String) syncUserConf[3];
-        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncUserConf[4]));
-        String syncSslTrustCertificatePath = (String) syncUserConf[5];
-        if (syncRealmUrl != null) {
-            nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,
-                    syncRefreshToken);
-            // FIXME: shouldn't we throw earlier for this case?
-            if (syncClientValidateSsl && syncSslTrustCertificatePath != null) {
-                nativeSetSyncConfigSslSettings(nativePtr, true, syncSslTrustCertificatePath);
-            }
-        }
 
         // Set schema related params.
         SchemaMode schemaMode = SchemaMode.SCHEMA_MODE_MANUAL;
@@ -204,6 +196,12 @@ public class OsRealmConfig implements NativeObject {
             nativeSetInitializationCallback(nativePtr, initializationCallback);
         }
 
+        // Set sync config
+        if (syncRealmUrl != null) {
+            nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,
+                    syncRefreshToken);
+            nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
+        }
     }
 
     @Override

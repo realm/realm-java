@@ -293,14 +293,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSy
             std::copy_n(config.encryption_key.begin(), 64, sync_encryption_key->begin());
         }
 
-        // Disable ssl by default
-        bool sync_client_validate_ssl = false;
-        util::Optional<std::string> ssl_trust_certificate_path = util::none;
-
         JStringAccessor realm_url(env, j_sync_realm_url);
         config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
             user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler),
-            nullptr, sync_encryption_key, sync_client_validate_ssl, ssl_trust_certificate_path});
+            nullptr, sync_encryption_key});
     }
     CATCH_STD()
 }
@@ -312,18 +308,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigS
     TR_ENTER_PTR(native_ptr);
 
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
+    // To ensure the sync_config has been created and this function won't be called multiple time on the same config.
     REALM_ASSERT(config.sync_config);
-    REALM_ASSERT((sync_client_validate_ssl && j_sync_ssl_trust_certificate_path) ||
-                 (!sync_client_validate_ssl && !j_sync_ssl_trust_certificate_path));
+    REALM_ASSERT(config.sync_config->client_validate_ssl);
+    REALM_ASSERT(!config.sync_config->ssl_trust_certificate_path);
 
     try {
         config.sync_config->client_validate_ssl = sync_client_validate_ssl;
         if (j_sync_ssl_trust_certificate_path) {
             JStringAccessor cert_path(env, j_sync_ssl_trust_certificate_path);
             config.sync_config->ssl_trust_certificate_path = realm::util::Optional<std::string>(cert_path);
-        }
-        else {
-            config.sync_config->ssl_trust_certificate_path = none;
         }
     }
     CATCH_STD()
