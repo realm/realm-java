@@ -41,7 +41,7 @@ JavaClass::JavaClass(JavaClass&& rhs)
 JavaGlobalRef JavaClass::get_jclass(JNIEnv* env, const char* class_name)
 {
     jclass cls = env->FindClass(class_name);
-    REALM_ASSERT_DEBUG(cls);
+    REALM_ASSERT_RELEASE(cls);
 
     JavaGlobalRef cls_ref(env, cls, true);
     return cls_ref;
