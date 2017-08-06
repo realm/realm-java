@@ -49,9 +49,8 @@ try {
             stage('JVM tests') {
               try {
                 withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-                  def buildAndUnitTestCommand = "./gradlew ${gradleOptions} assemble check javadoc -Ps3cfg=${env.S3CFG}"
                   // build twice to work around a bug in agp 3.0 that first build after clean will fail.
-                  sh "chmod +x gradlew && ${buildAndUnitTestCommand} || ${buildAndUnitTestCommand}"
+                  sh "chmod +x gradlew && ./gradlew ${gradleOptions} assemble check javadoc -Ps3cfg=${env.S3CFG} || ./gradlew ${gradleOptions} assemble check javadoc -Ps3cfg=${env.S3CFG}"
                 }
               } finally {
                 storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
