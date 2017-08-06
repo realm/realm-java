@@ -24,6 +24,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.Arrays;
 
+import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
 
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -60,15 +61,6 @@ public class RealmProcessorTest {
     private JavaFileObject customInterface = JavaFileObjects.forResource("some/test/CustomInterface.java");
     private JavaFileObject backlinks = JavaFileObjects.forResource("some/test/Backlinks.java");
     private JavaFileObject backlinksTarget = JavaFileObjects.forResource("some/test/BacklinkTarget.java");
-    private JavaFileObject backlinksInvalidField = JavaFileObjects.forResource("some/test/Backlinks_InvalidFieldType.java");
-    private JavaFileObject backlinksLinked = JavaFileObjects.forResource("some/test/Backlinks_LinkedFields.java");
-    private JavaFileObject backlinksMissingParam = JavaFileObjects.forResource("some/test/Backlinks_MissingParameter.java");
-    private JavaFileObject backlinksMissingGeneric = JavaFileObjects.forResource("some/test/Backlinks_MissingGeneric.java");
-    private JavaFileObject backlinksRequired = JavaFileObjects.forResource("some/test/Backlinks_Required.java");
-    private JavaFileObject backlinksIgnored = JavaFileObjects.forResource("some/test/Backlinks_Ignored.java");
-    private JavaFileObject backlinksNotFound = JavaFileObjects.forResource("some/test/Backlinks_NotFound.java");
-    private JavaFileObject backlinksNonFinalField = JavaFileObjects.forResource("some/test/Backlinks_NotFinal.java");
-    private JavaFileObject backlinksWrongType = JavaFileObjects.forResource("some/test/Backlinks_WrongType.java");
     private JavaFileObject nonLatinName = JavaFileObjects.forResource("some/test/ÁrvíztűrőTükörfúrógép.java");
 
     @Test
@@ -79,7 +71,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileProcessedSimpleFile() throws Exception {
+    public void compileProcessedSimpleFile() {
         ASSERT.about(javaSource())
                 .that(simpleModel)
                 .processedWith(new RealmProcessor())
@@ -87,7 +79,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileProcessedEmptyFile() throws Exception {
+    public void compileProcessedEmptyFile() {
         ASSERT.about(javaSource())
                 .that(emptyModel)
                 .processedWith(new RealmProcessor())
@@ -95,14 +87,14 @@ public class RealmProcessorTest {
     }
 
     // Disabled because it does not seem to find the generated interface file @Test
-    public void compileSimpleProxyFile() throws Exception {
+    public void compileSimpleProxyFile() {
         ASSERT.about(javaSource())
                 .that(simpleProxy)
                 .compilesWithoutError();
     }
 
     @Test
-    public void compareProcessedSimpleFile() throws Exception {
+    public void compareProcessedSimpleFile() {
         ASSERT.about(javaSource())
                 .that(simpleModel)
                 .processedWith(new RealmProcessor())
@@ -112,7 +104,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileProcessedNullTypesFile() throws Exception {
+    public void compileProcessedNullTypesFile() {
         ASSERT.about(javaSource())
                 .that(nullTypesModel)
                 .processedWith(new RealmProcessor())
@@ -120,7 +112,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compareProcessedNullTypesFile() throws Exception {
+    public void compareProcessedNullTypesFile() {
         ASSERT.about(javaSource())
                 .that(nullTypesModel)
                 .processedWith(new RealmProcessor())
@@ -137,7 +129,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileProcessedAllTypesFile() throws Exception {
+    public void compileProcessedAllTypesFile() {
         ASSERT.about(javaSource())
                 .that(allTypesModel)
                 .processedWith(new RealmProcessor())
@@ -145,14 +137,14 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileAllTypesProxyFile() throws Exception {
+    public void compileAllTypesProxyFile() {
         ASSERT.about(javaSource())
                 .that(allTypesModel)
                 .compilesWithoutError();
     }
 
     @Test
-    public void compareProcessedAllTypesFile() throws Exception {
+    public void compareProcessedAllTypesFile() {
         ASSERT.about(javaSource())
                 .that(allTypesModel)
                 .processedWith(new RealmProcessor())
@@ -163,7 +155,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileAppModuleCustomClasses() throws Exception {
+    public void compileAppModuleCustomClasses() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AppModuleCustomClasses.java")))
                 .processedWith(new RealmProcessor())
@@ -171,7 +163,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileAppModuleAllClasses() throws Exception {
+    public void compileAppModuleAllClasses() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AppModuleAllClasses.java")))
                 .processedWith(new RealmProcessor())
@@ -179,7 +171,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileLibraryModulesAllClasses() throws Exception {
+    public void compileLibraryModulesAllClasses() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/LibraryModuleAllClasses.java")))
                 .processedWith(new RealmProcessor())
@@ -187,7 +179,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileLibraryModulesCustomClasses() throws Exception {
+    public void compileLibraryModulesCustomClasses() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/LibraryModuleCustomClasses.java")))
                 .processedWith(new RealmProcessor())
@@ -195,7 +187,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileAppModuleMixedParametersFail() throws Exception {
+    public void compileAppModuleMixedParametersFail() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource(
                         "some/test/InvalidAllTypesModuleMixedParameters.java")))
@@ -204,7 +196,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileAppModuleWrongTypeFail() throws Exception {
+    public void compileAppModuleWrongTypeFail() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource(
                         "some/test/InvalidAllTypesModuleWrongType.java")))
@@ -213,7 +205,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileLibraryModuleMixedParametersFail() throws Exception {
+    public void compileLibraryModuleMixedParametersFail() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleMixedParameters.java")))
                 .processedWith(new RealmProcessor())
@@ -221,7 +213,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileLibraryModuleWrongTypeFail() throws Exception {
+    public void compileLibraryModuleWrongTypeFail() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleWrongType.java")))
                 .processedWith(new RealmProcessor())
@@ -236,7 +228,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileProcessedBooleansFile() throws Exception {
+    public void compileProcessedBooleansFile() {
         ASSERT.about(javaSource())
                 .that(booleansModel)
                 .processedWith(new RealmProcessor())
@@ -244,14 +236,14 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileBooleansProxyFile() throws Exception {
+    public void compileBooleansProxyFile() {
         ASSERT.about(javaSource())
                 .that(booleansModel)
                 .compilesWithoutError();
     }
 
     @Test
-    public void compareProcessedBooleansFile() throws Exception {
+    public void compareProcessedBooleansFile() {
         ASSERT.about(javaSource())
                 .that(booleansModel)
                 .processedWith(new RealmProcessor())
@@ -292,8 +284,8 @@ public class RealmProcessorTest {
                 "Byte", "Short", "Integer", "Long", "Boolean"};
 
         for (String fieldType : validIndexFieldTypes) {
-            TestRealmObjectFileObject javaFileObject =
-                    TestRealmObjectFileObject.getSingleFieldInstance("ValidIndexType", "Index", fieldType, "testField");
+            RealmSyntheticTestClass javaFileObject =
+                    new RealmSyntheticTestClass.Builder().name("ValidIndexType").field("testField", fieldType, "Index").build();
             ASSERT.about(javaSource())
                     .that(javaFileObject)
                     .processedWith(new RealmProcessor())
@@ -307,8 +299,8 @@ public class RealmProcessorTest {
         final String[] invalidIndexFieldTypes = {"float", "double", "byte[]", "Simple", "RealmList", "Float", "Double"};
 
         for (String fieldType : invalidIndexFieldTypes) {
-            TestRealmObjectFileObject javaFileObject = TestRealmObjectFileObject.getSingleFieldInstance(
-                    "InvalidIndexType", "Index", fieldType, "testField");
+            RealmSyntheticTestClass javaFileObject =
+                    new RealmSyntheticTestClass.Builder().name("InvalidIndexType").field("testField", fieldType, "Index").build();
             ASSERT.about(javaSource())
                     .that(javaFileObject)
                     .processedWith(new RealmProcessor())
@@ -322,8 +314,8 @@ public class RealmProcessorTest {
         final String[] validPrimaryKeyFieldTypes = {"byte", "short", "int", "long", "String", "Byte", "Short", "Integer", "Long"};
 
         for (String fieldType : validPrimaryKeyFieldTypes) {
-            TestRealmObjectFileObject javaFileObject = TestRealmObjectFileObject.getSingleFieldInstance(
-                    "ValidPrimaryKeyType", "PrimaryKey", fieldType, "testField");
+            RealmSyntheticTestClass javaFileObject =
+                    new RealmSyntheticTestClass.Builder().name("ValidPrimaryKeyType").field("testField", fieldType, "PrimaryKey").build();
             ASSERT.about(javaSource())
                     .that(javaFileObject)
                     .processedWith(new RealmProcessor())
@@ -337,9 +329,8 @@ public class RealmProcessorTest {
         final String[] invalidPrimaryKeyFieldTypes = {"boolean", "java.util.Date", "Simple", "RealmList<Simple>", "Boolean"};
 
         for (String fieldType : invalidPrimaryKeyFieldTypes) {
-            TestRealmObjectFileObject javaFileObject =
-                    TestRealmObjectFileObject.getSingleFieldInstance(
-                            "InvalidPrimaryKeyType", "PrimaryKey", fieldType, "testField");
+            RealmSyntheticTestClass javaFileObject =
+                    new RealmSyntheticTestClass.Builder().name("InvalidPrimaryKeyType").field("testField", fieldType, "PrimaryKey").build();
             ASSERT.about(javaSource())
                     .that(javaFileObject)
                     .processedWith(new RealmProcessor())
@@ -354,8 +345,8 @@ public class RealmProcessorTest {
                 "Float", "Double", "Boolean", "java.util.Date"};
 
         for (String fieldType : validPrimaryKeyFieldTypes) {
-            TestRealmObjectFileObject javaFileObject = TestRealmObjectFileObject.getSingleFieldInstance(
-                    "ValidPrimaryKeyType", "Required", fieldType, "testField");
+            RealmSyntheticTestClass javaFileObject =
+                    new RealmSyntheticTestClass.Builder().name("ValidPrimaryKeyType").field("testField", fieldType, "Required").build();
             ASSERT.about(javaSource())
                     .that(javaFileObject)
                     .processedWith(new RealmProcessor())
@@ -370,8 +361,8 @@ public class RealmProcessorTest {
                 "boolean", "RealmList<Simple>", "Simple"};
 
         for (String fieldType : validPrimaryKeyFieldTypes) {
-            TestRealmObjectFileObject javaFileObject = TestRealmObjectFileObject.getSingleFieldInstance(
-                    "ValidPrimaryKeyType", "Required", fieldType, "testField");
+            RealmSyntheticTestClass javaFileObject =
+                    new RealmSyntheticTestClass.Builder().name("ValidPrimaryKeyType").field("testField", fieldType, "Required").build();
             ASSERT.about(javaSource())
                     .that(javaFileObject)
                     .processedWith(new RealmProcessor())
@@ -380,7 +371,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileConflictingFieldName() throws Exception {
+    public void compileConflictingFieldName() {
         ASSERT.about(javaSource())
                 .that(conflictingFieldNameModel)
                 .processedWith(new RealmProcessor())
@@ -388,7 +379,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void failOnFinalFields() throws Exception {
+    public void failOnFinalFields() {
         ASSERT.about(javaSource())
                 .that(finalModel)
                 .processedWith(new RealmProcessor())
@@ -396,7 +387,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileTransientFields() throws Exception {
+    public void compileTransientFields() {
         ASSERT.about(javaSource())
                 .that(transientModel)
                 .processedWith(new RealmProcessor())
@@ -404,7 +395,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void failOnVolatileFields() throws Exception {
+    public void failOnVolatileFields() {
         ASSERT.about(javaSource())
                 .that(volatileModel)
                 .processedWith(new RealmProcessor())
@@ -413,7 +404,7 @@ public class RealmProcessorTest {
 
     // annotation without implementing RealmModel interface
     @Test
-    public void failOnInvalidRealmModel_1() throws Exception {
+    public void failOnInvalidRealmModel_1() {
         ASSERT.about(javaSource())
                 .that(invalidRealmModelModel_1)
                 .processedWith(new RealmProcessor())
@@ -422,7 +413,7 @@ public class RealmProcessorTest {
 
     // it's not allowed to extend from another RealmObject
     @Test
-    public void failOnInvalidRealmModel_2() throws Exception {
+    public void failOnInvalidRealmModel_2() {
         ASSERT.about(javaSource())
                 .that(invalidRealmModelModel_2)
                 .processedWith(new RealmProcessor())
@@ -431,7 +422,7 @@ public class RealmProcessorTest {
 
     // it's not allowed to extend from another RealmObject
     @Test
-    public void failOnInvalidRealmModel_3() throws Exception {
+    public void failOnInvalidRealmModel_3() {
         ASSERT.about(javaSource())
                 .that(invalidRealmModelModel_3)
                 .processedWith(new RealmProcessor())
@@ -439,7 +430,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void validRealmModelUsingInheritance() throws Exception {
+    public void validRealmModelUsingInheritance() {
         ASSERT.about(javaSource())
                 .that(ValidModelPojo_ExtendingRealmObject)
                 .processedWith(new RealmProcessor())
@@ -447,7 +438,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void canNotInheritRealmList() throws Exception {
+    public void canNotInheritRealmList() {
         ASSERT.about(javaSource())
                 .that(UseExtendRealmList)
                 .processedWith(new RealmProcessor())
@@ -487,90 +478,157 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void failOnLinkingObjectsWithInvalidFieldType() {
+    public void compileSyntheticBacklinks() throws IOException {
+        RealmSyntheticTestClass javaFileObject = createBacklinkTestClass()
+                .builder().build();
         ASSERT.about(javaSources())
-                .that(Arrays.asList(backlinks, backlinksTarget, backlinksInvalidField))
+                .that(Arrays.asList(backlinksTarget, javaFileObject))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void failOnLinkingObjectsWithInvalidFieldType() throws IOException {
+        RealmSyntheticTestClass javaFileObject = createBacklinkTestClass()
+                // Backlinks must be RealmResults
+                .type("BacklinkTarget")
+                .builder().build();
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(backlinksTarget, javaFileObject))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
                 .withErrorContaining("Fields annotated with @LinkingObjects must be RealmResults");
     }
 
     @Test
-    public void failOnLinkingObjectsWithNonFinalField() {
+    public void failOnLinkingObjectsWithNonFinalField() throws IOException {
+        RealmSyntheticTestClass javaFileObject = createBacklinkTestClass()
+                // A field with a @LinkingObjects annotation must be final
+                .modifiers(Modifier.PUBLIC)
+                .builder().build();
         ASSERT.about(javaSources())
-                .that(Arrays.asList(backlinks, backlinksTarget, backlinksNonFinalField))
+                .that(Arrays.asList(backlinksTarget, javaFileObject))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
                 .withErrorContaining("must be final");
     }
 
     @Test
-    public void failsOnLinkingObjectsWithLinkedFields() {
+    public void failsOnLinkingObjectsWithLinkedFields() throws IOException {
+        RealmSyntheticTestClass javaFileObject = createBacklinkTestClass()
+                // Defining a backlink more than one levels back is not supported.
+                // It can be queried though: equalTo("selectedFieldParents.selectedFieldParents")
+                .clearAnnotations()
+                .annotation("LinkingObjects(\"child.id\")")
+                .builder().build();
         ASSERT.about(javaSources())
-                .that(Arrays.asList(backlinks, backlinksTarget, backlinksLinked))
+                .that(Arrays.asList(backlinksTarget, javaFileObject))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
                 .withErrorContaining("The use of '.' to specify fields in referenced classes is not supported");
     }
 
     @Test
-    public void failsOnLinkingObjectsMissingFieldName() {
+    public void failsOnLinkingObjectsMissingFieldName() throws IOException {
+        RealmSyntheticTestClass javaFileObject = createBacklinkTestClass()
+                // No backlinked field specified
+                .clearAnnotations()
+                .annotation("LinkingObjects")
+                .builder().build();
         ASSERT.about(javaSources())
-                .that(Arrays.asList(backlinks, backlinksTarget, backlinksMissingParam))
+                .that(Arrays.asList(backlinksTarget, javaFileObject))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
                 .withErrorContaining("must have a parameter identifying the link target");
     }
 
     @Test
-    public void failsOnLinkingObjectsMissingGeneric() {
+    public void failsOnLinkingObjectsMissingGeneric() throws IOException {
+        RealmSyntheticTestClass javaFileObject = createBacklinkTestClass()
+                // No backlink generic param specified
+                .type("RealmResults")
+                .builder().build();
         ASSERT.about(javaSources())
-                .that(Arrays.asList(backlinks, backlinksTarget, backlinksMissingGeneric))
+                .that(Arrays.asList(backlinksTarget, javaFileObject))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
                 .withErrorContaining("must specify a generic type");
     }
 
     @Test
-    public void failsOnLinkingObjectsWithRequiredFields() {
+    public void failsOnLinkingObjectsWithRequiredFields() throws IOException {
+        RealmSyntheticTestClass javaFileObject = createBacklinkTestClass()
+                // A backlinked field may not be @Required
+                .annotation("Required")
+                .builder().build();
         ASSERT.about(javaSources())
-                .that(Arrays.asList(backlinks, backlinksTarget, backlinksRequired))
+                .that(Arrays.asList(backlinksTarget, javaFileObject))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
                 .withErrorContaining("cannot be @Required");
     }
 
     @Test
-    public void failsOnLinkingObjectsWithIgnoreFields() {
+    public void failsOnLinkingObjectsWithIgnoreFields() throws IOException {
+        RealmSyntheticTestClass javaFileObject = createBacklinkTestClass()
+                // An  @Ignored, backlinked field is completely ignored
+                .annotation("Ignore")
+                .builder().build();
         ASSERT.about(javaSources())
-                .that(Arrays.asList(backlinks, backlinksTarget, backlinksIgnored))
+                .that(Arrays.asList(backlinksTarget, javaFileObject))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
     }
 
     @Test
-    public void failsOnLinkingObjectsFieldNotFound() {
+    public void failsOnLinkingObjectsFieldNotFound() throws IOException {
+        RealmSyntheticTestClass javaFileObject = createBacklinkTestClass()
+                // The argument to the @LinkingObjects annotation must name a field in the target class
+                .clearAnnotations()
+                .annotation("LinkingObjects(\"xxx\")")
+                .builder().build();
         ASSERT.about(javaSources())
-                .that(Arrays.asList(backlinks, backlinksTarget, backlinksNotFound))
+                .that(Arrays.asList(backlinksTarget, javaFileObject))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
                 .withErrorContaining("does not exist in class");
     }
 
     @Test
-    public void failsOnLinkingObjectsWithFieldWrongType() {
+    public void failsOnLinkingObjectsWithFieldWrongType() throws IOException {
+        RealmSyntheticTestClass javaFileObject = createBacklinkTestClass()
+                // The type of the field named in the @LinkingObjects annotation must match
+                // the generic type of the annotated field.  BacklinkTarget.child is a Backlink,
+                // not a Backlinks_WrongType.
+                .builder().name("Backlinks_WrongType").build();
         ASSERT.about(javaSources())
-                .that(Arrays.asList(backlinks, backlinksTarget, backlinksWrongType))
+                .that(Arrays.asList(backlinksTarget, javaFileObject))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
                 .withErrorContaining("instead of");
     }
 
     @Test
-    public void compareNonLatinName() throws Exception {
+    public void compareNonLatinName() {
         ASSERT.about(javaSource())
                 .that(nonLatinName)
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
+    }
+
+    // This method constructs a synthetic Backlinks test class that *should* compile correctly.
+    // It returns the ref to the backlinked Field.  Tests can modify the
+    // field in perverse ways, to verify failure modes.
+    private RealmSyntheticTestClass.Field createBacklinkTestClass() {
+        return new RealmSyntheticTestClass.Builder().name("Backlinks")
+                .field().name("id").type("int").builder()
+                .field()
+                    .name("parents")
+                    .type("RealmResults<BacklinkTarget>")
+                    .modifiers(Modifier.PUBLIC, Modifier.FINAL)
+                    .annotation("LinkingObjects(\"child\")")
+                    .initializer("null")
+                    .hasGetter(false)
+                    .hasSetter(false);
     }
 }
