@@ -205,7 +205,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
         config.automatic_change_notifications = auto_change_notification;
 
         if (compact_on_launch) {
-            static JavaMethod should_compact(env, compact_on_launch, "shouldCompact", "(JJ)Z");
+            static JavaClass callback_class(env, "io/realm/CompactOnLaunchCallback");
+            static JavaMethod should_compact(env, callback_class, "shouldCompact", "(JJ)Z");
             JavaGlobalRef java_compact_on_launch_ref(env, compact_on_launch);
 
             auto should_compact_on_launch_function = [java_compact_on_launch_ref](uint64_t totalBytes, uint64_t usedBytes) {
@@ -434,6 +435,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         if (!shared_realm->read_group().has_table(name)) {
             std::string name_str = name;
+            if (name_str.find(TABLE_PREFIX) == 0) {
+                name_str = name_str.substr(TABLE_PREFIX.length());
+            }
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                  format("The class '%1' doesn't exist in this Realm.", name_str));
         }
