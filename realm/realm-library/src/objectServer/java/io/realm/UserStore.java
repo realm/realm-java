@@ -53,10 +53,11 @@ public interface UserStore {
      * Retrieves specified {@link SyncUser}.
      *
      * @param identity identity of the user.
+     * @param authenticationUrl the URL of the authentication.
      * @return {@link SyncUser} object or {@code null} if not found.
      */
     @Nullable
-    SyncUser get(String identity);
+    SyncUser get(String identity, String authenticationUrl);
 
     /**
      * Removes the user from the store.
@@ -64,8 +65,9 @@ public interface UserStore {
      * If the user is not found, this method does nothing.
      *
      * @param identity identity of the user.
+     * @param authenticationUrl the URL of the authentication.
      */
-    void remove(String identity);
+    void remove(String identity, String authenticationUrl);
 
     /**
      * Returns a collection of all users saved in the User store.
@@ -80,7 +82,8 @@ public interface UserStore {
      * this method will return {@code true}.
      *
      * @param identity identity of the user.
+     * @param authenticationUrl the URL of the authentication.
      * @return {@code true} if the user is not logged out, {@code false} otherwise.
      */
-    boolean isActive(String identity);
+    boolean isActive(String identity, String authenticationUrl);
 }

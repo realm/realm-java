@@ -17,7 +17,6 @@
 package io.realm;
 
 import io.realm.internal.Keep;
-import io.realm.internal.KeepMember;
 
 /**
  * This interface is used to determine if a Realm file should be compacted the first time the file is opened and before

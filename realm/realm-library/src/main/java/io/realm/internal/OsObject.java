@@ -29,7 +29,7 @@ import io.realm.exceptions.RealmException;
 /**
  * Java wrapper for Object Store's {@code Object} class.
  */
-@KeepMember
+@Keep
 public class OsObject implements NativeObject {
 
     private static class OsObjectChangeSet implements ObjectChangeSet {
@@ -242,7 +242,6 @@ public class OsObject implements NativeObject {
 
     // Called by JNI
     @SuppressWarnings("unused")
-    @KeepMember
     private void notifyChangeListeners(String[] changedFields) {
         observerPairs.foreach(new Callback(changedFields));
     }
