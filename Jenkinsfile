@@ -44,7 +44,6 @@ try {
 			  "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
 			  "-v ${env.HOME}/.android:/tmp/.android " +
 			  "-v ${env.HOME}/ccache:/tmp/.ccache " +
-			  "-v ${env.HOME}/lcache:/tmp/.lcache " +
 			  "--network container:${rosContainer.id}") {
             stage('JVM tests') {
               try {
