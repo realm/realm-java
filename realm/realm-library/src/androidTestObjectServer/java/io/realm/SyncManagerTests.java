@@ -56,12 +56,13 @@ public class SyncManagerTests {
             }
 
             @Override
-            public SyncUser get(String identity) {
+            public SyncUser get(String identity, String authenticationUrl) {
                 return null;
             }
 
             @Override
-            public void remove(String identity) {}
+            public void remove(String identity, String authenticationUrl) {
+            }
 
             @Override
             public Collection<SyncUser> allUsers() {
@@ -69,7 +70,7 @@ public class SyncManagerTests {
             }
 
             @Override
-            public boolean isActive(String identity) {
+            public boolean isActive(String identity, String authenticationUrl) {
                 return true;
             }
         };
