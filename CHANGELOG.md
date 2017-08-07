@@ -37,8 +37,9 @@
 ### Enhancements
 
 * [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
+* [ObjectServer] APIs of `UserStore` have been changed to support same user identity but different authentication server scenario.
 * Added `Nullable` annotation to methods that may return `null` in order to improve Kotlin usability. This also introduced a dependency to `com.google.code.findbugs:jsr305`.
-* Added support for new data type `MutableRealmIntegers`. The new type behaves almost exactly as a reference to a Long (mutable nullable, etc) but supports `increment` and `decrement` methods, which implement a Conflict Free Replicated Data Type, whose value will converge even when changed across distributed devices with poor connections. (#4266)
+* Added support for new data type `MutableRealmIntegers`. The new type behaves almost exactly as a reference to a Long (mutable nullable, etc) but supports `increment` and `decrement` methods, which implement a Conflict Free Replicated Data Type, whose value will converge even when changed across distributed devices with poor connections. (#4266).
 
 ### Bug Fixes
 
