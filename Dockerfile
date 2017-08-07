@@ -1,7 +1,6 @@
 FROM ubuntu:16.04
 
 # Locales
-RUN locale-gen en_US.UTF-8
 ENV LANG "en_US.UTF-8"
 ENV LANGUAGE "en_US.UTF-8"
 ENV LC_ALL "en_US.UTF-8"
