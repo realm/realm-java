@@ -37,7 +37,7 @@ For source code written in C++, we format it using `clang-format`. You can use t
 
 To improve code quality and usability in Kotlin, nullability of parameters and return types must be annotated with JSR305 annotations.
 
-If a paramter is nullable, you must add `@Nullable` annotation to the parameter. On the other hand, if a parameter is non-null, you don't need to add `@Nonnull` annotation since all parameters are treated as `@Nonnull` by default.
+If a parameter is nullable, you must add `@Nullable` annotation to the parameter. On the other hand, if a parameter is non-null, you don't need to add `@Nonnull` annotation since all parameters are treated as `@Nonnull` by default.
 
 For return types, there is no default nullability. If a method can return `null` as a return value, you must add `@Nullable` annotation to the return type. Currently, `Nonnull` annotation is not mandatory if the method never return `null`.
 
