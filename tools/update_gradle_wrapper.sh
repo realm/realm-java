@@ -22,7 +22,7 @@ done
 popd
 
 sed -i '' '/^APP_ARGS=/a\
-# Realm'"'"'s work-around for a bug in Gradle 4.1\
+# Realm'"'"'s work-around for a bug in Gradle 4.1 https://github.com/gradle/gradle/issues/2673\
 APP_ARGS="\${APP_ARGS} '"'"'--console=plain'"'"' \\\\\
 \ "\
 ' gradlew
