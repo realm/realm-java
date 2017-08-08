@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -581,6 +582,15 @@ public class SyncUser {
      */
     public Realm getManagementRealm() {
         return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(syncUser, this));
+    }
+
+    /**
+     * Returns all the valid sessions belonging to the user.
+     *
+     * @return the all valid sessions belong to the user.
+     */
+    public List<SyncSession> allSessions() {
+        return SyncManager.getAllSessions(this);
     }
 
     /**
