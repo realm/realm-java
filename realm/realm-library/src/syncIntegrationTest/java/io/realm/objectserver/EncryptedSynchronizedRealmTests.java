@@ -10,8 +10,6 @@ import org.junit.rules.Timeout;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.Nonnull;
-
 import io.realm.BaseIntegrationTest;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
@@ -54,7 +52,7 @@ public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
                 .waitForInitialRemoteData()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
-                    public void onError(@Nonnull SyncSession session, @Nonnull ObjectServerError error) {
+                    public void onError(SyncSession session, ObjectServerError error) {
                         fail(error.getErrorMessage());
                     }
                 })
@@ -81,7 +79,7 @@ public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
                 .waitForInitialRemoteData()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
-                    public void onError(@Nonnull SyncSession session, @Nonnull ObjectServerError error) {
+                    public void onError(SyncSession session, ObjectServerError error) {
                         fail(error.getErrorMessage());
                     }
                 })
@@ -113,7 +111,7 @@ public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
                 .waitForInitialRemoteData()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
-                    public void onError(@Nonnull SyncSession session, @Nonnull ObjectServerError error) {
+                    public void onError(SyncSession session, ObjectServerError error) {
                         fail(error.getErrorMessage());
                     }
                 })
@@ -139,7 +137,7 @@ public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
                 .waitForInitialRemoteData()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
-                    public void onError(@Nonnull SyncSession session, @Nonnull ObjectServerError error) {
+                    public void onError(SyncSession session, ObjectServerError error) {
                         fail(error.getErrorMessage());
                     }
                 })
@@ -167,7 +165,7 @@ public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
                 .waitForInitialRemoteData()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
-                    public void onError(@Nonnull SyncSession session, @Nonnull ObjectServerError error) {
+                    public void onError(SyncSession session, ObjectServerError error) {
                         fail(error.getErrorMessage());
                     }
                 })
@@ -197,7 +195,7 @@ public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
                 .waitForInitialRemoteData()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
-                    public void onError(@Nonnull SyncSession session, @Nonnull ObjectServerError error) {
+                    public void onError(SyncSession session, ObjectServerError error) {
                         fail(error.getErrorMessage());
                     }
                 })

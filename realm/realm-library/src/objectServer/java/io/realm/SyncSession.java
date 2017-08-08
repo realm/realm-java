@@ -31,9 +31,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import io.realm.internal.Keep;
 import io.realm.internal.SyncObjectServerFacade;
 import io.realm.internal.android.AndroidCapabilities;
@@ -463,7 +460,7 @@ public class SyncSession {
          * @param session {@link SyncSession} this error happened on.
          * @param error type of error.
          */
-        void onError(@Nonnull SyncSession session, @Nonnull ObjectServerError error);
+        void onError(SyncSession session, ObjectServerError error);
     }
 
     // Return the access token for the Realm this Session is connected to.

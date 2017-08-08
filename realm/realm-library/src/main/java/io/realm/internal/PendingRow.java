@@ -3,7 +3,6 @@ package io.realm.internal;
 import java.lang.ref.WeakReference;
 import java.util.Date;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.RealmChangeListener;
@@ -45,7 +44,7 @@ public class PendingRow implements Row {
 
         listener = new RealmChangeListener<PendingRow>() {
             @Override
-            public void onChange(@Nonnull PendingRow pendingRow) {
+            public void onChange(PendingRow pendingRow) {
                 notifyFrontEnd();
             }
         };

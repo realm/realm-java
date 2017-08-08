@@ -296,7 +296,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         final SyncSession session = SyncManager.getSession(config);
         session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
             @Override
-            public void onChange(@Nonnull Progress progress) {
+            public void onChange(Progress progress) {
                 if (progress.isTransferComplete()) {
                     Realm realm = Realm.getInstance(config);
                     writeSampleData(realm);

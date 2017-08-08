@@ -16,7 +16,6 @@
 
 package io.realm.internal;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.ObjectChangeSet;
@@ -52,7 +51,7 @@ public class OsObject implements NativeObject {
         }
 
         @Override
-        public boolean isFieldChanged(@Nonnull String fieldName) {
+        public boolean isFieldChanged(String fieldName) {
             for (String name : changedFields) {
                 if (name.equals(fieldName)) {
                     return true;

@@ -19,14 +19,11 @@ package io.realm.objectserver;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
-
-import javax.annotation.Nonnull;
 
 import io.realm.BaseIntegrationTest;
 import io.realm.ObjectServerError;
@@ -34,7 +31,6 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
-import io.realm.SyncCredentials;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.entities.Dog;
@@ -43,7 +39,6 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.PermissionOfferResponse;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
@@ -101,7 +96,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
         SyncConfiguration config1 = new SyncConfiguration.Builder(user1, user1RealmUrl).
                 errorHandler(new SyncSession.ErrorHandler() {
                     @Override
-                    public void onError(@Nonnull SyncSession session, @Nonnull ObjectServerError error) {
+                    public void onError(SyncSession session, ObjectServerError error) {
                         fail("Realm 1 unexpected error: " + error);
                     }
                 })

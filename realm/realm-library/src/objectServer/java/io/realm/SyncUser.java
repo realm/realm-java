@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.internal.RealmNotifier;
@@ -711,8 +710,8 @@ public class SyncUser {
     }
 
     public interface Callback {
-        void onSuccess(@Nonnull SyncUser user);
+        void onSuccess(SyncUser user);
 
-        void onError(@Nonnull ObjectServerError error);
+        void onError(ObjectServerError error);
     }
 }

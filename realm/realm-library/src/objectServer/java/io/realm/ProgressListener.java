@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import javax.annotation.Nonnull;
-
 
 /**
  * Interface used when interested in updates on data either being uploaded to or downloaded from
@@ -55,5 +53,5 @@ public interface ProgressListener {
      *
      * @param progress an immutable progress change event with information about current progress. This object is thread safe.
      */
-    void onChange(@Nonnull Progress progress);
+    void onChange(Progress progress);
 }

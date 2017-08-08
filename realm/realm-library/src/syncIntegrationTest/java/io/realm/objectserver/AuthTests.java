@@ -15,8 +15,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.Nonnull;
-
 import io.realm.BaseIntegrationTest;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
@@ -59,12 +57,12 @@ public class AuthTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
-            public void onSuccess(@Nonnull SyncUser user) {
+            public void onSuccess(SyncUser user) {
                 fail();
             }
 
             @Override
-            public void onError(@Nonnull ObjectServerError error) {
+            public void onError(ObjectServerError error) {
                 assertEquals(ErrorCode.INVALID_CREDENTIALS, error.getErrorCode());
                 looperThread.testComplete();
             }
@@ -77,7 +75,7 @@ public class AuthTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword("myUser", "password", true);
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
-            public void onSuccess(@Nonnull SyncUser user) {
+            public void onSuccess(SyncUser user) {
                 assertFalse(user.isAdmin());
                 try {
                     assertEquals(new URL(Constants.AUTH_URL), user.getAuthenticationUrl());
@@ -88,7 +86,7 @@ public class AuthTests extends BaseIntegrationTest {
             }
 
             @Override
-            public void onError(@Nonnull ObjectServerError error) {
+            public void onError(ObjectServerError error) {
                 fail(error.toString());
             }
         });
@@ -103,12 +101,12 @@ public class AuthTests extends BaseIntegrationTest {
         SyncCredentials credentials = SyncCredentials.accessToken(adminUser.getAccessToken().value(), "custom-admin-user", adminUser.isAdmin());
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
-            public void onSuccess(@Nonnull SyncUser user) {
+            public void onSuccess(SyncUser user) {
                 assertTrue(user.isAdmin());
                 final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
-                            public void onError(@Nonnull SyncSession session, @Nonnull ObjectServerError error) {
+                            public void onError(SyncSession session, ObjectServerError error) {
                                 fail("Session failed: " + error);
                             }
                         })
@@ -129,7 +127,7 @@ public class AuthTests extends BaseIntegrationTest {
             }
 
             @Override
-            public void onError(@Nonnull ObjectServerError error) {
+            public void onError(ObjectServerError error) {
                 fail("Login failed: " + error);
             }
         });
@@ -153,12 +151,12 @@ public class AuthTests extends BaseIntegrationTest {
                             SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
                             SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
                                 @Override
-                                public void onSuccess(@Nonnull SyncUser user) {
+                                public void onSuccess(SyncUser user) {
                                     fail();
                                 }
 
                                 @Override
-                                public void onError(@Nonnull ObjectServerError error) {
+                                public void onError(ObjectServerError error) {
                                     assertEquals(ErrorCode.INVALID_CREDENTIALS, error.getErrorCode());
                                     throw new IllegalArgumentException("BOOM");
                                 }
@@ -239,7 +237,7 @@ public class AuthTests extends BaseIntegrationTest {
         final String newPassword = "new-password";
         adminUser.changePasswordAsync(userOld.getIdentity(), newPassword, new SyncUser.Callback() {
             @Override
-            public void onSuccess(@Nonnull SyncUser administratorUser) {
+            public void onSuccess(SyncUser administratorUser) {
                 assertEquals(adminUser, administratorUser);
 
                 // Try to log in with new password
@@ -254,7 +252,7 @@ public class AuthTests extends BaseIntegrationTest {
             }
 
             @Override
-            public void onError(@Nonnull ObjectServerError error) {
+            public void onError(ObjectServerError error) {
                 fail(error.getErrorMessage());
             }
         });
@@ -570,7 +568,7 @@ public class AuthTests extends BaseIntegrationTest {
         final String identity = user.getIdentity();
         adminUser.retrieveUserAsync("password", username, new SyncUser.Callback() {
             @Override
-            public void onSuccess(@Nonnull SyncUser syncUser) {
+            public void onSuccess(SyncUser syncUser) {
 
                 assertNotNull(syncUser);
                 assertEquals(identity, syncUser.getIdentity());
@@ -580,7 +578,7 @@ public class AuthTests extends BaseIntegrationTest {
             }
 
             @Override
-            public void onError(@Nonnull ObjectServerError error) {
+            public void onError(ObjectServerError error) {
                 fail(error.getErrorMessage());
             }
         });
