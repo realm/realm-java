@@ -40,8 +40,10 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         realm.checkNotInSync(); // renaming a table is not permitted
         checkEmpty(className);
         String internalTableName = Table.getTableNameForClass(className);
-        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
-            throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: \'" + className + "\' (" + Integer.toString(className.length()) + ")");
+        if (className.length() > Table.CLASS_NAME_MAX_LENGTH) {
+            throw new IllegalArgumentException(String.format(Locale.US,
+                    "Class name is too long. Limit is %1$d characters: \'%2$s\' (%3$d)",
+                    Table.CLASS_NAME_MAX_LENGTH, className, className.length()));
         }
         if (realm.sharedRealm.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);

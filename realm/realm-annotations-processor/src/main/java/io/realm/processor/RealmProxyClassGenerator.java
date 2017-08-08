@@ -1621,6 +1621,8 @@ public class RealmProxyClassGenerator {
                         .beginControlFlow("if (%sList != null)", fieldName)
                             .emitStatement("RealmList<%s> %sRealmList = realmObjectCopy.%s()",
                                 genericType, fieldName, getter)
+                             // Clear is needed. See bug https://github.com/realm/realm-java/issues/4957
+                            .emitStatement("%sRealmList.clear()", fieldName)
                             .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
                                 .emitStatement("%1$s %2$sItem = %2$sList.get(i)", genericType, fieldName)
                                 .emitStatement("%1$s cache%2$s = (%1$s) cache.get(%2$sItem)", genericType, fieldName)

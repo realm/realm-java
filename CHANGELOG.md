@@ -1,4 +1,10 @@
-## 4.0.0-BETA1 (YYYY-MM-DD)
+## 4.0.0-BETA2 (2017-07-27)
+
+### Bug Fixes
+
+* [ObjectServer] Realm no longer throws a native “unsupported instruction” exception in some cases when opening a synced Realm asynchronously (https://github.com/realm/realm-object-store/issues/502).
+
+## 4.0.0-BETA1 (2017-07-13)
 
 ### Breaking Changes
 
@@ -25,7 +31,10 @@
 ### Enhancements
 
 * [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
+* [ObjectServer] APIs of `UserStore` have been changed to support same user identity but different authentication server scenario.
+* [ObjectServer] Added `SyncUser.allSessions` to retrive the all valid sessions belonging to the user (#4783).
 * Added `Nullable` annotation to methods that may return `null` in order to improve Kotlin usability. This also introduced a dependency to `com.google.code.findbugs:jsr305`.
+* Added support for new data type `MutableRealmIntegers`. The new type behaves almost exactly as a reference to a Long (mutable nullable, etc) but supports `increment` and `decrement` methods, which implement a Conflict Free Replicated Data Type, whose value will converge even when changed across distributed devices with poor connections (#4266).
 
 ### Bug Fixes
 
@@ -37,6 +46,9 @@
 ### Bug Fixes
 
 * Potential crash after using `Realm.getSchema()` to change the schema of a typed Realm. `Realm.getSchema()` now returns an immutable `RealmSchema` instance.
+* `Realm.copyToRealmOrUpdate()` might cause a `RealmList` field to contain duplicated elements (#4957).
+* `RealmSchema.create(String)` and `RealmObjectSchema.setClassName(String)` did not accept class name whose length was 51 to 57.
+* Workaround for a Android JVM crash when using 'compactOnLaunch()' (#4964).
 
 ### Internal
 

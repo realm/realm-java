@@ -23,6 +23,7 @@
 #include "java_sort_descriptor.hpp"
 #include "util.hpp"
 
+#include "jni_util/java_class.hpp"
 #include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/java_method.hpp"
 
@@ -285,7 +286,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeStartListening(JN
 {
     TR_ENTER_PTR(native_ptr)
 
-    static JavaMethod notify_change_listeners(env, instance, "notifyChangeListeners", "(J)V");
+    static JavaClass os_results_class(env, "io/realm/internal/Collection");
+    static JavaMethod notify_change_listeners(env, os_results_class, "notifyChangeListeners", "(J)V");
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);

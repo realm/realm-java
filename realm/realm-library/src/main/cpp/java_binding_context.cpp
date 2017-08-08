@@ -15,6 +15,7 @@
  */
 
 #include "java_binding_context.hpp"
+#include "jni_util/java_class.hpp"
 #include "jni_util/java_method.hpp"
 
 #include "util.hpp"
@@ -31,7 +32,7 @@ void JavaBindingContext::before_notify()
     if (m_java_notifier) {
         m_java_notifier.call_with_local_ref([&](JNIEnv* env, jobject notifier_obj) {
             // Method IDs from RealmNotifier implementation. Cache them as member vars.
-            static JavaMethod notify_by_other_method(env, notifier_obj, "beforeNotify", "()V");
+            static JavaMethod notify_by_other_method(env, get_notifier_class(env), "beforeNotify", "()V");
             env->CallVoidMethod(notifier_obj, notify_by_other_method);
         });
     }
@@ -47,8 +48,14 @@ void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> c
     }
     if (version_changed) {
         m_java_notifier.call_with_local_ref(env, [&](JNIEnv*, jobject notifier_obj) {
-            static JavaMethod realm_notifier_did_change_method(env, notifier_obj, "didChange", "()V");
+            static JavaMethod realm_notifier_did_change_method(env, get_notifier_class(env), "didChange", "()V");
             env->CallVoidMethod(notifier_obj, realm_notifier_did_change_method);
         });
     }
+}
+
+JavaClass const& JavaBindingContext::get_notifier_class(JNIEnv* env)
+{
+    static JavaClass notifier_class(env, "io/realm/internal/RealmNotifier");
+    return notifier_class;
 }
