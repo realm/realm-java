@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 import java.util.Date;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
@@ -37,7 +38,7 @@ public class PendingRow implements Row {
     private WeakReference<FrontEnd> frontEndRef;
     private boolean returnCheckedRow;
 
-    public PendingRow(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor,
+    public PendingRow(SharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor,
             final boolean returnCheckedRow) {
         this.sharedRealm = sharedRealm;
         pendingCollection = new Collection(sharedRealm, query, sortDescriptor, null);

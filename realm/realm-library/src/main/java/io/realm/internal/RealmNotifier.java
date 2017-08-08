@@ -53,6 +53,7 @@ public abstract class RealmNotifier implements Closeable {
         }
 
         private void onChange(T observer) {
+            //noinspection ConstantConditions
             if (observer != null) {
                 listener.onChange(observer);
             }

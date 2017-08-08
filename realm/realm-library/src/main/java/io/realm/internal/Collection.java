@@ -20,7 +20,7 @@ import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.NoSuchElementException;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
@@ -63,7 +63,7 @@ public class Collection implements NativeObject {
         }
 
         @Override
-        public void onChange(@Nonnull T collection, @Nonnull OrderedCollectionChangeSet changes) {
+        public void onChange(T collection, OrderedCollectionChangeSet changes) {
             listener.onChange(collection);
         }
 
@@ -341,7 +341,7 @@ public class Collection implements NativeObject {
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query,
-            SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
+            @Nullable SortDescriptor sortDescriptor, @Nullable SortDescriptor distinctDescriptor) {
         query.validateQuery();
 
         this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
@@ -563,7 +563,7 @@ public class Collection implements NativeObject {
     private static native long nativeGetFinalizerPtr();
 
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
-            SortDescriptor sortDesc, SortDescriptor distinctDesc);
+            @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
 
     private static native long nativeCreateResultsFromLinkView(long sharedRealmNativePtr, long linkViewPtr,
             SortDescriptor sortDesc);

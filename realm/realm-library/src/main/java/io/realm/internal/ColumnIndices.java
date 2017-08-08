@@ -151,7 +151,7 @@ public final class ColumnIndices {
      * the same the corresponding data in the passed instance or IllegalStateException will be thrown.
      * It is allowable for the passed ColumnIndices to contain information this instance does not.
      * <p>
-     * NOTE: copying does not change this instance's mutablity state.
+     * NOTE: copying does not change this instance's mutability state.
      *
      * @param src the instance to copy.
      * @throws UnsupportedOperationException if this instance is immutable.
