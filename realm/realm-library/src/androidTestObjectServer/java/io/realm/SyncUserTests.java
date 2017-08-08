@@ -34,7 +34,9 @@ import org.mockito.stubbing.Answer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.UUID;
 
 import io.realm.internal.network.AuthenticateResponse;
@@ -355,5 +357,50 @@ public class SyncUserTests {
 
         thrown.expect(IllegalStateException.class);
         user.changePassword("user-id", "new-password");
+    }
+
+    @Test
+    public void allSessions() {
+        String url1 = "realm://objectserver.realm.io/default";
+        String url2 = "realm://objectserver.realm.io/~/default";
+
+        SyncUser user = createTestUser();
+        assertEquals(0, user.allSessions().size());
+
+        SyncConfiguration configuration1 = new SyncConfiguration.Builder(user, url1).build();
+        Realm realm1 = Realm.getInstance(configuration1);
+        List<SyncSession> allSessions = user.allSessions();
+        assertEquals(1, allSessions.size());
+        Iterator<SyncSession> iter = allSessions.iterator();
+        SyncSession session = iter.next();
+        assertEquals(user, session.getUser());
+        assertEquals(url1, session.getServerUrl().toString());
+
+        SyncConfiguration configuration2 = new SyncConfiguration.Builder(user, url2).build();
+        Realm realm2 = Realm.getInstance(configuration2);
+        allSessions = user.allSessions();
+        assertEquals(2, allSessions.size());
+        iter = allSessions.iterator();
+        String individualUrl = url2.replace("~", user.getIdentity());
+        int foundCount = 0;
+        while (iter.hasNext()) {
+            session = iter.next();
+            assertEquals(user, session.getUser());
+            if (individualUrl.equals(session.getServerUrl().toString())) {
+                foundCount++;
+            }
+        }
+        assertEquals(1, foundCount);
+        realm1.close();
+
+        allSessions = user.allSessions();
+        assertEquals(1, allSessions.size());
+        iter = allSessions.iterator();
+        session = iter.next();
+        assertEquals(user, session.getUser());
+        assertEquals(individualUrl, session.getServerUrl().toString());
+
+        realm2.close();
+        assertEquals(0, user.allSessions().size());
     }
 }

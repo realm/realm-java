@@ -42,7 +42,9 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -323,6 +325,50 @@ public class RealmSchemaTests {
 
         objectSchema.addPrimaryKey(PrimaryKeyAsString.FIELD_PRIMARY_KEY);
         assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, objectSchema.getPrimaryKey());
+    }
+
+    @Test
+    public void remove_shouldClearDynamicCache() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
+        realmSchema.create("foo");
+        // getSchemaForClass is an internal method, but used from DynamicRealmObject and RealmQuery
+        final RealmObjectSchema previousFoo = realmSchema.getSchemaForClass("foo");
+
+        realmSchema.remove("foo");
+
+        realmSchema.create("foo");
+        final RealmObjectSchema newFoo = realmSchema.getSchemaForClass("foo");
+
+        assertNotSame(previousFoo, newFoo);
+
+        try {
+            previousFoo.getClassName();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        assertEquals("foo", newFoo.getClassName());
+    }
+
+    @Test
+    public void rename_shouldUpdateDynamicCache() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
+        realmSchema.create("foo");
+        // getSchemaForClass is an internal method, but used from DynamicRealmObject and RealmQuery
+        final RealmObjectSchema foo = realmSchema.getSchemaForClass("foo");
+
+        realmSchema.rename("foo", "bar");
+
+        final RealmObjectSchema bar = realmSchema.getSchemaForClass("bar");
+
+        assertSame(foo, bar);
+        assertEquals("bar", bar.getClassName());
     }
 
     @Test

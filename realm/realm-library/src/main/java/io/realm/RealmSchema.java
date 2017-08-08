@@ -21,6 +21,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
@@ -76,6 +78,7 @@ public abstract class RealmSchema {
      * @param className name of the class
      * @return schema object for that class or {@code null} if the class doesn't exists.
      */
+    @Nullable
     public abstract RealmObjectSchema get(String className);
 
     /**
@@ -207,7 +210,7 @@ public abstract class RealmSchema {
     RealmObjectSchema getSchemaForClass(String className) {
         String tableName = Table.getTableNameForClass(className);
         RealmObjectSchema dynamicSchema = dynamicClassToSchema.get(tableName);
-        if (dynamicSchema == null) {
+        if (dynamicSchema == null || !dynamicSchema.getTable().isValid() || !dynamicSchema.getClassName().equals(className)) {
             if (!realm.getSharedRealm().hasTable(tableName)) {
                 throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
@@ -265,7 +268,7 @@ public abstract class RealmSchema {
      * @return a new, thread-safe copy of this Schema's ColumnIndices.
      * @see ColumnIndices for the effectively final contract.
      */
-    final ColumnIndices getImmutableColumnIndicies() {
+    final ColumnIndices getImmutableColumnIndices() {
         checkIndices();
         return new ColumnIndices(columnIndices, false);
     }
@@ -287,6 +290,14 @@ public abstract class RealmSchema {
     protected final ColumnInfo getColumnInfo(String className) {
         checkIndices();
         return columnIndices.getColumnInfo(className);
+    }
+
+    final void putToClassNameToSchemaMap(String name, RealmObjectSchema objectSchema) {
+        dynamicClassToSchema.put(name, objectSchema);
+    }
+
+    final RealmObjectSchema removeFromClassNameToSchemaMap(String name) {
+        return dynamicClassToSchema.remove(name);
     }
 
     private void checkIndices() {

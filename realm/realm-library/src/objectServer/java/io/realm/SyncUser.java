@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -269,7 +270,7 @@ public class SyncUser {
                 }
             }
 
-            SyncManager.getUserStore().remove(syncUser.getIdentity());
+            SyncManager.getUserStore().remove(syncUser.getIdentity(), getAuthenticationUrl().toString());
 
             // Delete all Realms if needed.
             for (ObjectServerUser.AccessDescription desc : syncUser.getRealms()) {
@@ -465,7 +466,7 @@ public class SyncUser {
                 throw response.getError();
             }
         } else {
-            SyncUser syncUser = SyncManager.getUserStore().get(response.getUserId());
+            SyncUser syncUser = SyncManager.getUserStore().get(response.getUserId(), getAuthenticationUrl().toString());
             if (syncUser != null) {
                 return syncUser;
             } else {
@@ -535,7 +536,8 @@ public class SyncUser {
      */
     public boolean isValid() {
         Token userToken = getSyncUser().getUserToken();
-        return userToken != null && userToken.expiresMs() > System.currentTimeMillis() && SyncManager.getUserStore().isActive(syncUser.getIdentity());
+        return userToken != null && userToken.expiresMs() > System.currentTimeMillis() &&
+                SyncManager.getUserStore().isActive(getIdentity(), getAuthenticationUrl().toString());
     }
 
     /**
@@ -580,6 +582,15 @@ public class SyncUser {
      */
     public Realm getManagementRealm() {
         return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(syncUser, this));
+    }
+
+    /**
+     * Returns all the valid sessions belonging to the user.
+     *
+     * @return the all valid sessions belong to the user.
+     */
+    public List<SyncSession> allSessions() {
+        return SyncManager.getAllSessions(this);
     }
 
     /**
