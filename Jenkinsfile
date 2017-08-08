@@ -4,7 +4,7 @@ import groovy.json.JsonOutput
 
 def buildSuccess = false
 def rosContainer
-def gradleOptions = "--console=plain --no-daemon"
+def gradleOptions = "--no-daemon"
 try {
   node('android') {
     timeout(time: 1, unit: 'HOURS') {
