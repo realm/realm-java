@@ -16,7 +16,6 @@
 
 package io.realm.objectserver;
 
-import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Rule;
@@ -57,7 +56,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
     @Rule
     public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
-    @NonNull
+    @Nonnull
     private SyncConfiguration createSyncConfig() {
         SyncUser user = UserFactory.createAdminUser(Constants.AUTH_URL);
         return configFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL).build();
@@ -90,7 +89,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         final SyncSession session = SyncManager.getSession(config);
         session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
             @Override
-            public void onChange(@Nonnull Progress progress) {
+            public void onChange(Progress progress) {
                 if (progress.isTransferComplete()) {
                     session.removeProgressListener(this);
                     changesUploaded.countDown();
@@ -114,7 +113,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         SyncSession session = SyncManager.getSession(config);
         session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
             @Override
-            public void onChange(@Nonnull Progress progress) {
+            public void onChange(Progress progress) {
                 if (progress.isTransferComplete()) {
                     assertTransferComplete(progress, true);
                     Realm realm = Realm.getInstance(config);
@@ -157,7 +156,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         SyncSession session = SyncManager.getSession(adminConfig);
         session.addDownloadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
             @Override
-            public void onChange(@Nonnull Progress progress) {
+            public void onChange(Progress progress) {
                 if (progress.isTransferComplete()) {
                     switch (transferCompleted.incrementAndGet()) {
                         case 1:
@@ -206,7 +205,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         SyncSession session = SyncManager.getSession(config);
         session.addUploadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
             @Override
-            public void onChange(@Nonnull Progress progress) {
+            public void onChange(Progress progress) {
                 if (progress.isTransferComplete()) {
                     switch(transferCompleted.incrementAndGet()) {
                         case 1:
@@ -240,7 +239,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         SyncSession session = SyncManager.getSession(config);
         session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
             @Override
-            public void onChange(@Nonnull Progress progress) {
+            public void onChange(Progress progress) {
                 if (progress.isTransferComplete()) {
                     assertTransferComplete(progress, true);
                     allChangeUploaded.countDown();
@@ -263,7 +262,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         SyncSession session = SyncManager.getSession(config);
         session.addUploadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
             @Override
-            public void onChange(@Nonnull Progress progress) {
+            public void onChange(Progress progress) {
                 if (progress.isTransferComplete()) {
                     switch(transferCompleted.incrementAndGet()) {
                         case 1:
@@ -303,7 +302,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
                     realm.close();
                     session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
                         @Override
-                        public void onChange(@Nonnull Progress progress) {
+                        public void onChange(Progress progress) {
                             if (progress.isTransferComplete()) {
                                 allChangeUploaded.countDown();
                             }
@@ -328,7 +327,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         final SyncSession session = SyncManager.getSession(config);
         session.addUploadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
             @Override
-            public void onChange(@Nonnull Progress progress) {
+            public void onChange(Progress progress) {
                 if (progress.isTransferComplete()) {
                     allChangeUploaded.countDown();
                     if (progressCompletedReported.compareAndSet(false, true)) {
@@ -337,7 +336,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
                         realm.close();
                         session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
                             @Override
-                            public void onChange(@Nonnull Progress progress) {
+                            public void onChange(Progress progress) {
                                 if (progress.isTransferComplete()) {
                                     allChangeUploaded.countDown();
                                 }
@@ -375,7 +374,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
             final int testNo = i;
             session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
                 @Override
-                public void onChange(@Nonnull Progress progress) {
+                public void onChange(Progress progress) {
                     RealmLog.info("Test %s -> %s", Integer.toString(testNo), progress.toString());
                     if (progress.isTransferComplete()) {
                         assertTransferComplete(progress, true);
@@ -393,7 +392,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         final CountDownLatch listenerCalled = new CountDownLatch(1);
         session.addDownloadProgressListener(progressMode, new ProgressListener() {
             @Override
-            public void onChange(@Nonnull Progress progress) {
+            public void onChange(Progress progress) {
                 listenerCalled.countDown();
             }
         });
