@@ -160,6 +160,9 @@ save () {
     echo " "
 }
 APP_ARGS=$(save "$@")
+# Realm's work-around for a bug in Gradle 4.1 https://github.com/gradle/gradle/issues/2673
+APP_ARGS="${APP_ARGS} '--console=plain' \\
+ "
 
 # Collect all arguments for the java command, following the shell quoting and substitution rules
 eval set -- $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS "\"-Dorg.gradle.appname=$APP_BASE_NAME\"" -classpath "\"$CLASSPATH\"" org.gradle.wrapper.GradleWrapperMain "$APP_ARGS"
