@@ -237,7 +237,7 @@ public class SyncManager {
      * @param syncUser the user to use.
      * @return the all valid sessions belonging to the user.
      */
-    static synchronized List<SyncSession> getAllSessions(SyncUser syncUser) {
+    static List<SyncSession> getAllSessions(SyncUser syncUser) {
         if (syncUser == null) {
             throw new IllegalArgumentException("A non-empty 'syncUser' is required.");
         }
