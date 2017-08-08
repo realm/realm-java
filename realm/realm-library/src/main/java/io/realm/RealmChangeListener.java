@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import javax.annotation.Nonnull;
-
 
 /**
  * RealmChangeListener can be registered with a {@link Realm}, {@link RealmResults} or {@link RealmObject}
@@ -45,6 +43,5 @@ public interface RealmChangeListener<T> {
     /**
      * Called when a transaction is committed.
      */
-    void onChange(@Nonnull T t);
-
+    void onChange(T t);
 }

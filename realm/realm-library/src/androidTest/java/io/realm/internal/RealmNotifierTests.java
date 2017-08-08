@@ -27,8 +27,6 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.annotation.Nonnull;
-
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.internal.android.AndroidRealmNotifier;
@@ -95,7 +93,7 @@ public class RealmNotifierTests {
         SharedRealm sharedRealm = getSharedRealm(looperThread.getConfiguration());
         sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
             @Override
-            public void onChange(@Nonnull SharedRealm sharedRealm) {
+            public void onChange(SharedRealm sharedRealm) {
                 // Transaction has been committed in core, but commitTransaction hasn't returned in java.
                 assertFalse(commitReturns.get());
                 looperThread.testComplete();
@@ -134,7 +132,7 @@ public class RealmNotifierTests {
         looperThread.keepStrongReference(sharedRealm);
         sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
             @Override
-            public void onChange(@Nonnull SharedRealm sharedRealm) {
+            public void onChange(SharedRealm sharedRealm) {
                 int commits = commitCounter.get();
                 int listenerCount = listenerCounter.addAndGet(1);
                 assertEquals(commits, listenerCount);
@@ -160,13 +158,13 @@ public class RealmNotifierTests {
         looperThread.keepStrongReference(sharedRealm);
         sharedRealm.realmNotifier.addChangeListener(dummyObserver, new RealmChangeListener<Integer>() {
             @Override
-            public void onChange(@Nonnull Integer dummy) {
+            public void onChange(Integer dummy) {
                 fail();
             }
         });
         sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
             @Override
-            public void onChange(@Nonnull SharedRealm sharedRealm) {
+            public void onChange(SharedRealm sharedRealm) {
                 sharedRealm.close();
                 looperThread.testComplete();
             }
