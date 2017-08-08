@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Locale;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.internal.Collection;
@@ -225,7 +224,6 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      * @see ListIterator
      */
     @Override
-    @Nonnull
     public ListIterator<E> listIterator() {
         return new RealmCollectionListIterator(0);
     }
