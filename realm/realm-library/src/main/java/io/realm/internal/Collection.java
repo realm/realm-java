@@ -355,7 +355,7 @@ public class Collection implements NativeObject {
         this.loaded = false;
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor) {
+    public Collection(SharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor) {
         this(sharedRealm, query, sortDescriptor, null);
     }
 
@@ -363,7 +363,7 @@ public class Collection implements NativeObject {
         this(sharedRealm, query, null, null);
     }
 
-    public Collection(SharedRealm sharedRealm, LinkView linkView, SortDescriptor sortDescriptor) {
+    public Collection(SharedRealm sharedRealm, LinkView linkView, @Nullable SortDescriptor sortDescriptor) {
         this.nativePtr = nativeCreateResultsFromLinkView(sharedRealm.getNativePtr(), linkView.getNativePtr(),
                 sortDescriptor);
 
@@ -566,7 +566,7 @@ public class Collection implements NativeObject {
             @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
 
     private static native long nativeCreateResultsFromLinkView(long sharedRealmNativePtr, long linkViewPtr,
-            SortDescriptor sortDesc);
+            @Nullable SortDescriptor sortDesc);
 
     private static native long nativeCreateSnapshot(long nativePtr);
 

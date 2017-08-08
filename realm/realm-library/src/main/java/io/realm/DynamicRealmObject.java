@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.exceptions.RealmException;
@@ -348,8 +349,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
             LinkView linkView = proxyState.getRow$realm().getLinkList(columnIndex);
+            //noinspection ConstantConditions
+            @Nonnull
             String className = linkView.getTargetTable().getClassName();
-            assert className != null;
             return new RealmList<>(className, linkView, proxyState.getRealm$realm());
         } catch (IllegalArgumentException e) {
             checkFieldType(fieldName, columnIndex, RealmFieldType.LIST);
@@ -713,8 +715,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         LinkView links = proxyState.getRow$realm().getLinkList(columnIndex);
         Table linkTargetTable = links.getTargetTable();
+        //noinspection ConstantConditions
+        @Nonnull
         final String linkTargetTableName = linkTargetTable.getClassName();
-        assert linkTargetTableName != null;
 
         boolean typeValidated;
         if (list.className == null && list.clazz == null) {

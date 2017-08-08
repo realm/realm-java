@@ -863,7 +863,8 @@ public class Table implements TableSchema, NativeObject {
         return nativeVersion(nativePtr);
     }
 
-    public static String getClassNameForTable(String name) {
+    @Nullable
+    public static String getClassNameForTable(@Nullable String name) {
         if (name == null) { return null; }
         if (!name.startsWith(TABLE_PREFIX)) {
             return name;

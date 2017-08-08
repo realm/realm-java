@@ -144,7 +144,8 @@ final class RealmCache {
                         if (instanceToReturn != null) {
                             callback.onSuccess(instanceToReturn);
                         } else {
-                            assert throwable != null;
+                            // throwable is non-null
+                            //noinspection ConstantConditions
                             callback.onError(throwable);
                         }
                     }

@@ -253,8 +253,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             RealmObjectProxy proxy = (RealmObjectProxy) object;
 
             if (proxy instanceof DynamicRealmObject) {
+                //noinspection ConstantConditions
+                @Nonnull
                 String listClassName = view.getTargetTable().getClassName();
-                assert listClassName != null;
                 if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
                     String objectClassName = ((DynamicRealmObject) object).getType();
                     if (listClassName.equals(objectClassName)) {
@@ -839,7 +840,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
                     new io.realm.internal.Collection(realm.sharedRealm, view, null),
                     className);
         } else {
-            assert clazz != null;
+            // 'clazz' is non-null when 'dynamicClassName' is null.
+            //noinspection ConstantConditions
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
                     new io.realm.internal.Collection(realm.sharedRealm, view, null),
@@ -851,7 +853,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public String toString() {
         StringBuilder sb = new StringBuilder();
         if (isManaged()) {
-            assert className != null || clazz != null;
+            // 'clazz' is non-null when 'dynamicClassName' is null.
+            //noinspection ConstantConditions
             sb.append(className != null ? className : realm.getSchema().getSchemaForClass(clazz).getClassName());
         } else {
             sb.append(getClass().getSimpleName());

@@ -20,6 +20,7 @@ package io.realm;
 import android.annotation.SuppressLint;
 import android.os.Looper;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.internal.CheckedRow;
@@ -74,7 +75,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     // Abandon typing information, all ye who enter here
     static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
         final String srcClassName = Table.getClassNameForTable(srcTable.getName());
-        assert srcClassName != null;
+        //noinspection ConstantConditions
         return new RealmResults<>(
                 realm,
                 Collection.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),

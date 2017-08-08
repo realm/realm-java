@@ -517,7 +517,6 @@ abstract class BaseRealm implements Closeable {
     // Used by RealmList/RealmResults, to create RealmObject from a Collection.
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
     <E extends RealmModel> E get(@Nullable Class<E> clazz, @Nullable String dynamicClassName, UncheckedRow row) {
-        assert clazz != null || dynamicClassName != null;
         final boolean isDynamicRealmObject = dynamicClassName != null;
 
         E result;
@@ -525,6 +524,8 @@ abstract class BaseRealm implements Closeable {
             //noinspection unchecked
             result = (E) new DynamicRealmObject(this, CheckedRow.getFromRow(row));
         } else {
+            // 'clazz' is non-null when 'dynamicClassName' is null.
+            //noinspection ConstantConditions
             result = configuration.getSchemaMediator().newInstance(clazz, this, row, getSchema().getColumnInfo(clazz),
                     false, Collections.<String>emptyList());
         }
@@ -542,8 +543,9 @@ abstract class BaseRealm implements Closeable {
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
     // TODO: Remove this after RealmList is backed by OS Results.
     <E extends RealmModel> E get(@Nullable Class<E> clazz, @Nullable String dynamicClassName, long rowIndex) {
-        assert clazz != null || dynamicClassName != null;
         final boolean isDynamicRealmObject = dynamicClassName != null;
+        // 'clazz' is non-null when 'dynamicClassName' is null.
+        //noinspection ConstantConditions
         final Table table = isDynamicRealmObject ? getSchema().getTable(dynamicClassName) : getSchema().getTable(clazz);
 
         E result;

@@ -40,8 +40,6 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     }
 
     private OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, @Nullable Class<E> clazz, @Nullable String className) {
-        assert clazz != null || className != null;
-
         this.realm = realm;
         this.collection = collection;
         this.classSpec = clazz;
@@ -546,7 +544,8 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         if (className != null) {
             return new OrderedRealmCollectionSnapshot<E>(realm, collection, className);
         } else {
-            assert classSpec != null;
+            // 'classSpec' is non-null when 'className' is null.
+            //noinspection ConstantConditions
             return new OrderedRealmCollectionSnapshot<E>(realm, collection, classSpec);
         }
     }
@@ -568,7 +567,8 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         if (className != null) {
             results = new RealmResults<E>(realm, newCollection, className);
         } else {
-            assert classSpec != null;
+            // 'classSpec' is non-null when 'className' is null.
+            //noinspection ConstantConditions
             results = new RealmResults<E>(realm, newCollection, classSpec);
         }
         results.load();
