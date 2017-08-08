@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import javax.annotation.Nullable;
-
 import io.realm.log.RealmLog;
 
 
