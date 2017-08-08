@@ -49,7 +49,7 @@ public abstract class RealmSchema {
     // Caches Class objects (both model classes and proxy classes) to their Schema object
     private final Map<Class<? extends RealmModel>, RealmObjectSchema> classToSchema = new HashMap<>();
     // Caches Class Strings to their Schema object
-    final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
+    private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
 
     final BaseRealm realm;
     // Cached field look up
@@ -265,7 +265,7 @@ public abstract class RealmSchema {
      * @return a new, thread-safe copy of this Schema's ColumnIndices.
      * @see ColumnIndices for the effectively final contract.
      */
-    final ColumnIndices getImmutableColumnIndicies() {
+    final ColumnIndices getImmutableColumnIndices() {
         checkIndices();
         return new ColumnIndices(columnIndices, false);
     }
@@ -287,6 +287,14 @@ public abstract class RealmSchema {
     protected final ColumnInfo getColumnInfo(String className) {
         checkIndices();
         return columnIndices.getColumnInfo(className);
+    }
+
+    final void putToClassNameToSchemaMap(String name, RealmObjectSchema objectSchema) {
+        dynamicClassToSchema.put(name, objectSchema);
+    }
+
+    final RealmObjectSchema removeFromClassNameToSchemaMap(String name) {
+        return dynamicClassToSchema.remove(name);
     }
 
     private void checkIndices() {
