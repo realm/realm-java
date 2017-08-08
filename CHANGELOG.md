@@ -873,7 +873,7 @@ No changes since 0.91.1.
 * Updated Realm Core to 0.95.6
   - Fixed a bug where an async query can be copied incomplete in rare cases (#1717).
 * Fixed potential memory leak when using async query.
-* Added a check to prevent removing a RealmChangeListener from a non-Looper thread (#1962) (Thank you @hohnamkung).
+* Added a check to prevent removing a RealmChangeListener from a non-Looper thread (#1962). (Thank you @hohnamkung.)
 
 ## 0.87.0 (2015-12-17)
 * Added Realm.asObservable(), RealmResults.asObservable(), RealmObject.asObservable(), DynamicRealm.asObservable() and DynamicRealmObject.asObservable().
@@ -923,7 +923,7 @@ No changes since 0.91.1.
 * Added Realm.isEmpty().
 * Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (unmanaged, removed, closed, from different Realm) object (#1749).
 * Attempting to refresh a Realm while a transaction is in process will now throw an IllegalStateException (#1712).
-* The Realm AAR now also contains the ProGuard configuration (#1767) (Thank you @skyisle).
+* The Realm AAR now also contains the ProGuard configuration (#1767). (Thank you @skyisle.)
 * Updated Realm Core to 0.95.
   - Removed reliance on POSIX signals when using encryption.
 
@@ -945,7 +945,7 @@ No changes since 0.91.1.
 
 ## 0.84.0 (2015-10-22)
 * Added support for async queries and transactions.
-* Added support for parsing JSON Dates with timezone information (Thank you @LateralKevin).
+* Added support for parsing JSON Dates with timezone information. (Thank you @LateralKevin.)
 * Added RealmQuery.isEmpty().
 * Added Realm.isClosed() method.
 * Added Realm.distinct() method.
@@ -1017,7 +1017,7 @@ No changes since 0.91.1.
 * Deprecated Realm.deleteFile(). It has been replaced by Realm.deleteRealm(RealmConfiguration).
 * Deprecated Realm.compactFile(). It has been replaced by Realm.compactRealm(RealmConfiguration).
 * RealmList.add(), RealmList.addAt() and RealmList.set() now copy unmanaged objects transparently into Realm.
-* Realm now works with Kotlin (M12+) (Thank you @cypressious).
+* Realm now works with Kotlin (M12+). (Thank you @cypressious.)
 * Fixed a performance regression introduced in 0.80.3 occurring during the validation of the Realm schema.
 * Added a check to give a better error message when null is used as value for a primary key.
 * Fixed unchecked cast warnings when building with Realm.
@@ -1031,11 +1031,11 @@ No changes since 0.91.1.
 * RealmChangedListener now also gets called on the same thread that did the commit.
 * Fixed bug where Realm.createOrUpdateWithJson() reset Date and Binary data to default values if not found in the JSON output.
 * Fixed a memory leak when using RealmBaseAdapter.
-* RealmBaseAdapter now allow RealmResults to be null (Thanks @zaki50).
+* RealmBaseAdapter now allow RealmResults to be null. (Thanks @zaki50.)
 * Fixed a bug where a change to a model class (`RealmList<A>` to `RealmList<B>`) would not throw a RealmMigrationNeededException.
 * Fixed a bug where setting multiple RealmLists didn't remove the previously added objects.
-* Solved ConcurrentModificationException thrown when addChangeListener/removeChangeListener got called in the onChange (Thanks @beeender).
-* Fixed duplicated listeners in the same realm instance. Trying to add duplicated listeners is ignored now (Thanks @beeender).
+* Solved ConcurrentModificationException thrown when addChangeListener/removeChangeListener got called in the onChange. (Thanks @beeender)
+* Fixed duplicated listeners in the same realm instance. Trying to add duplicated listeners is ignored now. (Thanks @beeender)
 
 ## 0.80.2 (2015-05-04)
 * Trying to use Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
