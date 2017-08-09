@@ -156,8 +156,9 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     /**
-     * Callback function to be called by Object Store when the schema is changed.
+     * Callback function to be called from JNI by Object Store when the schema is changed.
      */
+    @SuppressWarnings("unused")
     public interface SchemaChangedCallback {
         void onSchemaChanged();
     }

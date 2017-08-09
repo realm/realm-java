@@ -37,6 +37,7 @@ public class OsRealmConfig implements NativeObject {
 
     public enum SchemaMode {
         SCHEMA_MODE_AUTOMATIC(SCHEMA_MODE_VALUE_AUTOMATIC),
+        SCHEMA_MODE_IMMUTABLE(SCHEMA_MODE_VALUE_IMMUTABLE),
         SCHEMA_MODE_READONLY(SCHEMA_MODE_VALUE_READONLY),
         SCHEMA_MODE_RESET_FILE(SCHEMA_MODE_VALUE_RESET_FILE),
         SCHEMA_MODE_ADDITIVE(SCHEMA_MODE_VALUE_ADDITIVE),
@@ -126,10 +127,11 @@ public class OsRealmConfig implements NativeObject {
     }
 
     private static final byte SCHEMA_MODE_VALUE_AUTOMATIC = 0;
-    private static final byte SCHEMA_MODE_VALUE_READONLY = 1;
-    private static final byte SCHEMA_MODE_VALUE_RESET_FILE = 2;
-    private static final byte SCHEMA_MODE_VALUE_ADDITIVE = 3;
-    private static final byte SCHEMA_MODE_VALUE_MANUAL = 4;
+    private static final byte SCHEMA_MODE_VALUE_IMMUTABLE = 1;
+    private static final byte SCHEMA_MODE_VALUE_READONLY = 2;
+    private static final byte SCHEMA_MODE_VALUE_RESET_FILE = 3;
+    private static final byte SCHEMA_MODE_VALUE_ADDITIVE = 4;
+    private static final byte SCHEMA_MODE_VALUE_MANUAL = 5;
 
     private final static long nativeFinalizerPtr = nativeGetFinalizerPtr();
 

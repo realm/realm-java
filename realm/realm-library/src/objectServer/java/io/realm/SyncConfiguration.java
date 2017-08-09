@@ -702,12 +702,18 @@ private final URI serverUrl;
         }
 
         /**
-         * @deprecated readOnly is not supported by Synced Realm.
-         * @throws UnsupportedOperationException this is not supported by synced Realm.
+         * Setting this will cause the Realm to become read only and all write transactions made against this Realm will
+         * fail with an {@link IllegalStateException}.
+         * <p>
+         * This in particular mean that {@link #initialData(Realm.Transaction)} will not work in combination with a
+         * read only Realm and setting this will result in a {@link IllegalStateException} being thrown.
+         * </p>
+         * Marking a Realm as read only only applies to the Realm in this process. Other processes and devices can still
+         * write to the Realm.
          */
-        @Deprecated
         public SyncConfiguration.Builder readOnly() {
-            throw new UnsupportedOperationException("'readOnly()' is not supported by synced Realm.");
+            this.readOnly = true;
+            return this;
         }
 
         private String MD5(String in) {
