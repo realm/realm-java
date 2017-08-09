@@ -571,13 +571,9 @@ public class SyncUser {
     }
 
     /**
-     * Returns an instance of the Management Realm owned by the user.
-     * <p>
-     * This Realm can be used to control access and permissions for Realms owned by the user. This includes
-     * giving other users access to Realms.
-     *
-     * @see <a href="https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
+     * Use {@link #getPermissionManager()} instead.
      */
+    @Deprecated
     public Realm getManagementRealm() {
         return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(this));
     }
