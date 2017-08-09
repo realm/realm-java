@@ -108,9 +108,8 @@ public class SyncedRealmMigrationTests {
         RealmObjectSchema stringOnlySchema = realm.getSchema().get(className);
         try {
             assertTrue(stringOnlySchema.hasField(StringOnly.FIELD_CHARS));
-            // TODO Field is currently hidden, but should the field be visible in the schema
-            assertFalse(stringOnlySchema.hasField("newField"));
-            assertEquals(1, stringOnlySchema.getFieldNames().size());
+            assertTrue(stringOnlySchema.hasField("newField"));
+            assertEquals(2, stringOnlySchema.getFieldNames().size());
         } finally {
             realm.close();
         }
@@ -279,17 +278,18 @@ public class SyncedRealmMigrationTests {
                 .build();
 
         // Initialize schema
-        Realm realm = Realm.getInstance(config);
-        realm.beginTransaction();
-        RealmObjectSchema objectSchema = realm.getSchema().getSchemaForClass(StringOnly.class);
+        Realm.getInstance(config).close();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
+        dynamicRealm.beginTransaction();
+        RealmObjectSchema objectSchema = dynamicRealm.getSchema().get(StringOnly.CLASS_NAME);
         // Add one extra field which doesn't exist in the typed Realm.
         objectSchema.addField("oneMoreField", int.class);
-        realm.commitTransaction();
+        dynamicRealm.commitTransaction();
         // Clear column indices cache.
-        realm.close();
+        dynamicRealm.close();
 
         // Verify schema again.
-        realm = Realm.getInstance(config);
+        Realm realm = Realm.getInstance(config);
         realm.close();
     }
 }

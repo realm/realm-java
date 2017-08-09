@@ -59,12 +59,13 @@ public class SyncManagerTests {
             }
 
             @Override
-            public SyncUser get(String identity) {
+            public SyncUser get(String identity, String authenticationUrl) {
                 return null;
             }
 
             @Override
-            public void remove(String identity) {}
+            public void remove(String identity, String authenticationUrl) {
+            }
 
             @Override
             public Collection<SyncUser> allUsers() {
@@ -72,7 +73,7 @@ public class SyncManagerTests {
             }
 
             @Override
-            public boolean isActive(String identity) {
+            public boolean isActive(String identity, String authenticationUrl) {
                 return true;
             }
         };
@@ -160,8 +161,11 @@ public class SyncManagerTests {
         SyncConfiguration config = new SyncConfiguration.Builder(user, url)
                 .build();
         // This will trigger the creation of the session
-        Realm.getInstance(config);
+        Realm realm = Realm.getInstance(config);
         SyncSession session = SyncManager.getSession(config);
         assertEquals(user, session.getUser()); // see also SessionTests
+
+        realm.close();
+        SyncManager.reset();
     }
 }

@@ -49,7 +49,6 @@ public class SchemaTests {
 
     @After
     public void tearDown() throws Exception {
-        Realm.deleteRealm(config);
     }
 
     @Test
@@ -74,7 +73,10 @@ public class SchemaTests {
 
     @Test
     public void disallow_removeClass() {
-        Realm realm = Realm.getInstance(config);
+        // Init schema
+        Realm.getInstance(config).close();
+
+        DynamicRealm realm = DynamicRealm.getInstance(config);
         String className = "StringOnly";
         realm.beginTransaction();
         assertTrue(realm.getSchema().contains(className));
@@ -90,7 +92,7 @@ public class SchemaTests {
 
     @Test
     public void allow_createClass() {
-        Realm realm = Realm.getInstance(config);
+        DynamicRealm realm = DynamicRealm.getInstance(config);
         String className = "Dogplace";
         realm.beginTransaction();
         realm.getSchema().create("Dogplace");
@@ -101,7 +103,10 @@ public class SchemaTests {
 
     @Test
     public void disallow_renameClass() {
-        Realm realm = Realm.getInstance(config);
+        // Init schema
+        Realm.getInstance(config).close();
+
+        DynamicRealm realm = DynamicRealm.getInstance(config);
         String className = "StringOnly";
         realm.beginTransaction();
         try {
@@ -117,7 +122,10 @@ public class SchemaTests {
 
     @Test
     public void disallow_removeField() {
-        Realm realm = Realm.getInstance(config);
+        // Init schema
+        Realm.getInstance(config).close();
+
+        DynamicRealm realm = DynamicRealm.getInstance(config);
         String className = "StringOnly";
         String fieldName = "chars";
         realm.beginTransaction();
@@ -134,9 +142,11 @@ public class SchemaTests {
 
     @Test
     public void allow_addField() {
+        // Init schema
+        Realm.getInstance(config).close();
         String className = "StringOnly";
-        Realm realm = Realm.getInstance(config);
 
+        DynamicRealm realm = DynamicRealm.getInstance(config);
         realm.beginTransaction();
         realm.getSchema().get(className).addField("foo", String.class);
         realm.commitTransaction();

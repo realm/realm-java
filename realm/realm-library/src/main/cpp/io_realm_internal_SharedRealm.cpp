@@ -74,7 +74,7 @@ public:
     // Sync constructor
     JniConfigWrapper(REALM_UNUSED JNIEnv* env, REALM_UNUSED Realm::Config& config,
                      REALM_UNUSED jstring sync_realm_url, REALM_UNUSED jstring sync_realm_auth_url,
-                     REALM_UNUSED jstring sync_user_identity, REALM_UNUSED jstring sync_refresh_token,
+                     REALM_UNUSED jstring j_sync_user_id, REALM_UNUSED jstring sync_refresh_token,
                      REALM_UNUSED jboolean sync_client_validate_ssl,
                      REALM_UNUSED jstring sync_ssl_trust_certificate_path)
         : m_config(std::move(config))
@@ -126,14 +126,13 @@ public:
         };
 
         // Get logged in user
-        JStringAccessor user_identity(env, sync_user_identity);
-        JStringAccessor realm_url(env, sync_realm_url);
-        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_identity);
+        JStringAccessor user_id(env, j_sync_user_id);
+        JStringAccessor realm_auth_url(env, sync_realm_auth_url);
+        SyncUserIdentifier sync_user_identifier = {user_id, realm_auth_url};
+        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(sync_user_identifier);
         if (!user) {
-            JStringAccessor realm_auth_url(env, sync_realm_auth_url);
             JStringAccessor refresh_token(env, sync_refresh_token);
-            user = SyncManager::shared().get_user(user_identity, refresh_token,
-                                                  realm::util::Optional<std::string>(realm_auth_url));
+            user = SyncManager::shared().get_user(sync_user_identifier, refresh_token);
         }
 
         util::Optional<std::string> ssl_trust_certificate_path = util::none;
@@ -148,9 +147,10 @@ public:
             std::copy_n(m_config.encryption_key.begin(), 64, sync_encryption_key->begin());
         }
 
+        JStringAccessor realm_url(env, sync_realm_url);
         m_config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
             user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler),
-            nullptr, sync_encryption_key, sync_client_validate_ssl, ssl_trust_certificate_path});
+            nullptr, sync_encryption_key, to_bool(sync_client_validate_ssl), ssl_trust_certificate_path});
 #else
         REALM_UNREACHABLE();
 #endif
@@ -205,7 +205,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
         config.automatic_change_notifications = auto_change_notification;
 
         if (compact_on_launch) {
-            static JavaMethod should_compact(env, compact_on_launch, "shouldCompact", "(JJ)Z");
+            static JavaClass callback_class(env, "io/realm/CompactOnLaunchCallback");
+            static JavaMethod should_compact(env, callback_class, "shouldCompact", "(JJ)Z");
             JavaGlobalRef java_compact_on_launch_ref(env, compact_on_launch);
 
             auto should_compact_on_launch_function = [java_compact_on_launch_ref](uint64_t totalBytes, uint64_t usedBytes) {
@@ -434,6 +435,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         if (!shared_realm->read_group().has_table(name)) {
             std::string name_str = name;
+            if (name_str.find(TABLE_PREFIX) == 0) {
+                name_str = name_str.substr(TABLE_PREFIX.length());
+            }
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                  format("The class '%1' doesn't exist in this Realm.", name_str));
         }

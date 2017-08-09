@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -26,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
-import io.realm.internal.KeepMember;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.network.OkHttpAuthenticationServer;
@@ -230,6 +231,25 @@ public class SyncManager {
         }
     }
 
+    /**
+     * Retruns the all valid sessions belonging to the user.
+     *
+     * @param syncUser the user to use.
+     * @return the all valid sessions belonging to the user.
+     */
+    static List<SyncSession> getAllSessions(SyncUser syncUser) {
+        if (syncUser == null) {
+            throw new IllegalArgumentException("A non-empty 'syncUser' is required.");
+        }
+        ArrayList<SyncSession> allSessions = new ArrayList<SyncSession>();
+        for (SyncSession syncSession : sessions.values()) {
+            if (syncSession.getState() != SyncSession.State.ERROR && syncSession.getUser().equals(syncUser)) {
+                allSessions.add(syncSession);
+            }
+        }
+        return allSessions;
+    }
+
     static AuthenticationServer getAuthServer() {
         return authServer;
     }
@@ -242,7 +262,7 @@ public class SyncManager {
     }
 
     // Return the currently configured User store.
-    static UserStore getUserStore() {
+    public static UserStore getUserStore() {
         return userStore;
     }
 
@@ -292,7 +312,6 @@ public class SyncManager {
      * can leak since we don't have control over the session lifecycle.
      */
     @SuppressWarnings("unused")
-    @KeepMember
     private static synchronized void notifyProgressListener(String localRealmPath, long listenerId, long transferedBytes, long transferableBytes) {
         SyncSession session = sessions.get(localRealmPath);
         if (session != null) {

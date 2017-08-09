@@ -35,10 +35,12 @@ ext.coreDir = file(project.coreSourcePath ?
         "${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
 ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
 ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
+// Set to true to enable linking with debug core.
+ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '26.0.0'
+    buildToolsVersion '26.0.1'
 
     defaultConfig {
         minSdkVersion 9
@@ -54,7 +56,8 @@ android {
                         // because of the android.toolchain.cmake shipped with Android SDK CMake 3.6 doesn't work with our
                         // JNI build currently (lack of lto linking support).
                         // This file should be removed and use the one from Android SDK cmake package when it supports lto.
-                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
+                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}",
+                        "-DENABLE_DEBUG_CORE=$project.enableDebugCore"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
@@ -167,6 +170,7 @@ dependencies {
     compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
     api "io.realm:realm-annotations:${version}"
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'com.getkeepsafe.relinker:relinker:1.2.2'
 
     kaptObjectServer project(':realm-annotations-processor')
@@ -175,7 +179,6 @@ dependencies {
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
     androidTestImplementation 'io.reactivex:rxjava:1.1.0'
-    androidTestImplementation 'com.android.support:support-annotations:25.3.1'
     androidTestImplementation 'com.android.support.test:runner:0.5'
     androidTestImplementation 'com.android.support.test:rules:0.5'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'

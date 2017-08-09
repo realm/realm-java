@@ -80,6 +80,7 @@ import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
+import io.realm.entities.Object4957;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
@@ -803,10 +804,9 @@ public class RealmTests {
                 o.setColumnLong(i);
                 o.setColumnString(codePoint);
 
-                AllTypes realmType = realm.where(AllTypes.class).equalTo("columnLong", i).findFirst();
                 if (i > 1) {
                     assertEquals("Codepoint: " + i + " / " + currentUnicode, codePoint,
-                            realmType.getColumnString()); // codepoint 0 is NULL, ignore for now.
+                            o.getColumnString()); // codepoint 0 is NULL, ignore for now.
                 }
                 i++;
             }
@@ -1924,6 +1924,41 @@ public class RealmTests {
         }).start();
 
         TestHelper.awaitOrFail(bgThreadDoneLatch);
+    }
+
+    // Test to reproduce issue https://github.com/realm/realm-java/issues/4957
+    @Test
+    public void copyToRealmOrUpdate_bug4957() {
+        Object4957 listElement = new Object4957();
+        listElement.setId(1);
+
+        Object4957 parent = new Object4957();
+        parent.setId(0);
+        parent.getChildList().add(listElement);
+
+        // parentCopy has same fields as the parent does. But they are not the same object.
+        Object4957 parentCopy = new Object4957();
+        parentCopy.setId(0);
+        parentCopy.getChildList().add(listElement);
+
+        parent.setChild(parentCopy);
+        parentCopy.setChild(parentCopy);
+
+        realm.beginTransaction();
+        Object4957 managedParent = realm.copyToRealmOrUpdate(parent);
+        realm.commitTransaction();
+        // The original bug fails here. It resulted the listElement has been added to the list twice.
+        // Because of the parent and parentCopy are not the same object, proxy will miss the cache to know the object
+        // has been created before. But it does know they share the same PK value.
+        assertEquals(1, managedParent.getChildList().size());
+
+        // insertOrUpdate doesn't have the problem!
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.insertOrUpdate(parent);
+        realm.commitTransaction();
+        managedParent = realm.where(Object4957.class).findFirst();
+        assertEquals(1, managedParent.getChildList().size());
     }
 
     @Test
@@ -3886,7 +3921,7 @@ public class RealmTests {
 
         // get the pre-update index for the "name" column.
         CatRealmProxy.CatColumnInfo catColumnInfo
-                = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnInfo(Cat.class);
+                = (CatRealmProxy.CatColumnInfo) realm.getSchema().getColumnInfo(Cat.class);
         final long nameIndex = catColumnInfo.nameIndex;
 
         // Change the index of the column "name".
@@ -3909,7 +3944,7 @@ public class RealmTests {
         assertNotEquals(nameIndex, nameIndexNew);
 
         // Verify that the index in the ColumnInfo has been updated.
-        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnInfo(Cat.class);
+        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.getSchema().getColumnInfo(Cat.class);
         assertEquals(nameIndexNew.get(), catColumnInfo.nameIndex);
         assertEquals(nameIndexNew.get(), (long) catColumnInfo.getColumnIndex(Cat.FIELD_NAME));
 
