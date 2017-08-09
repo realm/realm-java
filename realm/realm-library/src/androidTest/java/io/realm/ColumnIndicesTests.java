@@ -33,7 +33,7 @@ import io.realm.entities.Dog;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.util.Pair;
+import io.realm.util.Pair;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;

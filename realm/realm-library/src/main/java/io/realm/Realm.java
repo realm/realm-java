@@ -63,7 +63,7 @@ import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmAsyncTaskImpl;
-import io.realm.internal.util.Pair;
+import io.realm.util.Pair;
 import io.realm.log.RealmLog;
 import rx.Observable;
 
