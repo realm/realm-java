@@ -648,6 +648,9 @@ abstract class BaseRealm implements Closeable {
         if (configuration.isSyncConfiguration()) {
             throw new IllegalArgumentException("Manual migrations are not supported for synced Realms");
         }
+        if (migration == null && configuration.getMigration() == null) {
+            throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided.");
+        }
 
         final AtomicBoolean fileNotFound = new AtomicBoolean(false);
 
@@ -698,8 +701,7 @@ abstract class BaseRealm implements Closeable {
         return new SharedRealm.MigrationCallback() {
             @Override
             public void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion) {
-                migration.migrate(
-                        DynamicRealm.createInstance(sharedRealm), oldVersion, newVersion);
+                migration.migrate(DynamicRealm.createInstance(sharedRealm), oldVersion, newVersion);
             }
         };
     }

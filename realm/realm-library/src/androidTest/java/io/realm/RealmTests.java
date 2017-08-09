@@ -3956,7 +3956,7 @@ public class RealmTests {
         thread.join();
         realm.refresh();
 
-        // The columnInfo object should never be changed.
+        // The columnInfo object never changes, only the indexes it references will.
         assertSame(columnInfo, realm.getSchema().getColumnInfo(StringOnly.class));
         assertEquals(TEST_CHARS, stringOnly.getChars());
         assertEquals(1, columnInfo.charsIndex);

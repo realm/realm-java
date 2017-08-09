@@ -170,6 +170,7 @@ public class SharedRealmTests {
         sharedRealm.beginTransaction();
         sharedRealm.createTable("NewTable");
         sharedRealm.commitTransaction();
+        sharedRealm.close();
     }
 
     @Test

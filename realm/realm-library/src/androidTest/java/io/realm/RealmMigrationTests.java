@@ -411,9 +411,12 @@ public class RealmMigrationTests {
         realm.close();
 
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realmConfig);
-        assertTrue(dynamicRealm.getSchema().get(MigrationClassRenamed.CLASS_NAME).hasPrimaryKey());
-        assertFalse(dynamicRealm.getSchema().get(MigrationPrimaryKey.CLASS_NAME).hasPrimaryKey());
-        dynamicRealm.close();
+        try {
+            assertTrue(dynamicRealm.getSchema().get(MigrationClassRenamed.CLASS_NAME).hasPrimaryKey());
+            assertFalse(dynamicRealm.getSchema().get(MigrationPrimaryKey.CLASS_NAME).hasPrimaryKey());
+        } finally {
+            dynamicRealm.close();
+        }
     }
 
     // Test to show that renaming a class does not effect the primary key.
@@ -478,9 +481,12 @@ public class RealmMigrationTests {
 
         // We cannot access 'MigrationPrimaryKey' from a typed Realm since it is not part of the pre-defined schema.
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realmConfig);
-        assertTrue(dynamicRealm.getSchema().get(MigrationClassRenamed.CLASS_NAME).hasPrimaryKey());
-        assertFalse(dynamicRealm.getSchema().get(MigrationPrimaryKey.CLASS_NAME).hasPrimaryKey());
-        dynamicRealm.close();
+        try {
+            assertTrue(dynamicRealm.getSchema().get(MigrationClassRenamed.CLASS_NAME).hasPrimaryKey());
+            assertFalse(dynamicRealm.getSchema().get(MigrationPrimaryKey.CLASS_NAME).hasPrimaryKey());
+        } finally {
+            dynamicRealm.close();
+        }
     }
 
     @Test
