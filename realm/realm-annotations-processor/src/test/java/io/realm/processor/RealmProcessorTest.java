@@ -24,7 +24,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.Arrays;
 
-import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
 
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -33,33 +32,32 @@ import static org.truth0.Truth.ASSERT;
 
 
 public class RealmProcessorTest {
-
-    private JavaFileObject simpleModel = JavaFileObjects.forResource("some/test/Simple.java");
-    private JavaFileObject simpleProxy = JavaFileObjects.forResource("io/realm/SimpleRealmProxy.java");
-    private JavaFileObject allTypesModel = JavaFileObjects.forResource("some/test/AllTypes.java");
-    private JavaFileObject allTypesProxy = JavaFileObjects.forResource("io/realm/AllTypesRealmProxy.java");
-    private JavaFileObject allTypesDefaultModule = JavaFileObjects.forResource("io/realm/RealmDefaultModule.java");
-    private JavaFileObject allTypesDefaultMediator = JavaFileObjects.forResource("io/realm/RealmDefaultModuleMediator.java");
-    private JavaFileObject booleansModel = JavaFileObjects.forResource("some/test/Booleans.java");
-    private JavaFileObject booleansProxy = JavaFileObjects.forResource("io/realm/BooleansRealmProxy.java");
-    private JavaFileObject emptyModel = JavaFileObjects.forResource("some/test/Empty.java");
-    private JavaFileObject finalModel = JavaFileObjects.forResource("some/test/Final.java");
-    private JavaFileObject transientModel = JavaFileObjects.forResource("some/test/Transient.java");
-    private JavaFileObject volatileModel = JavaFileObjects.forResource("some/test/Volatile.java");
-    private JavaFileObject fieldNamesModel = JavaFileObjects.forResource("some/test/FieldNames.java");
-    private JavaFileObject customAccessorModel = JavaFileObjects.forResource("some/test/CustomAccessor.java");
-    private JavaFileObject nullTypesModel = JavaFileObjects.forResource("some/test/NullTypes.java");
-    private JavaFileObject nullTypesProxy = JavaFileObjects.forResource("io/realm/NullTypesRealmProxy.java");
-    private JavaFileObject missingGenericTypeModel = JavaFileObjects.forResource("some/test/MissingGenericType.java");
-    private JavaFileObject conflictingFieldNameModel = JavaFileObjects.forResource("some/test/ConflictingFieldName.java");
-    private JavaFileObject invalidRealmModelModel_1 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_1.java");
-    private JavaFileObject invalidRealmModelModel_2 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_2.java");
-    private JavaFileObject invalidRealmModelModel_3 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_3.java");
-    private JavaFileObject ValidModelPojo_ExtendingRealmObject = JavaFileObjects.forResource("some/test/ValidModelRealmModel_ExtendingRealmObject.java");
-    private JavaFileObject UseExtendRealmList = JavaFileObjects.forResource("some/test/UseExtendRealmList.java");
-    private JavaFileObject SimpleRealmModel = JavaFileObjects.forResource("some/test/SimpleRealmModel.java");
-    private JavaFileObject customInterface = JavaFileObjects.forResource("some/test/CustomInterface.java");
-    private JavaFileObject nonLatinName = JavaFileObjects.forResource("some/test/ÁrvíztűrőTükörfúrógép.java");
+    private final JavaFileObject simpleModel = JavaFileObjects.forResource("some/test/Simple.java");
+    private final JavaFileObject simpleProxy = JavaFileObjects.forResource("io/realm/SimpleRealmProxy.java");
+    private final JavaFileObject allTypesModel = JavaFileObjects.forResource("some/test/AllTypes.java");
+    private final JavaFileObject allTypesProxy = JavaFileObjects.forResource("io/realm/AllTypesRealmProxy.java");
+    private final JavaFileObject allTypesDefaultModule = JavaFileObjects.forResource("io/realm/RealmDefaultModule.java");
+    private final JavaFileObject allTypesDefaultMediator = JavaFileObjects.forResource("io/realm/RealmDefaultModuleMediator.java");
+    private final JavaFileObject booleansModel = JavaFileObjects.forResource("some/test/Booleans.java");
+    private final JavaFileObject booleansProxy = JavaFileObjects.forResource("io/realm/BooleansRealmProxy.java");
+    private final JavaFileObject emptyModel = JavaFileObjects.forResource("some/test/Empty.java");
+    private final JavaFileObject finalModel = JavaFileObjects.forResource("some/test/Final.java");
+    private final JavaFileObject transientModel = JavaFileObjects.forResource("some/test/Transient.java");
+    private final JavaFileObject volatileModel = JavaFileObjects.forResource("some/test/Volatile.java");
+    private final JavaFileObject fieldNamesModel = JavaFileObjects.forResource("some/test/FieldNames.java");
+    private final JavaFileObject customAccessorModel = JavaFileObjects.forResource("some/test/CustomAccessor.java");
+    private final JavaFileObject nullTypesModel = JavaFileObjects.forResource("some/test/NullTypes.java");
+    private final JavaFileObject nullTypesProxy = JavaFileObjects.forResource("io/realm/NullTypesRealmProxy.java");
+    private final JavaFileObject missingGenericTypeModel = JavaFileObjects.forResource("some/test/MissingGenericType.java");
+    private final JavaFileObject conflictingFieldNameModel = JavaFileObjects.forResource("some/test/ConflictingFieldName.java");
+    private final JavaFileObject invalidRealmModelModel_1 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_1.java");
+    private final JavaFileObject invalidRealmModelModel_2 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_2.java");
+    private final JavaFileObject invalidRealmModelModel_3 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_3.java");
+    private final JavaFileObject ValidModelPojo_ExtendingRealmObject = JavaFileObjects.forResource("some/test/ValidModelRealmModel_ExtendingRealmObject.java");
+    private final JavaFileObject UseExtendRealmList = JavaFileObjects.forResource("some/test/UseExtendRealmList.java");
+    private final JavaFileObject SimpleRealmModel = JavaFileObjects.forResource("some/test/SimpleRealmModel.java");
+    private final JavaFileObject customInterface = JavaFileObjects.forResource("some/test/CustomInterface.java");
+    private final JavaFileObject nonLatinName = JavaFileObjects.forResource("some/test/ÁrvíztűrőTükörfúrógép.java");
 
     @Test
     public void compileSimpleFile() {
