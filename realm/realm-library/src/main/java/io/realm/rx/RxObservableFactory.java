@@ -17,15 +17,19 @@
 package io.realm.rx;
 
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
+import io.realm.ObjectChangeSet;
+import io.realm.OrderedCollectionChangeSet;
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
+import io.realm.internal.util.Pair;
 
 /**
  * Factory interface for creating Rx Observables for Realm classes.
@@ -69,6 +73,21 @@ public interface RxObservableFactory {
 
     /**
      * Creates an Observable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
+     * on each subsequent update of the RealmResults it should emit the RealmResults + the {@link OrderedCollectionChangeSet}
+     * that describes the update.
+     * <p>
+     * Changeset observables do not support backpressure as a changeset depends on the state of the previous
+     * changeset. Handling backpressure should therefor be left to users.
+     *
+     * @param results {@link RealmResults} to listen to changes for.
+     * @param realm {@link Realm} instance results are coming from.
+     * @param <E> type of RealmObject
+     * @return Rx observable that emit all updates + their changeset.
+     */
+    <E extends RealmModel> Observable<Pair<RealmResults<E>, OrderedCollectionChangeSet>> changesetsFrom(Realm realm, RealmResults<E> results);
+
+    /**
+     * Creates an Observable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
      * on each subsequent update of the RealmResults.
      * <p>
      * Realm observables are hot observables as RealmResults are automatically kept up to date.
@@ -78,6 +97,20 @@ public interface RxObservableFactory {
      * @return Rx observable that emit all updates to the RealmResults.
      */
     Flowable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results);
+
+    /**
+     * Creates an Observable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
+     * on each subsequent update of the RealmResults it should emit the RealmResults + the {@link OrderedCollectionChangeSet}
+     * that describes the update.
+     * <p>
+     * Changeset observables do not support backpressure as a changeset depends on the state of the previous
+     * changeset. Handling backpressure should therefor be left to users.
+     *
+     * @param results {@link RealmResults} to listen to changes for.
+     * @param realm {@link Realm} instance results are coming from.
+     * @return Rx observable that emit all updates + their changeset.
+     */
+    Observable<Pair<RealmResults<DynamicRealmObject>, OrderedCollectionChangeSet>> changesetsFrom(DynamicRealm realm, RealmResults<DynamicRealmObject> results);
 
     /**
      * Creates an Observable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
@@ -94,6 +127,21 @@ public interface RxObservableFactory {
     <E extends RealmModel> Flowable<RealmList<E>> from(Realm realm, RealmList<E> list);
 
     /**
+     * Creates an Observable for a {@link RealmList}. It should emit the initial RealmList when subscribed to and
+     * on each subsequent update of the RealmIst it should emit the RealmList + the {@link OrderedCollectionChangeSet}
+     * that describes the update.
+     * <p>
+     * Changeset observables do not support backpressure as a changeset depends on the state of the previous
+     * changeset. Handling backpressure should therefor be left to users.
+     *
+     * @param list {@link RealmList} to listen to changes for.
+     * @param realm {@link Realm} instance list is coming from.
+     * @param <E> type of RealmObject
+     * @return Rx observable that emit all updates + their changeset.
+     */
+    <E extends RealmModel> Observable<Pair<RealmList<E>, OrderedCollectionChangeSet>> changesetsFrom(Realm realm, RealmList<E> list);
+
+    /**
      * Creates an Observable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
      * subsequent update of the RealmList.
      * <p>
@@ -105,6 +153,20 @@ public interface RxObservableFactory {
      * @param realm {@link DynamicRealm} instance list is coming from.
      */
     Flowable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list);
+
+    /**
+     * Creates an Observable for a {@link RealmList}. It should emit the initial RealmList when subscribed to and
+     * on each subsequent update of the RealmList it should emit the RealmList + the {@link OrderedCollectionChangeSet}
+     * that describes the update.
+     * <p>
+     * Changeset observables do not support backpressure as a changeset depends on the state of the previous
+     * changeset. Handling backpressure should therefor be left to users.
+     *
+     * @param list {@link RealmList} to listen to changes for.
+     * @param realm {@link Realm} instance list is coming from.
+     * @return Rx observable that emit all updates + their changeset.
+     */
+    Observable<Pair<RealmList<DynamicRealmObject>, OrderedCollectionChangeSet>> changesetsFrom(DynamicRealm realm, RealmList<DynamicRealmObject> list);
 
     /**
      * Creates an Observable for a {@link RealmObject}. It should emit the initial object when subscribed to and on each
@@ -119,6 +181,20 @@ public interface RxObservableFactory {
     <E extends RealmModel> Flowable<E> from(Realm realm, E object);
 
     /**
+     * Creates an Observable for a {@link RealmObject}. It should emit the initial object when subscribed to and on each
+     * subsequent update of the object it should emit the object + the {@link io.realm.ObjectChangeSet} that describes
+     * the update.
+     * <p>
+     * Changeset observables do not support backpressure as a changeset depends on the state of the previous
+     * changeset. Handling backpressure should therefore be left to the user.
+     *
+     * @param object RealmObject to listen to changes for.
+     * @param realm {@link Realm} instance object is coming from.
+     * @param <E> type of RealmObject
+     */
+    <E extends RealmModel> Observable<Pair<E, ObjectChangeSet>> changesetsFrom(Realm realm, E object);
+
+    /**
      * Creates an Observable for a {@link DynamicRealmObject}. It should emit the initial object when subscribed to and
      * on each subsequent update of the object.
      * <p>
@@ -128,6 +204,19 @@ public interface RxObservableFactory {
      * @param realm {@link DynamicRealm} instance object is coming from.
      */
     Flowable<DynamicRealmObject> from(DynamicRealm realm, DynamicRealmObject object);
+
+    /**
+     * Creates an Observable for a {@link RealmObject}. It should emit the initial object when subscribed to and on each
+     * subsequent update of the object it should emit the object + the {@link io.realm.ObjectChangeSet} that describes
+     * the update.
+     * <p>
+     * Changeset observables do not support backpressure as a changeset depends on the state of the previous
+     * changeset. Handling backpressure should therefore be left to the user.
+     *
+     * @param object RealmObject to listen to changes for.
+     * @param realm {@link Realm} instance object is coming from.
+     */
+    Observable<Pair<DynamicRealmObject, ObjectChangeSet>> changesetsFrom(DynamicRealm realm, DynamicRealmObject object);
 
     /**
      * Creates an Observable from a {@link RealmQuery}. It should emit the query and then complete.

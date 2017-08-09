@@ -21,12 +21,14 @@ import android.annotation.SuppressLint;
 import android.os.Looper;
 
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.Collection;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
+import io.realm.internal.util.Pair;
 
 
 /**
@@ -298,6 +300,41 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
             RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
             @SuppressWarnings("UnnecessaryLocalVariable")
             Flowable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
+            return results;
+        } else {
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+        }
+    }
+
+    /**
+     * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
+     * subscribed to. For each update to the RealmResult a pair consisting of the RealmResults and the
+     * {@link OrderedCollectionChangeSet} will be sent. The changeset will be {@code null} the first
+     * time an RealmResults is emitted.
+     * <p>
+     * Changeset observables do not support backpressure as each {@link OrderedCollectionChangeSet} depends on
+     * the previous one. Handling backpressure is therefor up to callers of this method.
+     * <p>
+     * RealmResults will continually be emitted as the RealmResults are updated -
+     * {@code onComplete} will never be called.
+     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
+     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
+     * instead.
+     *
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    public Observable<Pair<RealmResults<E>, OrderedCollectionChangeSet>> asChangesetObservable() {
+        if (realm instanceof Realm) {
+            return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, this);
+        } else if (realm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+            RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
+            @SuppressWarnings("UnnecessaryLocalVariable")
+            Observable results = realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
             return results;
         } else {
             throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");

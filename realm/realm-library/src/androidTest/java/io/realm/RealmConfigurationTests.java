@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.Set;
 
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnimalModule;
@@ -49,6 +50,7 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
+import io.realm.internal.util.Pair;
 import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
@@ -720,7 +722,17 @@ public class RealmConfigurationTests {
             }
 
             @Override
+            public <E extends RealmModel> Observable<Pair<RealmResults<E>, OrderedCollectionChangeSet>> changesetsFrom(Realm realm, RealmResults<E> results) {
+                return null;
+            }
+
+            @Override
             public Flowable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
+                return null;
+            }
+
+            @Override
+            public Observable<Pair<RealmResults<DynamicRealmObject>, OrderedCollectionChangeSet>> changesetsFrom(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
                 return null;
             }
 
@@ -730,7 +742,17 @@ public class RealmConfigurationTests {
             }
 
             @Override
+            public <E extends RealmModel> Observable<Pair<RealmList<E>, OrderedCollectionChangeSet>> changesetsFrom(Realm realm, RealmList<E> list) {
+                return null;
+            }
+
+            @Override
             public Flowable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
+                return null;
+            }
+
+            @Override
+            public Observable<Pair<RealmList<DynamicRealmObject>, OrderedCollectionChangeSet>> changesetsFrom(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
                 return null;
             }
 
@@ -740,7 +762,17 @@ public class RealmConfigurationTests {
             }
 
             @Override
+            public <E extends RealmModel> Observable<Pair<E, ObjectChangeSet>> changesetsFrom(Realm realm, E object) {
+                return null;
+            }
+
+            @Override
             public Flowable<DynamicRealmObject> from(DynamicRealm realm, DynamicRealmObject object) {
+                return null;
+            }
+
+            @Override
+            public Observable<Pair<DynamicRealmObject, ObjectChangeSet>> changesetsFrom(DynamicRealm realm, DynamicRealmObject object) {
                 return null;
             }
 
