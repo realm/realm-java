@@ -83,7 +83,7 @@ public class LinkingObjectsDynamicTests {
 
         try {
             object.linkingObjects(null, AllJavaTypes.FIELD_INT);
-            fail();
+            fail("Empty class name should not be allowed");
         } catch (IllegalArgumentException expected) {
             assertEquals(RealmSchema.EMPTY_STRING_MSG, expected.getMessage());
         }
@@ -97,7 +97,7 @@ public class LinkingObjectsDynamicTests {
 
         try {
             object.linkingObjects(AllJavaTypes.CLASS_NAME, null);
-            fail();
+            fail("Empty field name should not be allowed");
         } catch (IllegalArgumentException expected) {
             assertEquals("Non-null 'srcFieldName' required.", expected.getMessage());
         }
@@ -111,7 +111,7 @@ public class LinkingObjectsDynamicTests {
 
         try {
             object.linkingObjects("ThisClassDoesNotExist", AllJavaTypes.FIELD_INT);
-            fail();
+            fail("Non-existent class should not be allowed");
         } catch (IllegalArgumentException expected) {
             assertTrue(expected.getMessage().startsWith("Class not found"));
         }
@@ -125,7 +125,7 @@ public class LinkingObjectsDynamicTests {
 
         try {
             object.linkingObjects(AllJavaTypes.CLASS_NAME, "fieldNotExist");
-            fail();
+            fail("Non-existent field should not be allowed");
         } catch (IllegalArgumentException expected) {
             final String expectedMessage = String.format(Locale.ENGLISH,
                     "Field name '%s' does not exist on schema for '%s'",
@@ -142,7 +142,7 @@ public class LinkingObjectsDynamicTests {
 
         try {
             object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_IGNORED);
-            fail();
+            fail("@Ignored field should not be allowed");
         } catch (IllegalArgumentException expected) {
             final String expectedMessage = String.format(Locale.ENGLISH,
                     "Field name '%s' does not exist on schema for '%s'",
@@ -159,7 +159,7 @@ public class LinkingObjectsDynamicTests {
 
         try {
             object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_OBJECT);
-            fail();
+            fail("Field names containing dots ('.') should not be allowed");
         } catch (IllegalArgumentException expected) {
             assertEquals(DynamicRealmObject.MSG_LINK_QUERY_NOT_SUPPORTED, expected.getMessage());
         }
@@ -211,17 +211,24 @@ public class LinkingObjectsDynamicTests {
                         fail("unknown type: " + fieldType);
                         break;
                 }
-                fail();
+                fail("Source field " + fieldType + " should not be allowed");
             } catch (IllegalArgumentException expected) {
                 assertTrue(expected.getMessage().startsWith("Unexpected field type"));
             }
         }
+    }
+
+    @Test
+    public void linkingObjects_invalidComplexFieldType() {
+        dynamicRealm.beginTransaction();
+        final DynamicRealmObject object = dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 1L);
+        dynamicRealm.commitTransaction();
 
         // Linking Object fields are implicit and do not exist.
         for (String field : new String[] {AllJavaTypes.FIELD_LO_OBJECT, AllJavaTypes.FIELD_LO_LIST}) {
             try {
                 object.linkingObjects(AllJavaTypes.CLASS_NAME, field);
-                fail();
+                fail("Source field " + field + " should not be allowed");
             } catch (IllegalArgumentException expected) {
                 assertTrue(expected.getMessage().contains("does not exist"));
             }
@@ -494,17 +501,5 @@ public class LinkingObjectsDynamicTests {
         } finally {
             dynamicRealm.close();
         }
-    }
-
-    @Test
-    public void dynamicQuery_invalidSyntax() {
-        String[] invalidBacklinks = new String[] {
-                "linkingObject(x",
-                "linkingObject(x.y",
-                "linkingObject(x.y)",
-                "linkingObject(x.y).",
-                "linkingObject(x.y)..z",
-                "linkingObject(x.y).linkingObjects(x1.y1).z"
-        };
     }
 }

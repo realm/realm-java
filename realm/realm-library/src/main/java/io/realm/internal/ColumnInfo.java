@@ -16,8 +16,6 @@
 
 package io.realm.internal;
 
-import android.util.Log;
-
 import java.util.HashMap;
 import java.util.Map;
 

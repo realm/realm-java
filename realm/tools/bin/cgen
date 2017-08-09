@@ -28,6 +28,11 @@ if [ ! -d "$TARGET_DIR" ] ; then
   exit 1
 fi
 
+here=`pwd`
+cd "$REALM_JAVA/realm"
+./gradlew realm-annotations-processor:assemble realm-library:assemble
+cd "$here"
+
 REALM_ANNOTATIONS=`find "$REALM_JAVA/realm-annotations/build" -name 'realm-annotations-*.jar'`
 if [ ! -f "$REALM_ANNOTATIONS" ] ; then
   echo "Cannot find the Realm Annotations jar in $REALM_JAVA"
@@ -56,7 +61,7 @@ CLASSPATH="$REALM_ANNOTATION_PROCESSOR":"$JAVAWRITER":"$REALM_ANNOTATIONS":"$REA
 
 javac \
   -d "$TARGET_DIR" \
-  -bootclasspath "$ANDROID_SDK/platforms/android-26/android.jar" \
+  -bootclasspath "$ANDROID_SDK/platforms/android-25/android.jar" \
   -source 7 \
   -target 7 \
   -cp "$CLASSPATH" \
