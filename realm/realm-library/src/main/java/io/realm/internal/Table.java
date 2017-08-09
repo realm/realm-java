@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import java.util.Date;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
@@ -519,6 +521,12 @@ public class Table implements TableSchema, NativeObject {
         nativeSetLong(nativePtr, columnIndex, rowIndex, value, isDefault);
     }
 
+    // must not be called on a primary key field
+    public void incrementLong(long columnIndex, long rowIndex, long value) {
+        checkImmutable();
+        nativeIncrementLong(nativePtr, columnIndex, rowIndex, value);
+    }
+
     public void setBoolean(long columnIndex, long rowIndex, boolean value, boolean isDefault) {
         checkImmutable();
         nativeSetBoolean(nativePtr, columnIndex, rowIndex, value, isDefault);
@@ -767,8 +775,9 @@ public class Table implements TableSchema, NativeObject {
     /**
      * Returns the table name as it is in the associated group.
      *
-     * @return Name of the the table or null if it not part of a group.
+     * @return Name of the the table or {@code null} if it not part of a group.
      */
+    @Nullable
     public String getName() {
         return nativeGetName(nativePtr);
     }
@@ -776,8 +785,9 @@ public class Table implements TableSchema, NativeObject {
     /**
      * Returns the class name for the table.
      *
-     * @return Name of the the table or null if it not part of a group.
+     * @return Name of the the table or {@code null} if it not part of a group.
      */
+    @Nullable
     public String getClassName() {
         return getClassNameForTable(getName());
     }
@@ -928,6 +938,8 @@ public class Table implements TableSchema, NativeObject {
     public static native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value, boolean isDefault);
 
     public static native void nativeSetLongUnique(long nativeTablePtr, long columnIndex, long rowIndex, long value);
+
+    public static native void nativeIncrementLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
 
     public static native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value, boolean isDefault);
 

@@ -8,7 +8,7 @@ sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
 
 dependencies {
-    compile group:'com.squareup', name:'javawriter', version:'2.5.0'
+    compile "com.squareup:javawriter:2.5.0"
     compile "io.realm:realm-annotations:${version}"
 
     testCompile files('../realm-library/build/intermediates/bundles/baseRelease/classes.jar') // Java projects cannot depend on AAR files

@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Locale;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.Collection;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
@@ -353,6 +355,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      * @throws IllegalArgumentException if fieldName is not a Date field.
      */
     @Override
+    @Nullable
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
