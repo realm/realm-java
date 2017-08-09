@@ -561,7 +561,7 @@ public class LinkingObjectsManagedTests {
      *     private final RealmResults<XXXBacklinksSource> parents = null;
      * }
      * </pre>
-     * If the both classes were present in the configuration, the test would fail because there
+     * If both classes were present in the configuration, the test would fail because there
      * is no class named BacklinksSource in the Realm.  Since the configuration contains only the
      * single class `BacklinksTarget`, though, basic validation should pass. Backlink validation,
      * however, should fail, seeking the `BacklinksSource` table.
