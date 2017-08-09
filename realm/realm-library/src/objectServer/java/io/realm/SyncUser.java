@@ -615,9 +615,13 @@ public class SyncUser {
     }
 
     /**
-     * FIXME Javadoc
+     * Returns an instance of the {@link PermissionManager} for this user that makes it possible to see, modify and create
+     * permissions related to this users Realms.
+     * <p>
+     * Every instance returned by this method must be closed by calling {@link PermissionManager#close()} when it
+     * no longer is needed.
      *
-     * @return
+     * @return an instance of the PermissionManager.
      */
     public PermissionManager getPermissionManager() {
         new AndroidCapabilities().checkCanDeliverNotification("The PermissionManager can only opened on a Looper thread.");
