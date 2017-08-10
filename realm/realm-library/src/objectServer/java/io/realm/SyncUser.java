@@ -253,12 +253,12 @@ public class SyncUser {
     public void logout() {
         // Acquire lock to prevent users creating new instances
         synchronized (Realm.class) {
-            if (!SyncManager.getUserStore().isActive(identity)) {
+            if (!SyncManager.getUserStore().isActive(identity, authenticationUrl.toString())) {
                 return; // Already logged out status
             }
 
             // Mark the user as logged out in the ObjectStore
-            SyncManager.getUserStore().remove(identity);
+            SyncManager.getUserStore().remove(identity, authenticationUrl.toString());
 
             // invalidate all pending refresh_token queries
             for (SyncConfiguration syncConfiguration : realms.keySet()) {
@@ -534,7 +534,7 @@ public class SyncUser {
      * @return {@code true} if the User is logged into the Realm Object Server, {@code false} otherwise.
      */
     public boolean isValid() {
-        return refreshToken != null && refreshToken.expiresMs() > System.currentTimeMillis() && SyncManager.getUserStore().isActive(identity);
+        return refreshToken != null && refreshToken.expiresMs() > System.currentTimeMillis() && SyncManager.getUserStore().isActive(identity, authenticationUrl.toString());
     }
 
     /**
