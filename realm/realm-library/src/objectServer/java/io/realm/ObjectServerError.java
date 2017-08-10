@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.Util;
 
 /**
@@ -61,7 +63,7 @@ public class ObjectServerError extends RuntimeException {
      * @param errorMessage detailed error message.
      * @param exception underlying exception if the error was caused by this.
      */
-    public ObjectServerError(ErrorCode errorCode, String errorMessage, Throwable exception) {
+    public ObjectServerError(ErrorCode errorCode, @Nullable String errorMessage, @Nullable Throwable exception) {
         this.error = errorCode;
         this.errorMessage = errorMessage;
         this.exception = exception;
@@ -74,7 +76,7 @@ public class ObjectServerError extends RuntimeException {
      * @param title Title for this type of error.
      * @param hint a hint for resolving the error.
      */
-    public ObjectServerError(ErrorCode errorCode, String title, String hint) {
+    public ObjectServerError(ErrorCode errorCode, String title, @Nullable String hint) {
         this(errorCode, (hint != null) ? title + " : " + hint : title, (Throwable) null);
     }
 

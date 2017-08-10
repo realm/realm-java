@@ -45,11 +45,11 @@ class MutableRealmSchema extends RealmSchema {
         checkNotEmpty(className, EMPTY_STRING_MSG);
 
         String internalTableName = Table.getTableNameForClass(className);
-        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
+        if (className.length() > Table.CLASS_NAME_MAX_LENGTH) {
             throw new IllegalArgumentException(
                     String.format(Locale.US,
                             "Class name is too long. Limit is %1$d characters: %2$s",
-                            Table.TABLE_MAX_LENGTH,
+                            Table.CLASS_NAME_MAX_LENGTH,
                             className.length()));
         }
         return new MutableRealmObjectSchema(realm, this, realm.getSharedRealm().createTable(internalTableName));
@@ -66,6 +66,7 @@ class MutableRealmSchema extends RealmSchema {
             table.setPrimaryKey(null);
         }
         realm.getSharedRealm().removeTable(internalTableName);
+        removeFromClassNameToSchemaMap(internalTableName);
     }
 
     @Override
@@ -96,6 +97,12 @@ class MutableRealmSchema extends RealmSchema {
             table.setPrimaryKey(pkField);
         }
 
-        return new MutableRealmObjectSchema(realm, this, table);
+        RealmObjectSchema objectSchema = removeFromClassNameToSchemaMap(oldInternalName);
+        if (objectSchema == null || !objectSchema.getTable().isValid() || !objectSchema.getClassName().equals(newClassName)) {
+            objectSchema = new MutableRealmObjectSchema(realm, this, table);
+        }
+        putToClassNameToSchemaMap(newInternalName, objectSchema);
+
+        return objectSchema;
     }
 }

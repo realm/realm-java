@@ -17,14 +17,13 @@
 package io.realm;
 
 import io.realm.internal.Keep;
-import io.realm.internal.KeepMember;
 
 /**
  * This interface is used to determine if a Realm file should be compacted the first time the file is opened and before
  * the instance is returned.
  * <p>
  * Note that compacting a file can take a while, so compacting should generally only be done on a background thread or
- * when used in combination with {@link Realm#getInstanceAsync(RealmConfiguration, Callback)}.
+ * when used in combination with {@link Realm#getInstanceAsync(RealmConfiguration, io.realm.Realm.Callback)}.
  */
 @Keep
 public interface CompactOnLaunchCallback {

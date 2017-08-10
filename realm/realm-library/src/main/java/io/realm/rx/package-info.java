@@ -14,16 +14,5 @@
  * limitations under the License.
  */
 
-package some.test;
-
-import io.realm.RealmObject;
-import io.realm.RealmResults;
-import io.realm.annotations.LinkingObjects;
-
-public class Backlinks_NotFound extends RealmObject {
-    private int id;
-
-    // The argument to the @LinkingObjects annotation must name a field in the target class
-    @LinkingObjects("xxx")
-    private final RealmResults<BacklinkTarget> parents = null;
-}
+@javax.annotation.ParametersAreNonnullByDefault
+package io.realm.rx;

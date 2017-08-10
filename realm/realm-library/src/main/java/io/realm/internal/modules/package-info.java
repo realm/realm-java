@@ -14,17 +14,5 @@
  * limitations under the License.
  */
 
-package some.test;
-
-import io.realm.RealmObject;
-import io.realm.RealmResults;
-import io.realm.annotations.LinkingObjects;
-
-public class Backlinks_WrongType extends RealmObject {
-    private int id;
-
-    // The type of the field named in the @LinkingObjects annotation must match
-    // the generic type of the annotated field
-    @LinkingObjects("child")
-    private final RealmResults<BacklinkTarget> parents = null;
-}
+@javax.annotation.ParametersAreNonnullByDefault
+package io.realm.internal.modules;

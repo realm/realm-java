@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmFieldType;
 import io.realm.Sort;
 import io.realm.internal.fields.FieldDescriptor;
@@ -37,7 +39,7 @@ import io.realm.internal.fields.FieldDescriptor;
  * <p>
  * Sort descriptors do not support Linking Objects, either internally or as terminal types.
  */
-@KeepMember
+@Keep
 public class SortDescriptor {
     //@VisibleForTesting
     final static Set<RealmFieldType> SORT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -53,6 +55,7 @@ public class SortDescriptor {
     }
 
     public static SortDescriptor getInstanceForSort(FieldDescriptor.SchemaProxy proxy, Table table, String[] fieldDescriptions, Sort[] sortOrders) {
+        //noinspection ConstantConditions
         if (sortOrders == null || sortOrders.length == 0) {
             throw new IllegalArgumentException("You must provide at least one sort order.");
         }
@@ -74,11 +77,12 @@ public class SortDescriptor {
             FieldDescriptor.SchemaProxy proxy,
             Table table,
             String[] fieldDescriptions,
-            Sort[] sortOrders,
+            @Nullable Sort[] sortOrders,
             Set<RealmFieldType> legalInternalTypes,
             Set<RealmFieldType> legalTerminalTypes,
             String message) {
 
+        //noinspection ConstantConditions
         if (fieldDescriptions == null || fieldDescriptions.length == 0) {
             throw new IllegalArgumentException("You must provide at least one field name.");
         }
@@ -114,7 +118,7 @@ public class SortDescriptor {
     private final long[][] columnIndices;
     private final boolean[] ascendings;
 
-    private SortDescriptor(Table table, long[][] columnIndices, Sort[] sortOrders) {
+    private SortDescriptor(Table table, long[][] columnIndices, @Nullable Sort[] sortOrders) {
         this.table = table;
         this.columnIndices = columnIndices;
         if (sortOrders != null) {
@@ -128,21 +132,18 @@ public class SortDescriptor {
     }
 
     // Called by JNI.
-    @KeepMember
     @SuppressWarnings("unused")
     long[][] getColumnIndices() {
         return columnIndices;
     }
 
     // Called by JNI.
-    @KeepMember
     @SuppressWarnings("unused")
     boolean[] getAscendings() {
         return ascendings;
     }
 
     // Called by JNI.
-    @KeepMember
     @SuppressWarnings("unused")
     private long getTablePtr() {
         return table.getNativePtr();

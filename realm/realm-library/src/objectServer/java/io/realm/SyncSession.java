@@ -35,7 +35,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Keep;
-import io.realm.internal.KeepMember;
 import io.realm.internal.SyncObjectServerFacade;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
@@ -156,7 +155,6 @@ public class SyncSession {
     }
 
     // This callback will happen on the thread running the Sync Client.
-    @KeepMember
     void notifySessionError(int errorCode, String errorMessage) {
         if (errorHandler == null) {
             return;
@@ -182,7 +180,6 @@ public class SyncSession {
      * @return the state of the session.
      * @see SyncSession.State
      */
-    @KeepMember
     @SuppressWarnings("unused")
     public State getState() {
         byte state = nativeGetState(configuration.getPath());
@@ -240,6 +237,7 @@ public class SyncSession {
      * @param listener listener to remove.
      */
     public synchronized void removeProgressListener(ProgressListener listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             return;
         }
@@ -281,9 +279,11 @@ public class SyncSession {
     }
 
     private void checkProgressListenerArguments(ProgressMode mode, ProgressListener listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Non-null 'listener' required.");
         }
+        //noinspection ConstantConditions
         if (mode == null) {
             throw new IllegalArgumentException("Non-null 'mode' required.");
         }

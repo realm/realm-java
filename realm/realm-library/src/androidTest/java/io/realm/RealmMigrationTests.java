@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
@@ -487,14 +488,16 @@ public class RealmMigrationTests {
         realm.commitTransaction();
         realm.close();
 
+        final String tooLongClassName = "MigrationNameIsLongerThan57Char_ThisShouldThrowAnException";
+        assertEquals(58, tooLongClassName.length());
+
         // Gets ready for the 2nd version migration.
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 realm.getSchema()
                         .get(MigrationPrimaryKey.CLASS_NAME)
-                        // 57 characters
-                        .setClassName("MigrationNameIsLongerThan56CharThisShouldThrowAnException");
+                        .setClassName(tooLongClassName);
             }
         };
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
@@ -507,7 +510,12 @@ public class RealmMigrationTests {
             Realm.getInstance(realmConfig);
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals("Class name is too long. Limit is 56 characters: 'MigrationNameIsLongerThan56CharThisShouldThrowAnException' (57)",
+            assertEquals(
+                    String.format(Locale.US,
+                            "Class name is too long. Limit is %1$d characters: '%2$s' (%3$d)",
+                            tooLongClassName.length() - 1,
+                            tooLongClassName,
+                            tooLongClassName.length()),
                     expected.getMessage());
         }
     }
@@ -896,8 +904,7 @@ public class RealmMigrationTests {
     // change the schema version, no migration is needed. But then, null cannot be used as a value.
     @Test
     public void openPreNullWithRequired() throws IOException {
-        configFactory.copyRealmFromAssets(context,
-                "string-only-required-pre-null-0.82.2.realm", Realm.DEFAULT_REALM_NAME);
+        configFactory.copyRealmFromAssets(context, "string-only-required-pre-null-0.82.2.realm", Realm.DEFAULT_REALM_NAME);
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(0)
                 .schema(StringOnlyRequired.class)

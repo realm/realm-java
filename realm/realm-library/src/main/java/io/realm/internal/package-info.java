@@ -14,16 +14,5 @@
  * limitations under the License.
  */
 
-package some.test;
-
-import io.realm.RealmObject;
-import io.realm.RealmResults;
-import io.realm.annotations.LinkingObjects;
-
-public class Backlinks_NotFinal extends RealmObject {
-    private int id;
-
-    // The field named in the @LinkingObjects annotation must be final
-    @LinkingObjects("child")
-    private RealmResults<BacklinkTarget> simpleParents = null;
-}
+@javax.annotation.ParametersAreNonnullByDefault
+package io.realm.internal;
