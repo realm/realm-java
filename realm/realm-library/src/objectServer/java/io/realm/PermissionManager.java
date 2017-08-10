@@ -54,7 +54,7 @@ import io.realm.permissions.PermissionRequest;
  *     <li>Accept permission offers sent by other users.</li>
  * </ul>
  * </p>
- * This class is depending on underlying Realms, so all data coming from this class is thread-confined and must be
+ * This class depends on underlying Realms, so all data coming from this class is thread-confined and must be
  * closed after use to avoid leaking resources.
  *
  * @see <a href="https://realm.io/docs/java/latest/#access-control">How to work with Access Controls</a>
@@ -164,8 +164,8 @@ public class PermissionManager implements Closeable {
     /**
      * Creates a PermissionManager for the given user.
      *
-     * This class is thread safe since all public methods have thread confined checks in them
-     * and all internal communication is routed through the original Handler thread (required by Realm's notifications).
+     * This class is thread confined, so thread safety is not a concern since all internal
+     * communication is routed through the original Handler thread.
      *
      * @param user user to create manager for.
      */
@@ -222,7 +222,7 @@ public class PermissionManager implements Closeable {
     }
 
     /**
-     * Returns the list of permissions for all Realms available to this user.
+     * Retrieves the list of permissions for all Realms available to this user.
      *
      * @param callback callback notified when the permissions are ready. The returned {@link RealmResults} is a fully
      * live query result, that will be auto-updated like any other {@link RealmResults}.
