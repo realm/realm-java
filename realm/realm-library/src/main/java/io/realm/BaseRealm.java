@@ -446,6 +446,22 @@ abstract class BaseRealm implements Closeable, ThreadConfined {
         return sharedRealm.getSchemaVersion();
     }
 
+
+    /**
+     * Resolves a thread safe reference created from another thread.
+     * FIXME: Better docs
+     *
+     * @return
+     */
+    public <E extends ThreadConfined> E resolveReference(ThreadSafeReference<E> reference) {
+        checkIfValid();
+        //noinspection ConstantConditions
+        if (reference == null) {
+            throw new IllegalArgumentException("Non-null 'reference' required.");
+        }
+        return sharedRealm.resolveReference(reference);
+    }
+
     /**
      * Closes the Realm instance and all its resources.
      * <p>

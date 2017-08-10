@@ -32,6 +32,26 @@ public class ThreadSafeReferenceTests {
     }
 
     @Test
+    public void create_failInsideWriteTransaction() {
+        fail();
+    }
+
+    @Test
+    public void isValid() {
+        fail();
+    }
+
+    @Test
+    void isValid_closedRealm() {
+        fail();
+    }
+
+    @Test
+    public void close() {
+        fail();
+    }
+
+    @Test
     public void realmObject_resolveSameVersion() {
         fail("Verify that object can be moved across threads");
     }

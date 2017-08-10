@@ -677,3 +677,20 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeIsAutoRefres
     CATCH_STD()
     return JNI_FALSE;
 }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_obtainTypeSafeReference(JNIEnv* env, jclass,
+                                                                                  jlong shared_realm_ptr,
+                                                                                  jlong object_ptr)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+
+        shared_realm->obtain_thread_safe_reference
+
+
+        return to_jbool(shared_realm->auto_refresh());
+    }
+    CATCH_STD()
+    return JNI_FALSE;
+}

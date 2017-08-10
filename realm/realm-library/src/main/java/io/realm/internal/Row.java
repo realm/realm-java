@@ -31,7 +31,7 @@ import io.realm.RealmFieldType;
  * For example, methods which accept a column name check the existence of the column and throw
  * {@link IllegalArgumentException} if not found.
  */
-public interface Row {
+public interface Row extends NativeObject {
 
     long getColumnCount();
 

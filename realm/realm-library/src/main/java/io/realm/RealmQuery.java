@@ -56,8 +56,8 @@ import io.realm.internal.fields.FieldDescriptor;
 public class RealmQuery<E extends RealmModel> implements ThreadConfined {
 
     private final Table table;
-    private final BaseRealm realm;
-    private final TableQuery query;
+    final BaseRealm realm;
+    final TableQuery query;
     private final RealmObjectSchema schema;
     private Class<E> clazz;
     private String className;

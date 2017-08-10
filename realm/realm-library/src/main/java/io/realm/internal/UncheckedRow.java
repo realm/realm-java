@@ -32,7 +32,7 @@ import io.realm.RealmFieldType;
  * <p>
  * For low-level access to Row data where error checking is required, use {@link CheckedRow}.
  */
-public class UncheckedRow implements NativeObject, Row {
+public class UncheckedRow implements Row {
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     private final NativeContext context; // This is only kept because for now it's needed by the constructor of LinkView

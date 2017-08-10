@@ -27,8 +27,12 @@ import javax.annotation.Nullable;
 
 import io.realm.CompactOnLaunchCallback;
 import io.realm.RealmConfiguration;
+import io.realm.ThreadConfined;
+import io.realm.ThreadSafeReference;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
+import io.realm.internal.objectstore.OsThreadSafeReference;
+import io.realm.internal.objectstore.OsType;
 
 
 public final class SharedRealm implements Closeable, NativeObject {
@@ -69,6 +73,10 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     private static volatile File temporaryDirectory;
+
+    public <E extends ThreadConfined> E resolveReference(ThreadSafeReference<E> reference) {
+        return null;
+    }
 
     public enum Durability {
         FULL(0),
@@ -439,6 +447,18 @@ public final class SharedRealm implements Closeable, NativeObject {
         }
     }
 
+    /**
+     * Creates a thread safe reference in Object Store that can be used to transfer realm objects to other threads.
+     *
+     * @param nativeObjectPointer pointer to the object being transferred.
+     * @param objectType type of object. Must be a valid defined in {@link OsType}.
+     * @return a wrapper for the underlying ThreadSafeReference object
+     */
+    public OsThreadSafeReference createThreadSafeReference(long nativeObjectPointer, int objectType) {
+        long osRefPtr = obtainThreadSafeReference(nativePtr, nativeObjectPointer, objectType);
+        new OsThreadSafeReference(osRefPtr, objectType);
+    }
+
     // addIterator(), detachIterators() and invalidateIterators() are used to make RealmResults stable iterators work.
     // The iterator will iterate on a snapshot Results if it is accessed inside a transaction.
     // See https://github.com/realm/realm-java/issues/3883 for more information.
@@ -578,4 +598,6 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static native boolean nativeRequiresMigration(long nativePtr, long nativeSchemaPtr);
 
     private static native long nativeGetFinalizerPtr();
+
+    private static native long obtainThreadSafeReference(long nativeSharedRealmPtr, long nativeObjectPtr, int nativeObjectType);
 }
