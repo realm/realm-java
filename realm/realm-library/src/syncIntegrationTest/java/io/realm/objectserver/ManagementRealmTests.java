@@ -19,7 +19,6 @@ package io.realm.objectserver;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -32,7 +31,6 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
-import io.realm.SyncCredentials;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.entities.Dog;
@@ -41,7 +39,6 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.PermissionOfferResponse;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;

@@ -234,6 +234,7 @@ public class SyncSession {
      * @param listener listener to remove.
      */
     public synchronized void removeProgressListener(ProgressListener listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             return;
         }
@@ -275,9 +276,11 @@ public class SyncSession {
     }
 
     private void checkProgressListenerArguments(ProgressMode mode, ProgressListener listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Non-null 'listener' required.");
         }
+        //noinspection ConstantConditions
         if (mode == null) {
             throw new IllegalArgumentException("Non-null 'mode' required.");
         }

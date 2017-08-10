@@ -205,7 +205,8 @@ public class LinkingObjectsManagedTests {
                         assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
                     }
                 },
-                child, parent);
+                child,
+                parent);
     }
 
     // A listener registered on the backlinked field should be called when a commit adds a backlink
@@ -241,7 +242,8 @@ public class LinkingObjectsManagedTests {
                         assertEquals(1, counter.get());
                     }
                 },
-                child, parent);
+                child,
+                parent);
     }
 
     // A listener registered on the backlinked field should not be called after the listener is removed
@@ -277,7 +279,8 @@ public class LinkingObjectsManagedTests {
                         assertEquals(2, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
                     }
                 },
-                child, parent);
+                child,
+                parent);
     }
 
     // A listener registered on the backlinked object should be called when a backlinked object is deleted
@@ -314,7 +317,8 @@ public class LinkingObjectsManagedTests {
                         assertEquals(1, counter.get());
                     }
                 },
-                child, parent);
+                child,
+                parent);
     }
 
     // A listener registered on the backlinked object should not called for an unrelated change
@@ -348,7 +352,8 @@ public class LinkingObjectsManagedTests {
                         assertEquals(1, looperThreadRealm.where(AllJavaTypes.class).findAll().size());
                     }
                 },
-                child, parent);
+                child,
+                parent);
     }
 
     // Fields annotated with @LinkingObjects should not be affected by JSON updates
@@ -454,6 +459,8 @@ public class LinkingObjectsManagedTests {
         final BacklinksTarget target = realm.where(BacklinksTarget.class)
                 .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
 
+        assertNotNull(target);
+
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -497,6 +504,8 @@ public class LinkingObjectsManagedTests {
             }
         });
 
+        assertNotNull(target);
+
         // precondition
         assertFalse(target.isValid());
 
@@ -509,12 +518,17 @@ public class LinkingObjectsManagedTests {
     /**
      * Table validation should fail if the backlinked column already exists in the target table.
      * The realm `backlinks-fieldInUse.realm` contains the classes `BacklinksSource` and `BacklinksTarget`
-     * except that in the definition of `BacklinksTarget`, the field parent is defined as:
+     * except that in the definition of {@code BacklinksTarget}, the field parent is defined as:
      * <pre>
      * {@code
      *     private RealmList<BacklinksSource> parents;
      * }
      * </pre>
+     *
+     * <p/>
+     * The backlinked field does exist but it is list of links to {@code BacklinksSource} children
+     * not a list of backlinks to  {@code BacklinksSource} parents of which the {@code BacklinksTarget}
+     * is a child.
      */
     @Test
     public void migration_backlinkedFieldInUse() {

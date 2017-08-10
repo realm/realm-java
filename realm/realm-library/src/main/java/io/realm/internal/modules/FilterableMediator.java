@@ -60,6 +60,7 @@ public class FilterableMediator extends RealmProxyMediator {
         this.originalMediator = originalMediator;
 
         Set<Class<? extends RealmModel>> tempAllowedClasses = new HashSet<>();
+        //noinspection ConstantConditions
         if (originalMediator != null) {
             Set<Class<? extends RealmModel>> originalClasses = originalMediator.getModelClasses();
             for (Class<? extends RealmModel> clazz : allowedClasses) {

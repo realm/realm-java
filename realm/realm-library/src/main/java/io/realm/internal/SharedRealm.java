@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.annotation.Nullable;
+
 import io.realm.CompactOnLaunchCallback;
 import io.realm.RealmConfiguration;
 import io.realm.internal.android.AndroidCapabilities;
@@ -196,7 +198,7 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private SharedRealm(long nativeConfigPtr,
             RealmConfiguration configuration,
-            SchemaVersionListener schemaVersionListener) {
+            @Nullable SchemaVersionListener schemaVersionListener) {
         Capabilities capabilities = new AndroidCapabilities();
         RealmNotifier realmNotifier = new AndroidRealmNotifier(this, capabilities);
 
@@ -220,7 +222,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
 
-    public static SharedRealm getInstance(RealmConfiguration config, SchemaVersionListener schemaVersionListener,
+    public static SharedRealm getInstance(RealmConfiguration config, @Nullable SchemaVersionListener schemaVersionListener,
             boolean autoChangeNotifications) {
         Object[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
         String syncUserIdentifier = (String) syncUserConf[0];
@@ -365,7 +367,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeIsClosed(nativePtr);
     }
 
-    public void writeCopy(File file, byte[] key) {
+    public void writeCopy(File file, @Nullable byte[] key) {
         if (file.isFile() && file.exists()) {
             throw new IllegalArgumentException("The destination file must not exist");
         }
@@ -578,7 +580,7 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native long nativeSize(long nativeSharedRealmPtr);
 
-    private static native void nativeWriteCopy(long nativeSharedRealmPtr, String path, byte[] key);
+    private static native void nativeWriteCopy(long nativeSharedRealmPtr, String path, @Nullable byte[] key);
 
     private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
 

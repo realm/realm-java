@@ -18,6 +18,8 @@ package io.realm.exceptions;
 
 import java.io.File;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.Keep;
 
 
@@ -32,7 +34,7 @@ public final class RealmMigrationNeededException extends RuntimeException {
         this.canonicalRealmPath = canonicalRealmPath;
     }
 
-    public RealmMigrationNeededException(String canonicalRealmPath, String detailMessage, Throwable throwable) {
+    public RealmMigrationNeededException(String canonicalRealmPath, String detailMessage, @Nullable Throwable throwable) {
         super(detailMessage, throwable);
         this.canonicalRealmPath = canonicalRealmPath;
     }
