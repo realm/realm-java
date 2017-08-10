@@ -25,7 +25,7 @@ import io.realm.internal.InvalidRow;
 import io.realm.internal.ManagableObject;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.util.Pair;
+import io.realm.util.Pair;
 
 /**
  * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then

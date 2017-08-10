@@ -28,8 +28,7 @@ import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-import io.realm.internal.util.Pair;
-
+import io.realm.util.Pair;
 
 /**
  * This class holds all the matches of a {@link RealmQuery} for a given Realm. The objects are not copied from

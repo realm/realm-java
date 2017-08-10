@@ -42,7 +42,7 @@ import io.realm.RealmObject;
 import io.realm.RealmObjectChangeListener;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.internal.util.Pair;
+import io.realm.util.Pair;
 
 /**
  * Factory class for creating Observables for RxJava (&lt;=2.0.*).

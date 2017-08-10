@@ -29,7 +29,7 @@ import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.internal.util.Pair;
+import io.realm.util.Pair;
 
 /**
  * Factory interface for creating Rx Observables for Realm classes.

@@ -33,7 +33,7 @@ import io.reactivex.Observable;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.util.Pair;
+import io.realm.util.Pair;
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
