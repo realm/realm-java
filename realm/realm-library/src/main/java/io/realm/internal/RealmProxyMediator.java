@@ -219,6 +219,7 @@ public abstract class RealmProxyMediator {
     }
 
     protected static void checkClass(Class<? extends RealmModel> clazz) {
+        //noinspection ConstantConditions
         if (clazz == null) {
             throw new NullPointerException("A class extending RealmObject must be provided");
         }

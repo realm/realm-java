@@ -18,6 +18,8 @@ package io.realm.exceptions;
 
 import java.io.File;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.Keep;
 
 

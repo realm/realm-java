@@ -107,7 +107,7 @@ public abstract class ColumnInfo {
      * @param src the instance to copy
      * @param mutable false to make this instance effectively final
      */
-    protected ColumnInfo(ColumnInfo src, boolean mutable) {
+    protected ColumnInfo(@Nullable ColumnInfo src, boolean mutable) {
         this((src == null) ? 0 : src.indicesMap.size(), mutable);
         // ColumnDetails are immutable and may be re-used.
         if (src != null) {

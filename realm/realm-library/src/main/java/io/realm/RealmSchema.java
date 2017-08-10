@@ -140,6 +140,7 @@ public abstract class RealmSchema {
     }
 
     void checkNotEmpty(String str, String error) {
+        //noinspection ConstantConditions
         if (str == null || str.isEmpty()) {
             throw new IllegalArgumentException(error);
         }
@@ -211,7 +212,7 @@ public abstract class RealmSchema {
     RealmObjectSchema getSchemaForClass(String className) {
         String tableName = Table.getTableNameForClass(className);
         RealmObjectSchema dynamicSchema = dynamicClassToSchema.get(tableName);
-        if (dynamicSchema == null) {
+        if (dynamicSchema == null || !dynamicSchema.getTable().isValid() || !dynamicSchema.getClassName().equals(className)) {
             if (!realm.getSharedRealm().hasTable(tableName)) {
                 throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
@@ -237,6 +238,14 @@ public abstract class RealmSchema {
     protected final ColumnInfo getColumnInfo(String className) {
         checkIndices();
         return columnIndices.getColumnInfo(className);
+    }
+
+    final void putToClassNameToSchemaMap(String name, RealmObjectSchema objectSchema) {
+        dynamicClassToSchema.put(name, objectSchema);
+    }
+
+    final RealmObjectSchema removeFromClassNameToSchemaMap(String name) {
+        return dynamicClassToSchema.remove(name);
     }
 
     private void checkIndices() {

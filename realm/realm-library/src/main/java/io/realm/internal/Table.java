@@ -609,7 +609,7 @@ public class Table implements TableSchema, NativeObject {
      * @throws io.realm.exceptions.RealmException if it is not possible to set the primary key due to the column
      * not having distinct values (i.e. violating the primary key constraint).
      */
-    public void setPrimaryKey(String columnName) {
+    public void setPrimaryKey(@Nullable String columnName) {
         Table pkTable = getPrimaryKeyTable();
         if (pkTable == null) {
             throw new RealmException("Primary keys are only supported if Table is part of a Group");
@@ -872,7 +872,8 @@ public class Table implements TableSchema, NativeObject {
         return nativeVersion(nativePtr);
     }
 
-    public static String getClassNameForTable(String name) {
+    @Nullable
+    public static String getClassNameForTable(@Nullable String name) {
         if (name == null) { return null; }
         if (!name.startsWith(TABLE_PREFIX)) {
             return name;
@@ -881,6 +882,7 @@ public class Table implements TableSchema, NativeObject {
     }
 
     public static String getTableNameForClass(String name) {
+        //noinspection ConstantConditions
         if (name == null) { return null; }
         if (name.startsWith(TABLE_PREFIX)) {
             return name;
@@ -973,7 +975,7 @@ public class Table implements TableSchema, NativeObject {
 
     public static native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value, boolean isDefault);
 
-    private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);
+    private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, @Nullable String columnName);
 
     private static native boolean nativeMigratePrimaryKeyTableIfNeeded(long groupNativePtr, long primaryKeyTableNativePtr);
 

@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmConfiguration;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
@@ -317,7 +319,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeIsClosed(nativePtr);
     }
 
-    public void writeCopy(File file, byte[] key) {
+    public void writeCopy(File file, @Nullable byte[] key) {
         if (file.isFile() && file.exists()) {
             throw new IllegalArgumentException("The destination file must not exist");
         }
@@ -517,7 +519,7 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native long nativeSize(long nativeSharedRealmPtr);
 
-    private static native void nativeWriteCopy(long nativeSharedRealmPtr, String path, byte[] key);
+    private static native void nativeWriteCopy(long nativeSharedRealmPtr, String path, @Nullable byte[] key);
 
     private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
 

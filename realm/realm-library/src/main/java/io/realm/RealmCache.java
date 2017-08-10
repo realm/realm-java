@@ -141,6 +141,8 @@ final class RealmCache {
                         if (instanceToReturn != null) {
                             callback.onSuccess(instanceToReturn);
                         } else {
+                            // throwable is non-null
+                            //noinspection ConstantConditions
                             callback.onError(throwable);
                         }
                     }
@@ -250,6 +252,7 @@ final class RealmCache {
             RealmConfiguration configuration, BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
         Capabilities capabilities = new AndroidCapabilities();
         capabilities.checkCanDeliverNotification(ASYNC_NOT_ALLOWED_MSG);
+        //noinspection ConstantConditions
         if (callback == null) {
             throw new IllegalArgumentException(ASYNC_CALLBACK_NULL_MSG);
         }

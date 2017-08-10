@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.Nullable;
+
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -190,6 +192,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     protected <T extends BaseRealm> void addListener(RealmChangeListener<T> listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -208,6 +211,7 @@ abstract class BaseRealm implements Closeable {
      * @see io.realm.RealmChangeListener
      */
     protected <T extends BaseRealm> void removeListener(RealmChangeListener<T> listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -262,7 +266,12 @@ abstract class BaseRealm implements Closeable {
      * destination file.
      */
     public void writeCopyTo(File destination) {
-        writeEncryptedCopyTo(destination, null);
+        //noinspection ConstantConditions
+        if (destination == null) {
+            throw new IllegalArgumentException("The destination argument cannot be null");
+        }
+        checkIfValid();
+        sharedRealm.writeCopy(destination, null);
     }
 
     /**
@@ -281,6 +290,7 @@ abstract class BaseRealm implements Closeable {
      * destination file.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) {
+        //noinspection ConstantConditions
         if (destination == null) {
             throw new IllegalArgumentException("The destination argument cannot be null");
         }
@@ -540,7 +550,7 @@ abstract class BaseRealm implements Closeable {
 
     // Used by RealmList/RealmResults, to create RealmObject from a Collection.
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
-    <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, UncheckedRow row) {
+    <E extends RealmModel> E get(@Nullable Class<E> clazz, @Nullable String dynamicClassName, UncheckedRow row) {
         final boolean isDynamicRealmObject = dynamicClassName != null;
 
         E result;
@@ -548,6 +558,8 @@ abstract class BaseRealm implements Closeable {
             //noinspection unchecked
             result = (E) new DynamicRealmObject(this, CheckedRow.getFromRow(row));
         } else {
+            // 'clazz' is non-null when 'dynamicClassName' is null.
+            //noinspection ConstantConditions
             result = configuration.getSchemaMediator().newInstance(clazz, this, row, getSchema().getColumnInfo(clazz),
                     false, Collections.<String>emptyList());
         }
@@ -564,8 +576,10 @@ abstract class BaseRealm implements Closeable {
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
     // TODO: Remove this after RealmList is backed by OS Results.
-    <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
+    <E extends RealmModel> E get(@Nullable Class<E> clazz, @Nullable String dynamicClassName, long rowIndex) {
         final boolean isDynamicRealmObject = dynamicClassName != null;
+        // 'clazz' is non-null when 'dynamicClassName' is null.
+        //noinspection ConstantConditions
         final Table table = isDynamicRealmObject ? getSchema().getTable(dynamicClassName) : getSchema().getTable(clazz);
 
         E result;
@@ -637,11 +651,12 @@ abstract class BaseRealm implements Closeable {
      * method does nothing.
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}.
      * @throws FileNotFoundException if the Realm file doesn't exist.
-     * @throws IllegalArgumentException if the provided configuration is a {@link SyncConfiguration}.
+     * @throws IllegalArgumentException if the provided configuration is a {@code SyncConfiguration}.
      */
-    protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration)
+    protected static void migrateRealm(final RealmConfiguration configuration, @Nullable final RealmMigration migration)
             throws FileNotFoundException {
 
+        //noinspection ConstantConditions
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }

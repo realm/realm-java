@@ -219,6 +219,7 @@ public class Realm extends BaseRealm {
      */
     public static synchronized void init(Context context) {
         if (BaseRealm.applicationContext == null) {
+            //noinspection ConstantConditions
             if (context == null) {
                 throw new IllegalArgumentException("Non-null context required.");
             }
@@ -321,6 +322,7 @@ public class Realm extends BaseRealm {
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
+        //noinspection ConstantConditions
         if (configuration == null) {
             throw new IllegalArgumentException(NULL_CONFIG_MSG);
         }
@@ -342,6 +344,7 @@ public class Realm extends BaseRealm {
      */
     public static RealmAsyncTask getInstanceAsync(RealmConfiguration configuration,
                                                   Callback callback) {
+        //noinspection ConstantConditions
         if (configuration == null) {
             throw new IllegalArgumentException(NULL_CONFIG_MSG);
         }
@@ -356,6 +359,7 @@ public class Realm extends BaseRealm {
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static void setDefaultConfiguration(RealmConfiguration configuration) {
+        //noinspection ConstantConditions
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
@@ -417,6 +421,7 @@ public class Realm extends BaseRealm {
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      */
     public <E extends RealmModel> void createAllFromJson(Class<E> clazz, JSONArray json) {
+        //noinspection ConstantConditions
         if (clazz == null || json == null) {
             return;
         }
@@ -447,6 +452,7 @@ public class Realm extends BaseRealm {
      * @see #createAllFromJson(Class, org.json.JSONArray)
      */
     public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
+        //noinspection ConstantConditions
         if (clazz == null || json == null) {
             return;
         }
@@ -473,6 +479,7 @@ public class Realm extends BaseRealm {
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      */
     public <E extends RealmModel> void createAllFromJson(Class<E> clazz, String json) {
+        //noinspection ConstantConditions
         if (clazz == null || json == null || json.length() == 0) {
             return;
         }
@@ -503,6 +510,7 @@ public class Realm extends BaseRealm {
      * @see #createAllFromJson(Class, String)
      */
     public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
+        //noinspection ConstantConditions
         if (clazz == null || json == null || json.length() == 0) {
             return;
         }
@@ -535,6 +543,7 @@ public class Realm extends BaseRealm {
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+        //noinspection ConstantConditions
         if (clazz == null || inputStream == null) {
             return;
         }
@@ -571,6 +580,7 @@ public class Realm extends BaseRealm {
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, InputStream in) {
+        //noinspection ConstantConditions
         if (clazz == null || in == null) {
             return;
         }
@@ -610,6 +620,7 @@ public class Realm extends BaseRealm {
      */
     @Nullable
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, JSONObject json) {
+        //noinspection ConstantConditions
         if (clazz == null || json == null) {
             return null;
         }
@@ -638,6 +649,7 @@ public class Realm extends BaseRealm {
      * @see #createObjectFromJson(Class, org.json.JSONObject)
      */
     public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, JSONObject json) {
+        //noinspection ConstantConditions
         if (clazz == null || json == null) {
             return null;
         }
@@ -664,6 +676,7 @@ public class Realm extends BaseRealm {
      */
     @Nullable
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, String json) {
+        //noinspection ConstantConditions
         if (clazz == null || json == null || json.length() == 0) {
             return null;
         }
@@ -695,6 +708,7 @@ public class Realm extends BaseRealm {
      * @see #createObjectFromJson(Class, String)
      */
     public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
+        //noinspection ConstantConditions
         if (clazz == null || json == null || json.length() == 0) {
             return null;
         }
@@ -729,6 +743,7 @@ public class Realm extends BaseRealm {
     @Nullable
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+        //noinspection ConstantConditions
         if (clazz == null || inputStream == null) {
             return null;
         }
@@ -782,6 +797,7 @@ public class Realm extends BaseRealm {
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream in) {
+        //noinspection ConstantConditions
         if (clazz == null || in == null) {
             return null;
         }
@@ -866,7 +882,7 @@ public class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
      * expected value.
      */
-    public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
+    public <E extends RealmModel> E createObject(Class<E> clazz, @Nullable Object primaryKeyValue) {
         checkIfValid();
         return createObjectInternal(clazz, primaryKeyValue, true, Collections.<String>emptyList());
     }
@@ -887,7 +903,7 @@ public class Realm extends BaseRealm {
     // Called from proxy classes.
     <E extends RealmModel> E createObjectInternal(
             Class<E> clazz,
-            Object primaryKeyValue,
+            @Nullable Object primaryKeyValue,
             boolean acceptDefaultValue,
             List<String> excludeFields) {
         Table table = schema.getTable(clazz);
@@ -950,6 +966,7 @@ public class Realm extends BaseRealm {
      * @throws java.lang.IllegalArgumentException if any of the elements in the input collection is {@code null}.
      */
     public <E extends RealmModel> List<E> copyToRealm(Iterable<E> objects) {
+        //noinspection ConstantConditions
         if (objects == null) {
             return new ArrayList<>();
         }
@@ -988,6 +1005,7 @@ public class Realm extends BaseRealm {
      */
     public void insert(Collection<? extends RealmModel> objects) {
         checkIfValidAndInTransaction();
+        //noinspection ConstantConditions
         if (objects == null) {
             throw new IllegalArgumentException("Null objects cannot be inserted into Realm.");
         }
@@ -1024,6 +1042,7 @@ public class Realm extends BaseRealm {
      */
     public void insert(RealmModel object) {
         checkIfValidAndInTransaction();
+        //noinspection ConstantConditions
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
@@ -1059,6 +1078,7 @@ public class Realm extends BaseRealm {
      */
     public void insertOrUpdate(Collection<? extends RealmModel> objects) {
         checkIfValidAndInTransaction();
+        //noinspection ConstantConditions
         if (objects == null) {
             throw new IllegalArgumentException("Null objects cannot be inserted into Realm.");
         }
@@ -1094,6 +1114,7 @@ public class Realm extends BaseRealm {
      */
     public void insertOrUpdate(RealmModel object) {
         checkIfValidAndInTransaction();
+        //noinspection ConstantConditions
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
@@ -1115,6 +1136,7 @@ public class Realm extends BaseRealm {
      * @see #copyToRealm(Iterable)
      */
     public <E extends RealmModel> List<E> copyToRealmOrUpdate(Iterable<E> objects) {
+        //noinspection ConstantConditions
         if (objects == null) {
             return new ArrayList<>(0);
         }
@@ -1173,6 +1195,7 @@ public class Realm extends BaseRealm {
      */
     public <E extends RealmModel> List<E> copyFromRealm(Iterable<E> realmObjects, int maxDepth) {
         checkMaxDepth(maxDepth);
+        //noinspection ConstantConditions
         if (realmObjects == null) {
             return new ArrayList<>(0);
         }
@@ -1299,6 +1322,7 @@ public class Realm extends BaseRealm {
      * @throws RealmMigrationNeededException if the latest version contains incompatible schema changes.
      */
     public void executeTransaction(Transaction transaction) {
+        //noinspection ConstantConditions
         if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
         }
@@ -1339,6 +1363,7 @@ public class Realm extends BaseRealm {
      * another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Realm.Transaction.OnSuccess onSuccess) {
+        //noinspection ConstantConditions
         if (onSuccess == null) {
             throw new IllegalArgumentException("onSuccess callback can't be null");
         }
@@ -1356,6 +1381,7 @@ public class Realm extends BaseRealm {
      * another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Realm.Transaction.OnError onError) {
+        //noinspection ConstantConditions
         if (onError == null) {
             throw new IllegalArgumentException("onError callback can't be null");
         }
@@ -1374,10 +1400,11 @@ public class Realm extends BaseRealm {
      * another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction,
-            final Realm.Transaction.OnSuccess onSuccess,
-            final Realm.Transaction.OnError onError) {
+            @Nullable final Realm.Transaction.OnSuccess onSuccess,
+            @Nullable final Realm.Transaction.OnError onError) {
         checkIfValid();
 
+        //noinspection ConstantConditions
         if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
         }
@@ -1510,6 +1537,7 @@ public class Realm extends BaseRealm {
     }
 
     private <E extends RealmModel> void checkNotNullObject(E object) {
+        //noinspection ConstantConditions
         if (object == null) {
             throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
         }
@@ -1528,6 +1556,7 @@ public class Realm extends BaseRealm {
     }
 
     private <E extends RealmModel> void checkValidObjectForDetach(E realmObject) {
+        //noinspection ConstantConditions
         if (realmObject == null) {
             throw new IllegalArgumentException("Null objects cannot be copied from Realm.");
         }
@@ -1558,7 +1587,7 @@ public class Realm extends BaseRealm {
      * configuration.
      * @throws FileNotFoundException if the Realm file doesn't exist.
      */
-    public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration)
+    public static void migrateRealm(RealmConfiguration configuration, @Nullable RealmMigration migration)
             throws FileNotFoundException {
         BaseRealm.migrateRealm(configuration, migration);
     }
