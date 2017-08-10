@@ -66,7 +66,7 @@ public final class UserCondition {
      * The {@link AccessLevel} defined alongside this condition, will also be used as the default access level
      * for future new users that might be given access to the Realm.
      *
-     * // FIMXE Link to makeOffer() method
+     * @see PermissionManager#makeOffer(PermissionOffer, PermissionManager.MakeOfferCallback)
      */
     public static UserCondition noExistingPermissions() {
         return userId("*");

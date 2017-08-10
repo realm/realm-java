@@ -43,10 +43,21 @@ import io.realm.permissions.PermissionRequest;
 
 
 /**
- * FIXME: Better Javadoc
- * Helper class for interacting with Realm permissions.
- * This class has connections to underlying Realms, so all data coming from this class is thread-confined and must be
+ * Helper class for interacting with Realm Object Server permissions for a {@link SyncUser}.
+ * <p>
+ * Current functionality supported by this class:
+ * <ul>
+ *     <li>List users existing permissions.</li>
+ *     <li>List default permissions.</li>
+ *     <li>Modify permissions for a Realm.</li>
+ *     <li>Create a permission offer that can be sent to others.</li>
+ *     <li>Accept permission offers sent by other users.</li>
+ * </ul>
+ * </p>
+ * This class depends on underlying Realms, so all data coming from this class is thread-confined and must be
  * closed after use to avoid leaking resources.
+ *
+ * @see <a href="https://realm.io/docs/java/latest/#access-control">How to work with Access Controls</a>
  */
 public class PermissionManager implements Closeable {
 
@@ -151,11 +162,10 @@ public class PermissionManager implements Closeable {
     private RealmResults<PermissionOffer> offers;
 
     /**
-     * FIXME Javadoc
      * Creates a PermissionManager for the given user.
      *
-     * Implementation notes: This class is thread safe since all public methods have thread confined checks in them
-     * and all internal communication is routed through the original Handler thread (required by Realm's notifications).
+     * This class is thread confined, so thread safety is not a concern since all internal
+     * communication is routed through the original Handler thread.
      *
      * @param user user to create manager for.
      */
@@ -189,7 +199,9 @@ public class PermissionManager implements Closeable {
                 })
                 .modules(new PermissionModule())
                 .waitForInitialRemoteData()
-                // .readOnly() // FIXME: Something is seriously wrong with the Permission Realm. It doesn't seem to exist on the server. Making it impossible to mark it read only
+                // FIXME: Something is seriously wrong with the Permission Realm. It doesn't seem to
+                // exist on the server. Making it impossible to mark it read only
+                // .readOnly()
                 .build();
 
         defaultPermissionRealmConfig = new SyncConfiguration.Builder(
@@ -210,10 +222,11 @@ public class PermissionManager implements Closeable {
     }
 
     /**
-     * FIXME: Add Javadoc
+     * Retrieves the list of permissions for all Realms available to this user.
      *
-     * @param callback
-     * @return
+     * @param callback callback notified when the permissions are ready. The returned {@link RealmResults} is a fully
+     * live query result, that will be auto-updated like any other {@link RealmResults}.
+     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
      */
     public RealmAsyncTask getPermissions(PermissionsCallback callback) {
         checkIfValidThread();
@@ -445,7 +458,8 @@ public class PermissionManager implements Closeable {
     }
 
     /**
-     * FIXME Add Javadoc
+     * Closes the PermissionManager as well as any underlying Realms.
+     * Any active tasks in progress will be canceled.
      */
     @Override
     public void close() {
