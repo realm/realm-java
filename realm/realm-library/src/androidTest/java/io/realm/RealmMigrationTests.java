@@ -1301,6 +1301,16 @@ public class RealmMigrationTests {
         }
     }
 
+    private void createEmptyRealmVersion0(RealmConfiguration configuration)  {
+        assertFalse(new File(configuration.getPath()).exists());
+
+        DynamicRealm realm = DynamicRealm.getInstance(configuration);
+        realm.beginTransaction();
+        realm.setVersion(0);
+        realm.commitTransaction();
+        realm.close();
+    }
+
     @Test
     public void migrationRequired_throwsExceptionInTheMigrationBlock() {
         final RuntimeException exception = new RuntimeException("TEST");
@@ -1308,14 +1318,18 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                // The transaction should be canceled and this model should not be created.
+                RealmObjectSchema objectSchema = realm.getSchema().create(StringOnly.CLASS_NAME);
+                objectSchema.addField(StringOnly.FIELD_CHARS, String.class);
                 throw exception;
             }
         };
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .migration(migration)
                 .schemaVersion(1)
-                .assetFile("default0.realm") // This Realm does not have the correct schema
+                .schema(StringOnly.class)
                 .build();
+        createEmptyRealmVersion0(config);
 
         Realm realm = null;
         try {
@@ -1327,6 +1341,14 @@ public class RealmMigrationTests {
             if (realm != null) {
                 realm.close();
             }
+        }
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
+        try {
+            assertEquals(0, dynamicRealm.getVersion());
+            assertNull(dynamicRealm.getSchema().get(StringOnly.CLASS_NAME));
+        } finally {
+            dynamicRealm.close();
         }
     }
 

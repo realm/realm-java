@@ -860,6 +860,41 @@ public class RealmConfigurationTests {
     }
 
     @Test
+    public void initialDataTransactionThrows() {
+        final RuntimeException exception = new RuntimeException();
+
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(final Realm realm) {
+                        throw exception;
+                    }
+                }).build();
+
+        assertFalse(new File(configuration.getPath()).exists());
+
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(configuration);
+            fail();
+        } catch (RuntimeException expected) {
+            assertSame(exception, expected);
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(configuration);
+        try {
+            // The schema should not be initialized.
+            assertNull(dynamicRealm.getSchema().get(StringOnly.CLASS_NAME));
+        } finally {
+            dynamicRealm.close();
+        }
+    }
+
+    @Test
     public void assetFileNullAndEmptyFileName() {
         try {
             new RealmConfiguration.Builder(context).assetFile(null).build();

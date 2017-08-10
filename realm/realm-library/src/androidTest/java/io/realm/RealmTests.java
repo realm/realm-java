@@ -1169,6 +1169,31 @@ public class RealmTests {
     }
 
     @Test
+    public void compactOnLaunch_throwsInTheCallback() {
+        final RuntimeException exception = new RuntimeException();
+        final RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .name("compactThrowsTest")
+                .compactOnLaunch(new CompactOnLaunchCallback() {
+                    @Override
+                    public boolean shouldCompact(long totalBytes, long usedBytes) {
+                        throw exception;
+                    }
+                })
+                .build();
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(realmConfig);
+            fail();
+        } catch (RuntimeException expected) {
+            assertSame(exception, expected);
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
+    @Test
     public void defaultCompactOnLaunch() throws IOException {
         Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 30000);
         final long thresholdSize = 50 * 1024 * 1024;

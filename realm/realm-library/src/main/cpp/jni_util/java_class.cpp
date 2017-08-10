@@ -21,6 +21,12 @@
 
 using namespace realm::jni_util;
 
+JavaClass::JavaClass()
+    : m_ref_owner()
+    , m_class(nullptr)
+{
+}
+
 JavaClass::JavaClass(JNIEnv* env, const char* class_name, bool free_on_unload)
     : m_ref_owner(get_jclass(env, class_name))
     , m_class(reinterpret_cast<jclass>(m_ref_owner.get()))

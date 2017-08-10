@@ -28,6 +28,7 @@
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_global_ref.hpp"
 #include "jni_util/jni_utils.hpp"
+#include "jni_util/java_exception_thrower.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
@@ -136,14 +137,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
             config.migration_function = [j_config_ref, j_migration_callback_ref](SharedRealm old_realm,
                                                                                  SharedRealm realm, Schema&) {
                 JNIEnv* env = JniUtils::get_env(false);
-                if (env->ExceptionCheck()) {
-                    return;
-                }
                 // Java needs a new pointer for the SharedRealm life control.
                 SharedRealm* new_shared_realm_ptr = new SharedRealm(realm);
                 env->CallStaticVoidMethod(get_shared_realm_class(env), run_migration_callback_method,
                                           reinterpret_cast<jlong>(new_shared_realm_ptr), j_config_ref.get(),
                                           j_migration_callback_ref.get(), old_realm->schema_version());
+                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env);
             };
         }
         else {
@@ -168,8 +167,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetCompactOnLa
             config.should_compact_on_launch_function = [java_compact_on_launch_ref](uint64_t totalBytes,
                                                                                     uint64_t usedBytes) {
                 JNIEnv* env = JniUtils::get_env(false);
-                return env->CallBooleanMethod(java_compact_on_launch_ref.get(), should_compact,
-                                              static_cast<jlong>(totalBytes), static_cast<jlong>(usedBytes));
+                bool result = env->CallBooleanMethod(java_compact_on_launch_ref.get(), should_compact,
+                                                     static_cast<jlong>(totalBytes), static_cast<jlong>(usedBytes));
+                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env);
+                return result;
             };
         }
         else {
@@ -197,14 +198,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInitializat
             JavaGlobalRef j_config_ref(env, j_config, true);
             config.initialization_function = [j_init_callback_ref, j_config_ref](SharedRealm realm) {
                 JNIEnv* env = JniUtils::get_env(false);
-                if (env->ExceptionCheck()) {
-                    return;
-                }
                 // Java needs a new pointer for the SharedRealm life control.
                 SharedRealm* new_shared_realm_ptr = new SharedRealm(realm);
                 env->CallStaticVoidMethod(get_shared_realm_class(env), run_initialization_callback_method,
                                           reinterpret_cast<jlong>(new_shared_realm_ptr), j_config_ref.get(),
                                           j_init_callback_ref.get());
+                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env);
             };
         }
         else {
