@@ -566,8 +566,11 @@ public class PermissionManager implements Closeable {
         }
 
         void notifyCallbackWithSuccess(RealmResults<Permission> permissions) {
-            activeTasks.remove(this);
-            callback.onSuccess(permissions);
+            try {
+                callback.onSuccess(permissions);
+            } finally {
+                activeTasks.remove(this);
+            }
         }
     }
 
@@ -612,8 +615,11 @@ public class PermissionManager implements Closeable {
         }
 
         void notifyCallbackWithSuccess(RealmResults<Permission> permissions) {
-            activeTasks.remove(this);
-            callback.onSuccess(permissions);
+            try {
+               callback.onSuccess(permissions);
+            } finally {
+                activeTasks.remove(this);
+            }
         }
     }
 
@@ -697,8 +703,11 @@ public class PermissionManager implements Closeable {
         }
 
         void notifyCallbackWithSuccess() {
-            activeTasks.remove(this);
-            callback.onSuccess();
+            try {
+                callback.onSuccess();
+            } finally {
+                activeTasks.remove(this);
+            }
         }
 
         @Override
@@ -784,8 +793,11 @@ public class PermissionManager implements Closeable {
         }
 
         void notifyCallbackWithSuccess(String token) {
-            activeTasks.remove(this);
-            callback.onSuccess(token);
+            try {
+                callback.onSuccess(token);
+            } finally {
+                activeTasks.remove(this);
+            }
         }
 
         @Override
@@ -882,8 +894,11 @@ public class PermissionManager implements Closeable {
         }
 
         void notifyCallbackWithSuccess(String url, Permission permission) {
-            activeTasks.remove(this);
-            callback.onSuccess(url, permission);
+            try {
+                callback.onSuccess(url, permission);
+            } finally {
+                activeTasks.remove(this);
+            }
         }
 
         @Override
@@ -1007,8 +1022,11 @@ public class PermissionManager implements Closeable {
         protected final void notifyCallbackError(ObjectServerError e) {
             RealmLog.debug("Error happened in PermissionManager for %s: %s",
                     permissionManager.user.getIdentity(), e.toString());
-            permissionManager.activeTasks.remove(this);
-            callback.onError(e);
+            try {
+                callback.onError(e);
+            } finally {
+                permissionManager.activeTasks.remove(this);
+            }
         }
 
         // Combine error messages. If they have the same ErrorCode, it will be re-used, otherwise
@@ -1095,8 +1113,11 @@ public class PermissionManager implements Closeable {
         }
 
         void notifyCallbackWithSuccess(RealmResults<PermissionOffer> permissions) {
-            activeTasks.remove(this);
-            callback.onSuccess(permissions);
+            try {
+                callback.onSuccess(permissions);
+            } finally {
+                activeTasks.remove(this);
+            }
         }
     }
 
@@ -1177,8 +1198,11 @@ public class PermissionManager implements Closeable {
         }
 
         void notifyCallbackWithSuccess() {
-            activeTasks.remove(this);
-            callback.onSuccess();
+            try {
+                callback.onSuccess();
+            } finally {
+                activeTasks.remove(this);
+            }
         }
     }
 
