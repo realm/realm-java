@@ -62,7 +62,7 @@ auth:
     ## The validity duration for Access Tokens. This should be a fairly small
     ## number, especially if you are concerned with revocations being applied
     ## quickly. This value is represented in seconds. Default: 1 minute.
-    # access_token: 60
+    access_token: 20
 
   providers:
     ## Providers of authentication tokens. Each provider has a configuration

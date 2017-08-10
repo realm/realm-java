@@ -316,13 +316,13 @@ public class SyncManager {
      * @return a valid cached {@code access_token} if available or null.
      */
     @SuppressWarnings("unused")
-    private synchronized static String bindSessionWithConfig(String sessionPath) {
+    private synchronized static String bindSessionWithConfig(String sessionPath, String refreshToken) {
         final SyncSession syncSession = sessions.get(sessionPath);
         if (syncSession == null) {
             RealmLog.error("Matching Java SyncSession could not be found for: " + sessionPath);
         } else {
             try {
-                return syncSession.getAccessToken(authServer);
+                return syncSession.getAccessToken(authServer, refreshToken);
             } catch (Exception exception) {
                 RealmLog.error(exception);
             }

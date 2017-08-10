@@ -60,7 +60,7 @@ import io.realm.permissions.PermissionModule;
  */
 public class SyncUser {
     private final String identity;
-    private final Token refreshToken;
+    private Token refreshToken;
     private final URL authenticationUrl;
     // maps all RealmConfiguration and accessToken, using this SyncUser.
     private final Map<SyncConfiguration, Token> realms = new HashMap<SyncConfiguration, Token>();
@@ -243,9 +243,10 @@ public class SyncUser {
      */
 //    /* FIXME: Add this back to the javadoc when enable SyncConfiguration.Builder#deleteRealmOnLogout()
 //     <p>
-//     Any Realms owned by the user will be deleted if {@link SyncConfiguration.Builder#deleteRealmOnLogout()} is
-//     also set.
+//     Any Realms owned by the user will be deleted, when the application restart.
 //     */
+    // this is a fire and forget, end user should not worry about the state of the async query
+    @SuppressWarnings("FutureReturnValueIgnored")
     public void logout() {
         // Acquire lock to prevent users creating new instances
         synchronized (Realm.class) {
@@ -253,39 +254,36 @@ public class SyncUser {
                 return; // Already logged out status
             }
 
-//            // The ObjectStore will delete the associated Realms after the next app launch
-//            // we can also have an optimistic approach and try to delete these Realms unless there's
-//            // a remaining instance open.
-//            for (final SyncConfiguration syncConfiguration : realms.keySet()) {
-//                RealmCache.invokeWithGlobalRefCount(syncConfiguration, new RealmCache.Callback() {
-//                    @Override
-//                    public void onResult(int count) {
-//                        if (count == 0) {
-//                            // all instances are closed, remove the Realm
-//                            File realmFile = new File(syncConfiguration.getPath());
-//                            if (realmFile.exists() && !Util.deleteRealm(syncConfiguration.getPath(), realmFile.getParentFile(), realmFile.getName())) {
-//                                RealmLog.error("Could not delete Realm when user logged out: " + syncConfiguration.getPath());
-//                            }
-//                        }
-//                    }
-//                });
-//            }
-
             // Mark the user as logged out in the ObjectStore
             SyncManager.getUserStore().remove(identity);
 
+            // invalidate all pending refresh_token queries
+            for (SyncConfiguration syncConfiguration : realms.keySet()) {
+                SyncSession session = SyncManager.getSession(syncConfiguration);
+                if (session != null) {
+                    session.clearScheduledAccessTokenRefresh();
+                }
+            }
+
             // Remove all local tokens, preventing further connections.
+            // don't remove identity as this SyncUser might be re-activated and we need
+            // to avoid throwing a mismatch SyncConfiguration in RealmCache if we have
+            // the similar SyncConfiguration using the same identity, but with different (new)
+            // refresh-token.
             realms.clear();
 
             // Finally revoke server token. The local user is logged out in any case.
             final AuthenticationServer server = SyncManager.getAuthServer();
-            ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
+            // don't reference directly the refreshToken inside the revoke request
+            // as it may revoke the newly acquired and refresh_token
+            final Token refreshTokenToBeRevoked = refreshToken;
 
-            Future<?> submit = networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
+            ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
+            networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
 
                 @Override
                 protected LogoutResponse execute() {
-                    return server.logout(refreshToken, getAuthenticationUrl());
+                    return server.logout(refreshTokenToBeRevoked, getAuthenticationUrl());
                 }
 
                 @Override
@@ -563,6 +561,10 @@ public class SyncUser {
         return refreshToken;
     }
 
+    void setRefreshToken(Token refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
     /**
      * Returns an instance of the Management Realm owned by the user.
      * <p>
@@ -628,13 +630,13 @@ public class SyncUser {
 
         SyncUser syncUser = (SyncUser) o;
 
-        if (!refreshToken.equals(syncUser.refreshToken)) return false;
+        if (!identity.equals(syncUser.identity)) return false;
         return authenticationUrl.toExternalForm().equals(syncUser.authenticationUrl.toExternalForm());
     }
 
     @Override
     public int hashCode() {
-        int result = refreshToken.hashCode();
+        int result = identity.hashCode();
         result = 31 * result + authenticationUrl.toExternalForm().hashCode();
         return result;
     }
@@ -644,15 +646,6 @@ public class SyncUser {
         StringBuilder sb = new StringBuilder("{");
         sb.append("UserId: ").append(identity);
         sb.append(", AuthUrl: ").append(getAuthenticationUrl());
-        sb.append(", IsValid: ").append(isValid());
-        String[] allSessions = nativeAllSessionsPath(identity);
-        if (allSessions != null && allSessions.length > 0) {
-            sb.append(", Sessions: ");
-            for (String path : allSessions) {
-                sb.append("\n\tpath: ").append(path);
-            }
-            sb.append('\n');
-        }
         sb.append("}");
         return sb.toString();
     }
@@ -725,6 +718,4 @@ public class SyncUser {
 
         void onError(ObjectServerError error);
     }
-
-    private static native String[] nativeAllSessionsPath(String userIdentity);
 }

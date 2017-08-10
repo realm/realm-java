@@ -175,7 +175,6 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFileUserStore.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncUser.cpp
     )
 endif()
 

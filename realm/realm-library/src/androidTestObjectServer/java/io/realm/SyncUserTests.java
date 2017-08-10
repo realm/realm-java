@@ -31,6 +31,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -41,10 +42,12 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.UUID;
 
+import io.realm.entities.StringOnly;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
+import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
@@ -445,5 +448,39 @@ public class SyncUserTests {
         assertEquals(2027, year);
 
         assertEquals("http://192.168.1.151:9080/auth", syncUser.getAuthenticationUrl().toString());
+    }
+
+    @Test
+    public void logoutUserShouldDeleteRealmAfterRestart() throws InterruptedException {
+        SyncManager.reset();
+        BaseRealm.applicationContext = null; // Required for Realm.init() to work
+        Realm.init(InstrumentationRegistry.getTargetContext());
+
+        SyncUser user = createTestUser();
+        SyncConfiguration syncConfiguration = new SyncConfiguration
+                .Builder(user, "realm://127.0.0.1:9080/~/tests")
+                .modules(new StringOnlyModule())
+                .build();
+
+        Realm realm = Realm.getInstance(syncConfiguration);
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(StringOnly.class).setChars("1");
+            }
+        });
+        user.logout();
+        realm.close();
+
+        final File realmPath = new File (syncConfiguration.getPath());
+        assertTrue(realmPath.exists());
+
+        // simulate an app restart
+        SyncManager.reset();
+        BaseRealm.applicationContext = null;
+        Realm.init(InstrumentationRegistry.getTargetContext());
+
+        //now the file should be deleted
+        assertFalse(realmPath.exists());
     }
 }

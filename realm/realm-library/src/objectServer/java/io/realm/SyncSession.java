@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.net.URI;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -34,6 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.realm.internal.Keep;
 import io.realm.internal.KeepMember;
 import io.realm.internal.SyncObjectServerFacade;
+import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AuthenticateResponse;
@@ -463,7 +467,7 @@ public class SyncSession {
     }
 
     // Return the access token for the Realm this Session is connected to.
-    String getAccessToken(final AuthenticationServer authServer) {
+    String getAccessToken(final AuthenticationServer authServer, String refreshToken) {
         // check first if there's a valid access_token we can return immediately
         if (getUser().isRealmAuthenticated(configuration)) {
             Token accessToken = getUser().getAccessToken(configuration);
@@ -474,6 +478,19 @@ public class SyncSession {
             return accessToken.value();
 
         } else {
+            // check and update if we received a new refresh_token
+            if (!Util.isEmptyString(refreshToken)) {
+                try {
+                    JSONObject refreshTokenJSON = new JSONObject(refreshToken);
+                    Token newRefreshToken = Token.from(refreshTokenJSON.getJSONObject("userToken"));
+                    if (newRefreshToken.hashCode() != getUser().getAccessToken().hashCode()) {
+                        RealmLog.debug("Session[%s]: Access token updated", configuration.getPath());
+                        getUser().setRefreshToken(newRefreshToken);
+                    }
+                } catch (JSONException e) {
+                    RealmLog.error(e,"Session[%s]: Can not parse the refresh_token into a valid JSONObject: ", configuration.getPath());
+                }
+            }
             if (!onGoingAccessTokenQuery.getAndSet(true)) {
                 if (NetworkStateReceiver.isOnline(SyncObjectServerFacade.getApplicationContext())) {
                     authenticateRealm(authServer);
@@ -574,7 +591,7 @@ public class SyncSession {
         ScheduledFuture<?> task = REFRESH_TOKENS_EXECUTOR.schedule(new Runnable() {
             @Override
             public void run() {
-                if (!isClosed && !Thread.currentThread().isInterrupted()) {
+                if (!isClosed && !Thread.currentThread().isInterrupted() && !refreshTokenTask.isCancelled()) {
                     refreshAccessToken(authServer);
                 }
             }
@@ -599,13 +616,12 @@ public class SyncSession {
             @Override
             protected void onSuccess(AuthenticateResponse response) {
                 synchronized (SyncSession.this) {
-                    if (!isClosed && !Thread.currentThread().isInterrupted()) {
+                    if (!isClosed && !Thread.currentThread().isInterrupted() && !refreshTokenNetworkRequest.isCancelled()) {
                         RealmLog.debug("Access Token refreshed successfully, Sync URL: " + configuration.getServerUrl());
                         URI realmUrl = configuration.getServerUrl();
                         if (nativeRefreshAccessToken(configuration.getPath(), response.getAccessToken().value(), realmUrl.toString())) {
                             // replace the user old access_token
                             getUser().addRealm(configuration, response.getAccessToken());
-
                             // schedule the next refresh
                             scheduleRefreshAccessToken(authServer, response.getAccessToken().expiresMs());
                         }
@@ -624,13 +640,14 @@ public class SyncSession {
         refreshTokenNetworkRequest = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
     }
 
-    private void clearScheduledAccessTokenRefresh() {
+    void clearScheduledAccessTokenRefresh() {
         if (refreshTokenTask != null) {
             refreshTokenTask.cancel();
         }
         if (refreshTokenNetworkRequest != null) {
             refreshTokenNetworkRequest.cancel();
         }
+        onGoingAccessTokenQuery.set(false);
     }
 
     // Wrapper class for handling the async operations of the underlying SyncSession calling
