@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import javax.annotation.Nullable;
+
+
 /**
  * A User Store backed by a Realm file to store user.
  */
@@ -39,6 +42,7 @@ public class RealmFileUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public SyncUser getCurrent() {
         String userJson = nativeGetCurrentUser();
         return toSyncUserOrNull(userJson);
@@ -48,6 +52,7 @@ public class RealmFileUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public SyncUser get(String identity, String authUrl) {
         String userJson = nativeGetUser(identity, authUrl);
         return toSyncUserOrNull(userJson);
@@ -85,7 +90,8 @@ public class RealmFileUserStore implements UserStore {
         return nativeIsActive(identity, authenticationUrl);
     }
 
-    private static SyncUser toSyncUserOrNull(String userJson) {
+    @Nullable
+    private static SyncUser toSyncUserOrNull(@Nullable String userJson) {
         if (userJson == null) {
             return null;
         }
@@ -96,6 +102,7 @@ public class RealmFileUserStore implements UserStore {
     protected static native String nativeGetCurrentUser();
 
     // returns json data (token) of the specified user
+    @Nullable
     protected static native String nativeGetUser(String identity, String authUrl);
 
     protected static native String[] nativeGetAllUsers();

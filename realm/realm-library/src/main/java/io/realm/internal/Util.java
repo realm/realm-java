@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.log.RealmLog;
@@ -90,13 +92,8 @@ public class Util {
                 || "google_sdk".equals(Build.PRODUCT);
     }
 
-    public static boolean isEmptyString(String str) {
-        if (str == null || str.length() == 0) {
-            return true;
-
-        } else {
-            return false;
-        }
+    public static boolean isEmptyString(@Nullable String str) {
+        return str == null || str.length() == 0;
     }
 
     public static boolean deleteRealm(String canonicalPath, File realmFolder, String realmFileName) {

@@ -23,7 +23,7 @@ import io.realm.internal.Keep;
  * the instance is returned.
  * <p>
  * Note that compacting a file can take a while, so compacting should generally only be done on a background thread or
- * when used in combination with {@link Realm#getInstanceAsync(RealmConfiguration, Realm.Callback)}.
+ * when used in combination with {@link Realm#getInstanceAsync(RealmConfiguration, io.realm.Realm.Callback)}.
  */
 @Keep
 public interface CompactOnLaunchCallback {
