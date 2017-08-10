@@ -1,5 +1,9 @@
 ## 3.6.0 (YYYY-MM-DD)
 
+### Deprecated
+
+* `SyncUser.getManagementRealm()`. Use `SyncUser.getPermissionManager()` instead.
+
 ### Enhancements
 
 * [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
