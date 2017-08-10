@@ -47,6 +47,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
                     "Class name is too long. Limit is %1$d characters: \'%2$s\' (%3$d)",
                     Table.CLASS_NAME_MAX_LENGTH, className, className.length()));
         }
+        //noinspection ConstantConditions
         if (realm.sharedRealm.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
@@ -58,12 +59,14 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             pkField = getPrimaryKey();
             table.setPrimaryKey(null);
         }
+        //noinspection ConstantConditions
         realm.sharedRealm.renameTable(table.getName(), internalTableName);
         if (pkField != null && !pkField.isEmpty()) {
             try {
                 table.setPrimaryKey(pkField);
             } catch (Exception e) {
                 // revert the table name back when something goes wrong
+                //noinspection ConstantConditions
                 realm.sharedRealm.renameTable(table.getName(), oldTableName);
                 throw e;
             }

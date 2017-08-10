@@ -187,7 +187,7 @@ public class OsObject implements NativeObject {
      * @param table the table where the object is created. This table must be atached to {@link SharedRealm}.
      * @return a newly created {@code UncheckedRow}.
      */
-    public static UncheckedRow createWithPrimaryKey(Table table, Object primaryKeyValue) {
+    public static UncheckedRow createWithPrimaryKey(Table table, @Nullable Object primaryKeyValue) {
         long primaryKeyColumnIndex = getAndVerifyPrimaryKeyColumnIndex(table);
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
         final SharedRealm sharedRealm = table.getSharedRealm();
@@ -271,7 +271,7 @@ public class OsObject implements NativeObject {
     // Return a pointer to newly created Row. We may need to return a OsObject pointer in the future.
     private static native long nativeCreateNewObjectWithStringPrimaryKey(long sharedRealmPtr,
                                                                          long tablePtr, long pk_column_index,
-                                                                         String primaryKeyValue);
+                                                                         @Nullable String primaryKeyValue);
 
     // Return a index of newly created Row.
     private static native long nativeCreateRowWithStringPrimaryKey(long sharedRealmPtr,
