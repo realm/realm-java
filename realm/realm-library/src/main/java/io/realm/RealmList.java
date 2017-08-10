@@ -55,7 +55,7 @@ import rx.Observable;
  * @param <E> the class of objects in list.
  */
 
-public class RealmList<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E> {
+public class RealmList<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E>, ThreadConfined {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";

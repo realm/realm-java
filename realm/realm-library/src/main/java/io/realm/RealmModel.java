@@ -42,5 +42,5 @@ import io.realm.annotations.RealmClass;
  * @see RealmObject
  */
 
-public interface RealmModel {
+public interface RealmModel extends ThreadConfined {
 }

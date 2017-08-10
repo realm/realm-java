@@ -51,7 +51,7 @@ import rx.Observable;
  * @see io.realm.DynamicRealm
  */
 @SuppressWarnings("WeakerAccess")
-abstract class BaseRealm implements Closeable {
+abstract class BaseRealm implements Closeable, ThreadConfined {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE =
             "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";

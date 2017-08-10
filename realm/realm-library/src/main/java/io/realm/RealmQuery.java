@@ -53,7 +53,7 @@ import io.realm.internal.fields.FieldDescriptor;
  * @see Realm#where(Class)
  * @see RealmResults#where()
  */
-public class RealmQuery<E extends RealmModel> {
+public class RealmQuery<E extends RealmModel> implements ThreadConfined {
 
     private final Table table;
     private final BaseRealm realm;
