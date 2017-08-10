@@ -367,6 +367,7 @@ public abstract class RealmObjectSchema {
      * Runs a transformation function on each RealmObject instance of the current class. The object will be represented
      * as a {@link DynamicRealmObject}.
      *
+     * @param function transformation function.
      * @return this schema.
      * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      */
@@ -375,6 +376,7 @@ public abstract class RealmObjectSchema {
     /**
      * Returns the type used by the underlying storage engine to represent this field.
      *
+     * @param fieldName name of the target field.
      * @return the underlying type used by Realm to represent this field.
      */
     public RealmFieldType getFieldType(String fieldName) {
@@ -453,6 +455,7 @@ public abstract class RealmObjectSchema {
     }
 
     static void checkLegalName(String fieldName) {
+        //noinspection ConstantConditions
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Field name can not be null or empty");
         }

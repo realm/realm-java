@@ -72,6 +72,7 @@ public class DynamicRealm extends BaseRealm {
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static DynamicRealm getInstance(RealmConfiguration configuration) {
+        //noinspection ConstantConditions
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
@@ -93,6 +94,7 @@ public class DynamicRealm extends BaseRealm {
      */
     public static RealmAsyncTask getInstanceAsync(RealmConfiguration configuration,
                                                   Callback callback) {
+        //noinspection ConstantConditions
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
@@ -215,6 +217,7 @@ public class DynamicRealm extends BaseRealm {
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
      */
     public void executeTransaction(Transaction transaction) {
+        //noinspection ConstantConditions
         if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
         }
@@ -299,4 +302,3 @@ public class DynamicRealm extends BaseRealm {
         }
     }
 }
-

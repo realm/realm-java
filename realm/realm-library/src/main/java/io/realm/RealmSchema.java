@@ -154,6 +154,7 @@ public abstract class RealmSchema {
     }
 
     void checkNotEmpty(String str, String error) {
+        //noinspection ConstantConditions
         if (str == null || str.isEmpty()) {
             throw new IllegalArgumentException(error);
         }
