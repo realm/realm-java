@@ -22,7 +22,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import io.realm.RealmModel;
-import io.realm.internal.util.Pair;
+import io.realm.util.Pair;
 
 
 /**
