@@ -33,9 +33,9 @@ import io.realm.RealmFieldType;
  * <p>
  * While the use of the fields in {@code ColumnDetails} is consistent, there are three subtly different cases:
  * <ul>
- * <li>If the column type is a simple type, the link table field is empty (0L / NULLPTR)</li>
- * <li>If the column type is OBJECT or LINK, the link table field is the class name of the OBJECT/LINK type</li>
- * <li>If the column type is LINKING_OBJECT, the link table field is the class name of the backlink source table
+ * <li>If the column type is a simple type, the {@code peerClassName} field is empty (0L / NULLPTR)</li>
+ * <li>If the column type is OBJECT or LINK, the {@code peerClassName} field is the class name of the OBJECT/LINK type</li>
+ * <li>If the column type is LINKING_OBJECT, the {@code peerClassName} field is the class name of the backlink source table
  * and the column index field is the index of the backlink source field, in the source table</li>
  * </ul>
  *
@@ -60,15 +60,16 @@ import io.realm.RealmFieldType;
 public abstract class ColumnInfo {
 
     // Immutable column information
-    private static final class ColumnDetails {
+    public static final class ColumnDetails {
         public final long columnIndex;
         public final RealmFieldType columnType;
-        public final String linkTable;
+        public final String peerClassName;
 
-        ColumnDetails(long columnIndex, RealmFieldType columnType, String srcTable) {
+        ColumnDetails(long columnIndex, RealmFieldType columnType, String peerClassName) {
+            // invariant: (columnType == OBJECT || columnType == LIST || columnType == LINKING_OBJECTS) == (peerClassName != null)
             this.columnIndex = columnIndex;
             this.columnType = columnType;
-            this.linkTable = srcTable;
+            this.peerClassName = peerClassName;
         }
 
         @Override
@@ -76,7 +77,7 @@ public abstract class ColumnInfo {
             StringBuilder buf = new StringBuilder("ColumnDetails[");
             buf.append(columnIndex);
             buf.append(", ").append(columnType);
-            buf.append(", ").append(linkTable);
+            buf.append(", ").append(peerClassName);
             return buf.append("]").toString();
         }
     }
@@ -133,23 +134,12 @@ public abstract class ColumnInfo {
     }
 
     /**
-     * Returns the Realm Type, in the described table, of the named column.
+     * Returns the {@link ColumnDetails}, in the described table, for the named column.
      *
-     * @return column Realm Type.
+     * @return {@link ColumnDetails} or {@code null} if not found.
      */
-    public RealmFieldType getColumnType(String columnName) {
-        ColumnDetails details = indicesMap.get(columnName);
-        return (details == null) ? RealmFieldType.UNSUPPORTED_TABLE : details.columnType;
-    }
-
-    /**
-     * Returns the table linked in the described table, to the named column.
-     *
-     * @return the class name of the linked table, or null if the column is a primitive type.
-     */
-    public String getLinkedTable(String columnName) {
-        ColumnDetails details = indicesMap.get(columnName);
-        return (details == null) ? null : details.linkTable;
+    public ColumnDetails getColumnDetails(String columnName) {
+        return indicesMap.get(columnName);
     }
 
     /**

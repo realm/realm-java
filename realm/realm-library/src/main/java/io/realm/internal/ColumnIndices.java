@@ -124,24 +124,6 @@ public final class ColumnIndices {
     }
 
     /**
-     * Convenience method to return the column index for a given field on a class
-     * or {@code -1} if no such field exists.
-     *
-     * @param clazz the class to search.
-     * @param fieldName the name of the field whose index is needed.
-     * @return the index in clazz of the field fieldName.
-     * @deprecated Use {@code getColumnInfo().getColumnIndex()} instead.
-     */
-    @Deprecated
-    public long getColumnIndex(Class<? extends RealmModel> clazz, String fieldName) {
-        final ColumnInfo columnInfo = getColumnInfo(clazz);
-        if (columnInfo == null) {
-            return -1;
-        }
-        return columnInfo.getColumnIndex(fieldName);
-    }
-
-    /**
      * Make this instance contain a (non-strict) subset of the data in the passed ColumnIndices.
      * The schemaVersion and every ColumnInfo object held by this instance will be updated to be
      * the same the corresponding data in the passed instance or IllegalStateException will be thrown.
