@@ -33,7 +33,7 @@ import io.reactivex.Observable;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.util.Pair;
+import io.realm.rx.CollectionChange;
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
@@ -913,15 +913,13 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public Observable<Pair<RealmList<E>, OrderedCollectionChangeSet>> asChangesetObservable() {
+    public Observable<CollectionChange<RealmList<E>>> asChangesetObservable() {
         if (realm instanceof Realm) {
             return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, this);
         } else if (realm instanceof DynamicRealm) {
             DynamicRealm dynamicRealm = (DynamicRealm) realm;
             RealmList<DynamicRealmObject> dynamicResults = (RealmList<DynamicRealmObject>) this;
-            @SuppressWarnings("UnnecessaryLocalVariable")
-            Observable results = realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
-            return results;
+            return (Observable) realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
         } else {
             throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
         }

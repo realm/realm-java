@@ -28,7 +28,7 @@ import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-import io.realm.util.Pair;
+import io.realm.rx.CollectionChange;
 
 /**
  * This class holds all the matches of a {@link RealmQuery} for a given Realm. The objects are not copied from
@@ -326,15 +326,13 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public Observable<Pair<RealmResults<E>, OrderedCollectionChangeSet>> asChangesetObservable() {
+    public Observable<CollectionChange<RealmResults<E>>> asChangesetObservable() {
         if (realm instanceof Realm) {
             return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, this);
         } else if (realm instanceof DynamicRealm) {
             DynamicRealm dynamicRealm = (DynamicRealm) realm;
             RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
-            @SuppressWarnings("UnnecessaryLocalVariable")
-            Observable results = realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
-            return results;
+            return (Observable) realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
         } else {
             throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
         }

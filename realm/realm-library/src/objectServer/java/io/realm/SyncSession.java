@@ -41,7 +41,7 @@ import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
-import io.realm.util.Pair;
+import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 
 /**

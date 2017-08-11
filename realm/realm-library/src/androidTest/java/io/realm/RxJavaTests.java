@@ -42,7 +42,8 @@ import io.realm.entities.Dog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
-import io.realm.util.Pair;
+import io.realm.rx.CollectionChange;
+import io.realm.rx.ObjectChange;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -112,11 +113,11 @@ public class RxJavaTests {
         realm.commitTransaction();
 
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
-        subscription = obj.asChangesetObservable().subscribe(new Consumer<Pair<RealmObject, ObjectChangeSet>>() {
+        subscription = obj.asChangesetObservable().subscribe(new Consumer<ObjectChange<RealmObject>>() {
             @Override
-            public void accept(Pair<RealmObject, ObjectChangeSet> pair) throws Exception {
-                assertTrue(pair.first == obj);
-                assertNull(pair.second);
+            public void accept(ObjectChange<RealmObject> change) throws Exception {
+                assertTrue(change.getObject() == obj);
+                assertNull(change.getChangeset());
                 subscribedNotified.set(true);
             }
         });
@@ -133,11 +134,11 @@ public class RxJavaTests {
         dynamicRealm.commitTransaction();
 
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
-        subscription = obj.asChangesetObservable().subscribe(new Consumer<Pair<RealmObject, ObjectChangeSet>>() {
+        subscription = obj.asChangesetObservable().subscribe(new Consumer<ObjectChange<RealmObject>>() {
             @Override
-            public void accept(Pair<RealmObject, ObjectChangeSet> pair) throws Exception {
-                assertTrue(pair.first == obj);
-                assertNull(pair.second);
+            public void accept(ObjectChange<RealmObject> change) throws Exception {
+                assertTrue(change.getObject() == obj);
+                assertNull(change.getChangeset());
                 subscribedNotified.set(true);
             }
         });
@@ -178,12 +179,12 @@ public class RxJavaTests {
         final AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        subscription = obj.asChangesetObservable().subscribe(new Consumer<Pair<RealmObject, ObjectChangeSet>>() {
+        subscription = obj.asChangesetObservable().subscribe(new Consumer<ObjectChange<RealmObject>>() {
             @Override
-            public void accept(Pair<RealmObject, ObjectChangeSet> pair) throws Exception {
+            public void accept(ObjectChange<RealmObject> change) throws Exception {
                 if (subscriberCalled.incrementAndGet() == 2) {
-                    assertNotNull(pair.second);
-                    assertTrue(pair.second.isFieldChanged(AllTypes.FIELD_LONG));
+                    assertNotNull(change.getChangeset());
+                    assertTrue(change.getChangeset().isFieldChanged(AllTypes.FIELD_LONG));
                     looperThread.testComplete();
                 }
             }
@@ -204,12 +205,12 @@ public class RxJavaTests {
         final DynamicRealmObject obj = realm.createObject(AllTypes.CLASS_NAME);
         realm.commitTransaction();
 
-        subscription = obj.asChangesetObservable().subscribe(new Consumer<Pair<RealmObject, ObjectChangeSet>>() {
+        subscription = obj.asChangesetObservable().subscribe(new Consumer<ObjectChange<RealmObject>>() {
             @Override
-            public void accept(Pair<RealmObject, ObjectChangeSet> pair) throws Exception {
+            public void accept(ObjectChange<RealmObject> change) throws Exception {
                 if (subscriberCalled.incrementAndGet() == 2) {
-                    assertNotNull(pair.second);
-                    assertTrue(pair.second.isFieldChanged(AllTypes.FIELD_LONG));
+                    assertNotNull(change.getChangeset());
+                    assertTrue(change.getChangeset().isFieldChanged(AllTypes.FIELD_LONG));
                     looperThread.testComplete();
                 }
             }
@@ -340,10 +341,10 @@ public class RxJavaTests {
     public void realmResults_emittedChangesetOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
-        subscription = results.asChangesetObservable().subscribe(new Consumer<Pair<RealmResults<AllTypes>, OrderedCollectionChangeSet>>() {
+        subscription = results.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmResults<AllTypes>>>() {
             @Override
-            public void accept(Pair<RealmResults<AllTypes>, OrderedCollectionChangeSet> pair) throws Exception {
-                assertEquals(results, pair.first);
+            public void accept(CollectionChange<RealmResults<AllTypes>> change) throws Exception {
+                assertEquals(results, change.getCollection());
                 subscribedNotified.set(true);
             }
         });
@@ -377,11 +378,11 @@ public class RxJavaTests {
         realm.beginTransaction();
         final RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
         realm.commitTransaction();
-        subscription = list.asChangesetObservable().subscribe(new Consumer<Pair<RealmList<Dog>, OrderedCollectionChangeSet>>() {
+        subscription = list.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmList<Dog>>>() {
             @Override
-            public void accept(Pair<RealmList<Dog>, OrderedCollectionChangeSet> pair) throws Exception {
-                assertEquals(list, pair.first);
-                assertNull(pair.second);
+            public void accept(CollectionChange<RealmList<Dog>> change) throws Exception {
+                assertEquals(list, change.getCollection());
+                assertNull(change.getChangeset());
                 subscribedNotified.set(true);
             }
         });
@@ -414,11 +415,11 @@ public class RxJavaTests {
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         final RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
-        subscription = results.asChangesetObservable().subscribe(new Consumer<Pair<RealmResults<DynamicRealmObject>, OrderedCollectionChangeSet>>() {
+        subscription = results.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmResults<DynamicRealmObject>>>() {
             @Override
-            public void accept(Pair<RealmResults<DynamicRealmObject>, OrderedCollectionChangeSet> pair) throws Exception {
-                assertEquals(results, pair.first);
-                assertNull(pair.second);
+            public void accept(CollectionChange<RealmResults<DynamicRealmObject>> change) throws Exception {
+                assertEquals(results, change.getCollection());
+                assertNull(change.getChangeset());
                 subscribedNotified.set(true);
             }
         });
@@ -459,16 +460,15 @@ public class RxJavaTests {
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         realm.commitTransaction();
 
-        subscription = results.asChangesetObservable().subscribe(new Consumer<Pair<RealmResults<AllTypes>, OrderedCollectionChangeSet>>() {
+        subscription = results.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmResults<AllTypes>>>() {
             @Override
-            public void accept(Pair<RealmResults<AllTypes>, OrderedCollectionChangeSet> pair) throws Exception {
+            public void accept(CollectionChange<RealmResults<AllTypes>> change) throws Exception {
                 if (subscriberCalled.incrementAndGet() == 2) {
-                    assertEquals(1, pair.second.getInsertions().length);
+                    assertEquals(1, change.getChangeset().getInsertions().length);
                     looperThread.testComplete();
                 }
             }
         });
-
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
@@ -507,12 +507,12 @@ public class RxJavaTests {
         final RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
         realm.commitTransaction();
 
-        subscription = list.asChangesetObservable().subscribe(new Consumer<Pair<RealmList<Dog>, OrderedCollectionChangeSet>>() {
+        subscription = list.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmList<Dog>>>() {
             @Override
-            public void accept(Pair<RealmList<Dog>, OrderedCollectionChangeSet> pair) throws Exception {
+            public void accept(CollectionChange<RealmList<Dog>> change) throws Exception {
                 if (subscriberCalled.incrementAndGet() == 2) {
                     assertEquals(1, list.size());
-                    assertEquals(1, pair.second.getInsertions().length);
+                    assertEquals(1, change.getChangeset().getInsertions().length);
                     looperThread.testComplete();
                 }
             }
@@ -557,11 +557,11 @@ public class RxJavaTests {
         RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
         dynamicRealm.commitTransaction();
 
-        subscription = results.asChangesetObservable().subscribe(new Consumer<Pair<RealmResults<DynamicRealmObject>, OrderedCollectionChangeSet>>() {
+        subscription = results.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmResults<DynamicRealmObject>>>() {
             @Override
-            public void accept(Pair<RealmResults<DynamicRealmObject>, OrderedCollectionChangeSet> pair) throws Exception {
+            public void accept(CollectionChange<RealmResults<DynamicRealmObject>> change) throws Exception {
                 if (subscriberCalled.incrementAndGet() == 2) {
-                    assertEquals(1, pair.second.getInsertions().length);
+                    assertEquals(1, change.getChangeset().getInsertions().length);
                     looperThread.testComplete();
                 }
             }

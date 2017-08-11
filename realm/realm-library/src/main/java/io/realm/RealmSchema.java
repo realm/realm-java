@@ -27,7 +27,7 @@ import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
-import io.realm.util.Pair;
+import io.realm.internal.util.Pair;
 
 /**
  * Class for interacting with the Realm schema. This makes it possible to inspect, add, delete and change the classes in

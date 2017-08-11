@@ -25,7 +25,7 @@ import io.realm.internal.InvalidRow;
 import io.realm.internal.ManagableObject;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.util.Pair;
+import io.realm.rx.ObjectChange;
 
 /**
  * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then
@@ -535,7 +535,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @throws IllegalStateException if you try to add a listener inside a transaction.
      */
     public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener<E> listener) {
-        addChangeListener(object, new ProxyState.RealmChangeListenerWrapper<E>(listener));
+        addChangeListener(object, new ProxyState.RealmChangeListenerWrapper<>(listener));
     }
 
     /**
@@ -598,7 +598,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      */
     public static <E extends RealmModel> void removeChangeListener(E object, RealmChangeListener<E> listener) {
-        removeChangeListener(object, new ProxyState.RealmChangeListenerWrapper<E>(listener));
+        removeChangeListener(object, new ProxyState.RealmChangeListenerWrapper<>(listener));
     }
 
     /**
@@ -706,7 +706,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public final <E extends RealmObject> Observable<Pair<E, ObjectChangeSet>> asChangesetObservable() {
+    public final <E extends RealmObject> Observable<ObjectChange<E>> asChangesetObservable() {
         return (Observable) RealmObject.asChangesetObservable(this);
     }
 
@@ -780,7 +780,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public static <E extends RealmModel> Observable<Pair<E, ObjectChangeSet>> asChangesetObservable(E object) {
+    public static <E extends RealmModel> Observable<ObjectChange<E>> asChangesetObservable(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
