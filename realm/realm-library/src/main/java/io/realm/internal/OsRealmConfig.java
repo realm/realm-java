@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import javax.annotation.Nullable;
+
 import io.realm.CompactOnLaunchCallback;
 import io.realm.RealmConfiguration;
 
@@ -79,7 +81,7 @@ public class OsRealmConfig implements NativeObject {
          *                   initialize the Realm with given schema and handle migration with it.
          * @return this {@link OsRealmConfig.Builder}.
          */
-        public Builder schemaInfo(OsSchemaInfo schemaInfo) {
+        public Builder schemaInfo(@Nullable OsSchemaInfo schemaInfo) {
             this.schemaInfo = schemaInfo;
             return this;
         }
@@ -90,7 +92,7 @@ public class OsRealmConfig implements NativeObject {
          * @param migrationCallback callback to be set.
          * @return this {@link OsRealmConfig.Builder}.
          */
-        public Builder migrationCallback(SharedRealm.MigrationCallback migrationCallback) {
+        public Builder migrationCallback(@Nullable SharedRealm.MigrationCallback migrationCallback) {
             this.migrationCallback = migrationCallback;
             return this;
         }
@@ -101,7 +103,7 @@ public class OsRealmConfig implements NativeObject {
          * @param initializationCallback the callback to be set.
          * @return this {@link OsRealmConfig.Builder}.
          */
-        public Builder initializationCallback(SharedRealm.InitializationCallback initializationCallback) {
+        public Builder initializationCallback(@Nullable SharedRealm.InitializationCallback initializationCallback) {
             this.initializationCallback = initializationCallback;
             return this;
         }
@@ -146,9 +148,9 @@ public class OsRealmConfig implements NativeObject {
 
     private OsRealmConfig(final RealmConfiguration config,
                           boolean autoUpdateNotification,
-                          OsSchemaInfo schemaInfo,
-                          SharedRealm.MigrationCallback migrationCallback,
-                          SharedRealm.InitializationCallback initializationCallback) {
+                          @Nullable OsSchemaInfo schemaInfo,
+                          @Nullable SharedRealm.MigrationCallback migrationCallback,
+                          @Nullable SharedRealm.InitializationCallback initializationCallback) {
         this.realmConfiguration = config;
         this.nativePtr = nativeCreate(config.getPath(), false, true);
         NativeContext.dummyContext.addReference(this);
@@ -232,7 +234,7 @@ public class OsRealmConfig implements NativeObject {
 
     private native void nativeSetSchemaConfig(long nativePtr, byte schemaMode, long schemaVersion,
                                               long schemaInfoPtr,
-                                              SharedRealm.MigrationCallback migrationCallback);
+                                              @Nullable SharedRealm.MigrationCallback migrationCallback);
 
     private static native void nativeSetCompactOnLaunchCallback(long nativePtr, CompactOnLaunchCallback callback);
 

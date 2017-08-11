@@ -60,7 +60,7 @@ public abstract class RealmSchema {
     /**
      * Creates a wrapper to easily manipulate the current schema of a Realm.
      */
-    RealmSchema(BaseRealm realm, ColumnIndices columnIndices) {
+    RealmSchema(BaseRealm realm, @Nullable ColumnIndices columnIndices) {
         this.realm = realm;
         this.columnIndices = columnIndices;
     }

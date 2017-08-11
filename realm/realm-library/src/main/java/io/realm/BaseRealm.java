@@ -89,13 +89,13 @@ abstract class BaseRealm implements Closeable {
     };
 
     // Create a realm instance and associate it to a RealmCache.
-    BaseRealm(RealmCache cache, OsSchemaInfo schemaInfo) {
+    BaseRealm(RealmCache cache, @Nullable OsSchemaInfo schemaInfo) {
         this(cache.getConfiguration(), schemaInfo);
         this.realmCache = cache;
     }
 
     // Create a realm instance without associating it to any RealmCache.
-    BaseRealm(final RealmConfiguration configuration, OsSchemaInfo schemaInfo) {
+    BaseRealm(final RealmConfiguration configuration, @Nullable OsSchemaInfo schemaInfo) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.realmCache = null;
