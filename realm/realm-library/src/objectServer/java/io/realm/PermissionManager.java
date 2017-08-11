@@ -53,7 +53,7 @@ import io.realm.permissions.PermissionRequest;
  *     <li>Create a permission offer that can be sent to others.</li>
  *     <li>Accept permission offers sent by other users.</li>
  * </ul>
- * </p>
+ * <p>
  * This class depends on underlying Realms, so all data coming from this class is thread-confined and must be
  * closed after use to avoid leaking resources.
  *
@@ -132,9 +132,9 @@ public class PermissionManager implements Closeable {
 
     private final long threadId;
     private Handler handler = new Handler();
-    private final SyncConfiguration managementRealmConfig;
-    private final SyncConfiguration permissionRealmConfig;
-    private final SyncConfiguration defaultPermissionRealmConfig;
+    final SyncConfiguration managementRealmConfig;
+    final SyncConfiguration permissionRealmConfig;
+    final SyncConfiguration defaultPermissionRealmConfig;
     private Realm permissionRealm;
     private Realm managementRealm;
     private Realm defaultPermissionRealm;
@@ -154,6 +154,12 @@ public class PermissionManager implements Closeable {
     private volatile ObjectServerError permissionRealmError = null;
     private volatile ObjectServerError managementRealmError = null;
     private volatile ObjectServerError defaultPermissionRealmError = null;
+
+    // A client reset was encountered in one of the Realms.
+    // This has invalidated the PermissionManager and it must be closed as soon as possible.
+    // This flag purely used to be able to send a proper error message to users.
+    private boolean clientReset = false;
+
 
     // Cached result of the permission query. This will be filled, once the first PermissionAsyncTask has loaded
     // the result.
@@ -177,7 +183,6 @@ public class PermissionManager implements Closeable {
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
-                        // FIXME: How to handle Client Reset?
                         synchronized (errorLock) {
                             managementRealmError = error;
                         }
@@ -191,7 +196,6 @@ public class PermissionManager implements Closeable {
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
-                        // FIXME: How to handle Client Reset?
                         synchronized (errorLock) {
                             permissionRealmError = error;
                         }
@@ -209,7 +213,6 @@ public class PermissionManager implements Closeable {
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
-                        // FIXME: How to handle Client Reset?
                         synchronized (errorLock) {
                             defaultPermissionRealmError = error;
                         }
@@ -936,6 +939,9 @@ public class PermissionManager implements Closeable {
         private final PermissionManagerBaseCallback callback;
         private final PermissionManager permissionManager;
         private volatile boolean canceled = false;
+        private static final String ERROR_MESSAGE_CLIENT_RESET = "The PermissionManager " +
+                "has been invalidated due to a server conflict. No further tasks can be scheduled " +
+                "and it should be closed and re-opened as soon as possible.";
 
         public PermissionManagerTask(PermissionManager permissionManager, PermissionManagerBaseCallback callback) {
             this.callback = callback;
@@ -974,6 +980,11 @@ public class PermissionManager implements Closeable {
                 ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN,
                         new IllegalStateException("PermissionManager has been closed"));
                 notifyCallbackError(error); // This will remove the task from the task list
+                return true;
+            }
+            if (permissionManager.clientReset) {
+                ObjectServerError error = new ObjectServerError(ErrorCode.CLIENT_RESET, ERROR_MESSAGE_CLIENT_RESET);
+                notifyCallbackError(error);
                 return true;
             }
 

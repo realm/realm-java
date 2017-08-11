@@ -172,6 +172,84 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
 
     @Test
     @RunTestInLooperThread
+    public void getPermissions_clientReset() {
+        final PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.getPermissions(new PermissionManager.PermissionsCallback() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                // Simulate reset after first request succeeded to make sure that session is
+                // alive.
+                SyncManager.simulateClientReset(SyncManager.getSession(pm.permissionRealmConfig));
+                pm.getPermissions(new PermissionManager.PermissionsCallback() {
+                    @Override
+                    public void onSuccess(RealmResults<Permission> permissions) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        assertEquals(ErrorCode.CLIENT_RESET, error.getErrorCode());
+                        looperThread.testComplete();
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getPermissions_addTaskAfterClientReset() {
+        final PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.getPermissions(new PermissionManager.PermissionsCallback() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                // Simulate reset after first request succeeded to make sure that session is
+                // alive.
+                SyncManager.simulateClientReset(SyncManager.getSession(pm.permissionRealmConfig));
+
+                // 1. Run task that fail
+                pm.getPermissions(new PermissionManager.PermissionsCallback() {
+                    @Override
+                    public void onSuccess(RealmResults<Permission> permissions) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        assertEquals(ErrorCode.CLIENT_RESET, error.getErrorCode());
+                        // 2. Then try to add another
+                        pm.getDefaultPermissions(new PermissionManager.PermissionsCallback() {
+                            @Override
+                            public void onSuccess(RealmResults<Permission> permissions) {
+                                fail();
+                            }
+
+                            @Override
+                            public void onError(ObjectServerError error) {
+                                assertEquals(ErrorCode.CLIENT_RESET, error.getErrorCode());
+                                looperThread.testComplete();
+                            }
+                        });
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
     public void getDefaultPermissions_returnLoadedResults() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
