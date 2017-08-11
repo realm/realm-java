@@ -33,7 +33,7 @@ import io.realm.RealmFieldType;
  * <p>
  * While the use of the fields in {@code ColumnDetails} is consistent, there are three subtly different cases:
  * <ul>
- * <li>If the column type is a simple type, the {@code peerClassName} field is empty (0L / NULLPTR)</li>
+ * <li>If the column type is a simple type, the {@code peerClassName} field is {@code null}</li>
  * <li>If the column type is OBJECT or LINK, the {@code peerClassName} field is the class name of the OBJECT/LINK type</li>
  * <li>If the column type is LINKING_OBJECT, the {@code peerClassName} field is the class name of the backlink source table
  * and the column index field is the index of the backlink source field, in the source table</li>
@@ -134,7 +134,7 @@ public abstract class ColumnInfo {
     }
 
     /**
-     * Returns the {@link ColumnDetails}, in the described table, for the named column.
+     * Returns the {@link ColumnDetails}, in the described table, of the named column.
      *
      * @return {@link ColumnDetails} or {@code null} if not found.
      */
