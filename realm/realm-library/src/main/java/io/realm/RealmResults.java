@@ -307,15 +307,11 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
 
     /**
      * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
-     * subscribed to. For each update to the RealmResult a pair consisting of the RealmResults and the
+     * subscribed. For each update to the RealmResult a pair consisting of the RealmResults and the
      * {@link OrderedCollectionChangeSet} will be sent. The changeset will be {@code null} the first
      * time an RealmResults is emitted.
      * <p>
-     * Changeset observables do not support backpressure as each {@link OrderedCollectionChangeSet} depends on
-     * the previous one. Handling backpressure is therefor up to callers of this method.
-     * <p>
-     * RealmResults will continually be emitted as the RealmResults are updated -
-     * {@code onComplete} will never be called.
+     * RealmResults will continually be emitted as the RealmResults are updated - {@code onComplete} will never be called.
      * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
      * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
      * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}

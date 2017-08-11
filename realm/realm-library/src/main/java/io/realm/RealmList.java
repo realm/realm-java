@@ -894,12 +894,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
 
     /**
      * Returns an Rx Observable that monitors changes to this RealmList. It will emit the current RealmList when
-     * subscribed to. For each update to the RealmList a pair consisting of the RealmList and the
+     * subscribed. For each update to the RealmList a pair consisting of the RealmList and the
      * {@link OrderedCollectionChangeSet} will be sent. The changeset will be {@code null} the first
      * time an RealmList is emitted.
-     * <p>
-     * Changeset observables do not support backpressure as each {@link OrderedCollectionChangeSet} depends on
-     * the previous one. Handling backpressure is therefor up to callers of this method.
      * <p>
      * RealmList will continually be emitted as the RealmList is updated - {@code onComplete} will never be called.
      * <p>

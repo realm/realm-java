@@ -691,9 +691,6 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * {@link ObjectChangeSet} will be sent. The changeset will be {@code null} the first
      * time the RealmObject is emitted.
      * <p>
-     * Changeset observables do not support backpressure as each {@link ObjectChangeSet} depends on
-     * the previous one. Handling backpressure is therefor up to callers of this method.
-     * <p>
      * The RealmObject will continually be emitted as it is updated - {@code onComplete} will never be called.
      * <p>
      * Note that when the {@link Realm} is accessed from threads other than where it was created,
@@ -763,9 +760,6 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * subscribed to. For each update to the RealmObject a pair consisting of the RealmObject and the
      * {@link ObjectChangeSet} will be sent. The changeset will be {@code null} the first
      * time the RealmObject is emitted.
-     * <p>
-     * Changeset observables do not support backpressure as each {@link ObjectChangeSet} depends on
-     * the previous one. Handling backpressure is therefor up to callers of this method.
      * <p>
      * The RealmObject will continually be emitted as it is updated - {@code onComplete} will never be called.
      * <p>
