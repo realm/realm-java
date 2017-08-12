@@ -81,12 +81,12 @@ class CachedFieldDescriptor extends FieldDescriptor {
             // we don't check the type of the last field in the chain since it is done in the C++ code
             if (i < nFields - 1) {
                 verifyInternalColumnType(currentClassName, currentColumnName, currentColumnType);
-                currentClassName = details.peerClassName;
+                currentClassName = details.linkedClassName;
             }
             columnIndices[i] = details.columnIndex;
             tableNativePointers[i] = (currentColumnType != RealmFieldType.LINKING_OBJECTS)
                     ? NativeObject.NULLPTR
-                    : schema.getNativeTablePtr(details.peerClassName);
+                    : schema.getNativeTablePtr(details.linkedClassName);
         }
 
         setCompilationResults(currentClassName, currentColumnName, currentColumnType, columnIndices, tableNativePointers);
