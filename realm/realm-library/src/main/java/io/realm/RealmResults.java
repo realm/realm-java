@@ -264,7 +264,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
+     * Returns an Rx Flowable that monitors changes to this RealmResults. It will emit the current RealmResults when
      * subscribed to. RealmResults will continually be emitted as the RealmResults are updated -
      * {@code onComplete} will never be called.
      * <p>

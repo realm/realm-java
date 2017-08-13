@@ -649,11 +649,11 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
     }
 
     /**
-     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
+     * Returns an RxJava Flowable that monitors changes to this RealmObject. It will emit the current object when
      * subscribed to. Object updates will continually be emitted as the RealmObject is updated -
      * {@code onComplete} will never be called.
      * <p>
-     * When chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asFlowable()} to pass on
+     * When chaining a RealmObject flowable use {@code obj.<MyRealmObjectClass>asFlowable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
      * <p>
      * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
@@ -708,7 +708,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
     }
 
     /**
-     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
+     * Returns an RxJava Flowable that monitors changes to this RealmObject. It will emit the current object when
      * subscribed to. Object updates will continuously be emitted as the RealmObject is updated -
      * {@code onComplete} will never be called.
      * <p>

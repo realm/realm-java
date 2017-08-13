@@ -853,7 +853,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
 
 
     /**
-     * Returns an Rx Observable that monitors changes to this RealmList. It will emit the current RealmList when
+     * Returns an Rx Flowable that monitors changes to this RealmList. It will emit the current RealmList when
      * subscribed to. RealmList will continually be emitted as the RealmList is updated -
      * {@code onComplete} will never be called.
      * <p>

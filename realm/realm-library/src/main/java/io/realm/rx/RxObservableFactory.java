@@ -35,10 +35,10 @@ import io.realm.RealmResults;
 public interface RxObservableFactory {
 
     /**
-     * Creates an Observable for a {@link Realm}. It should emit the initial state of the Realm when subscribed to and
+     * Creates a Flowable for a {@link Realm}. It should emit the initial state of the Realm when subscribed to and
      * on each subsequent update of the Realm.
      * <p>
-     * Realm observables are hot observables as Realms are automatically kept up to date.
+     * Realm flowables are hot as Realms are automatically kept up to date.
      *
      * @param realm {@link Realm} to listen to changes for.
      * @return Rx observable that emit all updates to the Realm.
@@ -46,10 +46,10 @@ public interface RxObservableFactory {
     Flowable<Realm> from(Realm realm);
 
     /**
-     * Creates an Observable for a {@link DynamicRealm}. It should emit the initial state of the Realm when subscribed
+     * Creates a Flowable for a {@link DynamicRealm}. It should emit the initial state of the Realm when subscribed
      * to and on each subsequent update of the Realm.
      * <p>
-     * DynamicRealm observables are hot observables as DynamicRealms are automatically kept up to date.
+     * DynamicRealm observables are hot as DynamicRealms are automatically kept up to date.
      *
      * @param realm {@link DynamicRealm} to listen to changes for.
      * @return Rx observable that emit all updates to the DynamicRealm.
@@ -57,10 +57,10 @@ public interface RxObservableFactory {
     Flowable<DynamicRealm> from(DynamicRealm realm);
 
     /**
-     * Creates an Observable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
+     * Creates a Flowable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
      * on each subsequent update of the RealmResults.
      * <p>
-     * RealmResults observables are hot observables as RealmResults are automatically kept up to date.
+     * RealmResults observables are hot as RealmResults are automatically kept up to date.
      *
      * @param results {@link RealmResults} to listen to changes for.
      * @param realm {@link Realm} instance results are coming from.
@@ -85,10 +85,10 @@ public interface RxObservableFactory {
     <E extends RealmModel> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(Realm realm, RealmResults<E> results);
 
     /**
-     * Creates an Observable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
+     * Creates a Flowable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
      * on each subsequent update of the RealmResults.
      * <p>
-     * Realm observables are hot observables as RealmResults are automatically kept up to date.
+     * Realm observables are hot as RealmResults are automatically kept up to date.
      *
      * @param results {@link RealmResults} to listen to changes for.
      * @param realm {@link DynamicRealm} instance results are coming from.
@@ -114,7 +114,7 @@ public interface RxObservableFactory {
      * Creates an Observable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
      * subsequent update of the RealmList.
      * <p>
-     * RealmList observables are hot observables as RealmLists are automatically kept up to date.
+     * RealmList observables are hot as RealmLists are automatically kept up to date.
      * <p>
      * Note: {@link io.realm.RealmChangeListener} is currently not supported on RealmLists.
      *
@@ -140,10 +140,10 @@ public interface RxObservableFactory {
     <E extends RealmModel> Observable<CollectionChange<RealmList<E>>> changesetsFrom(Realm realm, RealmList<E> list);
 
     /**
-     * Creates an Observable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
+     * Creates a Flowable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
      * subsequent update of the RealmList.
      * <p>
-     * RealmList observables are hot observables as RealmLists are automatically kept up to date.
+     * RealmList observables are hot as RealmLists are automatically kept up to date.
      * <p>
      * Note: {@link io.realm.RealmChangeListener} is currently not supported on RealmLists.
      *
@@ -167,10 +167,10 @@ public interface RxObservableFactory {
     Observable<CollectionChange<RealmList<DynamicRealmObject>>> changesetsFrom(DynamicRealm realm, RealmList<DynamicRealmObject> list);
 
     /**
-     * Creates an Observable for a {@link RealmObject}. It should emit the initial object when subscribed to and on each
+     * Creates a Flowable for a {@link RealmObject}. It should emit the initial object when subscribed to and on each
      * subsequent update of the object.
      * <p>
-     * RealmObject observables are hot observables as RealmObjects are automatically kept up to date.
+     * RealmObject observables are hot as RealmObjects are automatically kept up to date.
      *
      * @param object RealmObject to listen to changes for.
      * @param realm {@link Realm} instance object is coming from.
@@ -193,10 +193,10 @@ public interface RxObservableFactory {
     <E extends RealmModel> Observable<ObjectChange<E>> changesetsFrom(Realm realm, E object);
 
     /**
-     * Creates an Observable for a {@link DynamicRealmObject}. It should emit the initial object when subscribed to and
+     * Creates a Flowable for a {@link DynamicRealmObject}. It should emit the initial object when subscribed to and
      * on each subsequent update of the object.
      * <p>
-     * DynamicRealmObject observables are hot observables as DynamicRealmObjects automatically are kept up to date.
+     * DynamicRealmObject observables are hot as DynamicRealmObjects automatically are kept up to date.
      *
      * @param object DynamicRealmObject to listen to changes for.
      * @param realm {@link DynamicRealm} instance object is coming from.
@@ -217,7 +217,7 @@ public interface RxObservableFactory {
     Observable<ObjectChange<DynamicRealmObject>> changesetsFrom(DynamicRealm realm, DynamicRealmObject object);
 
     /**
-     * Creates an Observable from a {@link RealmQuery}. It should emit the query and then complete.
+     * Creates a Single from a {@link RealmQuery}. It should emit the query and then complete.
      * <p>
      * A RealmQuery observable is cold.
      *
@@ -228,7 +228,7 @@ public interface RxObservableFactory {
     <E extends RealmModel> Single<RealmQuery<E>> from(Realm realm, RealmQuery<E> query);
 
     /**
-     * Creates an Observable from a {@link RealmQuery}. It should emit the query and then complete.
+     * Creates a Single from a {@link RealmQuery}. It should emit the query and then complete.
      * <p>
      * A RealmQuery observable is cold.
      *
