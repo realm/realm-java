@@ -47,36 +47,35 @@ class DynamicFieldDescriptor extends FieldDescriptor {
     protected void compileFieldDescription(List<String> fields) {
         final int nFields = fields.size();
         long[] columnIndices = new long[nFields];
-        Table currentTable = table;
 
-        long columnIndex;
-        String tableName = null;
-        String columnName = null;
-        RealmFieldType columnType = null;
+        Table currentTable = table;
+        String currentClassName = null;
+        String currentColumnName = null;
+        RealmFieldType currentColumnType = null;
         for (int i = 0; i < nFields; i++) {
-            columnName = fields.get(i);
-            if ((columnName == null) || (columnName.length() <= 0)) {
+            currentColumnName = fields.get(i);
+            if ((currentColumnName == null) || (currentColumnName.length() <= 0)) {
                 throw new IllegalArgumentException(
                         "Invalid query: Field descriptor contains an empty field.  A field description may not begin with or contain adjacent periods ('.').");
             }
 
-            tableName = currentTable.getClassName();
+            currentClassName = currentTable.getClassName();
 
-            columnIndex = currentTable.getColumnIndex(columnName);
+            final long columnIndex = currentTable.getColumnIndex(currentColumnName);
             if (columnIndex < 0) {
                 throw new IllegalArgumentException(
-                        String.format(Locale.US, "Invalid query: field '%s' not found in table '%s'.", columnName, tableName));
+                        String.format(Locale.US, "Invalid query: field '%s' not found in table '%s'.", currentColumnName, currentClassName));
             }
 
-            columnType = currentTable.getColumnType(columnIndex);
+            currentColumnType = currentTable.getColumnType(columnIndex);
             if (i < nFields - 1) {
-                verifyInternalColumnType(tableName, columnName, columnType);
+                verifyInternalColumnType(currentClassName, currentColumnName, currentColumnType);
                 currentTable = currentTable.getLinkTarget(columnIndex);
             }
 
             columnIndices[i] = columnIndex;
         }
 
-        setCompilationResults(tableName, columnName, columnType, columnIndices, new long[nFields]);
+        setCompilationResults(currentClassName, currentColumnName, currentColumnType, columnIndices, new long[nFields]);
     }
 }
