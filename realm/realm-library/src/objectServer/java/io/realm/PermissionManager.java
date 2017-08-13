@@ -1012,12 +1012,49 @@ public class PermissionManager implements Closeable {
                 return false;
             }
 
+            // Handle Client Reset if it happened in any of the Realms.
+            // A Client Reset is a fatal error for the PermissionManager, so all current and
+            // future tasks will exit as soon as posible after this event happened and report it
+            // through the error callback. Only action a user can take is to close the
+            // PermissionManager and re-open it again Some data might be lost (like permission
+            // offers not yet processed). This is currently unavoidable.
+            // TODO: Eventually we might be able to recover the permission manager from this event
+            // but it will require some serious task management as we would need to do a full
+            // close, reschedule all tasks, and re-open behind users back. This is out of scope for
+            // now.
+            if (managementErrorHappened && managementError instanceof ClientResetRequiredError) {
+                ClientResetRequiredError cr = (ClientResetRequiredError) managementError;
+                permissionManager.managementRealm.close();
+                cr.executeClientReset();
+                permissionManager.clientReset = true;
+            }
+
+            if (permissionErrorHappened && permissionError instanceof ClientResetRequiredError) {
+                ClientResetRequiredError cr = (ClientResetRequiredError) permissionError;
+                permissionManager.permissionRealm.close();
+                cr.executeClientReset();
+                permissionManager.clientReset = true;
+            }
+
+            if (defaultPermissionErrorHappened && defaultPermissionError instanceof ClientResetRequiredError) {
+                ClientResetRequiredError cr = (ClientResetRequiredError) defaultPermissionError;
+                permissionManager.defaultPermissionRealm.close();
+                cr.executeClientReset();
+                permissionManager.clientReset = true;
+            }
+
             // Handle errors
             Map<String, ObjectServerError> errors = new LinkedHashMap<>();
-            if (managementErrorHappened) { errors.put("Management Realm", managementError); }
-            if (permissionErrorHappened) { errors.put("Permission Realm", permissionError); }
-            if (defaultPermissionErrorHappened) { errors.put("Default Permission Realm", defaultPermissionError); }
+            if (permissionManager.clientReset) {
+                errors.put("ClientReset", new ObjectServerError(ErrorCode.CLIENT_RESET, ERROR_MESSAGE_CLIENT_RESET));
+            } else {
+                if (managementErrorHappened) { errors.put("Management Realm", managementError); }
+                if (permissionErrorHappened) { errors.put("Permission Realm", permissionError); }
+                if (defaultPermissionErrorHappened) { errors.put("Default Permission Realm", defaultPermissionError); }
+            }
             notifyCallbackError(combineRealmErrors(errors)); // This will remove the task from the task list
+
+            // If a client reset happened
             return true;
         }
 
