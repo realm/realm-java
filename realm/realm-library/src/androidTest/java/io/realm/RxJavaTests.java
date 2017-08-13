@@ -547,6 +547,7 @@ public class RxJavaTests {
         subscription = observable.subscribe(new Consumer<Realm>() {
             @Override
             public void accept(Realm ignored) throws Exception {
+                assertEquals(2, Realm.getLocalInstanceCount(ignored.getConfiguration()));
             }
         });
 

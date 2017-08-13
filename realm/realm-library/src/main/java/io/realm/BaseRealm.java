@@ -179,7 +179,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Returns an RxJava Observable that monitors changes to this Realm. It will emit the current state
+     * Returns an RxJava Flowable that monitors changes to this Realm. It will emit the current state
      * when subscribed to. Items will continually be emitted as the Realm is updated -
      * {@code onComplete} will never be called.
      * <p>
