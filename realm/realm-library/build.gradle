@@ -166,7 +166,7 @@ repositories {
 
 dependencies {
 
-    compileOnly 'io.reactivex:rxjava:1.1.0'
+    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.0'
     compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
     api "io.realm:realm-annotations:${version}"
@@ -178,7 +178,7 @@ dependencies {
 
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
-    androidTestImplementation 'io.reactivex:rxjava:1.1.0'
+    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.0'
     androidTestImplementation 'com.android.support.test:runner:0.5'
     androidTestImplementation 'com.android.support.test:rules:0.5'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'

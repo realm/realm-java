@@ -18,13 +18,12 @@ package io.realm;
 
 import android.app.IntentService;
 
+import io.reactivex.Flowable;
 import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.ManagableObject;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import rx.Observable;
-
 
 /**
  * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then
@@ -123,7 +122,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * when observed.
      * <pre>
      * {@code
-     * realm.where(BannerRealm.class).equalTo("type", type).findFirstAsync().asObservable()
+     * realm.where(BannerRealm.class).equalTo("type", type).findFirstAsync().asFlowable()
      *      .filter(result.isLoaded() && result.isValid())
      *      .first()
      * }
@@ -648,19 +647,19 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
     }
 
     /**
-     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
+     * Returns an RxJava Flowable that monitors changes to this RealmObject. It will emit the current object when
      * subscribed to. Object updates will continually be emitted as the RealmObject is updated -
      * {@code onComplete} will never be called.
      * <p>
-     * When chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
+     * When chaining a RealmObject flowable use {@code obj.<MyRealmObjectClass>asFlowable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
      * <p>
-     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      * <p>
      * <pre>
      * {@code
-     * obj.asObservable()
+     * obj.asFlowable()
      *      .filter(obj -> obj.isLoaded())
      *      .first()
      *      .subscribe( ... ) // You only get the object once
@@ -679,25 +678,25 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public final <E extends RealmObject> Observable<E> asObservable() {
+    public final <E extends RealmObject> Flowable<E> asFlowable() {
         //noinspection unchecked
-        return (Observable<E>) RealmObject.asObservable(this);
+        return (Flowable<E>) RealmObject.asFlowable(this);
     }
 
     /**
-     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
+     * Returns an RxJava Flowable that monitors changes to this RealmObject. It will emit the current object when
      * subscribed to. Object updates will continuously be emitted as the RealmObject is updated -
      * {@code onComplete} will never be called.
      * <p>
-     * When chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
+     * When chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asFlowable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
      * <p>
-     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * emit only the first item by using the {@code first()} operator:
      * <p>
      * <pre>
      * {@code
-     * obj.asObservable()
+     * obj.asFlowable()
      *      .filter(obj -> obj.isLoaded())
      *      .first()
      *      .subscribe( ... ) // You only get the object once
@@ -709,7 +708,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public static <E extends RealmModel> Observable<E> asObservable(E object) {
+    public static <E extends RealmModel> Flowable<E> asFlowable(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
@@ -719,7 +718,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
                 DynamicRealm dynamicRealm = (DynamicRealm) realm;
                 DynamicRealmObject dynamicObject = (DynamicRealmObject) object;
                 @SuppressWarnings("unchecked")
-                Observable<E> observable = (Observable<E>) realm.configuration.getRxFactory().from(dynamicRealm, dynamicObject);
+                Flowable<E> observable = (Flowable<E>) realm.configuration.getRxFactory().from(dynamicRealm, dynamicObject);
                 return observable;
             } else {
                 throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava." +
