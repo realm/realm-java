@@ -1054,7 +1054,6 @@ public class PermissionManager implements Closeable {
             }
             notifyCallbackError(combineRealmErrors(errors)); // This will remove the task from the task list
 
-            // If a client reset happened
             return true;
         }
 
