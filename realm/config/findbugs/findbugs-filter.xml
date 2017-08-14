@@ -21,10 +21,5 @@
     <Match>
         <Class name="io.realm.PermissionOfferResponseRealmProxy"/>
     </Match>
-    <Match>
-        <Class name="io.realm.SyncUser" />
-        <Method name="logout" />
-        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-    </Match>
 
 </FindBugsFilter>

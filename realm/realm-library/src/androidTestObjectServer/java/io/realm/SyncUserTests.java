@@ -108,11 +108,7 @@ public class SyncUserTests {
         final Token token = new Token("token_value", id, "path_value", Long.MAX_VALUE, null);
         try {
             return SYNC_USER_CONSTRUCTOR.newInstance(token, authUrl);
-        } catch (InstantiationException e) {
-            fail(e.getMessage());
-        } catch (IllegalAccessException e) {
-            fail(e.getMessage());
-        } catch (InvocationTargetException e) {
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             fail(e.getMessage());
         }
         return null;
