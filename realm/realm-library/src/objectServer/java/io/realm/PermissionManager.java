@@ -711,7 +711,7 @@ public class PermissionManager implements Closeable {
                 @Override
                 public void onError(Throwable error) {
                     if (checkAndReportInvalidState()) { return; }
-                    notifyCallbackError(new ObjectServerError(ErrorCode.UNKNOWN, error));
+                    notifyCallbackWithError(new ObjectServerError(ErrorCode.UNKNOWN, error));
                 }
             };
 
@@ -801,7 +801,7 @@ public class PermissionManager implements Closeable {
                 @Override
                 public void onError(Throwable error) {
                     if (checkAndReportInvalidState()) { return; }
-                    notifyCallbackError(new ObjectServerError(ErrorCode.UNKNOWN, error));
+                    notifyCallbackWithError(new ObjectServerError(ErrorCode.UNKNOWN, error));
                 }
             };
 
@@ -902,7 +902,7 @@ public class PermissionManager implements Closeable {
                 @Override
                 public void onError(Throwable error) {
                     if (checkAndReportInvalidState()) { return; }
-                    notifyCallbackError(new ObjectServerError(ErrorCode.UNKNOWN, error));
+                    notifyCallbackWithError(new ObjectServerError(ErrorCode.UNKNOWN, error));
                 }
             };
 
@@ -979,12 +979,12 @@ public class PermissionManager implements Closeable {
             if (permissionManager.closed) {
                 ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN,
                         new IllegalStateException("PermissionManager has been closed"));
-                notifyCallbackError(error); // This will remove the task from the task list
+                notifyCallbackWithError(error); // This will remove the task from the task list
                 return true;
             }
             if (permissionManager.clientReset) {
                 ObjectServerError error = new ObjectServerError(ErrorCode.CLIENT_RESET, ERROR_MESSAGE_CLIENT_RESET);
-                notifyCallbackError(error);
+                notifyCallbackWithError(error);
                 return true;
             }
 
@@ -1052,7 +1052,7 @@ public class PermissionManager implements Closeable {
                 if (permissionErrorHappened) { errors.put("Permission Realm", permissionError); }
                 if (defaultPermissionErrorHappened) { errors.put("Default Permission Realm", defaultPermissionError); }
             }
-            notifyCallbackError(combineRealmErrors(errors)); // This will remove the task from the task list
+            notifyCallbackWithError(combineRealmErrors(errors)); // This will remove the task from the task list
 
             return true;
         }
@@ -1068,19 +1068,19 @@ public class PermissionManager implements Closeable {
                     ErrorCode errorCode = ErrorCode.fromInt(statusCode);
                     String errorMsg = obj.getStatusMessage();
                     ObjectServerError error = new ObjectServerError(errorCode, errorMsg);
-                    notifyCallbackError(error);
+                    notifyCallbackWithError(error);
                 } else if (statusCode == 0) {
                     onSuccessDelegate.run();
                 } else {
                     ErrorCode errorCode = ErrorCode.UNKNOWN;
                     String errorMsg = "Illegal status code: " + statusCode;
                     ObjectServerError error = new ObjectServerError(errorCode, errorMsg);
-                    notifyCallbackError(error);
+                    notifyCallbackWithError(error);
                 }
             }
         }
 
-        protected final void notifyCallbackError(ObjectServerError e) {
+        protected final void notifyCallbackWithError(ObjectServerError e) {
             RealmLog.debug("Error happened in PermissionManager for %s: %s",
                     permissionManager.user.getIdentity(), e.toString());
             try {
@@ -1249,7 +1249,7 @@ public class PermissionManager implements Closeable {
                             @Override
                             public void onError(Throwable error) {
                                 matchingOffers.removeAllChangeListeners();
-                                notifyCallbackError(new ObjectServerError(ErrorCode.UNKNOWN, error));
+                                notifyCallbackWithError(new ObjectServerError(ErrorCode.UNKNOWN, error));
 
                             }
                         });
