@@ -16,6 +16,7 @@
 
 ### Internal
 * [ObjectServer] removed `ObjectServerUser` and it's inner classes, in a step to reduce `SyncUser` complexity (#3741).
+* [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
 
 
 ## 3.5.1 (YYYY-MM-DD)
