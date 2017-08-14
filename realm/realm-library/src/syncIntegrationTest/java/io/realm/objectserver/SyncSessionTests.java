@@ -33,9 +33,7 @@ import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -278,84 +276,6 @@ public class SyncSessionTests extends BaseIntegrationTest {
 
         final CountDownLatch testCompleted = new CountDownLatch(1);
 
-        final HandlerThread handlerThread = new HandlerThread("HandlerThread");
-        handlerThread.start();
-        Looper looper = handlerThread.getLooper();
-        Handler handler = new Handler(looper);
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                // using an admin user to open the Realm on different path on the device to monitor when all the uploads are done
-                SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
-                SyncCredentials credentialsAdmin = SyncCredentials.accessToken(admin.getAccessToken().value(), "custom-admin-user");
-                SyncUser adminUser = SyncUser.login(credentialsAdmin, Constants.AUTH_URL);
-
-                SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
-                        .modules(new StringOnlyModule())
-                        .build();
-                final Realm adminRealm = Realm.getInstance(adminConfig);
-                RealmResults<StringOnly> all = adminRealm.where(StringOnly.class).findAll();
-                RealmChangeListener<RealmResults<StringOnly>> realmChangeListener = new RealmChangeListener<RealmResults<StringOnly>>() {
-                    @Override
-                    public void onChange(RealmResults<StringOnly> stringOnlies) {
-                        if (stringOnlies.size() == 25) {
-                            for (int i = 0; i < 25; i++) {
-                                assertEquals(1_000_000, stringOnlies.get(i).getChars().length());
-                            }
-                            adminRealm.close();
-                            testCompleted.countDown();
-                            handlerThread.quit();
-                        }
-                    }
-                };
-                all.addChangeListener(realmChangeListener);
-            }
-        });
-
-        TestHelper.awaitOrFail(testCompleted, 60);
-
-        user.logout();
-        realm.close();
-    }
-
-    // A Realm that was opened before a user logged out should be able to resume uploading if the user logs back in.
-    // this test validate the behaviour of SyncSessionStopPolicy::AfterChangesUploaded
-    @Test
-    public void uploadChangesWhenRealmOutOfScope2() throws InterruptedException {
-        final String uniqueName = UUID.randomUUID().toString();
-        SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-
-        final char[] chars = new char[1_000_000];// 2MB
-        Arrays.fill(chars, '.');
-        final String twoMBString = new String(chars);
-
-        final SyncConfiguration syncConfiguration = configFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .modules(new StringOnlyModule())
-                .build();
-        Realm realm = Realm.getInstance(syncConfiguration);
-        user.logout();
-        assertFalse(user.isValid());
-
-        // work offline write 50 MB of data
-        realm.beginTransaction();
-        for (int i = 0; i < 25; i++) {
-            realm.createObject(StringOnly.class).setChars(twoMBString);
-        }
-        realm.commitTransaction();
-
-        // logging again to update the refresh_token so we can start uploading the data
-        credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);
-        SyncUser.login(credentials, Constants.AUTH_URL);
-        assertTrue(user.isValid()); // user reactivated
-
-        // now logout, the session policy should upload the remaining local change before stopping
-        user.logout();//this wont be true if we revoke the refresh_token?
-
-        // check from another path that all the local changes were uploaded
-
-        final CountDownLatch testCompleted = new CountDownLatch(1);
         final HandlerThread handlerThread = new HandlerThread("HandlerThread");
         handlerThread.start();
         Looper looper = handlerThread.getLooper();

@@ -38,10 +38,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
 import java.util.Calendar;
-import java.util.Map;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import io.realm.entities.StringOnly;
@@ -502,6 +502,7 @@ public class SyncUserTests {
     }
 
     @Test
+    @Ignore("until https://github.com/realm/realm-java/issues/5097 is fixed")
     public void logoutUserShouldDeleteRealmAfterRestart() throws InterruptedException {
         SyncManager.reset();
         BaseRealm.applicationContext = null; // Required for Realm.init() to work
