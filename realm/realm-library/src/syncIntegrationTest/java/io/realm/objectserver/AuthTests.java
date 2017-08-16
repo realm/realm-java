@@ -503,6 +503,7 @@ public class AuthTests extends BaseIntegrationTest {
         SyncManager.addAuthenticationListener(new AuthenticationListener() {
             @Override
             public void loggedIn(SyncUser user) {
+                SyncManager.removeAuthenticationListener(this);
                 looperThread.postRunnable(new Runnable() {
                     @Override
                     public void run() {
@@ -513,6 +514,7 @@ public class AuthTests extends BaseIntegrationTest {
 
             @Override
             public void loggedOut(final SyncUser user) {
+                SyncManager.removeAuthenticationListener(this);
                 looperThread.postRunnable(new Runnable() {
                     @Override
                     public void run() {
