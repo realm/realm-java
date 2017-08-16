@@ -16,19 +16,25 @@
 
 package io.realm;
 
-
 import android.annotation.SuppressLint;
 import android.os.Looper;
+
+import java.util.Date;
+import java.util.Locale;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.realm.exceptions.RealmException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.Collection;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
+import io.realm.internal.Util;
+import io.realm.internal.android.JsonUtils;
 import rx.Observable;
 
 
@@ -38,8 +44,8 @@ import rx.Observable;
  * increases speed.
  * <p>
  * RealmResults are live views, which means that if it is on an {@link Looper} thread, it will automatically
- * update its query results after a transaction has been committed. If on a non-looper thread, {@link Realm#waitForChange()}
- * must be called to update the results.
+ * update its query results after a transaction has been committed. If on a non-looper thread,
+ * {@link Realm#waitForChange()} must be called to update the results.
  * <p>
  * Updates to RealmObjects from a RealmResults list must be done from within a transaction and the modified objects are
  * persisted to the Realm file during the commit of the transaction.
@@ -99,7 +105,6 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
         return RealmQuery.createQueryFromResult(this);
     }
 
-
     /**
      * {@inheritDoc}
      */
@@ -135,6 +140,277 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
         realm.checkIfValid();
         collection.load();
         return true;
+    }
+
+    /**
+     * Sets the value to {@code null} for the given field in all of the objects in the result collection.
+     *
+     * @param fieldName name of the field to update.
+     * @throws IllegalArgumentException if field name doesn't exist or isn't nullable.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     */
+    public void setNull(@Nonnull String fieldName) {
+        verifyString(fieldName);
+        realm.checkIfValid();
+        collection.setNull(getColumnIndex(fieldName));
+    }
+
+
+    /**
+     * Sets the {@code boolean} value of the given field in all of the objects in the result collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't boolean.
+     */
+    public void setBoolean(@Nonnull String fieldName, @Nullable Boolean value) {
+        verifyString(fieldName);
+
+        realm.checkIfValid();
+
+        if (checkAndSetNullValue(fieldName, value)) { return; }
+
+        collection.setBoolean(getColumnIndex(fieldName), value);
+    }
+
+    /**
+     * Sets the {@code byte} value of the given field in all of the objects in the result collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist or isn't integer.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     */
+    public void setByte(@Nonnull String fieldName, @Nullable Byte value) {
+        verifyString(fieldName);
+
+        realm.checkIfValid();
+
+        if (checkAndSetNullValue(fieldName, value)) { return; }
+
+        collection.setInt(getColumnIndex(fieldName), value);
+    }
+
+    /**
+     * Sets the {@code short} value of the given field in all of the objects in the result collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist or isn't integer.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     */
+    public void setShort(@Nonnull String fieldName, @Nullable Short value) {
+        verifyString(fieldName);
+
+        realm.checkIfValid();
+
+        if (checkAndSetNullValue(fieldName, value)) { return; }
+
+        collection.setInt(getColumnIndex(fieldName), value);
+    }
+
+    /**
+     * Sets the {@code int} value of the given field in all of the objects in the result collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't integer.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     */
+    public void setInt(@Nonnull String fieldName, @Nullable Integer value) {
+        verifyString(fieldName);
+
+        realm.checkIfValid();
+
+        if (checkAndSetNullValue(fieldName, value)) { return; }
+
+        collection.setInt(getColumnIndex(fieldName), value);
+    }
+
+    /**
+     * Sets the {@code long} value of the given field in all of the objects in the result collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't integer.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     */
+    public void setLong(@Nonnull String fieldName, @Nullable Long value) {
+        verifyString(fieldName);
+
+        realm.checkIfValid();
+
+        if (checkAndSetNullValue(fieldName, value)) { return; }
+
+        collection.setInt(getColumnIndex(fieldName), value);
+    }
+
+    /**
+     * Sets the {@code float} value of the given field in all of the objects in the result collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't float.
+     */
+    public void setFloat(@Nonnull String fieldName, @Nullable Float value) {
+        verifyString(fieldName);
+
+        realm.checkIfValid();
+
+        if (checkAndSetNullValue(fieldName, value)) { return; }
+
+        collection.setFloat(getColumnIndex(fieldName), value);
+    }
+
+    /**
+     * Sets the {@code double} value of the given field in all of the objects in the result collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't double.
+     */
+    public void setDouble(@Nonnull String fieldName, @Nullable Double value) {
+        verifyString(fieldName);
+
+        realm.checkIfValid();
+
+        if (checkAndSetNullValue(fieldName, value)) { return; }
+
+        collection.setDouble(getColumnIndex(fieldName), value);
+    }
+
+    /**
+     * Sets the {@code String} value of the given field in all of the objects in the result collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't string.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     */
+    public void setString(@Nonnull String fieldName, @Nullable String value) {
+        verifyString(fieldName);
+
+        realm.checkIfValid();
+
+        if (checkAndSetNullValue(fieldName, value)) { return; }
+
+        collection.setString(getColumnIndex(fieldName), value);
+    }
+
+    /**
+     * Sets the binary value of the given field in all of the objects in the result collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't binary.
+     */
+    public void setBlob(@Nonnull String fieldName, @Nullable byte[] value) {
+        verifyString(fieldName);
+
+        realm.checkIfValid();
+
+        if (checkAndSetNullValue(fieldName, value)) { return; }
+
+        collection.setBinary(getColumnIndex(fieldName), value);
+    }
+
+    /**
+     * Sets the {@code Date} value of the given field in all of the objects in the result collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't date.
+     */
+    public void setDate(@Nonnull String fieldName, @Nullable Date value) {
+        verifyString(fieldName);
+
+        realm.checkIfValid();
+
+        if (checkAndSetNullValue(fieldName, value)) { return; }
+
+        collection.setDate(getColumnIndex(fieldName), value.getTime());
+    }
+
+    /**
+     * Sets a reference to another object on the given field in all of the objects in the result collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist or is of the wrong type.
+     */
+    public void setObject(@Nonnull String fieldName, @Nullable RealmObject value) {
+        verifyString(fieldName);
+
+        realm.checkIfValid();
+
+        if (checkAndSetNullValue(fieldName, value)) { return; }
+
+        long columnIndex = getColumnIndex(fieldName);
+
+        if (!(value instanceof RealmObjectProxy)) {
+            throw new IllegalArgumentException("A field value must be a managed Realm object.");
+        }
+
+        ProxyState proxyState = ((RealmObjectProxy) value).realmGet$proxyState();
+        if (proxyState.getRealm$realm() != realm) {
+            throw new IllegalArgumentException("A field value must belong to the same Realm as its owner.");
+        }
+
+        Row row = proxyState.getRow$realm();
+        if (row == null) {
+            throw new IllegalArgumentException("A field value must be a managed Realm object.");
+        }
+        if (!(row instanceof UncheckedRow)) {
+            throw new IllegalArgumentException("WTF?");
+        }
+
+        collection.setObject(columnIndex, (UncheckedRow) row);
+    }
+
+    /**
+     * Sets the value for the given field  in all of the objects in the result collection, converting {@code String}
+     * representations of numbers and booleans to their appropriate type. For example {@code "10"}
+     * will be converted to {@code 10} if the field type is {@code int}.
+     * <p>
+     * Using the typed setters is faster than using this method.
+     *
+     * @throws IllegalArgumentException if field name doesn't exist or if the input value cannot be converted
+     * to the appropriate input type.
+     * @throws NumberFormatException if a String based number cannot be converted properly.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     */
+    @SuppressWarnings("unchecked")
+    public void set(@Nonnull String fieldName, @Nullable String strValue) {
+        if (checkAndSetNullValue(fieldName, strValue)) { return; }
+
+        RealmFieldType type = null;
+        switch (type) {
+            case BOOLEAN:
+                setBoolean(fieldName, Boolean.parseBoolean(strValue));
+                return;
+            case INTEGER:
+                setLong(fieldName, Long.parseLong(strValue));
+                return;
+            case FLOAT:
+                setFloat(fieldName, Float.parseFloat(strValue));
+                return;
+            case DOUBLE:
+                setDouble(fieldName, Double.parseDouble(strValue));
+                return;
+            case DATE:
+                setDate(fieldName, JsonUtils.stringToDate(strValue));
+                return;
+            case STRING:
+                setString(fieldName, strValue);
+                return;
+            default:
+        }
+
+        throw new IllegalArgumentException(String.format(
+                Locale.US,
+                "Field %s is not a String field and the value, %s, could not be automatically converted. Use a typed setter instead.",
+                fieldName,
+                strValue));
     }
 
     /**
@@ -289,7 +565,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
      * instead.
      *
-     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete}
+     * or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
@@ -298,15 +575,17 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     public Observable<RealmResults<E>> asObservable() {
         if (realm instanceof Realm) {
             return realm.configuration.getRxFactory().from((Realm) realm, this);
-        } else if (realm instanceof DynamicRealm) {
+        }
+
+        if (realm instanceof DynamicRealm) {
             DynamicRealm dynamicRealm = (DynamicRealm) realm;
             RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
             @SuppressWarnings("UnnecessaryLocalVariable")
             Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
             return results;
-        } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava.");
         }
+
+        throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava.");
     }
 
     /**
@@ -315,7 +594,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @Deprecated
     public RealmResults<E> distinct(String fieldName) {
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(new SchemaConnector(realm.getSchema()), collection.getTable(), fieldName);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(
+                new SchemaConnector(realm.getSchema()), collection.getTable(), fieldName);
         Collection distinctCollection = collection.distinct(distinctDescriptor);
         return createLoadedResults(distinctCollection);
     }
@@ -336,5 +616,18 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     @Deprecated
     public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
         return where().distinct(firstFieldName, remainingFieldNames);
+    }
+
+    private boolean checkAndSetNullValue(@Nonnull String fieldName, @Nullable Object value) {
+        if (value != null) { return false; }
+
+        setNull(fieldName);
+        return true;
+    }
+
+    private void verifyString(@Nonnull String fieldName) {
+        if (Util.isEmptyString(fieldName)) {
+            throw new IllegalArgumentException("Field name must not be null");
+        }
     }
 }

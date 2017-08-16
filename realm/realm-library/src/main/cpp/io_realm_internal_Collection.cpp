@@ -414,8 +414,46 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Collection_nativeDeleteFirst(J
     return JNI_FALSE;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeDelete(JNIEnv* env, jclass, jlong native_ptr,
-                                                                      jlong index)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeSetNull(JNIEnv* env, jclass, jlong native_ptr, jlong index)
+{
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeSetBoolean(JNIEnv* env, jclass, jlong native_ptr, jlong index, jboolean value)
+{
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeSetInt(JNIEnv* env, jclass, jlong native_ptr, jlong index, jlong value)
+{
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeSetFloat(JNIEnv* env, jclass, jlong native_ptr, jlong index, jfloat value)
+{
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeSetDouble(JNIEnv* env, jclass, jlong native_ptr, jlong index, jdouble value)
+{
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeSetString(JNIEnv* env, jclass, jlong native_ptr, jlong index, jstring value)
+{
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeSetBinary(JNIEnv* env, jclass, jlong native_ptr, jlong index, jbyteArray value)
+{
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeSetTimestamp(JNIEnv* env, jclass, jlong native_ptr, jlong index, jlong timestamp)
+{
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeSetObject(JNIEnv* env, jclass, jlong native_ptr, jlong index, jlong row_ptr)
+{
+}
+#pragma GCC diagnostic pop
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeDelete(JNIEnv* env, jclass, jlong native_ptr, jlong index)
 {
     TR_ENTER_PTR(native_ptr)
 

@@ -18,13 +18,16 @@ package io.realm.internal;
 
 import java.util.ConcurrentModificationException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
+import io.realm.exceptions.RealmException;
 
 
 /**
@@ -487,6 +490,120 @@ public class Collection implements NativeObject {
         return nativeDeleteLast(nativePtr);
     }
 
+    /**
+     * Sets the value to {@code null} for the given field.
+     *
+     * @param columnIndex index of column to be updated, in each object in the collection.
+     * @throws IllegalArgumentException if field name doesn't exist or isn't nullable.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     */
+    public void setNull(long columnIndex) {
+        nativeSetNull(nativePtr, columnIndex);
+    }
+
+    /**
+     * Sets the {@code boolean} value of the given field.
+     *
+     * @param columnIndex index of column to be updated, in each object in the collection.
+     * @param value value to insert.
+     * @throws IllegalArgumentException if field name doesn't exist or isn't boolean.
+     */
+    public void setBoolean(long columnIndex, boolean value) {
+        nativeSetBoolean(nativePtr, columnIndex, value);
+    }
+
+    /**
+     * Sets the {@code long} value of the given field.
+     *
+     * @param columnIndex index of column to be updated, in each object in the collection.
+     * @param value value to insert.
+     * @throws IllegalArgumentException if field name doesn't exist or isn't integer.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     */
+    public void setInt(long columnIndex, long value) {
+        nativeSetInt(nativePtr, columnIndex, value);
+    }
+
+    /**
+     * Sets the {@code float} value of the given field.
+     *
+     * @param columnIndex index of column to be updated, in each object in the collection.
+     * @param value value to insert.
+     * @throws IllegalArgumentException if field name doesn't exist or isn't float.
+     */
+    public void setFloat(long columnIndex, float value) {
+        nativeSetFloat(nativePtr, columnIndex, value);
+    }
+
+    /**
+     * Sets the {@code double} value of the given field.
+     *
+     * @param columnIndex index of column to be updated, in each object in the collection.
+     * @param value value to insert.
+     * @throws IllegalArgumentException if field name doesn't exist or isn't double.
+     */
+    public void setDouble(long columnIndex, double value) {
+        nativeSetDouble(nativePtr, columnIndex, value);
+    }
+
+    /**
+     * Sets the {@code String} value of the given field.
+     *
+     * @param columnIndex index of column to be updated, in each object in the collection.
+     * @param value value to insert.
+     * @throws IllegalArgumentException if field name doesn't exist or isn't string.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     */
+    public void setString(long columnIndex, @Nonnull String value) {
+        nativeSetString(nativePtr, columnIndex, value);
+    }
+
+    /**
+     * Sets the binary value of the given field.
+     *
+     * @param columnIndex index of column to be updated, in each object in the collection.
+     * @param value value to insert.
+     * @throws IllegalArgumentException if field name doesn't exist or isn't binary.
+     */
+    public void setBinary(long columnIndex, @Nonnull byte[] value) {
+        nativeSetBinary(nativePtr, columnIndex, value);
+    }
+
+    /**
+     * Sets the {@code Date} value of the given field.
+     *
+     * @param columnIndex index of column to be updated, in each object in the collection.
+     * @param timestamp value to insert.
+     * @throws IllegalArgumentException if field name doesn't exist or isn't date.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     */
+    public void setDate(long columnIndex, long timestamp) {
+        nativeSetTimestamp(nativePtr, columnIndex, timestamp);
+    }
+
+    /**
+     * Sets a reference to another object on the given field.
+     *
+     * @param columnIndex index of column to be updated, in each object in the collection.
+     * @param row object to insert.
+     * @throws IllegalArgumentException if field name doesn't exist or isn't object of the right type.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     */
+    public void setObject(long columnIndex, @Nonnull UncheckedRow row) {
+        String valueClass = row.getTable().getClassName();
+        String targetClass = table.getLinkTarget(columnIndex).getClassName();
+        if (!targetClass.equals(valueClass)) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            Locale.US,
+                            "Value of type %s cannot be used in field %s of type %s.",
+                            valueClass,
+                            table.getColumnName(columnIndex),
+                            targetClass));
+        }
+        nativeSetObject(nativePtr, columnIndex, row.getNativePtr());
+    }
+
     public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
         if (observerPairs.isEmpty()) {
             nativeStartListening(nativePtr);
@@ -593,6 +710,16 @@ public class Collection implements NativeObject {
     private static native boolean nativeDeleteLast(long nativePtr);
 
     private static native void nativeDelete(long nativePtr, long index);
+
+    private static native void nativeSetNull(long nativePtr, long columnIndex);
+    private static native void nativeSetBoolean(long nativePtr, long columnIndex, boolean value);
+    private static native void nativeSetInt(long nativePtr, long columnIndex, long value);
+    private static native void nativeSetFloat(long nativePtr, long columnIndex, float value);
+    private static native void nativeSetDouble(long nativePtr, long columnIndex, double value);
+    private static native void nativeSetString(long nativePtr, long columnIndex, String value);
+    private static native void nativeSetBinary(long nativePtr, long columnIndex, byte[] value);
+    private static native void nativeSetTimestamp(long nativePtr, long columnIndex, long value);
+    private static native void nativeSetObject(long nativePtr, long columnIndex, long rowNativePtr);
 
     // Non-static, we need this Collection object in JNI.
     private native void nativeStartListening(long nativePtr);

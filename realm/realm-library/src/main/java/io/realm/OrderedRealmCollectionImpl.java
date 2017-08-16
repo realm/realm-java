@@ -244,7 +244,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     // Sorting
 
     // aux. method used by sort methods
-    private long getColumnIndexForSort(String fieldName) {
+    protected long getColumnIndex(String fieldName) {
         //noinspection ConstantConditions
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Non-empty field name required.");
@@ -325,7 +325,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public Number min(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
         return collection.aggregateNumber(io.realm.internal.Collection.Aggregate.MINIMUM, columnIndex);
     }
 
@@ -335,7 +335,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public Date minDate(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
         return collection.aggregateDate(Collection.Aggregate.MINIMUM, columnIndex);
     }
 
@@ -345,7 +345,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public Number max(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
         return collection.aggregateNumber(Collection.Aggregate.MAXIMUM, columnIndex);
     }
 
@@ -363,7 +363,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Nullable
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
         return collection.aggregateDate(Collection.Aggregate.MAXIMUM, columnIndex);
     }
 
@@ -374,7 +374,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public Number sum(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
         return collection.aggregateNumber(Collection.Aggregate.SUM, columnIndex);
     }
 
@@ -384,7 +384,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
     @Override
     public double average(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
 
         Number avg = collection.aggregateNumber(Collection.Aggregate.AVERAGE, columnIndex);
         return avg.doubleValue();
