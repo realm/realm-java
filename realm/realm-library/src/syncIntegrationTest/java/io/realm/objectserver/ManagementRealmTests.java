@@ -40,7 +40,10 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
 import io.realm.permissions.PermissionOffer;
+import io.realm.permissions.PermissionOfferResponse;
+import io.realm.rule.RunInLooperThread;
 import io.realm.internal.permissions.PermissionOfferResponse;
+import io.realm.permissions.PermissionOfferResponse;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;

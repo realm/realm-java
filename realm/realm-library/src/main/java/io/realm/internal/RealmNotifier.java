@@ -20,6 +20,8 @@ import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmChangeListener;
 
 
@@ -53,6 +55,7 @@ public abstract class RealmNotifier implements Closeable {
         }
 
         private void onChange(T observer) {
+            //noinspection ConstantConditions
             if (observer != null) {
                 listener.onChange(observer);
             }
@@ -71,7 +74,7 @@ public abstract class RealmNotifier implements Closeable {
                 }
             };
 
-    protected RealmNotifier(SharedRealm sharedRealm) {
+    protected RealmNotifier(@Nullable SharedRealm sharedRealm) {
         this.sharedRealm = sharedRealm;
     }
 

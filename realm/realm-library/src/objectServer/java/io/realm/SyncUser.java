@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
@@ -322,6 +324,7 @@ public class SyncUser {
      * @throws ObjectServerError if the password could not be changed.
      */
     public void changePassword(final String newPassword) throws ObjectServerError {
+        //noinspection ConstantConditions
         if (newPassword == null) {
             throw new IllegalArgumentException("Not-null 'newPassword' required.");
         }
@@ -346,6 +349,7 @@ public class SyncUser {
      * @throws ObjectServerError if the password could not be changed.
      */
     public void changePassword(final String userId, final String newPassword) throws ObjectServerError {
+        //noinspection ConstantConditions
         if (newPassword == null) {
             throw new IllegalArgumentException("Not-null 'newPassword' required.");
         }
@@ -384,6 +388,7 @@ public class SyncUser {
      */
     public RealmAsyncTask changePasswordAsync(final String newPassword, final Callback callback) {
         checkLooperThread("Asynchronous changing password is only possible from looper threads.");
+        //noinspection ConstantConditions
         if (callback == null) {
             throw new IllegalArgumentException("Non-null 'callback' required.");
         }
@@ -413,6 +418,7 @@ public class SyncUser {
      */
     public RealmAsyncTask changePasswordAsync(final String userId, final String newPassword, final Callback callback) {
         checkLooperThread("Asynchronous changing password is only possible from looper threads.");
+        //noinspection ConstantConditions
         if (callback == null) {
             throw new IllegalArgumentException("Non-null 'callback' required.");
         }
@@ -490,6 +496,7 @@ public class SyncUser {
      */
     public RealmAsyncTask retrieveUserAsync(final String provider, final String providerId, final Callback callback) {
         checkLooperThread("Asynchronously retrieving user id is only possible from looper threads.");
+        //noinspection ConstantConditions
         if (callback == null) {
             throw new IllegalArgumentException("Non-null 'callback' required.");
         }
@@ -660,11 +667,12 @@ public class SyncUser {
     // correct thread.
     private static abstract class Request {
 
+        @Nullable
         private final Callback callback;
         private final RealmNotifier handler;
         private final ThreadPoolExecutor networkPoolExecutor;
 
-        public Request(ThreadPoolExecutor networkPoolExecutor, Callback callback) {
+        public Request(ThreadPoolExecutor networkPoolExecutor, @Nullable Callback callback) {
             this.callback = callback;
             this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
             this.networkPoolExecutor = networkPoolExecutor;
