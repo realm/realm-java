@@ -18,6 +18,8 @@ package io.realm.permissions;
 import java.util.Date;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
 import io.realm.annotations.Index;
@@ -68,7 +70,8 @@ public class PermissionOffer extends RealmObject {
      * @param expiresAt When this token will expire and become invalid. Pass {@code null} if this offer should not expire.
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public PermissionOffer(String url, boolean mayRead, boolean mayWrite, boolean mayManage, Date expiresAt) {
+    public PermissionOffer(String url, boolean mayRead, boolean mayWrite, boolean mayManage, @Nullable Date expiresAt) {
+        //noinspection ConstantConditions
         if (url == null) {
             throw new IllegalArgumentException("Non-null 'url' required.");
         }
@@ -98,6 +101,7 @@ public class PermissionOffer extends RealmObject {
      *
      * @return {@code null} if not yet processed. {@code 0} if successful, {@code >0} if an error happened. See {@link #getStatusMessage()}.
      */
+    @Nullable
     public Integer getStatusCode() {
         return statusCode;
     }
@@ -112,10 +116,12 @@ public class PermissionOffer extends RealmObject {
         return statusCode != null && statusCode == 0;
     }
 
+    @Nullable
     public String getStatusMessage() {
         return statusMessage;
     }
 
+    @Nullable
     public String getToken() {
         return token;
     }
@@ -137,6 +143,7 @@ public class PermissionOffer extends RealmObject {
     }
 
     @SuppressFBWarnings("EI_EXPOSE_REP")
+    @Nullable
     public Date getExpiresAt() {
         return expiresAt;
     }

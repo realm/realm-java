@@ -19,6 +19,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.realm.exceptions.RealmException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.LinkView;
@@ -46,6 +49,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if object isn't managed by Realm or is a {@link DynamicRealmObject} already.
      */
     public DynamicRealmObject(RealmModel obj) {
+        //noinspection ConstantConditions
         if (obj == null) {
             throw new IllegalArgumentException("A non-null object must be provided.");
         }
@@ -317,6 +321,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @return the {@link DynamicRealmObject} representation of the linked object or {@code null} if no object is linked.
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain links to other objects.
      */
+    @Nullable
     public DynamicRealmObject getObject(String fieldName) {
         proxyState.getRealm$realm().checkIfValid();
 
@@ -344,6 +349,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
             LinkView linkView = proxyState.getRow$realm().getLinkList(columnIndex);
+            //noinspection ConstantConditions
+            @Nonnull
             String className = linkView.getTargetTable().getClassName();
             return new RealmList<>(className, linkView, proxyState.getRealm$realm());
         } catch (IllegalArgumentException e) {
@@ -392,7 +399,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     public boolean hasField(String fieldName) {
         proxyState.getRealm$realm().checkIfValid();
 
-        //noinspection SimplifiableIfStatement
+        //noinspection SimplifiableIfStatement,ConstantConditions
         if (fieldName == null || fieldName.isEmpty()) {
             return false;
         }
@@ -616,7 +623,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a String field.
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
-    public void setString(String fieldName, String value) {
+    public void setString(String fieldName, @Nullable String value) {
         proxyState.getRealm$realm().checkIfValid();
 
         checkIsPrimaryKey(fieldName);
@@ -631,7 +638,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @param value value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a binary field.
      */
-    public void setBlob(String fieldName, byte[] value) {
+    public void setBlob(String fieldName, @Nullable byte[] value) {
         proxyState.getRealm$realm().checkIfValid();
 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -645,7 +652,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @param value value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a Date field.
      */
-    public void setDate(String fieldName, Date value) {
+    public void setDate(String fieldName, @Nullable Date value) {
         proxyState.getRealm$realm().checkIfValid();
 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -664,7 +671,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist, it doesn't link to other Realm objects, the type
      * of DynamicRealmObject doesn't match or it belongs to a different Realm.
      */
-    public void setObject(String fieldName, DynamicRealmObject value) {
+    public void setObject(String fieldName, @Nullable DynamicRealmObject value) {
         proxyState.getRealm$realm().checkIfValid();
 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -700,6 +707,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     public void setList(String fieldName, RealmList<DynamicRealmObject> list) {
         proxyState.getRealm$realm().checkIfValid();
 
+        //noinspection ConstantConditions
         if (list == null) {
             throw new IllegalArgumentException("Null values not allowed for lists");
         }
@@ -707,6 +715,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         LinkView links = proxyState.getRow$realm().getLinkList(columnIndex);
         Table linkTargetTable = links.getTargetTable();
+        //noinspection ConstantConditions
+        @Nonnull
         final String linkTargetTableName = linkTargetTable.getClassName();
 
         boolean typeValidated;
@@ -954,6 +964,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             throw new IllegalArgumentException("Class not found: " + srcClassName);
         }
 
+        //noinspection ConstantConditions
         if (srcFieldName == null) {
             throw new IllegalArgumentException("Non-null 'srcFieldName' required.");
         }

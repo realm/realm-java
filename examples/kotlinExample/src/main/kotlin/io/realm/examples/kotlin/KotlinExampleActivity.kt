@@ -97,7 +97,7 @@ class KotlinExampleActivity : Activity() {
         }
 
         // Find the first person (no query conditions) and read a field
-        val person = realm.where(Person::class.java).findFirst()
+        val person = realm.where(Person::class.java).findFirst()!!
         showStatus(person.name + ": " + person.age)
 
         // Update person in a transaction
@@ -112,7 +112,7 @@ class KotlinExampleActivity : Activity() {
         showStatus("\nPerforming basic Query operation...")
         showStatus("Number of persons: ${realm.where(Person::class.java).count()}")
 
-        val results = realm.where(Person::class.java).equalTo("age", 99).findAll()
+        val results = realm.where(Person::class.java).equalTo("age", 99.toInt()).findAll()
 
         showStatus("Size of result set: " + results.size)
     }

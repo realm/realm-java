@@ -16,7 +16,6 @@
 
 package io.realm.objectserver;
 
-import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Rule;
@@ -27,6 +26,8 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.annotation.Nonnull;
 
 import io.realm.BaseIntegrationTest;
 import io.realm.Progress;
@@ -55,7 +56,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
     @Rule
     public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
-    @NonNull
+    @Nonnull
     private SyncConfiguration createSyncConfig() {
         SyncUser user = UserFactory.createAdminUser(Constants.AUTH_URL);
         return configFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL).build();

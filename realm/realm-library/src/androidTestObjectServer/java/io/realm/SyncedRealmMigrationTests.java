@@ -108,9 +108,8 @@ public class SyncedRealmMigrationTests {
         RealmObjectSchema stringOnlySchema = realm.getSchema().get(className);
         try {
             assertTrue(stringOnlySchema.hasField(StringOnly.FIELD_CHARS));
-            // TODO Field is currently hidden, but should the field be visible in the schema
-            assertFalse(stringOnlySchema.hasField("newField"));
-            assertEquals(1, stringOnlySchema.getFieldNames().size());
+            assertTrue(stringOnlySchema.hasField("newField"));
+            assertEquals(2, stringOnlySchema.getFieldNames().size());
         } finally {
             realm.close();
         }
