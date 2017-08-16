@@ -485,13 +485,8 @@ public abstract class RealmObjectSchema {
         }
 
         @Override
-        public RealmFieldType getColumnType(String columnName) {
-            throw new UnsupportedOperationException("DynamicColumnIndices do not support 'getColumnType'");
-        }
-
-        @Override
-        public String getLinkedTable(String columnName) {
-            throw new UnsupportedOperationException("DynamicColumnIndices do not support 'getLinkedTable'");
+        public ColumnDetails getColumnDetails(String columnName) {
+            throw new UnsupportedOperationException("DynamicColumnIndices do not support 'getColumnDetails'");
         }
 
         @Override
