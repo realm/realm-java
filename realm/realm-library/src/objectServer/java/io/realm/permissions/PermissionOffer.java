@@ -20,6 +20,8 @@ import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.PermissionManager;
 import io.realm.annotations.Index;
@@ -83,6 +85,8 @@ public class PermissionOffer implements BasePermissionApi {
      *
      * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
+    public PermissionOffer(String url, boolean mayRead, boolean mayWrite, boolean mayManage, Date expiresAt) {
     public PermissionOffer(String url, AccessLevel accessLevel) {
         this(url, accessLevel, null);
     }
@@ -102,6 +106,9 @@ public class PermissionOffer implements BasePermissionApi {
         this.mayRead = accessLevel.mayRead();
         this.mayWrite = accessLevel.mayWrite();
         this.mayManage = accessLevel.mayManage();
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
+    public PermissionOffer(String url, boolean mayRead, boolean mayWrite, boolean mayManage, @Nullable Date expiresAt) {
+        //noinspection ConstantConditions
         this.realmUrl = url;
         this.expiresAt = (expiresAt != null) ? (Date) expiresAt.clone() : null;
     }
@@ -165,6 +172,7 @@ public class PermissionOffer implements BasePermissionApi {
      * See {@link #getStatusMessage()}.
      */
     @Override
+    @Nullable
     public Integer getStatusCode() {
         return statusCode;
     }
@@ -175,6 +183,9 @@ public class PermissionOffer implements BasePermissionApi {
      * @return The servers status message in case of an error, {@code null} otherwise.
      */
     @Override
+    }
+
+    @Nullable
     public String getStatusMessage() {
         return statusMessage;
     }
@@ -194,6 +205,7 @@ public class PermissionOffer implements BasePermissionApi {
      *
      * @return the offer token or {@code null} if the offer wasn't created yet.
      */
+    @Nullable
     public String getToken() {
         return token;
     }
@@ -241,6 +253,7 @@ public class PermissionOffer implements BasePermissionApi {
      * @return the date when this offer expires or {@code null} if it never expires.
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
+    @Nullable
     public Date getExpiresAt() {
         return expiresAt;
     }

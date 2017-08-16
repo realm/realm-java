@@ -15,6 +15,8 @@
  */
 package io.realm;
 
+import javax.annotation.Nullable;
+
 import io.realm.annotations.Beta;
 import io.realm.internal.ManagableObject;
 import io.realm.internal.Row;
@@ -95,9 +97,10 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      * Unmanaged Implementation.
      */
     private static final class Unmanaged extends MutableRealmInteger {
+        @Nullable
         private Long value;
 
-        Unmanaged(Long value) {
+        Unmanaged(@Nullable Long value) {
             this.value = value;
         }
 
@@ -112,11 +115,12 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         }
 
         @Override
-        public void set(Long newValue) {
+        public void set(@Nullable Long newValue) {
             value = newValue;
         }
 
         @Override
+        @Nullable
         public Long get() {
             return value;
         }
@@ -126,6 +130,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
             if (value == null) {
                 throw new IllegalStateException("Cannot increment a MutableRealmInteger whose value is null. Set its value first.");
             }
+            //noinspection UnnecessaryBoxing
             value = Long.valueOf(value + inc);
         }
 
@@ -140,6 +145,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      * Managed Implementation.
      * Proxies create new subclasses for each {@code MutableRealmInteger} field.
      */
+    @SuppressWarnings("unused")
     abstract static class Managed<T extends RealmModel> extends MutableRealmInteger {
         protected abstract ProxyState<T> getProxyState();
 
@@ -164,7 +170,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         }
 
         @Override
-        public final void set(Long value) {
+        public final void set(@Nullable Long value) {
             ProxyState proxyState = getProxyState();
             proxyState.getRealm$realm().checkIfValidAndInTransaction();
 
@@ -200,7 +206,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
             return getProxyState().getRow$realm();
         }
 
-        private void setValue(Long value, boolean isDefault) {
+        private void setValue(@Nullable Long value, boolean isDefault) {
             Row row = getRow();
             Table table = row.getTable();
             long rowIndex = row.getIndex();
@@ -226,7 +232,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      * Creates a new, unmanaged {@code MutableRealmInteger} whose value is {@code null}.
      */
     public static MutableRealmInteger ofNull() {
-        return valueOf((Long) null);
+        return new MutableRealmInteger.Unmanaged(null);
     }
 
     /**
@@ -261,6 +267,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      *
      * @return the value.
      */
+    @Nullable
     public abstract Long get();
 
     /**
@@ -271,7 +278,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
      *
      * @param newValue new value.
      */
-    public abstract void set(Long newValue);
+    public abstract void set(@Nullable Long newValue);
 
     /**
      * Sets the {@code MutableRealmInteger} value.
