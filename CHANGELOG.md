@@ -21,6 +21,7 @@
 * `Realm.copyToRealmOrUpdate()` might cause a `RealmList` field to contain duplicated elements (#4957).
 * `RealmSchema.create(String)` and `RealmObjectSchema.setClassName(String)` did not accept class name whose length was 51 to 57.
 * Workaround for an Android JVM crash when using `compactOnLaunch()` (#4964).
+* Class name in exception message from link query is wrong (#5096).
 
 ### Internal
 
