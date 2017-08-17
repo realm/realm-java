@@ -256,7 +256,9 @@ style/lint in the drop-down to the left of the Manage... button.
 ## License
 
 Realm Java is published under the Apache 2.0 license.
-The underlying core is available under the [Realm Core Binary License](LICENSE#L210-L243) while we [work to open-source it under the Apache 2.0 license](https://realm.io/docs/java/#faq).
+
+Realm Core is also published under the Apache 2.0 license and is available
+[here](https://github.com/realm/realm-core).
 
 **This product is not being made available to any person located in Cuba, Iran,
 North Korea, Sudan, Syria or the Crimea region, or to any other person that is
@@ -264,7 +266,7 @@ not eligible to receive the product under U.S. law.**
 
 ## Feedback
 
-**_If you use Realm and are happy with it, all we ask is that you please consider sending out a tweet mentioning [@realm](http://twitter.com/realm), or email [help@realm.io](mailto:help@realm.io) to let us know about it!_**
+**_If you use Realm and are happy with it, all we ask is that you please consider sending out a tweet mentioning [@realm](http://twitter.com/realm) to share your thoughts!_**
 
 **_And if you don't like it, please let us know what you would like improved, so we can fix it!_**
 
