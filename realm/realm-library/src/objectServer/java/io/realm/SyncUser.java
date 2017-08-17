@@ -444,7 +444,7 @@ public class SyncUser {
      * @return {@code SyncUser} associated with the given identity provider and providerId, or {@code null} in case
      * of an {@code invalid} provider or {@code providerId}.
      * @throws ObjectServerError in case of an error.
-     * @deprecated  As of release 3.6.0, replaced by {@link #retrieveInfoForUser(String, String)}}
+     * @deprecated  as of release 3.6.0, replaced by {@link #retrieveInfoForUser(String, String)}}
      */
     @Deprecated
     public SyncUser retrieveUser(final String provider, final String providerId) throws ObjectServerError {
@@ -497,7 +497,7 @@ public class SyncUser {
      * @param callback callback when the lookup has completed or failed. The callback will always happen on the same thread
      * as this method is called on.
      * @return representation of the async task that can be used to cancel it if needed.
-     * @deprecated  As of release 3.6.0, replaced by {@link #retrieveInfoForUserAsync(String, String, RequestCallback)}}
+     * @deprecated  as of release 3.6.0, replaced by {@link #retrieveInfoForUserAsync(String, String, RequestCallback)}}
      */
     @Deprecated
     public RealmAsyncTask retrieveUserAsync(final String provider, final String providerId, final Callback callback) {
@@ -528,11 +528,11 @@ public class SyncUser {
      */
     public SyncUserInfo retrieveInfoForUser(final String providerUserIdentity, final String provider) throws ObjectServerError {
         if (Util.isEmptyString(providerUserIdentity)) {
-            throw new IllegalArgumentException("Not-null 'providerUserIdentity' required.");
+            throw new IllegalArgumentException("'providerUserIdentity' cannot be empty.");
         }
 
         if (Util.isEmptyString(provider)) {
-            throw new IllegalArgumentException("None empty 'provider' required.");
+            throw new IllegalArgumentException("'provider' cannot be empty.");
         }
 
         if (!isAdmin()) {
