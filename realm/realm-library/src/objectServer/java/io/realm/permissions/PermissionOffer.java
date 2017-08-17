@@ -86,8 +86,8 @@ public class PermissionOffer implements BasePermissionApi {
      * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public PermissionOffer(String url, boolean mayRead, boolean mayWrite, boolean mayManage, Date expiresAt) {
     public PermissionOffer(String url, AccessLevel accessLevel) {
+        //noinspection ConstantConditions
         this(url, accessLevel, null);
     }
 
@@ -100,16 +100,15 @@ public class PermissionOffer implements BasePermissionApi {
      *
      * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public PermissionOffer(String url, AccessLevel accessLevel, Date expiresAt) {
         validateUrl(url);
         validateAccessLevel(accessLevel);
         this.mayRead = accessLevel.mayRead();
         this.mayWrite = accessLevel.mayWrite();
         this.mayManage = accessLevel.mayManage();
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public PermissionOffer(String url, boolean mayRead, boolean mayWrite, boolean mayManage, @Nullable Date expiresAt) {
-        //noinspection ConstantConditions
         this.realmUrl = url;
+        //noinspection ConstantConditions
         this.expiresAt = (expiresAt != null) ? (Date) expiresAt.clone() : null;
     }
 
@@ -183,8 +182,6 @@ public class PermissionOffer implements BasePermissionApi {
      * @return The servers status message in case of an error, {@code null} otherwise.
      */
     @Override
-    }
-
     @Nullable
     public String getStatusMessage() {
         return statusMessage;
