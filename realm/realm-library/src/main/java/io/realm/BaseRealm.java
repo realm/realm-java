@@ -769,15 +769,15 @@ abstract class BaseRealm implements Closeable {
      *
      *   private Realm realm = null;
      *   private RealmAsyncTask realmAsyncTask;
+     *   private static RealmConfiguration config = new RealmConfiguration.Builder()
+     *     .schema(42)
+     *     .migration(new MyMigration()) // Potentially lengthy migration
+     *     .build();
      *
      *   \@Override
      *   protected void onCreate(Bundle savedInstanceState) {
      *     super.onCreate(savedInstanceState);
      *     setContentView(R.layout.layout_main);
-     *     RealmConfiguration config = new RealmConfiguration.Builder()
-     *       .schema(42)
-     *       .migration(new MyMigration()) // Potentially lengthy migration
-     *       .build();
      *     realmAsyncTask = Realm.getInstanceAsync(config, new Callback() {
      *         \@Override
      *         public void onSuccess(Realm realm) {
