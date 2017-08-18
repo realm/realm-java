@@ -101,7 +101,7 @@ public class PermissionOffer implements BasePermissionApi {
      * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public PermissionOffer(String url, AccessLevel accessLevel, Date expiresAt) {
+    public PermissionOffer(String url, AccessLevel accessLevel, @Nullable Date expiresAt) {
         validateUrl(url);
         validateAccessLevel(accessLevel);
         this.mayRead = accessLevel.mayRead();
