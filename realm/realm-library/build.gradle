@@ -179,7 +179,7 @@ dependencies {
     implementation 'com.getkeepsafe.relinker:relinker:1.2.2'
 
     kaptObjectServer project(':realm-annotations-processor')
-    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.4.1'
+    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.7.0'
 
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])

@@ -16,6 +16,8 @@
 
 ### Internal
 
+* [ObjectServer] Upgraded OKHttp to 3.7.0
+
 
 ## 3.5.1 (YYYY-MM-DD)
 

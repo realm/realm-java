@@ -85,7 +85,7 @@ public abstract class BaseIntegrationTest {
         }
         Realm.init(InstrumentationRegistry.getContext());
         originalLogLevel = RealmLog.getLevel();
-        RealmLog.setLevel(LogLevel.DEBUG);
+        RealmLog.setLevel(LogLevel.ERROR);
     }
 
     /**
@@ -96,9 +96,7 @@ public abstract class BaseIntegrationTest {
         try {
             HttpUtils.startSyncServer();
         } catch (Exception e) {
-            // Throwing an exception from this method will crash JUnit. Instead just log it.
-            // If this setup method fails, all unit tests in the class extending it will most likely fail as well.
-            Log.e(HttpUtils.TAG, "Could not start Sync Server: " + Util.getStackTrace(e));
+            throw new IllegalStateException(e);
         }
     }
 
@@ -117,6 +115,7 @@ public abstract class BaseIntegrationTest {
      * Tries to restore the environment as best as possible after a test.
      */
     protected void restoreEnvironmentAfterTest() {
+        RealmLog.error("Restore Environement");
         // Block until all users are logged out
         UserFactory.logoutAllUsers();
 
