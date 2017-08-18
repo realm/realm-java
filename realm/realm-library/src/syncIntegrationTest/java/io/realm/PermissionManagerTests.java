@@ -53,7 +53,7 @@ import static org.junit.Assert.fail;
 
 
 @RunWith(AndroidJUnit4.class)
-public class PermissionManagerTests extends IsolatedIntegrationTests {
+public class PermissionManagerTests extends StandardIntegrationTest {
 
     private SyncUser user;
 
@@ -769,7 +769,7 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
 
     @Test
     @RunTestInLooperThread
-    public void revokeOffer_afterOneAcceptedIt() {
+    public void revokeOffer_afterOneAcceptEdit() {
         // createOffer validates that the offer is actually in the __management Realm.
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
 
