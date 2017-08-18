@@ -11,7 +11,7 @@ import java.io.IOException;
 /**
  * Base class for integration tests where each test is run on a separate ROS instance.
  * This adds quite a lot of overhead between each test, so only use this base class if absolutely needed.
- * Otherwise use {@link IsolatedIntegrationTests}.
+ * Otherwise use {@link IsolatedIntegrationTests}.//FIXME doc
  */
 public class IsolatedIntegrationTests extends BaseIntegrationTest {
 
