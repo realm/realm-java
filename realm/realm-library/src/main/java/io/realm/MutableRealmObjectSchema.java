@@ -18,6 +18,8 @@ package io.realm;
 
 import java.util.Locale;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.Table;
 
 /**
@@ -45,6 +47,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
                     "Class name is too long. Limit is %1$d characters: \'%2$s\' (%3$d)",
                     Table.CLASS_NAME_MAX_LENGTH, className, className.length()));
         }
+        //noinspection ConstantConditions
         if (realm.sharedRealm.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
@@ -56,12 +59,14 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             pkField = getPrimaryKey();
             table.setPrimaryKey(null);
         }
+        //noinspection ConstantConditions
         realm.sharedRealm.renameTable(table.getName(), internalTableName);
         if (pkField != null && !pkField.isEmpty()) {
             try {
                 table.setPrimaryKey(pkField);
             } catch (Exception e) {
                 // revert the table name back when something goes wrong
+                //noinspection ConstantConditions
                 realm.sharedRealm.renameTable(table.getName(), oldTableName);
                 throw e;
             }
@@ -70,6 +75,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     }
 
     private void checkEmpty(String str) {
+        //noinspection ConstantConditions
         if (str == null || str.isEmpty()) {
             throw new IllegalArgumentException("Null or empty class names are not allowed");
         }
@@ -241,6 +247,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
 
     @Override
     public RealmObjectSchema transform(Function function) {
+        //noinspection ConstantConditions
         if (function != null) {
             long size = table.size();
             for (long i = 0; i < size; i++) {
@@ -255,6 +262,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     private void addModifiers(String fieldName, FieldAttribute[] attributes) {
         boolean indexAdded = false;
         try {
+            //noinspection ConstantConditions
             if (attributes != null && attributes.length > 0) {
                 if (containsAttribute(attributes, FieldAttribute.INDEXED)) {
                     addIndex(fieldName);
@@ -280,6 +288,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     }
 
     private boolean containsAttribute(FieldAttribute[] attributeList, FieldAttribute attribute) {
+        //noinspection ConstantConditions
         if (attributeList == null || attributeList.length == 0) {
             return false;
         }
@@ -301,5 +310,4 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             throw new IllegalArgumentException("Field already exists in '" + getClassName() + "': " + fieldName);
         }
     }
-
 }

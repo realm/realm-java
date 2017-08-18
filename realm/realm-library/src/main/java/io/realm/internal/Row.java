@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import java.util.Date;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmFieldType;
 
 
@@ -91,9 +93,9 @@ public interface Row {
 
     void setDate(long columnIndex, Date date);
 
-    void setString(long columnIndex, String value);
+    void setString(long columnIndex, @Nullable String value);
 
-    void setBinaryByteArray(long columnIndex, byte[] data);
+    void setBinaryByteArray(long columnIndex, @Nullable byte[] data);
 
     void setLink(long columnIndex, long value);
 
