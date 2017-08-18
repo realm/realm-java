@@ -1,5 +1,9 @@
 ## 3.6.0 (YYYY-MM-DD)
 
+### Breaking Changes
+
+* [ObjectServer] `SyncUser.logout()` no longer throw an exception when associated Realms instances are not closed (#4962).
+
 ### Deprecated
 
 * `SyncUser.getManagementRealm()`. Use `SyncUser.getPermissionManager()` instead.
@@ -8,14 +12,15 @@
 
 * [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
 * [ObjectServer] APIs of `UserStore` have been changed to support same user identity but different authentication server scenario.
-* [ObjectServer] Added `SyncUser.allSessions` to retrive the all valid sessions belonging to the user (#4783).
+* [ObjectServer] Added `SyncUser.allSessions` to retrieve the all valid sessions belonging to the user (#4783).
 * Added `Nullable` annotation to methods that may return `null` in order to improve Kotlin usability. This also introduced a dependency to `com.google.code.findbugs:jsr305`.
 * Added support for new data type `MutableRealmIntegers`. The new type behaves almost exactly as a reference to a Long (mutable nullable, etc) but supports `increment` and `decrement` methods, which implement a Conflict Free Replicated Data Type, whose value will converge even when changed across distributed devices with poor connections (#4266).
 
 ### Bug Fixes
 
 ### Internal
-
+* [ObjectServer] removed `ObjectServerUser` and it's inner classes, in a step to reduce `SyncUser` complexity (#3741).
+* [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
 * [ObjectServer] Upgraded OKHttp to 3.7.0
 
 
