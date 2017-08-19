@@ -51,7 +51,7 @@ android {
     }
 
     command {
-        events 2000
+        monkey.events 2000
     }
 }
 
