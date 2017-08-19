@@ -2,7 +2,7 @@
 
 ### Breaking Changes
 
-* [ObjectServer] `SyncUser.logout()` no longer throw an exception when associated Realms instances are not closed (#4962).
+* [ObjectServer] `SyncUser.logout()` no longer throws an exception when associated Realms instances are not closed (#4962).
 
 ### Enhancements
 
@@ -15,7 +15,7 @@
 ### Bug Fixes
 
 ### Internal
-* [ObjectServer] removed `ObjectServerUser` and it's inner classes, in a step to reduce `SyncUser` complexity (#3741).
+* [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
 * [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
 
 
