@@ -268,7 +268,7 @@ logging:
   ##   error
   ##   fatal
   ##   off: all output suppressed
-  # level: 'info'
+   level: 'detail'
 
   ## The file to which the synchronisation server should log. This should
   ## be a writable path from the perspective of the user under which the
