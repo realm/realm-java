@@ -46,6 +46,7 @@ import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.network.LookupUserIdResponse;
 import io.realm.internal.objectserver.Token;
+import io.realm.internal.permissions.ManagementModule;
 import io.realm.internal.permissions.PermissionModule;
 import io.realm.log.RealmLog;
 
@@ -87,7 +88,7 @@ public class SyncUser {
                                 }
                             }
                         })
-                        .modules(new PermissionModule())
+                        .modules(new ManagementModule())
                         .build();
             }
 
