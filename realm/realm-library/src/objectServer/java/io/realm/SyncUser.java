@@ -444,7 +444,7 @@ public class SyncUser {
      * @return {@code SyncUser} associated with the given identity provider and providerId, or {@code null} in case
      * of an {@code invalid} provider or {@code providerId}.
      * @throws ObjectServerError in case of an error.
-     * @deprecated  as of release 3.6.0, replaced by {@link #retrieveInfoForUser(String, String)}}
+     * @deprecated as of release 3.6.0, replaced by {@link #retrieveInfoForUser(String, String)}}
      */
     @Deprecated
     public SyncUser retrieveUser(final String provider, final String providerId) throws ObjectServerError {
@@ -497,7 +497,7 @@ public class SyncUser {
      * @param callback callback when the lookup has completed or failed. The callback will always happen on the same thread
      * as this method is called on.
      * @return representation of the async task that can be used to cancel it if needed.
-     * @deprecated  as of release 3.6.0, replaced by {@link #retrieveInfoForUserAsync(String, String, RequestCallback)}}
+     * @deprecated as of release 3.6.0, replaced by {@link #retrieveInfoForUserAsync(String, String, RequestCallback)}}
      */
     @Deprecated
     public RealmAsyncTask retrieveUserAsync(final String provider, final String providerId, final Callback callback) {
