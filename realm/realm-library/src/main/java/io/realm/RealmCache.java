@@ -32,6 +32,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.Nullable;
+
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Capabilities;
 import io.realm.internal.ColumnIndices;
@@ -142,6 +144,8 @@ final class RealmCache {
                         if (instanceToReturn != null) {
                             callback.onSuccess(instanceToReturn);
                         } else {
+                            // throwable is non-null
+                            //noinspection ConstantConditions
                             callback.onError(throwable);
                         }
                     }
@@ -256,6 +260,7 @@ final class RealmCache {
             RealmConfiguration configuration, BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
         Capabilities capabilities = new AndroidCapabilities();
         capabilities.checkCanDeliverNotification(ASYNC_NOT_ALLOWED_MSG);
+        //noinspection ConstantConditions
         if (callback == null) {
             throw new IllegalArgumentException(ASYNC_CALLBACK_NULL_MSG);
         }
@@ -616,6 +621,7 @@ final class RealmCache {
      * @param schemaVersion requested version of the schema.
      * @return {@link ColumnIndices} instance for specified schema version. {@code null} if not found.
      */
+    @Nullable
     static ColumnIndices findColumnIndices(ColumnIndices[] array, long schemaVersion) {
         for (int i = array.length - 1; 0 <= i; i--) {
             final ColumnIndices candidate = array[i];

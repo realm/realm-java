@@ -1,6 +1,7 @@
 package io.realm.objectserver;
 
 import android.os.SystemClock;
+import android.support.test.annotation.UiThreadTest;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Rule;
@@ -15,6 +16,7 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
+import io.realm.entities.AllTypes;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.TestSyncConfigurationFactory;
@@ -78,5 +80,30 @@ public class SyncSessionTests extends BaseIntegrationTest {
             fail("Realm was closed, getState should not return");
         } catch (IllegalStateException expected) {
         }
+    }
+
+    @Test
+    public void uploadDownloadAllChanges() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        SyncConfiguration userConfig = configFactory
+                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .build();
+        SyncConfiguration adminConfig = configFactory
+                .createSyncConfigurationBuilder(adminUser, userConfig.getServerUrl().toString())
+                .build();
+
+        Realm userRealm = Realm.getInstance(userConfig);
+        userRealm.beginTransaction();
+        userRealm.createObject(AllTypes.class);
+        userRealm.commitTransaction();
+        SyncManager.getSession(userConfig).uploadAllLocalChanges();
+        userRealm.close();
+
+        Realm adminRealm = Realm.getInstance(adminConfig);
+        SyncManager.getSession(adminConfig).downloadAllServerChanges();
+        adminRealm.refresh();
+        assertEquals(1, adminRealm.where(AllTypes.class).count());
+        adminRealm.close();
     }
 }

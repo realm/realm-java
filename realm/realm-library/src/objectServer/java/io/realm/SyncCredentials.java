@@ -20,6 +20,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
+
 /**
  * Credentials represent a login with a 3rd party login provider in an OAuth2 login flow, and are used by the Realm
  * Object Server to verify the user and grant access.
@@ -142,7 +145,7 @@ public class SyncCredentials {
      * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if any parameter is either {@code null} or empty.
      */
-    public static SyncCredentials custom(String userIdentifier, String identityProvider, Map<String, Object> userInfo) {
+    public static SyncCredentials custom(String userIdentifier, String identityProvider, @Nullable Map<String, Object> userInfo) {
         assertStringNotEmpty(userIdentifier, "userIdentifier");
         assertStringNotEmpty(identityProvider, "identityProvider");
         if (userInfo == null) {
@@ -190,12 +193,13 @@ public class SyncCredentials {
     }
 
     private static void assertStringNotEmpty(String string, String message) {
+        //noinspection ConstantConditions
         if (string == null || "".equals(string)) {
             throw new IllegalArgumentException("Non-null '" + message + "' required.");
         }
     }
 
-    private SyncCredentials(String token, String identityProvider, Map<String, Object> userInfo) {
+    private SyncCredentials(String token, String identityProvider, @Nullable Map<String, Object> userInfo) {
         this.identityProvider = identityProvider;
         this.userIdentifier = token;
         this.userInfo = (userInfo == null) ? new HashMap<String, Object>() : userInfo;
