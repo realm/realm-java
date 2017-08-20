@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Util;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
@@ -125,13 +126,59 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                         .build();
                 final Realm secondRealm = Realm.getInstance(config2);
                 looperThread.closeAfterTest(secondRealm);
-
-                // Wait for the permission Result to report the new Realm
+                // Wait for the permission Result to report the new Realms
                 looperThread.keepStrongReference(permissions);
                 permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults<Permission> permissions) {
                         Permission p = permissions.where().endsWith("path", "tests2").findFirst();
+                        if (p != null) {
+                            assertTrue(p.mayRead());
+                            assertTrue(p.mayWrite());
+                            assertTrue(p.mayManage());
+                            looperThread.testComplete();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail("Could not open Realm: " + error.toString());
+            }
+        });
+    }
+
+    @Ignore("Until https://github.com/realm/realm-object-server/issues/1671 has been solved")
+    @Test
+    @RunTestInLooperThread
+    public void getPermissions_updatedWithNewRealms_stressTest() {
+        final PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.getPermissions(new PermissionManager.PermissionsCallback() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                SyncManager.getSession((SyncConfiguration) pm.permissionRealm.getConfiguration()).addDownloadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
+                    @Override
+                    public void onChange(Progress progress) {
+                        RealmLog.error(progress.toString());
+                    }
+                });
+                assertTrue(permissions.isLoaded());
+                assertInitialPermissions(permissions);
+
+                for (int i = 0; i < 10; i++) {
+                    SyncConfiguration configNew = new SyncConfiguration.Builder(user, "realm://127.0.0.1:9080/~/test" + i).build();
+                    Realm newRealm = Realm.getInstance(configNew);
+                    looperThread.closeAfterTest(newRealm);
+                }
+
+                // Wait for the permission Result to report the new Realms
+                looperThread.keepStrongReference(permissions);
+                permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
+                    @Override
+                    public void onChange(RealmResults<Permission> permissions) {
+                        Permission p = permissions.where().endsWith("path", "test9").findFirst();
                         if (p != null) {
                             assertTrue(p.mayRead());
                             assertTrue(p.mayWrite());
