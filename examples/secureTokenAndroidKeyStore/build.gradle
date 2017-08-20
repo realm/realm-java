@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 android {
@@ -20,6 +21,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    command {
+        monkey.events 2000
     }
 }
 
