@@ -525,7 +525,7 @@ public class SyncUser {
         }
 
         AuthenticationServer authServer = SyncManager.getAuthServer();
-        LookupUserIdResponse response = authServer.retrieveUser(getSyncUser().getUserToken(), provider, providerUserIdentity, getAuthenticationUrl());
+        LookupUserIdResponse response = authServer.retrieveUser(refreshToken, provider, providerUserIdentity, getAuthenticationUrl());
         if (!response.isValid()) {
             // the endpoint returns a 404 if it can't honor the query, either because
             // - provider is not valid
