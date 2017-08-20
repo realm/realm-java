@@ -25,7 +25,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.reflect.full.memberProperties
 
 /**
  * This class tests how Kotlin classes are interpreted by Realm and exposed in the RealmSchema
@@ -50,7 +49,7 @@ class KotlinSchemaTests {
 
     @Test
     fun kotlinTypeNonNull() {
-        val objSchema = realm.getSchema().get(AllKotlinTypes::class.simpleName)
+        val objSchema = realm.schema.get(AllKotlinTypes::class.simpleName)
 
         // Document current nullability. Ideally all should be non-nullable. This is currently
         // not the case.
