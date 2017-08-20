@@ -52,7 +52,7 @@ RUN sdkmanager --update
 RUN sdkmanager 'platform-tools'
 RUN sdkmanager 'build-tools;26.0.1'
 RUN sdkmanager 'extras;android;m2repository'
-RUN sdkmanager 'platforms;android-25'
+RUN sdkmanager 'platforms;android-26'
 
 # Install the NDK
 RUN mkdir /opt/android-ndk-tmp && \

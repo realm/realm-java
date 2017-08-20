@@ -1,4 +1,4 @@
-project.ext.sdkVersion = 25
+project.ext.sdkVersion = 26
 project.ext.buildTools = '26.0.1'
 
 // Don't cache SNAPSHOT (changing) dependencies.
@@ -24,8 +24,8 @@ allprojects {
         }
         dependencies {
             classpath 'com.android.tools.build:gradle:3.0.0-beta2'
-            classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
-            classpath 'com.novoda:gradle-android-command-plugin:1.5.0'
+            classpath 'com.novoda:gradle-android-command-plugin:1.7.1'
+            classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
             classpath "io.realm:realm-gradle-plugin:${currentVersion}"
         }
     }
