@@ -1,4 +1,4 @@
-project.ext.sdkVersion = 25
+project.ext.sdkVersion = 26
 project.ext.buildTools = '26.0.1'
 
 // Don't cache SNAPSHOT (changing) dependencies.
