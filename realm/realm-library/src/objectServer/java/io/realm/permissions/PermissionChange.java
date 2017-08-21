@@ -18,6 +18,8 @@ package io.realm.permissions;
 import java.util.Date;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -67,7 +69,8 @@ public class PermissionChange extends RealmObject {
      *
      * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Controlling Permissions</a>
      */
-    public PermissionChange(String realmUrl, String userId, Boolean mayRead, Boolean mayWrite, Boolean mayManage) {
+    public PermissionChange(String realmUrl, String userId,
+            @Nullable Boolean mayRead, @Nullable Boolean mayWrite, @Nullable Boolean mayManage) {
         this.realmUrl = realmUrl;
         this.userId = userId;
         this.mayRead = mayRead;
@@ -94,10 +97,12 @@ public class PermissionChange extends RealmObject {
      *
      * @return {@code null} if not yet processed. {@code 0} if successful, {@code >0} if an error happened. See {@link #getStatusMessage()}.
      */
+    @Nullable
     public Integer getStatusCode() {
         return statusCode;
     }
 
+    @Nullable
     public String getStatusMessage() {
         return statusMessage;
     }
@@ -110,14 +115,17 @@ public class PermissionChange extends RealmObject {
         return userId;
     }
 
+    @Nullable
     public Boolean mayRead() {
         return mayRead;
     }
 
+    @Nullable
     public Boolean mayWrite() {
         return mayWrite;
     }
 
+    @Nullable
     public Boolean mayManage() {
         return mayManage;
     }

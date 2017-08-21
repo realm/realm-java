@@ -15,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.realm.AuthenticationListener;
 import io.realm.BaseIntegrationTest;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
@@ -25,6 +26,7 @@ import io.realm.SyncCredentials;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
+import io.realm.SyncUserInfo;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
@@ -473,14 +475,20 @@ public class AuthTests extends BaseIntegrationTest {
         assertTrue(user.isValid());
 
         String identity = user.getIdentity();
-        SyncUser syncUser = adminUser.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, username);
-        assertNotNull(syncUser);
-        assertEquals(identity, syncUser.getIdentity());
-        assertFalse(syncUser.isAdmin());
-        assertTrue(syncUser.isValid());
+
+        SyncUserInfo userInfo = adminUser.retrieveInfoForUser(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD);
+
+        assertNotNull(userInfo);
+        assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, userInfo.getProvider());
+        assertEquals(username, userInfo.getProviderUserIdentity());
+        assertEquals(identity, userInfo.getIdentity());
+        assertFalse(userInfo.isAdmin());
     }
 
+
+    // retrieving a logged out user
     @Test
+    @RunTestInLooperThread
     public void retrieve_logout() {
         final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
 
@@ -489,31 +497,59 @@ public class AuthTests extends BaseIntegrationTest {
         final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
         final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final String identity = user.getIdentity();
-        user.logout();
-        assertFalse(user.isValid());
 
-        SyncUser syncUser = adminUser.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, username);
-        assertNotNull(syncUser);
-        assertEquals(identity, syncUser.getIdentity());
-        assertFalse(syncUser.isAdmin());
-        assertFalse(syncUser.isValid());
+        // unless the refresh_token is revoked (via logout) the admin user can still retrieve the user
+        // we make sure the token is revoked before trying to retrieve the user
+        SyncManager.addAuthenticationListener(new AuthenticationListener() {
+            @Override
+            public void loggedIn(SyncUser user) {
+                SyncManager.removeAuthenticationListener(this);
+                looperThread.postRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        fail("loggedIn should not be invoked");
+                    }
+                });
+            }
+
+            @Override
+            public void loggedOut(final SyncUser user) {
+                SyncManager.removeAuthenticationListener(this);
+                looperThread.postRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        assertFalse(user.isValid());
+                        SyncUserInfo userInfo = adminUser.retrieveInfoForUser(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD);
+
+                        assertNotNull(userInfo);
+                        assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, userInfo.getProvider());
+                        assertEquals(username, userInfo.getProviderUserIdentity());
+                        assertEquals(identity, userInfo.getIdentity());
+                        assertFalse(userInfo.isAdmin());
+
+                        looperThread.testComplete();
+                    }
+                });
+
+            }
+        });
+        user.logout();
     }
 
     @Test
     public void retrieve_AdminUser() {
         final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
-        SyncUser syncUser = adminUser.retrieveUser(SyncCredentials.IdentityProvider.DEBUG, "admin");// TODO use enum for auth provider
-        assertNotNull(syncUser);
-        assertEquals(adminUser.getIdentity(), syncUser.getIdentity());
-        assertTrue(syncUser.isAdmin());
-        assertTrue(syncUser.isValid());
+        SyncUserInfo userInfo = adminUser.retrieveInfoForUser("admin", SyncCredentials.IdentityProvider.DEBUG);// TODO use enum for auth provider
+        assertNotNull(userInfo);
+        assertEquals(adminUser.getIdentity(), userInfo.getIdentity());
+        assertTrue(userInfo.isAdmin());
     }
 
     @Test
     public void retrieve_unknownProviderId() {
         final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
-        SyncUser syncUser = adminUser.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, "doesNotExist");
-        assertNull(syncUser);
+        SyncUserInfo userInfo = adminUser.retrieveInfoForUser("doesNotExist", SyncCredentials.IdentityProvider.USERNAME_PASSWORD);
+        assertNull(userInfo);
     }
 
     @Test
@@ -525,8 +561,8 @@ public class AuthTests extends BaseIntegrationTest {
         final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         assertTrue(user.isValid());
 
-        SyncUser syncUser = adminUser.retrieveUser("invalid", "username");
-        assertNull(syncUser);
+        SyncUserInfo userInfo = adminUser.retrieveInfoForUser("username", "invalid");
+        assertNull(userInfo);
     }
 
     @Test
@@ -545,7 +581,7 @@ public class AuthTests extends BaseIntegrationTest {
 
         // trying to lookup user2 using user1 should not work (requires admin token)
         try {
-            user1.retrieveUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, username2);
+            user1.retrieveInfoForUser(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, username2);
             fail("It should not be possible to lookup a user using non admin token");
         } catch (IllegalArgumentException expected) {
         }
@@ -566,14 +602,15 @@ public class AuthTests extends BaseIntegrationTest {
         assertTrue(adminUser.isAdmin());
 
         final String identity = user.getIdentity();
-        adminUser.retrieveUserAsync("password", username, new SyncUser.Callback() {
+        adminUser.retrieveInfoForUserAsync(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD, new SyncUser.RequestCallback<SyncUserInfo>() {
             @Override
-            public void onSuccess(SyncUser syncUser) {
+            public void onSuccess(SyncUserInfo userInfo) {
+                assertNotNull(userInfo);
+                assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, userInfo.getProvider());
+                assertEquals(username, userInfo.getProviderUserIdentity());
+                assertEquals(identity, userInfo.getIdentity());
+                assertFalse(userInfo.isAdmin());
 
-                assertNotNull(syncUser);
-                assertEquals(identity, syncUser.getIdentity());
-                assertFalse(syncUser.isAdmin());
-                assertTrue(syncUser.isValid());
                 looperThread.testComplete();
             }
 
