@@ -18,6 +18,7 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 
 ### Internal
 
+* Upgraded Realm Sync to 1.10.8
 
 ## 3.5.1 (YYYY-MM-DD)
 
