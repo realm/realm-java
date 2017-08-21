@@ -18,6 +18,8 @@ package io.realm;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.ObserverPairList;
 import io.realm.internal.PendingRow;
 import io.realm.internal.Row;
@@ -35,6 +37,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         private final RealmChangeListener<T> listener;
 
         RealmChangeListenerWrapper(RealmChangeListener<T> listener) {
+            //noinspection ConstantConditions
             if (listener == null) {
                 throw new IllegalArgumentException("Listener should not be null");
             }
@@ -42,7 +45,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         }
 
         @Override
-        public void onChange(T object, ObjectChangeSet changes) {
+        public void onChange(T object, @Nullable ObjectChangeSet changes) {
             listener.onChange(object);
         }
 
@@ -112,6 +115,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         this.acceptDefaultValue = acceptDefaultValue;
     }
 
+    @SuppressWarnings("unused")
     public List<String> getExcludeFields$realm() {
         return excludeFields;
     }

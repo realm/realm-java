@@ -1,3 +1,30 @@
+## 3.6.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+* [ObjectServer] `SyncUser.logout()` no longer throws an exception when associated Realms instances are not closed (#4962).
+
+### Deprecated
+
+* [ObjectServer] `SyncUser#retrieveUser` and `SyncUser#retrieveUserAsync` replaced by `SyncUser#retrieveInfoForUser`
+and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode information (#5008).
+* [ObjectServer] `SyncUser#Callback` replaced by the generic version `SyncUser#RequestCallback<T>`.
+
+### Enhancements
+
+* [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
+* [ObjectServer] APIs of `UserStore` have been changed to support same user identity but different authentication server scenario.
+* [ObjectServer] Added `SyncUser.allSessions` to retrieve the all valid sessions belonging to the user (#4783).
+* Added `Nullable` annotation to methods that may return `null` in order to improve Kotlin usability. This also introduced a dependency to `com.google.code.findbugs:jsr305`.
+* Added support for new data type `MutableRealmIntegers`. The new type behaves almost exactly as a reference to a Long (mutable nullable, etc) but supports `increment` and `decrement` methods, which implement a Conflict Free Replicated Data Type, whose value will converge even when changed across distributed devices with poor connections (#4266).
+
+### Bug Fixes
+
+### Internal
+* [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
+* [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
+
+
 ## 3.5.1 (YYYY-MM-DD)
 
 ### Bug Fixes

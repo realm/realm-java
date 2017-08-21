@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import javax.annotation.Nullable;
+
 import io.realm.annotations.LinkingObjects;
 
 /**
@@ -54,5 +56,5 @@ public interface RealmObjectChangeListener<T extends RealmModel> {
      * @param t the {@code RealmObject} this listener is registered to.
      * @param changeSet the detailed information about the changes.
      */
-    void onChange(T t, ObjectChangeSet changeSet);
+    void onChange(T t, @Nullable ObjectChangeSet changeSet);
 }

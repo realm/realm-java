@@ -19,6 +19,8 @@ package io.realm.internal;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmFieldType;
 
 
@@ -65,7 +67,7 @@ public abstract class ColumnInfo {
         public final RealmFieldType columnType;
         public final String linkedClassName;
 
-        ColumnDetails(long columnIndex, RealmFieldType columnType, String linkedClassName) {
+        ColumnDetails(long columnIndex, RealmFieldType columnType, @Nullable String linkedClassName) {
             // invariant: (columnType == OBJECT || columnType == LIST || columnType == LINKING_OBJECTS) == (linkedClassName != null)
             this.columnIndex = columnIndex;
             this.columnType = columnType;
@@ -101,7 +103,7 @@ public abstract class ColumnInfo {
      * @param src the instance to copy
      * @param mutable false to make this instance effectively final
      */
-    protected ColumnInfo(ColumnInfo src, boolean mutable) {
+    protected ColumnInfo(@Nullable ColumnInfo src, boolean mutable) {
         this((src == null) ? 0 : src.indicesMap.size(), mutable);
         // ColumnDetails are immutable and may be re-used.
         if (src != null) {
@@ -138,6 +140,7 @@ public abstract class ColumnInfo {
      *
      * @return {@link ColumnDetails} or {@code null} if not found.
      */
+    @Nullable
     public ColumnDetails getColumnDetails(String columnName) {
         return indicesMap.get(columnName);
     }

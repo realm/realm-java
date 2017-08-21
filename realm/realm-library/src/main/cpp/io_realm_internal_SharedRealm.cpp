@@ -74,7 +74,7 @@ public:
     // Sync constructor
     JniConfigWrapper(REALM_UNUSED JNIEnv* env, REALM_UNUSED Realm::Config& config,
                      REALM_UNUSED jstring sync_realm_url, REALM_UNUSED jstring sync_realm_auth_url,
-                     REALM_UNUSED jstring sync_user_identity, REALM_UNUSED jstring sync_refresh_token,
+                     REALM_UNUSED jstring j_sync_user_id, REALM_UNUSED jstring sync_refresh_token,
                      REALM_UNUSED jboolean sync_client_validate_ssl,
                      REALM_UNUSED jstring sync_ssl_trust_certificate_path)
         : m_config(std::move(config))
@@ -86,7 +86,7 @@ public:
         static JavaMethod java_error_callback_method(env, sync_manager_class, "notifyErrorHandler",
                                                      "(ILjava/lang/String;Ljava/lang/String;)V", true);
         static JavaMethod java_bind_session_method(env, sync_manager_class, "bindSessionWithConfig",
-                                                   "(Ljava/lang/String;)Ljava/lang/String;", true);
+                                                   "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", true);
 
         // error handler will be called form the sync client thread
         auto error_handler = [=](std::shared_ptr<SyncSession> session, SyncError error) {
@@ -117,7 +117,7 @@ public:
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
 
             jstring access_token_string = (jstring)env->CallStaticObjectMethod(
-                sync_manager_class, java_bind_session_method, to_jstring(env, path.c_str()));
+                sync_manager_class, java_bind_session_method, to_jstring(env, path.c_str()), to_jstring(env, session->user()->refresh_token().c_str()));
             if (access_token_string) {
                 // reusing cached valid token
                 JStringAccessor access_token(env, access_token_string);
@@ -126,14 +126,13 @@ public:
         };
 
         // Get logged in user
-        JStringAccessor user_identity(env, sync_user_identity);
-        JStringAccessor realm_url(env, sync_realm_url);
-        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_identity);
+        JStringAccessor user_id(env, j_sync_user_id);
+        JStringAccessor realm_auth_url(env, sync_realm_auth_url);
+        SyncUserIdentifier sync_user_identifier = {user_id, realm_auth_url};
+        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(sync_user_identifier);
         if (!user) {
-            JStringAccessor realm_auth_url(env, sync_realm_auth_url);
             JStringAccessor refresh_token(env, sync_refresh_token);
-            user = SyncManager::shared().get_user(user_identity, refresh_token,
-                                                  realm::util::Optional<std::string>(realm_auth_url));
+            user = SyncManager::shared().get_user(sync_user_identifier, refresh_token);
         }
 
         util::Optional<std::string> ssl_trust_certificate_path = util::none;
@@ -148,9 +147,10 @@ public:
             std::copy_n(m_config.encryption_key.begin(), 64, sync_encryption_key->begin());
         }
 
+        JStringAccessor realm_url(env, sync_realm_url);
         m_config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
-            user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler),
-            nullptr, sync_encryption_key, sync_client_validate_ssl, ssl_trust_certificate_path});
+            user, realm_url, SyncSessionStopPolicy::AfterChangesUploaded, std::move(bind_handler), std::move(error_handler),
+            nullptr, sync_encryption_key, to_bool(sync_client_validate_ssl), ssl_trust_certificate_path});
 #else
         REALM_UNREACHABLE();
 #endif
