@@ -113,6 +113,31 @@ if (build_SYNC)
                                                     IMPORTED_LINK_INTERFACE_LIBRARIES lib_realm_core)
 endif()
 
+# Download openssl lib
+# FIXME sync packed openssl with librealm-sync-android-xxx.a.
+# Remove this check after https://github.com/realm/realm-sync/issues/1469 fixed.
+if (NOT build_SYNC)
+    #string(TOLOWER "${CMAKE_BUILD_TYPE}" openssl_build_TYPE)
+    set(openssl_build_TYPE "release")
+    # FIXME Read the openssl version from core when the core/sync release has that information.
+    set(openssl_VERSION "1.0.2k")
+    set(openssl_FILENAME "openssl-${openssl_build_TYPE}-${openssl_VERSION}-Android-${ANDROID_ABI}")
+    set(openssl_URL "http://static.realm.io/downloads/openssl/${openssl_VERSION}/Android/${ANDROID_ABI}/${openssl_FILENAME}.tar.gz")
+
+    message(STATUS "Downloading OpenSSL...")
+    file(DOWNLOAD "${openssl_URL}" "${PROJECT_BINARY_DIR}/${openssl_FILENAME}.tar.gz")
+
+    message(STATUS "Uncompressing OpenSSL...")
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${PROJECT_BINARY_DIR}/${openssl_FILENAME}.tar.gz"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
+
+    message(STATUS "Importing OpenSSL...")
+    include(${PROJECT_BINARY_DIR}/${openssl_FILENAME}/openssl.cmake)
+    get_target_property(openssl_include_DIR crypto INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(crypto_LIB crypto IMPORTED_LOCATION)
+    get_target_property(ssl_LIB ssl IMPORTED_LOCATION)
+endif()
+
 # build application's shared lib
 include_directories(${REALM_CORE_DIST_DIR}/include
     ${CMAKE_SOURCE_DIR}
@@ -202,7 +227,7 @@ add_dependencies(realm-jni jni_headers)
 if (build_SYNC)
     target_link_libraries(realm-jni log android lib_realm_sync)
 else()
-    target_link_libraries(realm-jni log android lib_realm_core)
+    target_link_libraries(realm-jni log android lib_realm_core crypto)
 endif()
 
 # Strip the release so files and backup the unstripped versions
