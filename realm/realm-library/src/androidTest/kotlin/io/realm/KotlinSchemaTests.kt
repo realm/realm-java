@@ -49,8 +49,6 @@ class KotlinSchemaTests {
 
     @Test
     fun kotlinTypeNonNull() {
-        val objSchema = realm.getSchema().get(AllKotlinTypes::class.simpleName)
-        val objSchema = realm.schema.get(AllKotlinTypes::class.simpleName)
         val objSchema = realm.schema.get(AllKotlinTypes::class.simpleName)!!
 
         // Document current nullability. Ideally all should be non-nullable. This is currently
