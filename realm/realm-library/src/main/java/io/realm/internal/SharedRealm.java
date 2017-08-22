@@ -180,7 +180,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     public interface MigrationCallback {
 
         /**
-         * Call back function.
+         * Callback function.
          *
          * @param sharedRealm the same {@link SharedRealm} instance of which
          * {@link #updateSchema(OsSchemaInfo, long, MigrationCallback)} was called on.
