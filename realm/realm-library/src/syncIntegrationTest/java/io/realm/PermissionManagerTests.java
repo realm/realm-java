@@ -36,7 +36,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Util;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
@@ -158,12 +157,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         pm.getPermissions(new PermissionManager.PermissionsCallback() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
-                SyncManager.getSession((SyncConfiguration) pm.permissionRealm.getConfiguration()).addDownloadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
-                    @Override
-                    public void onChange(Progress progress) {
-                        RealmLog.error(progress.toString());
-                    }
-                });
                 assertTrue(permissions.isLoaded());
                 assertInitialPermissions(permissions);
 
