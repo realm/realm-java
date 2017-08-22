@@ -30,7 +30,7 @@ public enum FieldAttribute {
     INDEXED,
 
     /**
-     * Marks a field as a primary key. This also implicitly mark it as {@link #INDEXED} and {@link #REQUIRED}.
+     * Marks a field as a primary key. This also implicitly mark it as {@link #INDEXED}.
      *
      * @see io.realm.annotations.PrimaryKey
      */

@@ -41,7 +41,10 @@ using namespace realm::jni_util;
 static_assert(SchemaMode::Automatic ==
                   static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_AUTOMATIC),
               "");
-static_assert(SchemaMode::ReadOnly ==
+static_assert(SchemaMode::Immutable ==
+                  static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_IMMUTABLE),
+              "");
+static_assert(SchemaMode::ReadOnlyAlternative ==
                   static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_READONLY),
               "");
 static_assert(SchemaMode::ResetFile ==
@@ -87,7 +90,7 @@ public:
         static JavaMethod java_error_callback_method(env, sync_manager_class, "notifyErrorHandler",
                                                      "(ILjava/lang/String;Ljava/lang/String;)V", true);
         static JavaMethod java_bind_session_method(env, sync_manager_class, "bindSessionWithConfig",
-                                                   "(Ljava/lang/String;)Ljava/lang/String;", true);
+                                                   "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", true);
 
         // error handler will be called form the sync client thread
         auto error_handler = [=](std::shared_ptr<SyncSession> session, SyncError error) {
@@ -118,7 +121,7 @@ public:
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
 
             jstring access_token_string = (jstring)env->CallStaticObjectMethod(
-                sync_manager_class, java_bind_session_method, to_jstring(env, path.c_str()));
+                sync_manager_class, java_bind_session_method, to_jstring(env, path.c_str()), to_jstring(env, session->user()->refresh_token().c_str()));
             if (access_token_string) {
                 // reusing cached valid token
                 JStringAccessor access_token(env, access_token_string);
@@ -150,7 +153,7 @@ public:
 
         JStringAccessor realm_url(env, sync_realm_url);
         m_config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
-            user, realm_url, SyncSessionStopPolicy::Immediately, std::move(bind_handler), std::move(error_handler),
+            user, realm_url, SyncSessionStopPolicy::AfterChangesUploaded, std::move(bind_handler), std::move(error_handler),
             nullptr, sync_encryption_key, to_bool(sync_client_validate_ssl), ssl_trust_certificate_path});
 #else
         REALM_UNREACHABLE();

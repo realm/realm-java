@@ -829,7 +829,7 @@ public class RealmMigrationTests {
             fail();
         } catch (RealmMigrationNeededException ignored) {
             assertThat(ignored.getMessage(),
-                    CoreMatchers.containsString("Property 'CatOwner.cats' has been changed from 'array' to 'array'"));
+                    CoreMatchers.containsString("Property 'CatOwner.cats' has been changed from 'array<Dog>' to 'array<Cat>'"));
         }
     }
 
