@@ -71,24 +71,24 @@ class CachedFieldDescriptor extends FieldDescriptor {
                         String.format(Locale.US, "Invalid query: class '%s' not found in this schema.", currentClassName));
             }
 
-            final long columnIndex = columnInfo.getColumnIndex(currentColumnName);
-            if (columnIndex < 0) {
+            final ColumnInfo.ColumnDetails details = columnInfo.getColumnDetails(currentColumnName);
+            if (details == null) {
                 throw new IllegalArgumentException(
-                        String.format(Locale.US, "Invalid query: field '%s' not found in table '%s'.", currentColumnName, currentClassName));
+                        String.format(Locale.US, "Invalid query: field '%s' not found in class '%s'.", currentColumnName, currentClassName));
             }
 
-            currentColumnType = columnInfo.getColumnType(currentColumnName);
+            currentColumnType = details.columnType;
             // we don't check the type of the last field in the chain since it is done in the C++ code
             if (i < nFields - 1) {
                 verifyInternalColumnType(currentClassName, currentColumnName, currentColumnType);
+                currentClassName = details.linkedClassName;
             }
-            currentClassName = columnInfo.getLinkedTable(currentColumnName);
-            columnIndices[i] = columnIndex;
+            columnIndices[i] = details.columnIndex;
             tableNativePointers[i] = (currentColumnType != RealmFieldType.LINKING_OBJECTS)
                     ? NativeObject.NULLPTR
-                    : schema.getNativeTablePtr(currentClassName);
+                    : schema.getNativeTablePtr(details.linkedClassName);
         }
 
-        setCompilationResults(className, currentColumnName, currentColumnType, columnIndices, tableNativePointers);
+        setCompilationResults(currentClassName, currentColumnName, currentColumnType, columnIndices, tableNativePointers);
     }
 }

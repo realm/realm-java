@@ -42,7 +42,7 @@ class KotlinExampleActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_realm_basic_example)
-        rootLayout = findViewById(R.id.container) as LinearLayout
+        rootLayout = findViewById(R.id.container)
         rootLayout.removeAllViews()
 
         // These operations are small enough that

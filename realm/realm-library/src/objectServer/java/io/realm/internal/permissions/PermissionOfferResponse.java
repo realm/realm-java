@@ -104,6 +104,7 @@ public class PermissionOfferResponse implements BasePermissionApi {
      *
      * @return {@code null} if not yet processed. {@code 0} if successful, {@code >0} if an error happened. See {@link #getStatusMessage()}.
      */
+    @Override
     @Nullable
     public Integer getStatusCode() {
         return statusCode;

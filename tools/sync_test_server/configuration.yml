@@ -61,13 +61,11 @@ auth:
 
     ## The validity duration for Access Tokens. This should be a fairly small
     ## number, especially if you are concerned with revocations being applied
-    ## quickly. This value is represented in seconds. Default: 10 minutes
-    # access_token: 600
-
-  ## The include path to use for including implementations for custom
-  ## authentication providers. This can be overwritten per provider via
-  ## auth:providers:${name}:include_path.
-  # providers_include_path: '/usr/local/lib/realm/auth/providers'
+    ## quickly. This value is represented in seconds. Default: 1 minute.
+    ##
+    ## WARNING : Changing this value may impact the timeout of the refresh
+    ##           token test (AuthTests#preemptiveTokenRefresh)
+    access_token: 20
 
   providers:
     ## Providers of authentication tokens. Each provider has a configuration

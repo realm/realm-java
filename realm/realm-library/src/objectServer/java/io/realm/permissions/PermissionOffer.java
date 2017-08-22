@@ -86,8 +86,8 @@ public class PermissionOffer implements BasePermissionApi {
      * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public PermissionOffer(String url, boolean mayRead, boolean mayWrite, boolean mayManage, Date expiresAt) {
     public PermissionOffer(String url, AccessLevel accessLevel) {
+        //noinspection ConstantConditions
         this(url, accessLevel, null);
     }
 
@@ -96,20 +96,20 @@ public class PermissionOffer implements BasePermissionApi {
      *
      * @param url specific url to Realm effected. The user sending the offer must have manage rights to this Realm.
      * @param accessLevel the {@link AccessLevel} granted to the user accepting the offer.
-     * @param expiresAt the date and time when this offer expires.
+     * @param expiresAt the date and time when this offer expires. If {@code null} is provided the offer never expires.
+     *
      *
      * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
      */
-    public PermissionOffer(String url, AccessLevel accessLevel, Date expiresAt) {
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
+    public PermissionOffer(String url, AccessLevel accessLevel, @Nullable Date expiresAt) {
         validateUrl(url);
         validateAccessLevel(accessLevel);
         this.mayRead = accessLevel.mayRead();
         this.mayWrite = accessLevel.mayWrite();
         this.mayManage = accessLevel.mayManage();
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public PermissionOffer(String url, boolean mayRead, boolean mayWrite, boolean mayManage, @Nullable Date expiresAt) {
-        //noinspection ConstantConditions
         this.realmUrl = url;
+        //noinspection ConstantConditions
         this.expiresAt = (expiresAt != null) ? (Date) expiresAt.clone() : null;
     }
 
@@ -183,8 +183,6 @@ public class PermissionOffer implements BasePermissionApi {
      * @return The servers status message in case of an error, {@code null} otherwise.
      */
     @Override
-    }
-
     @Nullable
     public String getStatusMessage() {
         return statusMessage;
