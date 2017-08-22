@@ -32,18 +32,26 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.io.File;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Iterator;
 import java.util.UUID;
 
+import io.realm.entities.StringOnly;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.UserFactory;
+import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
@@ -53,6 +61,7 @@ import static io.realm.util.SyncTestUtils.createTestAdminUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -62,6 +71,20 @@ import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public class SyncUserTests {
+
+    private static final URL authUrl;
+    private static final Constructor<SyncUser> SYNC_USER_CONSTRUCTOR;
+    static {
+        try {
+            authUrl = new URL("http://localhost/auth");
+            SYNC_USER_CONSTRUCTOR = SyncUser.class.getDeclaredConstructor(Token.class, URL.class);
+            SYNC_USER_CONSTRUCTOR.setAccessible(true);
+        } catch (MalformedURLException e) {
+            throw new ExceptionInInitializerError(e);
+        } catch (NoSuchMethodException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
@@ -96,6 +119,45 @@ public class SyncUserTests {
                 }
             });
         }
+    }
+
+    private static SyncUser createFakeUser(String id) {
+        final Token token = new Token("token_value", id, "path_value", Long.MAX_VALUE, null);
+        try {
+            return SYNC_USER_CONSTRUCTOR.newInstance(token, authUrl);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            fail(e.getMessage());
+        }
+        return null;
+    }
+
+    @Test
+    public void equals_validUser() {
+        final SyncUser user1 = createFakeUser("id_value");
+        final SyncUser user2 = createFakeUser("id_value");
+        assertTrue(user1.equals(user2));
+    }
+
+    @Test
+    public void equals_loggedOutUser() {
+        final SyncUser user1 = createFakeUser("id_value");
+        final SyncUser user2 = createFakeUser("id_value");
+        user1.logout();
+        user2.logout();
+        assertTrue(user1.equals(user2));
+    }
+
+    @Test
+    public void hashCode_validUser() {
+        final SyncUser user = createFakeUser("id_value");
+        assertNotEquals(0, user.hashCode());
+    }
+
+    @Test
+    public void hashCode_loggedOutUser() {
+        final SyncUser user = createFakeUser("id_value");
+        user.logout();
+        assertNotEquals(0, user.hashCode());
     }
 
     @Test
@@ -468,5 +530,67 @@ public class SyncUserTests {
 
         realm2.close();
         assertEquals(0, user.allSessions().size());
+    }
+
+    // JSON format changed in 3.6.0 (removed unnecessary fields), this regression test
+    // makes sure we can still deserialize a valid SyncUser from the old format.
+    @Test
+    public void fromJson_WorkWithRemovedObjectServerUser() {
+        String oldSyncUserJSON = "{\"authUrl\":\"http:\\/\\/192.168.1.151:9080\\/auth\",\"userToken\":{\"token\":\"eyJpZGVudGl0eSI6IjY4OWQ5MGMxNDIyYTIwMmZkNTljNDYwM2M0ZTRmNmNjIiwiZXhwaXJlcyI6MTgxNjM1ODE4NCwiYXBwX2lkIjoiaW8ucmVhbG0ucmVhbG10YXNrcyIsImFjY2VzcyI6WyJyZWZyZXNoIl0sImlzX2FkbWluIjpmYWxzZSwic2FsdCI6MC4yMTEwMjQyNDgwOTEyMzg1NH0=:lEDa83o1zu8rkwdZVpTyunLHh1wmjxPPSGmZQNxdEM7xDmpbiU7V+8dgDWGevJNHMFluNDAOmrcAOI9TLfhI4rMDl70NI1K9rv\\/Aeq5uIOzq\\/Gf7JTeTUKY5Z7yRoppd8NArlNBKesLFxzdLRlfm1hflF9wH23xQXA19yUZ67JIlkhDPL5e3bau8O3Pr\\/St0unW3KzPOiZUk1l9KRrs2iMCCiXCfq4rf6rp7B2M7rBUMQm68GnB1Ot7l1CblxEWcREcbpyhBKTWIOFRGMwg2TW\\/zRR3cRNglx+ZC4FOeO0mfkX+nf+slyFODAnQkOzPZcGO8xc3I1emafX58Wl\\/Guw==\",\"token_data\":{\"identity\":\"689d90c1422a202fd59c4603c4e4f6cc\",\"path\":\"\",\"expires\":1816358184,\"access\":[\"unknown\"],\"is_admin\":false}},\"realms\":[]}";
+        SyncUser syncUser = SyncUser.fromJson(oldSyncUserJSON);
+
+        // Note: we can't call isValid() and expect it to be true
+        //       since the user is not persisted in the UserStore
+        //       isValid() requires SyncManager.getUserStore().isActive(identity)
+        //       to return true as well.
+        Token accessToken = syncUser.getAccessToken();
+        assertNotNull(accessToken);
+        // refresh token should expire in 10 years (July 23, 2027)
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(accessToken.expiresMs());
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        int month = calendar.get(Calendar.MONTH);
+        int year = calendar.get(Calendar.YEAR);
+
+        assertEquals(23, day);
+        assertEquals(Calendar.JULY, month);
+        assertEquals(2027, year);
+
+        assertEquals("http://192.168.1.151:9080/auth", syncUser.getAuthenticationUrl().toString());
+    }
+
+    @Test
+    @Ignore("until https://github.com/realm/realm-java/issues/5097 is fixed")
+    public void logoutUserShouldDeleteRealmAfterRestart() throws InterruptedException {
+        SyncManager.reset();
+        BaseRealm.applicationContext = null; // Required for Realm.init() to work
+        Realm.init(InstrumentationRegistry.getTargetContext());
+
+        SyncUser user = createTestUser();
+        SyncConfiguration syncConfiguration = new SyncConfiguration
+                .Builder(user, "realm://127.0.0.1:9080/~/tests")
+                .modules(new StringOnlyModule())
+                .build();
+
+        Realm realm = Realm.getInstance(syncConfiguration);
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(StringOnly.class).setChars("1");
+            }
+        });
+        user.logout();
+        realm.close();
+
+        final File realmPath = new File (syncConfiguration.getPath());
+        assertTrue(realmPath.exists());
+
+        // simulate an app restart
+        SyncManager.reset();
+        BaseRealm.applicationContext = null;
+        Realm.init(InstrumentationRegistry.getTargetContext());
+
+        //now the file should be deleted
+        assertFalse(realmPath.exists());
     }
 }
