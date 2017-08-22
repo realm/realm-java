@@ -666,20 +666,6 @@ public class SyncUser {
     }
 
     /**
-     * Returns an instance of the {@link PermissionManager} for this user that makes it possible to see, modify and create
-     * permissions related to this users Realms.
-     * <p>
-     * Every instance returned by this method must be closed by calling {@link PermissionManager#close()} when it
-     * no longer is needed.
-     *
-     * @return an instance of the PermissionManager.
-     */
-    public PermissionManager getPermissionManager() {
-        new AndroidCapabilities().checkCanDeliverNotification("The PermissionManager can only opened on a Looper thread.");
-        return PermissionManager.getInstance(this);
-    }
-
-    /**
      * Returns all the valid sessions belonging to the user.
      *
      * @return the all valid sessions belong to the user.
@@ -727,6 +713,20 @@ public class SyncUser {
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Could not create URL to the management Realm", e);
         }
+    }
+
+    /**
+     * Returns an instance of the {@link PermissionManager} for this user that makes it possible to see, modify and create
+     * permissions related to this users Realms.
+     * <p>
+     * Every instance returned by this method must be closed by calling {@link PermissionManager#close()} when it
+     * no longer is needed.
+     *
+     * @return an instance of the PermissionManager.
+     */
+    public PermissionManager getPermissionManager() {
+        new AndroidCapabilities().checkCanDeliverNotification("The PermissionManager can only opened on a Looper thread.");
+        return PermissionManager.getInstance(this);
     }
 
     // what defines a user is it's identity(Token) and authURL (as required by the constructor)

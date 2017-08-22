@@ -59,7 +59,7 @@ import static org.mockito.Mockito.when;
 public class AuthTests extends StandardIntegrationTest {
 
     @Test
-     public void login_userNotExist() {
+    public void login_userNotExist() {
         SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
         try {
             SyncUser.login(credentials, Constants.AUTH_URL);

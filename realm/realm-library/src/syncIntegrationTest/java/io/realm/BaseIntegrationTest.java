@@ -16,25 +16,15 @@
 
 package io.realm;
 
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.UiThreadTestRule;
 import android.util.Log;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Util;
 import io.realm.log.LogLevel;
@@ -43,8 +33,6 @@ import io.realm.objectserver.utils.HttpUtils;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
-
-import static org.junit.Assert.fail;
 
 
 /**
@@ -85,7 +73,7 @@ public abstract class BaseIntegrationTest {
         }
         Realm.init(InstrumentationRegistry.getContext());
         originalLogLevel = RealmLog.getLevel();
-        RealmLog.setLevel(LogLevel.ERROR);
+        RealmLog.setLevel(LogLevel.DEBUG);
     }
 
     /**
@@ -115,7 +103,6 @@ public abstract class BaseIntegrationTest {
      * Tries to restore the environment as best as possible after a test.
      */
     protected void restoreEnvironmentAfterTest() {
-        RealmLog.error("Restore Environement");
         // Block until all users are logged out
         UserFactory.logoutAllUsers();
 

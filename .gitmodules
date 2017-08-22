@@ -1,0 +1,3 @@
+[submodule "realm/realm-library/src/main/cpp/object-store"]
+	path = realm/realm-library/src/main/cpp/object-store
+	url = https://github.com/realm/realm-object-store.git

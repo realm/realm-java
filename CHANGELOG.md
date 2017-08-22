@@ -1,5 +1,7 @@
 ## 3.6.0 (YYYY-MM-DD)
 
+### Breaking Changes
+
 * [ObjectServer] `SyncUser.logout()` no longer throws an exception when associated Realms instances are not closed (#4962).
 
 ### Deprecated
