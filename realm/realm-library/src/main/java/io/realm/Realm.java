@@ -150,6 +150,23 @@ public class Realm extends BaseRealm {
         super(cache, createExpectedSchemaInfo(cache.getConfiguration().getSchemaMediator()));
         schema = new ImmutableRealmSchema(this,
                 new ColumnIndices(configuration.getSchemaMediator(), sharedRealm.getSchemaInfo()));
+        // FIXME: This is to work around the different behaviour between the read only Realms in the Object Store and
+        // in current java implementation. Opening a read only Realm with some missing schemas is allowed by Object
+        // Store and realm-cocoa. In that case, any query based on the missing schema should just return an empty
+        // results. Fix this together with https://github.com/realm/realm-java/issues/2953
+        if (configuration.isReadOnly()) {
+            RealmProxyMediator mediator = configuration.getSchemaMediator();
+            Set<Class<? extends RealmModel>> classes = mediator.getModelClasses();
+            for (Class<? extends RealmModel> clazz  : classes) {
+                String tableName = mediator.getTableName(clazz);
+                if (!sharedRealm.hasTable(tableName)) {
+                    sharedRealm.close();
+                    throw new RealmMigrationNeededException(configuration.getPath(),
+                            String.format(Locale.US, "Cannot open the read only Realm. '%s' is missing.",
+                                    Table.getClassNameForTable(tableName)));
+                }
+            }
+        }
     }
 
     private Realm(SharedRealm sharedRealm) {
