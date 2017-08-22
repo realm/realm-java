@@ -45,7 +45,7 @@ import rx.Observable;
  * <p>
  * RealmResults are live views, which means that if it is on an {@link Looper} thread, it will automatically
  * update its query results after a transaction has been committed. If on a non-looper thread,
- * {@link Realm#waitForChange()} must be called to update the results.
+ * {@link Realm#refresh()} must be called to update the results.
  * <p>
  * Updates to RealmObjects from a RealmResults list must be done from within a transaction and the modified objects are
  * persisted to the Realm file during the commit of the transaction.
@@ -143,7 +143,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Sets the value to {@code null} for the given field in all of the objects in the result collection.
+     * Sets the value to {@code null} for the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
      * @throws IllegalArgumentException if field name doesn't exist or isn't nullable.
@@ -157,7 +157,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
 
 
     /**
-     * Sets the {@code boolean} value of the given field in all of the objects in the result collection.
+     * Sets the {@code boolean} value of the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
@@ -174,7 +174,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Sets the {@code byte} value of the given field in all of the objects in the result collection.
+     * Sets the {@code byte} value of the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
@@ -192,7 +192,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Sets the {@code short} value of the given field in all of the objects in the result collection.
+     * Sets the {@code short} value of the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
@@ -210,7 +210,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Sets the {@code int} value of the given field in all of the objects in the result collection.
+     * Sets the {@code int} value of the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
@@ -228,7 +228,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Sets the {@code long} value of the given field in all of the objects in the result collection.
+     * Sets the {@code long} value of the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
@@ -246,7 +246,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Sets the {@code float} value of the given field in all of the objects in the result collection.
+     * Sets the {@code float} value of the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
@@ -263,7 +263,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Sets the {@code double} value of the given field in all of the objects in the result collection.
+     * Sets the {@code double} value of the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
@@ -280,7 +280,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Sets the {@code String} value of the given field in all of the objects in the result collection.
+     * Sets the {@code String} value of the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
@@ -298,7 +298,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Sets the binary value of the given field in all of the objects in the result collection.
+     * Sets the binary value of the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
@@ -315,7 +315,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Sets the {@code Date} value of the given field in all of the objects in the result collection.
+     * Sets the {@code Date} value of the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
@@ -332,13 +332,13 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Sets a reference to another object on the given field in all of the objects in the result collection.
+     * Sets a reference to another object on the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
      * @throws IllegalArgumentException if field name doesn't exist or is of the wrong type.
      */
-    public void setObject(@Nonnull String fieldName, @Nullable RealmObject value) {
+    public void setObject(@Nonnull String fieldName, @Nullable RealmModel value) {
         verifyString(fieldName);
 
         realm.checkIfValid();
@@ -368,7 +368,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Sets the value for the given field  in all of the objects in the result collection, converting {@code String}
+     * Sets the value for the given field  in all of the objects in the collection, converting {@code String}
      * representations of numbers and booleans to their appropriate type. For example {@code "10"}
      * will be converted to {@code 10} if the field type is {@code int}.
      * <p>
