@@ -554,7 +554,7 @@ public class Collection implements NativeObject {
      * @throws IllegalArgumentException if field name doesn't exist or isn't string.
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
-    public void setString(long columnIndex, @Nonnull String value) {
+    public void setString(long columnIndex, String value) {
         nativeSetString(nativePtr, columnIndex, value);
     }
 
@@ -565,7 +565,7 @@ public class Collection implements NativeObject {
      * @param value value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or isn't binary.
      */
-    public void setBinary(long columnIndex, @Nonnull byte[] value) {
+    public void setBinary(long columnIndex, byte[] value) {
         nativeSetBinary(nativePtr, columnIndex, value);
     }
 
@@ -589,7 +589,7 @@ public class Collection implements NativeObject {
      * @throws IllegalArgumentException if field name doesn't exist or isn't object of the right type.
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
-    public void setObject(long columnIndex, @Nonnull UncheckedRow row) {
+    public void setObject(long columnIndex, UncheckedRow row) {
         String valueClass = row.getTable().getClassName();
         String targetClass = table.getLinkTarget(columnIndex).getClassName();
         if (!targetClass.equals(valueClass)) {

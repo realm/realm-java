@@ -149,8 +149,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @throws IllegalArgumentException if field name doesn't exist or isn't nullable.
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
-    public void setNull(@Nonnull String fieldName) {
-        verifyString(fieldName);
+    public void setNull(String fieldName) {
+        checkString(fieldName);
         realm.checkIfValid();
         collection.setNull(getColumnIndex(fieldName));
     }
@@ -163,8 +163,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @param value new value for the field.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't boolean.
      */
-    public void setBoolean(@Nonnull String fieldName, @Nullable Boolean value) {
-        verifyString(fieldName);
+    public void setBoolean(String fieldName, @Nullable Boolean value) {
+        checkString(fieldName);
 
         realm.checkIfValid();
 
@@ -181,8 +181,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @throws IllegalArgumentException if field name doesn't exist or isn't integer.
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
-    public void setByte(@Nonnull String fieldName, @Nullable Byte value) {
-        verifyString(fieldName);
+    public void setByte(String fieldName, @Nullable Byte value) {
+        checkString(fieldName);
 
         realm.checkIfValid();
 
@@ -199,8 +199,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @throws IllegalArgumentException if field name doesn't exist or isn't integer.
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
-    public void setShort(@Nonnull String fieldName, @Nullable Short value) {
-        verifyString(fieldName);
+    public void setShort(String fieldName, @Nullable Short value) {
+        checkString(fieldName);
 
         realm.checkIfValid();
 
@@ -217,8 +217,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @throws IllegalArgumentException if field name doesn't exist or field isn't integer.
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
-    public void setInt(@Nonnull String fieldName, @Nullable Integer value) {
-        verifyString(fieldName);
+    public void setInt(String fieldName, @Nullable Integer value) {
+        checkString(fieldName);
 
         realm.checkIfValid();
 
@@ -235,8 +235,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @throws IllegalArgumentException if field name doesn't exist or field isn't integer.
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
-    public void setLong(@Nonnull String fieldName, @Nullable Long value) {
-        verifyString(fieldName);
+    public void setLong(String fieldName, @Nullable Long value) {
+        checkString(fieldName);
 
         realm.checkIfValid();
 
@@ -252,8 +252,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @param value new value for the field.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't float.
      */
-    public void setFloat(@Nonnull String fieldName, @Nullable Float value) {
-        verifyString(fieldName);
+    public void setFloat(String fieldName, @Nullable Float value) {
+        checkString(fieldName);
 
         realm.checkIfValid();
 
@@ -269,8 +269,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @param value new value for the field.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't double.
      */
-    public void setDouble(@Nonnull String fieldName, @Nullable Double value) {
-        verifyString(fieldName);
+    public void setDouble(String fieldName, @Nullable Double value) {
+        checkString(fieldName);
 
         realm.checkIfValid();
 
@@ -287,8 +287,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @throws IllegalArgumentException if field name doesn't exist or field isn't string.
      * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
-    public void setString(@Nonnull String fieldName, @Nullable String value) {
-        verifyString(fieldName);
+    public void setString(String fieldName, @Nullable String value) {
+        checkString(fieldName);
 
         realm.checkIfValid();
 
@@ -304,8 +304,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @param value new value for the field.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't binary.
      */
-    public void setBlob(@Nonnull String fieldName, @Nullable byte[] value) {
-        verifyString(fieldName);
+    public void setBlob(String fieldName, @Nullable byte[] value) {
+        checkString(fieldName);
 
         realm.checkIfValid();
 
@@ -321,8 +321,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @param value new value for the field.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't date.
      */
-    public void setDate(@Nonnull String fieldName, @Nullable Date value) {
-        verifyString(fieldName);
+    public void setDate(String fieldName, @Nullable Date value) {
+        checkString(fieldName);
 
         realm.checkIfValid();
 
@@ -338,8 +338,8 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @param value new value for the field.
      * @throws IllegalArgumentException if field name doesn't exist or is of the wrong type.
      */
-    public void setObject(@Nonnull String fieldName, @Nullable RealmModel value) {
-        verifyString(fieldName);
+    public void setObject(String fieldName, @Nullable RealmModel value) {
+        checkString(fieldName);
 
         realm.checkIfValid();
 
@@ -365,54 +365,6 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
         }
 
         collection.setObject(columnIndex, (UncheckedRow) row);
-    }
-
-    /**
-     * Sets the value for the given field  in all of the objects in the collection, converting {@code String}
-     * representations of numbers and booleans to their appropriate type. For example {@code "10"}
-     * will be converted to {@code 10} if the field type is {@code int}.
-     * <p>
-     * Using the typed setters is faster than using this method.
-     *
-     * @throws IllegalArgumentException if field name doesn't exist or if the input value cannot be converted
-     * to the appropriate input type.
-     * @throws NumberFormatException if a String based number cannot be converted properly.
-     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
-     */
-    @SuppressWarnings("unchecked")
-    public void set(@Nonnull String fieldName, @Nullable String strValue) {
-        verifyString(fieldName);
-
-        if (checkAndSetNullValue(fieldName, strValue)) { return; }
-
-        RealmFieldType type = RealmFieldType.UNSUPPORTED_TABLE;
-        switch (type) {
-            case BOOLEAN:
-                setBoolean(fieldName, Boolean.parseBoolean(strValue));
-                return;
-            case INTEGER:
-                setLong(fieldName, Long.parseLong(strValue));
-                return;
-            case FLOAT:
-                setFloat(fieldName, Float.parseFloat(strValue));
-                return;
-            case DOUBLE:
-                setDouble(fieldName, Double.parseDouble(strValue));
-                return;
-            case DATE:
-                setDate(fieldName, JsonUtils.stringToDate(strValue));
-                return;
-            case STRING:
-                setString(fieldName, strValue);
-                return;
-            default:
-        }
-
-        throw new IllegalArgumentException(String.format(
-                Locale.US,
-                "Field %s is not a String field and the value, %s, could not be automatically converted. Use a typed setter instead.",
-                fieldName,
-                strValue));
     }
 
     /**
@@ -620,14 +572,14 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
         return where().distinct(firstFieldName, remainingFieldNames);
     }
 
-    private boolean checkAndSetNullValue(@Nonnull String fieldName, @Nullable Object value) {
+    private boolean checkAndSetNullValue(String fieldName, @Nullable Object value) {
         if (value != null) { return false; }
 
         setNull(fieldName);
         return true;
     }
 
-    private void verifyString(@Nonnull String fieldName) {
+    private void checkString(String fieldName) {
         if (Util.isEmptyString(fieldName)) {
             throw new IllegalArgumentException("Field name must not be null");
         }
