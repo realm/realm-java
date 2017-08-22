@@ -24,6 +24,8 @@ import io.realm.RealmResults;
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
+import io.realm.valuelist.RealmValueList;
+
 
 // Always follow below order and put comments like below to make NullTypes Related cases
 // 1 String
@@ -121,6 +123,34 @@ public class NullTypes extends RealmObject {
     // never nullable
     @LinkingObjects(FIELD_LIST_NULL)
     private final RealmResults<NullTypes> listParents = null;
+
+    @Required
+    public RealmValueList<Long> longListNotNull;
+    public RealmValueList<Long> longListNull;
+    @Required
+    public RealmValueList<Integer> intListNotNull;
+    public RealmValueList<Integer> intListNull;
+    @Required
+    public RealmValueList<Short> shortListNotNull;
+    public RealmValueList<Short> shortListNull;
+    @Required
+    public RealmValueList<Byte> byteListNotNull;
+    public RealmValueList<Byte> byteListNull;
+    @Required
+    public RealmValueList<Boolean> booleanListNotNull;
+    public RealmValueList<Boolean> booleanListNull;
+    @Required
+    public RealmValueList<Double> doubleListNotNull;
+    public RealmValueList<Double> doubleListNull;
+    @Required
+    public RealmValueList<Float> floatListNotNull;
+    public RealmValueList<Float> floatListNull;
+    @Required
+    public RealmValueList<String> stringListNotNull;
+    public RealmValueList<String> stringListNull;
+    @Required
+    public RealmValueList<Date> dateListNotNull;
+    public RealmValueList<Date> dateListNull;
 
     public int getId() {
         return id;

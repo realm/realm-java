@@ -30,6 +30,7 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
+import io.realm.valuelist.RealmValueList;
 
 
 /**
@@ -357,6 +358,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             checkFieldType(fieldName, columnIndex, RealmFieldType.LIST);
             throw e;
         }
+    }
+
+    public <E> RealmValueList<E> getValueList(String fieldName) {
+        // TODO implement this
+        return null;
     }
 
     /**
@@ -758,6 +764,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         for (int i = 0; i < listLength; i++) {
             links.add(indices[i]);
         }
+    }
+
+    public void setValueList(String fieldName, RealmValueList<?> list) {
+        // TODO implement this
     }
 
     /**

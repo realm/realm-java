@@ -18,10 +18,14 @@ package io.realm;
 
 import java.nio.ByteBuffer;
 
-import javax.annotation.Nullable;
-
 import io.realm.internal.Keep;
 
+import static io.realm.RealmFieldTypeConstants.LIST_OFFSET;
+
+
+interface RealmFieldTypeConstants {
+    static final int LIST_OFFSET = 1 << 16;
+}
 
 /**
  * List of the types used by Realm's underlying storage engine.
@@ -45,15 +49,29 @@ public enum RealmFieldType {
     DOUBLE(10),
     OBJECT(12),
     LIST(13),
-    LINKING_OBJECTS(14);
+    LINKING_OBJECTS(14),
+
+    @SuppressWarnings("PointlessArithmeticExpression")
+    INTEGER_LIST(LIST_OFFSET + 0),
+    BOOLEAN_LIST(LIST_OFFSET + 1),
+    STRING_LIST(LIST_OFFSET + 2),
+    DATE_LIST(LIST_OFFSET + 8),
+    FLOAT_LIST(LIST_OFFSET + 9),
+    DOUBLE_LIST(LIST_OFFSET + 10);
 
     // Primitive array for fast mapping between between native values and their Realm type.
-    private static final RealmFieldType[] typeList = new RealmFieldType[15];
+    private static final RealmFieldType[] basicTypes = new RealmFieldType[15];
+    private static final RealmFieldType[] listTypes = new RealmFieldType[11];
 
     static {
         RealmFieldType[] columnTypes = values();
         for (int i = 0; i < columnTypes.length; i++) {
-            typeList[columnTypes[i].nativeValue] = columnTypes[i];
+            final int nativeValue = columnTypes[i].nativeValue;
+            if (nativeValue < LIST_OFFSET) {
+                basicTypes[nativeValue] = columnTypes[i];
+            } else {
+                listTypes[nativeValue - LIST_OFFSET] = columnTypes[i];
+            }
         }
     }
 
@@ -118,10 +136,19 @@ public enum RealmFieldType {
      * @throws IllegalArgumentException if value isn't valid.
      */
     public static RealmFieldType fromNativeValue(int value) {
-        if (0 <= value && value < typeList.length) {
-            RealmFieldType e = typeList[value];
+        if (0 <= value && value < basicTypes.length) {
+            RealmFieldType e = basicTypes[value];
             if (e != null) {
                 return e;
+            }
+        }
+        if (LIST_OFFSET <= value) {
+            final int elementValue = value - LIST_OFFSET;
+            if (elementValue < listTypes.length) {
+                RealmFieldType e = listTypes[elementValue];
+                if (e != null) {
+                    return e;
+                }
             }
         }
         throw new IllegalArgumentException("Invalid native Realm type: " + value);
