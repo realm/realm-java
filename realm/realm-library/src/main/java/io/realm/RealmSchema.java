@@ -21,6 +21,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
@@ -76,6 +78,7 @@ public abstract class RealmSchema {
      * @param className name of the class
      * @return schema object for that class or {@code null} if the class doesn't exists.
      */
+    @Nullable
     public abstract RealmObjectSchema get(String className);
 
     /**
@@ -136,6 +139,7 @@ public abstract class RealmSchema {
     }
 
     void checkNotEmpty(String str, String error) {
+        //noinspection ConstantConditions
         if (str == null || str.isEmpty()) {
             throw new IllegalArgumentException(error);
         }

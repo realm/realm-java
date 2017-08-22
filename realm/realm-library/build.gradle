@@ -2,6 +2,7 @@ import java.security.MessageDigest
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
@@ -175,6 +176,7 @@ dependencies {
     compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
     api "io.realm:realm-annotations:${version}"
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'com.getkeepsafe.relinker:relinker:1.2.2'
 
     kaptObjectServer project(':realm-annotations-processor')
@@ -183,7 +185,6 @@ dependencies {
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
     androidTestImplementation 'io.reactivex:rxjava:1.1.0'
-    androidTestImplementation 'com.android.support:support-annotations:26.0.1'
     androidTestImplementation 'com.android.support.test:runner:1.0.0'
     androidTestImplementation 'com.android.support.test:rules:1.0.0'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
