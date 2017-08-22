@@ -238,8 +238,13 @@ public abstract class ColumnInfo {
      */
     @SuppressWarnings("unused")
     protected final void addBacklinkDetails(SharedRealm realm, String columnName, String sourceTableName, String sourceColumnName) {
-        Table sourceTable = realm.getTable(Table.getTableNameForClass(sourceTableName));
-        long columnIndex = sourceTable.getColumnIndex(sourceColumnName);
+        long columnIndex = -1;
+        try {
+            columnIndex = realm.getTable(Table.getTableNameForClass(sourceTableName)).getColumnIndex(sourceColumnName);
+        }
+        catch (IllegalArgumentException ignore) {
+            // Failed to find the source table:  This will be handled in Proxy.validateTable
+        }
         indicesMap.put(columnName, new ColumnDetails(columnIndex, RealmFieldType.LINKING_OBJECTS, sourceTableName));
     }
 

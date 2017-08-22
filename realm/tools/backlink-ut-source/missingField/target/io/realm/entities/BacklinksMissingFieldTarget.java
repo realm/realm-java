@@ -25,15 +25,8 @@ public class BacklinksMissingFieldTarget extends RealmObject {
     @LinkingObjects("xxxchild")
     private final RealmResults<BacklinksMissingFieldSource> parents = null;
 
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public RealmResults<BacklinksMissingFieldSource> getParents() {
-        return parents;
-    }
+    public RealmResults<BacklinksMissingFieldSource> getParents() { return parents; }
 }

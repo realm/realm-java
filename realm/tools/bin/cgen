@@ -1,9 +1,19 @@
 #!/bin/bash
 
 # Customize as necessary
-REALM_JAVA=~/Working/java
 GRADLE_CACHE=~/.gradle
 ANDROID_SDK=~/Library/Android/sdk
+
+if [ "$REALM_JAVA" = "" ] ; then
+  echo "Please define REALM_JAVA pointing at the Realm Java Bindings repo"
+  exit 1
+fi
+
+x=`grep realm/realm-java.git $REALM_JAVA/.git/config 2>/dev/null`
+if [ "x$x" = "x" ]; then
+  echo "'$REALM_JAVA' does not look like a Realm Java Bindings repo"
+  exit 1
+fi
 
 if [ $# -lt 2 ] ; then
   echo "Usage: $0 <destination folder> <java file>..."
@@ -17,6 +27,11 @@ if [ ! -d "$TARGET_DIR" ] ; then
   echo "$TARGET_DIR is not a directory"
   exit 1
 fi
+
+here=`pwd`
+cd "$REALM_JAVA/realm"
+./gradlew realm-annotations-processor:assemble realm-library:assemble
+cd "$here"
 
 REALM_ANNOTATIONS=`find "$REALM_JAVA/realm-annotations/build" -name 'realm-annotations-*.jar'`
 if [ ! -f "$REALM_ANNOTATIONS" ] ; then
@@ -46,7 +61,7 @@ CLASSPATH="$REALM_ANNOTATION_PROCESSOR":"$JAVAWRITER":"$REALM_ANNOTATIONS":"$REA
 
 javac \
   -d "$TARGET_DIR" \
-  -bootclasspath "$ANDROID_SDK/platforms/android-24/android.jar" \
+  -bootclasspath "$ANDROID_SDK/platforms/android-25/android.jar" \
   -source 7 \
   -target 7 \
   -cp "$CLASSPATH" \

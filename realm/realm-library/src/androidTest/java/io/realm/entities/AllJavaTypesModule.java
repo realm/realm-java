@@ -1,3 +1,4 @@
+package io.realm.entities;
 /*
  * Copyright 2017 Realm Inc.
  *
@@ -13,20 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.entities;
 
-import io.realm.RealmObject;
-import io.realm.RealmResults;
-import io.realm.annotations.LinkingObjects;
+import io.realm.annotations.RealmModule;
 
-public class BacklinksWrongTypeTarget extends RealmObject {
-    private int id;
-
-    @LinkingObjects("child")
-    private final RealmResults<BacklinksWrongTypeSource> parents = null;
-
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-
-    public RealmResults<BacklinksWrongTypeSource> getParents() { return parents; }
+@RealmModule(classes = {AllJavaTypes.class})
+public class AllJavaTypesModule {
 }
