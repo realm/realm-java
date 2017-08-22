@@ -1014,9 +1014,9 @@ public class PermissionManager implements Closeable {
 
             // Handle Client Reset if it happened in any of the Realms.
             // A Client Reset is a fatal error for the PermissionManager, so all current and
-            // future tasks will exit as soon as posible after this event happened and report it
+            // future tasks will exit as soon as possible after this event happened and report it
             // through the error callback. Only action a user can take is to close the
-            // PermissionManager and re-open it again Some data might be lost (like permission
+            // PermissionManager and re-open it again. Some data might be lost (like permission
             // offers not yet processed). This is currently unavoidable.
             // TODO: Eventually we might be able to recover the permission manager from this event
             // but it will require some serious task management as we would need to do a full
