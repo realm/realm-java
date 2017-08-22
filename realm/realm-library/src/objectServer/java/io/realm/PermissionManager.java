@@ -53,7 +53,7 @@ import io.realm.permissions.PermissionRequest;
  *     <li>Create a permission offer that can be sent to others.</li>
  *     <li>Accept permission offers sent by other users.</li>
  * </ul>
- * </p>
+ * <p>
  * This class depends on underlying Realms, so all data coming from this class is thread-confined and must be
  * closed after use to avoid leaking resources.
  *
