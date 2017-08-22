@@ -96,7 +96,8 @@ public class PermissionOffer implements BasePermissionApi {
      *
      * @param url specific url to Realm effected. The user sending the offer must have manage rights to this Realm.
      * @param accessLevel the {@link AccessLevel} granted to the user accepting the offer.
-     * @param expiresAt the date and time when this offer expires.
+     * @param expiresAt the date and time when this offer expires. If {@code null} is provided the offer never expires.
+     *
      *
      * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
      */

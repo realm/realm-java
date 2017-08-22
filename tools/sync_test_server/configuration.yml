@@ -62,6 +62,9 @@ auth:
     ## The validity duration for Access Tokens. This should be a fairly small
     ## number, especially if you are concerned with revocations being applied
     ## quickly. This value is represented in seconds. Default: 1 minute.
+    ##
+    ## WARNING : Changing this value may impact the timeout of the refresh
+    ##           token test (AuthTests#preemptiveTokenRefresh)
     access_token: 20
 
   providers:

@@ -1,12 +1,14 @@
 ## 3.6.0 (YYYY-MM-DD)
 
-### Breaking Changes
-
-* [ObjectServer] `SyncUser.logout()` no longer throw an exception when associated Realms instances are not closed (#4962).
+* [ObjectServer] `SyncUser.logout()` no longer throws an exception when associated Realms instances are not closed (#4962).
 
 ### Deprecated
 
-* `SyncUser.getManagementRealm()`. Use `SyncUser.getPermissionManager()` instead.
+* [ObjectServer] `SyncUser#retrieveUser` and `SyncUser#retrieveUserAsync` replaced by `SyncUser#retrieveInfoForUser`
+and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode information (#5008).
+* [ObjectServer] `SyncUser#Callback` replaced by the generic version `SyncUser#RequestCallback<T>`.
+* [ObjectServer] `SyncUser.getManagementRealm()`. Use `SyncUser.getPermissionManager()` instead.
+
 
 ### Enhancements
 
@@ -19,10 +21,10 @@
 ### Bug Fixes
 
 ### Internal
-* [ObjectServer] removed `ObjectServerUser` and it's inner classes, in a step to reduce `SyncUser` complexity (#3741).
+* [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
 * [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
 * [ObjectServer] Upgraded OKHttp to 3.7.0
-
+* Upgraded Realm Sync to 1.10.8
 
 ## 3.5.1 (YYYY-MM-DD)
 
@@ -32,6 +34,7 @@
 * `Realm.copyToRealmOrUpdate()` might cause a `RealmList` field to contain duplicated elements (#4957).
 * `RealmSchema.create(String)` and `RealmObjectSchema.setClassName(String)` did not accept class name whose length was 51 to 57.
 * Workaround for an Android JVM crash when using `compactOnLaunch()` (#4964).
+* Class name in exception message from link query is wrong (#5096).
 
 ### Internal
 
