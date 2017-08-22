@@ -381,9 +381,11 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      */
     @SuppressWarnings("unchecked")
     public void set(@Nonnull String fieldName, @Nullable String strValue) {
+        verifyString(fieldName);
+
         if (checkAndSetNullValue(fieldName, strValue)) { return; }
 
-        RealmFieldType type = null;
+        RealmFieldType type = RealmFieldType.UNSUPPORTED_TABLE;
         switch (type) {
             case BOOLEAN:
                 setBoolean(fieldName, Boolean.parseBoolean(strValue));
