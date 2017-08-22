@@ -26,6 +26,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
 import io.realm.internal.network.AuthenticationServer;
@@ -136,6 +138,7 @@ public class SyncManager {
      * @throws IllegalArgumentException if {@code userStore} is {@code null}.
      */
     public static void setUserStore(UserStore userStore) {
+        //noinspection ConstantConditions
         if (userStore == null) {
             throw new IllegalArgumentException("Non-null 'userStore' required.");
         }
@@ -150,6 +153,7 @@ public class SyncManager {
      * @throws IllegalArgumentException if {@code listener} is {@code null}.
      */
     public static void addAuthenticationListener(AuthenticationListener listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Non-null 'listener' required.");
         }
@@ -162,6 +166,7 @@ public class SyncManager {
      * @param listener listener to remove.
      */
     public static void removeAuthenticationListener(AuthenticationListener listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             return;
         }
@@ -173,7 +178,7 @@ public class SyncManager {
      *
      * @param errorHandler the default error handler used when interacting with a Realm managed by a Realm Object Server.
      */
-    public static void setDefaultSessionErrorHandler(SyncSession.ErrorHandler errorHandler) {
+    public static void setDefaultSessionErrorHandler(@Nullable SyncSession.ErrorHandler errorHandler) {
         if (errorHandler == null) {
             defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
         } else {
@@ -195,6 +200,7 @@ public class SyncManager {
         // of the native session, the provided Java wrap, helps interact with the native session, when reporting error
         // or requesting an access_token for example.
 
+        //noinspection ConstantConditions
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
@@ -218,6 +224,7 @@ public class SyncManager {
      */
     @SuppressWarnings("unused")
     private static synchronized void removeSession(SyncConfiguration syncConfiguration) {
+        //noinspection ConstantConditions
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
@@ -285,7 +292,7 @@ public class SyncManager {
      * session to contact. If {@code path == null} all sessions are effected.
      */
     @SuppressWarnings("unused")
-    private static synchronized void notifyErrorHandler(int errorCode, String errorMessage, String path) {
+    private static synchronized void notifyErrorHandler(int errorCode, String errorMessage, @Nullable String path) {
         for (SyncSession syncSession : sessions.values()) {
             if (path == null || path.equals(syncSession.getConfiguration().getPath())) {
                 try {
@@ -335,13 +342,13 @@ public class SyncManager {
      * @return a valid cached {@code access_token} if available or null.
      */
     @SuppressWarnings("unused")
-    private synchronized static String bindSessionWithConfig(String sessionPath) {
+    private synchronized static String bindSessionWithConfig(String sessionPath, String refreshToken) {
         final SyncSession syncSession = sessions.get(sessionPath);
         if (syncSession == null) {
             RealmLog.error("Matching Java SyncSession could not be found for: " + sessionPath);
         } else {
             try {
-                return syncSession.getAccessToken(authServer);
+                return syncSession.getAccessToken(authServer, refreshToken);
             } catch (Exception exception) {
                 RealmLog.error(exception);
             }

@@ -23,7 +23,6 @@ import android.widget.TextView;
 
 import com.example.securetokenandroidkeystore.R;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,7 +34,6 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.android.SecureUserStore;
-import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 
 /**
@@ -97,24 +95,16 @@ public class MainActivity extends AppCompatActivity {
 
     // Helpers
     private final static String USER_TOKEN = UUID.randomUUID().toString();
-    private final static String REALM_TOKEN = UUID.randomUUID().toString();
 
     private static SyncUser createTestUser(long expires) {
         Token userToken = new Token(USER_TOKEN, "JohnDoe", null, expires, null);
-        Token accessToken = new Token(REALM_TOKEN, "JohnDoe", "/foo", expires, new Token.Permission[]{Token.Permission.DOWNLOAD});
-        ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(accessToken, "/data/data/myapp/files/default", false);
-
         JSONObject obj = new JSONObject();
         try {
-            JSONArray realmList = new JSONArray();
             JSONObject realmDesc = new JSONObject();
             realmDesc.put("uri", "realm://objectserver.realm.io/default");
-            realmDesc.put("description", desc.toJson());
-            realmList.put(realmDesc);
 
             obj.put("authUrl", "http://objectserver.realm.io/auth");
             obj.put("userToken", userToken.toJson());
-            obj.put("realms", realmList);
             return SyncUser.fromJson(obj.toString());
         } catch (JSONException e) {
             throw new RuntimeException(e);
