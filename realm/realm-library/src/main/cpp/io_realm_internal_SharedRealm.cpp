@@ -38,8 +38,6 @@ using namespace realm;
 using namespace realm::_impl;
 using namespace realm::jni_util;
 
-static void finalize_shared_realm(jlong ptr);
-
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv* env, jclass,
                                                                      jstring temporary_directory_path)
 {

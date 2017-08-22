@@ -137,7 +137,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     public interface MigrationCallback {
 
         /**
-         * Call back function.
+         * Callback function.
          *
          * @param sharedRealm the same {@link SharedRealm} instance which has been created from the same
          * {@link OsRealmConfig} instance.
