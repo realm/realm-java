@@ -1,3 +1,10 @@
+## 4.0.0-BETA3 (YYYY-MM-DD)
+
+### Internal
+
+* Upgraded to Realm Sync 2.0.0-rc16.
+* Upgraded to Realm Core 3.0.0-rc5.
+
 ## 4.0.0-BETA2 (2017-07-27)
 
 ### Bug Fixes
