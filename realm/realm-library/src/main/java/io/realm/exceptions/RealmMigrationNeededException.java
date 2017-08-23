@@ -34,11 +34,6 @@ public final class RealmMigrationNeededException extends RuntimeException {
         this.canonicalRealmPath = canonicalRealmPath;
     }
 
-    public RealmMigrationNeededException(String canonicalRealmPath, String detailMessage, @Nullable Throwable throwable) {
-        super(detailMessage, throwable);
-        this.canonicalRealmPath = canonicalRealmPath;
-    }
-
     /**
      * Returns the canonical path to the Realm file that needs to be migrated.
      * <p>

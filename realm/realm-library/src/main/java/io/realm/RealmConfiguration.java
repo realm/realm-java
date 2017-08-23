@@ -33,9 +33,9 @@ import javax.annotation.Nullable;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
+import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Util;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
@@ -95,7 +95,7 @@ public class RealmConfiguration {
     private final long schemaVersion;
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
-    private final SharedRealm.Durability durability;
+    private final OsRealmConfig.Durability durability;
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
@@ -112,7 +112,7 @@ public class RealmConfiguration {
             long schemaVersion,
             @Nullable RealmMigration migration,
             boolean deleteRealmIfMigrationNeeded,
-            SharedRealm.Durability durability,
+            OsRealmConfig.Durability durability,
             RealmProxyMediator schemaMediator,
             @Nullable RxObservableFactory rxObservableFactory,
             @Nullable Realm.Transaction initialDataTransaction,
@@ -158,7 +158,7 @@ public class RealmConfiguration {
         return deleteRealmIfMigrationNeeded;
     }
 
-    public SharedRealm.Durability getDurability() {
+    public OsRealmConfig.Durability getDurability() {
         return durability;
     }
 
@@ -436,7 +436,7 @@ public class RealmConfiguration {
         private long schemaVersion;
         private RealmMigration migration;
         private boolean deleteRealmIfMigrationNeeded;
-        private SharedRealm.Durability durability;
+        private OsRealmConfig.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
         private RxObservableFactory rxFactory;
@@ -472,7 +472,7 @@ public class RealmConfiguration {
             this.schemaVersion = 0;
             this.migration = null;
             this.deleteRealmIfMigrationNeeded = false;
-            this.durability = SharedRealm.Durability.FULL;
+            this.durability = OsRealmConfig.Durability.FULL;
             this.readOnly = false;
             this.compactOnLaunch = null;
             if (DEFAULT_MODULE != null) {
@@ -601,7 +601,7 @@ public class RealmConfiguration {
                 throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
             }
 
-            this.durability = SharedRealm.Durability.MEM_ONLY;
+            this.durability = OsRealmConfig.Durability.MEM_ONLY;
 
             return this;
         }
@@ -675,7 +675,7 @@ public class RealmConfiguration {
             if (Util.isEmptyString(assetFile)) {
                 throw new IllegalArgumentException("A non-empty asset file path must be provided");
             }
-            if (durability == SharedRealm.Durability.MEM_ONLY) {
+            if (durability == OsRealmConfig.Durability.MEM_ONLY) {
                 throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
             }
             if (this.deleteRealmIfMigrationNeeded) {

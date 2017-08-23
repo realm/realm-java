@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-#include <jni.h>
 #include "io_realm_internal_OsObjectSchemaInfo.h"
 
-#include <object-store/src/object_schema.hpp>
-#include <object-store/src/property.hpp>
+#include <object_schema.hpp>
+#include <property.hpp>
 
+#include "jni_util/java_exception_thrower.hpp"
+#include "java_exception_def.hpp"
 #include "util.hpp"
+
 using namespace realm;
+using namespace realm::jni_util;
+using namespace realm::_impl;
 
 static void finalize_object_schema(jlong ptr)
 {
@@ -84,4 +88,24 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetCla
     CATCH_STD()
 
     return nullptr;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetProperty(JNIEnv* env, jclass,
+                                                                                    jlong native_ptr,
+                                                                                    jstring j_property_name)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
+        JStringAccessor property_name_accessor(env, j_property_name);
+        StringData property_name(property_name_accessor);
+        auto* property = object_schema.property_for_name(property_name);
+        if (property) {
+            return reinterpret_cast<jlong>(new Property(*property));
+        }
+        THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
+                             format("Property '%1' cannot be found.", property_name.data()));
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
 }

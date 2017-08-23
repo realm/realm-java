@@ -53,12 +53,7 @@ public class DynamicRealm extends BaseRealm {
     private final RealmSchema schema;
 
     private DynamicRealm(RealmCache cache) {
-        super(cache);
-        this.schema = new MutableRealmSchema(this);
-    }
-
-    private DynamicRealm(RealmConfiguration configuration) {
-        super(configuration);
+        super(cache, null);
         this.schema = new MutableRealmSchema(this);
     }
 
@@ -249,15 +244,6 @@ public class DynamicRealm extends BaseRealm {
      */
     static DynamicRealm createInstance(RealmCache cache) {
         return new DynamicRealm(cache);
-    }
-
-    /**
-     * Creates a {@link DynamicRealm} instance without associating it to any RealmCache.
-     *
-     * @return a {@link DynamicRealm} instance.
-     */
-    static DynamicRealm createInstance(RealmConfiguration configuration) {
-        return new DynamicRealm(configuration);
     }
 
     /**

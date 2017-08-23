@@ -118,12 +118,12 @@ public class OsObjectSchemaInfo implements NativeObject {
     }
 
     /**
-     * Create a java wrapper class for given {@code ObjectSchema} pointer. This java wrapper will take the ownership of
+     * Creates a java wrapper class for given {@code ObjectSchema} pointer. This java wrapper will take the ownership of
      * the object's memory and release it through phantom reference.
      *
      * @param nativePtr pointer to the {@code ObjectSchema} object.
      */
-    private OsObjectSchemaInfo(long nativePtr) {
+    OsObjectSchemaInfo(long nativePtr) {
         this.nativePtr = nativePtr;
         NativeContext.dummyContext.addReference(this);
     }
@@ -133,6 +133,16 @@ public class OsObjectSchemaInfo implements NativeObject {
      */
     public String getClassName() {
         return nativeGetClassName(nativePtr);
+    }
+
+    /**
+     * Returns a property by the given name.
+     *
+     * @param propertyName the name of the property.
+     * @return a {@link Property} object.
+     */
+    public Property getProperty(String propertyName) {
+        return new Property(nativeGetProperty(nativePtr, propertyName));
     }
 
     @Override
@@ -152,4 +162,7 @@ public class OsObjectSchemaInfo implements NativeObject {
     private static native void nativeAddProperty(long nativePtr, long nativePropertyPtr, boolean isComputed);
 
     private static native String nativeGetClassName(long nativePtr);
+
+    // Throw ISE if the property doesn't exist.
+    private static native long nativeGetProperty(long nativePtr, String propertyName);
 }

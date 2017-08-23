@@ -17,6 +17,8 @@
 package io.realm.internal;
 
 
+import java.util.Locale;
+
 import io.realm.RealmFieldType;
 
 
@@ -58,23 +60,24 @@ public class Property implements NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     Property(String name, RealmFieldType type, boolean isPrimary, boolean isIndexed, boolean isRequired) {
-        this.nativePtr = nativeCreatePersistedProperty(name, convertFromRealmFieldType(type, isRequired), isPrimary, isIndexed);
-        NativeContext.dummyContext.addReference(this);
+        this(nativeCreatePersistedProperty(name, convertFromRealmFieldType(type, isRequired), isPrimary, isIndexed));
     }
 
     Property(String name, RealmFieldType type, String linkedClassName) {
         // Ignore the isRequired when creating the linking property.
-        int propertyType = convertFromRealmFieldType(type, false);
-        this.nativePtr = nativeCreatePersistedLinkProperty(name, propertyType, linkedClassName);
-        NativeContext.dummyContext.addReference(this);
+        this(nativeCreatePersistedLinkProperty(name, convertFromRealmFieldType(type, false), linkedClassName));
     }
 
     Property(String name, String sourceClassName, String sourceFieldName) {
-        this.nativePtr = nativeCreateComputedLinkProperty(name, sourceClassName, sourceFieldName);
+        this(nativeCreateComputedLinkProperty(name, sourceClassName, sourceFieldName));
+    }
+
+    Property(long nativePtr) {
+        this.nativePtr = nativePtr;
         NativeContext.dummyContext.addReference(this);
     }
 
-    private int convertFromRealmFieldType(RealmFieldType fieldType, boolean isRequired) {
+    private static int convertFromRealmFieldType(RealmFieldType fieldType, boolean isRequired) {
         int type;
         switch (fieldType) {
             case OBJECT:
@@ -109,11 +112,53 @@ public class Property implements NativeObject {
                 break;
             default:
                 throw new IllegalArgumentException(
-                        String.format("Unsupported filed type: '%s'.", fieldType.name()));
+                        String.format(Locale.US, "Unsupported filed type: '%s'.", fieldType.name()));
 
         }
         int requiredFlag = isRequired ? TYPE_REQUIRED : TYPE_NULLABLE;
         return type | requiredFlag;
+    }
+
+    private static RealmFieldType convertToRealmFieldType(int propertyType) {
+        // Clear the nullable flag
+        switch (propertyType & ~TYPE_NULLABLE) {
+            case  TYPE_OBJECT:
+                return RealmFieldType.OBJECT;
+            case TYPE_OBJECT | TYPE_ARRAY:
+                return RealmFieldType.LIST;
+            case TYPE_LINKING_OBJECTS | TYPE_ARRAY:
+                return RealmFieldType.LINKING_OBJECTS;
+            case TYPE_INT:
+                return RealmFieldType.INTEGER;
+            case TYPE_BOOL:
+                return RealmFieldType.BOOLEAN;
+            case TYPE_STRING:
+                return RealmFieldType.STRING;
+            case TYPE_DATA:
+                return RealmFieldType.BINARY;
+            case TYPE_DATE:
+                return RealmFieldType.DATE;
+            case TYPE_FLOAT:
+                return RealmFieldType.FLOAT;
+            case TYPE_DOUBLE:
+                return RealmFieldType.DOUBLE;
+            default:
+                throw new IllegalArgumentException(
+                        String.format(Locale.US, "Unsupported property type: '%d'", propertyType));
+
+        }
+    }
+
+    public RealmFieldType getType() {
+        return convertToRealmFieldType(nativeGetType(nativePtr));
+    }
+
+    public String getLinkedObjectName() {
+        return nativeGetLinkedObjectName(nativePtr);
+    }
+
+    public long getColumnIndex() {
+        return nativeGetColumnIndex(nativePtr);
     }
 
     @Override
@@ -126,6 +171,8 @@ public class Property implements NativeObject {
         return nativeFinalizerPtr;
     }
 
+    private static native long nativeGetFinalizerPtr();
+
     private static native long nativeCreatePersistedProperty(
             String name, int type, boolean isPrimary, boolean isIndexed);
 
@@ -134,5 +181,10 @@ public class Property implements NativeObject {
     private static native long nativeCreateComputedLinkProperty(
             String name, String sourceClassName, String sourceFieldName);
 
-    private static native long nativeGetFinalizerPtr();
+    private static native int nativeGetType(long nativePtr);
+
+    private static native long nativeGetColumnIndex(long nativePtr);
+
+    // Return null if the property is not OBJECT, LIST or LINKING_OBJECT type.
+    private static native String nativeGetLinkedObjectName(long nativePtr);
 }

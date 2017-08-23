@@ -28,21 +28,50 @@ package io.realm.internal;
 public class OsSchemaInfo implements NativeObject {
     private long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
+    // Hold the ref to the SharedRealm to ensure the SharedRealm won't be freed before this gets GCed.
+    @SuppressWarnings("unused")
+    private final SharedRealm sharedRealm;
 
     /**
-     * Construct a {@code OsSchemaInfo} object from a given {@code OsObjectSchemaInfo} list.
+     * Constructs a {@code OsSchemaInfo} object from a given {@code OsObjectSchemaInfo} list.
      *
      * @param objectSchemaInfoList all the object schemas should be contained in this {@code OsObjectSchemaInfo}.
      */
     public OsSchemaInfo(java.util.Collection<OsObjectSchemaInfo> objectSchemaInfoList) {
+        this.nativePtr = nativeCreateFromList(convertObjectSchemaInfoListToNativePointerArray(objectSchemaInfoList));
+        NativeContext.dummyContext.addReference(this);
+        this.sharedRealm = null;
+    }
+
+    /**
+     * Constructs a {@code OsSchemaInfo} and bind its life cycle with the given {@code ShareRealm}. The native pointer
+     * held by this instance points to the reference of ObjectStore's {@code Realm::m_schema}. It will be valid
+     * as long as the {@code SharedRealm} instance is not GCed.
+     * <p>
+     * This should only be called by {@link SharedRealm}.
+     *
+     * @param nativePtr the pointer to the Object Store's {@code Realm::m_schema}.
+     * @param sharedRealm the {@code SharedRealm} instance which is owning the schema object.
+     */
+    OsSchemaInfo(long nativePtr, SharedRealm sharedRealm) {
+        this.nativePtr = nativePtr;
+        this.sharedRealm = sharedRealm;
+    }
+
+    private static long[] convertObjectSchemaInfoListToNativePointerArray(
+            java.util.Collection<OsObjectSchemaInfo> objectSchemaInfoList) {
         long[] schemaNativePointers = new long[objectSchemaInfoList.size()];
         int i = 0;
         for (OsObjectSchemaInfo info : objectSchemaInfoList) {
             schemaNativePointers[i] = info.getNativePtr();
             i++;
         }
-        this.nativePtr = nativeCreateFromList(schemaNativePointers);
-        NativeContext.dummyContext.addReference(this);
+
+        return schemaNativePointers;
+    }
+
+    public OsObjectSchemaInfo getObjectSchemaInfo(String className) {
+        return new OsObjectSchemaInfo(nativeGetObjectSchemaInfo(nativePtr, className));
     }
 
     @Override
@@ -58,4 +87,7 @@ public class OsSchemaInfo implements NativeObject {
     private static native long nativeCreateFromList(long[] objectSchemaPtrs);
 
     private static native long nativeGetFinalizerPtr();
+
+    // Throw ISE if the object schema doesn't exist.
+    private static native long nativeGetObjectSchemaInfo(long nativePtr, String className);
 }

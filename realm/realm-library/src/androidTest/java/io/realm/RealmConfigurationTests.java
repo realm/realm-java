@@ -22,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -397,7 +398,7 @@ public class RealmConfigurationTests {
                 .directory(configFactory.getRoot())
                 .schemaVersion(42)
                 .build());
-        assertEquals(42, realm.getSchema().getSchemaVersion());
+        assertEquals(42, realm.getVersion());
     }
 
     @Test
@@ -831,7 +832,7 @@ public class RealmConfigurationTests {
 
         realm = Realm.getInstance(configuration);
         realm.close();
-        verify(transaction, times(1)).execute(realm);
+        verify(transaction, times(1)).execute(Mockito.any(Realm.class));
 
         realm = Realm.getInstance(configuration);
         realm.close();
@@ -856,6 +857,41 @@ public class RealmConfigurationTests {
         realm = Realm.getInstance(configuration);
         realm.close();
         verify(transaction, never()).execute(realm);
+    }
+
+    @Test
+    public void initialDataTransactionThrows() {
+        final RuntimeException exception = new RuntimeException();
+
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(final Realm realm) {
+                        throw exception;
+                    }
+                }).build();
+
+        assertFalse(new File(configuration.getPath()).exists());
+
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(configuration);
+            fail();
+        } catch (RuntimeException expected) {
+            assertSame(exception, expected);
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(configuration);
+        try {
+            // The schema should not be initialized.
+            assertNull(dynamicRealm.getSchema().get(StringOnly.CLASS_NAME));
+        } finally {
+            dynamicRealm.close();
+        }
     }
 
     @Test
