@@ -88,7 +88,6 @@ public class RealmObjectSchemaTests {
             realm = Realm.getInstance(realmConfig);
             realmSchema = realm.getSchema();
             DOG_SCHEMA = realmSchema.get("Dog");
-            // Typed realm cannot get NewClass schema since it is not pre-defined.
             schema = realmSchema.get("Dog");
         }
         realm.beginTransaction();
