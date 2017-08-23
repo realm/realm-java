@@ -940,8 +940,8 @@ public class PermissionManager implements Closeable {
         private final PermissionManager permissionManager;
         private volatile boolean canceled = false;
         private static final String ERROR_MESSAGE_CLIENT_RESET = "The PermissionManager " +
-                "has been invalidated due to a server conflict. No further tasks can be scheduled " +
-                "and it should be closed and re-opened as soon as possible.";
+                "has been invalidated due to a server conflict. No further tasks can be scheduled. " +
+                "The app needs to be restarted to allow the PermissionManager to work again.";
 
         public PermissionManagerTask(PermissionManager permissionManager, PermissionManagerBaseCallback callback) {
             this.callback = callback;

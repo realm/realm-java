@@ -26,6 +26,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -246,6 +247,144 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
                 fail(error.toString());
             }
         });
+    }
+
+    @Ignore("See https://github.com/realm/realm-java/issues/5143")
+    @Test
+    public void clientResetOnMultipleThreads() {
+
+        HandlerThread thread1 = new HandlerThread("handler1");
+        thread1.start();
+        Handler handler1 = new Handler(thread1.getLooper());
+
+        HandlerThread thread2 = new HandlerThread("handler2");
+        thread2.start();
+        Handler handler2 = new Handler(thread1.getLooper());
+
+        final AtomicReference<PermissionManager> pm1 = new AtomicReference<>(null);
+        final AtomicReference<PermissionManager> pm2 = new AtomicReference<>(null);
+
+        final CountDownLatch pmsOpened = new CountDownLatch(1);
+
+        // 1) Thread 1: Open PermissionManager and check permissions
+        handler1.post(new Runnable() {
+            @Override
+            public void run() {
+                PermissionManager pm = user.getPermissionManager();
+                pm1.set(pm);
+                pm.getPermissions(new PermissionManager.PermissionsCallback() {
+                    @Override
+                    public void onSuccess(RealmResults<Permission> permissions) {
+                        assertInitialPermissions(permissions);
+                        pmsOpened.countDown();
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        fail(error.toString());
+                    }
+                });
+            }
+        });
+
+        // 2) Thread 2: Open PermissionManager and check permissions
+        handler2.post(new Runnable() {
+            @Override
+            public void run() {
+                PermissionManager pm = user.getPermissionManager();
+                pm2.set(pm);
+                pm.getPermissions(new PermissionManager.PermissionsCallback() {
+                    @Override
+                    public void onSuccess(RealmResults<Permission> permissions) {
+                        assertInitialPermissions(permissions);
+                        pmsOpened.countDown();
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        fail(error.toString());
+                    }
+                });
+            }
+        });
+
+        TestHelper.awaitOrFail(pmsOpened);
+
+        // 3) Trigger Client Reset
+        SyncManager.simulateClientReset(SyncManager.getSession(pm1.get().permissionRealmConfig));
+        SyncManager.simulateClientReset(SyncManager.getSession(pm2.get().permissionRealmConfig));
+
+        // 4) Thread 1: Attempt to get permissions should trigger a Client Reset
+        final CountDownLatch clientResetThread1 = new CountDownLatch(1);
+        final CountDownLatch clientResetThread2 = new CountDownLatch(1);
+        handler1.post(new Runnable() {
+            @Override
+            public void run() {
+                final PermissionManager pm = pm1.get();
+                pm.getPermissions(new PermissionManager.PermissionsCallback() {
+                    @Override
+                    public void onSuccess(RealmResults<Permission> permissions) {
+                        fail("Client reset should have been triggered");
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        assertEquals(ErrorCode.CLIENT_RESET, error.getErrorCode());
+                        pm.close();
+                        assertFalse(new File(pm.permissionRealmConfig.getPath()).exists());
+                        clientResetThread1.countDown();
+                    }
+                });
+            }
+        });
+
+        // 5) Thread 2: Attempting to get permissions should also trigger a Client Reset even though
+        //    Thread 1 just executed it
+        TestHelper.awaitOrFail(clientResetThread1);
+        handler2.post(new Runnable() {
+            @Override
+            public void run() {
+                final PermissionManager pm = pm2.get();
+                pm.getPermissions(new PermissionManager.PermissionsCallback() {
+                    @Override
+                    public void onSuccess(RealmResults<Permission> permissions) {
+                        fail("Client reset should have been triggered");
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        assertEquals(ErrorCode.CLIENT_RESET, error.getErrorCode());
+                        pm.close();
+                        clientResetThread2.countDown();
+                    }
+                });
+            }
+        });
+        TestHelper.awaitOrFail(clientResetThread2);
+
+        // 6) After closing the PermissionManager, re-opening it again should work fine
+        final CountDownLatch newPmOpenedAndReady = new CountDownLatch(1);
+        handler1.post(new Runnable() {
+            @Override
+            public void run() {
+                final PermissionManager pm = user.getPermissionManager();
+                pm.getPermissions(new PermissionManager.PermissionsCallback() {
+                    @Override
+                    public void onSuccess(RealmResults<Permission> permissions) {
+                        assertInitialPermissions(permissions);
+                        pm.close();
+                        newPmOpenedAndReady.countDown();
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        fail(error.toString());
+                    }
+                });
+            }
+        });
+
+        TestHelper.awaitOrFail(newPmOpenedAndReady);
     }
 
     @Test
