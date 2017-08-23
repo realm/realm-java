@@ -30,7 +30,7 @@ android {
 
 
 dependencies {
-    testImplementation 'io.reactivex:rxjava:1.1.0'
+    testImplementation 'io.reactivex.rxjava2:rxjava:2.1.0'
 
     // Testing
     testImplementation 'junit:junit:4.12'
