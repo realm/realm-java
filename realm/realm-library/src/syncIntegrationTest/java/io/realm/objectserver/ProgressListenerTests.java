@@ -181,7 +181,7 @@ public class ProgressListenerTests extends StandardIntegrationTest {
                             break;
                         }
                         default:
-                            fail();
+                            fail("Transfer complete called too many times:" + transferCompleted.get());
                     }
                 }
             }

@@ -54,7 +54,7 @@ import static org.junit.Assert.fail;
 
 
 @RunWith(AndroidJUnit4.class)
-public class PermissionManagerTests extends IsolatedIntegrationTests {
+public class PermissionManagerTests extends StandardIntegrationTest {
 
     private SyncUser user;
 
@@ -126,8 +126,7 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
                         .build();
                 final Realm secondRealm = Realm.getInstance(config2);
                 looperThread.closeAfterTest(secondRealm);
-
-                // Wait for the permission Result to report the new Realm
+                // Wait for the permission Result to report the new Realms
                 looperThread.keepStrongReference(permissions);
                 permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                     @Override
@@ -146,6 +145,47 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
             @Override
             public void onError(ObjectServerError error) {
                 fail("Could not open Realm: " + error.toString());
+            }
+        });
+    }
+
+    @Ignore("Until https://github.com/realm/realm-object-server/issues/1671 has been solved")
+    @Test
+    @RunTestInLooperThread
+    public void getPermissions_updatedWithNewRealms_stressTest() {
+        final PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+        pm.getPermissions(new PermissionManager.PermissionsCallback() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                assertTrue(permissions.isLoaded());
+                assertInitialPermissions(permissions);
+
+                for (int i = 0; i < 10; i++) {
+                    SyncConfiguration configNew = new SyncConfiguration.Builder(user, "realm://127.0.0.1:9080/~/test" + i).build();
+                    Realm newRealm = Realm.getInstance(configNew);
+                    looperThread.closeAfterTest(newRealm);
+                }
+
+                // Wait for the permission Result to report the new Realms
+                looperThread.keepStrongReference(permissions);
+                permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
+                    @Override
+                    public void onChange(RealmResults<Permission> permissions) {
+                        Permission p = permissions.where().endsWith("path", "test9").findFirst();
+                        if (p != null) {
+                            assertTrue(p.mayRead());
+                            assertTrue(p.mayWrite());
+                            assertTrue(p.mayManage());
+                            looperThread.testComplete();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
             }
         });
     }
@@ -986,7 +1026,7 @@ public class PermissionManagerTests extends IsolatedIntegrationTests {
 
     @Test
     @RunTestInLooperThread
-    public void revokeOffer_afterOneAcceptedIt() {
+    public void revokeOffer_afterOneAcceptEdit() {
         // createOffer validates that the offer is actually in the __management Realm.
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
 

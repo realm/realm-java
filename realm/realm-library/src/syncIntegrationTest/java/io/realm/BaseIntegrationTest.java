@@ -16,25 +16,15 @@
 
 package io.realm;
 
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.UiThreadTestRule;
 import android.util.Log;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Util;
 import io.realm.log.LogLevel;
@@ -43,8 +33,6 @@ import io.realm.objectserver.utils.HttpUtils;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
-
-import static org.junit.Assert.fail;
 
 
 /**
@@ -96,9 +84,7 @@ public abstract class BaseIntegrationTest {
         try {
             HttpUtils.startSyncServer();
         } catch (Exception e) {
-            // Throwing an exception from this method will crash JUnit. Instead just log it.
-            // If this setup method fails, all unit tests in the class extending it will most likely fail as well.
-            Log.e(HttpUtils.TAG, "Could not start Sync Server: " + Util.getStackTrace(e));
+            throw new IllegalStateException(e);
         }
     }
 

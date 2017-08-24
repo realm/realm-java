@@ -7,7 +7,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Assert;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -40,7 +39,6 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestSyncConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -59,9 +57,6 @@ import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public class AuthTests extends StandardIntegrationTest {
-
-    @Rule
-    public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
     @Test
     public void login_userNotExist() {
@@ -533,7 +528,7 @@ public class AuthTests extends StandardIntegrationTest {
         @SuppressWarnings("unchecked") // using reflection
         Map<SyncConfiguration, Token> accessTokens = (Map<SyncConfiguration, Token>) realmsField.get(user);
 
-        final SyncConfiguration syncConfiguration = configFactory
+        final SyncConfiguration syncConfiguration = configurationFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                 .modules(new StringOnlyModule())
                 .errorHandler(new SyncSession.ErrorHandler() {

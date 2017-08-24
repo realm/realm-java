@@ -47,6 +47,7 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.network.LookupUserIdResponse;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.permissions.ManagementModule;
+import io.realm.internal.permissions.PermissionModule;
 import io.realm.log.RealmLog;
 
 /**
@@ -128,7 +129,7 @@ public class SyncUser {
     public static Map<String, SyncUser> all() {
         UserStore userStore = SyncManager.getUserStore();
         Collection<SyncUser> storedUsers = userStore.allUsers();
-        Map<String, SyncUser> map = new HashMap<String, SyncUser>();
+        Map<String, SyncUser> map = new HashMap<>();
         for (SyncUser user : storedUsers) {
             if (user.isValid()) {
                 map.put(user.getIdentity(), user);
@@ -196,7 +197,6 @@ public class SyncUser {
             if (result.isValid()) {
                 SyncUser user = new SyncUser(result.getRefreshToken(), authUrl);
                 RealmLog.info("Succeeded authenticating user.\n%s", user);
-
                 SyncManager.getUserStore().put(user);
                 SyncManager.notifyUserLoggedIn(user);
                 return user;
@@ -652,7 +652,13 @@ public class SyncUser {
     }
 
     /**
-     * Use {@link #getPermissionManager()} instead.
+     * Returns an instance of the Management Realm owned by the user.
+     * <p>
+     * This Realm can be used to control access and permissions for Realms owned by the user. This includes
+     * giving other users access to Realms.
+     *
+     * @see <a href="https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
+     * @deprecated use {@link #getPermissionManager()} instead.
      */
     @Deprecated
     public Realm getManagementRealm() {
