@@ -19,10 +19,10 @@ package io.realm.examples.newsreader;
 import android.app.Application;
 import android.content.Context;
 
+import io.reactivex.functions.Consumer;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import rx.plugins.RxJavaErrorHandler;
-import rx.plugins.RxJavaPlugins;
+import io.reactivex.plugins.RxJavaPlugins;
 import timber.log.Timber;
 
 public abstract class NewsReaderApplication extends Application {
@@ -35,11 +35,10 @@ public abstract class NewsReaderApplication extends Application {
         context = this;
 
         initializeTimber();
-        RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler() {
+        RxJavaPlugins.setErrorHandler(new Consumer<Throwable>() {
             @Override
-            public void handleError(Throwable e) {
-                super.handleError(e);
-                Timber.e(e.toString());
+            public void accept(Throwable throwable) throws Exception {
+                Timber.e(throwable.toString());
             }
         });
 

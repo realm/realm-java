@@ -10,7 +10,7 @@ include 'moduleExample:library'
 include 'realmModuleExample'
 include 'threadExample'
 include 'unitTestExample'
-//include 'newsreaderExample' FIXME: Upgrade to RxJava2
+include 'newsreaderExample'
 //include 'rxJavaExample' FIXME: Upgrade to RxJava2
 include 'objectServerExample'
 

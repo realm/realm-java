@@ -18,14 +18,14 @@ package io.realm.examples.newsreader.ui.details;
 
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.Observable;
 import io.realm.examples.newsreader.model.Model;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
 import io.realm.examples.newsreader.ui.Presenter;
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
 
 /**
  * Presenter class for controlling the Main Activity
@@ -35,7 +35,7 @@ public class DetailsPresenter implements Presenter {
     private final DetailsActivity view;
     private final Model model;
     private final String storyId;
-    private CompositeSubscription subscriptions;
+    private CompositeDisposable subscriptions;
 
     public DetailsPresenter(DetailsActivity detailsActivity, Model model, String storyId) {
         this.storyId = storyId;
@@ -51,10 +51,10 @@ public class DetailsPresenter implements Presenter {
     @Override
     public void onResume() {
         // Show story details
-        Subscription detailsSubscription = model.getStory(storyId)
-                .subscribe(new Action1<NYTimesStory>() {
+        Disposable detailsSubscription = model.getStory(storyId)
+                .subscribe(new Consumer<NYTimesStory>() {
                     @Override
-                    public void call(NYTimesStory story) {
+                    public void accept(NYTimesStory story) throws Exception {
                         view.hideLoader();
                         view.showStory(story);
                         view.setRead(story.isRead());
@@ -62,21 +62,21 @@ public class DetailsPresenter implements Presenter {
                 });
 
         // Mark story as read if screen is visible for 2 seconds
-        Subscription timerSubscription = Observable.timer(2, TimeUnit.SECONDS)
+        Disposable timerSubscription = Observable.timer(2, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Long>() {
+                .subscribe(new Consumer<Long>() {
                     @Override
-                    public void call(Long aLong) {
+                    public void accept(Long aLong) throws Exception {
                         model.markAsRead(storyId, true);
                     }
                 });
-        
-        subscriptions = new CompositeSubscription(detailsSubscription, timerSubscription);
+
+        subscriptions = new CompositeDisposable(detailsSubscription, timerSubscription);
     }
 
     @Override
     public void onPause() {
-        subscriptions.unsubscribe();
+        subscriptions.dispose();
     }
 
     @Override

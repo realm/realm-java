@@ -25,13 +25,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.realm.RealmResults;
 import io.realm.examples.newsreader.model.Model;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
 import io.realm.examples.newsreader.ui.Presenter;
 import io.realm.examples.newsreader.ui.details.DetailsActivity;
-import rx.Subscription;
-import rx.functions.Action1;
 
 /**
  * Presenter class for controlling the Main Activity
@@ -42,8 +42,8 @@ public class MainPresenter implements Presenter {
     private final Model model;
     private List<NYTimesStory> storiesData;
     private Map<String, String> sections;
-    private Subscription loaderSubscription;
-    private Subscription listDataSubscription;
+    private Disposable loaderSubscription;
+    private Disposable listDataSubscription;
 
     public MainPresenter(MainActivity mainActivity, Model model) {
         this.view = mainActivity;
@@ -69,9 +69,9 @@ public class MainPresenter implements Presenter {
     @Override
     public void onResume() {
         loaderSubscription = model.isNetworkUsed()
-                .subscribe(new Action1<Boolean>() {
+                .subscribe(new Consumer<Boolean>() {
                     @Override
-                    public void call(Boolean networkInUse) {
+                    public void accept(Boolean networkInUse) throws Exception {
                         view.showNetworkLoading(networkInUse);
                     }
                 });
@@ -81,8 +81,8 @@ public class MainPresenter implements Presenter {
 
     @Override
     public void onPause() {
-        loaderSubscription.unsubscribe();
-        listDataSubscription.unsubscribe();
+        loaderSubscription.dispose();
+        listDataSubscription.dispose();
     }
 
     @Override
@@ -112,12 +112,12 @@ public class MainPresenter implements Presenter {
     private void sectionSelected(@NonNull String sectionKey) {
         model.selectSection(sectionKey);
         if (listDataSubscription != null) {
-            listDataSubscription.unsubscribe();
+            listDataSubscription.dispose();
         }
         listDataSubscription = model.getSelectedNewsFeed()
-                .subscribe(new Action1<RealmResults<NYTimesStory>>() {
+                .subscribe(new Consumer<RealmResults<NYTimesStory>>() {
                     @Override
-                    public void call(RealmResults<NYTimesStory> stories) {
+                    public void accept(RealmResults<NYTimesStory> stories) throws Exception {
                         storiesData = stories;
                         view.showList(stories);
                     }

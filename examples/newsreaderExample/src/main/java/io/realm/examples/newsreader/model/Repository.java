@@ -24,6 +24,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.functions.Predicate;
+import io.reactivex.subjects.BehaviorSubject;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.Sort;
@@ -31,9 +35,6 @@ import io.realm.examples.newsreader.NewsReaderApplication;
 import io.realm.examples.newsreader.R;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
 import io.realm.examples.newsreader.model.network.NYTimesDataLoader;
-import rx.Observable;
-import rx.functions.Func1;
-import rx.subjects.BehaviorSubject;
 import timber.log.Timber;
 
 /**
@@ -51,7 +52,7 @@ public class Repository implements Closeable {
     private final NYTimesDataLoader dataLoader;
     private final String apiKey;
     private Map<String, Long> lastNetworkRequest = new HashMap<>();
-    private BehaviorSubject<Boolean> networkLoading = BehaviorSubject.create(false);
+    private BehaviorSubject<Boolean> networkLoading = BehaviorSubject.createDefault(false);
 
     @UiThread
     public Repository() {
@@ -67,14 +68,14 @@ public class Repository implements Closeable {
      */
     @UiThread
     public Observable<Boolean> networkInUse() {
-        return networkLoading.asObservable();
+        return networkLoading.hide();
     }
 
     /**
      * Loads the news feed as well as all future updates.
      */
     @UiThread
-    public Observable<RealmResults<NYTimesStory>> loadNewsFeed(@NonNull String sectionKey, boolean forceReload) {
+    public Flowable<RealmResults<NYTimesStory>> loadNewsFeed(@NonNull String sectionKey, boolean forceReload) {
         // Start loading data from the network if needed
         // It will put all data into Realm
         if (forceReload || timeSinceLastNetworkRequest(sectionKey) > MINIMUM_NETWORK_WAIT_SEC) {
@@ -86,7 +87,7 @@ public class Repository implements Closeable {
         // save data in Realm
         return realm.where(NYTimesStory.class).equalTo(NYTimesStory.API_SECTION, sectionKey)
                 .findAllSortedAsync(NYTimesStory.PUBLISHED_DATE, Sort.DESCENDING)
-                .asObservable();
+                .asFlowable();
     }
 
     private long timeSinceLastNetworkRequest(@NonNull String sectionKey) {
@@ -128,14 +129,12 @@ public class Repository implements Closeable {
      * Returns story details
      */
     @UiThread
-    public Observable<NYTimesStory> loadStory(final String storyId) {
+    public Flowable<NYTimesStory> loadStory(final String storyId) {
         return realm.where(NYTimesStory.class).equalTo(NYTimesStory.URL, storyId).findFirstAsync()
-                .<NYTimesStory>asObservable()
-                .filter(new Func1<NYTimesStory, Boolean>() {
+                .<NYTimesStory>asFlowable()
+                .filter(new Predicate<NYTimesStory>() {
                     @Override
-                    public Boolean call(NYTimesStory story) {
-                        return story.isLoaded();
-                    }
+                    public boolean test(NYTimesStory story) throws Exception { return story.isLoaded(); }
                 });
     }
 

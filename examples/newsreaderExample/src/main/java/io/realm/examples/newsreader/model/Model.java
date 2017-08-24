@@ -22,10 +22,11 @@ import android.text.TextUtils;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.functions.Predicate;
 import io.realm.RealmResults;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
-import rx.Observable;
-import rx.functions.Func1;
 
 /**
  * Model class for handling the business rules of the app.
@@ -78,7 +79,7 @@ public class Model {
     /**
      * Returns the news feed for the currently selected category.
      */
-    public Observable<RealmResults<NYTimesStory>> getSelectedNewsFeed() {
+    public Flowable<RealmResults<NYTimesStory>> getSelectedNewsFeed() {
         return repository.loadNewsFeed(selectedSection, false);
     }
 
@@ -106,7 +107,7 @@ public class Model {
     /**
      * Returns the story with the given Id
      */
-    public Observable<NYTimesStory> getStory(@NonNull final String storyId) {
+    public Flowable<NYTimesStory> getStory(@NonNull final String storyId) {
         // Repository is only responsible for loading the data
         // Any validation is done by the model
         // See http://blog.danlew.net/2015/12/08/error-handling-in-rxjava/
@@ -114,9 +115,9 @@ public class Model {
             throw new IllegalArgumentException("Invalid storyId: " + storyId);
         }
         return repository.loadStory(storyId)
-                .filter(new Func1<NYTimesStory, Boolean>() {
+                .filter(new Predicate<NYTimesStory>() {
                     @Override
-                    public Boolean call(NYTimesStory story) {
+                    public boolean test(NYTimesStory story) throws Exception {
                         return story.isValid();
                     }
                 });
