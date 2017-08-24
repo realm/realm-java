@@ -184,7 +184,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
-                fail("Could not open Realm: " + error.toString());
+                fail(error.toString());
             }
         });
     }
