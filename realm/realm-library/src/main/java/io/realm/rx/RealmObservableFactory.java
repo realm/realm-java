@@ -132,7 +132,7 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmModel> Observable<RealmResults<E>> from(final Realm realm, final RealmResults<E> results) {
+    public <E> Observable<RealmResults<E>> from(final Realm realm, final RealmResults<E> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
         return Observable.create(new Observable.OnSubscribe<RealmResults<E>>() {
             @Override
@@ -204,7 +204,7 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmModel> Observable<RealmList<E>> from(Realm realm, final RealmList<E> list) {
+    public <E> Observable<RealmList<E>> from(Realm realm, final RealmList<E> list) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
         return Observable.create(new Observable.OnSubscribe<RealmList<E>>() {
             @Override
@@ -348,7 +348,7 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmModel> Observable<RealmQuery<E>> from(Realm realm, RealmQuery<E> query) {
+    public <E> Observable<RealmQuery<E>> from(Realm realm, RealmQuery<E> query) {
         throw new RuntimeException("RealmQuery not supported yet.");
     }
 

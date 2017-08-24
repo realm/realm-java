@@ -261,6 +261,9 @@ public abstract class RealmObjectSchema {
     /**
      * Sets a field to be required i.e., it is not allowed to hold {@code null} values. This is equivalent to switching
      * between boxed types and their primitive variant e.g., {@code Integer} to {@code int}.
+     * <p>
+     * If the type of designated field is a list of values (not {@link RealmObject}s , specified nullability
+     * only affects its elements, not the field itself. Value list itself is always non-nullable.
      *
      * @param fieldName name of field in the class.
      * @param required {@code true} if field should be required, {@code false} otherwise.
@@ -275,6 +278,9 @@ public abstract class RealmObjectSchema {
     /**
      * Sets a field to be nullable i.e., it should be able to hold {@code null} values. This is equivalent to switching
      * between primitive types and their boxed variant e.g., {@code int} to {@code Integer}.
+     * <p>
+     * If the type of designated field is a list of values (not {@link RealmObject}s , specified nullability
+     * only affects its elements, not the field itself. Value list itself is always non-nullable.
      *
      * @param fieldName name of field in the class.
      * @param nullable {@code true} if field should be nullable, {@code false} otherwise.

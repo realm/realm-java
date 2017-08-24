@@ -55,7 +55,7 @@ import rx.Observable;
  * @param <E> the class of objects in list.
  */
 
-public class RealmList<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E> {
+public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
@@ -66,6 +66,10 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     protected Class<E> clazz;
     @Nullable
     protected String className;
+
+    // TODO implement this
+    private boolean forValues;
+
     final LinkView view;
     protected BaseRealm realm;
     private List<E> unmanagedList;
@@ -170,14 +174,20 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @throws IndexOutOfBoundsException if {@code location < 0 || location > size()}.
      */
     @Override
-    public void add(int location, E object) {
+    public void add(int location, @Nullable E object) {
+        if (forValues) {
+            // TODO implement this
+            return;
+        }
+
+        //noinspection ConstantConditions
         checkValidObject(object);
         if (isManaged()) {
             checkValidView();
             if (location < 0 || location > size()) {
                 throw new IndexOutOfBoundsException("Invalid index " + location + ", size is " + size());
             }
-            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) object);
             view.insert(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
         } else {
             unmanagedList.add(location, object);
@@ -201,11 +211,17 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      */
     @Override
-    public boolean add(E object) {
+    public boolean add(@Nullable E object) {
+        if (forValues) {
+            // TODO implement this
+            return false;
+        }
+
+        //noinspection ConstantConditions
         checkValidObject(object);
         if (isManaged()) {
             checkValidView();
-            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) object);
             view.add(proxy.realmGet$proxyState().getRow$realm().getIndex());
         } else {
             unmanagedList.add(object);
@@ -232,12 +248,18 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
-    public E set(int location, E object) {
+    public E set(int location, @Nullable E object) {
+        if (forValues) {
+            // TODO implement this
+            return null;
+        }
+
+        //noinspection ConstantConditions
         checkValidObject(object);
         E oldObject;
         if (isManaged()) {
             checkValidView();
-            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) object);
             oldObject = get(location);
             view.set(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
             return oldObject;
@@ -248,7 +270,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     }
 
     // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.
-    private E copyToRealmIfNeeded(E object) {
+    private <T extends RealmModel> T copyToRealmIfNeeded(T object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
 
@@ -380,7 +402,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @throws NullPointerException if {@code object} is {@code null}.
      */
     @Override
-    public boolean remove(Object object) {
+    public boolean remove(@Nullable Object object) {
         if (isManaged() && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
@@ -457,10 +479,16 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     @Override
     public E get(int location) {
+        if (forValues) {
+            // TODO implement this
+            return null;
+        }
+
         if (isManaged()) {
             checkValidView();
             long rowIndex = view.getTargetRowIndex(location);
-            return realm.get(clazz, className, rowIndex);
+            //noinspection unchecked
+            return (E) realm.get((Class<? extends RealmModel>) clazz, className, rowIndex);
         } else {
             return unmanagedList.get(location);
         }
@@ -470,6 +498,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public E first() {
         return firstImpl(true, null);
     }
@@ -505,6 +534,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public E last() {
         return lastImpl(true, null);
     }
@@ -851,11 +881,16 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
 
     @Override
     public String toString() {
+        if (forValues) {
+            // TODO implement this
+            return null;
+        }
+
         StringBuilder sb = new StringBuilder();
         if (isManaged()) {
             // 'clazz' is non-null when 'dynamicClassName' is null.
-            //noinspection ConstantConditions
-            sb.append(className != null ? className : realm.getSchema().getSchemaForClass(clazz).getClassName());
+            //noinspection ConstantConditions,unchecked
+            sb.append(className != null ? className : realm.getSchema().getSchemaForClass((Class<RealmModel>) clazz).getClassName());
         } else {
             sb.append(getClass().getSimpleName());
         }
@@ -905,6 +940,10 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     @SuppressWarnings("unchecked")
     public Observable<RealmList<E>> asObservable() {
+        if (forValues) {
+            // TODO implement this
+
+        }
         if (realm instanceof Realm) {
             return realm.configuration.getRxFactory().from((Realm) realm, this);
         } else if (realm instanceof DynamicRealm) {
@@ -1199,7 +1238,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
          * Adding a new object to the RealmList. If the object is not already manage by Realm it will be transparently
          * copied using {@link Realm#copyToRealmOrUpdate(RealmModel)}
          *
-         * @see #add(RealmModel)
+         * @see #add(Object)
          */
         @Override
         public void add(E e) {
@@ -1215,5 +1254,17 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
                 throw new ConcurrentModificationException();
             }
         }
+    }
+
+    /*
+     * MEMO: This method supports {@code long}, {@code  int}, {@code short}, {@code byte},
+     * {@code double}, {@code float} and {@code boolean} as {@code T} in addition to classes
+     * mentioned in the class comment of {@link RealmValueList}.
+     */
+    @Nonnull
+    @Override
+    public <T> T[] toArray(@Nonnull T[] a) {
+        // TODO implement this
+        return super.toArray(a);
     }
 }

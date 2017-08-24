@@ -122,6 +122,42 @@ public class NullTypes extends RealmObject {
     @LinkingObjects(FIELD_LIST_NULL)
     private final RealmResults<NullTypes> listParents = null;
 
+    @Required
+    public RealmList<String> stringListNotNull;
+    public RealmList<String> stringListNull;
+
+    @Required
+    public RealmList<Boolean> booleanListNotNull;
+    public RealmList<Boolean> booleanListNull;
+
+    @Required
+    public RealmList<Byte> byteListNotNull;
+    public RealmList<Byte> byteListNull;
+
+    @Required
+    public RealmList<Short> shortListNotNull;
+    public RealmList<Short> shortListNull;
+
+    @Required
+    public RealmList<Integer> intListNotNull;
+    public RealmList<Integer> intListNull;
+
+    @Required
+    public RealmList<Long> longListNotNull;
+    public RealmList<Long> longListNull;
+
+    @Required
+    public RealmList<Float> floatListNotNull;
+    public RealmList<Float> floatListNull;
+
+    @Required
+    public RealmList<Double> doubleListNotNull;
+    public RealmList<Double> doubleListNull;
+
+    @Required
+    public RealmList<Date> dateListNotNull;
+    public RealmList<Date> dateListNull;
+
     public int getId() {
         return id;
     }
