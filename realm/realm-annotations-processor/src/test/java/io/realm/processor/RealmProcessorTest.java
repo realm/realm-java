@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Realm Inc.
+ * Copyright 2014-2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import static org.truth0.Truth.ASSERT;
 
 
 public class RealmProcessorTest {
-
     private final JavaFileObject simpleModel = JavaFileObjects.forResource("some/test/Simple.java");
     private final JavaFileObject simpleProxy = JavaFileObjects.forResource("io/realm/SimpleRealmProxy.java");
     private final JavaFileObject allTypesModel = JavaFileObjects.forResource("some/test/AllTypes.java");
