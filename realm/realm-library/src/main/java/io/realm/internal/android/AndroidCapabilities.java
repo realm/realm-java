@@ -17,6 +17,8 @@ package io.realm.internal.android;
 
 import android.os.Looper;
 
+import java.util.ArrayList;
+
 import io.realm.internal.Capabilities;
 
 
@@ -24,6 +26,12 @@ import io.realm.internal.Capabilities;
  * Realm capabilities for Android.
  */
 public class AndroidCapabilities implements Capabilities {
+
+    // Public so it can be set from tests.
+    // If set, it will treat the current looper thread as the main thread.
+    // It is up to the caller to handle any race conditions around this. Right now only
+    // RunInLooperThread.java does this as part of setting up the test.
+    public static boolean EMULATE_MAIN_THREAD = false;
 
     private final Looper looper;
     private final boolean isIntentServiceThread;
@@ -52,7 +60,7 @@ public class AndroidCapabilities implements Capabilities {
 
     @Override
     public boolean isMainThread() {
-        return looper != null && looper == Looper.getMainLooper();
+        return looper != null && (EMULATE_MAIN_THREAD || looper == Looper.getMainLooper());
     }
 
     private boolean hasLooper() {
