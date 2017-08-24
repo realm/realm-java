@@ -51,9 +51,14 @@ class KotlinSchemaTests {
     fun kotlinTypeNonNull() {
         val objSchema = realm.schema.get(AllKotlinTypes::class.simpleName!!)!!
 
-        // Document current nullability. Ideally all should be non-nullable since types of these fields are all non-nullable.
-        // This is currently not the case since our annotation processor does not respect nullable information defined by type.
-        // TODO We should fix this. Tracked by https://github.com/realm/realm-java/issues/4701
+        /*
+         * Document current nullability.
+         * Ideally all should be non-nullable since types of these fields are all non-nullable.
+         * This is currently not the case since our annotation processor does not respect
+         * nullablility information defined by the type.
+         *
+         * TODO We should fix this. Tracked by https://github.com/realm/realm-java/issues/4701
+         */
         assertTrue(objSchema.isNullable(AllKotlinTypes::nonNullBinary.name));
         assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullBoolean.name));
         assertTrue(objSchema.isNullable(AllKotlinTypes::nonNullString.name));
