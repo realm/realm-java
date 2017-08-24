@@ -455,6 +455,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
+    @Nullable
     @Override
     public E get(int location) {
         if (isManaged()) {
@@ -1076,6 +1077,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
          * {@inheritDoc}
          */
         @Override
+        @Nullable
         public E next() {
             realm.checkIfValid();
             checkConcurrentModification();
@@ -1149,6 +1151,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
          * {@inheritDoc}
          */
         @Override
+        @Nullable
         public E previous() {
             checkConcurrentModification();
             int i = cursor - 1;
@@ -1182,7 +1185,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
          * {@inheritDoc}
          */
         @Override
-        public void set(E e) {
+        public void set(@Nullable E e) {
             realm.checkIfValid();
             if (lastRet < 0) {
                 throw new IllegalStateException();
@@ -1204,7 +1207,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
          * @see #add(Object)
          */
         @Override
-        public void add(E e) {
+        public void add(@Nullable E e) {
             realm.checkIfValid();
             checkConcurrentModification();
             try {

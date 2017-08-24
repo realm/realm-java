@@ -108,6 +108,7 @@ abstract class OrderedRealmCollectionImpl<E>
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
+    @Nullable
     public E get(int location) {
         realm.checkIfValid();
         return realm.get(classSpec, className, collection.getUncheckedRow(location));
@@ -117,6 +118,7 @@ abstract class OrderedRealmCollectionImpl<E>
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public E first() {
         return firstImpl(true, null);
     }
@@ -149,6 +151,7 @@ abstract class OrderedRealmCollectionImpl<E>
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public E last() {
         return lastImpl(true, null);
     }
