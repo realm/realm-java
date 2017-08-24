@@ -17,8 +17,6 @@ package io.realm.internal.android;
 
 import android.os.Looper;
 
-import java.util.ArrayList;
-
 import io.realm.internal.Capabilities;
 
 
