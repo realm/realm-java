@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
@@ -52,6 +51,7 @@ public class RealmProxyClassGenerator {
             "io.realm.internal.ColumnInfo",
             "io.realm.internal.LinkView",
             "io.realm.internal.OsObject",
+            "io.realm.internal.OsSchemaInfo",
             "io.realm.internal.OsObjectSchemaInfo",
             "io.realm.internal.Property",
             "io.realm.internal.ProxyUtils",
@@ -140,7 +140,7 @@ public class RealmProxyClassGenerator {
         emitBacklinkFieldAccessors(writer);
         emitCreateExpectedObjectSchemaInfo(writer);
         emitGetExpectedObjectSchemaInfo(writer);
-        emitValidateTableMethod(writer);
+        emitCreateColumnInfoMethod(writer);
         emitGetTableNameMethod(writer);
         emitGetFieldNamesMethod(writer);
         emitCreateOrUpdateUsingJsonObject(writer);
@@ -179,16 +179,18 @@ public class RealmProxyClassGenerator {
         // constructor #1
         writer.beginConstructor(
                 EnumSet.noneOf(Modifier.class),
-                "SharedRealm", "realm", "Table", "table");
+                "OsSchemaInfo", "schemaInfo");
         writer.emitStatement("super(%s)", metadata.getFields().size());
+        writer.emitStatement("OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo(\"%1$s\")",
+                simpleClassName);
         for (VariableElement field : metadata.getFields()) {
             writer.emitStatement(
-                    "this.%1$sIndex = addColumnDetails(table, \"%1$s\", %2$s)",
-                    field.getSimpleName().toString(), getRealmTypeChecked(field).getRealmType());
+                    "this.%1$sIndex = addColumnDetails(\"%1$s\", objectSchemaInfo)",
+                    field.getSimpleName().toString());
         }
         for (Backlink backlink : metadata.getBacklinkFields()) {
             writer.emitStatement(
-                    "addBacklinkDetails(realm, \"%s\", \"%s\", \"%s\")",
+                    "addBacklinkDetails(schemaInfo, \"%s\", \"%s\", \"%s\")",
                     backlink.getTargetField(), Utils.stripPackage(backlink.getSourceClass()), backlink.getSourceField());
         }
         writer.endConstructor()
@@ -672,13 +674,13 @@ public class RealmProxyClassGenerator {
 
                 case OBJECT:
                     String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
-                    writer.emitStatement("builder.addLinkedProperty(\"%s\", RealmFieldType.OBJECT, \"%s\")",
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.OBJECT, \"%s\")",
                             fieldName, fieldTypeSimpleName);
                     break;
 
                 case LIST:
                     String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-                    writer.emitStatement("builder.addLinkedProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
                             fieldName, genericTypeSimpleName);
                     break;
 
@@ -686,13 +688,17 @@ public class RealmProxyClassGenerator {
                     String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
                     String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
                     String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
-                    writer.emitStatement("builder.addProperty(\"%s\", %s, %s, %s, %s)",
+                    writer.emitStatement("builder.addPersistedProperty(\"%s\", %s, %s, %s, %s)",
                             fieldName,
                             fieldType.getRealmType(),
                             primaryKeyFlag,
                             indexedFlag,
                             nullableFlag);
             }
+        }
+        for (Backlink backlink: metadata.getBacklinkFields()) {
+            writer.emitStatement("builder.addComputedLinkProperty(\"%s\", \"%s\", \"%s\")",
+                    backlink.getTargetField(), backlink.getSimpleSourceClass(), backlink.getSourceField());
         }
         writer.emitStatement("return builder.build()");
         writer.endMethod()
@@ -711,245 +717,18 @@ public class RealmProxyClassGenerator {
                 .emitEmptyLine();
     }
 
-    private void emitValidateTableMethod(JavaWriter writer) throws IOException {
+    private void emitCreateColumnInfoMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 columnInfoClassName(),        // Return type
-                "validateTable",              // Method name
+                "createColumnInfo",              // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "SharedRealm", "sharedRealm", // Argument type & argument name
-                "boolean", "allowExtraColumns");
-
-        writer.beginControlFlow(
-                "if (!sharedRealm.hasTable(\"" + Constants.TABLE_PREFIX + this.simpleClassName + "\"))");
-        emitMigrationNeededException(writer, "\"The '%s' class is missing from the schema for this Realm.\")",
-                metadata.getSimpleClassName());
-        writer.endControlFlow();
-
-        writer.emitStatement(
-                "Table table = sharedRealm.getTable(\"%s%s\")",
-                Constants.TABLE_PREFIX,
-                this.simpleClassName);
-
-        // verify number of columns
-        writer.emitStatement("final long columnCount = table.getColumnCount()");
-        writer.beginControlFlow("if (columnCount != %d)", metadata.getFields().size());
-        writer.beginControlFlow("if (columnCount < %d)", metadata.getFields().size());
-        emitMigrationNeededException(writer, "\"Field count is less than expected - expected %d but was \" + columnCount)",
-                metadata.getFields().size());
-        writer.endControlFlow();
-        writer.beginControlFlow("if (allowExtraColumns)");
-        writer.emitStatement(
-                "RealmLog.debug(\"Field count is more than expected - expected %d but was %%1$d\", columnCount)",
-                metadata.getFields().size());
-        writer.nextControlFlow("else");
-        emitMigrationNeededException(writer, "\"Field count is more than expected - expected %d but was \" + columnCount)",
-                metadata.getFields().size());
-        writer.endControlFlow();
-        writer.endControlFlow();
-
-        // create type dictionary for lookup
-        writer.emitStatement("Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>()");
-        writer.beginControlFlow("for (long i = 0; i < columnCount; i++)")
-                .emitStatement("columnTypes.put(table.getColumnName(i), table.getColumnType(i))")
-                .endControlFlow()
-                .emitEmptyLine();
+                "OsSchemaInfo", "schemaInfo"); // Argument type & argument name
 
         // create an instance of ColumnInfo
-        writer.emitStatement("final %1$s columnInfo = new %1$s(sharedRealm, table)", columnInfoClassName())
-                .emitEmptyLine();
-
-        // verify primary key definition was not altered
-        if (metadata.hasPrimaryKey()) {
-            // the current model defines a PK, make sure it's defined in the Realm schema
-            String fieldName = metadata.getPrimaryKey().getSimpleName().toString();
-            writer.beginControlFlow("if (!table.hasPrimaryKey())");
-            emitMigrationNeededException(writer, "\"Primary key not defined for field '%s' in existing Realm file. @PrimaryKey was added.\")",
-                    metadata.getPrimaryKey().getSimpleName().toString());
-            writer.nextControlFlow("else")
-                    .beginControlFlow("if (table.getPrimaryKey() != columnInfo.%sIndex)", fieldName);
-            emitMigrationNeededException(writer, "\"Primary Key annotation definition was changed, from field \" + table.getColumnName(table.getPrimaryKey()) + \" to field %s\")",
-                    metadata.getPrimaryKey().getSimpleName().toString());
-            writer.endControlFlow()
-                    .endControlFlow();
-        } else {
-            // the current model doesn't define a PK, make sure it's not defined in the Realm schema
-            writer.beginControlFlow("if (table.hasPrimaryKey())");
-            emitMigrationNeededException(writer, "\"Primary Key defined for field \" + table.getColumnName(table.getPrimaryKey()) + \" was removed.\")");
-            writer.endControlFlow();
-        }
-        writer.emitEmptyLine();
-
-        // For each field verify there is a corresponding
-        long fieldIndex = -1;
-        for (VariableElement field : metadata.getFields()) {
-            fieldIndex++;
-            String fieldName = field.getSimpleName().toString();
-            String fieldTypeQualifiedName = Utils.getFieldTypeQualifiedName(field);
-            if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeQualifiedName)) {
-                emitValidateRealmType(writer, field, fieldName, fieldTypeQualifiedName);
-            } else if (Utils.isMutableRealmInteger(field)) {
-                emitValidateRealmType(writer, field, fieldName, fieldTypeQualifiedName);
-            } else if (Utils.isRealmModel(field)) { // Links
-                emitValidateRealmModelType(writer, field, fieldIndex, fieldName);
-            } else if (Utils.isRealmList(field)) { // Link Lists
-                emitValidateRealmListType(writer, field, fieldIndex, fieldName);
-            }
-        }
-
-        // verify the backlinks
-        Set<Backlink> backlinks = metadata.getBacklinkFields();
-        if (backlinks.size() > 0) {
-            writer.emitEmptyLine()
-                    .emitStatement("long backlinkFieldIndex")
-                    .emitStatement("Table backlinkSourceTable")
-                    .emitStatement("Table backlinkTargetTable")
-                    .emitStatement("RealmFieldType backlinkFieldType");
-            for (Backlink backlink : metadata.getBacklinkFields()) {
-                emitValidateBacklink(writer, backlink);
-            }
-        }
-
-        writer.emitEmptyLine();
-        writer.emitStatement("return %s", "columnInfo");
+        writer.emitStatement("return new %1$s(schemaInfo)", columnInfoClassName());
 
         writer.endMethod();
         writer.emitEmptyLine();
-    }
-
-    private void emitValidateRealmType(JavaWriter writer, VariableElement field, String fieldName, String fieldTypeQualifiedName)
-            throws IOException {
-
-        // make field sure types align
-        writer.emitStatement(
-                "ProxyUtils.verifyField(sharedRealm, columnTypes, \"%s\", %s, \"%s\")",
-                fieldName, getRealmTypeChecked(field).getRealmType(), Utils.getFieldTypeSimpleName(field));
-
-        // make sure that nullability matches
-        if (!metadata.isNullable(field)) {
-            writer.beginControlFlow("if (table.isColumnNullable(%s))", fieldIndexVariableReference(field));
-            if (Utils.isPrimitiveType(fieldTypeQualifiedName)) {
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                " \"Field '%s' does support null values in the existing Realm file. " +
-                                "Use corresponding boxed type for field '%s' or migrate using RealmObjectSchema.setNullable().\")",
-                        fieldName, fieldName);
-            } else {
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                " \"Field '%s' does support null values in the existing Realm file. " +
-                                "Remove @Required or @PrimaryKey from field '%s' or migrate using RealmObjectSchema.setNullable().\")",
-                        fieldName, fieldName);
-            }
-            writer.endControlFlow();
-        } else {
-            writer.beginControlFlow("if (!table.isColumnNullable(%s))", fieldIndexVariableReference(field));
-            // Check if the existing PrimaryKey does support null value for String, Byte, Short, Integer, & Long
-            if (metadata.isPrimaryKey(field)) {
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                "\"@PrimaryKey field '%s' does not support null values in the existing Realm file. " +
-                                "Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.\")",
-                        fieldName);
-                // nullability check for boxed types
-            } else if (Utils.isBoxedType(fieldTypeQualifiedName)) {
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                "\"Field '%s' does not support null values in the existing Realm file. " +
-                                "Either set @Required, use the primitive type for field '%s' " +
-                                "or migrate using RealmObjectSchema.setNullable().\")",
-                        fieldName, fieldName);
-            } else {
-                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
-                                " \"Field '%s' is required. Either set @Required to field '%s' " +
-                                "or migrate using RealmObjectSchema.setNullable().\")",
-                        fieldName, fieldName);
-            }
-            writer.endControlFlow();
-        }
-
-        // Validate @Index
-        if (metadata.getIndexedFields().contains(field)) {
-            writer.beginControlFlow("if (!table.hasSearchIndex(table.getColumnIndex(\"%s\")))", fieldName);
-            emitMigrationNeededException(writer, "\"Index not defined for field '%s' in existing Realm file. " +
-                    "Either set @Index or migrate using io.realm.internal.Table.removeSearchIndex().\")", fieldName);
-            writer.endControlFlow();
-        }
-    }
-
-    private void emitValidateRealmModelType(JavaWriter writer, VariableElement field, long fieldIndex, String fieldName)
-            throws IOException {
-        String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
-
-        // make field sure types align
-        writer.emitStatement(
-                "ProxyUtils.verifyField(sharedRealm, columnTypes, \"%s\", RealmFieldType.OBJECT, \"%s\")",
-                fieldName, Utils.getFieldTypeSimpleName(field));
-        writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
-        emitMigrationNeededException(writer, "\"Missing class '%s%s' for field '%s'\")",
-                Constants.TABLE_PREFIX, fieldTypeSimpleName, fieldName);
-        writer.endControlFlow();
-
-        writer.emitStatement("Table table_%d = sharedRealm.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, fieldTypeSimpleName);
-        writer.beginControlFlow("if (!table.getLinkTarget(%s).hasSameSchema(table_%d))",
-                fieldIndexVariableReference(field), fieldIndex);
-        emitMigrationNeededException(writer, "\"Invalid RealmObject for field '%s': '\" + table.getLinkTarget(%s).getName() + \"' expected - was '\" + table_%d.getName() + \"'\")",
-                fieldName, fieldIndexVariableReference(field), fieldIndex);
-        writer.endControlFlow();
-    }
-
-    private void emitValidateRealmListType(JavaWriter writer, VariableElement field, long fieldIndex, String fieldName)
-            throws IOException {
-
-        String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-
-        writer.emitStatement(
-                "ProxyUtils.verifyField(sharedRealm, columnTypes, \"%s\", RealmFieldType.LIST, \"%s\")",
-                fieldName, genericTypeSimpleName);
-
-        writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, genericTypeSimpleName);
-        emitMigrationNeededException(writer, "\"Missing class '%s%s' for field '%s'\")",
-                Constants.TABLE_PREFIX, genericTypeSimpleName, fieldName);
-        writer.endControlFlow();
-
-        writer.emitStatement("Table table_%d = sharedRealm.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, genericTypeSimpleName);
-        writer.beginControlFlow("if (!table.getLinkTarget(%s).hasSameSchema(table_%d))",
-                fieldIndexVariableReference(field), fieldIndex);
-        emitMigrationNeededException(writer, "\"Invalid RealmList type for field '%s': '\" + table.getLinkTarget(%s).getName() + \"' expected - was '\" + table_%d.getName() + \"'\")",
-                fieldName, fieldIndexVariableReference(field), fieldIndex);
-        writer.endControlFlow();
-    }
-
-    private void emitValidateBacklink(JavaWriter writer, Backlink backlink) throws IOException {
-        String targetField = backlink.getTargetField();
-        String targetClass = backlink.getTargetClass();
-
-        // Preceding code has already verified that the backlink field is not in the table.
-        // If it were, either the column count would be wrong, or some field would be missing.
-
-        // verify that the source class exists
-        String sourceClass = backlink.getSimpleSourceClass();
-        String fullyQualifiedSourceClass = backlink.getSourceClass();
-        writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, sourceClass);
-        emitMigrationNeededException(writer, "\"Cannot find source class '%s' for @LinkingObjects field '%s.%s'\")",
-                fullyQualifiedSourceClass, targetClass, targetField);
-        writer.endControlFlow();
-
-        // verify that the source class contains the source field
-        String sourceField = backlink.getSourceField();
-        writer.emitStatement("backlinkSourceTable = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, sourceClass);
-        writer.emitStatement("backlinkFieldIndex = backlinkSourceTable.getColumnIndex(\"%s\")", sourceField);
-        writer.beginControlFlow("if (backlinkFieldIndex == Table.NO_MATCH)");
-        emitMigrationNeededException(writer, "\"Cannot find source field '%s.%s' for @LinkingObjects field '%s.%s'\")",
-                fullyQualifiedSourceClass, sourceField, targetClass, targetField);
-        writer.endControlFlow();
-
-        // verify that the source field type is target class
-        writer.emitStatement("backlinkFieldType = backlinkSourceTable.getColumnType(backlinkFieldIndex)");
-        writer.beginControlFlow("if ((backlinkFieldType != RealmFieldType.OBJECT) && (backlinkFieldType != RealmFieldType.LIST))");
-        emitMigrationNeededException(writer, "\"Source field '%s.%s' for @LinkingObjects field '%s.%s' is not a RealmObject type\")",
-                fullyQualifiedSourceClass, sourceField, targetClass, targetField);
-        writer.endControlFlow();
-        writer.emitStatement("backlinkTargetTable = backlinkSourceTable.getLinkTarget(backlinkFieldIndex)");
-        writer.beginControlFlow("if (!table.hasSameSchema(backlinkTargetTable))");
-        emitMigrationNeededException(writer, "\"Source field '%s.%s' for @LinkingObjects field '%s.%s' has wrong type '\" + backlinkTargetTable.getName() + \"'\")",
-                fullyQualifiedSourceClass, sourceField, targetClass, targetField);
-        writer.endControlFlow();
     }
 
     //@formatter:off
@@ -2123,10 +1902,6 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return realm.copyToRealm(obj)");
         writer.endMethod();
         writer.emitEmptyLine();
-    }
-
-    private void emitMigrationNeededException(JavaWriter writer, String message, Object... args) throws IOException {
-        writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), " + message, args);
     }
 
     private String columnInfoClassName() {
