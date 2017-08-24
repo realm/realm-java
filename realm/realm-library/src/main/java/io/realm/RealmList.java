@@ -455,8 +455,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
-    @Nullable
     @Override
+    @Nullable
     public E get(int location) {
         if (isManaged()) {
             checkValidView();
