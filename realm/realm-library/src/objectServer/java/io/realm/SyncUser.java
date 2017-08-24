@@ -721,11 +721,17 @@ public class SyncUser {
      * <p>
      * Every instance returned by this method must be closed by calling {@link PermissionManager#close()} when it
      * no longer is needed.
+     * <p>
+     * The {@link PermissionManager} can only be opened from the main tread, calling this method from any other thread
+     * will throw a {@link IllegalStateException}.
      *
+     * @throws IllegalStateException if this method is not called from the UI thread.
      * @return an instance of the PermissionManager.
      */
     public PermissionManager getPermissionManager() {
-        new AndroidCapabilities().checkCanDeliverNotification("The PermissionManager can only opened on a Looper thread.");
+        if (!new AndroidCapabilities().isMainThread()) {
+            throw new IllegalStateException("The PermissionManager can only opened from the main thread.");
+        }
         return PermissionManager.getInstance(this);
     }
 
