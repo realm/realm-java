@@ -28,8 +28,6 @@ abstract class OrderedRealmCollectionImpl<E>
     final BaseRealm realm;
     @Nullable final Class<E> classSpec;   // Return type
     @Nullable final String className;     // Class name used by DynamicRealmObjects
-    // FIXME implement this
-    final boolean forValues = false;
 
     final Collection collection;
 
@@ -112,13 +110,7 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public E get(int location) {
         realm.checkIfValid();
-        if (forValues) {
-            // TODO implement this
-            return null;
-        }
-
-        //noinspection unchecked
-        return (E) realm.get((Class<? extends RealmModel>) classSpec, className, collection.getUncheckedRow(location));
+        return realm.get(classSpec, className, collection.getUncheckedRow(location));
     }
 
     /**
@@ -142,14 +134,8 @@ abstract class OrderedRealmCollectionImpl<E>
     private E firstImpl(boolean shouldThrow, @Nullable E defaultValue) {
         UncheckedRow row = collection.firstUncheckedRow();
 
-        if (forValues) {
-            // TODO implement this
-            return null;
-        }
-
         if (row != null) {
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
+            return realm.get(classSpec, className, row);
         } else {
             if (shouldThrow) {
                 throw new IndexOutOfBoundsException("No results were found.");
@@ -181,14 +167,8 @@ abstract class OrderedRealmCollectionImpl<E>
     private E lastImpl(boolean shouldThrow, @Nullable E defaultValue) {
         UncheckedRow row = collection.lastUncheckedRow();
 
-        if (forValues) {
-            // TODO implement this
-            return null;
-        }
-
         if (row != null) {
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
+            return realm.get(classSpec, className, row);
         } else {
             if (shouldThrow) {
                 throw new IndexOutOfBoundsException("No results were found.");
@@ -555,12 +535,7 @@ abstract class OrderedRealmCollectionImpl<E>
 
         @Override
         protected E convertRowToObject(UncheckedRow row) {
-            if (forValues) {
-                // TODO implement this
-                return null;
-            }
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmObject>) classSpec, className, row);
+            return realm.get(classSpec, className, row);
         }
     }
 
@@ -583,12 +558,7 @@ abstract class OrderedRealmCollectionImpl<E>
 
         @Override
         protected E convertRowToObject(UncheckedRow row) {
-            if (forValues) {
-                // TODO implement this
-                return null;
-            }
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmObject>) classSpec, className, row);
+            return realm.get(classSpec, className, row);
         }
     }
 

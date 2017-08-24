@@ -59,18 +59,12 @@ public enum RealmFieldType {
     DOUBLE_LIST(LIST_OFFSET + 10);
 
     // Primitive array for fast mapping between between native values and their Realm type.
-    private static final RealmFieldType[] basicTypes = new RealmFieldType[15];
-    private static final RealmFieldType[] listTypes = new RealmFieldType[11];
+    private static final RealmFieldType[] typeList = new RealmFieldType[15];
 
     static {
         RealmFieldType[] columnTypes = values();
         for (int i = 0; i < columnTypes.length; i++) {
-            final int nativeValue = columnTypes[i].nativeValue;
-            if (nativeValue < LIST_OFFSET) {
-                basicTypes[nativeValue] = columnTypes[i];
-            } else {
-                listTypes[nativeValue - LIST_OFFSET] = columnTypes[i];
-            }
+            typeList[columnTypes[i].nativeValue] = columnTypes[i];
         }
     }
 
@@ -135,19 +129,10 @@ public enum RealmFieldType {
      * @throws IllegalArgumentException if value isn't valid.
      */
     public static RealmFieldType fromNativeValue(int value) {
-        if (0 <= value && value < basicTypes.length) {
-            RealmFieldType e = basicTypes[value];
+        if (0 <= value && value < typeList.length) {
+            RealmFieldType e = typeList[value];
             if (e != null) {
                 return e;
-            }
-        }
-        if (LIST_OFFSET <= value) {
-            final int elementValue = value - LIST_OFFSET;
-            if (elementValue < listTypes.length) {
-                RealmFieldType e = listTypes[elementValue];
-                if (e != null) {
-                    return e;
-                }
             }
         }
         throw new IllegalArgumentException("Invalid native Realm type: " + value);

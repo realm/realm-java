@@ -66,10 +66,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     protected Class<E> clazz;
     @Nullable
     protected String className;
-
-    // TODO implement this
-    private boolean forValues;
-
     final LinkView view;
     protected BaseRealm realm;
     private List<E> unmanagedList;
@@ -174,20 +170,14 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @throws IndexOutOfBoundsException if {@code location < 0 || location > size()}.
      */
     @Override
-    public void add(int location, @Nullable E object) {
-        if (forValues) {
-            // TODO implement this
-            return;
-        }
-
-        //noinspection ConstantConditions
+    public void add(int location, E object) {
         checkValidObject(object);
         if (isManaged()) {
             checkValidView();
             if (location < 0 || location > size()) {
                 throw new IndexOutOfBoundsException("Invalid index " + location + ", size is " + size());
             }
-            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) object);
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
             view.insert(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
         } else {
             unmanagedList.add(location, object);
@@ -211,17 +201,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      */
     @Override
-    public boolean add(@Nullable E object) {
-        if (forValues) {
-            // TODO implement this
-            return false;
-        }
-
-        //noinspection ConstantConditions
+    public boolean add(E object) {
         checkValidObject(object);
         if (isManaged()) {
             checkValidView();
-            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) object);
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
             view.add(proxy.realmGet$proxyState().getRow$realm().getIndex());
         } else {
             unmanagedList.add(object);
@@ -248,18 +232,12 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
-    public E set(int location, @Nullable E object) {
-        if (forValues) {
-            // TODO implement this
-            return null;
-        }
-
-        //noinspection ConstantConditions
+    public E set(int location, E object) {
         checkValidObject(object);
         E oldObject;
         if (isManaged()) {
             checkValidView();
-            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) object);
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
             oldObject = get(location);
             view.set(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
             return oldObject;
@@ -270,7 +248,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     }
 
     // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.
-    private <T extends RealmModel> T copyToRealmIfNeeded(T object) {
+    private E copyToRealmIfNeeded(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
 
@@ -402,7 +380,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @throws NullPointerException if {@code object} is {@code null}.
      */
     @Override
-    public boolean remove(@Nullable Object object) {
+    public boolean remove(Object object) {
         if (isManaged() && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
@@ -479,16 +457,10 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public E get(int location) {
-        if (forValues) {
-            // TODO implement this
-            return null;
-        }
-
         if (isManaged()) {
             checkValidView();
             long rowIndex = view.getTargetRowIndex(location);
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmModel>) clazz, className, rowIndex);
+            return realm.get(clazz, className, rowIndex);
         } else {
             return unmanagedList.get(location);
         }
@@ -498,7 +470,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@inheritDoc}
      */
     @Override
-    @Nullable
     public E first() {
         return firstImpl(true, null);
     }
@@ -534,7 +505,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@inheritDoc}
      */
     @Override
-    @Nullable
     public E last() {
         return lastImpl(true, null);
     }
@@ -881,16 +851,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
     @Override
     public String toString() {
-        if (forValues) {
-            // TODO implement this
-            return null;
-        }
-
         StringBuilder sb = new StringBuilder();
         if (isManaged()) {
             // 'clazz' is non-null when 'dynamicClassName' is null.
-            //noinspection ConstantConditions,unchecked
-            sb.append(className != null ? className : realm.getSchema().getSchemaForClass((Class<RealmModel>) clazz).getClassName());
+            //noinspection ConstantConditions
+            sb.append(className != null ? className : realm.getSchema().getSchemaForClass(clazz).getClassName());
         } else {
             sb.append(getClass().getSimpleName());
         }
@@ -940,10 +905,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @SuppressWarnings("unchecked")
     public Observable<RealmList<E>> asObservable() {
-        if (forValues) {
-            // TODO implement this
-
-        }
         if (realm instanceof Realm) {
             return realm.configuration.getRxFactory().from((Realm) realm, this);
         } else if (realm instanceof DynamicRealm) {
