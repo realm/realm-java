@@ -17,6 +17,7 @@ package io.realm.internal.android;
 
 import android.os.Looper;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Capabilities;
 
 
@@ -29,6 +30,7 @@ public class AndroidCapabilities implements Capabilities {
     // If set, it will treat the current looper thread as the main thread.
     // It is up to the caller to handle any race conditions around this. Right now only
     // RunInLooperThread.java does this as part of setting up the test.
+    @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
     public static boolean EMULATE_MAIN_THREAD = false;
 
     private final Looper looper;
