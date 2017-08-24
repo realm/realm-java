@@ -513,9 +513,29 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         } else if (valueClass == DynamicRealmObject.class) {
             setObject(fieldName, (DynamicRealmObject) value);
         } else if (valueClass == RealmList.class) {
-            @SuppressWarnings("unchecked")
-            RealmList<DynamicRealmObject> list = (RealmList<DynamicRealmObject>) value;
-            setList(fieldName, list);
+            RealmList<?> list = (RealmList<?>) value;
+            if (list.className == null && list.clazz == null) {
+                // unmanaged RealmList
+                long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
+                final RealmFieldType columnType = proxyState.getRow$realm().getColumnType(columnIndex);
+                if (columnType == RealmFieldType.LIST) {
+                    //noinspection unchecked
+                    for (Object element : list) {
+                        if (!(element instanceof RealmModel)) {
+                            throw new IllegalArgumentException("All elements in the list must be an instance of RealmModel.");
+                        }
+                    }
+                    //noinspection unchecked
+                    setList(fieldName, (RealmList<DynamicRealmObject>) list);
+                } else {
+                    setValueList(fieldName, list);
+                }
+            } else if (list.className != null || RealmModel.class.isAssignableFrom(list.clazz)) {
+                //noinspection unchecked
+                setList(fieldName, (RealmList<DynamicRealmObject>) list);
+            } else {
+                setValueList(fieldName, list);
+            }
         } else {
             throw new IllegalArgumentException("Value is of an type not supported: " + value.getClass());
         }
