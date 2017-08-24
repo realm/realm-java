@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import javax.annotation.Nullable;
+
 import io.realm.OrderedCollectionChangeSet;
 
 
@@ -110,6 +112,7 @@ public class CollectionChangeSet implements OrderedCollectionChangeSet, NativeOb
 
     // Convert long array returned by the nativeGetXxxRanges() to Range array.
     private Range[] longArrayToRangeArray(int[] longArray) {
+        //noinspection ConstantConditions
         if (longArray == null) {
             // Returns a size 0 array so we know JNI gets called.
             return new Range[0];

@@ -433,9 +433,11 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @throws IllegalStateException if you try to add a listener inside a transaction.
      */
     public static <E extends RealmModel> void addChangeListener(E object, RealmObjectChangeListener<E> listener) {
+        //noinspection ConstantConditions
         if (object == null) {
             throw new IllegalArgumentException("Object should not be null");
         }
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -523,9 +525,11 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      */
     public static <E extends RealmModel> void removeChangeListener(E object, RealmObjectChangeListener listener) {
+        //noinspection ConstantConditions
         if (object == null) {
             throw new IllegalArgumentException("Object should not be null");
         }
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
