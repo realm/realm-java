@@ -170,7 +170,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @throws IndexOutOfBoundsException if {@code location < 0 || location > size()}.
      */
     @Override
-    public void add(int location, E object) {
+    public void add(int location, @Nullable E object) {
         checkValidObject(object);
         if (isManaged()) {
             checkValidView();
@@ -201,7 +201,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      */
     @Override
-    public boolean add(E object) {
+    public boolean add(@Nullable E object) {
         checkValidObject(object);
         if (isManaged()) {
             checkValidView();
@@ -232,7 +232,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
-    public E set(int location, E object) {
+    public E set(int location, @Nullable E object) {
         checkValidObject(object);
         E oldObject;
         if (isManaged()) {
@@ -380,7 +380,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @throws NullPointerException if {@code object} is {@code null}.
      */
     @Override
-    public boolean remove(Object object) {
+    public boolean remove(@Nullable Object object) {
         if (isManaged() && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
@@ -470,6 +470,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public E first() {
         return firstImpl(true, null);
     }
@@ -505,6 +506,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public E last() {
         return lastImpl(true, null);
     }
