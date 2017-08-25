@@ -2,6 +2,7 @@ import java.security.MessageDigest
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
@@ -39,7 +40,7 @@ ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE
 ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion '26.0.1'
 
     defaultConfig {
@@ -100,6 +101,11 @@ android {
             java.srcDirs += 'src/syncIntegrationTest/java'
             assets.srcDirs += ['src/syncIntegrationTest/assets/']
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
     }
 
     packagingOptions {
@@ -179,8 +185,8 @@ dependencies {
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
     androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.0'
-    androidTestImplementation 'com.android.support.test:runner:0.5'
-    androidTestImplementation 'com.android.support.test:rules:0.5'
+    androidTestImplementation 'com.android.support.test:runner:1.0.0'
+    androidTestImplementation 'com.android.support.test:rules:1.0.0'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
     androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'

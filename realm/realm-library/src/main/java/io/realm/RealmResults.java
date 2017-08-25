@@ -22,6 +22,9 @@ import android.os.Looper;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.realm.internal.CheckedRow;
 import io.realm.internal.Collection;
 import io.realm.internal.Row;
@@ -72,10 +75,12 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
 
     // Abandon typing information, all ye who enter here
     static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
+        final String srcClassName = Table.getClassNameForTable(srcTable.getName());
+        //noinspection ConstantConditions
         return new RealmResults<>(
                 realm,
                 Collection.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),
-                Table.getClassNameForTable(srcTable.getName()));
+                srcClassName);
     }
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
@@ -209,7 +214,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
         collection.addListener(this, listener);
     }
 
-    private void checkForAddRemoveListener(Object listener, boolean checkListener) {
+    private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {
         if (checkListener && listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }

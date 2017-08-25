@@ -18,6 +18,8 @@ package io.realm.permissions;
 import java.util.Date;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -64,6 +66,7 @@ public class PermissionOfferResponse extends RealmObject {
      *              {@link PermissionOffer}.
      */
     public PermissionOfferResponse(String token) {
+        //noinspection ConstantConditions
         if (token == null) {
             throw new IllegalArgumentException("Non-null 'token' required.");
         }
@@ -93,6 +96,7 @@ public class PermissionOfferResponse extends RealmObject {
      *
      * @return {@code null} if not yet processed. {@code 0} if successful, {@code >0} if an error happened. See {@link #getStatusMessage()}.
      */
+    @Nullable
     public Integer getStatusCode() {
         return statusCode;
     }
@@ -107,6 +111,7 @@ public class PermissionOfferResponse extends RealmObject {
         return statusCode != null && statusCode == 0;
     }
 
+    @Nullable
     public String getStatusMessage() {
         return statusMessage;
     }
@@ -115,6 +120,7 @@ public class PermissionOfferResponse extends RealmObject {
         return token;
     }
 
+    @Nullable
     public String getRealmUrl() {
         return realmUrl;
     }
