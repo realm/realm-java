@@ -210,14 +210,14 @@ public class SessionTests {
                         looperThread.closeTestRealms();
                         handler.executeClientReset();
 
-                        // Validate that files have been moved
-                        assertFalse(handler.getOriginalFile().exists());
-                        assertTrue(handler.getBackupFile().exists());
-
                         // Try to re-open Realm and download it again
                         looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
+                                // Validate that files have been moved
+                                assertFalse(handler.getOriginalFile().exists());
+                                assertTrue(handler.getBackupFile().exists());
+
                                 SyncConfiguration config = configRef.get();
                                 Realm instance = Realm.getInstance(config);
                                 looperThread.addTestRealm(instance);
