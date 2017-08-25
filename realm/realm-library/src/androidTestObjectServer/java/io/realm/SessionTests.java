@@ -229,8 +229,6 @@ public class SessionTests {
                                 }
                             }
                         });
-
-
                     }
                 })
                 .build();

@@ -723,14 +723,14 @@ public class SyncUser {
      * no longer is needed.
      * <p>
      * The {@link PermissionManager} can only be opened from the main tread, calling this method from any other thread
-     * will throw a {@link IllegalStateException}.
+     * will throw an {@link IllegalStateException}.
      *
      * @throws IllegalStateException if this method is not called from the UI thread.
      * @return an instance of the PermissionManager.
      */
     public PermissionManager getPermissionManager() {
         if (!new AndroidCapabilities().isMainThread()) {
-            throw new IllegalStateException("The PermissionManager can only opened from the main thread.");
+            throw new IllegalStateException("The PermissionManager can only be opened from the main thread.");
         }
         return PermissionManager.getInstance(this);
     }
