@@ -459,7 +459,7 @@ public class ClassMetaData {
     private void categorizeRequiredField(Element element, VariableElement variableElement) {
         if (Utils.isPrimitiveType(variableElement)) {
             Utils.error(String.format(Locale.US,
-                    "@Required and @NotNull annotation is unnecessary for primitive field \"%s\".", element));
+                    "@Required or @NotNull annotation is unnecessary for primitive field \"%s\".", element));
             return;
         }
 
