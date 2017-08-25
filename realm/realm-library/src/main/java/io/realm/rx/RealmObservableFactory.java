@@ -214,6 +214,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Emit current value immediately
                 emitter.onNext(new CollectionChange<>(results, null));
             }
+        });
     }
 
     @Override
@@ -286,6 +287,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Emit current value immediately
                 emitter.onNext(new CollectionChange<>(results, null));
             }
+        });
     }
 
     @Override
@@ -358,6 +360,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Emit current value immediately
                 emitter.onNext(new CollectionChange<>(list, null));
             }
+        });
     }
 
     @Override
@@ -430,6 +433,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Emit current value immediately
                 emitter.onNext(new CollectionChange<>(list, null));
             }
+        });
     }
 
     @Override
@@ -502,6 +506,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Emit current value immediately
                 emitter.onNext(new ObjectChange<>(object, null));
             }
+        });
     }
 
     @Override
@@ -574,6 +579,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Emit current value immediately
                 emitter.onNext(new ObjectChange<>(object, null));
             }
+        });
     }
 
     @Override
