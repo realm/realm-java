@@ -64,7 +64,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getPermissions_returnLoadedResults() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -84,7 +84,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getPermissions_noLongerValidWhenPermissionManagerIsClosed() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -105,7 +105,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getPermissions_updatedWithNewRealms() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -151,7 +151,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Ignore("Until https://github.com/realm/realm-object-server/issues/1671 has been solved")
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getPermissions_updatedWithNewRealms_stressTest() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -191,7 +191,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getPermissions_closed() throws IOException {
         PermissionManager pm = user.getPermissionManager();
         pm.close();
@@ -212,7 +212,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getPermissions_clientReset() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -244,7 +244,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getPermissions_addTaskAfterClientReset() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -428,7 +428,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getDefaultPermissions_returnLoadedResults() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -448,7 +448,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getDefaultPermissions_noLongerValidWhenPermissionManagerIsClosed() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -470,13 +470,13 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @Ignore("FIXME Add once `setPermissions` are implemented")
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getDefaultPermissions_updatedWithNewRealms() {
 
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getDefaultPermissions_closed() throws IOException {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -498,7 +498,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void permissionManagerAsyncTask_handlePermissionRealmError() throws NoSuchFieldException, IllegalAccessException {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -529,7 +529,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void permissionManagerAsyncTask_handleManagementRealmError() throws NoSuchFieldException, IllegalAccessException {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -558,7 +558,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void permissionManagerAsyncTask_handleTwoErrorsSameErrorCode() throws NoSuchFieldException, IllegalAccessException {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -589,7 +589,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void permissionManagerAsyncTask_handleTwoErrorsDifferentErrorCode() throws NoSuchFieldException, IllegalAccessException {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -620,7 +620,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void applyPermissions_nonAdminUserFails() {
         SyncUser user2 = UserFactory.createUniqueUser();
         String otherUsersUrl = createRemoteRealm(user2, "test");
@@ -649,7 +649,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void applyPermissions_wrongUrlFails() {
         String wrongUrl = createRemoteRealm(user, "test") + "-notexisting";
 
@@ -677,7 +677,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void applyPermissions_withUserId() {
         final SyncUser user2 = UserFactory.createUniqueUser();
         String url = createRemoteRealm(user2, "test");
@@ -715,7 +715,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void applyPermissions_withUsername() {
         String user1Username = TestHelper.getRandomEmail();
         String user2Username = TestHelper.getRandomEmail();
@@ -756,7 +756,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void applyPermissions_usersWithNoExistingPermissions() {
         final SyncUser user1 = UserFactory.createUser("user1@realm.io");
         final SyncUser user2 = UserFactory.createUser("user2@realm.io");
@@ -775,6 +775,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 // Default permissions are not recorded in the __permission Realm for user2
                 // Only way to check is by opening the Realm.
                 SyncConfiguration config = new SyncConfiguration.Builder(user2, url)
+                        .waitForInitialRemoteData()
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
                             public void onError(SyncSession session, ObjectServerError error) {
@@ -782,14 +783,20 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                             }
                         })
                         .build();
-                Realm realm = Realm.getInstance(config);
-                try {
-                    SyncManager.getSession(config).downloadAllServerChanges();
-                } catch (InterruptedException e) {
-                    fail(Util.getStackTrace(e));
-                }
-                realm.close();
-                looperThread.testComplete();
+
+                RealmAsyncTask task = Realm.getInstanceAsync(config, new Realm.Callback() {
+                    @Override
+                    public void onSuccess(Realm realm) {
+                        realm.close();
+                        looperThread.testComplete();
+                    }
+
+                    @Override
+                    public void onError(Throwable exception) {
+                        fail(exception.toString());
+                    }
+                });
+                looperThread.keepStrongReference(task);
             }
 
             @Override
@@ -800,7 +807,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void makeOffer() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -822,7 +829,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void makeOffer_noManageAccessThrows() {
         // User 2 creates a Realm
         SyncUser user2 = UserFactory.createUniqueUser();
@@ -848,7 +855,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void acceptOffer() {
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
 
@@ -875,7 +882,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void acceptOffer_invalidToken() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -894,7 +901,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     @Ignore("Figure out how the time differs between emulator and server")
     public void acceptOffer_expiredThrows() {
         // Trying to guess how long CI is to process this. The offer cannot be created if it
@@ -922,7 +929,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void acceptOffer_multipleUsers() {
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
 
@@ -957,7 +964,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getCreatedOffers() {
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
         PermissionManager pm = user.getPermissionManager();
@@ -993,7 +1000,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void revokeOffer() {
         // createOffer validates that the offer is actually in the __management Realm.
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
@@ -1025,7 +1032,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void revokeOffer_afterOneAcceptEdit() {
         // createOffer validates that the offer is actually in the __management Realm.
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
@@ -1074,7 +1081,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     @Ignore("Figure out why clocks on server/emulator on CI seem to differ")
     public void revokeOffer_alreadyExpired() {
         fail("Implement this");
