@@ -85,17 +85,12 @@ public class CounterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_counter);
         ButterKnife.bind(this);
-
-        // Check if we have a valid user, otherwise redirect to login
-        if (SyncUser.currentUser() == null) {
-            gotoLoginActivity();
-        }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        user = SyncUser.currentUser();
+        user = getLoggedInUser();
         if (user == null) { return; }
 
         // Create a RealmConfiguration for our user
@@ -150,7 +145,7 @@ public class CounterActivity extends AppCompatActivity {
             case R.id.action_logout:
                 closeRealm();
                 user.logout();
-                gotoLoginActivity();
+                user = getLoggedInUser();
                 return true;
 
             default:
@@ -198,8 +193,17 @@ public class CounterActivity extends AppCompatActivity {
         });
     }
 
-    private void gotoLoginActivity() {
-        startActivity(new Intent(this, LoginActivity.class));
+    private SyncUser getLoggedInUser() {
+        SyncUser user = null;
+
+        try { user = SyncUser.currentUser(); }
+        catch (IllegalStateException ignore) { }
+
+        if (user == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+        }
+
+        return user;
     }
 
     private void closeRealm() {

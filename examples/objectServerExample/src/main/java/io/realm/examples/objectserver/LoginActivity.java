@@ -34,6 +34,7 @@ import io.realm.SyncUser;
 
 
 public class LoginActivity extends AppCompatActivity {
+    private static final String REALM_AUTH_URL = "http://" + BuildConfig.OBJECT_SERVER_IP + ":9080/auth";
 
     @BindView(R.id.input_username) EditText username;
     @BindView(R.id.input_password) EditText password;
@@ -77,7 +78,6 @@ public class LoginActivity extends AppCompatActivity {
         String password = this.password.getText().toString();
 
         SyncCredentials creds = SyncCredentials.usernamePassword(username, password, createUser);
-        String authUrl = "http://" + BuildConfig.OBJECT_SERVER_IP + ":9080/auth";
         SyncUser.Callback callback = new SyncUser.Callback() {
             @Override
             public void onSuccess(@Nonnull SyncUser user) {
@@ -103,7 +103,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
 
-        SyncUser.loginAsync(creds, authUrl, callback);
+        SyncUser.loginAsync(creds, REALM_AUTH_URL, callback);
     }
 
     @Override
