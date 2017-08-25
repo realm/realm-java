@@ -32,7 +32,6 @@ import io.realm.SyncUser;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
-import io.realm.log.RealmLog;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -88,18 +87,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public Object[] getUserAndServerUrl(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
-            // make sure the user is still valid
             SyncUser user = syncConfig.getUser();
-            if (!user.isValid()) {
-                if (!SyncManager.getUserStore().isActive(user.getIdentity(), user.getAuthenticationUrl().toString())) {
-                    throw new IllegalStateException("The SyncUser is already logged out and can not use the provided configuration to open a Realm.");
-                } else {
-                    // user was not logged out but the `refresh_token` is not longer valid
-                    // the user will still get a stall version of Realm, that will work offline
-                    // but not sync.
-                    RealmLog.warn("The provided configuration uses an expired SyncUser token, this Realm instance will work offline.");
-                }
-            }
             String rosServerUrl = syncConfig.getServerUrl().toString();
             String rosUserIdentity = user.getIdentity();
             String syncRealmAuthUrl = user.getAuthenticationUrl().toString();

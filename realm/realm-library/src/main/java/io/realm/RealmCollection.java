@@ -183,5 +183,5 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E>, Ma
      * support {@code null} elements.
      */
     @Override
-    boolean contains(Object object);
+    boolean contains(@Nullable Object object);
 }

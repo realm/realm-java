@@ -46,7 +46,12 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
 
     void will_destroy_thread() override
     {
-        Log::d("SyncClient thread destroyed");
+        // avoid allocating any NewString if we have a pending exception
+        // otherwise a "JNI called with pending exception" will be called
+        if (JniUtils::get_env(true)->ExceptionCheck() == JNI_FALSE) {
+            Log::d("SyncClient thread destroyed");
+        }
+
         // Failing to detach the JVM before closing the thread will crash on ART
         JniUtils::detach_current_thread();
     }

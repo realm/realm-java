@@ -18,6 +18,9 @@ package io.realm;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
+
 /**
  * Interface for classes responsible for saving and retrieving Object Server users again.
  * <p>
@@ -43,6 +46,7 @@ public interface UserStore {
      * This method will throw an exception if more than one valid, logged in users exist.
      * @return {@link SyncUser} object or {@code null} if not found.
      */
+    @Nullable
     SyncUser getCurrent();
 
     /**
@@ -52,6 +56,7 @@ public interface UserStore {
      * @param authenticationUrl the URL of the authentication.
      * @return {@link SyncUser} object or {@code null} if not found.
      */
+    @Nullable
     SyncUser get(String identity, String authenticationUrl);
 
     /**
