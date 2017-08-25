@@ -7,6 +7,7 @@
 * `RealmSchema.create(String)` and `RealmObjectSchema.setClassName(String)` did not accept class name whose length was 51 to 57.
 * Workaround for an Android JVM crash when using `compactOnLaunch()` (#4964).
 * Class name in exception message from link query is wrong (#5096).
+* Exposing a `SyncConfiguration` that allows a user to open the backup Realm after the client reset (#4759).
 
 ### Internal
 

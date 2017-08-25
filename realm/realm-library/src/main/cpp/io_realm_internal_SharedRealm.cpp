@@ -184,10 +184,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv* env
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
     JNIEnv* env, jclass, jstring realm_path, jbyteArray key, jbyte schema_mode, jboolean in_memory, jboolean cache,
     jlong /* schema_version */, jboolean enable_format_upgrade, jboolean auto_change_notification,
-    jobject compact_on_launch,
-    REALM_UNUSED jstring sync_server_url, REALM_UNUSED jstring sync_server_auth_url,
+    jobject compact_on_launch, REALM_UNUSED jstring sync_server_url, REALM_UNUSED jstring sync_server_auth_url,
     REALM_UNUSED jstring sync_user_identity, REALM_UNUSED jstring sync_refresh_token,
-    REALM_UNUSED jboolean sync_client_validate_ssl, REALM_UNUSED jstring sync_ssl_trust_certificate_path)
+    REALM_UNUSED jboolean sync_client_validate_ssl, REALM_UNUSED jstring sync_ssl_trust_certificate_path,
+    jboolean sync_force_history)
 {
     TR_ENTER()
 
@@ -217,13 +217,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateConfig(
             config.should_compact_on_launch_function = std::move(should_compact_on_launch_function);
         }
 
-        if (sync_server_url) {
+        if (sync_force_history == JNI_FALSE && sync_server_url) {
             return reinterpret_cast<jlong>(
                 new JniConfigWrapper(env, config, sync_server_url, sync_server_auth_url, sync_user_identity,
                                      sync_refresh_token, sync_client_validate_ssl, sync_ssl_trust_certificate_path));
         }
         else {
-            return reinterpret_cast<jlong>(new JniConfigWrapper(env, config));
+            auto conf =  new JniConfigWrapper(env, config);
+            if (sync_force_history == JNI_TRUE) {
+                conf->get_config().force_sync_history = true;
+            }
+            return reinterpret_cast<jlong>(conf);
         }
     }
     CATCH_STD()

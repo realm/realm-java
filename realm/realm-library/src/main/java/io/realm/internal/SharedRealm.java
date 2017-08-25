@@ -212,6 +212,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         String syncRefreshToken = (String) syncUserConf[3];
         boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncUserConf[4]));
         String syncSslTrustCertificatePath = (String) syncUserConf[5];
+        boolean syncRealmOffline = (Boolean.TRUE.equals(syncUserConf[6]));
 
         final boolean enableCaching = false; // Handled in Java currently
         final boolean enableFormatUpgrade = true;
@@ -231,7 +232,8 @@ public final class SharedRealm implements Closeable, NativeObject {
                 syncUserIdentifier,
                 syncRefreshToken,
                 syncClientValidateSsl,
-                syncSslTrustCertificatePath);
+                syncSslTrustCertificatePath,
+                syncRealmOffline);
 
         try {
             ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(config);
@@ -513,7 +515,8 @@ public final class SharedRealm implements Closeable, NativeObject {
             String syncUserIdentity,
             String syncRefreshToken,
             boolean syncClientValidateSsl,
-            String syncSslTrustCertificatePath);
+            String syncSslTrustCertificatePath,
+            boolean openSyncRealmOffline);
 
     private static native void nativeCloseConfig(long nativeConfigPtr);
 

@@ -85,29 +85,35 @@ public class SyncConfiguration extends RealmConfiguration {
     private final String serverCertificateAssetName;
     private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
+    /**
+     * Setting this to {@code true} will allow the ObjectStore to open the Realm with client history
+     * even if we don't provide a valid `sync_config`, this is useful when trying to open
+     * the backup file from Client Reset offline.
+     */
+    private final boolean forceSyncHistory;
 
     private SyncConfiguration(File directory,
-                                String filename,
-                                String canonicalPath,
-                                String assetFilePath,
-                                byte[] key,
-                                long schemaVersion,
-                                RealmMigration migration,
-                                boolean deleteRealmIfMigrationNeeded,
-                                SharedRealm.Durability durability,
-                                RealmProxyMediator schemaMediator,
-                                RxObservableFactory rxFactory,
-                                Realm.Transaction initialDataTransaction,
-                                boolean readOnly,
-                                SyncUser user,
-                                URI serverUrl,
-                                SyncSession.ErrorHandler errorHandler,
-                                boolean deleteRealmOnLogout,
-                                boolean syncClientValidateSsl,
-                                String serverCertificateAssetName,
-                                String serverCertificateFilePath,
-                                boolean waitForInitialData
-    ) {
+                              String filename,
+                              String canonicalPath,
+                              String assetFilePath,
+                              byte[] key,
+                              long schemaVersion,
+                              RealmMigration migration,
+                              boolean deleteRealmIfMigrationNeeded,
+                              SharedRealm.Durability durability,
+                              RealmProxyMediator schemaMediator,
+                              RxObservableFactory rxFactory,
+                              Realm.Transaction initialDataTransaction,
+                              boolean readOnly,
+                              SyncUser user,
+                              URI serverUrl,
+                              SyncSession.ErrorHandler errorHandler,
+                              boolean deleteRealmOnLogout,
+                              boolean syncClientValidateSsl,
+                              String serverCertificateAssetName,
+                              String serverCertificateFilePath,
+                              boolean waitForInitialData,
+                              boolean forceSyncHistory) {
         super(directory,
                 filename,
                 canonicalPath,
@@ -132,6 +138,18 @@ public class SyncConfiguration extends RealmConfiguration {
         this.serverCertificateAssetName = serverCertificateAssetName;
         this.serverCertificateFilePath = serverCertificateFilePath;
         this.waitForInitialData = waitForInitialData;
+        this.forceSyncHistory = forceSyncHistory;
+    }
+
+    /**
+     * Returns a SyncConfiguration appropriate to open a synced Realm offline.
+     * This is useful when trying to open a backup Realm (after a Client Reset)
+     * @param schemaMediator the mediator of the schema.
+     * @param canonicalPath the absolute path to the Realm file defined by this configuration.
+     * @return SyncConfiguration that can be used offline
+     */
+    static SyncConfiguration forOfflineSync(RealmProxyMediator schemaMediator, String canonicalPath) {
+        return new SyncConfiguration(null, null, canonicalPath, null, null, 0, null, false, null, schemaMediator, null, null, false, null, null, null, false, false, null, null, false, true);
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -286,6 +304,13 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
+     * @return {@code true} if this configuration is intended to open a synced Realm offline (example for client reset), {@code false} otherwise.
+     */
+    public boolean isOpenSyncedRealmOffline() {
+        return forceSyncHistory;
+    }
+
+    /**
      * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */
     public static final class Builder  {
@@ -314,6 +339,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private boolean syncClientValidateSsl = true;
         private String serverCertificateAssetName;
         private String serverCertificateFilePath;
+        private boolean forceSyncHistory = false;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
@@ -861,8 +887,8 @@ public class SyncConfiguration extends RealmConfiguration {
                     syncClientValidateSsl,
                     serverCertificateAssetName,
                     serverCertificateFilePath,
-                    waitForServerChanges
-            );
+                    waitForServerChanges,
+                    forceSyncHistory);
         }
 
         private void addModule(Object module) {

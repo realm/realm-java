@@ -90,7 +90,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             // make sure the user is still valid
             SyncUser user = syncConfig.getUser();
-            if (!user.isValid()) {
+            if (user != null && !user.isValid()) {
                 if (!SyncManager.getUserStore().isActive(user.getIdentity())) {
                     throw new IllegalStateException("The SyncUser is already logged out and can not use the provided configuration to open a Realm.");
                 } else {
@@ -100,13 +100,13 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     RealmLog.warn("The provided configuration uses an expired SyncUser token, this Realm instance will work offline.");
                 }
             }
-            String rosServerUrl = syncConfig.getServerUrl().toString();
-            String rosUserIdentity = user.getIdentity();
-            String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
-            String rosSerializedUser = user.toJson();
-            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath()};
+            String rosServerUrl = syncConfig.getServerUrl() != null ? syncConfig.getServerUrl().toString() : null;
+            String rosUserIdentity = user != null ? user.getIdentity() : null;
+            String syncRealmAuthUrl = user != null ? user.getAuthenticationUrl().toString() : null;
+            String rosSerializedUser = user != null ? user.toJson() : null;
+            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath(), syncConfig.isOpenSyncedRealmOffline()};
         } else {
-            return new Object[6];
+            return new Object[7];
         }
     }
 
