@@ -118,6 +118,22 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveColumn(JNIEnv* e
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertColumn(JNIEnv* env, jclass, jlong native_table_ptr,
+                                                                       jlong column_index, jint type, jstring j_name)
+{
+    auto table_ptr = reinterpret_cast<realm::Table*>(native_table_ptr);
+    if (!TABLE_VALID(env, table_ptr)) {
+        return;
+    }
+    try {
+        JStringAccessor name(env, j_name); // throws
+
+        DataType data_type = DataType(type);
+        table_ptr->insert_column(column_index, data_type, name);
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                        jlong columnIndex, jstring name)
 {
