@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -375,7 +376,7 @@ public class ClassMetaData {
             if (!categorizeIndexField(element, field)) { return false; }
         }
 
-        if (field.getAnnotation(Required.class) != null) {
+        if (isRequiredField(field)) {
             categorizeRequiredField(element, field);
         } else {
             // The field doesn't have the @Required annotation.
@@ -406,6 +407,23 @@ public class ClassMetaData {
         fields.add(field);
 
         return true;
+    }
+
+    private boolean isRequiredField(VariableElement field) {
+        if (field.getAnnotation(Required.class) != null) {
+            return true;
+        }
+
+        // Kotlin uses the `org.jetbrains.annotations.NotNull` annotation to mark non-null fields.
+        // In order to fully support the Kotlin type system we interpret `@NotNull` as an alias
+        // for `@Required`
+        for (AnnotationMirror annotation : field.getAnnotationMirrors()) {
+            if (annotation.getAnnotationType().toString().equals("org.jetbrains.annotations.NotNull")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // The field has the @Index annotation. It's only valid for column types:
@@ -441,13 +459,13 @@ public class ClassMetaData {
     private void categorizeRequiredField(Element element, VariableElement variableElement) {
         if (Utils.isPrimitiveType(variableElement)) {
             Utils.error(String.format(Locale.US,
-                    "@Required annotation is unnecessary for primitive field \"%s\".", element));
+                    "@Required and @NotNull annotation is unnecessary for primitive field \"%s\".", element));
             return;
         }
 
-        if (Utils.isRealmList(variableElement) || Utils.isRealmModel(variableElement)) {
+        if (Utils.isRealmModel(variableElement)) {
             Utils.error(String.format(Locale.US,
-                    "Field \"%s\" with type \"%s\" cannot be @Required.", element, element.asType()));
+                    "Field \"%s\" with type \"%s\" cannot be @Required or @NotNull.", element, element.asType()));
             return;
         }
 
