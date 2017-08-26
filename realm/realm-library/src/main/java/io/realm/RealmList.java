@@ -29,12 +29,14 @@ import java.util.Locale;
 import java.util.NoSuchElementException;
 
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.rx.CollectionChange;
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
@@ -912,6 +914,36 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             @SuppressWarnings("UnnecessaryLocalVariable")
             Flowable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicList);
             return results;
+        } else {
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+        }
+    }
+
+    /**
+     * Returns an Rx Observable that monitors changes to this RealmList. It will emit the current RealmList when
+     * subscribed. For each update to the RealmList a pair consisting of the RealmList and the
+     * {@link OrderedCollectionChangeSet} will be sent. The changeset will be {@code null} the first
+     * time an RealmList is emitted.
+     * <p>
+     * RealmList will continually be emitted as the RealmList is updated - {@code onComplete} will never be called.
+     * <p>
+ *   * Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
+     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
+     * instead.
+     *
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    public Observable<CollectionChange<RealmList<E>>> asChangesetObservable() {
+        if (realm instanceof Realm) {
+            return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, this);
+        } else if (realm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+            RealmList<DynamicRealmObject> dynamicResults = (RealmList<DynamicRealmObject>) this;
+            return (Observable) realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
         } else {
             throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
         }

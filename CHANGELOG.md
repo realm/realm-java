@@ -21,6 +21,9 @@
 ### Enhancements
 
 * Added `static RealmObject.getRealm(RealmModel)`, `RealmObject.getRealm()` and `DynamicRealmObject.getDynamicRealm()` (#4720).
+* Added `RealmResults.asChangesetObservable()` that emits the pair `(results, changeset)` (#4277).
+* Added `RealmList.asChangesetObservable()` that emits the pair `(list, changeset)` (#4277).
+* Added `RealmObject.asChangesetObservable()` that emits the pair `(object, changeset)` (#4277).
 
 ### Bug Fixes
 

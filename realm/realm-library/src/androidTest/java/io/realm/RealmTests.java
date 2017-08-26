@@ -103,7 +103,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
-import io.realm.util.Pair;
+import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;

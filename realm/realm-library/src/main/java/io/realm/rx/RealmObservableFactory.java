@@ -23,16 +23,23 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
 import io.reactivex.FlowableOnSubscribe;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposables;
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
+import io.realm.ObjectChangeSet;
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmList;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
+import io.realm.RealmObjectChangeListener;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
@@ -53,19 +60,19 @@ public class RealmObservableFactory implements RxObservableFactory {
     private ThreadLocal<StrongReferenceCounter<RealmResults>> resultsRefs = new ThreadLocal<StrongReferenceCounter<RealmResults>>() {
         @Override
         protected StrongReferenceCounter<RealmResults> initialValue() {
-            return new StrongReferenceCounter<RealmResults>();
+            return new StrongReferenceCounter<>();
         }
     };
     private ThreadLocal<StrongReferenceCounter<RealmList>> listRefs = new ThreadLocal<StrongReferenceCounter<RealmList>>() {
         @Override
         protected StrongReferenceCounter<RealmList> initialValue() {
-            return new StrongReferenceCounter<RealmList>();
+            return new StrongReferenceCounter<>();
         }
     };
     private ThreadLocal<StrongReferenceCounter<RealmModel>> objectRefs = new ThreadLocal<StrongReferenceCounter<RealmModel>>() {
         @Override
         protected StrongReferenceCounter<RealmModel> initialValue() {
-            return new StrongReferenceCounter<RealmModel>();
+            return new StrongReferenceCounter<>();
         }
     };
 
@@ -175,6 +182,42 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
+    public <E extends RealmModel> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(Realm realm, final RealmResults<E> results) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
+        return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmResults<E>>>() {
+            @Override
+            public void subscribe(final ObservableEmitter<CollectionChange<RealmResults<E>>> emitter) throws Exception {
+                // Gets instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final Realm observableRealm = Realm.getInstance(realmConfig);
+                resultsRefs.get().acquireReference(results);
+                final OrderedRealmCollectionChangeListener<RealmResults<E>> listener = new OrderedRealmCollectionChangeListener<RealmResults<E>>() {
+                    @Override
+                    public void onChange(RealmResults<E> e, OrderedCollectionChangeSet changeSet) {
+                        if (!emitter.isDisposed()) {
+                            emitter.onNext(new CollectionChange<RealmResults<E>>(results, changeSet));
+                        }
+                    }
+                };
+                results.addChangeListener(listener);
+
+                // Cleanup when stream is disposed
+                emitter.setDisposable(Disposables.fromRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        results.removeChangeListener(listener);
+                        observableRealm.close();
+                        resultsRefs.get().releaseReference(results);
+                    }
+                }));
+
+                // Emit current value immediately
+                emitter.onNext(new CollectionChange<>(results, null));
+            }
+        });
+    }
+
+    @Override
     public Flowable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, final RealmResults<DynamicRealmObject> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
         return Flowable.create(new FlowableOnSubscribe<RealmResults<DynamicRealmObject>>() {
@@ -209,6 +252,42 @@ public class RealmObservableFactory implements RxObservableFactory {
 
             }
         }, BACK_PRESSURE_STRATEGY);
+    }
+
+    @Override
+        public Observable<CollectionChange<RealmResults<DynamicRealmObject>>> changesetsFrom(DynamicRealm realm, final RealmResults<DynamicRealmObject> results) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
+        return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmResults<DynamicRealmObject>>>() {
+            @Override
+            public void subscribe(final ObservableEmitter<CollectionChange<RealmResults<DynamicRealmObject>>> emitter) throws Exception {
+                // Gets instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
+                resultsRefs.get().acquireReference(results);
+                final OrderedRealmCollectionChangeListener<RealmResults<DynamicRealmObject>> listener = new OrderedRealmCollectionChangeListener<RealmResults<DynamicRealmObject>>() {
+                    @Override
+                    public void onChange(RealmResults<DynamicRealmObject> results, OrderedCollectionChangeSet changeSet) {
+                        if (!emitter.isDisposed()) {
+                            emitter.onNext(new CollectionChange<>(results, changeSet));
+                        }
+                    }
+                };
+                results.addChangeListener(listener);
+
+                // Cleanup when stream is disposed
+                emitter.setDisposable(Disposables.fromRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        results.removeChangeListener(listener);
+                        observableRealm.close();
+                        resultsRefs.get().releaseReference(results);
+                    }
+                }));
+
+                // Emit current value immediately
+                emitter.onNext(new CollectionChange<>(results, null));
+            }
+        });
     }
 
     @Override
@@ -249,6 +328,42 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
+    public <E extends RealmModel> Observable<CollectionChange<RealmList<E>>> changesetsFrom(Realm realm, final RealmList<E> list) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
+        return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmList<E>>>() {
+            @Override
+            public void subscribe(final ObservableEmitter<CollectionChange<RealmList<E>>> emitter) throws Exception {
+                // Gets instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final Realm observableRealm = Realm.getInstance(realmConfig);
+                listRefs.get().acquireReference(list);
+                final OrderedRealmCollectionChangeListener<RealmList<E>> listener = new OrderedRealmCollectionChangeListener<RealmList<E>>() {
+                    @Override
+                    public void onChange(RealmList<E> results, OrderedCollectionChangeSet changeSet) {
+                        if (!emitter.isDisposed()) {
+                            emitter.onNext(new CollectionChange<>(results, changeSet));
+                        }
+                    }
+                };
+                list.addChangeListener(listener);
+
+                // Cleanup when stream is disposed
+                emitter.setDisposable(Disposables.fromRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        list.removeChangeListener(listener);
+                        observableRealm.close();
+                        listRefs.get().releaseReference(list);
+                    }
+                }));
+
+                // Emit current value immediately
+                emitter.onNext(new CollectionChange<>(list, null));
+            }
+        });
+    }
+
+    @Override
     public Flowable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, final RealmList<DynamicRealmObject> list) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
         return Flowable.create(new FlowableOnSubscribe<RealmList<DynamicRealmObject>>() {
@@ -283,6 +398,42 @@ public class RealmObservableFactory implements RxObservableFactory {
 
             }
         }, BACK_PRESSURE_STRATEGY);
+    }
+
+    @Override
+    public Observable<CollectionChange<RealmList<DynamicRealmObject>>> changesetsFrom(DynamicRealm realm, final RealmList<DynamicRealmObject> list) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
+        return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmList<DynamicRealmObject>>>() {
+            @Override
+            public void subscribe(final ObservableEmitter<CollectionChange<RealmList<DynamicRealmObject>>> emitter) throws Exception {
+                // Gets instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
+                listRefs.get().acquireReference(list);
+                final OrderedRealmCollectionChangeListener<RealmList<DynamicRealmObject>> listener = new OrderedRealmCollectionChangeListener<RealmList<DynamicRealmObject>>() {
+                    @Override
+                    public void onChange(RealmList<DynamicRealmObject> results, OrderedCollectionChangeSet changeSet) {
+                        if (!emitter.isDisposed()) {
+                            emitter.onNext(new CollectionChange<>(results, changeSet));
+                        }
+                    }
+                };
+                list.addChangeListener(listener);
+
+                // Cleanup when stream is disposed
+                emitter.setDisposable(Disposables.fromRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        list.removeChangeListener(listener);
+                        observableRealm.close();
+                        listRefs.get().releaseReference(list);
+                    }
+                }));
+
+                // Emit current value immediately
+                emitter.onNext(new CollectionChange<>(list, null));
+            }
+        });
     }
 
     @Override
@@ -323,6 +474,42 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
+    public <E extends RealmModel> Observable<ObjectChange<E>> changesetsFrom(Realm realm, final E object) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
+        return Observable.create(new ObservableOnSubscribe<ObjectChange<E>>() {
+            @Override
+            public void subscribe(final ObservableEmitter<ObjectChange<E>> emitter) throws Exception {
+                // Gets instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final Realm observableRealm = Realm.getInstance(realmConfig);
+                objectRefs.get().acquireReference(object);
+                final RealmObjectChangeListener<E> listener = new RealmObjectChangeListener<E>() {
+                    @Override
+                    public void onChange(E obj, ObjectChangeSet changeSet) {
+                        if (!emitter.isDisposed()) {
+                            emitter.onNext(new ObjectChange<>(obj, changeSet));
+                        }
+                    }
+                };
+                RealmObject.addChangeListener(object, listener);
+
+                // Cleanup when stream is disposed
+                emitter.setDisposable(Disposables.fromRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        RealmObject.removeChangeListener(object, listener);
+                        observableRealm.close();
+                        objectRefs.get().releaseReference(object);
+                    }
+                }));
+
+                // Emit current value immediately
+                emitter.onNext(new ObjectChange<>(object, null));
+            }
+        });
+    }
+
+    @Override
     public Flowable<DynamicRealmObject> from(DynamicRealm realm, final DynamicRealmObject object) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
         return Flowable.create(new FlowableOnSubscribe<DynamicRealmObject>() {
@@ -357,6 +544,42 @@ public class RealmObservableFactory implements RxObservableFactory {
 
             }
         }, BACK_PRESSURE_STRATEGY);
+    }
+
+    @Override
+    public Observable<ObjectChange<DynamicRealmObject>> changesetsFrom(DynamicRealm realm, final DynamicRealmObject object) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
+        return Observable.create(new ObservableOnSubscribe<ObjectChange<DynamicRealmObject>>() {
+            @Override
+            public void subscribe(final ObservableEmitter<ObjectChange<DynamicRealmObject>> emitter) throws Exception {
+                // Gets instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
+                objectRefs.get().acquireReference(object);
+                final RealmObjectChangeListener<DynamicRealmObject> listener = new RealmObjectChangeListener<DynamicRealmObject>() {
+                    @Override
+                    public void onChange(DynamicRealmObject obj, ObjectChangeSet changeSet) {
+                        if (!emitter.isDisposed()) {
+                            emitter.onNext(new ObjectChange<>(obj, changeSet));
+                        }
+                    }
+                };
+                object.addChangeListener(listener);
+
+                // Cleanup when stream is disposed
+                emitter.setDisposable(Disposables.fromRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        object.removeChangeListener(listener);
+                        observableRealm.close();
+                        objectRefs.get().releaseReference(object);
+                    }
+                }));
+
+                // Emit current value immediately
+                emitter.onNext(new ObjectChange<>(object, null));
+            }
+        });
     }
 
     @Override
