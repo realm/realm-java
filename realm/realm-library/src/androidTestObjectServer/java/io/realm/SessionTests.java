@@ -128,9 +128,8 @@ public class SessionTests {
                         }
 
                         final ClientResetRequiredError handler = (ClientResetRequiredError) error;
-                        final String filePathFromError = handler.getOriginalFile().getAbsolutePath();
-                        final String filePathFromConfig = session.getConfiguration().getPath();
-
+                        String filePathFromError = handler.getOriginalFile().getAbsolutePath();
+                        String filePathFromConfig = session.getConfiguration().getPath();
                         assertEquals(filePathFromError, filePathFromConfig);
                         assertFalse(handler.getBackupFile().exists());
                         assertTrue(handler.getOriginalFile().exists());
@@ -173,7 +172,7 @@ public class SessionTests {
                         handler.executeClientReset();
 
                         // Validate that files have been moved
-                        assertTrue(handler.getOriginalFile().exists());
+                        assertFalse(handler.getOriginalFile().exists());
                         assertTrue(handler.getBackupFile().exists());
                         looperThread.testComplete();
                     }
