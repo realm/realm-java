@@ -136,7 +136,7 @@ public class SessionTests {
 
                         Log.e("H4XOR", ">>>>>>>>>>>>>>>>> handler.getBackupFile().exists()   : " + handler.getBackupFile().exists());
                         Log.e("H4XOR", ">>>>>>>>>>>>>>>>> handler.getOriginalFile().exists() : " + handler.getOriginalFile().exists());
-                        fail(">>>>>>>>>>>>>>> NEW COMMIT");
+//                        fail(">>>>>>>>>>>>>>> NEW COMMIT");
                         assertEquals(filePathFromError, filePathFromConfig);
                         assertFalse(handler.getBackupFile().exists());
                         assertTrue(handler.getOriginalFile().exists());
