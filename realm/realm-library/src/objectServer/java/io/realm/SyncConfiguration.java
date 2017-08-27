@@ -144,11 +144,32 @@ public class SyncConfiguration extends RealmConfiguration {
     /**
      * Returns a SyncConfiguration appropriate to open a synced Realm offline.
      * This is useful when trying to open a backup Realm (after a Client Reset)
-     * @param schemaMediator the mediator of the schema.
+     *
      * @param canonicalPath the absolute path to the Realm file defined by this configuration.
+     * @param modules if specified it will restricts Realm schema to the provided module.
      * @return SyncConfiguration that can be used offline
      */
-    static SyncConfiguration forOfflineSync(RealmProxyMediator schemaMediator, String canonicalPath) {
+    public static SyncConfiguration forOffline(String canonicalPath, Object... modules) {
+        HashSet<Object> validatedModules = new HashSet<>();
+        if (modules.length > 0) {
+            for (Object module : modules) {
+                if (!module.getClass().isAnnotationPresent(RealmModule.class)) {
+                    throw new IllegalArgumentException(module.getClass().getCanonicalName() + " is not a RealmModule. " +
+                            "Add @RealmModule to the class definition.");
+                }
+                validatedModules.add(module);
+            }
+        } else {
+            if (Realm.getDefaultModule() != null) {
+                validatedModules.add(Realm.getDefaultModule());
+            }
+        }
+
+        RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet());
+        return forOffline(canonicalPath, schemaMediator);
+    }
+
+    static SyncConfiguration forOffline(String canonicalPath, RealmProxyMediator schemaMediator) {
         return new SyncConfiguration(null, null, canonicalPath, null, null, 0, null, false, null, schemaMediator, null, null, false, null, null, null, false, false, null, null, false, true);
     }
 
@@ -306,7 +327,7 @@ public class SyncConfiguration extends RealmConfiguration {
     /**
      * @return {@code true} if this configuration is intended to open a synced Realm offline (example for client reset), {@code false} otherwise.
      */
-    public boolean isOpenSyncedRealmOffline() {
+    public boolean isRealmOffline() {
         return forceSyncHistory;
     }
 

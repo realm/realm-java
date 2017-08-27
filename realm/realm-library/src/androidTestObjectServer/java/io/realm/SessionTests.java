@@ -130,15 +130,11 @@ public class SessionTests {
                         final ClientResetRequiredError handler = (ClientResetRequiredError) error;
                         final String filePathFromError = handler.getOriginalFile().getAbsolutePath();
                         final String filePathFromConfig = session.getConfiguration().getPath();
-                        looperThread.postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                assertEquals(filePathFromError, filePathFromConfig);
-                                assertFalse(handler.getBackupFile().exists());
-                                assertTrue(handler.getOriginalFile().exists());
-                                looperThread.testComplete();
-                            }
-                        });
+
+                        assertEquals(filePathFromError, filePathFromConfig);
+                        assertFalse(handler.getBackupFile().exists());
+                        assertTrue(handler.getOriginalFile().exists());
+                        looperThread.testComplete();
                     }
                 })
                 .build();
@@ -176,15 +172,10 @@ public class SessionTests {
                         looperThread.closeTestRealms();
                         handler.executeClientReset();
 
-                        looperThread.postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                // Validate that files have been moved
-                                assertFalse(handler.getOriginalFile().exists());
-                                assertTrue(handler.getBackupFile().exists());
-                                looperThread.testComplete();
-                            }
-                        });
+                        // Validate that files have been moved
+                        assertTrue(handler.getOriginalFile().exists());
+                        assertTrue(handler.getBackupFile().exists());
+                        looperThread.testComplete();
                     }
                 })
                 .build();
@@ -216,34 +207,113 @@ public class SessionTests {
                         looperThread.closeTestRealms();
                         handler.executeClientReset();
 
-                        looperThread.postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                // Validate that files have been moved
-                                assertFalse(handler.getOriginalFile().exists());
-                                assertTrue(handler.getBackupFile().exists());
+                        // Validate that files have been moved
+                        assertFalse(handler.getOriginalFile().exists());
+                        assertTrue(handler.getBackupFile().exists());
 
-                                SyncConfiguration backupSyncConfiguration = handler.getBackupSyncConfiguration();
-                                assertNotNull(backupSyncConfiguration);
-                                assertTrue(backupSyncConfiguration.isSyncConfiguration());
-                                assertTrue(backupSyncConfiguration.isOpenSyncedRealmOffline());
+                        SyncConfiguration backupSyncConfiguration = handler.getBackupSyncConfiguration();
+                        assertNotNull(backupSyncConfiguration);
+                        assertTrue(backupSyncConfiguration.isSyncConfiguration());
+                        assertTrue(backupSyncConfiguration.isRealmOffline());
 
-                                Realm backupRealm = Realm.getInstance(backupSyncConfiguration);
-                                assertFalse(backupRealm.isEmpty());
-                                assertEquals(1, backupRealm.where(StringOnly.class).count());
-                                assertEquals("Foo", backupRealm.where(StringOnly.class).findAll().first().getChars());
-                                backupRealm.close();
+                        Realm backupRealm = Realm.getInstance(backupSyncConfiguration);
+                        assertFalse(backupRealm.isEmpty());
+                        assertEquals(1, backupRealm.where(StringOnly.class).count());
+                        assertEquals("Foo", backupRealm.where(StringOnly.class).findAll().first().getChars());
+                        backupRealm.close();
 
-                                // opening a Dynamic Realm should also work
-                                DynamicRealm dynamicRealm = DynamicRealm.getInstance(backupSyncConfiguration);
-                                dynamicRealm.getSchema().checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME);
-                                RealmResults<DynamicRealmObject> all = dynamicRealm.where(StringOnly.CLASS_NAME).findAll();
-                                assertEquals(1, all.size());
-                                assertEquals("Foo", all.first().getString(StringOnly.FIELD_CHARS));
-                                dynamicRealm.close();
-                                looperThread.testComplete();
-                            }
-                        });
+                        // opening a Dynamic Realm should also work
+                        DynamicRealm dynamicRealm = DynamicRealm.getInstance(backupSyncConfiguration);
+                        dynamicRealm.getSchema().checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME);
+                        RealmResults<DynamicRealmObject> all = dynamicRealm.where(StringOnly.CLASS_NAME).findAll();
+                        assertEquals(1, all.size());
+                        assertEquals("Foo", all.first().getString(StringOnly.FIELD_CHARS));
+                        dynamicRealm.close();
+                        looperThread.testComplete();
+                    }
+                })
+                .modules(new StringOnlyModule())
+                .build();
+
+        Realm realm = Realm.getInstance(config);
+        realm.beginTransaction();
+        realm.createObject(StringOnly.class).setChars("Foo");
+        realm.commitTransaction();
+
+        looperThread.addTestRealm(realm);
+
+        // Trigger error
+        SyncManager.simulateClientReset(SyncManager.getSession(config));
+    }
+
+    // Check that we can open the backup file without using the provided SyncConfiguration,
+    // this might be the case if the user decide to act upon the client reset later (providing s/he
+    // persisted the location of the file)
+    @Test
+    @RunTestInLooperThread
+    public void errorHandler_useBackupSyncConfigurationAfterClientReset() {
+        SyncUser user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .errorHandler(new SyncSession.ErrorHandler() {
+                    @Override
+                    public void onError(SyncSession session, ObjectServerError error) {
+                        if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
+                            fail("Wrong error " + error.toString());
+                            return;
+                        }
+
+                        final ClientResetRequiredError handler = (ClientResetRequiredError) error;
+                        // Execute Client Reset
+                        looperThread.closeTestRealms();
+                        handler.executeClientReset();
+
+                        // Validate that files have been moved
+                        assertFalse(handler.getOriginalFile().exists());
+                        assertTrue(handler.getBackupFile().exists());
+
+                        String backupFile = handler.getBackupFile().getAbsolutePath();
+
+                        // this SyncConf doesn't specify any module, it will throw a migration required
+                        // exception since the backup Realm contain only StringOnly table
+                        SyncConfiguration backupSyncConfiguration = SyncConfiguration.forOffline(backupFile);
+
+                        try {
+                            Realm.getInstance(backupSyncConfiguration);
+                            fail("Expected to throw a Migration required");
+                        } catch (IllegalStateException expected) {
+                        }
+
+                        // opening a DynamicRealm will work though
+                        DynamicRealm dynamicRealm = DynamicRealm.getInstance(backupSyncConfiguration);
+
+                        dynamicRealm.getSchema().checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME);
+                        RealmResults<DynamicRealmObject> all = dynamicRealm.where(StringOnly.CLASS_NAME).findAll();
+                        assertEquals(1, all.size());
+                        assertEquals("Foo", all.first().getString(StringOnly.FIELD_CHARS));
+                        // can write to it
+                        dynamicRealm.beginTransaction();
+                        dynamicRealm.createObject(StringOnly.CLASS_NAME).set(StringOnly.FIELD_CHARS, "Bar");
+                        dynamicRealm.commitTransaction();
+                        dynamicRealm.close();
+
+                        try {
+                            SyncConfiguration.forOffline(backupFile, StringOnly.class);
+                            fail("Expected to throw java.lang.Class is not a RealmModule");
+                        } catch (IllegalArgumentException expected) {
+                        }
+
+                        // specifying the module will allow to open the typed Realm
+                        backupSyncConfiguration = SyncConfiguration.forOffline(backupFile, new StringOnlyModule());
+                        Realm backupRealm = Realm.getInstance(backupSyncConfiguration);
+                        assertFalse(backupRealm.isEmpty());
+                        assertEquals(2, backupRealm.where(StringOnly.class).count());
+                        RealmResults<StringOnly> allSorted = backupRealm.where(StringOnly.class).findAllSorted(StringOnly.FIELD_CHARS);
+                        assertEquals("Bar", allSorted.get(0).getChars());
+                        assertEquals("Foo", allSorted.get(1).getChars());
+                        backupRealm.close();
+
+                        looperThread.testComplete();
                     }
                 })
                 .modules(new StringOnlyModule())
