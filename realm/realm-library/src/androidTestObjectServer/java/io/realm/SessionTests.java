@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -130,12 +131,12 @@ public class SessionTests {
                         final ClientResetRequiredError handler = (ClientResetRequiredError) error;
                         String filePathFromError = handler.getOriginalFile().getAbsolutePath();
                         String filePathFromConfig = session.getConfiguration().getPath();
-                        System.out.println(">>>>>>>>>>>>>>>>> filePathFromError  : " + filePathFromError);
-                        System.out.println(">>>>>>>>>>>>>>>>> filePathFromConfig : " + filePathFromConfig);
+                        Log.e("H4XOR", ">>>>>>>>>>>>>>>>> filePathFromError  : " + filePathFromError);
+                        Log.e("H4XOR", ">>>>>>>>>>>>>>>>> filePathFromConfig : " + filePathFromConfig);
 
-                        System.out.println(">>>>>>>>>>>>>>>>> handler.getBackupFile().exists()   : " + handler.getBackupFile().exists());
-                        System.out.println(">>>>>>>>>>>>>>>>> handler.getOriginalFile().exists() : " + handler.getOriginalFile().exists());
-
+                        Log.e("H4XOR", ">>>>>>>>>>>>>>>>> handler.getBackupFile().exists()   : " + handler.getBackupFile().exists());
+                        Log.e("H4XOR", ">>>>>>>>>>>>>>>>> handler.getOriginalFile().exists() : " + handler.getOriginalFile().exists());
+                        fail(">>>>>>>>>>>>>>> NEW COMMIT");
                         assertEquals(filePathFromError, filePathFromConfig);
                         assertFalse(handler.getBackupFile().exists());
                         assertTrue(handler.getOriginalFile().exists());
