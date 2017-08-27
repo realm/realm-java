@@ -130,9 +130,16 @@ public class SessionTests {
                         final ClientResetRequiredError handler = (ClientResetRequiredError) error;
                         String filePathFromError = handler.getOriginalFile().getAbsolutePath();
                         String filePathFromConfig = session.getConfiguration().getPath();
+                        System.out.println(">>>>>>>>>>>>>>>>> filePathFromError  : " + filePathFromError);
+                        System.out.println(">>>>>>>>>>>>>>>>> filePathFromConfig : " + filePathFromConfig);
+
+                        System.out.println(">>>>>>>>>>>>>>>>> handler.getBackupFile().exists()   : " + handler.getBackupFile().exists());
+                        System.out.println(">>>>>>>>>>>>>>>>> handler.getOriginalFile().exists() : " + handler.getOriginalFile().exists());
+
                         assertEquals(filePathFromError, filePathFromConfig);
                         assertFalse(handler.getBackupFile().exists());
                         assertTrue(handler.getOriginalFile().exists());
+
                         looperThread.testComplete();
                     }
                 })
