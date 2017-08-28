@@ -649,7 +649,7 @@ abstract class BaseRealm implements Closeable {
                     realm.setVersion(configuration.getSchemaVersion());
                     realm.commitTransaction();
                 } catch (RuntimeException e) {
-                    if (realm != null) {
+                    if (realm != null && realm.isInTransaction()) {
                         realm.cancelTransaction();
                     }
                     throw e;
