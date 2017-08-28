@@ -118,7 +118,7 @@ public class SessionTests {
     public void errorHandler_clientResetReported() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user , url)
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
@@ -152,7 +152,7 @@ public class SessionTests {
     public void errorHandler_manualExecuteClientReset() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user , url)
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
@@ -193,7 +193,7 @@ public class SessionTests {
     public void errorHandler_useBackupSyncConfigurationForClientReset() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user , url)
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
