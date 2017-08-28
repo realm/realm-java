@@ -7,6 +7,7 @@
 * `RealmSchema.create(String)` and `RealmObjectSchema.setClassName(String)` did not accept class name whose length was 51 to 57.
 * Workaround for an Android JVM crash when using `compactOnLaunch()` (#4964).
 * Class name in exception message from link query is wrong (#5096).
+* `BaseRealm.migrateRealm` cancels a transaction even if it is not in a transaction (#5163).
 
 ### Internal
 
