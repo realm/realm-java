@@ -33,7 +33,6 @@ import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_STRING;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UNSUPPORTED_DATE;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UNSUPPORTED_MIXED;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UNSUPPORTED_TABLE;
-import static io.realm.RealmFieldTypeConstants.ELEMENT_TYPE_INTEGER;
 import static io.realm.RealmFieldTypeConstants.LIST_OFFSET;
 
 interface RealmFieldTypeConstants {
