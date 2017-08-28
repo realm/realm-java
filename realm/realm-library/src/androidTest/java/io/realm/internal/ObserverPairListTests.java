@@ -39,8 +39,8 @@ import static junit.framework.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class ObserverPairListTests {
 
-    private static class TestListener<Integer> {
-        void onChange(Integer integer) {
+    private static class TestListener<T> {
+        void onChange(T integer) {
         }
     }
 

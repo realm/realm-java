@@ -40,6 +40,7 @@ import java.util.concurrent.ThreadFactory;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
+import io.realm.internal.android.AndroidCapabilities;
 
 
 /**
@@ -89,7 +90,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     // Runnable guaranteed to trigger after the test either succeeded or failed.
     // Access guarded by 'lock'
-    private Runnable runAfterTestIsComplete;
+    private List<Runnable> runAfterTestIsComplete = new ArrayList<>();
 
     /**
      * Get the configuration for the test realm.
@@ -162,7 +163,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
      */
     public void runAfterTest(Runnable task) {
         synchronized (lock) {
-            runAfterTestIsComplete = task;
+            runAfterTestIsComplete.add(task);
         }
     }
 
@@ -281,7 +282,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         // Wait for all async tasks to have completed to ensure a successful deleteRealm call.
         // If it times out, it will throw.
         TestHelper.waitRealmThreadExecutorFinish();
-
+        AndroidCapabilities.EMULATE_MAIN_THREAD = false;
         super.after();
 
         // probably belt *and* suspenders...
@@ -376,6 +377,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                 runnableBefore.newInstance().run(getConfiguration());
             }
 
+            AndroidCapabilities.EMULATE_MAIN_THREAD = annotation.emulateMainThread();
             runTest(annotation.threadName());
         }
 
@@ -485,8 +487,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                 try {
                     looperTearDown();
                     closeResources();
-                    if (runAfterTestIsComplete != null) {
-                        runAfterTestIsComplete.run();
+                    for (Runnable task : runAfterTestIsComplete) {
+                        task.run();
                     }
                 } catch (Throwable t) {
                     setAssertionError(t);

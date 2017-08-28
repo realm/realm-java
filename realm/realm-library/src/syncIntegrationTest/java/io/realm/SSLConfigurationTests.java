@@ -31,7 +31,6 @@ import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmFileException;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.TestSyncConfigurationFactory;
 
@@ -45,9 +44,6 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
 
 //    @Rule
 //    public Timeout globalTimeout = Timeout.seconds(10);
-
-    @Rule
-    public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
 
     @Test
     public void trustedRootCA() throws InterruptedException {

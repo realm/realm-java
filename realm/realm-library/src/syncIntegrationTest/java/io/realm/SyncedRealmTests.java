@@ -17,30 +17,22 @@
 package io.realm;
 
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
 import android.support.test.annotation.UiThreadTest;
-import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestSyncConfigurationFactory;
+import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -53,20 +45,10 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class SyncedRealmTests extends BaseIntegrationTest {
 
-    @Rule
-    public RunInLooperThread looperThread = new RunInLooperThread();
-
-    @Rule
-    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
-
-    @Rule
-    public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
-
     @Test
     @UiThreadTest
     public void waitForInitialRemoteData_mainThreadThrows() {
-        final SyncUser user = loginUser();
-
+        final SyncUser user = SyncTestUtils.createTestUser(Constants.AUTH_URL);
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .waitForInitialRemoteData()
                 .build();
@@ -83,25 +65,8 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         }
     }
 
-    // Login user on a worker thread, so this method can be used from both UI and non-ui threads.
-    @NonNull
-    private SyncUser loginUser() {
-        final CountDownLatch userReady = new CountDownLatch(1);
-        final AtomicReference<SyncUser> user = new AtomicReference<>();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
-                user.set(SyncUser.login(credentials, Constants.AUTH_URL));
-                userReady.countDown();
-            }
-        }).start();
-        TestHelper.awaitOrFail(userReady);
-        return user.get();
-    }
-
     @Test
-    public void waitForInitialRemoteData() {
+    public void waitForInitialRemoteData() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
@@ -119,7 +84,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
                 }
             }
         });
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(10));  // FIXME: Replace with Sync Progress Notifications once available.
+        SyncManager.getSession(configOld).uploadAllLocalChanges();
         realm.close();
         user.logout();
         Realm.deleteRealm(configOld);
@@ -215,7 +180,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
     }
 
     @Test
-    public void waitForInitialRemoteData_readOnlyTrue() {
+    public void waitForInitialRemoteData_readOnlyTrue() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
@@ -233,7 +198,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
                 }
             }
         });
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(10));  // FIXME: Replace with Sync Progress Notifications once available.
+        SyncManager.getSession(configOld).uploadAllLocalChanges();
         realm.close();
         user.logout();
         Realm.deleteRealm(configOld);

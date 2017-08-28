@@ -24,6 +24,8 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import io.realm.exceptions.RealmException;
 
 
@@ -39,9 +41,10 @@ public class JsonUtils {
      * - "/Date(<long>[+-Zone])/"
      *
      * @param date the String input of date of the the supported types.
-     * @return the Date object or null if invalid input.
+     * @return the Date object or {@code null} if invalid input.
      * @throws NumberFormatException if date is not a proper long or has an illegal format.
      */
+    @Nullable
     public static Date stringToDate(String date) {
         if (date == null || date.length() == 0) { return null; }
 

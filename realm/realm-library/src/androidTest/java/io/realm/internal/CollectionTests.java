@@ -74,7 +74,9 @@ public class CollectionTests {
     }
 
     private SharedRealm getSharedRealm() {
-        return SharedRealm.getInstance(config, null, true);
+        OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config)
+                .autoUpdateNotification(true);
+        return SharedRealm.getInstance(configBuilder);
     }
 
     private void populateData() {
@@ -87,22 +89,22 @@ public class CollectionTests {
         table.addColumn(RealmFieldType.INTEGER, "age");
 
         // Add data to the table
-        long row = table.addEmptyRow();
+        long row = OsObject.createRow(table);
         table.setString(0, row, "John", false);
         table.setString(1, row, "Lee", false);
         table.setLong(2, row, 4, false);
 
-        row = table.addEmptyRow();
+        row = OsObject.createRow(table);
         table.setString(0, row, "John", false);
         table.setString(1, row, "Anderson", false);
         table.setLong(2, row, 3, false);
 
-        row = table.addEmptyRow();
+        row = OsObject.createRow(table);
         table.setString(0, row, "Erik", false);
         table.setString(1, row, "Lee", false);
         table.setLong(2, row, 1, false);
 
-        row = table.addEmptyRow();
+        row = OsObject.createRow(table);
         table.setString(0, row, "Henry", false);
         table.setString(1, row, "Anderson", false);
         table.setLong(2, row, 1, false);
@@ -126,7 +128,7 @@ public class CollectionTests {
     private void addRow(SharedRealm sharedRealm) {
         sharedRealm.beginTransaction();
         table = sharedRealm.getTable("test_table");
-        table.addEmptyRow();
+        OsObject.createRow(table);
         sharedRealm.commitTransaction();
     }
 
@@ -135,10 +137,10 @@ public class CollectionTests {
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(null, table, "firstName");
         Collection collection = new Collection(sharedRealm, table.where(), null, distinctDescriptor);
 
-        assertEquals(collection.size(), 3);
-        assertEquals(collection.getUncheckedRow(0).getString(0), "John");
-        assertEquals(collection.getUncheckedRow(1).getString(0), "Erik");
-        assertEquals(collection.getUncheckedRow(2).getString(0), "Henry");
+        assertEquals(3, collection.size());
+        assertEquals("John", collection.getUncheckedRow(0).getString(0));
+        assertEquals("Erik", collection.getUncheckedRow(1).getString(0));
+        assertEquals("Henry", collection.getUncheckedRow(2).getString(0));
     }
 
 
@@ -192,8 +194,8 @@ public class CollectionTests {
         assertEquals(2, collection.size());
         assertEquals(2, collection2.size());
 
-        assertEquals(collection2.getUncheckedRow(0).getLong(2), 3);
-        assertEquals(collection2.getUncheckedRow(1).getLong(2), 4);
+        assertEquals(3, collection2.getUncheckedRow(0).getLong(2));
+        assertEquals(4, collection2.getUncheckedRow(1).getLong(2));
     }
 
     @Test
@@ -310,7 +312,7 @@ public class CollectionTests {
             }
         });
         sharedRealm.beginTransaction();
-        table.addEmptyRow();
+        OsObject.createRow(table);
         sharedRealm.commitTransaction();
         sharedRealm.refresh();
         TestHelper.awaitOrFail(latch);
@@ -366,7 +368,7 @@ public class CollectionTests {
 
         final Collection collection = new Collection(sharedRealm, table.where());
         looperThread.keepStrongReference(collection);
-        assertEquals(collection.size(), 4); // Trigger the query to run.
+        assertEquals(4, collection.size()); // Trigger the query to run.
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection collection1) {

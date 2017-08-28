@@ -32,10 +32,10 @@ android {
     }
 
     command {
-        events 2000
+        monkey.events 2000
     }
 }
 
 dependencies {
-    compile project(':moduleExample:library')
+    implementation project(':moduleExample:library')
 }

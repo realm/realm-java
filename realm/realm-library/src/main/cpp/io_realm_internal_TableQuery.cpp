@@ -1510,7 +1510,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
         }
 
         TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
-        int col_type = src_table_ref->get_column_type(S(column_idx));
+        DataType col_type = table_ref->get_column_type(S(column_idx));
         if (arr_len == 1) {
             switch (col_type) {
                 case type_Link:
@@ -1573,50 +1573,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
     CATCH_STD()
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRowIntoSharedGroup(
-    JNIEnv* env, jclass, jlong handoverPtr, jlong callerSharedGrpPtr)
-{
-    TR_ENTER_PTR(handoverPtr)
-    SharedGroup::Handover<Row>* handoverRowPtr = HO(Row, handoverPtr);
-    std::unique_ptr<SharedGroup::Handover<Row>> handoverRow(handoverRowPtr);
-
-    try {
-        // import_from_handover will free (delete) the handover
-        auto sharedRealm = *(reinterpret_cast<SharedRealm*>(callerSharedGrpPtr));
-        if (!sharedRealm->is_closed()) {
-            using rf = realm::_impl::RealmFriend;
-            auto row = rf::get_shared_group(*sharedRealm).import_from_handover(std::move(handoverRow));
-            return reinterpret_cast<jlong>(row.release());
-        }
-        else {
-            ThrowException(env, RuntimeError, ERR_IMPORT_CLOSED_REALM);
-        }
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery(JNIEnv* env, jobject,
-                                                                              jlong bgSharedRealmPtr,
-                                                                              jlong nativeQueryPtr)
-{
-    TR_ENTER_PTR(nativeQueryPtr)
-    Query* pQuery = Q(nativeQueryPtr);
-    if (!QUERY_VALID(env, pQuery)) {
-        return 0;
-    }
-    try {
-        auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
-        using rf = realm::_impl::RealmFriend;
-        auto handover = rf::get_shared_group(*sharedRealm).export_for_handover(*pQuery, ConstSourcePayload::Copy);
-        return reinterpret_cast<jlong>(handover.release());
-    }
-    CATCH_STD()
-    return 0;
-}
-
-
-
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv* env, jobject, jlong nativeQueryPtr,
                                                                          jlongArray columnIndexes,
                                                                          jlongArray tablePointers)
@@ -1635,7 +1591,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
 
         TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
 
-        int col_type = src_table_ref->get_column_type(S(column_idx));
+        DataType col_type = table_ref->get_column_type(S(column_idx));
         if (arr_len == 1) {
             switch (col_type) {
                 case type_Link:
@@ -1712,13 +1668,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty(JNIEnv* e
         auto column_idx = static_cast<size_t>(index_arr[arr_len - 1]);
 
         // Support a backlink as the last column in a field descriptor
-        Table* last = TBL(table_arr[arr_len-1]);
+        auto last = reinterpret_cast<Table*>(table_arr[arr_len-1]);
         if (last != nullptr) {
             pQuery->and_query(src_table_ref->column<BackLink>(*last, column_idx).count() == 0);
             return;
         }
 
-        int col_type = src_table_ref->get_column_type(column_idx);
+        TableRef table_ref = getTableByArray(nativeQueryPtr, table_arr, index_arr);
+        DataType col_type = table_ref->get_column_type(column_idx);
         if (arr_len == 1) {
             // Field queries
             switch (col_type) {
@@ -1782,13 +1739,14 @@ Java_io_realm_internal_TableQuery_nativeIsNotEmpty(JNIEnv *env, jobject, jlong n
         auto column_idx = static_cast<size_t>(index_arr[arr_len - 1]);
 
         // Support a backlink as the last column in a field descriptor
-        auto last = reinterpret_cast<Table *>(table_arr[arr_len-1]);
+        auto last = reinterpret_cast<Table*>(table_arr[arr_len-1]);
         if (last != nullptr) {
             pQuery->and_query(src_table_ref->column<BackLink>(*last, column_idx).count() != 0);
             return;
         }
 
-        int col_type = src_table_ref->get_column_type(column_idx);
+        TableRef table_ref = getTableByArray(nativeQueryPtr, table_arr, index_arr);
+        DataType col_type = table_ref->get_column_type(column_idx);
         if (arr_len == 1) {
             // Field queries
             switch (col_type) {

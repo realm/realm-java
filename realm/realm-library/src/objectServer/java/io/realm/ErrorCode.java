@@ -16,12 +16,15 @@
 
 package io.realm;
 
+import java.net.ConnectException;
+
 /**
  * This class enumerate all potential errors related to using the Object Server or synchronizing data.
  */
 public enum ErrorCode {
 
-    // See https://github.com/realm/realm-sync/blob/master/doc/protocol_16.md
+    // See Client::Error in https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp
+    // See https://github.com/realm/realm-object-server/blob/master/object-server/doc/problems.md
 
     // Realm Java errors (0-49)
     UNKNOWN(-1),                                // Catch-all
@@ -41,6 +44,13 @@ public enum ErrorCode {
     REUSE_OF_SESSION_IDENT(107),     // Overlapping reuse of session identifier (BIND)
     BOUND_IN_OTHER_SESSION(108),     // Client file bound in other session (IDENT)
     BAD_MESSAGE_ORDER(109),          // Bad input message order
+    BAD_ORIGIN_FILE_IDENT(110),      // Bad origin file identifier in changeset header (DOWNLOAD)
+    BAD_SERVER_VERSION_DOWNLOAD(111),// Bad server version in changeset header (DOWNLOAD)
+    BAD_CHANGESET_DOWNLOAD(112),     // Bad changeset (DOWNLOAD)
+    BAD_REQUEST_IDENT(113),          // Bad request identifier (MARK)
+    BAD_ERROR_CODE(114),             // Bad error code (ERROR)
+    BAD_COMPRESSION(115),            // Bad compression (DOWNLOAD)
+    BAD_CLIENT_VERSION_DOWNLOAD(116),// Bad last integrated client version in changeset header (DOWNLOAD)
 
     // Session level errors (200 - 299)
     SESSION_CLOSED(200, Category.RECOVERABLE),      // Session closed (no error)
@@ -63,6 +73,52 @@ public enum ErrorCode {
     DISABLED_SESSION(213),                          // Disabled session
 
     // 300 - 599 Reserved for Standard HTTP error codes
+    MULTIPLE_CHOICES(300),
+    MOVED_PERMANENTLY(301),
+    FOUND(302),
+    SEE_OTHER(303),
+    NOT_MODIFIED(304),
+    USE_PROXY(305),
+    TEMPORARY_REDIRECT(307),
+    PERMANENT_REDIRECT(308),
+    BAD_REQUEST(400),
+    UNAUTHORIZED(401),
+    PAYMENT_REQUIRED(402),
+    FORBIDDEN(403),
+    NOT_FOUND(404),
+    METHOD_NOT_ALLOWED(405),
+    NOT_ACCEPTABLE(406),
+    PROXY_AUTHENTICATION_REQUIRED(407),
+    REQUEST_TIMEOUT(408),
+    CONFLICT(409),
+    GONE(410),
+    LENGTH_REQUIRED(411),
+    PRECONDITION_FAILED(412),
+    PAYLOAD_TOO_LARGE(413),
+    URI_TOO_LONG(414),
+    UNSUPPORTED_MEDIA_TYPE(415),
+    RANGE_NOT_SATISFIABLE(416),
+    EXPECTATION_FAILED(417),
+    MISDIRECTED_REQUEST(421),
+    UNPROCESSABLE_ENTITY(422),
+    LOCKED(423),
+    FAILED_DEPENDENCY(424),
+    UPGRADE_REQUIRED(426),
+    PRECONDITION_REQUIRED(428),
+    TOO_MANY_REQUESTS(429),
+    REQUEST_HEADER_FIELDS_TOO_LARGE(431),
+    UNAVAILABLE_FOR_LEGAL_REASONS(451),
+    INTERNAL_SERVER_ERROR(500),
+    NOT_IMPLEMENTED(501),
+    BAD_GATEWAY(502),
+    SERVICE_UNAVAILABLE(503),
+    GATEWAY_TIMEOUT(504),
+    HTTP_VERSION_NOT_SUPPORTED(505),
+    VARIANT_ALSO_NEGOTIATES(506),
+    INSUFFICIENT_STORAGE(507),
+    LOOP_DETECTED(508),
+    NOT_EXTENDED(510),
+    NETWORK_AUTHENTICATION_REQUIRED(511),
 
     // Realm Authentication Server response errors (600 - 699)
     INVALID_PARAMETERS(601),
@@ -71,7 +127,14 @@ public enum ErrorCode {
     UNKNOWN_ACCOUNT(612),
     EXISTING_ACCOUNT(613),
     ACCESS_DENIED(614),
-    EXPIRED_REFRESH_TOKEN(615);
+    EXPIRED_REFRESH_TOKEN(615),
+    INVALID_HOST(616),
+
+    // Other Realm Object Server response errors
+    EXPIRED_PERMISSION_OFFER(701),
+    AMBIGUOUS_PERMISSION_OFFER_TOKEN(702),
+    FILE_MAY_NOT_BE_SHARED(703),
+    SERVER_MISCONFIGURATION(801);
 
     private final int code;
     private final Category category;
@@ -125,6 +188,16 @@ public enum ErrorCode {
             }
         }
         throw new IllegalArgumentException("Unknown error code: " + errorCode);
+    }
+
+    /**
+     * Helper method for mapping between {@link Exception} and {@link ErrorCode}.
+     * @param exception to be mapped as an {@link ErrorCode}.
+     * @return mapped {@link ErrorCode}.
+     */
+    public static ErrorCode fromException(Exception exception) {
+        // ConnectException is recoverable (with exponential backoff)
+        return (exception instanceof ConnectException) ? ErrorCode.IO_EXCEPTION : ErrorCode.UNKNOWN;
     }
 
     public enum Category {

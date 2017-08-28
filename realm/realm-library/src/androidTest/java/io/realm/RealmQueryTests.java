@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,6 +35,7 @@ import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
+import io.realm.entities.IndexedFields;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
@@ -2774,6 +2776,26 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    public void isEmpty_acrossLink_wrongTypeThrows() {
+        for (RealmFieldType type : RealmFieldType.values()) {
+            if (SUPPORTED_IS_EMPTY_TYPES.contains(type)) {
+                continue;
+            }
+
+            RealmQuery<Owner> query = realm.where(Owner.class);
+            try {
+                query.isEmpty(Owner.FIELD_CAT + "." + Cat.FIELD_AGE);
+                fail();
+            } catch (IllegalArgumentException expected) {
+                assertEquals(String.format(Locale.US,
+                        "Invalid query: field '%s' in class '%s' is of invalid type '%s'.",
+                        Cat.FIELD_AGE, Cat.CLASS_NAME, RealmFieldType.INTEGER.name()),
+                        expected.getMessage());
+            }
+        }
+    }
+
+    @Test
     public void isNotEmpty() {
         createIsNotEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_NOT_EMPTY_TYPES) {
@@ -2921,6 +2943,20 @@ public class RealmQueryTests extends QueryTests {
                 looperThread.testComplete();
             }
         });
+    }
+
+    @Test
+    public void findAll_indexedCaseInsensitiveFields() {
+        // Catches https://github.com/realm/realm-java/issues/4788
+        realm.beginTransaction();
+        realm.createObject(IndexedFields.class).indexedString = "ROVER";
+        realm.createObject(IndexedFields.class).indexedString = "Rover";
+        realm.commitTransaction();
+
+        RealmResults<IndexedFields> results = realm.where(IndexedFields.class)
+                .equalTo(IndexedFields.FIELD_INDEXED_STRING, "rover", Case.INSENSITIVE)
+                .findAll();
+        assertEquals(2, results.size());
     }
 
     @Test

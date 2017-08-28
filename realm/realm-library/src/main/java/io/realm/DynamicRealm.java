@@ -16,10 +16,13 @@
 
 package io.realm;
 
+import java.util.Locale;
+
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsObject;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
 import rx.Observable;
@@ -47,12 +50,16 @@ import rx.Observable;
  */
 public class DynamicRealm extends BaseRealm {
 
+    private final RealmSchema schema;
+
     private DynamicRealm(RealmCache cache) {
-        super(cache);
+        super(cache, null);
+        this.schema = new MutableRealmSchema(this);
     }
 
-    private DynamicRealm(RealmConfiguration configuration) {
-        super(configuration);
+    private DynamicRealm(SharedRealm sharedRealm) {
+        super(sharedRealm);
+        this.schema = new MutableRealmSchema(this);
     }
 
     /**
@@ -66,6 +73,7 @@ public class DynamicRealm extends BaseRealm {
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static DynamicRealm getInstance(RealmConfiguration configuration) {
+        //noinspection ConstantConditions
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
@@ -87,6 +95,7 @@ public class DynamicRealm extends BaseRealm {
      */
     public static RealmAsyncTask getInstanceAsync(RealmConfiguration configuration,
                                                   Callback callback) {
+        //noinspection ConstantConditions
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
@@ -105,11 +114,12 @@ public class DynamicRealm extends BaseRealm {
         Table table = schema.getTable(className);
         // Check and throw the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
-            throw new RealmException(String.format("'%s' has a primary key, use" +
+            throw new RealmException(String.format(Locale.US,
+                    "'%s' has a primary key, use" +
                     " 'createObject(String, Object)' instead.", className));
         }
 
-        return new DynamicRealmObject(this, CheckedRow.getFromRow(OsObject.create(sharedRealm, table)));
+        return new DynamicRealmObject(this, CheckedRow.getFromRow(OsObject.create(table)));
     }
 
     /**
@@ -126,7 +136,7 @@ public class DynamicRealm extends BaseRealm {
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
         Table table = schema.getTable(className);
         return new DynamicRealmObject(this,
-                CheckedRow.getFromRow(OsObject.createWithPrimaryKey(sharedRealm, table, primaryKeyValue)));
+                CheckedRow.getFromRow(OsObject.createWithPrimaryKey(table, primaryKeyValue)));
     }
 
     /**
@@ -208,6 +218,7 @@ public class DynamicRealm extends BaseRealm {
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
      */
     public void executeTransaction(Transaction transaction) {
+        //noinspection ConstantConditions
         if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
         }
@@ -236,12 +247,14 @@ public class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * Create a {@link DynamicRealm} instance without associating it to any RealmCache.
+     * Creates a {@link DynamicRealm} instance with a given {@link SharedRealm} instance without owning it.
+     * This is designed to be used in the migration block when opening a typed Realm instance.
      *
+     * @param sharedRealm the existing {@link SharedRealm} instance.
      * @return a {@link DynamicRealm} instance.
      */
-    static DynamicRealm createInstance(RealmConfiguration configuration) {
-        return new DynamicRealm(configuration);
+    static DynamicRealm createInstance(SharedRealm sharedRealm) {
+        return new DynamicRealm(sharedRealm);
     }
 
     /**
@@ -250,6 +263,16 @@ public class DynamicRealm extends BaseRealm {
     @Override
     public Observable<DynamicRealm> asObservable() {
         return configuration.getRxFactory().from(this);
+    }
+
+    /**
+     * Returns the mutable schema for this Realm.
+     *
+     * @return The {@link RealmSchema} for this Realm.
+     */
+    @Override
+    public RealmSchema getSchema() {
+        return schema;
     }
 
     /**
@@ -282,4 +305,3 @@ public class DynamicRealm extends BaseRealm {
         }
     }
 }
-

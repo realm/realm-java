@@ -35,23 +35,31 @@ static jstring to_user_string_or_null(JNIEnv* env, const std::shared_ptr<SyncUse
     }
 }
 
+static SyncUserIdentifier create_sync_user_identifier(JNIEnv* env, jstring j_user_id, jstring j_auth_url)
+{
+    JStringAccessor user_id(env, j_user_id);   // throws
+    JStringAccessor auth_url(env, j_auth_url); // throws
+    return {user_id, auth_url};
+}
+
 JNIEXPORT jstring JNICALL Java_io_realm_RealmFileUserStore_nativeGetCurrentUser(JNIEnv* env, jclass)
 {
     TR_ENTER()
     try {
-        const std::shared_ptr<SyncUser>& user = SyncManager::shared().get_current_user();
+        auto user = SyncManager::shared().get_current_user();
         return to_user_string_or_null(env, user);
     }
     CATCH_STD()
     return nullptr;
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_RealmFileUserStore_nativeGetUser(JNIEnv* env, jclass, jstring identity)
+JNIEXPORT jstring JNICALL Java_io_realm_RealmFileUserStore_nativeGetUser(JNIEnv* env, jclass, jstring j_user_id,
+                                                                         jstring j_auth_url)
 {
     TR_ENTER()
     try {
-        JStringAccessor id(env, identity); // throws
-        const std::shared_ptr<SyncUser>& user = SyncManager::shared().get_existing_logged_in_user(id);
+        auto user = SyncManager::shared().get_existing_logged_in_user(
+            create_sync_user_identifier(env, j_user_id, j_auth_url));
         return to_user_string_or_null(env, user);
     }
     CATCH_STD()
@@ -59,27 +67,24 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmFileUserStore_nativeGetUser(JNIEnv*
 }
 
 JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeUpdateOrCreateUser(JNIEnv* env, jclass,
-                                                                                 jstring identity, jstring json_token,
-                                                                                 jstring url, jboolean is_admin)
+                                                                                 jstring j_user_id, jstring json_token,
+                                                                                 jstring j_auth_url)
 {
     TR_ENTER()
     try {
-        JStringAccessor user_identity(env, identity);    // throws
         JStringAccessor user_json_token(env, json_token); // throws
-        JStringAccessor auth_url(env, url);              // throws
-
-        SyncUser::TokenType token_type = (is_admin) ? SyncUser::TokenType::Admin : SyncUser::TokenType::Normal;
-        SyncManager::shared().get_user(user_identity, user_json_token, std::string(auth_url), token_type);
+        SyncManager::shared().get_user(create_sync_user_identifier(env, j_user_id, j_auth_url), user_json_token);
     }
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeLogoutUser(JNIEnv* env, jclass, jstring identity)
+JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeLogoutUser(JNIEnv* env, jclass, jstring j_user_id,
+                                                                         jstring j_auth_url)
 {
     TR_ENTER()
     try {
-        JStringAccessor id(env, identity); // throws
-        const std::shared_ptr<SyncUser>& user = SyncManager::shared().get_existing_logged_in_user(id);
+        auto user = SyncManager::shared().get_existing_logged_in_user(
+            create_sync_user_identifier(env, j_user_id, j_auth_url));
         if (user) {
             user->log_out();
         }
@@ -87,10 +92,25 @@ JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeLogoutUser(JNIEnv*
     CATCH_STD()
 }
 
+JNIEXPORT jboolean JNICALL Java_io_realm_RealmFileUserStore_nativeIsActive(JNIEnv* env, jclass, jstring j_user_id,
+                                                                           jstring j_auth_url)
+{
+    TR_ENTER()
+    try {
+        auto user = SyncManager::shared().get_existing_logged_in_user(
+            create_sync_user_identifier(env, j_user_id, j_auth_url));
+        if (user) {
+            return to_jbool(user->state() == SyncUser::State::Active);
+        }
+    }
+    CATCH_STD()
+    return JNI_FALSE;
+}
+
 JNIEXPORT jobjectArray JNICALL Java_io_realm_RealmFileUserStore_nativeGetAllUsers(JNIEnv* env, jclass)
 {
     TR_ENTER()
-    std::vector<std::shared_ptr<SyncUser>> all_users = SyncManager::shared().all_logged_in_users();
+    auto all_users = SyncManager::shared().all_logged_in_users();
     if (!all_users.empty()) {
         size_t len = all_users.size();
         jobjectArray users_token = env->NewObjectArray(len, java_lang_string, 0);

@@ -71,6 +71,7 @@ public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
 
             int result = 17;
             result = 31 * result + ((observer != null) ? observer.hashCode() : 0);
+            //noinspection ConstantConditions
             result = 31 * result + ((listener != null) ? listener.hashCode() : 0);
             return result;
         }
