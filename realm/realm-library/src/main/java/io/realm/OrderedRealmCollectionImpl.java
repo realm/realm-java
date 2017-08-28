@@ -9,6 +9,7 @@ import java.util.Locale;
 
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Collection;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
@@ -29,6 +30,7 @@ abstract class OrderedRealmCollectionImpl<E>
     @Nullable final Class<E> classSpec;   // Return type
     @Nullable final String className;     // Class name used by DynamicRealmObjects
     // FIXME implement this
+    @SuppressFBWarnings("SS_SHOULD_BE_STATIC")
     final boolean forValues = false;
 
     final Collection collection;

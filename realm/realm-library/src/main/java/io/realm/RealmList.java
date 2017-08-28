@@ -884,7 +884,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     public String toString() {
         if (forValues) {
             // TODO implement this
-            return null;
+            return "";
         }
 
         StringBuilder sb = new StringBuilder();
