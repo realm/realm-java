@@ -20,10 +20,38 @@ import java.nio.ByteBuffer;
 
 import io.realm.internal.Keep;
 
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_BINARY;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_BOOLEAN;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_DATE;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_DOUBLE;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_FLOAT;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_INTEGER;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_LINKING_OBJECTS;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_LIST;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECT;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_STRING;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UNSUPPORTED_DATE;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UNSUPPORTED_MIXED;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UNSUPPORTED_TABLE;
+import static io.realm.RealmFieldTypeConstants.ELEMENT_TYPE_INTEGER;
 import static io.realm.RealmFieldTypeConstants.LIST_OFFSET;
 
 interface RealmFieldTypeConstants {
     int LIST_OFFSET = 1 << 16;
+
+    int CORE_TYPE_VALUE_INTEGER = 0;
+    int CORE_TYPE_VALUE_BOOLEAN = 1;
+    int CORE_TYPE_VALUE_STRING = 2;
+    int CORE_TYPE_VALUE_BINARY = 4;
+    int CORE_TYPE_VALUE_UNSUPPORTED_TABLE = 5;
+    int CORE_TYPE_VALUE_UNSUPPORTED_MIXED = 6;
+    int CORE_TYPE_VALUE_UNSUPPORTED_DATE = 7;
+    int CORE_TYPE_VALUE_DATE = 8;
+    int CORE_TYPE_VALUE_FLOAT = 9;
+    int CORE_TYPE_VALUE_DOUBLE = 10;
+    int CORE_TYPE_VALUE_OBJECT = 12;
+    int CORE_TYPE_VALUE_LIST = 13;
+    int CORE_TYPE_VALUE_LINKING_OBJECTS = 14;
 }
 
 /**
@@ -36,27 +64,28 @@ interface RealmFieldTypeConstants {
 @Keep
 public enum RealmFieldType {
     // Makes sure numbers match with <realm/column_type.hpp>.
-    INTEGER(0),
-    BOOLEAN(1),
-    STRING(2),
-    BINARY(4),
-    UNSUPPORTED_TABLE(5),
-    UNSUPPORTED_MIXED(6),
-    UNSUPPORTED_DATE(7),
-    DATE(8),
-    FLOAT(9),
-    DOUBLE(10),
-    OBJECT(12),
-    LIST(13),
-    LINKING_OBJECTS(14),
+    INTEGER(CORE_TYPE_VALUE_INTEGER),
+    BOOLEAN(CORE_TYPE_VALUE_BOOLEAN),
+    STRING(CORE_TYPE_VALUE_STRING),
+    BINARY(CORE_TYPE_VALUE_BINARY),
+    UNSUPPORTED_TABLE(CORE_TYPE_VALUE_UNSUPPORTED_TABLE),
+    UNSUPPORTED_MIXED(CORE_TYPE_VALUE_UNSUPPORTED_MIXED),
+    UNSUPPORTED_DATE(CORE_TYPE_VALUE_UNSUPPORTED_DATE),
+    DATE(CORE_TYPE_VALUE_DATE),
+    FLOAT(CORE_TYPE_VALUE_FLOAT),
+    DOUBLE(CORE_TYPE_VALUE_DOUBLE),
+    OBJECT(CORE_TYPE_VALUE_OBJECT),
 
-    @SuppressWarnings("PointlessArithmeticExpression")
-    INTEGER_LIST(LIST_OFFSET + 0),
-    BOOLEAN_LIST(LIST_OFFSET + 1),
-    STRING_LIST(LIST_OFFSET + 2),
-    DATE_LIST(LIST_OFFSET + 8),
-    FLOAT_LIST(LIST_OFFSET + 9),
-    DOUBLE_LIST(LIST_OFFSET + 10);
+    LIST(CORE_TYPE_VALUE_LIST),
+    LINKING_OBJECTS(CORE_TYPE_VALUE_LINKING_OBJECTS),
+
+    INTEGER_LIST(CORE_TYPE_VALUE_INTEGER + LIST_OFFSET),
+    BOOLEAN_LIST(CORE_TYPE_VALUE_BOOLEAN + LIST_OFFSET),
+    STRING_LIST(CORE_TYPE_VALUE_STRING + LIST_OFFSET),
+    BINARY_LIST(CORE_TYPE_VALUE_BINARY + LIST_OFFSET),
+    DATE_LIST(CORE_TYPE_VALUE_DATE + LIST_OFFSET),
+    FLOAT_LIST(CORE_TYPE_VALUE_FLOAT + LIST_OFFSET),
+    DOUBLE_LIST(CORE_TYPE_VALUE_DOUBLE + LIST_OFFSET);
 
     // Primitive array for fast mapping between between native values and their Realm type.
     private static final RealmFieldType[] typeList = new RealmFieldType[15];
