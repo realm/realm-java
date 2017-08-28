@@ -443,7 +443,7 @@ public class SyncUserTests {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getPermissionManager_isReferenceCounted() {
         SyncUser user = createTestUser();
         PermissionManager pm1 = user.getPermissionManager();
@@ -458,7 +458,7 @@ public class SyncUserTests {
     }
 
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(emulateMainThread = true)
     public void getPermissionManger_instanceUniqueToUser() {
         SyncUser user1 = createNamedTestUser("user1");
         SyncUser user2 = createNamedTestUser("user2");
