@@ -47,6 +47,11 @@ class ImmutableRealmSchema extends RealmSchema {
     }
 
     @Override
+    public RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName, Class<?> fieldType, FieldAttribute... attributes) {
+        throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
+    }
+
+    @Override
     public void remove(String className) {
         throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
     }
