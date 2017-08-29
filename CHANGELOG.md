@@ -1,3 +1,10 @@
+## 4.0.0-BETA3 (YYYY-MM-DD)
+
+### Internal
+
+* Upgraded to Realm Sync 2.0.0-rc16.
+* Upgraded to Realm Core 3.0.0-rc5.
+
 ## 4.0.0-BETA2 (2017-07-27)
 
 ### Bug Fixes
@@ -52,6 +59,7 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 * [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
 * [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
 
+* Upgraded Realm Sync to 1.10.8
 
 ## 3.5.1 (YYYY-MM-DD)
 
