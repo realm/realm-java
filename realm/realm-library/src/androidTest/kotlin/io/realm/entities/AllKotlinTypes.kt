@@ -62,17 +62,23 @@ open class AllKotlinTypes : RealmObject() {
     var nullBinary: ByteArray? = null
     var nonNullBinary: ByteArray = ByteArray(0)
 
-// This turns into Byte[] which we dont support for some reason?
-//    var nullBoxedBinary: Array<Byte>? = null
-//    var nonNullBoxedBinary: Array<Byte> = emptyArray()
+    // This turns into Byte[] which we dont support for some reason?
+    // var nullBoxedBinary: Array<Byte>? = null
+    // var nonNullBoxedBinary: Array<Byte> = emptyArray()
 
     var nullObject: AllKotlinTypes? = null
-    var nonNullObject: AllKotlinTypes = AllKotlinTypes()
 
-    var nullList: RealmList<AllKotlinTypes>? = null // This should not be allowed
+    // Not-null object references cannot be enforced generically at the schema level, e.g. sync that
+    // removes an object reference.
+    // If people can maintain the variant themselves they can just expose a custom non-null getter.
+    // var nonNullObject: AllKotlinTypes = AllKotlinTypes()
+
+    // This is only possible in unmanaged objects, managed objects are never null
+    // For now we allow this anyway.
+    var nullList: RealmList<AllKotlinTypes>? = null
     var nonNullList: RealmList<AllKotlinTypes> = RealmList()
 
-    @LinkingObjects("nonNullObject")
+    @LinkingObjects("nullObject")
     val objectParents: RealmResults<AllKotlinTypes>? = null;
 
     @LinkingObjects("nonNullList")
