@@ -43,7 +43,7 @@ set(classes_LIST
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.internal.Property io.realm.internal.OsSchemaInfo
     io.realm.internal.OsObjectSchemaInfo io.realm.internal.Collection
     io.realm.internal.NativeObjectReference io.realm.internal.CollectionChangeSet
-    io.realm.internal.OsObject
+    io.realm.internal.OsObject io.realm.internal.OsRealmConfig
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319
@@ -114,29 +114,25 @@ if (build_SYNC)
 endif()
 
 # Download openssl lib
-# FIXME sync packed openssl with librealm-sync-android-xxx.a.
-# Remove this check after https://github.com/realm/realm-sync/issues/1469 fixed.
-if (NOT build_SYNC)
-    #string(TOLOWER "${CMAKE_BUILD_TYPE}" openssl_build_TYPE)
-    set(openssl_build_TYPE "release")
-    # FIXME Read the openssl version from core when the core/sync release has that information.
-    set(openssl_VERSION "1.0.2k")
-    set(openssl_FILENAME "openssl-${openssl_build_TYPE}-${openssl_VERSION}-Android-${ANDROID_ABI}")
-    set(openssl_URL "http://static.realm.io/downloads/openssl/${openssl_VERSION}/Android/${ANDROID_ABI}/${openssl_FILENAME}.tar.gz")
+#string(TOLOWER "${CMAKE_BUILD_TYPE}" openssl_build_TYPE)
+set(openssl_build_TYPE "release")
+# FIXME Read the openssl version from core when the core/sync release has that information.
+set(openssl_VERSION "1.0.2k")
+set(openssl_FILENAME "openssl-${openssl_build_TYPE}-${openssl_VERSION}-Android-${ANDROID_ABI}")
+set(openssl_URL "http://static.realm.io/downloads/openssl/${openssl_VERSION}/Android/${ANDROID_ABI}/${openssl_FILENAME}.tar.gz")
 
-    message(STATUS "Downloading OpenSSL...")
-    file(DOWNLOAD "${openssl_URL}" "${PROJECT_BINARY_DIR}/${openssl_FILENAME}.tar.gz")
+message(STATUS "Downloading OpenSSL...")
+file(DOWNLOAD "${openssl_URL}" "${PROJECT_BINARY_DIR}/${openssl_FILENAME}.tar.gz")
 
-    message(STATUS "Uncompressing OpenSSL...")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${PROJECT_BINARY_DIR}/${openssl_FILENAME}.tar.gz"
-        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
+message(STATUS "Uncompressing OpenSSL...")
+execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${PROJECT_BINARY_DIR}/${openssl_FILENAME}.tar.gz"
+    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
 
-    message(STATUS "Importing OpenSSL...")
-    include(${PROJECT_BINARY_DIR}/${openssl_FILENAME}/openssl.cmake)
-    get_target_property(openssl_include_DIR crypto INTERFACE_INCLUDE_DIRECTORIES)
-    get_target_property(crypto_LIB crypto IMPORTED_LOCATION)
-    get_target_property(ssl_LIB ssl IMPORTED_LOCATION)
-endif()
+message(STATUS "Importing OpenSSL...")
+include(${PROJECT_BINARY_DIR}/${openssl_FILENAME}/openssl.cmake)
+get_target_property(openssl_include_DIR crypto INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(crypto_LIB crypto IMPORTED_LOCATION)
+get_target_property(ssl_LIB ssl IMPORTED_LOCATION)
 
 # build application's shared lib
 include_directories(${REALM_CORE_DIST_DIR}/include
@@ -225,7 +221,7 @@ add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SR
 add_dependencies(realm-jni jni_headers)
 
 if (build_SYNC)
-    target_link_libraries(realm-jni log android lib_realm_sync)
+    target_link_libraries(realm-jni log android lib_realm_sync crypto ssl)
 else()
     target_link_libraries(realm-jni log android lib_realm_core crypto)
 endif()

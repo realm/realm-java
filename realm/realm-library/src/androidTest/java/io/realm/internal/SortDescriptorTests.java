@@ -231,7 +231,7 @@ public class SortDescriptorTests {
         table.addColumnLink(listType, listType.name(), table);
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Invalid query: field 'LIST' in table 'test_table' is of invalid type 'LIST'.");
+        thrown.expectMessage("Invalid query: field 'LIST' in class 'test_table' is of invalid type 'LIST'.");
         SortDescriptor.getInstanceForSort(null, table, String.format("%s.%s", listType.name(), type.name()), Sort.ASCENDING);
     }
 

@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-#include <jni.h>
 #include "io_realm_internal_Property.h"
 
-#include <stdexcept>
-#include <object-store/src/property.hpp>
-#include <object-store/src/object_store.hpp>
+#include <property.hpp>
+#include <object_store.hpp>
 
 #include "util.hpp"
 
@@ -44,12 +42,14 @@ static void finalize_property(jlong ptr)
     delete reinterpret_cast<Property*>(ptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateProperty__Ljava_lang_String_2IZZ(
-    JNIEnv* env, jclass, jstring name_, jint type, jboolean is_primary, jboolean is_indexed)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedProperty(JNIEnv* env, jclass,
+                                                                                      jstring j_name_str, jint type,
+                                                                                      jboolean is_primary,
+                                                                                      jboolean is_indexed)
 {
     TR_ENTER()
     try {
-        JStringAccessor str(env, name_);
+        JStringAccessor str(env, j_name_str);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
         std::unique_ptr<Property> property(
             new Property(str, p_type, to_bool(is_primary), to_bool(is_indexed)));
@@ -67,15 +67,35 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateProperty__Lj
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_String_2(
-    JNIEnv* env, jclass, jstring name_, jint type, jstring linkedToName_)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedLinkProperty(JNIEnv* env, jclass,
+                                                                                          jstring j_name_str,
+                                                                                          jint type,
+                                                                                          jstring j_target_class_name)
 {
     TR_ENTER()
     try {
-        JStringAccessor name(env, name_);
-        JStringAccessor link_name(env, linkedToName_);
+        JStringAccessor name(env, j_name_str);
+        JStringAccessor link_name(env, j_target_class_name);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
         return reinterpret_cast<jlong>(new Property(name, p_type, link_name));
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateComputedLinkProperty(JNIEnv* env, jclass,
+                                                                                         jstring j_name_str,
+                                                                                         jstring j_source_class_name,
+                                                                                         jstring j_source_field_name)
+{
+    TR_ENTER()
+    try {
+        JStringAccessor name(env, j_name_str);
+        JStringAccessor target_class_name(env, j_source_class_name);
+        JStringAccessor target_field_name(env, j_source_field_name);
+
+        PropertyType p_type = PropertyType::LinkingObjects | PropertyType::Array;
+        return reinterpret_cast<jlong>(new Property(name, p_type, target_class_name, target_field_name));
     }
     CATCH_STD()
     return 0;
@@ -85,4 +105,33 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetFinalizerPtr(JN
 {
     TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_property);
+}
+
+JNIEXPORT jint JNICALL Java_io_realm_internal_Property_nativeGetType(JNIEnv*, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr);
+    auto& property = *reinterpret_cast<Property*>(native_ptr);
+    return static_cast<jint>(property.type);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetColumnIndex(JNIEnv*, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr);
+    auto& property = *reinterpret_cast<Property*>(native_ptr);
+    return static_cast<jlong>(property.table_column);
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Property_nativeGetLinkedObjectName(JNIEnv* env, jclass,
+                                                                                    jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr);
+    try {
+        auto& property = *reinterpret_cast<Property*>(native_ptr);
+        std::string name = property.object_type;
+        if (!name.empty()) {
+            return to_jstring(env, name);
+        }
+    }
+    CATCH_STD()
+    return nullptr;
 }

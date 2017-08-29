@@ -212,6 +212,15 @@ public class Table implements TableSchema, NativeObject {
     }
 
     /**
+     * Inserts a column at the given {@code columnIndex}.
+     * WARNING: This is only for internal testing purpose. Don't expose this to public API.
+     */
+    public void insertColumn(long columnIndex, RealmFieldType type, String name) {
+        verifyColumnName(name);
+        nativeInsertColumn(nativePtr, columnIndex, type.getNativeValue(), name);
+    }
+
+    /**
      * Checks whether the specific column is nullable?
      *
      * @param columnIndex the column index.
@@ -890,6 +899,8 @@ public class Table implements TableSchema, NativeObject {
     private native void nativeRenameColumn(long nativeTablePtr, long columnIndex, String name);
 
     private native void nativeRemoveColumn(long nativeTablePtr, long columnIndex);
+
+    private static native void nativeInsertColumn(long nativeTablePtr, long columnIndex, int type, String name);
 
     private native boolean nativeIsColumnNullable(long nativePtr, long columnIndex);
 
