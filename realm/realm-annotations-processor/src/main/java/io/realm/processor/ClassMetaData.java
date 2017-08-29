@@ -362,7 +362,6 @@ public class ClassMetaData {
             }
         }
 
-
         return true;
     }
 
