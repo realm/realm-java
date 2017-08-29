@@ -23,7 +23,7 @@ import java.net.ConnectException;
  */
 public enum ErrorCode {
 
-    // See https://github.com/realm/realm-sync/blob/master/doc/protocol.md
+    // See Client::Error in https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp
     // See https://github.com/realm/realm-object-server/blob/master/object-server/doc/problems.md
 
     // Realm Java errors (0-49)
