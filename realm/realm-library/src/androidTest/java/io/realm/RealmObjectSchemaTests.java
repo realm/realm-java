@@ -88,14 +88,16 @@ public class RealmObjectSchemaTests {
             realm = Realm.getInstance(realmConfig);
             realmSchema = realm.getSchema();
             DOG_SCHEMA = realmSchema.get("Dog");
-            schema = realmSchema.get("NewClass");
+            schema = realmSchema.get("Dog");
         }
         realm.beginTransaction();
     }
 
     @After
     public void tearDown() {
-        realm.cancelTransaction();
+        if (realm.isInTransaction()) {
+            realm.cancelTransaction();
+        }
         realm.close();
     }
 

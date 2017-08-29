@@ -35,8 +35,8 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
@@ -78,8 +78,7 @@ public class SyncConfiguration extends RealmConfiguration {
     static final int MAX_FULL_PATH_LENGTH = 256;
     static final int MAX_FILE_NAME_LENGTH = 255;
     private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
-
-    private final URI serverUrl;
+private final URI serverUrl;
     private final SyncUser user;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
@@ -101,7 +100,7 @@ public class SyncConfiguration extends RealmConfiguration {
                                 @Nullable
                                 RealmMigration migration,
                                 boolean deleteRealmIfMigrationNeeded,
-                                SharedRealm.Durability durability,
+                                OsRealmConfig.Durability durability,
                                 RealmProxyMediator schemaMediator,
                                 @Nullable
                                 RxObservableFactory rxFactory,
@@ -318,7 +317,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private Realm.Transaction initialDataTransaction;
         private File defaultFolder;
         private String defaultLocalFileName;
-        private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
+        private OsRealmConfig.Durability durability = OsRealmConfig.Durability.FULL;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
         private boolean readOnly = false;
         private boolean waitForServerChanges = false;
@@ -655,7 +654,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */
         public Builder inMemory() {
-            this.durability = SharedRealm.Durability.MEM_ONLY;
+            this.durability = OsRealmConfig.Durability.MEM_ONLY;
             return this;
         }
 

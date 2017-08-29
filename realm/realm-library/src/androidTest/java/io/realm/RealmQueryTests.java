@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -2770,6 +2771,26 @@ public class RealmQueryTests extends QueryTests {
                 realm.where(AllJavaTypes.class).isEmpty(fieldName).findAll();
                 fail();
             } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void isEmpty_acrossLink_wrongTypeThrows() {
+        for (RealmFieldType type : RealmFieldType.values()) {
+            if (SUPPORTED_IS_EMPTY_TYPES.contains(type)) {
+                continue;
+            }
+
+            RealmQuery<Owner> query = realm.where(Owner.class);
+            try {
+                query.isEmpty(Owner.FIELD_CAT + "." + Cat.FIELD_AGE);
+                fail();
+            } catch (IllegalArgumentException expected) {
+                assertEquals(String.format(Locale.US,
+                        "Invalid query: field '%s' in class '%s' is of invalid type '%s'.",
+                        Cat.FIELD_AGE, Cat.CLASS_NAME, RealmFieldType.INTEGER.name()),
+                        expected.getMessage());
             }
         }
     }
