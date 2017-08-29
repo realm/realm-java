@@ -28,7 +28,7 @@ import static org.truth0.Truth.ASSERT;
 
 public class ValueListProcessorTest {
     private final JavaFileObject valueList = JavaFileObjects.forResource("some/test/ValueList.java");
-    private final JavaFileObject invalidValueType = JavaFileObjects.forResource("some/test/InvalidListElementType.java");
+    private final JavaFileObject invalidListValueType = JavaFileObjects.forResource("some/test/InvalidListElementType.java");
 
     @Test
     @Ignore("need to implement primitive list support in realm-library")
@@ -40,9 +40,9 @@ public class ValueListProcessorTest {
     }
 
     @Test
-    public void failToCompileInvalidElementType() {
+    public void failToCompileInvalidListElementType() {
         ASSERT.about(javaSource())
-                .that(invalidValueType)
+                .that(invalidListValueType)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

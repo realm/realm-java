@@ -325,15 +325,15 @@ public class ClassMetaData {
             }
         }
 
-        // check if the actual value class is acceptable
-        if (!validListValueTypes.contains(elementTypeMirror)
-                && !Utils.isRealmModel(elementTypeMirror)) {
+        // Check if the actual value class is acceptable
+        if (!validListValueTypes.contains(elementTypeMirror) && !Utils.isRealmModel(elementTypeMirror)) {
             final StringBuilder messageBuilder = new StringBuilder(
                     "Element type of RealmList must be a class implementing 'RealmModel' or one of the ");
+            final String separator = ", ";
             for (TypeMirror type : validListValueTypes) {
-                messageBuilder.append('\'').append(type.toString()).append("', ");
+                messageBuilder.append('\'').append(type.toString()).append('\'').append(separator);
             }
-            messageBuilder.setLength(messageBuilder.length() - ", ".length());
+            messageBuilder.setLength(messageBuilder.length() - separator.length());
             messageBuilder.append('.');
             Utils.error(messageBuilder.toString(), field);
             return false;
@@ -343,6 +343,8 @@ public class ClassMetaData {
     }
 
     private boolean checkRealmResultsType(VariableElement field) {
+        // Only classes implementing RealmModel are allowed since RealmResults field is used only for backlinks.
+
         // Check for missing generic (default back to Object)
         if (Utils.getGenericTypeQualifiedName(field) == null) {
             Utils.error("No generic type supplied for field", field);
@@ -355,11 +357,17 @@ public class ClassMetaData {
             TypeElement elementTypeElement = (TypeElement) ((DeclaredType) elementTypeMirror).asElement();
             if (elementTypeElement.getSuperclass().getKind() == TypeKind.NONE) {
                 Utils.error(
-                        "Only concrete Realm classes are allowed in RealmLists. "
+                        "Only concrete Realm classes are allowed in RealmResults. "
                                 + "Neither interfaces nor abstract classes are allowed.",
                         field);
                 return false;
             }
+        }
+
+        // Check if the actual value class is acceptable
+        if (!Utils.isRealmModel(elementTypeMirror)) {
+            Utils.error("Element type of RealmResults must be a class implementing 'RealmModel'.", field);
+            return false;
         }
 
         return true;
