@@ -219,12 +219,16 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Collection_nativeAggregate(JNIE
             case io_realm_internal_Collection_AGGREGATE_FUNCTION_MAXIMUM:
                 value = wrapper->m_results.max(index);
                 break;
-            case io_realm_internal_Collection_AGGREGATE_FUNCTION_AVERAGE:
-                value = wrapper->m_results.average(index);
-                if (!value) {
+            case io_realm_internal_Collection_AGGREGATE_FUNCTION_AVERAGE: {
+                Optional<double> value_count(wrapper->m_results.average(index));
+                if (value_count) {
+                    value = Optional<Mixed>(Mixed(value_count.value()));
+                }
+                else {
                     value = Optional<Mixed>(0.0);
                 }
                 break;
+            }
             case io_realm_internal_Collection_AGGREGATE_FUNCTION_SUM:
                 value = wrapper->m_results.sum(index);
                 break;
