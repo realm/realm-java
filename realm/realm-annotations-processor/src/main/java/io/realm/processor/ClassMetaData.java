@@ -351,7 +351,7 @@ public class ClassMetaData {
 
         TypeMirror fieldType = field.asType();
         final TypeMirror elementTypeMirror = ((DeclaredType) fieldType).getTypeArguments().get(0);
-        if (elementTypeMirror.getKind() == TypeKind.DECLARED /* class of interface*/) {
+        if (elementTypeMirror.getKind() == TypeKind.DECLARED /* class or interface*/) {
             TypeElement elementTypeElement = (TypeElement) ((DeclaredType) elementTypeMirror).asElement();
             if (elementTypeElement.getSuperclass().getKind() == TypeKind.NONE) {
                 Utils.error(
