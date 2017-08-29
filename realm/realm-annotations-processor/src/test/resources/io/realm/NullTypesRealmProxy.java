@@ -10,6 +10,7 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.Property;
 import io.realm.internal.ProxyUtils;
 import io.realm.internal.RealmObjectProxy;
@@ -57,29 +58,30 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         long fieldDateNullIndex;
         long fieldObjectNullIndex;
 
-        NullTypesColumnInfo(SharedRealm realm, Table table) {
+        NullTypesColumnInfo(OsSchemaInfo schemaInfo) {
             super(21);
-            this.fieldStringNotNullIndex = addColumnDetails(table, "fieldStringNotNull", RealmFieldType.STRING);
-            this.fieldStringNullIndex = addColumnDetails(table, "fieldStringNull", RealmFieldType.STRING);
-            this.fieldBooleanNotNullIndex = addColumnDetails(table, "fieldBooleanNotNull", RealmFieldType.BOOLEAN);
-            this.fieldBooleanNullIndex = addColumnDetails(table, "fieldBooleanNull", RealmFieldType.BOOLEAN);
-            this.fieldBytesNotNullIndex = addColumnDetails(table, "fieldBytesNotNull", RealmFieldType.BINARY);
-            this.fieldBytesNullIndex = addColumnDetails(table, "fieldBytesNull", RealmFieldType.BINARY);
-            this.fieldByteNotNullIndex = addColumnDetails(table, "fieldByteNotNull", RealmFieldType.INTEGER);
-            this.fieldByteNullIndex = addColumnDetails(table, "fieldByteNull", RealmFieldType.INTEGER);
-            this.fieldShortNotNullIndex = addColumnDetails(table, "fieldShortNotNull", RealmFieldType.INTEGER);
-            this.fieldShortNullIndex = addColumnDetails(table, "fieldShortNull", RealmFieldType.INTEGER);
-            this.fieldIntegerNotNullIndex = addColumnDetails(table, "fieldIntegerNotNull", RealmFieldType.INTEGER);
-            this.fieldIntegerNullIndex = addColumnDetails(table, "fieldIntegerNull", RealmFieldType.INTEGER);
-            this.fieldLongNotNullIndex = addColumnDetails(table, "fieldLongNotNull", RealmFieldType.INTEGER);
-            this.fieldLongNullIndex = addColumnDetails(table, "fieldLongNull", RealmFieldType.INTEGER);
-            this.fieldFloatNotNullIndex = addColumnDetails(table, "fieldFloatNotNull", RealmFieldType.FLOAT);
-            this.fieldFloatNullIndex = addColumnDetails(table, "fieldFloatNull", RealmFieldType.FLOAT);
-            this.fieldDoubleNotNullIndex = addColumnDetails(table, "fieldDoubleNotNull", RealmFieldType.DOUBLE);
-            this.fieldDoubleNullIndex = addColumnDetails(table, "fieldDoubleNull", RealmFieldType.DOUBLE);
-            this.fieldDateNotNullIndex = addColumnDetails(table, "fieldDateNotNull", RealmFieldType.DATE);
-            this.fieldDateNullIndex = addColumnDetails(table, "fieldDateNull", RealmFieldType.DATE);
-            this.fieldObjectNullIndex = addColumnDetails(table, "fieldObjectNull", RealmFieldType.OBJECT);
+            OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("NullTypes");
+            this.fieldStringNotNullIndex = addColumnDetails("fieldStringNotNull", objectSchemaInfo);
+            this.fieldStringNullIndex = addColumnDetails("fieldStringNull", objectSchemaInfo);
+            this.fieldBooleanNotNullIndex = addColumnDetails("fieldBooleanNotNull", objectSchemaInfo);
+            this.fieldBooleanNullIndex = addColumnDetails("fieldBooleanNull", objectSchemaInfo);
+            this.fieldBytesNotNullIndex = addColumnDetails("fieldBytesNotNull", objectSchemaInfo);
+            this.fieldBytesNullIndex = addColumnDetails("fieldBytesNull", objectSchemaInfo);
+            this.fieldByteNotNullIndex = addColumnDetails("fieldByteNotNull", objectSchemaInfo);
+            this.fieldByteNullIndex = addColumnDetails("fieldByteNull", objectSchemaInfo);
+            this.fieldShortNotNullIndex = addColumnDetails("fieldShortNotNull", objectSchemaInfo);
+            this.fieldShortNullIndex = addColumnDetails("fieldShortNull", objectSchemaInfo);
+            this.fieldIntegerNotNullIndex = addColumnDetails("fieldIntegerNotNull", objectSchemaInfo);
+            this.fieldIntegerNullIndex = addColumnDetails("fieldIntegerNull", objectSchemaInfo);
+            this.fieldLongNotNullIndex = addColumnDetails("fieldLongNotNull", objectSchemaInfo);
+            this.fieldLongNullIndex = addColumnDetails("fieldLongNull", objectSchemaInfo);
+            this.fieldFloatNotNullIndex = addColumnDetails("fieldFloatNotNull", objectSchemaInfo);
+            this.fieldFloatNullIndex = addColumnDetails("fieldFloatNull", objectSchemaInfo);
+            this.fieldDoubleNotNullIndex = addColumnDetails("fieldDoubleNotNull", objectSchemaInfo);
+            this.fieldDoubleNullIndex = addColumnDetails("fieldDoubleNull", objectSchemaInfo);
+            this.fieldDateNotNullIndex = addColumnDetails("fieldDateNotNull", objectSchemaInfo);
+            this.fieldDateNullIndex = addColumnDetails("fieldDateNull", objectSchemaInfo);
+            this.fieldObjectNullIndex = addColumnDetails("fieldObjectNull", objectSchemaInfo);
         }
 
         NullTypesColumnInfo(ColumnInfo src, boolean mutable) {
@@ -826,27 +828,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
         OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("NullTypes");
-        builder.addProperty("fieldStringNotNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("fieldStringNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addProperty("fieldBooleanNotNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("fieldBooleanNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addProperty("fieldBytesNotNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("fieldBytesNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addProperty("fieldByteNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("fieldByteNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addProperty("fieldShortNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("fieldShortNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addProperty("fieldIntegerNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("fieldIntegerNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addProperty("fieldLongNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("fieldLongNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addProperty("fieldFloatNotNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("fieldFloatNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addProperty("fieldDoubleNotNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("fieldDoubleNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addProperty("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addLinkedProperty("fieldObjectNull", RealmFieldType.OBJECT, "NullTypes");
+        builder.addPersistedProperty("fieldStringNotNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("fieldStringNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("fieldBooleanNotNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("fieldBooleanNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("fieldBytesNotNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("fieldBytesNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("fieldByteNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("fieldByteNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("fieldShortNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("fieldShortNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("fieldIntegerNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("fieldIntegerNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("fieldLongNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("fieldLongNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("fieldFloatNotNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("fieldFloatNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("fieldDoubleNotNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("fieldDoubleNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedLinkProperty("fieldObjectNull", RealmFieldType.OBJECT, "NullTypes");
         return builder.build();
     }
 
@@ -854,123 +856,8 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return expectedObjectSchemaInfo;
     }
 
-    public static NullTypesColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
-        if (!sharedRealm.hasTable("class_NullTypes")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "The 'NullTypes' class is missing from the schema for this Realm.");
-        }
-        Table table = sharedRealm.getTable("class_NullTypes");
-        final long columnCount = table.getColumnCount();
-        if (columnCount != 21) {
-            if (columnCount < 21) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 21 but was " + columnCount);
-            }
-            if (allowExtraColumns) {
-                RealmLog.debug("Field count is more than expected - expected 21 but was %1$d", columnCount);
-            } else {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 21 but was " + columnCount);
-            }
-        }
-        Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
-        for (long i = 0; i < columnCount; i++) {
-            columnTypes.put(table.getColumnName(i), table.getColumnType(i));
-        }
-
-        final NullTypesColumnInfo columnInfo = new NullTypesColumnInfo(sharedRealm, table);
-
-        if (table.hasPrimaryKey()) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
-        }
-
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldStringNotNull", RealmFieldType.STRING, "String");
-        if (table.isColumnNullable(columnInfo.fieldStringNotNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldStringNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldStringNotNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldStringNull", RealmFieldType.STRING, "String");
-        if (!table.isColumnNullable(columnInfo.fieldStringNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldStringNull' is required. Either set @Required to field 'fieldStringNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldBooleanNotNull", RealmFieldType.BOOLEAN, "Boolean");
-        if (table.isColumnNullable(columnInfo.fieldBooleanNotNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldBooleanNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldBooleanNotNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldBooleanNull", RealmFieldType.BOOLEAN, "Boolean");
-        if (!table.isColumnNullable(columnInfo.fieldBooleanNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldBooleanNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldBooleanNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldBytesNotNull", RealmFieldType.BINARY, "byte[]");
-        if (table.isColumnNullable(columnInfo.fieldBytesNotNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldBytesNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldBytesNotNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldBytesNull", RealmFieldType.BINARY, "byte[]");
-        if (!table.isColumnNullable(columnInfo.fieldBytesNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldBytesNull' is required. Either set @Required to field 'fieldBytesNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldByteNotNull", RealmFieldType.INTEGER, "Byte");
-        if (table.isColumnNullable(columnInfo.fieldByteNotNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldByteNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldByteNotNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldByteNull", RealmFieldType.INTEGER, "Byte");
-        if (!table.isColumnNullable(columnInfo.fieldByteNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldByteNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldByteNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldShortNotNull", RealmFieldType.INTEGER, "Short");
-        if (table.isColumnNullable(columnInfo.fieldShortNotNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldShortNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldShortNotNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldShortNull", RealmFieldType.INTEGER, "Short");
-        if (!table.isColumnNullable(columnInfo.fieldShortNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldShortNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldShortNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldIntegerNotNull", RealmFieldType.INTEGER, "Integer");
-        if (table.isColumnNullable(columnInfo.fieldIntegerNotNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldIntegerNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldIntegerNotNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldIntegerNull", RealmFieldType.INTEGER, "Integer");
-        if (!table.isColumnNullable(columnInfo.fieldIntegerNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldIntegerNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldIntegerNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldLongNotNull", RealmFieldType.INTEGER, "Long");
-        if (table.isColumnNullable(columnInfo.fieldLongNotNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldLongNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldLongNotNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldLongNull", RealmFieldType.INTEGER, "Long");
-        if (!table.isColumnNullable(columnInfo.fieldLongNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldLongNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldLongNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldFloatNotNull", RealmFieldType.FLOAT, "Float");
-        if (table.isColumnNullable(columnInfo.fieldFloatNotNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldFloatNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldFloatNotNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldFloatNull", RealmFieldType.FLOAT, "Float");
-        if (!table.isColumnNullable(columnInfo.fieldFloatNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldFloatNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldFloatNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldDoubleNotNull", RealmFieldType.DOUBLE, "Double");
-        if (table.isColumnNullable(columnInfo.fieldDoubleNotNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldDoubleNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldDoubleNotNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldDoubleNull", RealmFieldType.DOUBLE, "Double");
-        if (!table.isColumnNullable(columnInfo.fieldDoubleNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(),"Field 'fieldDoubleNull' does not support null values in the existing Realm file. Either set @Required, use the primitive type for field 'fieldDoubleNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldDateNotNull", RealmFieldType.DATE, "Date");
-        if (table.isColumnNullable(columnInfo.fieldDateNotNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldDateNotNull' does support null values in the existing Realm file. Remove @Required or @PrimaryKey from field 'fieldDateNotNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldDateNull", RealmFieldType.DATE, "Date");
-        if (!table.isColumnNullable(columnInfo.fieldDateNullIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'fieldDateNull' is required. Either set @Required to field 'fieldDateNull' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "fieldObjectNull", RealmFieldType.OBJECT, "NullTypes");
-        if (!sharedRealm.hasTable("class_NullTypes")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing class 'class_NullTypes' for field 'fieldObjectNull'");
-        }
-        Table table_20 = sharedRealm.getTable("class_NullTypes");
-        if (!table.getLinkTarget(columnInfo.fieldObjectNullIndex).hasSameSchema(table_20)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid RealmObject for field 'fieldObjectNull': '" + table.getLinkTarget(columnInfo.fieldObjectNullIndex).getName() + "' expected - was '" + table_20.getName() + "'");
-        }
-
-        return columnInfo;
+    public static NullTypesColumnInfo createColumnInfo(OsSchemaInfo schemaInfo) {
+        return new NullTypesColumnInfo(schemaInfo);
     }
 
     public static String getTableName() {

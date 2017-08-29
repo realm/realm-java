@@ -31,10 +31,14 @@ import okhttp3.Response;
  */
 public class LookupUserIdResponse extends AuthServerResponse {
 
+    private static final String JSON_FIELD_PROVIDER = "provider";
+    private static final String JSON_FIELD_PROVIDER_ID = "provider_id";
     private static final String JSON_FIELD_USER = "user";
     private static final String JSON_FIELD_USER_ID = "id";
     private static final String JSON_FIELD_USER_IS_ADMIN = "isAdmin";
 
+    private final String providerId;
+    private final String provider;
     private final String userId;
     private final Boolean isAdmin;
 
@@ -78,17 +82,23 @@ public class LookupUserIdResponse extends AuthServerResponse {
         RealmLog.debug("LookupUserIdResponse - Error: " + error);
         setError(error);
         this.error = error;
+        this.providerId = null;
+        this.provider = null;
         this.userId = null;
         this.isAdmin = null;
     }
 
     private LookupUserIdResponse(String serverResponse) {
         ObjectServerError error;
+        String provider;
+        String providerId;
         String userId;
         Boolean isAdmin;
         String message;
         try {
             JSONObject obj = new JSONObject(serverResponse);
+            provider = obj.getString(JSON_FIELD_PROVIDER);
+            providerId = obj.getString(JSON_FIELD_PROVIDER_ID);
             JSONObject jsonUser = obj.getJSONObject(JSON_FIELD_USER);
             if (jsonUser != null) {
                 userId = jsonUser.optString(JSON_FIELD_USER_ID, null);
@@ -107,6 +117,8 @@ public class LookupUserIdResponse extends AuthServerResponse {
             }
 
         } catch (JSONException e) {
+            provider = null;
+            providerId = null;
             userId = null;
             isAdmin = null;
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, e);
@@ -115,8 +127,18 @@ public class LookupUserIdResponse extends AuthServerResponse {
 
         RealmLog.debug("LookupUserIdResponse. " + message);
         setError(error);
+        this.providerId = providerId;
+        this.provider = provider;
         this.userId = userId;
         this.isAdmin = isAdmin;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public String getProvider() {
+        return provider;
     }
 
     public String getUserId() {

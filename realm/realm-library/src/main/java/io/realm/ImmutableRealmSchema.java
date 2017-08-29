@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import io.realm.internal.ColumnIndices;
 import io.realm.internal.Table;
 
 /**
@@ -26,8 +27,8 @@ class ImmutableRealmSchema extends RealmSchema {
     private static final String SCHEMA_IMMUTABLE_EXCEPTION_MSG = "This 'RealmSchema' is immutable." +
             " Please use 'DynamicRealm.getSchema() to get a mutable instance.";
 
-    ImmutableRealmSchema(BaseRealm realm) {
-        super(realm);
+    ImmutableRealmSchema(BaseRealm realm, ColumnIndices columnIndices) {
+        super(realm, columnIndices);
     }
 
     @Override

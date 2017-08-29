@@ -39,7 +39,7 @@ public class AuthenticateRequestTests {
 
     @Test
     public void realmLogin() throws URISyntaxException, JSONException {
-        Token t = SyncTestUtils.createTestUser().getSyncUser().getUserToken();
+        Token t = SyncTestUtils.createTestUser().getAccessToken();
         AuthenticateRequest request = AuthenticateRequest.realmLogin(t, new URI("realm://objectserver/" + t.identity() + "/default"));
 
         JSONObject obj = new JSONObject(request.toJson());
@@ -60,7 +60,7 @@ public class AuthenticateRequestTests {
 
     @Test
     public void userRefresh() throws URISyntaxException, JSONException {
-        Token t = SyncTestUtils.createTestUser().getSyncUser().getUserToken();
+        Token t = SyncTestUtils.createTestUser().getAccessToken();
         AuthenticateRequest request = AuthenticateRequest.userRefresh(t, new URI("realm://objectserver/" + t.identity() + "/default"));
 
         JSONObject obj = new JSONObject(request.toJson());
