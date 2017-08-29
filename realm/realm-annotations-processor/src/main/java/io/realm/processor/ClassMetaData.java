@@ -19,6 +19,7 @@ package io.realm.processor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -66,6 +67,7 @@ public class ClassMetaData {
     private boolean containsHashCode;
 
     private final List<TypeMirror> validPrimaryKeyTypes;
+    private final List<TypeMirror> validListValueTypes;
     private final Types typeUtils;
     private final Elements elements;
 
@@ -74,13 +76,25 @@ public class ClassMetaData {
         this.className = clazz.getSimpleName().toString();
         typeUtils = env.getTypeUtils();
         elements = env.getElementUtils();
-        TypeMirror stringType = env.getElementUtils().getTypeElement("java.lang.String").asType();
+        TypeMirror stringType = elements.getTypeElement("java.lang.String").asType();
         validPrimaryKeyTypes = Arrays.asList(
                 stringType,
                 typeUtils.getPrimitiveType(TypeKind.SHORT),
                 typeUtils.getPrimitiveType(TypeKind.INT),
                 typeUtils.getPrimitiveType(TypeKind.LONG),
                 typeUtils.getPrimitiveType(TypeKind.BYTE)
+        );
+        validListValueTypes = Arrays.asList(
+                stringType,
+                typeUtils.getArrayType(typeUtils.getPrimitiveType(TypeKind.BYTE)),
+                elements.getTypeElement(Boolean.class.getName()).asType(),
+                elements.getTypeElement(Long.class.getName()).asType(),
+                elements.getTypeElement(Integer.class.getName()).asType(),
+                elements.getTypeElement(Short.class.getName()).asType(),
+                elements.getTypeElement(Byte.class.getName()).asType(),
+                elements.getTypeElement(Double.class.getName()).asType(),
+                elements.getTypeElement(Float.class.getName()).asType(),
+                elements.getTypeElement(Date.class.getName()).asType()
         );
 
         for (Element element : classType.getEnclosedElements()) {
@@ -240,7 +254,7 @@ public class ClassMetaData {
         packageName = packageElement.getQualifiedName().toString();
 
         if (!categorizeClassElements()) { return false; }
-        if (!checkListTypes()) { return false; }
+        if (!checkCollectionTypes()) { return false; }
         if (!checkReferenceTypes()) { return false; }
         if (!checkDefaultConstructor()) { return false; }
         if (!checkForFinalFields()) { return false; }
@@ -274,29 +288,80 @@ public class ClassMetaData {
         return true;
     }
 
-    private boolean checkListTypes() {
+    private boolean checkCollectionTypes() {
         for (VariableElement field : fields) {
-            if (Utils.isRealmList(field) || Utils.isRealmResults(field)) {
-                // Check for missing generic (default back to Object)
-                if (Utils.getGenericTypeQualifiedName(field) == null) {
-                    Utils.error("No generic type supplied for field", field);
+            if (Utils.isRealmList(field)) {
+                if (!checkRealmListType(field)) {
                     return false;
                 }
-
-                // Check that the referenced type is a concrete class and not an interface
-                TypeMirror fieldType = field.asType();
-                List<? extends TypeMirror> typeArguments = ((DeclaredType) fieldType).getTypeArguments();
-                String genericCanonicalType = typeArguments.get(0).toString();
-                TypeElement typeElement = elements.getTypeElement(genericCanonicalType);
-                if (typeElement.getSuperclass().getKind() == TypeKind.NONE) {
-                    Utils.error(
-                            "Only concrete Realm classes are allowed in RealmLists. "
-                                    + "Neither interfaces nor abstract classes are allowed.",
-                            field);
+            } else if (Utils.isRealmResults(field)) {
+                if (!checkRealmResultsType(field)) {
                     return false;
                 }
             }
         }
+
+        return true;
+    }
+
+    private boolean checkRealmListType(VariableElement field) {
+        // Check for missing generic (default back to Object)
+        if (Utils.getGenericTypeQualifiedName(field) == null) {
+            Utils.error("No generic type supplied for field", field);
+            return false;
+        }
+
+        // Check that the referenced type is a concrete class and not an interface
+        TypeMirror fieldType = field.asType();
+        final TypeMirror elementTypeMirror = ((DeclaredType) fieldType).getTypeArguments().get(0);
+        if (elementTypeMirror.getKind() == TypeKind.DECLARED /* class of interface*/) {
+            TypeElement elementTypeElement = (TypeElement) ((DeclaredType) elementTypeMirror).asElement();
+            if (elementTypeElement.getSuperclass().getKind() == TypeKind.NONE) {
+                Utils.error(
+                        "Only concrete Realm classes are allowed in RealmLists. "
+                                + "Neither interfaces nor abstract classes are allowed.",
+                        field);
+                return false;
+            }
+        }
+
+        // check if the actual value class is acceptable
+        if (!validListValueTypes.contains(elementTypeMirror)
+                && !Utils.isRealmModel(elementTypeMirror)) {
+            final StringBuilder messageBuilder = new StringBuilder(
+                    "Value type of RealmLists must be a class implementing 'RealmModel' or one of the ");
+            for (TypeMirror type : validListValueTypes) {
+                messageBuilder.append('\'').append(type.toString()).append("', ");
+            }
+            messageBuilder.setLength(messageBuilder.length() - ", ".length());
+            messageBuilder.append('.');
+            Utils.error(messageBuilder.toString(), field);
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean checkRealmResultsType(VariableElement field) {
+        // Check for missing generic (default back to Object)
+        if (Utils.getGenericTypeQualifiedName(field) == null) {
+            Utils.error("No generic type supplied for field", field);
+            return false;
+        }
+
+        TypeMirror fieldType = field.asType();
+        final TypeMirror elementTypeMirror = ((DeclaredType) fieldType).getTypeArguments().get(0);
+        if (elementTypeMirror.getKind() == TypeKind.DECLARED /* class of interface*/) {
+            TypeElement elementTypeElement = (TypeElement) ((DeclaredType) elementTypeMirror).asElement();
+            if (elementTypeElement.getSuperclass().getKind() == TypeKind.NONE) {
+                Utils.error(
+                        "Only concrete Realm classes are allowed in RealmLists. "
+                                + "Neither interfaces nor abstract classes are allowed.",
+                        field);
+                return false;
+            }
+        }
+
 
         return true;
     }
