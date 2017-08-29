@@ -93,16 +93,6 @@ public class AllJavaTypes extends RealmObject {
     @LinkingObjects(FIELD_LIST)
     private final RealmResults<AllJavaTypes> listParents = null;
 
-    public RealmList<String> stringList;
-    public RealmList<Long> longList;
-    public RealmList<Integer> intList;
-    public RealmList<Short> shortList;
-    public RealmList<Byte> byteList;
-    public RealmList<Float> floatList;
-    public RealmList<Double> doubleList;
-    public RealmList<Boolean> booleanList;
-    public RealmList<Date> dateList;
-
     public AllJavaTypes() {
     }
 
