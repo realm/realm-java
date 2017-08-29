@@ -22,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -30,16 +31,13 @@ import android.test.MoreAsserts;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Set;
 
 import io.realm.entities.AllTypes;
-import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnimalModule;
 import io.realm.entities.AssetFileModule;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
-import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
@@ -394,17 +392,13 @@ public class RealmConfigurationTests {
         assertEquals(0, realm.getVersion());
         realm.close();
 
-        // Version upgrades should always require a migration.
-        try {
-            realm = Realm.getInstance(new RealmConfiguration.Builder(context)
-                    .directory(configFactory.getRoot())
-                    .schemaVersion(42)
-                    .build());
-            fail();
-        } catch (RealmMigrationNeededException expected) {
-            // And it should come with a cause.
-            assertEquals("Realm on disk need to migrate from v0 to v42", expected.getMessage());
-        }
+        // Version upgrades only without any actual schema changes will just succeed, and the schema version will be
+        // set to the new one.
+        realm = Realm.getInstance(new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .schemaVersion(42)
+                .build());
+        assertEquals(42, realm.getVersion());
     }
 
     @Test
@@ -838,7 +832,7 @@ public class RealmConfigurationTests {
 
         realm = Realm.getInstance(configuration);
         realm.close();
-        verify(transaction, times(1)).execute(realm);
+        verify(transaction, times(1)).execute(Mockito.any(Realm.class));
 
         realm = Realm.getInstance(configuration);
         realm.close();
@@ -863,6 +857,41 @@ public class RealmConfigurationTests {
         realm = Realm.getInstance(configuration);
         realm.close();
         verify(transaction, never()).execute(realm);
+    }
+
+    @Test
+    public void initialDataTransactionThrows() {
+        final RuntimeException exception = new RuntimeException();
+
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(final Realm realm) {
+                        throw exception;
+                    }
+                }).build();
+
+        assertFalse(new File(configuration.getPath()).exists());
+
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(configuration);
+            fail();
+        } catch (RuntimeException expected) {
+            assertSame(exception, expected);
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(configuration);
+        try {
+            // The schema should not be initialized.
+            assertNull(dynamicRealm.getSchema().get(StringOnly.CLASS_NAME));
+        } finally {
+            dynamicRealm.close();
+        }
     }
 
     @Test

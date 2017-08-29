@@ -74,7 +74,9 @@ public class CollectionTests {
     }
 
     private SharedRealm getSharedRealm() {
-        return SharedRealm.getInstance(config, null, true);
+        OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config)
+                .autoUpdateNotification(true);
+        return SharedRealm.getInstance(configBuilder);
     }
 
     private void populateData() {

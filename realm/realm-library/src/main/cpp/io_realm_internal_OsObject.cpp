@@ -65,8 +65,9 @@ struct ObjectWrapper {
 };
 
 struct ChangeCallback {
-    ChangeCallback(ObjectWrapper* wrapper)
-        : m_wrapper(wrapper)
+    ChangeCallback(ObjectWrapper* wrapper, JavaMethod notify_change_listeners)
+        : m_wrapper(wrapper),
+        m_notify_change_listeners_method(notify_change_listeners)
     {
     }
 
@@ -129,12 +130,8 @@ struct ChangeCallback {
         }
 
         parse_fields(env, change_set);
-
         m_wrapper->m_row_object_weak_ref.call_with_local_ref(env, [&](JNIEnv*, jobject row_obj) {
-            static JavaClass os_object_class(env, "io/realm/internal/OsObject");
-            static JavaMethod notify_change_listeners(env, os_object_class, "notifyChangeListeners",
-                                                      "([Ljava/lang/String;)V");
-            env->CallVoidMethod(row_obj, notify_change_listeners, m_deleted ? nullptr : m_field_names_array);
+            env->CallVoidMethod(row_obj, m_notify_change_listeners_method, m_deleted ? nullptr : m_field_names_array);
         });
         m_field_names_array = nullptr;
         m_deleted = false;
@@ -156,6 +153,7 @@ private:
     ObjectWrapper* m_wrapper;
     bool m_deleted = false;
     jobjectArray m_field_names_array = nullptr;
+    JavaMethod m_notify_change_listeners_method;
 };
 
 static void finalize_object(jlong ptr)
@@ -293,10 +291,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStartListening(JNIE
             wrapper->m_row_object_weak_ref = JavaGlobalWeakRef(env, instance);
         }
 
+        static JavaClass os_object_class(env, "io/realm/internal/OsObject");
+        static JavaMethod notify_change_listeners(env, os_object_class, "notifyChangeListeners",
+                                                  "([Ljava/lang/String;)V");
         // The wrapper pointer will be used in the callback. But it should never become an invalid pointer when the
         // notification block gets called. This should be guaranteed by the Object Store that after the notification
         // token is destroyed, the block shouldn't be called.
-        wrapper->m_notification_token = wrapper->m_object.add_notification_callback(ChangeCallback(wrapper));
+        wrapper->m_notification_token = wrapper->m_object.add_notification_callback(ChangeCallback(wrapper, notify_change_listeners));
     }
     CATCH_STD()
 }

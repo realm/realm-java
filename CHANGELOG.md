@@ -1,3 +1,10 @@
+## 4.0.0-BETA3 (YYYY-MM-DD)
+
+### Internal
+
+* Upgraded to Realm Sync 2.0.0-rc16.
+* Upgraded to Realm Core 3.0.0-rc5.
+
 ## 4.0.0-BETA2 (2017-07-27)
 
 ### Bug Fixes
@@ -28,19 +35,36 @@
 
 ## 3.6.0 (YYYY-MM-DD)
 
+### Breaking Changes
+
+* [ObjectServer] `SyncUser.logout()` no longer throws an exception when associated Realms instances are not closed (#4962).
+
+### Deprecated
+
+* [ObjectServer] `SyncUser#retrieveUser` and `SyncUser#retrieveUserAsync` replaced by `SyncUser#retrieveInfoForUser`
+and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode information (#5008).
+* [ObjectServer] `SyncUser#Callback` replaced by the generic version `SyncUser#RequestCallback<T>`.
+
 ### Enhancements
 
 * [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
 * [ObjectServer] APIs of `UserStore` have been changed to support same user identity but different authentication server scenario.
-* [ObjectServer] Added `SyncUser.allSessions` to retrive the all valid sessions belonging to the user (#4783).
+* [ObjectServer] Added `SyncUser.allSessions` to retrieve the all valid sessions belonging to the user (#4783).
 * Added `Nullable` annotation to methods that may return `null` in order to improve Kotlin usability. This also introduced a dependency to `com.google.code.findbugs:jsr305`.
 * `org.jetbrains.annotations.NotNull` is now an alias for `@Required`. This means that the Realm Schema now fully understand Kotlin non-null types.
 * Added support for new data type `MutableRealmIntegers`. The new type behaves almost exactly as a reference to a Long (mutable nullable, etc) but supports `increment` and `decrement` methods, which implement a Conflict Free Replicated Data Type, whose value will converge even when changed across distributed devices with poor connections (#4266).
+* Added more detailed exception message for `RealmMigrationNeeded`.
+* Bumping schema version only without any actual schema changes will just succeed even when the migration block is not supplied. It threw an `RealmMigrationNeededException` before in the same case.
+* Throw `IllegalStateException` when schema validation fails because of wrong declaration of `@LinkingObjects`.
 
 ### Bug Fixes
 
 ### Internal
 
+* [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
+* [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
+* Upgraded Realm Sync to 1.10.8
+* Let Object Store handle migration.
 
 ## 3.5.1 (YYYY-MM-DD)
 
@@ -50,6 +74,7 @@
 * `Realm.copyToRealmOrUpdate()` might cause a `RealmList` field to contain duplicated elements (#4957).
 * `RealmSchema.create(String)` and `RealmObjectSchema.setClassName(String)` did not accept class name whose length was 51 to 57.
 * Workaround for an Android JVM crash when using `compactOnLaunch()` (#4964).
+* Class name in exception message from link query is wrong (#5096).
 
 ### Internal
 
