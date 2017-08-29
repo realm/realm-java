@@ -225,14 +225,6 @@ public class CollectionTests {
     }
 
     @Test
-    public void indexOf_long() {
-        SortDescriptor sortDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
-
-        Collection collection = new Collection(sharedRealm, table.where(), sortDescriptor);
-        assertEquals(3, collection.indexOf(0));
-    }
-
-    @Test
     public void distinct() {
         Collection collection = new Collection(sharedRealm, table.where().lessThan(new long[] {2}, oneNullTable, 4));
 
