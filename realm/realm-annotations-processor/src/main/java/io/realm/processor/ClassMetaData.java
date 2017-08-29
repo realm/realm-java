@@ -329,7 +329,7 @@ public class ClassMetaData {
         if (!validListValueTypes.contains(elementTypeMirror)
                 && !Utils.isRealmModel(elementTypeMirror)) {
             final StringBuilder messageBuilder = new StringBuilder(
-                    "Value type of RealmLists must be a class implementing 'RealmModel' or one of the ");
+                    "Element type of RealmList must be a class implementing 'RealmModel' or one of the ");
             for (TypeMirror type : validListValueTypes) {
                 messageBuilder.append('\'').append(type.toString()).append("', ");
             }
