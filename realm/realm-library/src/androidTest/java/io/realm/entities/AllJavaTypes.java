@@ -48,16 +48,6 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_LO_OBJECT = "objectParents";
     public static final String FIELD_LO_LIST = "listParents";
 
-    public static final String FIELD_STRING_LIST = "stringList";
-    public static final String FIELD_LONG_LIST = "longList";
-    public static final String FIELD_INT_LIST = "intList";
-    public static final String FIELD_SHORT_LIST = "shortList";
-    public static final String FIELD_BYTE_LIST = "byteList";
-    public static final String FIELD_FLOAT_LIST = "floatList";
-    public static final String FIELD_DOUBLE_LIST = "doubleList";
-    public static final String FIELD_BOOLEAN_LIST = "booleanList";
-    public static final String FIELD_DATE_LIST = "dateList";
-
     public static final String[] INVALID_FIELDS_FOR_DISTINCT
             = new String[] {FIELD_OBJECT, FIELD_LIST, FIELD_DOUBLE, FIELD_FLOAT, FIELD_LO_OBJECT, FIELD_LO_LIST};
 
