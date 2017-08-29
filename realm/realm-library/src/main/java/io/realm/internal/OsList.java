@@ -1,8 +1,7 @@
 package io.realm.internal;
 
 /**
- * Java wrapper of Object Store List class.
- * It is the backend RealmList.
+ * Java wrapper of Object Store List class. This backs managed versions of RealmList.
  */
 public class OsList implements NativeObject {
 

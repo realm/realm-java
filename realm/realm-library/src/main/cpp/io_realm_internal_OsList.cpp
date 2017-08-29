@@ -157,24 +157,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeRemoveAll(JNIEnv* env
     CATCH_STD()
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeFindRow(JNIEnv* env, jclass, jlong list_ptr,
-                                                                    jlong row_ptr)
-{
-    TR_ENTER_PTR(list_ptr)
-
-    try {
-        auto& row = *reinterpret_cast<realm::Row*>(row_ptr);
-        if (!ROW_VALID(env, &row)) {
-            return -1;
-        }
-
-        auto& list = *reinterpret_cast<List*>(list_ptr);
-        return list.find(row);
-    }
-    CATCH_STD()
-    return -1;
-}
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeSize(JNIEnv* env, jclass, jlong list_ptr)
 {
     TR_ENTER_PTR(list_ptr)
