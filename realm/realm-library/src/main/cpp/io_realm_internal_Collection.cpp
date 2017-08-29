@@ -134,7 +134,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Collection_nativeContains(JNIE
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto row = reinterpret_cast<Row*>(native_row_ptr);
-        size_t index = wrapper->m_results.index_of(*row);
+        size_t index = wrapper->m_results.index_of(RowExpr(*row));
         return to_jbool(index != not_found);
     }
     CATCH_STD();
@@ -366,22 +366,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeIndexOf(JNIEnv* 
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto row = reinterpret_cast<Row*>(row_native_ptr);
 
-        return static_cast<jlong>(wrapper->m_results.index_of(*row));
-    }
-    CATCH_STD()
-    return npos;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeIndexOfBySourceRowIndex(JNIEnv* env, jclass,
-                                                                                        jlong native_ptr,
-                                                                                        jlong source_row_index)
-{
-    TR_ENTER_PTR(native_ptr)
-    try {
-        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto index = static_cast<size_t>(source_row_index);
-
-        return static_cast<jlong>(wrapper->m_results.index_of(index));
+        return static_cast<jlong>(wrapper->m_results.index_of(RowExpr(*row)));
     }
     CATCH_STD()
     return npos;

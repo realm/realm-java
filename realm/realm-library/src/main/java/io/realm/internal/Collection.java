@@ -470,11 +470,6 @@ public class Collection implements NativeObject {
         return (index > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) index;
     }
 
-    public int indexOf(long sourceRowIndex) {
-        long index = nativeIndexOfBySourceRowIndex(nativePtr, sourceRowIndex);
-        return (index > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) index;
-    }
-
     public void delete(long index) {
         nativeDelete(nativePtr, index);
     }
@@ -602,8 +597,6 @@ public class Collection implements NativeObject {
     private static native long nativeWhere(long nativePtr);
 
     private static native long nativeIndexOf(long nativePtr, long rowNativePtr);
-
-    private static native long nativeIndexOfBySourceRowIndex(long nativePtr, long sourceRowIndex);
 
     private static native boolean nativeIsValid(long nativePtr);
 
