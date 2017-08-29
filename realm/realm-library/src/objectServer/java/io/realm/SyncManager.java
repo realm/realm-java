@@ -16,7 +16,18 @@
 
 package io.realm;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -27,18 +38,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
 import io.realm.internal.network.AuthenticationServer;
@@ -396,7 +399,6 @@ public class SyncManager {
     // In this implementation we use the second method, since it's more suitable for
     // the underlying Java API we need to call to validate the certificate chain.
     synchronized static boolean sslVerifyCallback(String serverAddress, String pemData, int depth) {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>> sslVerifyCallback serverAddress=" + serverAddress + " depth=" + depth);
         try {
             if (ROS_CERTIFICATES_CHAIN == null) {
                 ROS_CERTIFICATES_CHAIN = new HashMap<>();
