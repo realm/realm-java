@@ -327,4 +327,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigS
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetForceSyncHistory(JNIEnv*, jclass,
+                                                                                      jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr);
+
+    auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
+    config.force_sync_history = true;
+}
+
 #endif

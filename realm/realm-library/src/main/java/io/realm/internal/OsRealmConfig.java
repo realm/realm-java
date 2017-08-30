@@ -163,6 +163,7 @@ public class OsRealmConfig implements NativeObject {
         String syncRefreshToken = (String) syncUserConf[3];
         boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncUserConf[4]));
         String syncSslTrustCertificatePath = (String) syncUserConf[5];
+        boolean syncRealmOffline = (Boolean.TRUE.equals(syncUserConf[6]));
 
         // Set encryption key
         byte[] key = config.getEncryptionKey();
@@ -200,11 +201,16 @@ public class OsRealmConfig implements NativeObject {
             nativeSetInitializationCallback(nativePtr, initializationCallback);
         }
 
-        // Set sync config
-        if (syncRealmUrl != null) {
-            nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,
-                    syncRefreshToken);
-            nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
+        if (syncRealmOffline) {
+            nativeSetForceSyncHistory(nativePtr);
+
+        } else {
+            // Set sync config
+            if (syncRealmUrl != null) {
+                nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,
+                        syncRefreshToken);
+                nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
+            }
         }
     }
 
@@ -248,5 +254,6 @@ public class OsRealmConfig implements NativeObject {
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);
 
+    private static native void nativeSetForceSyncHistory(long nativePtr);
     private static native long nativeGetFinalizerPtr();
 }
