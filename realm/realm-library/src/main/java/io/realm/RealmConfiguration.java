@@ -104,8 +104,8 @@ public class RealmConfiguration {
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
-    protected RealmConfiguration(File realmDirectory,
-            String realmFileName,
+    protected RealmConfiguration(@Nullable File realmDirectory,
+            @Nullable String realmFileName,
             String canonicalPath,
             @Nullable String assetFilePath,
             @Nullable byte[] key,

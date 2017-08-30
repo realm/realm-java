@@ -95,7 +95,10 @@ private final URI serverUrl;
      */
     private final boolean forceSyncHistory;
 
-    private SyncConfiguration(File directory,
+    private SyncConfiguration(
+                                @Nullable
+                                File directory,
+                                @Nullable
                                 String filename,
                                 String canonicalPath,
                                 @Nullable
@@ -106,6 +109,7 @@ private final URI serverUrl;
                                 @Nullable
                                 RealmMigration migration,
                                 boolean deleteRealmIfMigrationNeeded,
+
                                 OsRealmConfig.Durability durability,
                                 RealmProxyMediator schemaMediator,
                                 @Nullable
@@ -113,8 +117,11 @@ private final URI serverUrl;
                                 @Nullable
                                 Realm.Transaction initialDataTransaction,
                                 boolean readOnly,
+                                @Nullable
                                 SyncUser user,
+                                @Nullable
                                 URI serverUrl,
+                                @Nullable
                                 SyncSession.ErrorHandler errorHandler,
                                 boolean deleteRealmOnLogout,
                                 boolean syncClientValidateSsl,
@@ -180,7 +187,7 @@ private final URI serverUrl;
     }
 
     static SyncConfiguration forOffline(String canonicalPath, RealmProxyMediator schemaMediator) {
-        return new SyncConfiguration(null, null, canonicalPath, null, null, 0, null, false, null, schemaMediator, null, null, false, null, null, null, false, false, null, null, false, true);
+        return new SyncConfiguration(null, null, canonicalPath, null, null, 0, null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, false, null, null, null, false, false, null, null, false, true);
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
