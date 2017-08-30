@@ -319,7 +319,7 @@ public class ClassMetaData {
             TypeElement elementTypeElement = (TypeElement) ((DeclaredType) elementTypeMirror).asElement();
             if (elementTypeElement.getSuperclass().getKind() == TypeKind.NONE) {
                 Utils.error(
-                        "Only concrete Realm classes are allowed in RealmLists. "
+                        "Only concrete classes are allowed in RealmLists. "
                                 + "Neither interfaces nor abstract classes are allowed.",
                         field);
                 return false;
