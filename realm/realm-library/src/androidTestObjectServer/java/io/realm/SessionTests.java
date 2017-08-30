@@ -339,7 +339,6 @@ public class SessionTests {
     @Test
     @UiThreadTest
     public void uploadAllLocalChanges_throwsOnUiThread() throws InterruptedException {
-        SyncUser user = createTestUser();
         Realm realm = Realm.getInstance(configuration);
         try {
             SyncManager.getSession(configuration).uploadAllLocalChanges();
@@ -352,7 +351,6 @@ public class SessionTests {
     @Test
     @UiThreadTest
     public void downloadAllServerChanges_throwsOnUiThread() throws InterruptedException {
-        SyncUser user = createTestUser();
         Realm realm = Realm.getInstance(configuration);
         try {
             SyncManager.getSession(configuration).downloadAllServerChanges();
