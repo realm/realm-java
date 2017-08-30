@@ -1010,13 +1010,13 @@ public class RealmProxyClassGenerator {
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
                                 genericType, fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sList != null)", fieldName)
-                        .emitStatement("OsList osList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
+                        .emitStatement("OsList %1$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
                         .beginControlFlow("for (%1$s %2$sItem : %2$sList)", genericType, fieldName)
                         .emitStatement("Long cacheItemIndex%1$s = cache.get(%1$sItem)", fieldName)
                         .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                         .emitStatement("cacheItemIndex%1$s = %2$s.insert(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                         .endControlFlow()
-                        .emitStatement("osList.addRow(cacheItemIndex%1$s)", fieldName)
+                        .emitStatement("%1$sOsList.addRow(cacheItemIndex%1$s)", fieldName)
                         .endControlFlow()
                         .endControlFlow();
 
@@ -1090,13 +1090,13 @@ public class RealmProxyClassGenerator {
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
                                 genericType, fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sList != null)", fieldName)
-                        .emitStatement("OsList osList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
+                        .emitStatement("OsList %1$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
                         .beginControlFlow("for (%1$s %2$sItem : %2$sList)", genericType, fieldName)
                         .emitStatement("Long cacheItemIndex%1$s = cache.get(%1$sItem)", fieldName)
                         .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                         .emitStatement("cacheItemIndex%1$s = %2$s.insert(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                         .endControlFlow()
-                        .emitStatement("osList.addRow(cacheItemIndex%1$s)", fieldName)
+                        .emitStatement("%1$sOsList.addRow(cacheItemIndex%1$s)", fieldName)
                         .endControlFlow()
                         .endControlFlow();
 
@@ -1163,8 +1163,8 @@ public class RealmProxyClassGenerator {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
                 writer
                         .emitEmptyLine()
-                        .emitStatement("OsList osList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
-                        .emitStatement("osList.removeAll()")
+                        .emitStatement("OsList %1$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
+                        .emitStatement("%1$sOsList.removeAll()", fieldName)
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
                                 genericType, fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sList != null)", fieldName)
@@ -1173,7 +1173,7 @@ public class RealmProxyClassGenerator {
                         .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                         .emitStatement("cacheItemIndex%1$s = %2$s.insertOrUpdate(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                         .endControlFlow()
-                        .emitStatement("osList.addRow(cacheItemIndex%1$s)", fieldName)
+                        .emitStatement("%1$sOsList.addRow(cacheItemIndex%1$s)", fieldName)
                         .endControlFlow()
                         .endControlFlow()
                         .emitEmptyLine();
@@ -1247,8 +1247,8 @@ public class RealmProxyClassGenerator {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
                 writer
                         .emitEmptyLine()
-                        .emitStatement("OsList osList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
-                        .emitStatement("osList.removeAll()")
+                        .emitStatement("OsList %1$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
+                        .emitStatement("%1$sOsList.removeAll()", fieldName)
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
                                 genericType, fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sList != null)", fieldName)
@@ -1257,7 +1257,7 @@ public class RealmProxyClassGenerator {
                         .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                         .emitStatement("cacheItemIndex%1$s = %2$s.insertOrUpdate(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                         .endControlFlow()
-                        .emitStatement("osList.addRow(cacheItemIndex%1$s)", fieldName)
+                        .emitStatement("%1$sOsList.addRow(cacheItemIndex%1$s)", fieldName)
                         .endControlFlow()
                         .endControlFlow()
                         .emitEmptyLine();
