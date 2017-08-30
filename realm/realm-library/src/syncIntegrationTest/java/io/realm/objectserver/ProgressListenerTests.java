@@ -190,7 +190,6 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         userRealm.close();
         userWithData.logout();
         adminUser.logout();
-        worker.join();
     }
 
     // Make sure that a ProgressListener continues to report the correct thing, even if it crashed

@@ -31,14 +31,11 @@ import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.objectserver.utils.Constants;
-import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
 
-import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 
@@ -268,119 +265,4 @@ public class SyncedRealmTests extends BaseIntegrationTest {
             user.logout();
         }
     }
-
-    // Re-opening the backup Realm after a client reset online should trigger a client reset again
-    // since the sync history will diverge.
-    @Test
-    @RunTestInLooperThread
-    public void errorHandler_reopenClientResetRealmFail() {
-        String userId = UUID.randomUUID().toString();
-        SyncCredentials credentials = SyncCredentials.usernamePassword(userId, "password", true);
-        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-
-        final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.AUTH_URL)
-                .errorHandler(new SyncSession.ErrorHandler() {
-                    @Override
-                    public void onError(SyncSession session, ObjectServerError error) {
-                        if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
-                            fail("Wrong error " + error.toString());
-                            return;
-                        }
-
-                        final ClientResetRequiredError handler = (ClientResetRequiredError) error;
-                        // Execute Client Reset
-                        looperThread.closeTestRealms();
-                        handler.executeClientReset();
-
-                        // Validate that files have been moved
-                        assertFalse(handler.getOriginalFile().exists());
-                        assertTrue(handler.getBackupFile().exists());
-
-                        SyncConfiguration configuration = configurationFactory.createSyncConfigurationBuilder(user, Constants.AUTH_URL)
-                                .errorHandler(new SyncSession.ErrorHandler() {
-                                    @Override
-                                    public void onError(SyncSession session, ObjectServerError error) {
-                                        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ERROR " + error.getErrorMessage());
-                                        looperThread.testComplete();
-                                    }
-                                }).modules(new StringOnlyModule())
-                                .build();
-                        Realm instance = Realm.getInstance(configuration);
-                        assertFalse(instance.isEmpty());
-
-                        String backupFile = handler.getBackupFile().getAbsolutePath();
-                        String name = handler.getBackupFile().getName();
-                        String parent = handler.getBackupFile().getParent();
-                        SyncConfiguration syncConfiguration = new SyncConfiguration
-                                .Builder(user, Constants.AUTH_URL)
-                                .name(name)
-                                .directory(new File(parent))
-                                .errorHandler(new SyncSession.ErrorHandler() {
-                                    @Override
-                                    public void onError(SyncSession session, ObjectServerError error) {
-                                        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ERROR " + error.getErrorMessage());
-//                                        looperThread.testComplete();
-                                    }
-                                }).build();
-//                        Realm realm = Realm.getInstance(syncConfiguration);
-//                        System.out.println(">>>>>>>>>>>>>>>>>> GOT REALM ");
-//                        configFactory.createSyncConfigurationBuilder(user, url);
-//
-//                        // this SyncConf doesn't specify any module, it will throw a migration required
-//                        // exception since the backup Realm contain only StringOnly table
-//                        SyncConfiguration backupSyncConfiguration = SyncConfiguration.forOffline(backupFile);
-//
-//                        try {
-//                            Realm.getInstance(backupSyncConfiguration);
-//                            fail("Expected to throw a Migration required");
-//                        } catch (IllegalStateException expected) {
-//                        }
-//
-//                        // opening a DynamicRealm will work though
-//                        DynamicRealm dynamicRealm = DynamicRealm.getInstance(backupSyncConfiguration);
-//
-//                        dynamicRealm.getSchema().checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME);
-//                        RealmResults<DynamicRealmObject> all = dynamicRealm.where(StringOnly.CLASS_NAME).findAll();
-//                        assertEquals(1, all.size());
-//                        assertEquals("Foo", all.first().getString(StringOnly.FIELD_CHARS));
-//                        // can write to it
-//                        dynamicRealm.beginTransaction();
-//                        dynamicRealm.createObject(StringOnly.CLASS_NAME).set(StringOnly.FIELD_CHARS, "Bar");
-//                        dynamicRealm.commitTransaction();
-//                        dynamicRealm.close();
-//
-//                        try {
-//                            SyncConfiguration.forOffline(backupFile, StringOnly.class);
-//                            fail("Expected to throw java.lang.Class is not a RealmModule");
-//                        } catch (IllegalArgumentException expected) {
-//                        }
-
-//                        // specifying the module will allow to open the typed Realm
-//                        backupSyncConfiguration = SyncConfiguration.forOffline(backupFile, new StringOnlyModule());
-//                        Realm backupRealm = Realm.getInstance(backupSyncConfiguration);
-//                        assertFalse(backupRealm.isEmpty());
-//                        assertEquals(2, backupRealm.where(StringOnly.class).count());
-//                        RealmResults<StringOnly> allSorted = backupRealm.where(StringOnly.class).findAllSorted(StringOnly.FIELD_CHARS);
-//                        assertEquals("Bar", allSorted.get(0).getChars());
-//                        assertEquals("Foo", allSorted.get(1).getChars());
-//                        backupRealm.close();
-
-
-                    }
-                })
-                .modules(new StringOnlyModule())
-                .build();
-
-        Realm realm = Realm.getInstance(config);
-        realm.beginTransaction();
-        realm.createObject(StringOnly.class).setChars("Foo");
-        realm.commitTransaction();
-
-        looperThread.addTestRealm(realm);
-
-        // Trigger error
-        SyncManager.simulateClientReset(SyncManager.getSession(config));
-    }
-
-
 }
