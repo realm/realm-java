@@ -175,7 +175,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public void add(int location, E object) {
         checkValidObject(object);
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             if (location < 0 || location > size()) {
                 throw new IndexOutOfBoundsException("Invalid index " + location + ", size is " + size());
             }
@@ -206,7 +206,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public boolean add(E object) {
         checkValidObject(object);
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
             osList.addRow(proxy.realmGet$proxyState().getRow$realm().getIndex());
         } else {
@@ -238,7 +238,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         checkValidObject(object);
         E oldObject;
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
             oldObject = get(location);
             osList.setRow(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
@@ -309,7 +309,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public void move(int oldPos, int newPos) {
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             osList.move(oldPos, newPos);
         } else {
             checkIndex(oldPos);
@@ -334,7 +334,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public void clear() {
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             osList.removeAll();
         } else {
             unmanagedList.clear();
@@ -354,7 +354,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public E remove(int location) {
         E removedItem;
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             removedItem = get(location);
             osList.remove(location);
         } else {
@@ -460,7 +460,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public E get(int location) {
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             return realm.get(clazz, className, osList.getUncheckedRow(location));
         } else {
             return unmanagedList.get(location);
@@ -487,7 +487,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Nullable
     private E firstImpl(boolean shouldThrow, @Nullable E defaultValue) {
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             if (!osList.isEmpty()) {
                 return get(0);
             }
@@ -522,7 +522,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Nullable
     private E lastImpl(boolean shouldThrow, @Nullable E defaultValue) {
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             if (!osList.isEmpty()) {
                 return get((int) osList.size() - 1);
             }
@@ -583,7 +583,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public void deleteFromRealm(int location) {
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             osList.remove(location);
             modCount++;
         } else {
@@ -600,7 +600,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public int size() {
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             long size = osList.size();
             return size < Integer.MAX_VALUE ? (int) size : Integer.MAX_VALUE;
         } else {
@@ -618,7 +618,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public RealmQuery<E> where() {
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             return RealmQuery.createQueryFromList(this);
         } else {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
@@ -707,7 +707,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public boolean deleteAllFromRealm() {
         if (isManaged()) {
-            checkRealmValid();
+            checkValidRealm();
             if (size() > 0) {
                 osList.deleteAll();
                 modCount++;
@@ -819,7 +819,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         }
     }
 
-    private void checkRealmValid() {
+    private void checkValidRealm() {
         realm.checkIfValid();
     }
 
@@ -831,18 +831,18 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         if (!isManaged()) {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
-        checkRealmValid();
+        checkValidRealm();
         if (className != null) {
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    collection,
+                    new io.realm.internal.Collection(realm.sharedRealm, osList, null),
                     className);
         } else {
             // 'clazz' is non-null when 'dynamicClassName' is null.
             //noinspection ConstantConditions
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    collection,
+                    new io.realm.internal.Collection(realm.sharedRealm, osList, null),
                     clazz);
         }
     }
@@ -1063,7 +1063,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
          */
         @Override
         public boolean hasNext() {
-            checkRealmValid();
+            checkValidRealm();
             checkConcurrentModification();
             return cursor != size();
         }
@@ -1073,7 +1073,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
          */
         @Override
         public E next() {
-            checkRealmValid();
+            checkValidRealm();
             checkConcurrentModification();
             int i = cursor;
             try {
@@ -1092,7 +1092,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
          */
         @Override
         public void remove() {
-            checkRealmValid();
+            checkValidRealm();
             if (lastRet < 0) {
                 throw new IllegalStateException("Cannot call remove() twice. Must call next() in between.");
             }
