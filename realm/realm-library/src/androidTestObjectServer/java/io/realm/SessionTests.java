@@ -306,7 +306,7 @@ public class SessionTests {
                         try {
                             SyncConfiguration.forOffline(backupFile, StringOnly.class);
                             fail("Expected to throw java.lang.Class is not a RealmModule");
-                        } catch (IllegalStateException expected) {
+                        } catch (IllegalArgumentException expected) {
                         }
 
                         // specifying the module will allow to open the typed Realm
