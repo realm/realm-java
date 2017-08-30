@@ -370,7 +370,7 @@ public class Collection implements NativeObject {
         this.context = sharedRealm.context;
         this.table = osList.getTargetTable();
         this.context.addReference(this);
-        // Collection created from LinkView is loaded by default. So that the listener won't be triggered with empty
+        // Collection created from OsList is loaded by default. So that the listener won't be triggered with empty
         // change set.
         this.loaded = true;
     }

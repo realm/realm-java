@@ -43,9 +43,6 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
     try {
         auto& row = *reinterpret_cast<realm::Row*>(row_ptr);
 
-        if (!ROW_VALID(env, &row)) {
-            return 0;
-        }
         if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, &row, column_index, type_LinkList)) {
             return 0;
         }
