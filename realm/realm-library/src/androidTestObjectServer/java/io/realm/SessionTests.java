@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -286,7 +287,7 @@ public class SessionTests {
                         try {
                             Realm.getInstance(backupSyncConfiguration);
                             fail("Expected to throw a Migration required");
-                        } catch (IllegalStateException expected) {
+                        } catch (RealmMigrationNeededException expected) {
                         }
 
                         // opening a DynamicRealm will work though
@@ -305,7 +306,7 @@ public class SessionTests {
                         try {
                             SyncConfiguration.forOffline(backupFile, StringOnly.class);
                             fail("Expected to throw java.lang.Class is not a RealmModule");
-                        } catch (IllegalArgumentException expected) {
+                        } catch (IllegalStateException expected) {
                         }
 
                         // specifying the module will allow to open the typed Realm
