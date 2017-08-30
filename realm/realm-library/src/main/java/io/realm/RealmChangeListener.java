@@ -16,6 +16,7 @@
 
 package io.realm;
 
+
 /**
  * RealmChangeListener can be registered with a {@link Realm}, {@link RealmResults} or {@link RealmObject}
  * to receive a notification about updates.
@@ -43,5 +44,4 @@ public interface RealmChangeListener<T> {
      * Called when a transaction is committed.
      */
     void onChange(T t);
-
 }

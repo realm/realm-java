@@ -52,17 +52,13 @@ public abstract class RealmProxyMediator {
     public abstract Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap();
 
     /**
-     * Validates the backing table in Realm for the given RealmObject class.
+     * Creates {@link ColumnInfo} for the given RealmObject class.
      *
-     * @param clazz the {@link RealmObject} model class to validate.
-     * @param sharedRealm the wrapper object of underlying native database to validate against.
-     * @param allowExtraColumns if {@code} false, {@link io.realm.exceptions.RealmMigrationNeededException}
-     * is thrown when the column count it more than expected.
+     * @param clazz which {@link RealmObject} model class to create the column info of.
+     * @param osSchemaInfo the {@link OsSchemaInfo} for the corresponding Realm instance.
      * @return the field indices map.
      */
-    public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz,
-            SharedRealm sharedRealm,
-            boolean allowExtraColumns);
+    public abstract ColumnInfo createColumnInfo(Class<? extends RealmModel> clazz, OsSchemaInfo osSchemaInfo);
 
     /**
      * Returns a map of non-obfuscated object field names to their internal Realm name.
@@ -223,12 +219,19 @@ public abstract class RealmProxyMediator {
     }
 
     protected static void checkClass(Class<? extends RealmModel> clazz) {
+        //noinspection ConstantConditions
         if (clazz == null) {
             throw new NullPointerException("A class extending RealmObject must be provided");
         }
     }
 
     protected static RealmException getMissingProxyClassException(Class<? extends RealmModel> clazz) {
-        return new RealmException(clazz + " is not part of the schema for this Realm.");
+        return new RealmException(
+                String.format("'%s' is not part of the schema for this Realm.", clazz.toString()));
+    }
+
+    protected static RealmException getMissingProxyClassException(String className) {
+        return new RealmException(
+                String.format("'%s' is not part of the schema for this Realm.", className));
     }
 }

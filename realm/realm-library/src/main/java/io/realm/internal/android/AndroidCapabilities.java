@@ -18,6 +18,8 @@ package io.realm.internal.android;
 import android.os.Looper;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import javax.annotation.Nullable;
+
 import io.realm.internal.Capabilities;
 
 
@@ -47,7 +49,7 @@ public class AndroidCapabilities implements Capabilities {
     }
 
     @Override
-    public void checkCanDeliverNotification(String exceptionMessage) {
+    public void checkCanDeliverNotification(@Nullable String exceptionMessage) {
         if (!hasLooper()) {
             throw new IllegalStateException(exceptionMessage == null ? "" : (exceptionMessage + " ") +
                     "Realm cannot be automatically updated on a thread without a looper.");

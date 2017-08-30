@@ -60,9 +60,9 @@ public class ColumnInfoTests {
     @Test
     public void copyColumnInfoFrom_checkIndex() {
         CatRealmProxy.CatColumnInfo sourceColumnInfo
-                = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+                = (CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
         CatRealmProxy.CatColumnInfo targetColumnInfo
-                = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+                = (CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
 
         // Checks precondition.
         assertNotSame(sourceColumnInfo, targetColumnInfo);
@@ -101,7 +101,7 @@ public class ColumnInfoTests {
     @Test
     public void copy_differentInstanceSameValues() {
         final CatRealmProxy.CatColumnInfo columnInfo
-                = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+                = (CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
 
         columnInfo.nameIndex = 1;
         columnInfo.ageIndex = 2;
@@ -150,7 +150,7 @@ public class ColumnInfoTests {
     @Test
     public void copy_immutableThrows() {
         final CatRealmProxy.CatColumnInfo original
-                = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+                = (CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
 
         CatRealmProxy.CatColumnInfo copy = (CatRealmProxy.CatColumnInfo) original.copy(false);
         try {

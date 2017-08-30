@@ -39,25 +39,34 @@ private:
         jobject java_notifier;
     };
 
-    // A weak global ref to the implementation of RealmNotifier
-    // Java should hold a strong ref to it as long as the SharedRealm lives
+    // Weak global refs to the needed Java objects.
+    // Java should hold a strong ref to them as long as the SharedRealm lives
     jni_util::JavaGlobalWeakRef m_java_notifier;
-    jni_util::JavaClass const& get_notifier_class(JNIEnv*);
+    jni_util::JavaGlobalWeakRef m_schema_changed_callback;
+    // Problem has been seen if the class is retrieved directly from loop callback. So make sure get_notifier_class()
+    // is called once when creating BindingContext.
+    jni_util::JavaClass const& m_notifier_class;
+    static jni_util::JavaClass const& get_notifier_class(JNIEnv*);
 
 public:
     virtual ~JavaBindingContext(){};
-    virtual void before_notify();
-    virtual void did_change(std::vector<ObserverState> const& observers, std::vector<void*> const& invalidated,
-                            bool version_changed = true);
+    void before_notify() override;
+    void did_change(std::vector<ObserverState> const& observers, std::vector<void*> const& invalidated,
+                    bool version_changed = true) override;
+    void schema_did_change(Schema const&) override;
 
     explicit JavaBindingContext(const ConcreteJavaBindContext& concrete_context)
         : m_java_notifier(concrete_context.jni_env, concrete_context.java_notifier)
+        , m_schema_changed_callback()
+        , m_notifier_class(get_notifier_class(concrete_context.jni_env))
     {
     }
     JavaBindingContext(const JavaBindingContext&) = delete;
     JavaBindingContext& operator=(const JavaBindingContext&) = delete;
     JavaBindingContext(JavaBindingContext&&) = delete;
     JavaBindingContext& operator=(JavaBindingContext&&) = delete;
+
+    void set_schema_changed_callback(JNIEnv* env, jobject schema_changed_callback);
 
     static inline std::unique_ptr<JavaBindingContext> create(JNIEnv* env, jobject notifier)
     {

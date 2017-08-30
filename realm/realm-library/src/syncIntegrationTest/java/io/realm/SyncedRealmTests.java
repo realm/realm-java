@@ -26,7 +26,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
@@ -70,7 +69,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
     }
 
     @Test
-    public void waitForInitialRemoteData() {
+    public void waitForInitialRemoteData() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
@@ -88,7 +87,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
                 }
             }
         });
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(10));  // FIXME: Replace with Sync Progress Notifications once available.
+        SyncManager.getSession(configOld).uploadAllLocalChanges();
         realm.close();
         user.logout();
         Realm.deleteRealm(configOld);
@@ -184,7 +183,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
     }
 
     @Test
-    public void waitForInitialRemoteData_readOnlyTrue() {
+    public void waitForInitialRemoteData_readOnlyTrue() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
@@ -202,7 +201,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
                 }
             }
         });
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(10));  // FIXME: Replace with Sync Progress Notifications once available.
+        SyncManager.getSession(configOld).uploadAllLocalChanges();
         realm.close();
         user.logout();
         Realm.deleteRealm(configOld);

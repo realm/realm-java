@@ -16,6 +16,8 @@
 
 package io.realm.log;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.Keep;
 
 
@@ -35,5 +37,5 @@ public interface RealmLogger {
      * @param throwable optional exception to log.
      * @param message optional additional message.
      */
-    void log(int level, String tag, Throwable throwable, String message);
+    void log(int level, String tag, @Nullable Throwable throwable, @Nullable String message);
 }

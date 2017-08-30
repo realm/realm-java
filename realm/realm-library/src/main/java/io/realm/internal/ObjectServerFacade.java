@@ -100,9 +100,10 @@ public class ObjectServerFacade {
     /**
      * Block until all latest changes have been downloaded from the server.
      *
-     * @throws {@code DownloadingRealmInterruptedException}  if the thread was interrupted while blocked waiting for
+     * @throws {@code DownloadingRealmInterruptedException} if the thread was interrupted while blocked waiting for
      * this to complete.
      */
+    @SuppressWarnings("JavaDoc")
     public void downloadRemoteChanges(RealmConfiguration config) {
         // Do nothing
     }

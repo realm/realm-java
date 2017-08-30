@@ -31,6 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
+import io.realm.internal.Table;
+import io.realm.internal.UncheckedRow;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -81,6 +83,11 @@ public class SortTest {
         object4.setColumnLong(5);
         object4.setColumnString("Adam");
         realm.commitTransaction();
+    }
+
+    private UncheckedRow getRowBySourceIndexFromAllTypesTable(long sourceRowIndex) {
+        Table table = realm.getTable(AllTypes.class);
+        return table.getUncheckedRow(sourceRowIndex);
     }
 
     @Before
@@ -156,19 +163,19 @@ public class SortTest {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(0, results.getCollection().indexOf(2));
+        assertEquals(0, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(2)));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(5, results.get(1).getColumnLong());
-        assertEquals(1, results.getCollection().indexOf(0));
+        assertEquals(1, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(0)));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(2, results.getCollection().indexOf(3));
+        assertEquals(2, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(3)));
 
         assertEquals("Brian", results.get(3).getColumnString());
         assertEquals(4, results.get(3).getColumnLong());
-        assertEquals(3, results.getCollection().indexOf(1));
+        assertEquals(3, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(1)));
     }
 
     private void checkSortTwoFieldsIntString(RealmResults<AllTypes> results) {
@@ -182,19 +189,19 @@ public class SortTest {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(0, results.getCollection().indexOf(2));
+        assertEquals(0, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(2)));
 
         assertEquals("Brian", results.get(1).getColumnString());
         assertEquals(4, results.get(1).getColumnLong());
-        assertEquals(1, results.getCollection().indexOf(1));
+        assertEquals(1, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(1)));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(2, results.getCollection().indexOf(0));
+        assertEquals(2, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(0)));
 
         assertEquals("Adam", results.get(3).getColumnString());
         assertEquals(5, results.get(3).getColumnLong());
-        assertEquals(3, results.getCollection().indexOf(3));
+        assertEquals(3, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(3)));
     }
 
     private void checkSortTwoFieldsIntAscendingStringDescending(RealmResults<AllTypes> results) {
@@ -208,19 +215,19 @@ public class SortTest {
 
         assertEquals("Brian", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(0, results.getCollection().indexOf(1));
+        assertEquals(0, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(1)));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(4, results.get(1).getColumnLong());
-        assertEquals(1, results.getCollection().indexOf(2));
+        assertEquals(1, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(2)));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(2, results.getCollection().indexOf(0));
+        assertEquals(2, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(0)));
 
         assertEquals("Adam", results.get(3).getColumnString());
         assertEquals(5, results.get(3).getColumnLong());
-        assertEquals(3, results.getCollection().indexOf(3));
+        assertEquals(3, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(3)));
     }
 
     private void checkSortTwoFieldsStringAscendingIntDescending(RealmResults<AllTypes> results) {
@@ -234,19 +241,19 @@ public class SortTest {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(5, results.get(0).getColumnLong());
-        assertEquals(0, results.getCollection().indexOf(0));
+        assertEquals(0, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(0)));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(5, results.get(1).getColumnLong());
-        assertEquals(1, results.getCollection().indexOf(3));
+        assertEquals(1, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(3)));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(4, results.get(2).getColumnLong());
-        assertEquals(2, results.getCollection().indexOf(2));
+        assertEquals(2, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(2)));
 
         assertEquals("Brian", results.get(3).getColumnString());
         assertEquals(4, results.get(3).getColumnLong());
-        assertEquals(3, results.getCollection().indexOf(1));
+        assertEquals(3, results.getCollection().indexOf(getRowBySourceIndexFromAllTypesTable(1)));
     }
 
     @Test

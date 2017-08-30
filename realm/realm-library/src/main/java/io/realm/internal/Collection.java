@@ -20,6 +20,8 @@ import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.NoSuchElementException;
 
+import javax.annotation.Nullable;
+
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
@@ -339,7 +341,7 @@ public class Collection implements NativeObject {
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query,
-            SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
+            @Nullable SortDescriptor sortDescriptor, @Nullable SortDescriptor distinctDescriptor) {
         query.validateQuery();
 
         this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
@@ -353,7 +355,7 @@ public class Collection implements NativeObject {
         this.loaded = false;
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor) {
+    public Collection(SharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor) {
         this(sharedRealm, query, sortDescriptor, null);
     }
 
@@ -361,7 +363,7 @@ public class Collection implements NativeObject {
         this(sharedRealm, query, null, null);
     }
 
-    public Collection(SharedRealm sharedRealm, LinkView linkView, SortDescriptor sortDescriptor) {
+    public Collection(SharedRealm sharedRealm, LinkView linkView, @Nullable SortDescriptor sortDescriptor) {
         this.nativePtr = nativeCreateResultsFromLinkView(sharedRealm.getNativePtr(), linkView.getNativePtr(),
                 sortDescriptor);
 
@@ -468,11 +470,6 @@ public class Collection implements NativeObject {
         return (index > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) index;
     }
 
-    public int indexOf(long sourceRowIndex) {
-        long index = nativeIndexOfBySourceRowIndex(nativePtr, sourceRowIndex);
-        return (index > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) index;
-    }
-
     public void delete(long index) {
         nativeDelete(nativePtr, index);
     }
@@ -561,10 +558,10 @@ public class Collection implements NativeObject {
     private static native long nativeGetFinalizerPtr();
 
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
-            SortDescriptor sortDesc, SortDescriptor distinctDesc);
+            @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
 
     private static native long nativeCreateResultsFromLinkView(long sharedRealmNativePtr, long linkViewPtr,
-            SortDescriptor sortDesc);
+            @Nullable SortDescriptor sortDesc);
 
     private static native long nativeCreateSnapshot(long nativePtr);
 
@@ -600,8 +597,6 @@ public class Collection implements NativeObject {
     private static native long nativeWhere(long nativePtr);
 
     private static native long nativeIndexOf(long nativePtr, long rowNativePtr);
-
-    private static native long nativeIndexOfBySourceRowIndex(long nativePtr, long sourceRowIndex);
 
     private static native boolean nativeIsValid(long nativePtr);
 
