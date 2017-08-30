@@ -58,6 +58,7 @@ public class ClassMetaData {
     private final List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
     private final Set<Backlink> backlinks = new HashSet<Backlink>();
     private final Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
+    private final Set<VariableElement> nullableValueListFields = new HashSet<VariableElement>(); // Set of fields whose elements can be nullable
 
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
@@ -448,15 +449,26 @@ public class ClassMetaData {
             if (!categorizeIndexField(element, field)) { return false; }
         }
 
-        if (isRequiredField(field)) {
-            categorizeRequiredField(element, field);
+        // @Required annotation of RealmList field only affects its value type, not field itself.
+        if (Utils.isRealmList(field)) {
+            // We only check @Required annotation. @org.jetbrains.annotations.NotNull annotation should not affect nullability of the list values.
+            if (!hasRequiredAnnotation(field)) {
+                final TypeMirror elementTypeMirror = ((DeclaredType) field.asType()).getTypeArguments().get(0);
+                if (!Utils.isRealmModel(elementTypeMirror)) {
+                    nullableValueListFields.add(field);
+                }
+            }
         } else {
-            // The field doesn't have the @Required annotation.
-            // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
-            // nullableFields.
-            // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
-            if (!Utils.isPrimitiveType(field) && !Utils.isRealmList(field)) {
-                nullableFields.add(field);
+            if (isRequiredField(field)) {
+                categorizeRequiredField(element, field);
+            } else {
+                // The field doesn't have the @Required and @org.jetbrains.annotations.NotNull annotation.
+                // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
+                // nullableFields.
+                // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
+                if (!Utils.isPrimitiveType(field)) {
+                    nullableFields.add(field);
+                }
             }
         }
 
@@ -481,8 +493,12 @@ public class ClassMetaData {
         return true;
     }
 
+    private boolean hasRequiredAnnotation(VariableElement field) {
+        return field.getAnnotation(Required.class) != null;
+    }
+
     private boolean isRequiredField(VariableElement field) {
-        if (field.getAnnotation(Required.class) != null) {
+        if (hasRequiredAnnotation(field)) {
             return true;
         }
 
