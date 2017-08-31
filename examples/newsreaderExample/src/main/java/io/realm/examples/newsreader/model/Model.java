@@ -115,12 +115,7 @@ public class Model {
             throw new IllegalArgumentException("Invalid storyId: " + storyId);
         }
         return repository.loadStory(storyId)
-                .filter(new Predicate<NYTimesStory>() {
-                    @Override
-                    public boolean test(NYTimesStory story) throws Exception {
-                        return story.isValid();
-                    }
-                });
+                .filter(story -> story.isValid());
     }
 
     /**

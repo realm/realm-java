@@ -35,12 +35,7 @@ public abstract class NewsReaderApplication extends Application {
         context = this;
 
         initializeTimber();
-        RxJavaPlugins.setErrorHandler(new Consumer<Throwable>() {
-            @Override
-            public void accept(Throwable throwable) throws Exception {
-                Timber.e(throwable.toString());
-            }
-        });
+        RxJavaPlugins.setErrorHandler(throwable -> Timber.e(throwable.toString()));
 
         // Configure default configuration for Realm
         Realm.init(this);

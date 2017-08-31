@@ -52,24 +52,16 @@ public class DetailsPresenter implements Presenter {
     public void onResume() {
         // Show story details
         Disposable detailsSubscription = model.getStory(storyId)
-                .subscribe(new Consumer<NYTimesStory>() {
-                    @Override
-                    public void accept(NYTimesStory story) throws Exception {
-                        view.hideLoader();
-                        view.showStory(story);
-                        view.setRead(story.isRead());
-                    }
+                .subscribe(story -> {
+                    view.hideLoader();
+                    view.showStory(story);
+                    view.setRead(story.isRead());
                 });
 
         // Mark story as read if screen is visible for 2 seconds
         Disposable timerSubscription = Observable.timer(2, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<Long>() {
-                    @Override
-                    public void accept(Long aLong) throws Exception {
-                        model.markAsRead(storyId, true);
-                    }
-                });
+                .subscribe(aLong -> model.markAsRead(storyId, true));
 
         disposables = new CompositeDisposable(detailsSubscription, timerSubscription);
     }

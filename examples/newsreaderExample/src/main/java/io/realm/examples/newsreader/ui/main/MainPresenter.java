@@ -55,13 +55,10 @@ public class MainPresenter implements Presenter {
         sections = model.getSections();
         // Sort sections alphabetically, but always have Home at the top
         ArrayList<String> sectionList = new ArrayList<>(sections.values());
-        Collections.sort(sectionList, new Comparator<String>() {
-            @Override
-            public int compare(String lhs, String rhs) {
-                if (lhs.equals("Home")) return -1;
-                if (rhs.equals("Home")) return 1;
-                return lhs.compareToIgnoreCase(rhs);
-            }
+        Collections.sort(sectionList, (lhs, rhs) -> {
+            if (lhs.equals("Home")) return -1;
+            if (rhs.equals("Home")) return 1;
+            return lhs.compareToIgnoreCase(rhs);
         });
         view.configureToolbar(sectionList);
     }
@@ -69,12 +66,7 @@ public class MainPresenter implements Presenter {
     @Override
     public void onResume() {
         loaderDisposable = model.isNetworkUsed()
-                .subscribe(new Consumer<Boolean>() {
-                    @Override
-                    public void accept(Boolean networkInUse) throws Exception {
-                        view.showNetworkLoading(networkInUse);
-                    }
-                });
+                .subscribe(networkInUse -> view.showNetworkLoading(networkInUse));
 
         sectionSelected(model.getCurrentSectionKey());
     }
@@ -115,12 +107,9 @@ public class MainPresenter implements Presenter {
             listDataDisposable.dispose();
         }
         listDataDisposable = model.getSelectedNewsFeed()
-                .subscribe(new Consumer<RealmResults<NYTimesStory>>() {
-                    @Override
-                    public void accept(RealmResults<NYTimesStory> stories) throws Exception {
-                        storiesData = stories;
-                        view.showList(stories);
-                    }
+                .subscribe(stories -> {
+                    storiesData = stories;
+                    view.showList(stories);
                 });
     }
 }

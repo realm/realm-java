@@ -85,7 +85,8 @@ public class Repository implements Closeable {
 
         // Return the data in Realm. The query result will be automatically updated when the network requests
         // save data in Realm
-        return realm.where(NYTimesStory.class).equalTo(NYTimesStory.API_SECTION, sectionKey)
+        return realm.where(NYTimesStory.class)
+                .equalTo(NYTimesStory.API_SECTION, sectionKey)
                 .findAllSortedAsync(NYTimesStory.PUBLISHED_DATE, Sort.DESCENDING)
                 .asFlowable();
     }
@@ -132,10 +133,7 @@ public class Repository implements Closeable {
     public Flowable<NYTimesStory> loadStory(final String storyId) {
         return realm.where(NYTimesStory.class).equalTo(NYTimesStory.URL, storyId).findFirstAsync()
                 .<NYTimesStory>asFlowable()
-                .filter(new Predicate<NYTimesStory>() {
-                    @Override
-                    public boolean test(NYTimesStory story) throws Exception { return story.isLoaded(); }
-                });
+                .filter(story -> story.isLoaded());
     }
 
     /**
