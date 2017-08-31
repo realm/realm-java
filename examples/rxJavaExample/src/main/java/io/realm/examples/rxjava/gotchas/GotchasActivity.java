@@ -167,13 +167,6 @@ public class GotchasActivity extends AppCompatActivity {
             }
         });
 
-        new Function<Realm, Person>() {
-            @Override
-            public Person apply(Realm realm) throws Exception {
-                return realm.where(Person.class).findAllSorted("name").get(0);
-            }
-        };
-
         // distinct() and distinctUntilChanged() uses standard equals with older objects stored in a HashMap.
         // Realm objects auto-update which means the objects stored will also auto-update.
         // This makes comparing against older objects impossible (even if the new object has changed) because the
