@@ -11,7 +11,7 @@ include 'realmModuleExample'
 include 'threadExample'
 include 'unitTestExample'
 include 'newsreaderExample'
-//include 'rxJavaExample' FIXME: Upgrade to RxJava2
+include 'rxJavaExample'
 include 'objectServerExample'
 
 rootProject.name = 'realm-examples'

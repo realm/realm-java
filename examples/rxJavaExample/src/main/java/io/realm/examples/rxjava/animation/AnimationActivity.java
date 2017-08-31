@@ -21,30 +21,32 @@ import android.os.Bundle;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.reactivestreams.Publisher;
+
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BiFunction;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.Flowable;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.examples.rxjava.R;
 import io.realm.examples.rxjava.model.Person;
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.functions.Func2;
 
 public class AnimationActivity extends Activity {
 
     private Realm realm;
-    private Subscription subscription;
+    private Disposable disposable;
     private ViewGroup container;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_animations);
-        container = (ViewGroup) findViewById(R.id.list);
+        container = findViewById(R.id.list);
         realm = Realm.getDefaultInstance();
     }
 
@@ -55,23 +57,24 @@ public class AnimationActivity extends Activity {
         // Load all persons and start inserting them with 1 sec. intervals.
         // All RealmObject access has to be done on the same thread `findAllAsync` was called on.
         // Warning: This example doesn't handle back pressure well.
-        subscription = realm.where(Person.class).findAllAsync().asObservable()
-                .flatMap(new Func1<RealmResults<Person>, Observable<Person>>() {
+        disposable = realm.where(Person.class).findAllAsync().asFlowable()
+                .flatMap(new Function<RealmResults<Person>, Publisher<Person>>() {
                     @Override
-                    public Observable<Person> call(RealmResults<Person> persons) {
-                        return Observable.from(persons);
+                    public Publisher<Person> apply(RealmResults<Person> persons) throws Exception {
+                        return Flowable.fromIterable(persons);
                     }
                 })
-                .zipWith(Observable.interval(1, TimeUnit.SECONDS), new Func2<Person, Long, Person>() {
+                .zipWith(Flowable.interval(1, TimeUnit.SECONDS), new BiFunction<Person, Long, Person>() {
+
                     @Override
-                    public Person call(Person person, Long tick) {
+                    public Person apply(Person person, Long tick) throws Exception {
                         return person;
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Person>() {
+                .subscribe(new Consumer<Person>() {
                     @Override
-                    public void call(Person person) {
+                    public void accept(Person person) throws Exception {
                         TextView personView = new TextView(AnimationActivity.this);
                         personView.setText(person.getName());
                         container.addView(personView);
@@ -82,7 +85,7 @@ public class AnimationActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        subscription.unsubscribe();
+        disposable.dispose();
     }
 
     @Override

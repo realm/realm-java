@@ -39,6 +39,7 @@ public class MyApplication extends Application {
         testPersons.put("Donn", "donnfelker");
         testPersons.put("Nabil", "nhachicha");
         testPersons.put("Ron", null);
+        testPersons.put("Leonardo", "dalinaum");
     }
 
     @Override
@@ -68,9 +69,5 @@ public class MyApplication extends Application {
             }
         });
         realm.close();
-    }
-
-    public static MyApplication getContext() {
-        return context;
     }
 }

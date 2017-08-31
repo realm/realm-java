@@ -24,16 +24,16 @@ import android.widget.TextView;
 import java.util.List;
 import java.util.Random;
 
+import io.reactivex.Flowable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 import io.realm.Sort;
 import io.realm.examples.rxjava.R;
 import io.realm.examples.rxjava.model.Person;
-import rx.Observable;
-import rx.Subscription;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.CompositeSubscription;
 
 /**
  * This class shows some of the current obstacles when combining RxJava and Realm. 2 things are
@@ -54,14 +54,14 @@ import rx.subscriptions.CompositeSubscription;
  */
 public class GotchasActivity extends Activity {
     private Realm realm;
-    private Subscription subscription;
+    private Disposable disposable;
     private ViewGroup container;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gotchas);
-        container = (ViewGroup) findViewById(R.id.list);
+        container = findViewById(R.id.list);
         realm = Realm.getDefaultInstance();
     }
 
@@ -69,9 +69,9 @@ public class GotchasActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        Subscription distinctSubscription = testDistinct();
-        Subscription bufferSubscription = testBuffer();
-        Subscription subscribeOnSubscription = testSubscribeOn();
+        Disposable distinctSubscription = testDistinct();
+        Disposable bufferSubscription = testBuffer();
+        Disposable subscribeOnSubscription = testSubscribeOn();
 
         // Trigger updates
         realm.executeTransaction(new Realm.Transaction() {
@@ -81,7 +81,7 @@ public class GotchasActivity extends Activity {
             }
         });
 
-        subscription = new CompositeSubscription(
+        disposable = new CompositeDisposable(
                 distinctSubscription,
                 bufferSubscription,
                 subscribeOnSubscription
@@ -91,53 +91,53 @@ public class GotchasActivity extends Activity {
     /**
      * Shows how to be careful with `subscribeOn()`
      */
-    private Subscription testSubscribeOn() {
-        Subscription subscribeOn = realm.asObservable()
-                .map(new Func1<Realm, Person>() {
+    private Disposable testSubscribeOn() {
+        Disposable subscribeOn = realm.asFlowable()
+                .map(new Function<Realm, Person>() {
                     @Override
-                    public Person call(Realm realm) {
+                    public Person apply(Realm realm) throws Exception {
                         return realm.where(Person.class).findAllSorted("name").get(0);
                     }
                 })
                 // The Realm was created on the UI thread. Accessing it on `Schedulers.io()` will crash.
                 // Avoid using subscribeOn() and use Realms `findAllAsync*()` methods instead.
                 .subscribeOn(Schedulers.io()) //
-                .subscribe(new Action1<Person>() {
+                .subscribe(new Consumer<Person>() {
                     @Override
-                    public void call(Person person) {
+                    public void accept(Person person) throws Exception {
                         // Do nothing
                     }
-                }, new Action1<Throwable>() {
+                }, new Consumer<Throwable>() {
                     @Override
-                    public void call(Throwable throwable) {
+                    public void accept(Throwable throwable) throws Exception {
                         showStatus("subscribeOn: " + throwable.toString());
                     }
                 });
 
         // Use Realms Async API instead
-        Subscription asyncSubscribeOn = realm.where(Person.class).findAllSortedAsync("name").get(0).<Person>asObservable()
-                .subscribe(new Action1<Person>() {
+        Disposable asyncSubscribeOn = realm.where(Person.class).findAllSortedAsync("name").get(0).<Person>asFlowable()
+                .subscribe(new Consumer<Person>() {
                     @Override
-                    public void call(Person person) {
+                    public void accept(Person person) throws Exception {
                         showStatus("subscribeOn/async: " + person.getName() + ":" + person.getAge());
                     }
-                }, new Action1<Throwable>() {
+                }, new Consumer<Throwable>() {
                     @Override
-                    public void call(Throwable throwable) {
-                        showStatus("subscribeOn/async: " + throwable.toString());
+                    public void accept(Throwable throwable) throws Exception {
+                        showStatus("subscribeOn/async: " +throwable.toString());
                     }
                 });
 
-        return new CompositeSubscription(subscribeOn, asyncSubscribeOn);
+        return new CompositeDisposable(subscribeOn, asyncSubscribeOn);
     }
 
     /**
      * Shows how to be careful with `buffer()`
      */
-    private Subscription testBuffer() {
-        Observable<Person> personObserver = realm.asObservable().map(new Func1<Realm, Person>() {
+    private Disposable testBuffer() {
+        Flowable<Person> personFlowable = realm.asFlowable().map(new Function<Realm, Person>() {
             @Override
-            public Person call(Realm realm) {
+            public Person apply(Realm realm) throws Exception {
                 return realm.where(Person.class).findAllSorted("name").get(0);
             }
         });
@@ -145,13 +145,13 @@ public class GotchasActivity extends Activity {
         // buffer() caches objects until the buffer is full. Due to Realms auto-update of all objects it means
         // that all objects in the cache will contain the same data.
         // Either avoid using buffer or copy data into an unmanaged object.
-        return personObserver
+        return personFlowable
                 .buffer(2)
-                .subscribe(new Action1<List<Person>>() {
+                .subscribe(new Consumer<List<Person>>() {
                     @Override
-                    public void call(List<Person> persons) {
-                        showStatus("Buffer[0] : " + persons.get(0).getName() + ":" + persons.get(0).getAge());
-                        showStatus("Buffer[1] : " + persons.get(1).getName() + ":" + persons.get(1).getAge());
+                    public void accept(List<Person> people) throws Exception {
+                        showStatus("Buffer[0] : " + people.get(0).getName() + ":" + people.get(0).getAge());
+                        showStatus("Buffer[1] : " + people.get(1).getName() + ":" + people.get(1).getAge());
                     }
                 });
     }
@@ -159,44 +159,50 @@ public class GotchasActivity extends Activity {
     /**
      * Shows how to to be careful when using `distinct()`
      */
-    private Subscription testDistinct() {
-        Observable<Person> personObserver = realm.asObservable().map(new Func1<Realm, Person>() {
+    private Disposable testDistinct() {
+        Flowable<Person> personFlowable = realm.asFlowable().map(new Function<Realm, Person>() {
             @Override
-            public Person call(Realm realm) {
+            public Person apply(Realm realm) throws Exception {
                 return realm.where(Person.class).findAllSorted("name").get(0);
             }
         });
+
+        new Function<Realm, Person>() {
+            @Override
+            public Person apply(Realm realm) throws Exception {
+                return realm.where(Person.class).findAllSorted("name").get(0);
+            }
+        };
 
         // distinct() and distinctUntilChanged() uses standard equals with older objects stored in a HashMap.
         // Realm objects auto-update which means the objects stored will also auto-update.
         // This makes comparing against older objects impossible (even if the new object has changed) because the
         // cached object will also have changed.
         // Use a keySelector function to work around this.
-        Subscription distinctItemTest = personObserver
+        Disposable distinctItemTest = personFlowable
                 .distinct() // Because old == new. This will only allow the first version of the "Chris" object to pass.
-                .subscribe(new Action1<Person>() {
+                .subscribe(new Consumer<Person>() {
                     @Override
-                    public void call(Person p) {
-                        showStatus("distinct(): " + p.getName() + ":" + p.getAge());
+                    public void accept(Person person) throws Exception {
+                        showStatus("distinct(): " + person.getName() + ":" + person.getAge());
                     }
                 });
 
-        Subscription distinctKeySelectorItemTest = personObserver
-                .distinct(new Func1<Person, Integer>() { // Use a keySelector function instead
+        Disposable distinctKeySelectorItemTest = personFlowable
+                .distinct(new Function<Person, Object>() {
                     @Override
-                    public Integer call(Person p) {
-                        return p.getAge();
+                    public Object apply(Person person) throws Exception {
+                        return person.getAge();
                     }
                 })
-                .subscribe(new Action1<Person>() {
+                .subscribe(new Consumer<Person>() {
                     @Override
-                    public void call(Person p) {
-                        showStatus("distinct(keySelector): " + p.getName() + ":" + p.getAge());
+                    public void accept(Person person) throws Exception {
+                        showStatus("distinct(keySelector): " + person.getName() + ":" + person.getAge());
                     }
                 });
 
-
-        return new CompositeSubscription(distinctItemTest, distinctKeySelectorItemTest);
+        return new CompositeDisposable(distinctItemTest, distinctKeySelectorItemTest);
     }
 
     private void showStatus(String message) {
@@ -208,7 +214,7 @@ public class GotchasActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        subscription.unsubscribe();
+        disposable.dispose();
     }
 
     @Override

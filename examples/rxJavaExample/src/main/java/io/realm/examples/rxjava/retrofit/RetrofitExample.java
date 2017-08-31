@@ -21,19 +21,31 @@ import android.os.Bundle;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.reactivestreams.Publisher;
+
+import java.io.IOException;
 import java.util.Locale;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.examples.rxjava.R;
 import io.realm.examples.rxjava.model.Person;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import static android.text.TextUtils.isEmpty;
 import static java.lang.String.format;
@@ -41,15 +53,15 @@ import static java.lang.String.format;
 public class RetrofitExample extends Activity {
 
     private Realm realm;
-    private Subscription subscription;
+    private Disposable disposable;
     private ViewGroup container;
-    private GithubApi api;
+    private GitHubApi api;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_network);
-        container = (ViewGroup) findViewById(R.id.list);
+        container = findViewById(R.id.list);
         realm = Realm.getDefaultInstance();
         api = createGitHubApi();
     }
@@ -59,48 +71,47 @@ public class RetrofitExample extends Activity {
         super.onResume();
 
         // Load all persons and merge them with their latest stats from GitHub (if they have any)
-        subscription = realm.where(Person.class).isNotNull("githubUserName").findAllSortedAsync("name").asObservable()
-                .filter(new Func1<RealmResults<Person>, Boolean>() {
+        disposable = realm.where(Person.class).isNotNull("githubUserName").findAllSortedAsync("name").asFlowable()
+                .filter(new Predicate<RealmResults<Person>>() {
                     @Override
-                    public Boolean call(RealmResults<Person> persons) {
+                    public boolean test(RealmResults<Person> people) throws Exception {
                         // We only want the list once it is loaded.
-                        return persons.isLoaded();
+                        return people.isLoaded();
                     }
                 })
-                .flatMap(new Func1<RealmResults<Person>, Observable<Person>>() {
+                .flatMap(new Function<RealmResults<Person>, Publisher<Person>>() {
                     @Override
-                    public Observable<Person> call(RealmResults<Person> persons) {
-                        // Emit each person individually
-                        return Observable.from(persons);
+                    public Publisher<Person> apply(RealmResults<Person> people) throws Exception {
+                        return Flowable.fromIterable(people);
                     }
                 })
-                .flatMap(new Func1<Person, Observable<GitHubUser>>() {
+                .flatMap(new Function<Person, Publisher<GitHubUser>>() {
                     @Override
-                    public Observable<GitHubUser> call(Person person) {
-                        // get GitHub statistics. Retrofit automatically does this on a separate thread.
+                    public Publisher<GitHubUser> apply(Person person) throws Exception {
+                        // get GitHub statistics.
                         return api.user(person.getGithubUserName());
                     }
                 })
-                .map(new Func1<GitHubUser, UserViewModel>() {
+                .map(new Function<GitHubUser, UserViewModel>() {
                     @Override
-                    public UserViewModel call(GitHubUser gitHubUser) {
+                    public UserViewModel apply(GitHubUser gitHubUser) throws Exception {
                         // Map Network model to our View model
                         return new UserViewModel(gitHubUser.name, gitHubUser.public_repos, gitHubUser.public_gists);
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread()) // Retrofit put us on a worker thread. Move back to UI
-                .subscribe(new Action1<UserViewModel>() {
+                .subscribe(new Consumer<UserViewModel>() {
                     @Override
-                    public void call(UserViewModel user) {
+                    public void accept(UserViewModel user) throws Exception {
                         // Print user info.
                         TextView userView = new TextView(RetrofitExample.this);
                         userView.setText(String.format(Locale.US, "%s : %d/%d",
                                 user.getUsername(), user.getPublicRepos(), user.getPublicGists()));
                         container.addView(userView);
                     }
-                }, new Action1<Throwable>() {
+                }, new Consumer<Throwable>() {
                     @Override
-                    public void call(Throwable throwable) {
+                    public void accept(Throwable throwable) throws Exception {
                         throwable.printStackTrace();
                     }
                 });
@@ -109,7 +120,7 @@ public class RetrofitExample extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        subscription.unsubscribe();
+        disposable.dispose();
     }
 
     @Override
@@ -118,20 +129,35 @@ public class RetrofitExample extends Activity {
         realm.close();
     }
 
-    private GithubApi createGitHubApi() {
+    private GitHubApi createGitHubApi() {
 
-        RestAdapter.Builder builder = new RestAdapter.Builder().setEndpoint("https://api.github.com/");
+        Retrofit.Builder builder = new Retrofit.Builder()
+                .baseUrl("https://api.github.com/")
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
+                .addConverterFactory(JacksonConverterFactory.create());
+
+        OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
 
         final String githubToken = ""; // Set GitHub OAuth token to avoid throttling if example is used a lot
+
         if (!isEmpty(githubToken)) {
-            builder.setRequestInterceptor(new RequestInterceptor() {
+            httpClientBuilder.addInterceptor(new Interceptor() {
+
                 @Override
-                public void intercept(RequestFacade request) {
-                    request.addHeader("Authorization", format("token %s", githubToken));
+                public Response intercept(@ParametersAreNonnullByDefault Chain chain) throws IOException {
+                    Request originalRequest = chain.request();
+                    Request modifiedRequest = originalRequest
+                            .newBuilder()
+                            .header("Authorization", format("token %s", githubToken))
+                            .method(originalRequest.method(), originalRequest.body())
+                            .build();
+                    return chain.proceed(modifiedRequest);
                 }
             });
         }
 
-        return builder.build().create(GithubApi.class);
+        OkHttpClient httpClient = httpClientBuilder.build();
+        builder.client(httpClient);
+        return builder.build().create(GitHubApi.class);
     }
 }

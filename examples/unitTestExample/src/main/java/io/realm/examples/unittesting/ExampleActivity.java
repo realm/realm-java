@@ -30,7 +30,7 @@ import io.realm.RealmResults;
 import io.realm.examples.unittesting.model.Person;
 
 
-public class ExampleActivity extends Activity {
+public class ExampleActivity extends AppCompatActivity {
 
     public static final String TAG = ExampleActivity.class.getName();
     private LinearLayout rootLayout = null;
@@ -42,7 +42,7 @@ public class ExampleActivity extends Activity {
         super.onCreate(savedInstanceState);
         Realm.init(getApplicationContext());
         setContentView(R.layout.activity_example);
-        rootLayout = ((LinearLayout) findViewById(R.id.container));
+        rootLayout = findViewById(R.id.container);
         rootLayout.removeAllViews();
 
         // Open the default Realm for the UI thread.
