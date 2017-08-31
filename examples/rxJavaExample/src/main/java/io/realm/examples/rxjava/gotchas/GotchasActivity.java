@@ -69,9 +69,9 @@ public class GotchasActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        Disposable distinctSubscription = testDistinct();
-        Disposable bufferSubscription = testBuffer();
-        Disposable subscribeOnSubscription = testSubscribeOn();
+        Disposable distinctDisposable = testDistinct();
+        Disposable bufferDisposable = testBuffer();
+        Disposable subscribeOnDisposable = testSubscribeOn();
 
         // Trigger updates
         realm.executeTransaction(new Realm.Transaction() {
@@ -82,9 +82,9 @@ public class GotchasActivity extends AppCompatActivity {
         });
 
         disposable = new CompositeDisposable(
-                distinctSubscription,
-                bufferSubscription,
-                subscribeOnSubscription
+                distinctDisposable,
+                bufferDisposable,
+                subscribeOnDisposable
         );
     }
 
