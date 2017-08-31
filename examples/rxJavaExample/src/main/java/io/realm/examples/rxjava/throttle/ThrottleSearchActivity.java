@@ -64,8 +64,8 @@ public class ThrottleSearchActivity extends AppCompatActivity {
         disposable = RxTextView.textChangeEvents(searchInputView)
                 .debounce(200, TimeUnit.MILLISECONDS) // default Scheduler is Schedulers.computation()
                 .observeOn(AndroidSchedulers.mainThread()) // Needed to access Realm data
-                .toFlowable(    BackpressureStrategy.BUFFER)
-                .flatMap(new Function<TextViewTextChangeEvent, Publisher<RealmResults<Person>>>() {
+                .toFlowable(BackpressureStrategy.BUFFER)
+                .switchMap(new Function<TextViewTextChangeEvent, Publisher<RealmResults<Person>>>() {
 
                     public Publisher<RealmResults<Person>> apply(TextViewTextChangeEvent textViewTextChangeEvent) throws Exception {
                         // Use Async API to move Realm queries off the main thread.
