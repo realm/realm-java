@@ -4,7 +4,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -563,7 +562,6 @@ public class AuthTests extends BaseIntegrationTest {
 
         final Token accessToken = entry.getValue();
         Assert.assertNotNull(accessToken);
-        Log.i("DEBUGGING_CI", "old access_token " + accessToken.value() + " Expires at: " + accessToken.expiresMs() + " ms");
         // getting refresh token delay
         Field refreshTokenTaskField = SyncSession.class.getDeclaredField("refreshTokenTask");
         refreshTokenTaskField.setAccessible(true);
@@ -576,15 +574,13 @@ public class AuthTests extends BaseIntegrationTest {
         // current configuration 'realm-java/tools/sync_test_server/configuration.yml'
         // is setting the access token to expire every 20 seconds 'access_token: 20'
         // we wait approximately actually 10 seconds since the SyncSession.REFRESH_MARGIN_DELAY is 10s
-        Log.i("DEBUGGING_CI", "waiting " + nextRefreshTokenRefreshQueryDelay + " ms");
         SystemClock.sleep(nextRefreshTokenRefreshQueryDelay);
 
         // allow 3 seconds for the query to perform and complete
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(3));
 
         Token newAccessToken = accessTokens.get(syncConfiguration);
-        Log.i("DEBUGGING_CI", "new access_token " + newAccessToken.value() + " Expires at: " + newAccessToken.expiresMs() + " ms");
-        assertThat("new Token is not expired", newAccessToken.expiresMs(), greaterThan(System.currentTimeMillis()));
+        assertThat("new Token expires after the old one", newAccessToken.expiresMs(), greaterThan(accessToken.expiresMs()));
         assertNotEquals(accessToken, newAccessToken);
 
         // refresh_token identity is the same
