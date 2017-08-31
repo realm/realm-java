@@ -32,7 +32,7 @@ import io.realm.examples.newsreader.model.entity.NYTimesMultimedium;
 
 public class RealmListNYTimesMultimediumDeserializer extends JsonDeserializer<List<NYTimesMultimedium>> {
 
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     public RealmListNYTimesMultimediumDeserializer() {
         objectMapper = new ObjectMapper();
