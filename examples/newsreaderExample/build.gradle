@@ -32,7 +32,6 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
     //noinspection GradleDependency
     implementation 'com.android.support:appcompat-v7:26.0.1'
     //noinspection GradleDependency

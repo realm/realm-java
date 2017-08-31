@@ -26,6 +26,9 @@ android {
     command {
         monkey.events 2000
     }
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+    }
 }
 
 dependencies {
