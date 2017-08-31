@@ -35,7 +35,7 @@ public class DetailsPresenter implements Presenter {
     private final DetailsActivity view;
     private final Model model;
     private final String storyId;
-    private CompositeDisposable subscriptions;
+    private CompositeDisposable disposables;
 
     public DetailsPresenter(DetailsActivity detailsActivity, Model model, String storyId) {
         this.storyId = storyId;
@@ -71,12 +71,12 @@ public class DetailsPresenter implements Presenter {
                     }
                 });
 
-        subscriptions = new CompositeDisposable(detailsSubscription, timerSubscription);
+        disposables = new CompositeDisposable(detailsSubscription, timerSubscription);
     }
 
     @Override
     public void onPause() {
-        subscriptions.dispose();
+        disposables.dispose();
     }
 
     @Override

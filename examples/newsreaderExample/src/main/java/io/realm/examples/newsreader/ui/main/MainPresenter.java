@@ -42,8 +42,8 @@ public class MainPresenter implements Presenter {
     private final Model model;
     private List<NYTimesStory> storiesData;
     private Map<String, String> sections;
-    private Disposable loaderSubscription;
-    private Disposable listDataSubscription;
+    private Disposable loaderDisposable;
+    private Disposable listDataDisposable;
 
     public MainPresenter(MainActivity mainActivity, Model model) {
         this.view = mainActivity;
@@ -68,7 +68,7 @@ public class MainPresenter implements Presenter {
 
     @Override
     public void onResume() {
-        loaderSubscription = model.isNetworkUsed()
+        loaderDisposable = model.isNetworkUsed()
                 .subscribe(new Consumer<Boolean>() {
                     @Override
                     public void accept(Boolean networkInUse) throws Exception {
@@ -81,8 +81,8 @@ public class MainPresenter implements Presenter {
 
     @Override
     public void onPause() {
-        loaderSubscription.dispose();
-        listDataSubscription.dispose();
+        loaderDisposable.dispose();
+        listDataDisposable.dispose();
     }
 
     @Override
@@ -111,10 +111,10 @@ public class MainPresenter implements Presenter {
 
     private void sectionSelected(@NonNull String sectionKey) {
         model.selectSection(sectionKey);
-        if (listDataSubscription != null) {
-            listDataSubscription.dispose();
+        if (listDataDisposable != null) {
+            listDataDisposable.dispose();
         }
-        listDataSubscription = model.getSelectedNewsFeed()
+        listDataDisposable = model.getSelectedNewsFeed()
                 .subscribe(new Consumer<RealmResults<NYTimesStory>>() {
                     @Override
                     public void accept(RealmResults<NYTimesStory> stories) throws Exception {

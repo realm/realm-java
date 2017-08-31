@@ -54,7 +54,7 @@ import io.realm.examples.rxjava.model.Person;
  */
 public class GotchasActivity extends AppCompatActivity {
     private Realm realm;
-    private Disposable disposable;
+    private Disposable disposables;
     private ViewGroup container;
 
     @Override
@@ -81,7 +81,7 @@ public class GotchasActivity extends AppCompatActivity {
             }
         });
 
-        disposable = new CompositeDisposable(
+        disposables = new CompositeDisposable(
                 distinctDisposable,
                 bufferDisposable,
                 subscribeOnDisposable
@@ -207,7 +207,7 @@ public class GotchasActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        disposable.dispose();
+        disposables.dispose();
     }
 
     @Override
