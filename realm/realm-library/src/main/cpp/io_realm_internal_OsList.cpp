@@ -18,6 +18,7 @@
 
 #include <list.hpp>
 #include <results.hpp>
+#include <shared_realm.hpp>
 
 #include "util.hpp"
 
