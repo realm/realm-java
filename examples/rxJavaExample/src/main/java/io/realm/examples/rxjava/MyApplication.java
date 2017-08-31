@@ -28,7 +28,6 @@ import io.realm.examples.rxjava.model.Person;
 
 public class MyApplication extends Application {
 
-    private static MyApplication context;
     private static final TreeMap<String, String> testPersons = new TreeMap<>();
     static {
         testPersons.put("Chris", null);
@@ -45,7 +44,6 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        context = this;
         Realm.init(this);
         RealmConfiguration config = new RealmConfiguration.Builder().build();
         Realm.deleteRealm(config);
