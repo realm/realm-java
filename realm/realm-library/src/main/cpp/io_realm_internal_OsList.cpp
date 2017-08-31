@@ -92,7 +92,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddRow(JNIEnv* env, j
 
     try {
         auto& list = *reinterpret_cast<List*>(list_ptr);
-        list.add(target_row_index);
+        list.add(static_cast<size_t>(target_row_index));
     }
     CATCH_STD()
 }
@@ -104,7 +104,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertRow(JNIEnv* env
 
     try {
         auto& list = *reinterpret_cast<List*>(list_ptr);
-        list.insert(pos, target_row_index);
+        list.insert(static_cast<size_t>(pos), static_cast<size_t>(target_row_index));
     }
     CATCH_STD()
 }
@@ -116,7 +116,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetRow(JNIEnv* env, j
 
     try {
         auto& list = *reinterpret_cast<List*>(list_ptr);
-        list.set(pos, target_row_index);
+        list.set(static_cast<size_t>(pos), static_cast<size_t>(target_row_index));
     }
     CATCH_STD()
 }
