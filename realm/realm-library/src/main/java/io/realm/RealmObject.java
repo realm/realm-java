@@ -19,11 +19,13 @@ package io.realm;
 import android.app.IntentService;
 
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.ManagableObject;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
+import io.realm.rx.ObjectChange;
 
 /**
  * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then
@@ -478,9 +480,11 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @throws IllegalStateException if you try to add a listener inside a transaction.
      */
     public static <E extends RealmModel> void addChangeListener(E object, RealmObjectChangeListener<E> listener) {
+        //noinspection ConstantConditions
         if (object == null) {
             throw new IllegalArgumentException("Object should not be null");
         }
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -533,7 +537,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @throws IllegalStateException if you try to add a listener inside a transaction.
      */
     public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener<E> listener) {
-        addChangeListener(object, new ProxyState.RealmChangeListenerWrapper<E>(listener));
+        addChangeListener(object, new ProxyState.RealmChangeListenerWrapper<>(listener));
     }
 
     /**
@@ -568,9 +572,11 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      */
     public static <E extends RealmModel> void removeChangeListener(E object, RealmObjectChangeListener listener) {
+        //noinspection ConstantConditions
         if (object == null) {
             throw new IllegalArgumentException("Object should not be null");
         }
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -596,7 +602,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      */
     public static <E extends RealmModel> void removeChangeListener(E object, RealmChangeListener<E> listener) {
-        removeChangeListener(object, new ProxyState.RealmChangeListenerWrapper<E>(listener));
+        removeChangeListener(object, new ProxyState.RealmChangeListenerWrapper<>(listener));
     }
 
     /**
@@ -684,6 +690,28 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
     }
 
     /**
+     * Returns an Rx Observable that monitors changes to this RealmObject. It will emit the current RealmObject when
+     * subscribed to. For each update to the RealmObject a pair consisting of the RealmObject and the
+     * {@link ObjectChangeSet} will be sent. The changeset will be {@code null} the first
+     * time the RealmObject is emitted.
+     * <p>
+     * The RealmObject will continually be emitted as it is updated - {@code onComplete} will never be called.
+     * <p>
+     * Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
+     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
+     * instead.
+     *
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    public final <E extends RealmObject> Observable<ObjectChange<E>> asChangesetObservable() {
+        return (Observable) RealmObject.asChangesetObservable(this);
+    }
+
+    /**
      * Returns an RxJava Flowable that monitors changes to this RealmObject. It will emit the current object when
      * subscribed to. Object updates will continuously be emitted as the RealmObject is updated -
      * {@code onComplete} will never be called.
@@ -720,6 +748,46 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
                 @SuppressWarnings("unchecked")
                 Flowable<E> observable = (Flowable<E>) realm.configuration.getRxFactory().from(dynamicRealm, dynamicObject);
                 return observable;
+            } else {
+                throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava." +
+                        " See https://realm.io/docs/java/latest/#rxjava for more details.");
+            }
+        } else {
+            // TODO Is this true? Should we just return Observable.just(object) ?
+            throw new IllegalArgumentException("Cannot create Observables from unmanaged RealmObjects");
+        }
+    }
+
+
+    /**
+     * Returns an Rx Observable that monitors changes to this RealmObject. It will emit the current RealmObject when
+     * subscribed to. For each update to the RealmObject a pair consisting of the RealmObject and the
+     * {@link ObjectChangeSet} will be sent. The changeset will be {@code null} the first
+     * time the RealmObject is emitted.
+     * <p>
+     * The RealmObject will continually be emitted as it is updated - {@code onComplete} will never be called.
+     * <p>
+     * Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
+     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
+     * instead.
+     *
+     * @param object RealmObject class that is being observed. Must be this class or its super types.
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    public static <E extends RealmModel> Observable<ObjectChange<E>> asChangesetObservable(E object) {
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+            BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
+            if (realm instanceof Realm) {
+                return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, object);
+            } else if (realm instanceof DynamicRealm) {
+                DynamicRealm dynamicRealm = (DynamicRealm) realm;
+                DynamicRealmObject dynamicObject = (DynamicRealmObject) object;
+                return (Observable) realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicObject);
             } else {
                 throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava." +
                         " See https://realm.io/docs/java/latest/#rxjava for more details.");

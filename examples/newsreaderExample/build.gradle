@@ -19,7 +19,7 @@ android {
         }
     }
     command {
-        events 2000
+        monkey.events 2000
     }
     lintOptions {
         disable 'InvalidPackage'
@@ -34,9 +34,9 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     //noinspection GradleDependency
-    implementation 'com.android.support:appcompat-v7:25.2.0'
+    implementation 'com.android.support:appcompat-v7:26.0.1'
     //noinspection GradleDependency
-    implementation 'com.android.support:design:25.2.0'
+    implementation 'com.android.support:design:26.0.1'
     implementation 'com.jakewharton.timber:timber:4.1.0'
     implementation 'com.jakewharton:butterknife:8.5.1'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'

@@ -21,13 +21,17 @@ import android.annotation.SuppressLint;
 import android.os.Looper;
 
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.realm.internal.CheckedRow;
 import io.realm.internal.Collection;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-
+import io.realm.rx.CollectionChange;
 
 /**
  * This class holds all the matches of a {@link RealmQuery} for a given Realm. The objects are not copied from
@@ -71,10 +75,12 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
 
     // Abandon typing information, all ye who enter here
     static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
+        final String srcClassName = Table.getClassNameForTable(srcTable.getName());
+        //noinspection ConstantConditions
         return new RealmResults<>(
                 realm,
                 Collection.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),
-                Table.getClassNameForTable(srcTable.getName()));
+                srcClassName);
     }
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
@@ -208,7 +214,7 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
         collection.addListener(this, listener);
     }
 
-    private void checkForAddRemoveListener(Object listener, boolean checkListener) {
+    private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {
         if (checkListener && listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -299,6 +305,35 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
             @SuppressWarnings("UnnecessaryLocalVariable")
             Flowable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
             return results;
+        } else {
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+        }
+    }
+
+    /**
+     * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
+     * subscribed. For each update to the RealmResult a pair consisting of the RealmResults and the
+     * {@link OrderedCollectionChangeSet} will be sent. The changeset will be {@code null} the first
+     * time an RealmResults is emitted.
+     * <p>
+     * RealmResults will continually be emitted as the RealmResults are updated - {@code onComplete} will never be called.
+     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
+     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
+     * instead.
+     *
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    public Observable<CollectionChange<RealmResults<E>>> asChangesetObservable() {
+        if (realm instanceof Realm) {
+            return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, this);
+        } else if (realm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+            RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
+            return (Observable) realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
         } else {
             throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
         }

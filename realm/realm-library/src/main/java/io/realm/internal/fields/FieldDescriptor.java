@@ -272,11 +272,11 @@ public abstract class FieldDescriptor {
         return Arrays.asList(fieldDescription.split("\\."));
     }
 
-    private void verifyColumnType(String tableName, String columnName, RealmFieldType columnType, Set<RealmFieldType> validTypes) {
+    private void verifyColumnType(String className, String columnName, RealmFieldType columnType, Set<RealmFieldType> validTypes) {
         if (!validTypes.contains(columnType)) {
             throw new IllegalArgumentException(String.format(Locale.US,
-                    "Invalid query: field '%s' in table '%s' is of invalid type '%s'.",
-                    columnName, tableName, columnType.toString()));
+                    "Invalid query: field '%s' in class '%s' is of invalid type '%s'.",
+                    columnName, className, columnType.toString()));
         }
     }
 

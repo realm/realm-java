@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.util;
+package io.realm.internal.util;
 
 /**
  * Container to ease passing around a tuple of two objects. This object provides a sensible

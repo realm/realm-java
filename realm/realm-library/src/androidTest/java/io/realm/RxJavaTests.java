@@ -42,9 +42,13 @@ import io.realm.entities.Dog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.rx.CollectionChange;
+import io.realm.rx.ObjectChange;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -102,6 +106,48 @@ public class RxJavaTests {
     }
 
     @Test
+    @UiThreadTest
+    public void realmObject_emitChangesetOnSubscribe() {
+        realm.beginTransaction();
+        final AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        subscription = obj.asChangesetObservable().subscribe(new Consumer<ObjectChange<RealmObject>>() {
+            @Override
+            public void accept(ObjectChange<RealmObject> change) throws Exception {
+                assertTrue(change.getObject() == obj);
+                assertNull(change.getChangeset());
+                subscribedNotified.set(true);
+            }
+        });
+        assertTrue(subscribedNotified.get());
+        subscription.dispose();
+    }
+
+    @Test
+    @UiThreadTest
+    public void dynamicRealmObject_emitChangesetOnSubscribe() {
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        dynamicRealm.beginTransaction();
+        final DynamicRealmObject obj = dynamicRealm.createObject(AllTypes.CLASS_NAME);
+        dynamicRealm.commitTransaction();
+
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        subscription = obj.asChangesetObservable().subscribe(new Consumer<ObjectChange<RealmObject>>() {
+            @Override
+            public void accept(ObjectChange<RealmObject> change) throws Exception {
+                assertTrue(change.getObject() == obj);
+                assertNull(change.getChangeset());
+                subscribedNotified.set(true);
+            }
+        });
+        assertTrue(subscribedNotified.get());
+        subscription.dispose();
+        dynamicRealm.close();
+    }
+
+    @Test
     @RunTestInLooperThread
     public void realmObject_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
@@ -121,6 +167,56 @@ public class RxJavaTests {
 
         realm.beginTransaction();
         obj.setColumnLong(1);
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void realmObject_emittedChangesetOnUpdate() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        Realm realm = looperThread.getRealm();
+        realm.beginTransaction();
+        final AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        subscription = obj.asChangesetObservable().subscribe(new Consumer<ObjectChange<RealmObject>>() {
+            @Override
+            public void accept(ObjectChange<RealmObject> change) throws Exception {
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    assertNotNull(change.getChangeset());
+                    assertTrue(change.getChangeset().isFieldChanged(AllTypes.FIELD_LONG));
+                    looperThread.testComplete();
+                }
+            }
+        });
+
+        realm.beginTransaction();
+        obj.setColumnLong(1);
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void dynamicRealmObject_emittedChangesetOnUpdate() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        DynamicRealm realm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        looperThread.closeAfterTest(realm);
+        realm.beginTransaction();
+        final DynamicRealmObject obj = realm.createObject(AllTypes.CLASS_NAME);
+        realm.commitTransaction();
+
+        subscription = obj.asChangesetObservable().subscribe(new Consumer<ObjectChange<RealmObject>>() {
+            @Override
+            public void accept(ObjectChange<RealmObject> change) throws Exception {
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    assertNotNull(change.getChangeset());
+                    assertTrue(change.getChangeset().isFieldChanged(AllTypes.FIELD_LONG));
+                    looperThread.testComplete();
+                }
+            }
+        });
+        realm.beginTransaction();
+        obj.setLong(AllTypes.FIELD_LONG, 1);
         realm.commitTransaction();
     }
 
@@ -242,6 +338,22 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
+    public void realmResults_emittedChangesetOnSubscribe() {
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+        subscription = results.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmResults<AllTypes>>>() {
+            @Override
+            public void accept(CollectionChange<RealmResults<AllTypes>> change) throws Exception {
+                assertEquals(results, change.getCollection());
+                subscribedNotified.set(true);
+            }
+        });
+        assertTrue(subscribedNotified.get());
+        subscription.dispose();
+    }
+
+    @Test
+    @UiThreadTest
     public void realmList_emittedOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         realm.beginTransaction();
@@ -261,6 +373,25 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
+    public void realmList_emittedChangesetOnSubscribe() {
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        realm.beginTransaction();
+        final RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
+        realm.commitTransaction();
+        subscription = list.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmList<Dog>>>() {
+            @Override
+            public void accept(CollectionChange<RealmList<Dog>> change) throws Exception {
+                assertEquals(list, change.getCollection());
+                assertNull(change.getChangeset());
+                subscribedNotified.set(true);
+            }
+        });
+        assertTrue(subscribedNotified.get());
+        subscription.dispose();
+    }
+
+    @Test
+    @UiThreadTest
     public void dynamicRealmResults_emittedOnSubscribe() {
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
@@ -270,6 +401,25 @@ public class RxJavaTests {
             @SuppressWarnings("ReferenceEquality")
             public void accept(RealmResults<DynamicRealmObject> rxResults) throws Exception {
                 assertTrue(rxResults == results);
+                subscribedNotified.set(true);
+            }
+        });
+        assertTrue(subscribedNotified.get());
+        dynamicRealm.close();
+        subscription.dispose();
+    }
+
+    @Test
+    @UiThreadTest
+    public void dynamicRealmResults_emittedChangesetOnSubscribe() {
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        final RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
+        subscription = results.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmResults<DynamicRealmObject>>>() {
+            @Override
+            public void accept(CollectionChange<RealmResults<DynamicRealmObject>> change) throws Exception {
+                assertEquals(results, change.getCollection());
+                assertNull(change.getChangeset());
                 subscribedNotified.set(true);
             }
         });
@@ -303,6 +453,29 @@ public class RxJavaTests {
 
     @Test
     @RunTestInLooperThread
+    public void realmResults_emittedChangesetOnUpdate() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        Realm realm = looperThread.getRealm();
+        realm.beginTransaction();
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+        realm.commitTransaction();
+
+        subscription = results.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmResults<AllTypes>>>() {
+            @Override
+            public void accept(CollectionChange<RealmResults<AllTypes>> change) throws Exception {
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    assertEquals(1, change.getChangeset().getInsertions().length);
+                    looperThread.testComplete();
+                }
+            }
+        });
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
     public void realmList_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         Realm realm = looperThread.getRealm();
@@ -327,6 +500,31 @@ public class RxJavaTests {
 
     @Test
     @RunTestInLooperThread
+    public void realmList_emittedChangesetOnUpdate() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        Realm realm = looperThread.getRealm();
+        realm.beginTransaction();
+        final RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
+        realm.commitTransaction();
+
+        subscription = list.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmList<Dog>>>() {
+            @Override
+            public void accept(CollectionChange<RealmList<Dog>> change) throws Exception {
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    assertEquals(1, list.size());
+                    assertEquals(1, change.getChangeset().getInsertions().length);
+                    looperThread.testComplete();
+                }
+            }
+        });
+
+        realm.beginTransaction();
+        list.add(new Dog());
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
     public void dynamicRealmResults_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
@@ -339,6 +537,31 @@ public class RxJavaTests {
             public void accept(RealmResults<DynamicRealmObject> dynamicRealmObjects) throws Exception {
                 if (subscriberCalled.incrementAndGet() == 2) {
                     dynamicRealm.close();
+                    looperThread.testComplete();
+                }
+            }
+        });
+
+        dynamicRealm.beginTransaction();
+        dynamicRealm.createObject(AllTypes.CLASS_NAME);
+        dynamicRealm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void dynamicRealmResults_emittedChangesetOnUpdate() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        looperThread.closeAfterTest(dynamicRealm);
+        dynamicRealm.beginTransaction();
+        RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
+        dynamicRealm.commitTransaction();
+
+        subscription = results.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmResults<DynamicRealmObject>>>() {
+            @Override
+            public void accept(CollectionChange<RealmResults<DynamicRealmObject>> change) throws Exception {
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    assertEquals(1, change.getChangeset().getInsertions().length);
                     looperThread.testComplete();
                 }
             }
@@ -546,8 +769,8 @@ public class RxJavaTests {
 
         subscription = observable.subscribe(new Consumer<Realm>() {
             @Override
-            public void accept(Realm ignored) throws Exception {
-                assertEquals(2, Realm.getLocalInstanceCount(ignored.getConfiguration()));
+            public void accept(Realm realm) throws Exception {
+                assertEquals(2, Realm.getLocalInstanceCount(realm.getConfiguration()));
             }
         });
 

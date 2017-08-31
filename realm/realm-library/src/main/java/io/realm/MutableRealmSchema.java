@@ -91,6 +91,7 @@ class MutableRealmSchema extends RealmSchema {
             table.setPrimaryKey(null);
         }
         realm.getSharedRealm().removeTable(internalTableName);
+        removeFromClassNameToSchemaMap(internalTableName);
     }
 
     @Override
@@ -121,7 +122,13 @@ class MutableRealmSchema extends RealmSchema {
             table.setPrimaryKey(pkField);
         }
 
-        return new MutableRealmObjectSchema(realm, this, table);
+        RealmObjectSchema objectSchema = removeFromClassNameToSchemaMap(oldInternalName);
+        if (objectSchema == null || !objectSchema.getTable().isValid() || !objectSchema.getClassName().equals(newClassName)) {
+            objectSchema = new MutableRealmObjectSchema(realm, this, table);
+        }
+        putToClassNameToSchemaMap(newInternalName, objectSchema);
+
+        return objectSchema;
     }
 
     private String checkAndGetTableNameFromClassName(String className) {
