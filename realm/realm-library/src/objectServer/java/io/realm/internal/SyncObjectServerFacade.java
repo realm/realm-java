@@ -88,13 +88,13 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             SyncUser user = syncConfig.getUser();
-            String rosServerUrl = syncConfig.getServerUrl() != null ? syncConfig.getServerUrl().toString() : null;
-            String rosUserIdentity = user != null ? user.getIdentity() : null;
-            String syncRealmAuthUrl = user != null ? user.getAuthenticationUrl().toString() : null;
-            String rosSerializedUser = user != null ? user.toJson() : null;
-            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath(), syncConfig.isRealmOffline()};
+            String rosServerUrl = syncConfig.getServerUrl().toString();
+            String rosUserIdentity = user.getIdentity();
+            String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
+            String rosSerializedUser = user.toJson();
+            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath()};
         } else {
-            return new Object[7];
+            return new Object[6];
         }
     }
 

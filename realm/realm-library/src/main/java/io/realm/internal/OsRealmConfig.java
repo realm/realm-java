@@ -163,7 +163,6 @@ public class OsRealmConfig implements NativeObject {
         String syncRefreshToken = (String) syncUserConf[3];
         boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncUserConf[4]));
         String syncSslTrustCertificatePath = (String) syncUserConf[5];
-        boolean syncRealmOffline = (Boolean.TRUE.equals(syncUserConf[6]));
 
         // Set encryption key
         byte[] key = config.getEncryptionKey();
@@ -201,7 +200,7 @@ public class OsRealmConfig implements NativeObject {
             nativeSetInitializationCallback(nativePtr, initializationCallback);
         }
 
-        if (syncRealmOffline) {
+        if (realmConfiguration.isForceSyncHistory()) {
             nativeSetForceSyncHistory(nativePtr);
 
         } else {

@@ -27,11 +27,11 @@ import java.io.File;
 public class ClientResetRequiredError extends ObjectServerError {
 
     private final SyncConfiguration originalConfiguration;
-    private final SyncConfiguration backupConfiguration;
+    private final RealmConfiguration backupConfiguration;
     private final File backupFile;
     private final File originalFile;
 
-    ClientResetRequiredError(ErrorCode errorCode, String errorMessage, SyncConfiguration originalConfiguration, SyncConfiguration backupConfiguration) {
+    ClientResetRequiredError(ErrorCode errorCode, String errorMessage, SyncConfiguration originalConfiguration, RealmConfiguration backupConfiguration) {
         super(errorCode, errorMessage);
         this.originalConfiguration = originalConfiguration;
         this.backupConfiguration = backupConfiguration;
@@ -75,7 +75,7 @@ public class ClientResetRequiredError extends ObjectServerError {
     /**
      * @return the configuration that can be used to open the backup Realm offline.
      */
-    public SyncConfiguration getBackupSyncConfiguration() {
+    public RealmConfiguration getBackupSyncConfiguration() {
         return backupConfiguration;
     }
     /**

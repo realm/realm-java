@@ -217,19 +217,19 @@ public class SessionTests {
                         assertFalse(handler.getOriginalFile().exists());
                         assertTrue(handler.getBackupFile().exists());
 
-                        SyncConfiguration backupSyncConfiguration = handler.getBackupSyncConfiguration();
-                        assertNotNull(backupSyncConfiguration);
-                        assertTrue(backupSyncConfiguration.isSyncConfiguration());
-                        assertTrue(backupSyncConfiguration.isRealmOffline());
+                        RealmConfiguration backupRealmConfiguration = handler.getBackupSyncConfiguration();
+                        assertNotNull(backupRealmConfiguration);
+                        assertFalse(backupRealmConfiguration.isSyncConfiguration());
+                        assertTrue(backupRealmConfiguration.isForceSyncHistory());
 
-                        Realm backupRealm = Realm.getInstance(backupSyncConfiguration);
+                        Realm backupRealm = Realm.getInstance(backupRealmConfiguration);
                         assertFalse(backupRealm.isEmpty());
                         assertEquals(1, backupRealm.where(StringOnly.class).count());
                         assertEquals("Foo", backupRealm.where(StringOnly.class).findAll().first().getChars());
                         backupRealm.close();
 
                         // opening a Dynamic Realm should also work
-                        DynamicRealm dynamicRealm = DynamicRealm.getInstance(backupSyncConfiguration);
+                        DynamicRealm dynamicRealm = DynamicRealm.getInstance(backupRealmConfiguration);
                         dynamicRealm.getSchema().checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME);
                         RealmResults<DynamicRealmObject> all = dynamicRealm.where(StringOnly.CLASS_NAME).findAll();
                         assertEquals(1, all.size());
@@ -282,16 +282,16 @@ public class SessionTests {
 
                         // this SyncConf doesn't specify any module, it will throw a migration required
                         // exception since the backup Realm contain only StringOnly table
-                        SyncConfiguration backupSyncConfiguration = SyncConfiguration.forOffline(backupFile);
+                        RealmConfiguration backupRealmConfiguration = SyncConfiguration.forOffline(backupFile);
 
                         try {
-                            Realm.getInstance(backupSyncConfiguration);
+                            Realm.getInstance(backupRealmConfiguration);
                             fail("Expected to throw a Migration required");
                         } catch (RealmMigrationNeededException expected) {
                         }
 
                         // opening a DynamicRealm will work though
-                        DynamicRealm dynamicRealm = DynamicRealm.getInstance(backupSyncConfiguration);
+                        DynamicRealm dynamicRealm = DynamicRealm.getInstance(backupRealmConfiguration);
 
                         dynamicRealm.getSchema().checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME);
                         RealmResults<DynamicRealmObject> all = dynamicRealm.where(StringOnly.CLASS_NAME).findAll();
@@ -310,8 +310,8 @@ public class SessionTests {
                         }
 
                         // specifying the module will allow to open the typed Realm
-                        backupSyncConfiguration = SyncConfiguration.forOffline(backupFile, new StringOnlyModule());
-                        Realm backupRealm = Realm.getInstance(backupSyncConfiguration);
+                        backupRealmConfiguration = RealmConfiguration.forOffline(backupFile, new StringOnlyModule());
+                        Realm backupRealm = Realm.getInstance(backupRealmConfiguration);
                         assertFalse(backupRealm.isEmpty());
                         assertEquals(2, backupRealm.where(StringOnly.class).count());
                         RealmResults<StringOnly> allSorted = backupRealm.where(StringOnly.class).findAllSorted(StringOnly.FIELD_CHARS);
@@ -342,6 +342,7 @@ public class SessionTests {
         Realm realm = Realm.getInstance(configuration);
         try {
             SyncManager.getSession(configuration).uploadAllLocalChanges();
+            fail("Should throw an IllegalStateException on Ui Thread");
         } catch (IllegalStateException ignored) {
         } finally {
             realm.close();
@@ -354,6 +355,7 @@ public class SessionTests {
         Realm realm = Realm.getInstance(configuration);
         try {
             SyncManager.getSession(configuration).downloadAllServerChanges();
+            fail("Should throw an IllegalStateException on Ui Thread");
         } catch (IllegalStateException ignored) {
         } finally {
             realm.close();
