@@ -1,4 +1,4 @@
-## 3.7.0 (YYYY-MM-DD)
+## 3.7.0 (2017-09-01)
 
 ### Deprecated
 
@@ -39,30 +39,8 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 
 ### Bug Fixes
 
-### Internal
-
-* [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
-* [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
-* Upgraded Realm Sync to 1.10.8
-* Let Object Store handle migration.
-
-## 3.5.1 (YYYY-MM-DD)
-
-### Bug Fixes
-
-### Internal
-
-* [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
-* [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
-* [ObjectServer] Upgraded Realm Sync to 1.10.8.
-* Let Object Store handle migrations and schema validation.
-
-## 3.5.1 (YYYY-MM-DD)
-
-### Bug Fixes
-
 * Potential crash after using `Realm.getSchema()` to change the schema of a typed Realm. `Realm.getSchema()` now returns an immutable `RealmSchema` instance.
-* `Realm.copyToRealmOrUpdate()` might cause a `RealmList` field to contain duplicated elements (#4957).
+* `Realm.copyToRealmOrUpdate()` could cause a `RealmList` field to contain duplicated elements (#4957).
 * `RealmSchema.create(String)` and `RealmObjectSchema.setClassName(String)` did not accept class name whose length was 51 to 57.
 * Workaround for an Android JVM crash when using `compactOnLaunch()` (#4964).
 * Class name in exception message from link query is wrong (#5096).
