@@ -96,7 +96,7 @@ public class NYTimesDataLoader {
                 if (persistedStory != null) {
                     // Only local state is the `read` boolean.
                     story.setRead(persistedStory.isRead());
-               }
+                }
 
                 // Only create or update the local story if needed
                 if (persistedStory == null || !persistedStory.getUpdatedDate().equals(story.getUpdatedDate())) {
