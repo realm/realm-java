@@ -59,6 +59,8 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 
 ### Bug Fixes
 
+* The `compactOnLaunch` callback is no longer invoked if the Realm at that path is already open on other threads.
+
 ### Internal
 
 * [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
