@@ -13,22 +13,27 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
             minifyEnabled false
         }
     }
+
     command {
         monkey.events 2000
     }
+
     lintOptions {
         disable 'InvalidPackage'
     }
+
     packagingOptions {
         exclude 'META-INF/services/javax.annotation.processing.Processor'
         exclude 'META-INF/NOTICE'
         exclude 'META-INF/LICENSE'
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
