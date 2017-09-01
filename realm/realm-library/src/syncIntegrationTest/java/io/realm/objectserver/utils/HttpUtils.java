@@ -32,6 +32,8 @@ import okhttp3.Response;
  * WARNING: This class is called before Realm is initialized, so RealmLog cannot be used.
  */
 public class HttpUtils {
+    // TODO If the timeouts are longer than the test timeout you risk getting
+    // "Realm could not be deleted errors".
     private final static OkHttpClient client = new OkHttpClient.Builder()
             .retryOnConnectionFailure(true)
             .build();

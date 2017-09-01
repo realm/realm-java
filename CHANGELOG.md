@@ -1,5 +1,17 @@
 ## 3.7.0 (YYYY-MM-DD)
 
+### Deprecated
+
+* [ObjectServer] `SyncUser.getManagementRealm()`. Use `SyncUser.getPermissionManager()` instead.
+
+### Enhancements
+
+* [ObjectServer] `SyncUser.getPermissionManager` added as a helper API for working with permissions and permission offers.
+
+### Internal
+
+* [ObjectServer] Upgraded OkHttp to 3.7.0.
+
 
 ## 3.6.0 (2017-09-01)
 
@@ -24,6 +36,28 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 * Added more detailed exception message for `RealmMigrationNeeded`.
 * Bumping schema version only without any actual schema changes will just succeed even when the migration block is not supplied. It threw an `RealmMigrationNeededException` before in the same case.
 * Throw `IllegalStateException` when schema validation fails because of wrong declaration of `@LinkingObjects`.
+
+### Bug Fixes
+
+### Internal
+
+* [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
+* [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
+* Upgraded Realm Sync to 1.10.8
+* Let Object Store handle migration.
+
+## 3.5.1 (YYYY-MM-DD)
+
+### Bug Fixes
+
+### Internal
+
+* [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
+* [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
+* [ObjectServer] Upgraded Realm Sync to 1.10.8.
+* Let Object Store handle migrations and schema validation.
+
+## 3.5.1 (YYYY-MM-DD)
 
 ### Bug Fixes
 
@@ -157,6 +191,7 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 ### Enhancements
 
 * [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
+* [ObjectServer] New set of Permission API's have been added to `SyncUser` through `SyncUser.getPermissionManager()` (#4296).
 * [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` (#4423).
 * [ObjectServer] Added support for `SyncConfiguration.Builder.waitForInitialRemoteData()` (#4270).
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).

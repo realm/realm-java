@@ -51,7 +51,7 @@ set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
         io.realm.ClientResetRequiredError io.realm.RealmFileUserStore
-        io.realm.SyncManager io.realm.SyncSession
+        io.realm.SyncManager io.realm.SyncSession io.realm.SyncUser
     )
 endif()
 create_javah(TARGET jni_headers
