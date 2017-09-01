@@ -98,6 +98,7 @@ prepare_branch() {
     # Merge the branch to the releases branch and check the CHANGELOG.md
     if [[ "$BRANCH_TO_RELEASE" != "releases" ]] ; then
         git merge "origin/$BRANCH_TO_RELEASE"
+        git submodule update --init --recursive
 
         while true
         do
@@ -144,7 +145,7 @@ prepare_branch() {
 
     # Update date in change log
     cur_date=$(date "+%F")
-    sed -i .bak "1 s/YYYY-MM-DD/${cur_date}/" CHANGELOG.md
+    sed "1 s/YYYY-MM-DD/${cur_date}/" CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
     git add CHANGELOG.md
     git commit -m "Update changelog date"
 
