@@ -246,6 +246,7 @@ public class SyncSessionTests extends BaseIntegrationTest {
         });
 
         TestHelper.awaitOrFail(testCompleted, 60);
+        realm.close();
     }
 
     // A Realm that was opened before a user logged out should be able to resume uploading if the user logs back in.
@@ -375,6 +376,7 @@ public class SyncSessionTests extends BaseIntegrationTest {
                     e.printStackTrace();
                     fail(e.getMessage());
                 }
+                adminRealm.close();
 
                 backgroundUpload.countDown();
                 handlerThread.quit();
