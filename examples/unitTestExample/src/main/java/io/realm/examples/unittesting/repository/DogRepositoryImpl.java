@@ -19,7 +19,6 @@ package io.realm.examples.unittesting.repository;
 import io.realm.Realm;
 import io.realm.examples.unittesting.model.Dog;
 
-
 public class DogRepositoryImpl implements DogRepository {
     @Override
     public void createDog(final String name) {
