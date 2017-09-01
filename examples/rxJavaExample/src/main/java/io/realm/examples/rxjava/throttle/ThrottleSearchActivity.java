@@ -23,20 +23,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.jakewharton.rxbinding2.widget.RxTextView;
-import com.jakewharton.rxbinding2.widget.TextViewTextChangeEvent;
-
-import org.reactivestreams.Publisher;
 
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
 import io.realm.Realm;
-import io.realm.RealmResults;
 import io.realm.examples.rxjava.R;
 import io.realm.examples.rxjava.model.Person;
 
@@ -65,41 +58,25 @@ public class ThrottleSearchActivity extends AppCompatActivity {
                 .debounce(200, TimeUnit.MILLISECONDS) // default Scheduler is Schedulers.computation()
                 .observeOn(AndroidSchedulers.mainThread()) // Needed to access Realm data
                 .toFlowable(BackpressureStrategy.BUFFER)
-                .switchMap(new Function<TextViewTextChangeEvent, Publisher<RealmResults<Person>>>() {
-
-                    public Publisher<RealmResults<Person>> apply(TextViewTextChangeEvent textViewTextChangeEvent) throws Exception {
-                        // Use Async API to move Realm queries off the main thread.
-                        // Realm currently doesn't support the standard Schedulers.
-                        return realm.where(Person.class)
-                                .beginsWith("name", textViewTextChangeEvent.text().toString())
-                                .findAllSortedAsync("name")
-                                .asFlowable();
-                    }
+                .switchMap(textChangeEvent -> {
+                    // Use Async API to move Realm queries off the main thread.
+                    // Realm currently doesn't support the standard Schedulers.
+                    return realm.where(Person.class)
+                            .beginsWith("name", textChangeEvent.text().toString())
+                            .findAllSortedAsync("name")
+                            .asFlowable();
                 })
-                .filter(new Predicate<RealmResults<Person>>() {
-                    @Override
-                    public boolean test(RealmResults<Person> people) throws Exception {
-                        // Only continue once data is actually loaded
-                        // RealmObservables will emit the unloaded (empty) list as its first item
-                        return people.isLoaded();
+                // Only continue once data is actually loaded
+                // RealmObservables will emit the unloaded (empty) list as its first item
+                .filter(people -> people.isLoaded())
+                .subscribe(people -> {
+                    searchResultsView.removeAllViews();
+                    for (Person person : people) {
+                        TextView view = new TextView(ThrottleSearchActivity.this);
+                        view.setText(person.getName());
+                        searchResultsView.addView(view);
                     }
-                })
-                .subscribe(new Consumer<RealmResults<Person>>() {
-                    @Override
-                    public void accept(RealmResults<Person> people) throws Exception {
-                        searchResultsView.removeAllViews();
-                        for (Person person : people) {
-                            TextView view = new TextView(ThrottleSearchActivity.this);
-                            view.setText(person.getName());
-                            searchResultsView.addView(view);
-                        }
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        throwable.printStackTrace();
-                    }
-                });
+                }, throwable -> throwable.printStackTrace());
     }
 
     @Override

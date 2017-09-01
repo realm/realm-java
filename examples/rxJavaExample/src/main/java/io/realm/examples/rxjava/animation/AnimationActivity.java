@@ -21,18 +21,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.reactivestreams.Publisher;
-
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.BiFunction;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import io.reactivex.Flowable;
 import io.realm.Realm;
-import io.realm.RealmResults;
 import io.realm.examples.rxjava.R;
 import io.realm.examples.rxjava.model.Person;
 
@@ -58,27 +52,13 @@ public class AnimationActivity extends AppCompatActivity {
         // All RealmObject access has to be done on the same thread `findAllAsync` was called on.
         // Warning: This example doesn't handle back pressure well.
         disposable = realm.where(Person.class).findAllAsync().asFlowable()
-                .flatMap(new Function<RealmResults<Person>, Publisher<Person>>() {
-                    @Override
-                    public Publisher<Person> apply(RealmResults<Person> persons) throws Exception {
-                        return Flowable.fromIterable(persons);
-                    }
-                })
-                .zipWith(Flowable.interval(1, TimeUnit.SECONDS), new BiFunction<Person, Long, Person>() {
-
-                    @Override
-                    public Person apply(Person person, Long tick) throws Exception {
-                        return person;
-                    }
-                })
+                .flatMap(persons -> Flowable.fromIterable(persons))
+                .zipWith(Flowable.interval(1, TimeUnit.SECONDS), (person, tick) -> person)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<Person>() {
-                    @Override
-                    public void accept(Person person) throws Exception {
-                        TextView personView = new TextView(AnimationActivity.this);
-                        personView.setText(person.getName());
-                        container.addView(personView);
-                    }
+                .subscribe(person -> {
+                    TextView personView = new TextView(AnimationActivity.this);
+                    personView.setText(person.getName());
+                    container.addView(personView);
                 });
     }
 

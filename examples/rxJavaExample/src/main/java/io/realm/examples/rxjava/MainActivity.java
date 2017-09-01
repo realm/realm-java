@@ -20,7 +20,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
@@ -54,12 +53,7 @@ public class MainActivity extends AppCompatActivity {
         for (final Map.Entry<String, Class<? extends Activity>> entry : buttons.entrySet()) {
             Button button = new Button(this);
             button.setText(entry.getKey());
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startActivity(entry.getValue());
-                }
-            });
+            button.setOnClickListener(view -> startActivity(entry.getValue()));
             container.addView(button);
         }
     }

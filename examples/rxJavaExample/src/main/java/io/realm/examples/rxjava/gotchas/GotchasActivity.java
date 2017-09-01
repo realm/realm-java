@@ -21,13 +21,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.List;
 import java.util.Random;
 
 import io.reactivex.Flowable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
@@ -74,18 +72,10 @@ public class GotchasActivity extends AppCompatActivity {
         Disposable subscribeOnDisposable = testSubscribeOn();
 
         // Trigger updates
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.where(Person.class).findAllSorted( "name", Sort.ASCENDING).get(0).setAge(new Random().nextInt(100));
-            }
-        });
+        realm.executeTransaction(r ->
+                r.where(Person.class).findAllSorted( "name", Sort.ASCENDING).get(0).setAge(new Random().nextInt(100)));
 
-        disposables = new CompositeDisposable(
-                distinctDisposable,
-                bufferDisposable,
-                subscribeOnDisposable
-        );
+        disposables = new CompositeDisposable(distinctDisposable, bufferDisposable, subscribeOnDisposable);
     }
 
     /**
@@ -93,40 +83,21 @@ public class GotchasActivity extends AppCompatActivity {
      */
     private Disposable testSubscribeOn() {
         Disposable subscribeOn = realm.asFlowable()
-                .map(new Function<Realm, Person>() {
-                    @Override
-                    public Person apply(Realm realm) throws Exception {
-                        return realm.where(Person.class).findAllSorted("name").get(0);
-                    }
-                })
+                .map(realm -> realm.where(Person.class).findAllSorted("name").get(0))
                 // The Realm was created on the UI thread. Accessing it on `Schedulers.io()` will crash.
                 // Avoid using subscribeOn() and use Realms `findAllAsync*()` methods instead.
                 .subscribeOn(Schedulers.io()) //
-                .subscribe(new Consumer<Person>() {
-                    @Override
-                    public void accept(Person person) throws Exception {
-                        // Do nothing
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        showStatus("subscribeOn: " + throwable.toString());
-                    }
-                });
+                .subscribe(
+                        person -> {}, // Do nothing
+                        throwable -> showStatus("subscribeOn: " + throwable.toString())
+                );
 
         // Use Realms Async API instead
         Disposable asyncSubscribeOn = realm.where(Person.class).findAllSortedAsync("name").get(0).<Person>asFlowable()
-                .subscribe(new Consumer<Person>() {
-                    @Override
-                    public void accept(Person person) throws Exception {
-                        showStatus("subscribeOn/async: " + person.getName() + ":" + person.getAge());
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        showStatus("subscribeOn/async: " +throwable.toString());
-                    }
-                });
+                .subscribe(
+                        person -> showStatus("subscribeOn/async: " + person.getName() + ":" + person.getAge()),
+                        throwable -> showStatus("subscribeOn/async: " +throwable.toString())
+                );
 
         return new CompositeDisposable(subscribeOn, asyncSubscribeOn);
     }
@@ -135,24 +106,17 @@ public class GotchasActivity extends AppCompatActivity {
      * Shows how to be careful with `buffer()`
      */
     private Disposable testBuffer() {
-        Flowable<Person> personFlowable = realm.asFlowable().map(new Function<Realm, Person>() {
-            @Override
-            public Person apply(Realm realm) throws Exception {
-                return realm.where(Person.class).findAllSorted("name").get(0);
-            }
-        });
+        Flowable<Person> personFlowable =
+                realm.asFlowable().map(realm -> realm.where(Person.class).findAllSorted("name").get(0));
 
         // buffer() caches objects until the buffer is full. Due to Realms auto-update of all objects it means
         // that all objects in the cache will contain the same data.
         // Either avoid using buffer or copy data into an unmanaged object.
         return personFlowable
                 .buffer(2)
-                .subscribe(new Consumer<List<Person>>() {
-                    @Override
-                    public void accept(List<Person> people) throws Exception {
-                        showStatus("Buffer[0] : " + people.get(0).getName() + ":" + people.get(0).getAge());
-                        showStatus("Buffer[1] : " + people.get(1).getName() + ":" + people.get(1).getAge());
-                    }
+                .subscribe(people -> {
+                    showStatus("Buffer[0] : " + people.get(0).getName() + ":" + people.get(0).getAge());
+                    showStatus("Buffer[1] : " + people.get(1).getName() + ":" + people.get(1).getAge());
                 });
     }
 
@@ -160,12 +124,8 @@ public class GotchasActivity extends AppCompatActivity {
      * Shows how to to be careful when using `distinct()`
      */
     private Disposable testDistinct() {
-        Flowable<Person> personFlowable = realm.asFlowable().map(new Function<Realm, Person>() {
-            @Override
-            public Person apply(Realm realm) throws Exception {
-                return realm.where(Person.class).findAllSorted("name").get(0);
-            }
-        });
+        Flowable<Person> personFlowable =
+                realm.asFlowable().map(realm -> realm.where(Person.class).findAllSorted("name").get(0));
 
         // distinct() and distinctUntilChanged() uses standard equals with older objects stored in a HashMap.
         // Realm objects auto-update which means the objects stored will also auto-update.
@@ -174,26 +134,11 @@ public class GotchasActivity extends AppCompatActivity {
         // Use a keySelector function to work around this.
         Disposable distinctItemTest = personFlowable
                 .distinct() // Because old == new. This will only allow the first version of the "Chris" object to pass.
-                .subscribe(new Consumer<Person>() {
-                    @Override
-                    public void accept(Person person) throws Exception {
-                        showStatus("distinct(): " + person.getName() + ":" + person.getAge());
-                    }
-                });
+                .subscribe(person -> showStatus("distinct(): " + person.getName() + ":" + person.getAge()));
 
         Disposable distinctKeySelectorItemTest = personFlowable
-                .distinct(new Function<Person, Object>() {
-                    @Override
-                    public Object apply(Person person) throws Exception {
-                        return person.getAge();
-                    }
-                })
-                .subscribe(new Consumer<Person>() {
-                    @Override
-                    public void accept(Person person) throws Exception {
-                        showStatus("distinct(keySelector): " + person.getName() + ":" + person.getAge());
-                    }
-                });
+                .distinct((Function<Person, Object>) person -> person.getAge())
+                .subscribe(person -> showStatus("distinct(keySelector): " + person.getName() + ":" + person.getAge()));
 
         return new CompositeDisposable(distinctItemTest, distinctKeySelectorItemTest);
     }
@@ -215,5 +160,4 @@ public class GotchasActivity extends AppCompatActivity {
         super.onDestroy();
         realm.close();
     }
-
 }
