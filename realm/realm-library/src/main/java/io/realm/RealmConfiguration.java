@@ -102,11 +102,10 @@ public class RealmConfiguration {
     private final boolean readOnly;
     private final CompactOnLaunchCallback compactOnLaunch;
     /**
-     * Setting this to {@code true} will allow the ObjectStore to open the Realm with client history
-     * even if we don't provide a valid `sync_config`, this is useful when trying to open
-     * the backup file from Client Reset offline.
+     * Whether to open a synchronized Realm file as a non-synchronized Realm.
+     * Use this to open backup copies of a Realm that are created after a client reset occurs.
      */
-    private final boolean forceSyncHistory;
+    private final boolean openSyncedRealmOffline;
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
@@ -124,7 +123,7 @@ public class RealmConfiguration {
             @Nullable Realm.Transaction initialDataTransaction,
             boolean readOnly,
             @Nullable CompactOnLaunchCallback compactOnLaunch,
-            boolean forceSyncHistory) {
+            boolean openSyncedRealmOffline) {
         this.realmDirectory = realmDirectory;
         this.realmFileName = realmFileName;
         this.canonicalPath = canonicalPath;
@@ -139,39 +138,7 @@ public class RealmConfiguration {
         this.initialDataTransaction = initialDataTransaction;
         this.readOnly = readOnly;
         this.compactOnLaunch = compactOnLaunch;
-        this.forceSyncHistory = forceSyncHistory;
-    }
-
-    /**
-     * Returns a SyncConfiguration appropriate to open a synced Realm offline.
-     * This is useful when trying to open a backup Realm (after a Client Reset)
-     *
-     * @param canonicalPath the absolute path to the Realm file defined by this configuration.
-     * @param modules if specified it will restricts Realm schema to the provided module.
-     * @return SyncConfiguration that can be used offline
-     */
-    public static RealmConfiguration forOffline(String canonicalPath, Object... modules) {
-        HashSet<Object> validatedModules = new HashSet<>();
-        if (modules.length > 0) {
-            for (Object module : modules) {
-                if (!module.getClass().isAnnotationPresent(RealmModule.class)) {
-                    throw new IllegalArgumentException(module.getClass().getCanonicalName() + " is not a RealmModule. " +
-                            "Add @RealmModule to the class definition.");
-                }
-                validatedModules.add(module);
-            }
-        } else {
-            if (Realm.getDefaultModule() != null) {
-                validatedModules.add(Realm.getDefaultModule());
-            }
-        }
-
-        RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet());
-        return forOffline(canonicalPath, schemaMediator);
-    }
-
-    static RealmConfiguration forOffline(String canonicalPath, RealmProxyMediator schemaMediator) {
-        return new RealmConfiguration(null,null, canonicalPath,null, null, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, false, null, true);
+        this.openSyncedRealmOffline = openSyncedRealmOffline;
     }
 
     public File getRealmDirectory() {
@@ -307,10 +274,13 @@ public class RealmConfiguration {
     }
 
     /**
-     * @return {@code true} if this configuration is intended to open a synced Realm offline (example for client reset), {@code false} otherwise.
+     * @return {@code true} if this configuration is intended to open the client reset backup Realm
+     * {@code false} otherwise.
+     *
+     * @see <a href="https://realm.io/docs/java/latest/api/io/realm/ClientResetRequiredError.html">ClientResetRequiredError</a>
      */
-    public boolean isForceSyncHistory() {
-        return forceSyncHistory;
+    public boolean isClientResetBackupRealm() {
+        return openSyncedRealmOffline;
     }
 
     @Override
@@ -336,7 +306,7 @@ public class RealmConfiguration {
             return false;
         }
         if (readOnly != that.readOnly) { return false; }
-        if (forceSyncHistory != that.forceSyncHistory) { return false; }
+        if (openSyncedRealmOffline != that.openSyncedRealmOffline) { return false; }
         if (compactOnLaunch != null ? !compactOnLaunch.equals(that.compactOnLaunch) : that.compactOnLaunch != null) { return false; }
 
         return schemaMediator.equals(that.schemaMediator);
@@ -357,7 +327,7 @@ public class RealmConfiguration {
         result = 31 * result + (rxObservableFactory != null ? rxObservableFactory.hashCode() : 0);
         result = 31 * result + (initialDataTransaction != null ? initialDataTransaction.hashCode() : 0);
         result = 31 * result + (readOnly ? 1 : 0);
-        result = 31 * result + (forceSyncHistory ? 1 : 0);
+        result = 31 * result + (openSyncedRealmOffline ? 1 : 0);
         result = 31 * result + (compactOnLaunch != null ? compactOnLaunch.hashCode() : 0);
 
         return result;

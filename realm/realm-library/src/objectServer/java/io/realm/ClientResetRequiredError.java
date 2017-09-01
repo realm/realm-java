@@ -75,7 +75,7 @@ public class ClientResetRequiredError extends ObjectServerError {
     /**
      * @return the configuration that can be used to open the backup Realm offline.
      */
-    public RealmConfiguration getBackupSyncConfiguration() {
+    public RealmConfiguration getBackupRealmConfiguration() {
         return backupConfiguration;
     }
     /**

@@ -200,7 +200,7 @@ public class OsRealmConfig implements NativeObject {
             nativeSetInitializationCallback(nativePtr, initializationCallback);
         }
 
-        if (realmConfiguration.isForceSyncHistory()) {
+        if (realmConfiguration.isClientResetBackupRealm()) {
             nativeSetForceSyncHistory(nativePtr);
 
         } else {

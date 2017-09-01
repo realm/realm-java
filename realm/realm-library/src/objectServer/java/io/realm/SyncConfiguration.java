@@ -145,6 +145,39 @@ private final URI serverUrl;
         this.waitForInitialData = waitForInitialData;
     }
 
+    /**
+     * Returns a SyncConfiguration appropriate to open a synced Realm offline.
+     * This is useful when trying to open a backup Realm (after a Client Reset)
+     *
+     * @param canonicalPath the absolute path to the Realm file defined by this configuration.
+     * @param encryptionKey the key used to encrypt/decrypt the Realm file.
+     * @param modules if specified it will restricts Realm schema to the provided module.
+     * @return SyncConfiguration that can be used offline
+     */
+    public static RealmConfiguration forOffline(String canonicalPath, @Nullable byte[] encryptionKey, Object... modules) {
+        HashSet<Object> validatedModules = new HashSet<>();
+        if (modules.length > 0) {
+            for (Object module : modules) {
+                if (!module.getClass().isAnnotationPresent(RealmModule.class)) {
+                    throw new IllegalArgumentException(module.getClass().getCanonicalName() + " is not a RealmModule. " +
+                            "Add @RealmModule to the class definition.");
+                }
+                validatedModules.add(module);
+            }
+        } else {
+            if (Realm.getDefaultModule() != null) {
+                validatedModules.add(Realm.getDefaultModule());
+            }
+        }
+
+        RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet());
+        return forOffline(canonicalPath, encryptionKey, schemaMediator);
+    }
+
+    static RealmConfiguration forOffline(String canonicalPath, byte[] encryptionKey, RealmProxyMediator schemaMediator) {
+        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, false, null, true);
+    }
+
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
         try {
             return new URI(serverUrl.toString().replace("/~/", "/" + userIdentifier + "/"));
