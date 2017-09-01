@@ -238,6 +238,8 @@ public class PermissionManager implements Closeable {
     }
 
     /**
+     * TODO: Removed from the public API until we know for 100% that we are going to use this going forward.
+     *
      * Returns default permissions for all Realms. The default permissions are the ones that will be used if no
      * user specific permissions is in effect.
      *
@@ -245,7 +247,7 @@ public class PermissionManager implements Closeable {
      * live query result, that will be auto-updated like any other {@link RealmResults}.
      * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
      */
-    public RealmAsyncTask getDefaultPermissions(PermissionsCallback callback) {
+    RealmAsyncTask getDefaultPermissions(PermissionsCallback callback) {
         checkIfValidThread();
         checkCallbackNotNull(callback);
         return addTask(new GetDefaultPermissionsAsyncTask(this, callback));
