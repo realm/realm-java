@@ -49,7 +49,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
         }
 
         auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
-        auto link_view_ref = LinkViewRef(row.get_linklist(column_index));
+        LinkViewRef link_view_ref(row.get_linklist(column_index));
         auto list_ptr = new List(shared_realm, link_view_ref);
 
         Table* target_table_ptr = &(link_view_ref)->get_target_table();
@@ -61,7 +61,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
 
         jlongArray ret_array = env->NewLongArray(2);
         if (!ret_array) {
-            ThrowException(env, OutOfMemory, "Could not allocate memory to return versionID.");
+            ThrowException(env, OutOfMemory, "Could not allocate memory to create OsList.");
             return nullptr;
         }
         env->SetLongArrayRegion(ret_array, 0, 2, ret);
