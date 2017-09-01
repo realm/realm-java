@@ -18,13 +18,11 @@ package io.realm.examples.newsreader.ui.details;
 
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.Observable;
 import io.realm.examples.newsreader.model.Model;
-import io.realm.examples.newsreader.model.entity.NYTimesStory;
 import io.realm.examples.newsreader.ui.Presenter;
 
 /**

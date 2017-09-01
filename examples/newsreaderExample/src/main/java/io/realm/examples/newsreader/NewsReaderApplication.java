@@ -19,10 +19,9 @@ package io.realm.examples.newsreader;
 import android.app.Application;
 import android.content.Context;
 
-import io.reactivex.functions.Consumer;
+import io.reactivex.plugins.RxJavaPlugins;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.reactivex.plugins.RxJavaPlugins;
 import timber.log.Timber;
 
 public abstract class NewsReaderApplication extends Application {

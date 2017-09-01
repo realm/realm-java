@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
-import io.reactivex.functions.Predicate;
 import io.reactivex.subjects.BehaviorSubject;
 import io.realm.Realm;
 import io.realm.RealmResults;

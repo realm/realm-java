@@ -21,13 +21,10 @@ import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.realm.RealmResults;
 import io.realm.examples.newsreader.model.Model;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
 import io.realm.examples.newsreader.ui.Presenter;
@@ -65,9 +62,7 @@ public class MainPresenter implements Presenter {
 
     @Override
     public void onResume() {
-        loaderDisposable = model.isNetworkUsed()
-                .subscribe(networkInUse -> view.showNetworkLoading(networkInUse));
-
+        loaderDisposable = model.isNetworkUsed().subscribe(networkInUse -> view.showNetworkLoading(networkInUse));
         sectionSelected(model.getCurrentSectionKey());
     }
 

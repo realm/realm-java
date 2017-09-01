@@ -24,7 +24,6 @@ import java.util.Map;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
-import io.reactivex.functions.Predicate;
 import io.realm.RealmResults;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
 
@@ -114,8 +113,7 @@ public class Model {
         if (TextUtils.isEmpty(storyId)) {
             throw new IllegalArgumentException("Invalid storyId: " + storyId);
         }
-        return repository.loadStory(storyId)
-                .filter(story -> story.isValid());
+        return repository.loadStory(storyId).filter(story -> story.isValid());
     }
 
     /**

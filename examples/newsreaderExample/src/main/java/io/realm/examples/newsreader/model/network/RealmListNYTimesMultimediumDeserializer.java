@@ -39,10 +39,10 @@ public class RealmListNYTimesMultimediumDeserializer extends JsonDeserializer<Li
     }
 
     @Override
-    public List<NYTimesMultimedium> deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public List<NYTimesMultimedium> deserialize(JsonParser parser, DeserializationContext context) throws IOException {
         RealmList<NYTimesMultimedium> list = new RealmList<>();
 
-        TreeNode treeNode = jp.getCodec().readTree(jp);
+        TreeNode treeNode = parser.getCodec().readTree(parser);
         if (!(treeNode instanceof ArrayNode)) {
             return list;
         }
