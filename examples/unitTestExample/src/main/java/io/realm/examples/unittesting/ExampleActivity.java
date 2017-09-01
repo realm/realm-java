@@ -70,24 +70,17 @@ public class ExampleActivity extends AppCompatActivity {
 
         foo.execute();
 
-        findViewById(R.id.clean_up).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                v.setEnabled(false);
-                cleanUp();
-                v.setEnabled(true);
-            }
+        findViewById(R.id.clean_up).setOnClickListener(view -> {
+            view.setEnabled(false);
+            Log.d("TAG", "clean up");
+            cleanUp();
+            view.setEnabled(true);
         });
     }
 
     private void cleanUp() {
         // Delete all persons
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.delete(Person.class);
-            }
-        });
+        realm.executeTransaction(r -> r.delete(Person.class));
     }
 
     @Override
@@ -107,15 +100,12 @@ public class ExampleActivity extends AppCompatActivity {
         showStatus("Perform basic Create/Read/Update/Delete (CRUD) operations...");
 
         // All writes must be wrapped in a transaction to facilitate safe multi threading
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                // Add a person
-                Person person = realm.createObject(Person.class);
-                person.setId(1);
-                person.setName("John Young");
-                person.setAge(14);
-            }
+        realm.executeTransaction(r -> {
+            // Add a person
+            Person person = r.createObject(Person.class);
+            person.setId(1);
+            person.setName("John Young");
+            person.setAge(14);
         });
 
         // Find the first person (no query conditions) and read a field
@@ -123,28 +113,22 @@ public class ExampleActivity extends AppCompatActivity {
         showStatus(person.getName() + ":" + person.getAge());
 
         // Update person in a transaction
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                person.setName("John Senior");
-                person.setAge(89);
-            }
+        realm.executeTransaction(r -> {
+            person.setName("John Senior");
+            person.setAge(89);
         });
 
         showStatus(person.getName() + " got older: " + person.getAge());
 
         // Add two more people
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                Person jane = realm.createObject(Person.class);
-                jane.setName("Jane");
-                jane.setAge(27);
+        realm.executeTransaction(r -> {
+            Person jane = r.createObject(Person.class);
+            jane.setName("Jane");
+            jane.setAge(27);
 
-                Person doug = realm.createObject(Person.class);
-                doug.setName("Robert");
-                doug.setAge(42);
-            }
+            Person doug = r.createObject(Person.class);
+            doug.setName("Robert");
+            doug.setAge(42);
         });
 
         RealmResults<Person> people = realm.where(Person.class).findAll();
@@ -163,7 +147,8 @@ public class ExampleActivity extends AppCompatActivity {
         // Find all persons where age between 1 and 99 and name begins with "J".
         RealmResults<Person> results = realm.where(Person.class)
                 .between("age", 1, 99)       // Notice implicit "and" operation
-                .beginsWith("name", "J").findAll();
+                .beginsWith("name", "J")
+                .findAll();
         status += "\nNumber of people aged between 1 and 99 who's name start with 'J': " + results.size();
 
         realm.close();
