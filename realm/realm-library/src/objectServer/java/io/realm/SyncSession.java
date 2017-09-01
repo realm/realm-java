@@ -162,7 +162,7 @@ public class SyncSession {
         ErrorCode errCode = ErrorCode.fromInt(errorCode);
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
-            RealmConfiguration backupRealmConfiguration = RealmConfiguration.forOffline(errorMessage, configuration.getSchemaMediator());
+            RealmConfiguration backupRealmConfiguration = SyncConfiguration.forOffline(errorMessage, configuration.getEncryptionKey(), configuration.getSchemaMediator());
             errorHandler.onError(this, new ClientResetRequiredError(errCode, "A Client Reset is required. " +
                     "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
                     configuration, backupRealmConfiguration));
