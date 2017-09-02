@@ -154,6 +154,7 @@ public class SessionTests {
     // Check that we can manually execute the Client Reset.
     @Test
     @RunTestInLooperThread
+    @Ignore("FIXME: See https://github.com/realm/realm-java/issues/5177")
     public void errorHandler_manualExecuteClientReset() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
