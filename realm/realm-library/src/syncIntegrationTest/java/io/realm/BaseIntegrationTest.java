@@ -57,7 +57,6 @@ public abstract class BaseIntegrationTest {
     public final ExpectedException thrown = ExpectedException.none();
 
     protected void prepareEnvironmentForTest() throws IOException {
-        // FIXME Trying to reset the device environment is crashing tests somehow
         deleteRosFiles();
         if (BaseRealm.applicationContext != null) {
             // Realm was already initialized. Reset all internal state
@@ -74,6 +73,18 @@ public abstract class BaseIntegrationTest {
         Realm.init(InstrumentationRegistry.getContext());
         originalLogLevel = RealmLog.getLevel();
         RealmLog.setLevel(LogLevel.DEBUG);
+    }
+
+    /**
+     * Tries to restore the environment as best as possible after a test.
+     */
+    protected void restoreEnvironmentAfterTest() {
+        // Block until all users are logged out
+        UserFactory.logoutAllUsers();
+        SyncManager.reset(); // This will catch any sessions leaking
+
+        // Reset log level
+        RealmLog.setLevel(originalLogLevel);
     }
 
     /**
@@ -97,17 +108,6 @@ public abstract class BaseIntegrationTest {
         } catch (Exception e) {
             Log.e(HttpUtils.TAG, "Failed to stop Sync Server" + Util.getStackTrace(e));
         }
-    }
-
-    /**
-     * Tries to restore the environment as best as possible after a test.
-     */
-    protected void restoreEnvironmentAfterTest() {
-        // Block until all users are logged out
-        UserFactory.logoutAllUsers();
-
-        // Reset log level
-        RealmLog.setLevel(originalLogLevel);
     }
 
     // Cleanup filesystem to make sure nothing lives for the next test.
