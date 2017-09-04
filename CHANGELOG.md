@@ -1,3 +1,16 @@
+## 3.8.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+
 ## 3.7.1 (YYYY-MM-DD)
 
 ### Bug Fixes
@@ -7,6 +20,7 @@
 ### Internal
 
 * Replaced LinkView with Object Store's List.
+
 
 ## 3.7.0 (2017-09-01)
 
