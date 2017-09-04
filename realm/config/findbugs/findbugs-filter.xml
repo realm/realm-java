@@ -21,5 +21,8 @@
     <Match>
         <Class name="io.realm.PermissionOfferResponseRealmProxy"/>
     </Match>
+    <Match>
+        <Class name="io.realm.PermissionRealmProxy"/>
+    </Match>
 
 </FindBugsFilter>

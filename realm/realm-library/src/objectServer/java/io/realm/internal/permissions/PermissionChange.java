@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.permissions;
+package io.realm.internal.permissions;
 
 import java.util.Date;
 import java.util.UUID;
@@ -23,14 +23,20 @@ import javax.annotation.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
+import io.realm.permissions.AccessLevel;
+import io.realm.permissions.UserCondition;
+import io.realm.permissions.PermissionRequest;
+
 
 /**
  * This class is used for requesting changes to a Realm's permissions.
  *
  * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Controlling Permissions</a>
  */
-public class PermissionChange extends RealmObject {
+@RealmClass
+public class PermissionChange implements BasePermissionApi {
 
     // Base fields
     @PrimaryKey
@@ -47,9 +53,41 @@ public class PermissionChange extends RealmObject {
     private String realmUrl;
     @Required
     private String userId;
+
+    private String metadataKey;
+    private String metadataValue;
+    private String metadataNameSpace;
     private Boolean mayRead = false;
     private Boolean mayWrite = false;
     private Boolean mayManage = false;
+
+    /**
+     * Maps between a PermissionRequest and a PermissionChange object.
+     *
+     * @param request request to map to a PermissionChange.
+     */
+    public static PermissionChange fromRequest(PermissionRequest request) {
+        // PRE-CONDITION: All input are verified to be valid from the perspective of the Client.
+        UserCondition condition = request.getCondition();
+        AccessLevel level = request.getAccessLevel();
+        String realmUrl = request.getUrl();
+
+        String userId = "";
+        String metadataKey = null;
+        String metadataValue = null;
+        switch (condition.getType()) {
+            case USER_ID:
+                userId = condition.getValue();
+                break;
+            case METADATA:
+                metadataKey = condition.getKey();
+                metadataValue = condition.getValue();
+                break;
+        }
+
+        return new PermissionChange(realmUrl, userId, metadataKey, metadataValue, level.mayRead(), level.mayWrite(),
+                level.mayManage());
+    }
 
     public PermissionChange() {
         // Default constructor required by Realm
@@ -78,15 +116,29 @@ public class PermissionChange extends RealmObject {
         this.mayManage = mayManage;
     }
 
+    public PermissionChange(String realmUrl, String userId, String metadataKey, String metadataValue, Boolean mayRead,
+            Boolean mayWrite, Boolean mayManage) {
+        this.realmUrl = realmUrl;
+        this.userId = userId;
+        this.metadataKey = metadataKey;
+        this.metadataValue = metadataValue;
+        this.mayRead = mayRead;
+        this.mayWrite = mayWrite;
+        this.mayManage = mayManage;
+    }
+
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getCreatedAt() {
         return createdAt;
     }
 
+    @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getUpdatedAt() {
         return updatedAt;
@@ -97,11 +149,13 @@ public class PermissionChange extends RealmObject {
      *
      * @return {@code null} if not yet processed. {@code 0} if successful, {@code >0} if an error happened. See {@link #getStatusMessage()}.
      */
+    @Override
     @Nullable
     public Integer getStatusCode() {
         return statusCode;
     }
 
+    @Override
     @Nullable
     public String getStatusMessage() {
         return statusMessage;
@@ -128,5 +182,13 @@ public class PermissionChange extends RealmObject {
     @Nullable
     public Boolean mayManage() {
         return mayManage;
+    }
+
+    public String getMetadataKey() {
+        return metadataKey;
+    }
+
+    public String getMetadataValue() {
+        return metadataValue;
     }
 }
