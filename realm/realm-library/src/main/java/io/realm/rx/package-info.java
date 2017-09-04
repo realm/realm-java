@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,5 @@
  * limitations under the License.
  */
 
-package io.realm.permissions;
-
-import io.realm.annotations.RealmModule;
-
-@RealmModule(library = true, classes = { PermissionChange.class, PermissionOffer.class, PermissionOfferResponse.class })
-public class PermissionModule {
-}
+@javax.annotation.ParametersAreNonnullByDefault
+package io.realm.rx;

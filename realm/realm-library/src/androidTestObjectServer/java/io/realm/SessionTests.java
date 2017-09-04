@@ -16,12 +16,17 @@
 
 package io.realm;
 
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -46,6 +51,9 @@ public class SessionTests {
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
+
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
 
     @Before
     public void setUp() {
@@ -181,5 +189,81 @@ public class SessionTests {
 
         // Trigger error
         SyncManager.simulateClientReset(SyncManager.getSession(config));
+    }
+
+    // Check that if we manually trigger a Client Reset, then it should be possible to start
+    // downloading the Realm immediately after.
+    @Test
+    @RunTestInLooperThread
+    @Ignore("https://github.com/realm/realm-java/issues/5143")
+    public void clientReset_manualTriggerAllowSessionToRestart() {
+        SyncUser user = createTestUser();
+        String url = "realm://objectserver.realm.io/~/myrealm";
+        final AtomicReference<SyncConfiguration> configRef = new AtomicReference<>(null);
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user , url)
+                .errorHandler(new SyncSession.ErrorHandler() {
+                    @Override
+                    public void onError(SyncSession session, ObjectServerError error) {
+                        final ClientResetRequiredError handler = (ClientResetRequiredError) error;
+
+                        // Execute Client Reset
+                        looperThread.closeTestRealms();
+                        handler.executeClientReset();
+
+                        // Try to re-open Realm and download it again
+                        looperThread.postRunnable(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Validate that files have been moved
+                                assertFalse(handler.getOriginalFile().exists());
+                                assertTrue(handler.getBackupFile().exists());
+
+                                SyncConfiguration config = configRef.get();
+                                Realm instance = Realm.getInstance(config);
+                                looperThread.addTestRealm(instance);
+                                try {
+                                    SyncManager.getSession(config).downloadAllServerChanges();
+                                    looperThread.testComplete();
+                                } catch (InterruptedException e) {
+                                    fail(e.toString());
+                                }
+                            }
+                        });
+                    }
+                })
+                .build();
+        configRef.set(config);
+
+        Realm realm = Realm.getInstance(config);
+        looperThread.addTestRealm(realm);
+
+        // Trigger error
+        SyncManager.simulateClientReset(SyncManager.getSession(config));
+    }
+
+    @Test
+    @UiThreadTest
+    public void uploadAllLocalChanges_throwsOnUiThread() throws InterruptedException {
+        SyncUser user = createTestUser();
+        Realm realm = Realm.getInstance(configuration);
+        try {
+            SyncManager.getSession(configuration).uploadAllLocalChanges();
+        } catch (IllegalStateException ignored) {
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void downloadAllServerChanges_throwsOnUiThread() throws InterruptedException {
+        SyncUser user = createTestUser();
+        Realm realm = Realm.getInstance(configuration);
+        try {
+            SyncManager.getSession(configuration).downloadAllServerChanges();
+        } catch (IllegalStateException ignored) {
+        } finally {
+            realm.close();
+        }
     }
 }

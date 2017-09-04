@@ -81,6 +81,7 @@ public class RealmProxyMediatorGenerator {
                 "io.realm.internal.RealmProxyMediator",
                 "io.realm.internal.Row",
                 "io.realm.internal.Table",
+                "io.realm.internal.OsSchemaInfo",
                 "io.realm.internal.OsObjectSchemaInfo",
                 "org.json.JSONException",
                 "org.json.JSONObject"
@@ -98,7 +99,7 @@ public class RealmProxyMediatorGenerator {
 
         emitFields(writer);
         emitGetExpectedObjectSchemaInfoMap(writer);
-        emitValidateTableMethod(writer);
+        emitCreateColumnInfoMethod(writer);
         emitGetFieldNamesMethod(writer);
         emitGetTableNameMethod(writer);
         emitNewInstanceMethod(writer);
@@ -147,20 +148,20 @@ public class RealmProxyMediatorGenerator {
         writer.emitEmptyLine();
     }
 
-    private void emitValidateTableMethod(JavaWriter writer) throws IOException {
+    private void emitCreateColumnInfoMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod(
                 "ColumnInfo",
-                "validateTable",
+                "createColumnInfo",
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<? extends RealmModel>", "clazz", // Argument type & argument name
-                "SharedRealm", "sharedRealm",
-                "boolean", "allowExtraColumns"
+                "OsSchemaInfo", "schemaInfo"
         );
+
         emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.validateTable(sharedRealm, allowExtraColumns)",
+                writer.emitStatement("return %s.createColumnInfo(schemaInfo)",
                         qualifiedProxyClasses.get(i));
             }
         }, writer);
@@ -451,10 +452,6 @@ public class RealmProxyMediatorGenerator {
     // Emits the control flow for selecting the appropriate proxy class based on the model class
     // Currently it is just if..else, which is inefficient for large amounts amounts of model classes.
     // Consider switching to HashMap or similar.
-    private void emitMediatorSwitch(ProxySwitchStatement statement, JavaWriter writer) throws IOException {
-        emitMediatorSwitch(statement, writer, true);
-    }
-
     private void emitMediatorSwitch(ProxySwitchStatement statement, JavaWriter writer, boolean nullPointerCheck)
             throws IOException {
         if (nullPointerCheck) {

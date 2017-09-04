@@ -1,14 +1,67 @@
-## 3.5.1 (YYYY-MM-DD)
+## 3.7.1 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Fixed potential memory leaks of `LinkView` when calling bulk insertions APIs.
+
+### Internal
+
+* Replaced LinkView with Object Store's List.
+
+## 3.7.0 (2017-09-01)
+
+### Deprecated
+
+* [ObjectServer] `SyncUser.getManagementRealm()`. Use `SyncUser.getPermissionManager()` instead.
+
+### Enhancements
+
+* [ObjectServer] `SyncUser.getPermissionManager` added as a helper API for working with permissions and permission offers.
+
+### Internal
+
+* [ObjectServer] Upgraded OkHttp to 3.7.0.
+
+
+## 3.6.0 (2017-09-01)
+
+### Breaking Changes
+
+* [ObjectServer] `SyncUser.logout()` no longer throws an exception when associated Realms instances are not closed (#4962).
+
+### Deprecated
+
+* [ObjectServer] `SyncUser#retrieveUser` and `SyncUser#retrieveUserAsync` replaced by `SyncUser#retrieveInfoForUser`
+and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode information (#5008).
+* [ObjectServer] `SyncUser#Callback` replaced by the generic version `SyncUser#RequestCallback<T>`.
+
+### Enhancements
+
+* [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
+* [ObjectServer] APIs of `UserStore` have been changed to support same user identity but different authentication server scenario.
+* [ObjectServer] Added `SyncUser.allSessions` to retrieve the all valid sessions belonging to the user (#4783).
+* Added `Nullable` annotation to methods that may return `null` in order to improve Kotlin usability. This also introduced a dependency to `com.google.code.findbugs:jsr305`.
+* `org.jetbrains.annotations.NotNull` is now an alias for `@Required`. This means that the Realm Schema now fully understand Kotlin non-null types.
+* Added support for new data type `MutableRealmIntegers`. The new type behaves almost exactly as a reference to a Long (mutable nullable, etc) but supports `increment` and `decrement` methods, which implement a Conflict Free Replicated Data Type, whose value will converge even when changed across distributed devices with poor connections (#4266).
+* Added more detailed exception message for `RealmMigrationNeeded`.
+* Bumping schema version only without any actual schema changes will just succeed even when the migration block is not supplied. It threw an `RealmMigrationNeededException` before in the same case.
+* Throw `IllegalStateException` when schema validation fails because of wrong declaration of `@LinkingObjects`.
 
 ### Bug Fixes
 
 * Potential crash after using `Realm.getSchema()` to change the schema of a typed Realm. `Realm.getSchema()` now returns an immutable `RealmSchema` instance.
-* `Realm.copyToRealmOrUpdate()` might cause a `RealmList` field to contain duplicated elements (#4957).
+* `Realm.copyToRealmOrUpdate()` could cause a `RealmList` field to contain duplicated elements (#4957).
 * `RealmSchema.create(String)` and `RealmObjectSchema.setClassName(String)` did not accept class name whose length was 51 to 57.
 * Workaround for an Android JVM crash when using `compactOnLaunch()` (#4964).
 * Class name in exception message from link query is wrong (#5096).
+* The `compactOnLaunch` callback is no longer invoked if the Realm at that path is already open on other threads.
 
 ### Internal
+
+* [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
+* [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
+* Upgraded Realm Sync to 1.10.8
+* Let Object Store handle migration.
 
 
 ## 3.5.0 (2017-07-11)
@@ -126,6 +179,7 @@
 ### Enhancements
 
 * [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
+* [ObjectServer] New set of Permission API's have been added to `SyncUser` through `SyncUser.getPermissionManager()` (#4296).
 * [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` (#4423).
 * [ObjectServer] Added support for `SyncConfiguration.Builder.waitForInitialRemoteData()` (#4270).
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).

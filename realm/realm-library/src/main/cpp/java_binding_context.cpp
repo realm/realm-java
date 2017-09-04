@@ -54,6 +54,23 @@ void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> c
     }
 }
 
+void JavaBindingContext::schema_did_change(Schema const&)
+{
+    if (!m_schema_changed_callback) {
+        return;
+    }
+    auto env = JniUtils::get_env(false);
+    static JavaClass callback_class(env, "io/realm/internal/SharedRealm$SchemaChangedCallback");
+    static JavaMethod on_schema_changed_method(env, callback_class, "onSchemaChanged", "()V");
+    m_schema_changed_callback.call_with_local_ref(
+        env, [](JNIEnv* env, jobject callback_obj) { env->CallVoidMethod(callback_obj, on_schema_changed_method); });
+}
+
+void JavaBindingContext::set_schema_changed_callback(JNIEnv* env, jobject schema_changed_callback)
+{
+    m_schema_changed_callback = JavaGlobalWeakRef(env, schema_changed_callback);
+}
+
 JavaClass const& JavaBindingContext::get_notifier_class(JNIEnv* env)
 {
     static JavaClass notifier_class(env, "io/realm/internal/RealmNotifier");

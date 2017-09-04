@@ -27,6 +27,7 @@
 #include "io_realm_internal_SharedRealm.h"
 #include "shared_realm.hpp"
 #include "results.hpp"
+#include "list.hpp"
 #include "java_exception_def.hpp"
 
 #include "jni_util/java_exception_thrower.hpp"
@@ -108,6 +109,11 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch (Results::InvalidatedException& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
+    }
+    catch (List::OutOfBoundsIndexException& e) {
+        ss << "Out of range  in " << file << " line " << line << "(requested: " << e.requested
+           << " valid: " << e.valid_count << ")";
+        ThrowException(env, IndexOutOfBounds, ss.str());
     }
     catch (IncorrectThreadException& e) {
         ss << e.what() << " in " << file << " line " << line;
