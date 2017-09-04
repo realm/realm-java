@@ -31,6 +31,17 @@
 * Upgraded to Realm Core 3.0.0-rc3.
 
 
+## 3.7.1 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Fixed potential memory leaks of `LinkView` when calling bulk insertions APIs.
+
+### Internal
+
+* Replaced LinkView with Object Store's List.
+
+
 ## 3.7.0 (2017-09-01)
 
 ### Deprecated
