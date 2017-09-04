@@ -205,19 +205,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNullLink(
     return to_jbool(ROW(nativeRowPtr)->is_null_link(S(columnIndex)));
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLinkView(JNIEnv* env, jobject,
-                                                                              jlong nativeRowPtr, jlong columnIndex)
-{
-    TR_ENTER_PTR(nativeRowPtr)
-    if (!ROW_VALID(env, ROW(nativeRowPtr))) {
-        return 0;
-    }
-
-    LinkViewRef* link_view_ptr =
-        const_cast<LinkViewRef*>(&(LangBindHelper::get_linklist_ptr(*ROW(nativeRowPtr), S(columnIndex))));
-    return reinterpret_cast<jlong>(link_view_ptr);
-}
-
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetLong(JNIEnv* env, jobject, jlong nativeRowPtr,
                                                                          jlong columnIndex, jlong value)
 {

@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.Required;
 import io.realm.internal.Collection;
-import io.realm.internal.LinkView;
+import io.realm.internal.OsList;
 import io.realm.internal.PendingRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -61,7 +61,7 @@ public class RealmQuery<E extends RealmModel> {
     private final RealmObjectSchema schema;
     private Class<E> clazz;
     private String className;
-    private LinkView linkView;
+    private final OsList osList;
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
     private static final String ASYNC_QUERY_WRONG_THREAD_MESSAGE = "Async query cannot be created on current thread.";
@@ -116,8 +116,8 @@ public class RealmQuery<E extends RealmModel> {
     public static <E extends RealmModel> RealmQuery<E> createQueryFromList(RealmList<E> list) {
         //noinspection ConstantConditions
         return (list.clazz == null)
-                ? new RealmQuery(list.realm, list.view, list.className)
-                : new RealmQuery(list.realm, list.view, list.clazz);
+                ? new RealmQuery(list.realm, list.osList, list.className)
+                : new RealmQuery(list.realm, list.osList, list.clazz);
     }
 
     private RealmQuery(Realm realm, Class<E> clazz) {
@@ -125,7 +125,7 @@ public class RealmQuery<E extends RealmModel> {
         this.clazz = clazz;
         this.schema = realm.getSchema().getSchemaForClass(clazz);
         this.table = schema.getTable();
-        this.linkView = null;
+        this.osList = null;
         this.query = table.where();
     }
 
@@ -134,17 +134,17 @@ public class RealmQuery<E extends RealmModel> {
         this.clazz = clazz;
         this.schema = realm.getSchema().getSchemaForClass(clazz);
         this.table = queryResults.getTable();
-        this.linkView = null;
+        this.osList = null;
         this.query = queryResults.getCollection().where();
     }
 
-    private RealmQuery(BaseRealm realm, LinkView linkView, Class<E> clazz) {
+    private RealmQuery(BaseRealm realm, OsList osList, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
         this.schema = realm.getSchema().getSchemaForClass(clazz);
         this.table = schema.getTable();
-        this.linkView = linkView;
-        this.query = linkView.where();
+        this.osList = osList;
+        this.query = osList.getQuery();
     }
 
     private RealmQuery(BaseRealm realm, String className) {
@@ -153,6 +153,7 @@ public class RealmQuery<E extends RealmModel> {
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = table.where();
+        this.osList = null;
     }
 
     private RealmQuery(RealmResults<DynamicRealmObject> queryResults, String className) {
@@ -161,15 +162,16 @@ public class RealmQuery<E extends RealmModel> {
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = queryResults.getCollection().where();
+        this.osList = null;
     }
 
-    private RealmQuery(BaseRealm realm, LinkView linkView, String className) {
+    private RealmQuery(BaseRealm realm, OsList osList, String className) {
         this.realm = realm;
         this.className = className;
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
-        this.linkView = linkView;
-        this.query = linkView.where();
+        this.query = osList.getQuery();
+        this.osList = osList;
     }
 
     /**
@@ -183,8 +185,8 @@ public class RealmQuery<E extends RealmModel> {
             return false;
         }
 
-        if (linkView != null) {
-            return linkView.isAttached();
+        if (osList != null) {
+            return osList.isValid();
         }
         return table != null && table.isValid();
     }
