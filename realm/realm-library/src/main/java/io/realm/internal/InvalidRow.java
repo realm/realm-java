@@ -105,7 +105,7 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public OsList getLinkList(long columnIndex) {
+    public OsList getList(long columnIndex) {
         throw getStubException();
     }
 

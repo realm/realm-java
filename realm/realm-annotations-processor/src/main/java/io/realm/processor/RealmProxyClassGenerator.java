@@ -519,7 +519,7 @@ public class RealmProxyClassGenerator {
                 .beginControlFlow("if (" + fieldName + "RealmList != null)")
                 .emitStatement("return " + fieldName + "RealmList")
                 .nextControlFlow("else")
-                .emitStatement("OsList osList = proxyState.getRow$realm().getLinkList(%s)", fieldIndexVariableReference(field))
+                .emitStatement("OsList osList = proxyState.getRow$realm().getList(%s)", fieldIndexVariableReference(field))
                 .emitStatement(fieldName + "RealmList = new RealmList<%s>(%s.class, osList, proxyState.getRealm$realm())",
                         genericType, genericType)
                 .emitStatement("return " + fieldName + "RealmList")
@@ -556,7 +556,7 @@ public class RealmProxyClassGenerator {
             }
         });
         writer.emitStatement("proxyState.getRealm$realm().checkIfValid()")
-                .emitStatement("OsList osList = proxyState.getRow$realm().getLinkList(%s)", fieldIndexVariableReference(field))
+                .emitStatement("OsList osList = proxyState.getRow$realm().getList(%s)", fieldIndexVariableReference(field))
                 .emitStatement("osList.removeAll()")
                 .beginControlFlow("if (value == null)")
                 .emitStatement("return")
