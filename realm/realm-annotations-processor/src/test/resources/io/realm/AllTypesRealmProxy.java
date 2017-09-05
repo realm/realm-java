@@ -376,7 +376,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (proxyState.getExcludeFields$realm().contains("columnRealmList")) {
                 return;
             }
-            // if the list contains unmanaged RealmObjects, convert them to managed.
             if (value != null && !value.isManaged()) {
                 final Realm realm = (Realm) proxyState.getRealm$realm();
                 final RealmList<some.test.AllTypes> original = value;
@@ -397,7 +396,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (value == null) {
             return;
         }
-        for (RealmModel linkedObject : value) {
+        for (RealmModel linkedObject : (RealmList<? extends RealmModel>) value) {
             if (!(RealmObject.isManaged(linkedObject) && RealmObject.isValid(linkedObject))) {
                 throw new IllegalArgumentException("Each element of 'value' must be a valid managed object.");
             }
