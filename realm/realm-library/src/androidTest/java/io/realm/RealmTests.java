@@ -64,6 +64,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nullable;
+
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -1060,15 +1062,24 @@ public class RealmTests {
         Realm.deleteRealm(config);
     }
 
-    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
-        return populateTestRealmAndCompactOnLaunch(compactOnLaunch, 100);
+    private void populateTestRealmForCompact(Realm realm, int sizeInMB) {
+        byte[] oneMBData = new byte[1024 * 1024];
+        realm.beginTransaction();
+        for (int i = 0; i < sizeInMB; i++) {
+            realm.createObject(AllTypes.class).setColumnBinary(oneMBData);
+        }
+        realm.commitTransaction();
     }
 
-    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch, int objects) {
+    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
+        return populateTestRealmAndCompactOnLaunch(compactOnLaunch, 1);
+    }
+
+    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch, int sizeInMB) {
         final String REALM_NAME = "test.realm";
         RealmConfiguration realmConfig = configFactory.createConfiguration(REALM_NAME);
         Realm realm = Realm.getInstance(realmConfig);
-        populateTestRealm(realm, objects);
+        populateTestRealmForCompact(realm, sizeInMB);
         realm.beginTransaction();
         realm.deleteAll();
         realm.commitTransaction();
@@ -1131,12 +1142,23 @@ public class RealmTests {
                 })
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
+        realm.close();
+        // WARNING: We need to init the schema first and close the Realm to make sure the relevant logic works in Object
+        // Store. See https://github.com/realm/realm-object-store/blob/master/src/shared_realm.cpp#L58
+        // Called once.
+        assertEquals(1, compactOnLaunchCount.get());
+
+        realm = Realm.getInstance(realmConfig);
+        // Called 2 more times. The PK table migration logic (the old PK bug) needs to open/close the Realm once.
+        assertEquals(3, compactOnLaunchCount.get());
 
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 Realm bgRealm = Realm.getInstance(realmConfig);
                 bgRealm.close();
+                // compactOnLaunch should not be called anymore!
+                assertEquals(3, compactOnLaunchCount.get());
             }
         });
         thread.start();
@@ -1149,8 +1171,6 @@ public class RealmTests {
 
         realm.close();
 
-        // FIXME: It should be 1. Current compactOnLaunch is called each time a Realm is opened on a new thread.
-        assertNotEquals(1, compactOnLaunchCount.get());
         assertEquals(3, compactOnLaunchCount.get());
     }
 
@@ -1162,7 +1182,7 @@ public class RealmTests {
                 final long thresholdSize = 50 * 1024 * 1024;
                 return (totalBytes > thresholdSize) && (((double) usedBytes / (double) totalBytes) < 0.5);
             }
-        }, 100);
+        }, 1);
         final long thresholdSize = 50 * 1024 * 1024;
         assertTrue(results.first < thresholdSize);
         assertEquals(results.first, results.second);
@@ -1195,7 +1215,7 @@ public class RealmTests {
 
     @Test
     public void defaultCompactOnLaunch() throws IOException {
-        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 30000);
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 50);
         final long thresholdSize = 50 * 1024 * 1024;
         assertTrue(results.first > thresholdSize);
         assertTrue(results.first > results.second);
@@ -1215,7 +1235,7 @@ public class RealmTests {
 
     @Test
     public void defaultCompactOnLaunch_insufficientAmount() throws IOException {
-        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 100);
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 1);
         final long thresholdSize = 50 * 1024 * 1024;
         assertTrue(results.first < thresholdSize);
         assertEquals(results.first, results.second);

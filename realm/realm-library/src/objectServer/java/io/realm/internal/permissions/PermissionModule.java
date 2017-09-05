@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.internal.permissions;
 
-/**
- * The default implementation for determining if a file should be compacted or not. This implementation will only
- * trigger if the file is above 50 MB and more than 50% can be reclaimed.
- */
-public class DefaultCompactOnLaunchCallback implements CompactOnLaunchCallback {
-    @Override
-    public boolean shouldCompact(long totalBytes, long usedBytes) {
-        final long thresholdSize = 50 * 1024 * 1024;
-        return (totalBytes > thresholdSize) && (((double) usedBytes / (double) totalBytes) < 0.5);
-    }
+import io.realm.annotations.RealmModule;
+import io.realm.permissions.Permission;
+
+@RealmModule(library = true, classes = { Permission.class })
+public class PermissionModule {
 }
