@@ -7,26 +7,6 @@ const exec = require('child_process').exec;
 var http = require('http');
 var dispatcher = require('httpdispatcher');
 
-// this query is used to check if ROS has started
-// while waiting for a permanante fix in https://github.com/realm/realm-object-server/issues/1297.
-// query should return 200 with the JSON payload Ex: {"version":"1.8.1","flavor":"developer","setupRequired":true}
-var options = {
-  hostname: '127.0.0.1',
-  port: 9080,
-  path: '/api/info',
-  method: 'GET'
-};
-
-function tryUntilROSStart(options, callback) {
-    var req = http.request(options, function(res) {
-        callback(null, res);
-    });
-    req.on('error', function(e) {
-        tryUntilROSStart(options, callback);
-    });
-    req.end();
-}
-
 // Automatically track and cleanup files at exit
 temp.track();
 
@@ -54,6 +34,12 @@ function handleRequest(request, response) {
 var syncServerChildProcess = null;
 
 function startRealmObjectServer(done) {
+    // Hack for checking the ROS is fully initialized.
+    // Consider the ROS is initialized fully only if log below shows twice
+    // "client: Closing Realm file: /tmp/ros117521-7-1eiqt7a/internal_data/permission/__auth.realm"
+    // https://github.com/realm/realm-object-server/issues/1297
+    var logFindingCounter = 2
+
     stopRealmObjectServer(function(err) {
         if(err) {
           return;
@@ -70,6 +56,12 @@ function startRealmObjectServer(done) {
                         { env: env, cwd: path});
                 // local config:
                 syncServerChildProcess.stdout.on('data', (data) => {
+                    if (logFindingCounter != 0 && /client: Closing Realm file: .*__auth.realm/.test(data)) {
+                        if (logFindingCounter == 1) {
+                            done()
+                        }
+                        logFindingCounter--
+                    }
                     winston.info(`stdout: ${data}`);
                 });
 
@@ -79,11 +71,6 @@ function startRealmObjectServer(done) {
 
                 syncServerChildProcess.on('close', (code) => {
                     winston.info(`child process exited with code ${code}`);
-                });
-
-                tryUntilROSStart(options, function(err, resp) {
-                    winston.info('>>>>>>>>>>>>>>>>>>> [ROS] server started <<<<<<<<<<<<<<<<<<<');
-                    done()
                 });
             }
         });
@@ -107,7 +94,7 @@ function stopRealmObjectServer(callback) {
 dispatcher.onGet("/start", function(req, res) {
     startRealmObjectServer(() => {
         res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('Server started');
+        res.end('Starting a server');
     })
 });
 
