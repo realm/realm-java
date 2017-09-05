@@ -19,6 +19,7 @@ package io.realm;
 import java.nio.ByteBuffer;
 
 import io.realm.internal.Keep;
+import io.realm.internal.Property;
 
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_BINARY;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_BOOLEAN;
@@ -38,7 +39,7 @@ import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
 
 
 interface RealmFieldTypeConstants {
-    int LIST_OFFSET = 1 << 16;
+    int LIST_OFFSET = Property.TYPE_ARRAY;
 
     int CORE_TYPE_VALUE_INTEGER = 0;
     int CORE_TYPE_VALUE_BOOLEAN = 1;
