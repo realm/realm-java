@@ -7,7 +7,7 @@ import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.LinkView;
+import io.realm.internal.OsList;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsSchemaInfo;
@@ -361,8 +361,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (columnRealmListRealmList != null) {
             return columnRealmListRealmList;
         } else {
-            LinkView linkView = proxyState.getRow$realm().getLinkList(columnInfo.columnRealmListIndex);
-            columnRealmListRealmList = new RealmList<some.test.AllTypes>(some.test.AllTypes.class, linkView, proxyState.getRealm$realm());
+            OsList osList = proxyState.getRow$realm().getLinkList(columnInfo.columnRealmListIndex);
+            columnRealmListRealmList = new RealmList<some.test.AllTypes>(some.test.AllTypes.class, osList, proxyState.getRealm$realm());
             return columnRealmListRealmList;
         }
     }
@@ -391,8 +391,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
 
         proxyState.getRealm$realm().checkIfValid();
-        LinkView links = proxyState.getRow$realm().getLinkList(columnInfo.columnRealmListIndex);
-        links.clear();
+        OsList osList = proxyState.getRow$realm().getLinkList(columnInfo.columnRealmListIndex);
+        osList.removeAll();
         if (value == null) {
             return;
         }
@@ -403,7 +403,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (((RealmObjectProxy) linkedObject).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
                 throw new IllegalArgumentException("Each element of 'value' must belong to the same Realm.");
             }
-            links.add(((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex());
+            osList.addRow(((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex());
         }
     }
 
@@ -817,13 +817,13 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
         RealmList<some.test.AllTypes> columnRealmListList = ((AllTypesRealmProxyInterface) object).realmGet$columnRealmList();
         if (columnRealmListList != null) {
-            long columnRealmListNativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.columnRealmListIndex, rowIndex);
+            OsList columnRealmListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnRealmListIndex);
             for (some.test.AllTypes columnRealmListItem : columnRealmListList) {
                 Long cacheItemIndexcolumnRealmList = cache.get(columnRealmListItem);
                 if (cacheItemIndexcolumnRealmList == null) {
                     cacheItemIndexcolumnRealmList = AllTypesRealmProxy.insert(realm, columnRealmListItem, cache);
                 }
-                LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
+                columnRealmListOsList.addRow(cacheItemIndexcolumnRealmList);
             }
         }
         return rowIndex;
@@ -885,13 +885,13 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
             RealmList<some.test.AllTypes> columnRealmListList = ((AllTypesRealmProxyInterface) object).realmGet$columnRealmList();
             if (columnRealmListList != null) {
-                long columnRealmListNativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.columnRealmListIndex, rowIndex);
+                OsList columnRealmListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnRealmListIndex);
                 for (some.test.AllTypes columnRealmListItem : columnRealmListList) {
                     Long cacheItemIndexcolumnRealmList = cache.get(columnRealmListItem);
                     if (cacheItemIndexcolumnRealmList == null) {
                         cacheItemIndexcolumnRealmList = AllTypesRealmProxy.insert(realm, columnRealmListItem, cache);
                     }
-                    LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
+                    columnRealmListOsList.addRow(cacheItemIndexcolumnRealmList);
                 }
             }
         }
@@ -950,8 +950,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             Table.nativeNullifyLink(tableNativePtr, columnInfo.columnObjectIndex, rowIndex);
         }
 
-        long columnRealmListNativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.columnRealmListIndex, rowIndex);
-        LinkView.nativeClear(columnRealmListNativeLinkViewPtr);
+        OsList columnRealmListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnRealmListIndex);
+        columnRealmListOsList.removeAll();
         RealmList<some.test.AllTypes> columnRealmListList = ((AllTypesRealmProxyInterface) object).realmGet$columnRealmList();
         if (columnRealmListList != null) {
             for (some.test.AllTypes columnRealmListItem : columnRealmListList) {
@@ -959,7 +959,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 if (cacheItemIndexcolumnRealmList == null) {
                     cacheItemIndexcolumnRealmList = AllTypesRealmProxy.insertOrUpdate(realm, columnRealmListItem, cache);
                 }
-                LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
+                columnRealmListOsList.addRow(cacheItemIndexcolumnRealmList);
             }
         }
 
@@ -1026,8 +1026,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 Table.nativeNullifyLink(tableNativePtr, columnInfo.columnObjectIndex, rowIndex);
             }
 
-            long columnRealmListNativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.columnRealmListIndex, rowIndex);
-            LinkView.nativeClear(columnRealmListNativeLinkViewPtr);
+            OsList columnRealmListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnRealmListIndex);
+            columnRealmListOsList.removeAll();
             RealmList<some.test.AllTypes> columnRealmListList = ((AllTypesRealmProxyInterface) object).realmGet$columnRealmList();
             if (columnRealmListList != null) {
                 for (some.test.AllTypes columnRealmListItem : columnRealmListList) {
@@ -1035,7 +1035,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     if (cacheItemIndexcolumnRealmList == null) {
                         cacheItemIndexcolumnRealmList = AllTypesRealmProxy.insertOrUpdate(realm, columnRealmListItem, cache);
                     }
-                    LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
+                    columnRealmListOsList.addRow(cacheItemIndexcolumnRealmList);
                 }
             }
 
