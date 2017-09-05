@@ -38,12 +38,12 @@ string(TOLOWER ${CMAKE_BUILD_TYPE} build_type_FOLDER)
 set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/${REALM_FLAVOR}/${build_type_FOLDER}/)
 set(classes_LIST
     io.realm.internal.Table io.realm.internal.CheckedRow
-    io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
+    io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.internal.Property io.realm.internal.OsSchemaInfo
     io.realm.internal.OsObjectSchemaInfo io.realm.internal.Collection
     io.realm.internal.NativeObjectReference io.realm.internal.CollectionChangeSet
-    io.realm.internal.OsObject io.realm.internal.OsRealmConfig
+    io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319
@@ -51,7 +51,7 @@ set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
         io.realm.ClientResetRequiredError io.realm.RealmFileUserStore
-        io.realm.SyncManager io.realm.SyncSession
+        io.realm.SyncManager io.realm.SyncSession io.realm.SyncUser
     )
 endif()
 create_javah(TARGET jni_headers

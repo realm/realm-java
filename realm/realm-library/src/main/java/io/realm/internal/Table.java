@@ -940,8 +940,6 @@ public class Table implements TableSchema, NativeObject {
 
     private native long nativeGetLink(long nativePtr, long columnIndex, long rowIndex);
 
-    public static native long nativeGetLinkView(long nativePtr, long columnIndex, long rowIndex);
-
     private native long nativeGetLinkTarget(long nativePtr, long columnIndex);
 
     private native boolean nativeIsNull(long nativePtr, long columnIndex, long rowIndex);

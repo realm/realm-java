@@ -46,9 +46,9 @@ import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.network.LookupUserIdResponse;
 import io.realm.internal.objectserver.Token;
+import io.realm.internal.permissions.ManagementModule;
+import io.realm.internal.permissions.PermissionModule;
 import io.realm.log.RealmLog;
-import io.realm.permissions.PermissionModule;
-
 
 /**
  * This class represents a user on the Realm Object Server. The credentials are provided by various 3rd party
@@ -88,7 +88,7 @@ public class SyncUser {
                                 }
                             }
                         })
-                        .modules(new PermissionModule())
+                        .modules(new ManagementModule())
                         .build();
             }
 
@@ -129,7 +129,7 @@ public class SyncUser {
     public static Map<String, SyncUser> all() {
         UserStore userStore = SyncManager.getUserStore();
         Collection<SyncUser> storedUsers = userStore.allUsers();
-        Map<String, SyncUser> map = new HashMap<String, SyncUser>();
+        Map<String, SyncUser> map = new HashMap<>();
         for (SyncUser user : storedUsers) {
             if (user.isValid()) {
                 map.put(user.getIdentity(), user);
@@ -658,7 +658,9 @@ public class SyncUser {
      * giving other users access to Realms.
      *
      * @see <a href="https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
+     * @deprecated use {@link #getPermissionManager()} instead.
      */
+    @Deprecated
     public Realm getManagementRealm() {
         return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(this));
     }
@@ -711,6 +713,26 @@ public class SyncUser {
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Could not create URL to the management Realm", e);
         }
+    }
+
+    /**
+     * Returns an instance of the {@link PermissionManager} for this user that makes it possible to see, modify and create
+     * permissions related to this users Realms.
+     * <p>
+     * Every instance returned by this method must be closed by calling {@link PermissionManager#close()} when it
+     * no longer is needed.
+     * <p>
+     * The {@link PermissionManager} can only be opened from the main tread, calling this method from any other thread
+     * will throw an {@link IllegalStateException}.
+     *
+     * @throws IllegalStateException if this method is not called from the UI thread.
+     * @return an instance of the PermissionManager.
+     */
+    public PermissionManager getPermissionManager() {
+        if (!new AndroidCapabilities().isMainThread()) {
+            throw new IllegalStateException("The PermissionManager can only be opened from the main thread.");
+        }
+        return PermissionManager.getInstance(this);
     }
 
     // what defines a user is it's identity(Token) and authURL (as required by the constructor)
