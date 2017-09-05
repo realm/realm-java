@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 
 import io.realm.exceptions.RealmException;
 import io.realm.internal.CheckedRow;
-import io.realm.internal.LinkView;
+import io.realm.internal.OsList;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -348,11 +348,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
-            LinkView linkView = proxyState.getRow$realm().getLinkList(columnIndex);
+            OsList osList = proxyState.getRow$realm().getLinkList(columnIndex);
             //noinspection ConstantConditions
             @Nonnull
-            String className = linkView.getTargetTable().getClassName();
-            return new RealmList<>(className, linkView, proxyState.getRealm$realm());
+            String className = osList.getTargetTable().getClassName();
+            return new RealmList<>(className, osList, proxyState.getRealm$realm());
         } catch (IllegalArgumentException e) {
             checkFieldType(fieldName, columnIndex, RealmFieldType.LIST);
             throw e;
@@ -745,8 +745,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        LinkView links = proxyState.getRow$realm().getLinkList(columnIndex);
-        Table linkTargetTable = links.getTargetTable();
+        OsList osList = proxyState.getRow$realm().getLinkList(columnIndex);
+        Table linkTargetTable = osList.getTargetTable();
         //noinspection ConstantConditions
         @Nonnull
         final String linkTargetTableName = linkTargetTable.getClassName();
@@ -786,9 +786,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             indices[i] = obj.realmGet$proxyState().getRow$realm().getIndex();
         }
 
-        links.clear();
+        osList.removeAll();
         for (int i = 0; i < listLength; i++) {
-            links.add(indices[i]);
+            osList.addRow(indices[i]);
         }
     }
 
