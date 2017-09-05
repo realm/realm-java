@@ -69,7 +69,7 @@ class KotlinSchemaTests {
 
     @Test
     fun kotlinTypeNull() {
-        val objSchema = realm.schema.get(AllKotlinTypes::class.simpleName)!!
+        val objSchema = realm.schema.get(AllKotlinTypes::class.simpleName!!)!!
         assertTrue(objSchema.isNullable(AllKotlinTypes::nullBinary.name));
         assertTrue(objSchema.isNullable(AllKotlinTypes::nullBoolean.name));
         assertTrue(objSchema.isNullable(AllKotlinTypes::nullString.name));
