@@ -42,7 +42,7 @@ set(classes_LIST
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.internal.Property io.realm.internal.OsSchemaInfo
     io.realm.internal.OsObjectSchemaInfo io.realm.internal.Collection
-    io.realm.internal.NativeObjectReference io.realm.internal.CollectionChangeSet
+    io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.

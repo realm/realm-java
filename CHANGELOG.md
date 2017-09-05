@@ -40,6 +40,7 @@
 ### Internal
 
 * Replaced LinkView with Object Store's List.
+* Renaming `io.realm.internal.CollectionChangeSet` to `io.realm.internal.OsCollectionChangeSet`.
 
 
 ## 3.7.0 (2017-09-01)
