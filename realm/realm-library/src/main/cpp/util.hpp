@@ -78,11 +78,8 @@ std::string num_to_string(T pNumber)
 #define B(x) static_cast<bool>(x)
 #define S64(x) static_cast<int64_t>(x)
 #define TBL(x) reinterpret_cast<realm::Table*>(x)
-#define TV(x) reinterpret_cast<realm::TableView*>(x)
-#define LV(x) reinterpret_cast<realm::LinkViewRef*>(x)
 #define Q(x) reinterpret_cast<realm::Query*>(x)
 #define ROW(x) reinterpret_cast<realm::Row*>(x)
-#define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover<T>*>(ptr)
 
 // Exception handling
 enum ExceptionKind {

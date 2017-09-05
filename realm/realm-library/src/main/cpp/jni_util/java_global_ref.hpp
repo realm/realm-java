@@ -45,6 +45,7 @@ public:
     ~JavaGlobalRef();
 
     JavaGlobalRef& operator=(JavaGlobalRef&& rhs);
+    JavaGlobalRef& operator=(JavaGlobalRef& rhs) = delete;
     JavaGlobalRef(JavaGlobalRef&);
 
     inline operator bool() const noexcept
