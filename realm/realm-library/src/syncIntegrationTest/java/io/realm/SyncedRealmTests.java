@@ -43,7 +43,7 @@ import static org.junit.Assert.fail;
  * Catch all class for tests that not naturally fit anywhere else.
  */
 @RunWith(AndroidJUnit4.class)
-public class SyncedRealmTests extends BaseIntegrationTest {
+public class SyncedRealmTests extends StandardIntegrationTest {
 
     @Test
     @UiThreadTest
@@ -218,8 +218,7 @@ public class SyncedRealmTests extends BaseIntegrationTest {
         realm.close();
         user.logout();
     }
-
-
+    
     @Test
     public void waitForInitialRemoteData_readOnlyTrue_throwsIfWrongServerSchema() {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);

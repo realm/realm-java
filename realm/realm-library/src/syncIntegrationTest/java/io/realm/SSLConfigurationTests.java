@@ -18,6 +18,7 @@ package io.realm;
 
 import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
+import android.text.style.TabStopSpan;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,7 +40,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class SSLConfigurationTests extends BaseIntegrationTest {
+public class SSLConfigurationTests extends StandardIntegrationTest {
 
     @Rule
     public Timeout globalTimeout = Timeout.seconds(10);
