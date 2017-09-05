@@ -172,6 +172,8 @@ public class RealmProcessor extends AbstractProcessor {
 
     // Create all proxy classes
     private boolean processAnnotations(RoundEnvironment roundEnv) {
+        final TypeMirrors typeMirrors = new TypeMirrors(processingEnv);
+
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
 
             // The class must either extend RealmObject or implement RealmModel
@@ -186,7 +188,7 @@ public class RealmProcessor extends AbstractProcessor {
                 return false;
             }
 
-            ClassMetaData metadata = new ClassMetaData(processingEnv, (TypeElement) classElement);
+            ClassMetaData metadata = new ClassMetaData(processingEnv, typeMirrors, (TypeElement) classElement);
             if (!metadata.isModelClass()) { continue; }
 
             Utils.note("Processing class " + metadata.getSimpleClassName());
@@ -202,7 +204,7 @@ public class RealmProcessor extends AbstractProcessor {
                 Utils.error(e.getMessage(), classElement);
             }
 
-            RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, metadata);
+            RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, typeMirrors, metadata);
             try {
                 sourceCodeGenerator.generate();
             } catch (IOException e) {

@@ -1,5 +1,10 @@
 package io.realm.internal;
 
+import java.util.Date;
+
+import javax.annotation.Nullable;
+
+
 /**
  * Java wrapper of Object Store List class. This backs managed versions of RealmList.
  */
@@ -45,6 +50,108 @@ public class OsList implements NativeObject {
 
     public void setRow(long pos, long targetRowIndex) {
         nativeSetRow(nativePtr, pos, targetRowIndex);
+    }
+
+    public void addNull() {
+        // FIXME zaki50 implement this
+    }
+
+    public void insertNull(long pos) {
+        // FIXME zaki50 implement this
+    }
+
+    public void setNull(long pos) {
+        // FIXME zaki50 implement this
+    }
+
+    public void addLong(long value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void insertLong(long pos, long value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void setLong(long pos, long value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void addDouble(double value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void insertDouble(long pos, double value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void setDouble(long pos, double value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void addFloat(float value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void insertFloat(long pos, float value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void setFloat(long pos, float value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void addBoolean(boolean value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void insertBoolean(long pos, boolean value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void setBoolean(long pos, boolean value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void addBinary(byte[] value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void insertBinary(long pos, byte[] value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void setBinary(long pos, byte[] value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void addString(String value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void insertString(long pos, String value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void setString(long pos, String value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void addDate(Date value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void insertDate(long pos, Date value) {
+        // FIXME zaki50 implement this
+    }
+
+    public void setDate(long pos, Date value) {
+        // FIXME zaki50 implement this
+    }
+
+    @Nullable
+    public Object getValue(long pos) {
+        // FIXME zaki50 implement this
+        return null;
     }
 
     public void move(long sourceIndex, long targetIndex) {

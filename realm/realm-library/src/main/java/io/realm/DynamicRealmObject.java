@@ -348,7 +348,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
-            OsList osList = proxyState.getRow$realm().getLinkList(columnIndex);
+            OsList osList = proxyState.getRow$realm().getList(columnIndex);
             //noinspection ConstantConditions
             @Nonnull
             String className = osList.getTargetTable().getClassName();
@@ -745,7 +745,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        OsList osList = proxyState.getRow$realm().getLinkList(columnIndex);
+        OsList osList = proxyState.getRow$realm().getList(columnIndex);
         Table linkTargetTable = osList.getTargetTable();
         //noinspection ConstantConditions
         @Nonnull
@@ -968,7 +968,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     break;
                 case LIST:
                     String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName();
-                    sb.append(String.format(Locale.US, "RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getLinkList(columnIndex).size()));
+                    sb.append(String.format(Locale.US, "RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getList(columnIndex).size()));
                     break;
                 case UNSUPPORTED_TABLE:
                 case UNSUPPORTED_MIXED:

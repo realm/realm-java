@@ -19,7 +19,6 @@ package io.realm.processor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -58,6 +57,7 @@ public class ClassMetaData {
     private final List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
     private final Set<Backlink> backlinks = new HashSet<Backlink>();
     private final Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
+    private final Set<VariableElement> nullableValueListFields = new HashSet<VariableElement>(); // Set of fields whose elements can be nullable
 
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
@@ -71,30 +71,32 @@ public class ClassMetaData {
     private final Types typeUtils;
     private final Elements elements;
 
-    public ClassMetaData(ProcessingEnvironment env, TypeElement clazz) {
+    public ClassMetaData(ProcessingEnvironment env, TypeMirrors typeMirrors, TypeElement clazz) {
         this.classType = clazz;
         this.className = clazz.getSimpleName().toString();
         typeUtils = env.getTypeUtils();
         elements = env.getElementUtils();
-        TypeMirror stringType = elements.getTypeElement("java.lang.String").asType();
+
+
         validPrimaryKeyTypes = Arrays.asList(
-                stringType,
-                typeUtils.getPrimitiveType(TypeKind.SHORT),
-                typeUtils.getPrimitiveType(TypeKind.INT),
-                typeUtils.getPrimitiveType(TypeKind.LONG),
-                typeUtils.getPrimitiveType(TypeKind.BYTE)
+                typeMirrors.STRING_MIRROR,
+                typeMirrors.PRIMITIVE_LONG_MIRROR,
+                typeMirrors.PRIMITIVE_INT_MIRROR,
+                typeMirrors.PRIMITIVE_SHORT_MIRROR,
+                typeMirrors.PRIMITIVE_BYTE_MIRROR
         );
+
         validListValueTypes = Arrays.asList(
-                stringType,
-                typeUtils.getArrayType(typeUtils.getPrimitiveType(TypeKind.BYTE)),
-                elements.getTypeElement(Boolean.class.getName()).asType(),
-                elements.getTypeElement(Long.class.getName()).asType(),
-                elements.getTypeElement(Integer.class.getName()).asType(),
-                elements.getTypeElement(Short.class.getName()).asType(),
-                elements.getTypeElement(Byte.class.getName()).asType(),
-                elements.getTypeElement(Double.class.getName()).asType(),
-                elements.getTypeElement(Float.class.getName()).asType(),
-                elements.getTypeElement(Date.class.getName()).asType()
+                typeMirrors.STRING_MIRROR,
+                typeMirrors.BINARY_MIRROR,
+                typeMirrors.BOOLEAN_MIRROR,
+                typeMirrors.LONG_MIRROR,
+                typeMirrors.INTEGER_MIRROR,
+                typeMirrors.SHORT_MIRROR,
+                typeMirrors.BYTE_MIRROR,
+                typeMirrors.DOUBLE_MIRROR,
+                typeMirrors.FLOAT_MIRROR,
+                typeMirrors.DATE_MIRROR
         );
 
         for (Element element : classType.getEnclosedElements()) {
@@ -179,6 +181,15 @@ public class ClassMetaData {
      */
     public boolean isNullable(VariableElement variableElement) {
         return nullableFields.contains(variableElement);
+    }
+
+    /**
+     * Checks if the element of RealmList designated by {@code realmListVariableElement} is nullable.
+     *
+     * @return {@code true} if the element is nullable type, {@code false} otherwise.
+     */
+    public boolean isElementNullable(VariableElement realmListVariableElement) {
+        return nullableValueListFields.contains(realmListVariableElement);
     }
 
     /**
@@ -448,15 +459,26 @@ public class ClassMetaData {
             if (!categorizeIndexField(element, field)) { return false; }
         }
 
-        if (isRequiredField(field)) {
-            categorizeRequiredField(element, field);
+        // @Required annotation of RealmList field only affects its value type, not field itself.
+        if (Utils.isRealmList(field)) {
+            // We only check @Required annotation. @org.jetbrains.annotations.NotNull annotation should not affect nullability of the list values.
+            if (!hasRequiredAnnotation(field)) {
+                final TypeMirror elementTypeMirror = ((DeclaredType) field.asType()).getTypeArguments().get(0);
+                if (!Utils.isRealmModel(elementTypeMirror)) {
+                    nullableValueListFields.add(field);
+                }
+            }
         } else {
-            // The field doesn't have the @Required annotation.
-            // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
-            // nullableFields.
-            // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
-            if (!Utils.isPrimitiveType(field) && !Utils.isRealmList(field)) {
-                nullableFields.add(field);
+            if (isRequiredField(field)) {
+                categorizeRequiredField(element, field);
+            } else {
+                // The field doesn't have the @Required and @org.jetbrains.annotations.NotNull annotation.
+                // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
+                // nullableFields.
+                // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
+                if (!Utils.isPrimitiveType(field)) {
+                    nullableFields.add(field);
+                }
             }
         }
 
@@ -481,8 +503,12 @@ public class ClassMetaData {
         return true;
     }
 
+    private boolean hasRequiredAnnotation(VariableElement field) {
+        return field.getAnnotation(Required.class) != null;
+    }
+
     private boolean isRequiredField(VariableElement field) {
-        if (field.getAnnotation(Required.class) != null) {
+        if (hasRequiredAnnotation(field)) {
             return true;
         }
 
