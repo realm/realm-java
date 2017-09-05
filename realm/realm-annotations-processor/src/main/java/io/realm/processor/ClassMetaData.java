@@ -19,7 +19,6 @@ package io.realm.processor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -72,30 +71,32 @@ public class ClassMetaData {
     private final Types typeUtils;
     private final Elements elements;
 
-    public ClassMetaData(ProcessingEnvironment env, TypeElement clazz) {
+    public ClassMetaData(ProcessingEnvironment env, TypeMirrors typeMirrors, TypeElement clazz) {
         this.classType = clazz;
         this.className = clazz.getSimpleName().toString();
         typeUtils = env.getTypeUtils();
         elements = env.getElementUtils();
-        TypeMirror stringType = elements.getTypeElement("java.lang.String").asType();
+
+
         validPrimaryKeyTypes = Arrays.asList(
-                stringType,
-                typeUtils.getPrimitiveType(TypeKind.SHORT),
-                typeUtils.getPrimitiveType(TypeKind.INT),
-                typeUtils.getPrimitiveType(TypeKind.LONG),
-                typeUtils.getPrimitiveType(TypeKind.BYTE)
+                typeMirrors.STRING_MIRROR,
+                typeMirrors.PRIMITIVE_LONG_MIRROR,
+                typeMirrors.PRIMITIVE_INT_MIRROR,
+                typeMirrors.PRIMITIVE_SHORT_MIRROR,
+                typeMirrors.PRIMITIVE_BYTE_MIRROR
         );
+
         validListValueTypes = Arrays.asList(
-                stringType,
-                typeUtils.getArrayType(typeUtils.getPrimitiveType(TypeKind.BYTE)),
-                elements.getTypeElement(Boolean.class.getName()).asType(),
-                elements.getTypeElement(Long.class.getName()).asType(),
-                elements.getTypeElement(Integer.class.getName()).asType(),
-                elements.getTypeElement(Short.class.getName()).asType(),
-                elements.getTypeElement(Byte.class.getName()).asType(),
-                elements.getTypeElement(Double.class.getName()).asType(),
-                elements.getTypeElement(Float.class.getName()).asType(),
-                elements.getTypeElement(Date.class.getName()).asType()
+                typeMirrors.STRING_MIRROR,
+                typeMirrors.BINARY_MIRROR,
+                typeMirrors.BOOLEAN_MIRROR,
+                typeMirrors.LONG_MIRROR,
+                typeMirrors.INTEGER_MIRROR,
+                typeMirrors.SHORT_MIRROR,
+                typeMirrors.BYTE_MIRROR,
+                typeMirrors.DOUBLE_MIRROR,
+                typeMirrors.FLOAT_MIRROR,
+                typeMirrors.DATE_MIRROR
         );
 
         for (Element element : classType.getEnclosedElements()) {
@@ -180,6 +181,15 @@ public class ClassMetaData {
      */
     public boolean isNullable(VariableElement variableElement) {
         return nullableFields.contains(variableElement);
+    }
+
+    /**
+     * Checks if the element of RealmList designated by {@code realmListVariableElement} is nullable.
+     *
+     * @return {@code true} if the element is nullable type, {@code false} otherwise.
+     */
+    public boolean isElementNullable(VariableElement realmListVariableElement) {
+        return nullableValueListFields.contains(realmListVariableElement);
     }
 
     /**
