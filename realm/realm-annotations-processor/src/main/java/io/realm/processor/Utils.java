@@ -167,8 +167,15 @@ public class Utils {
     /**
      * @return {@code true} if a given field type is {@code RealmModel}, {@code false} otherwise.
      */
-    public static boolean isRealmModel(VariableElement field) {
-        return typeUtils.isAssignable(field.asType(), realmModel);
+    public static boolean isRealmModel(Element field) {
+        return isRealmModel(field.asType());
+    }
+
+    /**
+     * @return {@code true} if a given type is {@code RealmModel}, {@code false} otherwise.
+     */
+    public static boolean isRealmModel(TypeMirror type) {
+        return typeUtils.isAssignable(type, realmModel);
     }
 
     public static boolean isRealmResults(VariableElement field) {

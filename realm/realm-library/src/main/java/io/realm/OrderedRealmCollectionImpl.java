@@ -9,6 +9,7 @@ import java.util.Locale;
 
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Collection;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
@@ -28,6 +29,9 @@ abstract class OrderedRealmCollectionImpl<E>
     final BaseRealm realm;
     @Nullable final Class<E> classSpec;   // Return type
     @Nullable final String className;     // Class name used by DynamicRealmObjects
+    // FIXME implement this
+    @SuppressFBWarnings("SS_SHOULD_BE_STATIC")
+    final boolean forValues = false;
 
     final Collection collection;
 
@@ -108,15 +112,23 @@ abstract class OrderedRealmCollectionImpl<E>
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
+    @Nullable
     public E get(int location) {
         realm.checkIfValid();
-        return realm.get(classSpec, className, collection.getUncheckedRow(location));
+        if (forValues) {
+            // TODO implement this
+            return null;
+        }
+
+        //noinspection unchecked
+        return (E) realm.get((Class<? extends RealmModel>) classSpec, className, collection.getUncheckedRow(location));
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public E first() {
         return firstImpl(true, null);
     }
@@ -134,8 +146,14 @@ abstract class OrderedRealmCollectionImpl<E>
     private E firstImpl(boolean shouldThrow, @Nullable E defaultValue) {
         UncheckedRow row = collection.firstUncheckedRow();
 
+        if (forValues) {
+            // TODO implement this
+            return null;
+        }
+
         if (row != null) {
-            return realm.get(classSpec, className, row);
+            //noinspection unchecked
+            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
         } else {
             if (shouldThrow) {
                 throw new IndexOutOfBoundsException("No results were found.");
@@ -149,6 +167,7 @@ abstract class OrderedRealmCollectionImpl<E>
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public E last() {
         return lastImpl(true, null);
     }
@@ -167,8 +186,14 @@ abstract class OrderedRealmCollectionImpl<E>
     private E lastImpl(boolean shouldThrow, @Nullable E defaultValue) {
         UncheckedRow row = collection.lastUncheckedRow();
 
+        if (forValues) {
+            // TODO implement this
+            return null;
+        }
+
         if (row != null) {
-            return realm.get(classSpec, className, row);
+            //noinspection unchecked
+            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
         } else {
             if (shouldThrow) {
                 throw new IndexOutOfBoundsException("No results were found.");
@@ -535,7 +560,12 @@ abstract class OrderedRealmCollectionImpl<E>
 
         @Override
         protected E convertRowToObject(UncheckedRow row) {
-            return realm.get(classSpec, className, row);
+            if (forValues) {
+                // TODO implement this
+                return null;
+            }
+            //noinspection unchecked
+            return (E) realm.get((Class<? extends RealmObject>) classSpec, className, row);
         }
     }
 
@@ -558,7 +588,12 @@ abstract class OrderedRealmCollectionImpl<E>
 
         @Override
         protected E convertRowToObject(UncheckedRow row) {
-            return realm.get(classSpec, className, row);
+            if (forValues) {
+                // TODO implement this
+                return null;
+            }
+            //noinspection unchecked
+            return (E) realm.get((Class<? extends RealmObject>) classSpec, className, row);
         }
     }
 

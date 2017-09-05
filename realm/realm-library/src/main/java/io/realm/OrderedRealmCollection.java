@@ -108,6 +108,7 @@ public interface OrderedRealmCollection<E> extends List<E>, RealmCollection<E> {
      * @return the first object.
      * @throws IndexOutOfBoundsException if the collection is empty.
      */
+    @Nullable
     E first();
 
     /**
@@ -124,6 +125,7 @@ public interface OrderedRealmCollection<E> extends List<E>, RealmCollection<E> {
      * @return the last object.
      * @throws IndexOutOfBoundsException if the collection is empty.
      */
+    @Nullable
     E last();
 
     /**

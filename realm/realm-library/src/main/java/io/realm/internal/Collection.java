@@ -130,6 +130,7 @@ public class Collection implements NativeObject {
          * {@inheritDoc}
          */
         @Override
+        @Nullable
         public T next() {
             checkValid();
             pos++;
@@ -170,6 +171,7 @@ public class Collection implements NativeObject {
             }
         }
 
+        @Nullable
         T get(int pos) {
             return convertRowToObject(iteratorCollection.getUncheckedRow(pos));
         }
@@ -199,7 +201,7 @@ public class Collection implements NativeObject {
          */
         @Override
         @Deprecated
-        public void add(T object) {
+        public void add(@Nullable T object) {
             throw new UnsupportedOperationException("Adding an element is not supported. Use Realm.createObject() instead.");
         }
 
@@ -225,6 +227,7 @@ public class Collection implements NativeObject {
          * {@inheritDoc}
          */
         @Override
+        @Nullable
         public T previous() {
             checkValid();
             try {
@@ -253,7 +256,7 @@ public class Collection implements NativeObject {
          */
         @Override
         @Deprecated
-        public void set(T object) {
+        public void set(@Nullable T object) {
             throw new UnsupportedOperationException("Replacing and element is not supported.");
         }
     }
