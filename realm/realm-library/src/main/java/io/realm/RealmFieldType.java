@@ -34,6 +34,8 @@ import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UNSUPPORTED_DATE;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UNSUPPORTED_MIXED;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UNSUPPORTED_TABLE;
 import static io.realm.RealmFieldTypeConstants.LIST_OFFSET;
+import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
+
 
 interface RealmFieldTypeConstants {
     int LIST_OFFSET = 1 << 16;
@@ -51,6 +53,8 @@ interface RealmFieldTypeConstants {
     int CORE_TYPE_VALUE_OBJECT = 12;
     int CORE_TYPE_VALUE_LIST = 13;
     int CORE_TYPE_VALUE_LINKING_OBJECTS = 14;
+
+    int MAX_CORE_TYPE_VALUE = CORE_TYPE_VALUE_LINKING_OBJECTS;
 }
 
 /**
@@ -87,12 +91,17 @@ public enum RealmFieldType {
     DOUBLE_LIST(CORE_TYPE_VALUE_DOUBLE + LIST_OFFSET);
 
     // Primitive array for fast mapping between between native values and their Realm type.
-    private static final RealmFieldType[] typeList = new RealmFieldType[15];
+    private static final RealmFieldType[] basicTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
+    private static final RealmFieldType[] listTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
 
     static {
-        RealmFieldType[] columnTypes = values();
-        for (int i = 0; i < columnTypes.length; i++) {
-            typeList[columnTypes[i].nativeValue] = columnTypes[i];
+        for (RealmFieldType columnType : values()) {
+            final int nativeValue = columnType.nativeValue;
+            if (nativeValue < LIST_OFFSET) {
+                basicTypes[nativeValue] = columnType;
+            } else {
+                listTypes[nativeValue - LIST_OFFSET] = columnType;
+            }
         }
     }
 
@@ -119,30 +128,44 @@ public enum RealmFieldType {
      */
     public boolean isValid(Object obj) {
         switch (nativeValue) {
-            case 0:
+            case CORE_TYPE_VALUE_INTEGER:
                 return (obj instanceof Long || obj instanceof Integer || obj instanceof Short || obj instanceof Byte);
-            case 1:
+            case CORE_TYPE_VALUE_BOOLEAN:
                 return (obj instanceof Boolean);
-            case 2:
+            case CORE_TYPE_VALUE_STRING:
                 return (obj instanceof String);
-            case 4:
+            case CORE_TYPE_VALUE_BINARY:
                 return (obj instanceof byte[] || obj instanceof ByteBuffer);
-            case 5:
+            case CORE_TYPE_VALUE_UNSUPPORTED_TABLE:
                 //noinspection ConstantConditions
                 return (obj == null || obj instanceof Object[][]);
-            case 7:
+            case CORE_TYPE_VALUE_UNSUPPORTED_DATE:
                 return (obj instanceof java.util.Date); // The unused DateTime.
-            case 8:
+            case CORE_TYPE_VALUE_DATE:
                 return (obj instanceof java.util.Date);
-            case 9:
+            case CORE_TYPE_VALUE_FLOAT:
                 return (obj instanceof Float);
-            case 10:
+            case CORE_TYPE_VALUE_DOUBLE:
                 return (obj instanceof Double);
-            case 12:
+            case CORE_TYPE_VALUE_OBJECT:
                 return false;
-            case 13:
+            case CORE_TYPE_VALUE_LIST:
                 return false;
-            case 14:
+            case CORE_TYPE_VALUE_LINKING_OBJECTS:
+                return false;
+            case CORE_TYPE_VALUE_INTEGER + LIST_OFFSET:
+                return false;
+            case CORE_TYPE_VALUE_BOOLEAN + LIST_OFFSET:
+                return false;
+            case CORE_TYPE_VALUE_STRING + LIST_OFFSET:
+                return false;
+            case CORE_TYPE_VALUE_BINARY + LIST_OFFSET:
+                return false;
+            case CORE_TYPE_VALUE_DATE + LIST_OFFSET:
+                return false;
+            case CORE_TYPE_VALUE_FLOAT + LIST_OFFSET:
+                return false;
+            case CORE_TYPE_VALUE_DOUBLE + LIST_OFFSET:
                 return false;
             default:
                 throw new RuntimeException("Unsupported Realm type:  " + this);
@@ -157,10 +180,19 @@ public enum RealmFieldType {
      * @throws IllegalArgumentException if value isn't valid.
      */
     public static RealmFieldType fromNativeValue(int value) {
-        if (0 <= value && value < typeList.length) {
-            RealmFieldType e = typeList[value];
+        if (0 <= value && value < basicTypes.length) {
+            RealmFieldType e = basicTypes[value];
             if (e != null) {
                 return e;
+            }
+        }
+        if (LIST_OFFSET <= value) {
+            final int elementValue = value - LIST_OFFSET;
+            if (elementValue < listTypes.length) {
+                RealmFieldType e = listTypes[elementValue];
+                if (e != null) {
+                    return e;
+                }
             }
         }
         throw new IllegalArgumentException("Invalid native Realm type: " + value);
