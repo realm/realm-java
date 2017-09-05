@@ -134,7 +134,7 @@ public class PendingRow implements Row {
     }
 
     @Override
-    public OsList getLinkList(long columnIndex) {
+    public OsList getList(long columnIndex) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
