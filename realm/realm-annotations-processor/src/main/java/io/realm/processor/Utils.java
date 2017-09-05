@@ -165,6 +165,38 @@ public class Utils {
     }
 
     /**
+     * @return the {@link TypeMirror} of the elements in {@code RealmList}.
+     */
+    public static TypeMirror getRealmListElementTypeMirror(VariableElement field) {
+        if (!isRealmList(field)) {
+            return null;
+        }
+        return ((DeclaredType) field.asType()).getTypeArguments().get(0);
+    }
+
+    /**
+     * @return {@code true} if a given field type is {@code RealmList} and its value type is Realm Object, {@code false} otherwise.
+     */
+    public static boolean isRealmModelList(VariableElement field) {
+        final TypeMirror elementTypeMirror = getRealmListElementTypeMirror(field);
+        if (elementTypeMirror == null) {
+            return false;
+        }
+        return isRealmModel(elementTypeMirror);
+    }
+
+    /**
+     * @return {@code true} if a given field type is {@code RealmList} and its value type is Realm Object, {@code false} otherwise.
+     */
+    public static boolean isRealmValueList(VariableElement field) {
+        final TypeMirror elementTypeMirror = getRealmListElementTypeMirror(field);
+        if (elementTypeMirror == null) {
+            return false;
+        }
+        return !isRealmModel(elementTypeMirror);
+    }
+
+    /**
      * @return {@code true} if a given field type is {@code RealmModel}, {@code false} otherwise.
      */
     public static boolean isRealmModel(Element field) {
