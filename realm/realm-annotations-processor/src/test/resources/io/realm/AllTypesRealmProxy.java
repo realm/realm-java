@@ -34,7 +34,7 @@ import org.json.JSONObject;
 
 @SuppressWarnings("all")
 public class AllTypesRealmProxy extends some.test.AllTypes
-    implements RealmObjectProxy, AllTypesRealmProxyInterface {
+        implements RealmObjectProxy, AllTypesRealmProxyInterface {
 
     static final class AllTypesColumnInfo extends ColumnInfo {
         long columnStringIndex;
@@ -111,9 +111,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     private AllTypesColumnInfo columnInfo;
     private ProxyState<some.test.AllTypes> proxyState;
     private final MutableRealmInteger.Managed columnMutableRealmIntegerMutableRealmInteger = new MutableRealmInteger.Managed<some.test.AllTypes>() {
-                @Override protected ProxyState<some.test.AllTypes> getProxyState() { return proxyState; }
-                @Override protected long getColumnIndex() { return columnInfo.columnMutableRealmIntegerIndex; }
-            };
+        @Override protected ProxyState<some.test.AllTypes> getProxyState() { return proxyState; }
+        @Override protected long getColumnIndex() { return columnInfo.columnMutableRealmIntegerIndex; }
+    };
     private RealmList<some.test.AllTypes> columnRealmListRealmList;
     private RealmResults<some.test.AllTypes> parentObjectsBacklinks;
 
@@ -361,7 +361,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (columnRealmListRealmList != null) {
             return columnRealmListRealmList;
         } else {
-            OsList osList = proxyState.getRow$realm().getLinkList(columnInfo.columnRealmListIndex);
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.columnRealmListIndex);
             columnRealmListRealmList = new RealmList<some.test.AllTypes>(some.test.AllTypes.class, osList, proxyState.getRealm$realm());
             return columnRealmListRealmList;
         }
@@ -391,7 +391,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
 
         proxyState.getRealm$realm().checkIfValid();
-        OsList osList = proxyState.getRow$realm().getLinkList(columnInfo.columnRealmListIndex);
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.columnRealmListIndex);
         osList.removeAll();
         if (value == null) {
             return;
@@ -452,7 +452,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     @SuppressWarnings("cast")
     public static some.test.AllTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-        throws JSONException {
+            throws JSONException {
         final List<String> excludeFields = new ArrayList<String>(2);
         some.test.AllTypes obj = null;
         if (update) {
@@ -569,7 +569,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     @SuppressWarnings("cast")
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.AllTypes createUsingJsonStream(Realm realm, JsonReader reader)
-        throws IOException {
+            throws IOException {
         boolean jsonHasPrimaryKey = false;
         final some.test.AllTypes obj = new some.test.AllTypes();
         final AllTypesRealmProxyInterface objProxy = (AllTypesRealmProxyInterface) obj;
@@ -635,7 +635,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             } else if (name.equals("columnMutableRealmInteger")) {
                 Long val = null;
                 if (reader.peek() != JsonToken.NULL) {
-                    val = reader.nextLong()
+                    val = reader.nextLong();
                 } else {
                     reader.skipValue();
                 }
