@@ -81,7 +81,7 @@ public interface Row {
 
     boolean isNullLink(long columnIndex);
 
-    LinkView getLinkList(long columnIndex);
+    OsList getLinkList(long columnIndex);
 
     void setLong(long columnIndex, long value);
 

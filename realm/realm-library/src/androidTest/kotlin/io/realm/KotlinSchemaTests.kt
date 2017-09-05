@@ -51,25 +51,37 @@ class KotlinSchemaTests {
     fun kotlinTypeNonNull() {
         val objSchema = realm.schema.get(AllKotlinTypes::class.simpleName!!)!!
 
-        /*
-         * Document current nullability.
-         * Ideally all should be non-nullable since types of these fields are all non-nullable.
-         * This is currently not the case since our annotation processor does not respect
-         * nullablility information defined by the type.
-         *
-         * TODO We should fix this. Tracked by https://github.com/realm/realm-java/issues/4701
-         */
-        assertTrue(objSchema.isNullable(AllKotlinTypes::nonNullBinary.name));
+        assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullBinary.name));
         assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullBoolean.name));
-        assertTrue(objSchema.isNullable(AllKotlinTypes::nonNullString.name));
+        assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullString.name));
         assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullLong.name));
         assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullInt.name));
         assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullShort.name));
         assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullByte.name));
-        assertTrue(objSchema.isNullable(AllKotlinTypes::nonNullDate.name));
+        assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullDate.name));
         assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullDouble.name));
         assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullFloat.name));
         assertFalse(objSchema.isNullable(AllKotlinTypes::nonNullList.name));
-        assertTrue(objSchema.isNullable(AllKotlinTypes::nonNullObject.name));
+        // We cannot enforce this constraint inside the schema right now.
+        // If people maintain the variant themselves they need a custom getter
+        // assertTrue(objSchema.isNullable(AllKotlinTypes::nonNullObject.name));
     }
+
+    @Test
+    fun kotlinTypeNull() {
+        val objSchema = realm.schema.get(AllKotlinTypes::class.simpleName)!!
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nullBinary.name));
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nullBoolean.name));
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nullString.name));
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nullLong.name));
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nullInt.name));
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nullShort.name));
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nullByte.name));
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nullDate.name));
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nullDouble.name));
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nullFloat.name));
+        assertFalse(objSchema.isNullable(AllKotlinTypes::nullList.name)); // Managed realm objects do not allow null lists
+        assertTrue(objSchema.isNullable(AllKotlinTypes::nullObject.name));
+    }
+
 }

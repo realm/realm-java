@@ -292,35 +292,40 @@ final class RealmCache {
 
             SharedRealm sharedRealm = null;
             try {
-                sharedRealm = SharedRealm.getInstance(configuration);
+                if (configuration.isSyncConfiguration()) {
+                    // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
+                    // before proceeding. We need to open the Realm instance first to start any potential underlying
+                    // SyncSession so this will work. TODO: This needs to be decoupled.
+                    if (!fileExists) {
+                        sharedRealm = SharedRealm.getInstance(configuration);
+                        try {
+                            ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
+                        } catch (Throwable t) {
+                            // If an error happened while downloading initial data, we need to reset the file so we can
+                            // download it again on the next attempt.
+                            // Realm.deleteRealm() is under the same lock as this method and globalCount is still 0, so
+                            // this should be safe.
+                            sharedRealm.close();
+                            sharedRealm = null;
+                            Realm.deleteRealm(configuration);
+                            throw t;
+                        }
+                    }
+                } else {
+                    if (fileExists) {
+                        // Primary key problem only exists before we release sync.
+                        sharedRealm = SharedRealm.getInstance(configuration);
 
-                // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
-                // before proceeding. We need to open the Realm instance first to start any potential underlying
-                // SyncSession so this will work. TODO: This needs to be decoupled.
-                if (!fileExists) {
-                    try {
-                        ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
-                    } catch (Throwable t) {
-                        // If an error happened while downloading initial data, we need to reset the file so we can
-                        // download it again on the next attempt.
-                        // Realm.deleteRealm() is under the same lock as this method and globalCount is still 0, so
-                        // this should be safe.
-                        sharedRealm.close();
-                        sharedRealm = null;
-                        Realm.deleteRealm(configuration);
-                        throw t;
+                        if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
+                            sharedRealm.beginTransaction();
+                            if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
+                                sharedRealm.commitTransaction();
+                            } else {
+                                sharedRealm.cancelTransaction();
+                            }
+                        }
                     }
                 }
-
-                if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
-                    sharedRealm.beginTransaction();
-                    if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
-                        sharedRealm.commitTransaction();
-                    } else {
-                        sharedRealm.cancelTransaction();
-                    }
-                }
-
             } finally {
                 if (sharedRealm != null) {
                     sharedRealm.close();

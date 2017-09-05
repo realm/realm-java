@@ -39,6 +39,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -317,6 +318,13 @@ public class TestHelper {
         byte[] key = new byte[64];
         RANDOM.nextBytes(key);
         return key;
+    }
+
+    public static String getRandomEmail() {
+        StringBuilder sb = new StringBuilder(UUID.randomUUID().toString().toLowerCase());
+        sb.append('@');
+        sb.append("androidtest.realm.io");
+        return sb.toString();
     }
 
     // Returns a random key from the given seed. Used by encrypted Realms.
@@ -1134,7 +1142,7 @@ public class TestHelper {
             }
             counter--;
         }
-        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10 + " seconds");
+        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10.0D + " seconds");
     }
 
     /**
