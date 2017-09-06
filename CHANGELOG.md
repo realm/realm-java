@@ -3,6 +3,7 @@
 ### Bug Fixes
 
 * Fixed potential memory leaks of `LinkView` when calling bulk insertions APIs.
+* Crash caused by JNI couldn't find `SharedRealm`'s inner classes when ProGuard is enabled (#5211).
 
 ### Internal
 
