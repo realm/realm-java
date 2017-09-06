@@ -26,10 +26,6 @@
 
 namespace realm {
 
-namespace jni_util {
-class JavaClass;
-}
-
 namespace _impl {
 // Binding context which will be called from OS.
 class JavaBindingContext final : public BindingContext {
@@ -43,10 +39,6 @@ private:
     // Java should hold a strong ref to them as long as the SharedRealm lives
     jni_util::JavaGlobalWeakRef m_java_notifier;
     jni_util::JavaGlobalWeakRef m_schema_changed_callback;
-    // Problem has been seen if the class is retrieved directly from loop callback. So make sure get_notifier_class()
-    // is called once when creating BindingContext.
-    jni_util::JavaClass const& m_notifier_class;
-    static jni_util::JavaClass const& get_notifier_class(JNIEnv*);
 
 public:
     virtual ~JavaBindingContext(){};
@@ -58,7 +50,6 @@ public:
     explicit JavaBindingContext(const ConcreteJavaBindContext& concrete_context)
         : m_java_notifier(concrete_context.jni_env, concrete_context.java_notifier)
         , m_schema_changed_callback()
-        , m_notifier_class(get_notifier_class(concrete_context.jni_env))
     {
     }
     JavaBindingContext(const JavaBindingContext&) = delete;

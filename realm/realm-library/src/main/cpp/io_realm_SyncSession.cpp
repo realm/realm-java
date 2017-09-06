@@ -23,6 +23,7 @@
 #include "object-store/src/sync/sync_session.hpp"
 
 #include "util.hpp"
+#include "java_class_global_def.hpp"
 #include "jni_util/java_global_ref.hpp"
 #include "jni_util/java_local_ref.hpp"
 #include "jni_util/java_method.hpp"
@@ -30,8 +31,9 @@
 #include "jni_util/jni_utils.hpp"
 
 using namespace realm;
-using namespace jni_util;
-using namespace sync;
+using namespace realm::jni_util;
+using namespace realm::sync;
+using namespace realm::_impl;
 
 static_assert(SyncSession::PublicState::WaitingForAccessToken ==
                   static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
@@ -156,7 +158,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
                     JavaLocalRef<jobject> java_error_code;
                     JavaLocalRef<jstring> java_error_message;
                     if (error != std::error_code{}) {
-                        java_error_code = JavaLocalRef<jobject>(env, NewLong(env, error.value()));
+                        java_error_code =
+                            JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
                         java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
                     }
                     env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method, java_error_code.get(),
@@ -191,7 +194,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForUploadCompleti
                     JavaLocalRef<jobject> java_error_code;
                     JavaLocalRef<jstring> java_error_message;
                     if (error != std::error_code{}) {
-                        java_error_code = JavaLocalRef<jobject>(env, NewLong(env, error.value()));
+                        java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
                         java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
                     }
                     env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method,

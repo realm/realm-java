@@ -23,6 +23,7 @@
 
 #include "java_sort_descriptor.hpp"
 #include "util.hpp"
+#include "java_class_global_def.hpp"
 
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_global_weak_ref.hpp"
@@ -245,13 +246,13 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Collection_nativeAggregate(JNIE
         Mixed m = *value;
         switch (m.get_type()) {
             case type_Int:
-                return NewLong(env, m.get_int());
+                return JavaClassGlobalDef::new_long(env, m.get_int());
             case type_Float:
-                return NewFloat(env, m.get_float());
+                return JavaClassGlobalDef::new_float(env, m.get_float());
             case type_Double:
-                return NewDouble(env, m.get_double());
+                return JavaClassGlobalDef::new_double(env, m.get_double());
             case type_Timestamp:
-                return NewDate(env, m.get_timestamp());
+                return JavaClassGlobalDef::new_date(env, m.get_timestamp());
             default:
                 throw std::invalid_argument("Excepted numeric type");
         }
