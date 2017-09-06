@@ -718,7 +718,7 @@ public class RealmProxyClassGenerator {
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
 
-            Constants.RealmFieldType fieldType = getRealmType(field);
+            Constants.RealmFieldType fieldType = getRealmTypeChecked(field);
             switch (fieldType) {
                 case NOTYPE:
                     // Perhaps this should fail quickly?
@@ -731,21 +731,29 @@ public class RealmProxyClassGenerator {
                     break;
 
                 case LIST:
+                    // only for model list. primitive list is handled by default case.
                     String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
                     writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
                             fieldName, genericTypeSimpleName);
                     break;
 
                 default:
-                    String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
-                    String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
-                    String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
-                    writer.emitStatement("builder.addPersistedProperty(\"%s\", %s, %s, %s, %s)",
-                            fieldName,
-                            fieldType.getRealmType(),
-                            primaryKeyFlag,
-                            indexedFlag,
-                            nullableFlag);
+                    if (fieldType.isList()) {
+                        writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.%s, \"%s\")",
+                                fieldName, fieldType.getRealmType(), "");
+
+                    } else {
+                        String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
+                        String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
+                        String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
+                        writer.emitStatement("builder.addPersistedProperty(\"%s\", %s, %s, %s, %s)",
+                                fieldName,
+                                fieldType.getRealmType(),
+                                primaryKeyFlag,
+                                indexedFlag,
+                                nullableFlag);
+                    }
+                    break;
             }
         }
         for (Backlink backlink: metadata.getBacklinkFields()) {
@@ -2021,7 +2029,16 @@ public class RealmProxyClassGenerator {
             return Constants.RealmFieldType.OBJECT;
         }
         if (Utils.isRealmList(field)) {
-            return Constants.RealmFieldType.LIST;
+            final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+            if (Utils.isRealmModel(elementTypeMirror)) {
+                return Constants.RealmFieldType.LIST;
+            } else {
+                final Constants.RealmFieldType fieldType = Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES.get(elementTypeMirror.toString());
+                if (fieldType == null) {
+                    return Constants.RealmFieldType.NOTYPE;
+                }
+                return fieldType;
+            }
         }
         return Constants.RealmFieldType.NOTYPE;
     }
