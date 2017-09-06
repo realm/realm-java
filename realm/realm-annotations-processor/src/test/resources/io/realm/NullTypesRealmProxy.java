@@ -57,9 +57,29 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         long fieldDateNotNullIndex;
         long fieldDateNullIndex;
         long fieldObjectNullIndex;
+        long fieldStringListNotNullIndex;
+        long fieldStringListNullIndex;
+        long fieldBinaryListNotNullIndex;
+        long fieldBinaryListNullIndex;
+        long fieldBooleanListNotNullIndex;
+        long fieldBooleanListNullIndex;
+        long fieldLongListNotNullIndex;
+        long fieldLongListNullIndex;
+        long fieldIntegerListNotNullIndex;
+        long fieldIntegerListNullIndex;
+        long fieldShortListNotNullIndex;
+        long fieldShortListNullIndex;
+        long fieldByteListNotNullIndex;
+        long fieldByteListNullIndex;
+        long fieldDoubleListNotNullIndex;
+        long fieldDoubleListNullIndex;
+        long fieldFloatListNotNullIndex;
+        long fieldFloatListNullIndex;
+        long fieldDateListNotNullIndex;
+        long fieldDateListNullIndex;
 
         NullTypesColumnInfo(OsSchemaInfo schemaInfo) {
-            super(21);
+            super(41);
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("NullTypes");
             this.fieldStringNotNullIndex = addColumnDetails("fieldStringNotNull", objectSchemaInfo);
             this.fieldStringNullIndex = addColumnDetails("fieldStringNull", objectSchemaInfo);
@@ -82,6 +102,26 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             this.fieldDateNotNullIndex = addColumnDetails("fieldDateNotNull", objectSchemaInfo);
             this.fieldDateNullIndex = addColumnDetails("fieldDateNull", objectSchemaInfo);
             this.fieldObjectNullIndex = addColumnDetails("fieldObjectNull", objectSchemaInfo);
+            this.fieldStringListNotNullIndex = addColumnDetails("fieldStringListNotNull", objectSchemaInfo);
+            this.fieldStringListNullIndex = addColumnDetails("fieldStringListNull", objectSchemaInfo);
+            this.fieldBinaryListNotNullIndex = addColumnDetails("fieldBinaryListNotNull", objectSchemaInfo);
+            this.fieldBinaryListNullIndex = addColumnDetails("fieldBinaryListNull", objectSchemaInfo);
+            this.fieldBooleanListNotNullIndex = addColumnDetails("fieldBooleanListNotNull", objectSchemaInfo);
+            this.fieldBooleanListNullIndex = addColumnDetails("fieldBooleanListNull", objectSchemaInfo);
+            this.fieldLongListNotNullIndex = addColumnDetails("fieldLongListNotNull", objectSchemaInfo);
+            this.fieldLongListNullIndex = addColumnDetails("fieldLongListNull", objectSchemaInfo);
+            this.fieldIntegerListNotNullIndex = addColumnDetails("fieldIntegerListNotNull", objectSchemaInfo);
+            this.fieldIntegerListNullIndex = addColumnDetails("fieldIntegerListNull", objectSchemaInfo);
+            this.fieldShortListNotNullIndex = addColumnDetails("fieldShortListNotNull", objectSchemaInfo);
+            this.fieldShortListNullIndex = addColumnDetails("fieldShortListNull", objectSchemaInfo);
+            this.fieldByteListNotNullIndex = addColumnDetails("fieldByteListNotNull", objectSchemaInfo);
+            this.fieldByteListNullIndex = addColumnDetails("fieldByteListNull", objectSchemaInfo);
+            this.fieldDoubleListNotNullIndex = addColumnDetails("fieldDoubleListNotNull", objectSchemaInfo);
+            this.fieldDoubleListNullIndex = addColumnDetails("fieldDoubleListNull", objectSchemaInfo);
+            this.fieldFloatListNotNullIndex = addColumnDetails("fieldFloatListNotNull", objectSchemaInfo);
+            this.fieldFloatListNullIndex = addColumnDetails("fieldFloatListNull", objectSchemaInfo);
+            this.fieldDateListNotNullIndex = addColumnDetails("fieldDateListNotNull", objectSchemaInfo);
+            this.fieldDateListNullIndex = addColumnDetails("fieldDateListNull", objectSchemaInfo);
         }
 
         NullTypesColumnInfo(ColumnInfo src, boolean mutable) {
@@ -119,6 +159,26 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             dst.fieldDateNotNullIndex = src.fieldDateNotNullIndex;
             dst.fieldDateNullIndex = src.fieldDateNullIndex;
             dst.fieldObjectNullIndex = src.fieldObjectNullIndex;
+            dst.fieldStringListNotNullIndex = src.fieldStringListNotNullIndex;
+            dst.fieldStringListNullIndex = src.fieldStringListNullIndex;
+            dst.fieldBinaryListNotNullIndex = src.fieldBinaryListNotNullIndex;
+            dst.fieldBinaryListNullIndex = src.fieldBinaryListNullIndex;
+            dst.fieldBooleanListNotNullIndex = src.fieldBooleanListNotNullIndex;
+            dst.fieldBooleanListNullIndex = src.fieldBooleanListNullIndex;
+            dst.fieldLongListNotNullIndex = src.fieldLongListNotNullIndex;
+            dst.fieldLongListNullIndex = src.fieldLongListNullIndex;
+            dst.fieldIntegerListNotNullIndex = src.fieldIntegerListNotNullIndex;
+            dst.fieldIntegerListNullIndex = src.fieldIntegerListNullIndex;
+            dst.fieldShortListNotNullIndex = src.fieldShortListNotNullIndex;
+            dst.fieldShortListNullIndex = src.fieldShortListNullIndex;
+            dst.fieldByteListNotNullIndex = src.fieldByteListNotNullIndex;
+            dst.fieldByteListNullIndex = src.fieldByteListNullIndex;
+            dst.fieldDoubleListNotNullIndex = src.fieldDoubleListNotNullIndex;
+            dst.fieldDoubleListNullIndex = src.fieldDoubleListNullIndex;
+            dst.fieldFloatListNotNullIndex = src.fieldFloatListNotNullIndex;
+            dst.fieldFloatListNullIndex = src.fieldFloatListNullIndex;
+            dst.fieldDateListNotNullIndex = src.fieldDateListNotNullIndex;
+            dst.fieldDateListNullIndex = src.fieldDateListNullIndex;
         }
     }
 
@@ -147,11 +207,51 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         fieldNames.add("fieldDateNotNull");
         fieldNames.add("fieldDateNull");
         fieldNames.add("fieldObjectNull");
+        fieldNames.add("fieldStringListNotNull");
+        fieldNames.add("fieldStringListNull");
+        fieldNames.add("fieldBinaryListNotNull");
+        fieldNames.add("fieldBinaryListNull");
+        fieldNames.add("fieldBooleanListNotNull");
+        fieldNames.add("fieldBooleanListNull");
+        fieldNames.add("fieldLongListNotNull");
+        fieldNames.add("fieldLongListNull");
+        fieldNames.add("fieldIntegerListNotNull");
+        fieldNames.add("fieldIntegerListNull");
+        fieldNames.add("fieldShortListNotNull");
+        fieldNames.add("fieldShortListNull");
+        fieldNames.add("fieldByteListNotNull");
+        fieldNames.add("fieldByteListNull");
+        fieldNames.add("fieldDoubleListNotNull");
+        fieldNames.add("fieldDoubleListNull");
+        fieldNames.add("fieldFloatListNotNull");
+        fieldNames.add("fieldFloatListNull");
+        fieldNames.add("fieldDateListNotNull");
+        fieldNames.add("fieldDateListNull");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
     private NullTypesColumnInfo columnInfo;
     private ProxyState<some.test.NullTypes> proxyState;
+    private RealmList<String> fieldStringListNotNullRealmList;
+    private RealmList<String> fieldStringListNullRealmList;
+    private RealmList<byte[]> fieldBinaryListNotNullRealmList;
+    private RealmList<byte[]> fieldBinaryListNullRealmList;
+    private RealmList<Boolean> fieldBooleanListNotNullRealmList;
+    private RealmList<Boolean> fieldBooleanListNullRealmList;
+    private RealmList<Long> fieldLongListNotNullRealmList;
+    private RealmList<Long> fieldLongListNullRealmList;
+    private RealmList<Integer> fieldIntegerListNotNullRealmList;
+    private RealmList<Integer> fieldIntegerListNullRealmList;
+    private RealmList<Short> fieldShortListNotNullRealmList;
+    private RealmList<Short> fieldShortListNullRealmList;
+    private RealmList<Byte> fieldByteListNotNullRealmList;
+    private RealmList<Byte> fieldByteListNullRealmList;
+    private RealmList<Double> fieldDoubleListNotNullRealmList;
+    private RealmList<Double> fieldDoubleListNullRealmList;
+    private RealmList<Float> fieldFloatListNotNullRealmList;
+    private RealmList<Float> fieldFloatListNullRealmList;
+    private RealmList<Date> fieldDateListNotNullRealmList;
+    private RealmList<Date> fieldDateListNullRealmList;
 
     NullTypesRealmProxy() {
         proxyState.setConstructionFinished();
@@ -823,7 +923,787 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
             throw new IllegalArgumentException("'value' belongs to a different Realm.");
         }
-        proxyState.getRow$realm().setLink(columnInfo.fieldObjectNullIndex, ((RealmObjectProxy)value).realmGet$proxyState().getRow$realm().getIndex());
+        proxyState.getRow$realm().setLink(columnInfo.fieldObjectNullIndex, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getIndex());
+    }
+
+    @Override
+    public RealmList<String> realmGet$fieldStringListNotNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldStringListNotNullRealmList != null) {
+            return fieldStringListNotNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldStringListNotNullIndex);
+            fieldStringListNotNullRealmList = new RealmList<java.lang.String>(java.lang.String.class, osList, proxyState.getRealm$realm());
+            return fieldStringListNotNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldStringListNotNull(RealmList<String> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldStringListNotNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldStringListNotNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.String item : value) {
+            if (item == null) {
+                throw new IllegalArgumentException("Storing 'null' into fieldStringListNotNull' is not allowed by schema.");
+            } else {
+                osList.addString(item);
+            }
+        }
+    }
+
+    @Override
+    public RealmList<String> realmGet$fieldStringListNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldStringListNullRealmList != null) {
+            return fieldStringListNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldStringListNullIndex);
+            fieldStringListNullRealmList = new RealmList<java.lang.String>(java.lang.String.class, osList, proxyState.getRealm$realm());
+            return fieldStringListNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldStringListNull(RealmList<String> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldStringListNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldStringListNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.String item : value) {
+            if (item == null) {
+                osList.addNull();
+            } else {
+                osList.addString(item);
+            }
+        }
+    }
+
+    @Override
+    public RealmList<byte[]> realmGet$fieldBinaryListNotNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldBinaryListNotNullRealmList != null) {
+            return fieldBinaryListNotNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldBinaryListNotNullIndex);
+            fieldBinaryListNotNullRealmList = new RealmList<byte[]>(byte[].class, osList, proxyState.getRealm$realm());
+            return fieldBinaryListNotNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldBinaryListNotNull(RealmList<byte[]> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldBinaryListNotNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldBinaryListNotNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (byte[] item : value) {
+            if (item == null) {
+                throw new IllegalArgumentException("Storing 'null' into fieldBinaryListNotNull' is not allowed by schema.");
+            } else {
+                osList.addBinary(item);
+            }
+        }
+    }
+
+    @Override
+    public RealmList<byte[]> realmGet$fieldBinaryListNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldBinaryListNullRealmList != null) {
+            return fieldBinaryListNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldBinaryListNullIndex);
+            fieldBinaryListNullRealmList = new RealmList<byte[]>(byte[].class, osList, proxyState.getRealm$realm());
+            return fieldBinaryListNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldBinaryListNull(RealmList<byte[]> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldBinaryListNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldBinaryListNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (byte[] item : value) {
+            if (item == null) {
+                osList.addNull();
+            } else {
+                osList.addBinary(item);
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Boolean> realmGet$fieldBooleanListNotNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldBooleanListNotNullRealmList != null) {
+            return fieldBooleanListNotNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldBooleanListNotNullIndex);
+            fieldBooleanListNotNullRealmList = new RealmList<java.lang.Boolean>(java.lang.Boolean.class, osList, proxyState.getRealm$realm());
+            return fieldBooleanListNotNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldBooleanListNotNull(RealmList<Boolean> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldBooleanListNotNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldBooleanListNotNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Boolean item : value) {
+            if (item == null) {
+                throw new IllegalArgumentException("Storing 'null' into fieldBooleanListNotNull' is not allowed by schema.");
+            } else {
+                osList.addBoolean(item);
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Boolean> realmGet$fieldBooleanListNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldBooleanListNullRealmList != null) {
+            return fieldBooleanListNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldBooleanListNullIndex);
+            fieldBooleanListNullRealmList = new RealmList<java.lang.Boolean>(java.lang.Boolean.class, osList, proxyState.getRealm$realm());
+            return fieldBooleanListNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldBooleanListNull(RealmList<Boolean> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldBooleanListNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldBooleanListNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Boolean item : value) {
+            if (item == null) {
+                osList.addNull();
+            } else {
+                osList.addBoolean(item);
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Long> realmGet$fieldLongListNotNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldLongListNotNullRealmList != null) {
+            return fieldLongListNotNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldLongListNotNullIndex);
+            fieldLongListNotNullRealmList = new RealmList<java.lang.Long>(java.lang.Long.class, osList, proxyState.getRealm$realm());
+            return fieldLongListNotNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldLongListNotNull(RealmList<Long> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldLongListNotNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldLongListNotNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Long item : value) {
+            if (item == null) {
+                throw new IllegalArgumentException("Storing 'null' into fieldLongListNotNull' is not allowed by schema.");
+            } else {
+                osList.addLong(item.longValue());
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Long> realmGet$fieldLongListNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldLongListNullRealmList != null) {
+            return fieldLongListNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldLongListNullIndex);
+            fieldLongListNullRealmList = new RealmList<java.lang.Long>(java.lang.Long.class, osList, proxyState.getRealm$realm());
+            return fieldLongListNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldLongListNull(RealmList<Long> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldLongListNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldLongListNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Long item : value) {
+            if (item == null) {
+                osList.addNull();
+            } else {
+                osList.addLong(item.longValue());
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Integer> realmGet$fieldIntegerListNotNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldIntegerListNotNullRealmList != null) {
+            return fieldIntegerListNotNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldIntegerListNotNullIndex);
+            fieldIntegerListNotNullRealmList = new RealmList<java.lang.Integer>(java.lang.Integer.class, osList, proxyState.getRealm$realm());
+            return fieldIntegerListNotNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldIntegerListNotNull(RealmList<Integer> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldIntegerListNotNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldIntegerListNotNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Integer item : value) {
+            if (item == null) {
+                throw new IllegalArgumentException("Storing 'null' into fieldIntegerListNotNull' is not allowed by schema.");
+            } else {
+                osList.addLong(item.longValue());
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Integer> realmGet$fieldIntegerListNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldIntegerListNullRealmList != null) {
+            return fieldIntegerListNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldIntegerListNullIndex);
+            fieldIntegerListNullRealmList = new RealmList<java.lang.Integer>(java.lang.Integer.class, osList, proxyState.getRealm$realm());
+            return fieldIntegerListNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldIntegerListNull(RealmList<Integer> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldIntegerListNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldIntegerListNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Integer item : value) {
+            if (item == null) {
+                osList.addNull();
+            } else {
+                osList.addLong(item.longValue());
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Short> realmGet$fieldShortListNotNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldShortListNotNullRealmList != null) {
+            return fieldShortListNotNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldShortListNotNullIndex);
+            fieldShortListNotNullRealmList = new RealmList<java.lang.Short>(java.lang.Short.class, osList, proxyState.getRealm$realm());
+            return fieldShortListNotNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldShortListNotNull(RealmList<Short> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldShortListNotNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldShortListNotNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Short item : value) {
+            if (item == null) {
+                throw new IllegalArgumentException("Storing 'null' into fieldShortListNotNull' is not allowed by schema.");
+            } else {
+                osList.addLong(item.longValue());
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Short> realmGet$fieldShortListNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldShortListNullRealmList != null) {
+            return fieldShortListNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldShortListNullIndex);
+            fieldShortListNullRealmList = new RealmList<java.lang.Short>(java.lang.Short.class, osList, proxyState.getRealm$realm());
+            return fieldShortListNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldShortListNull(RealmList<Short> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldShortListNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldShortListNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Short item : value) {
+            if (item == null) {
+                osList.addNull();
+            } else {
+                osList.addLong(item.longValue());
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Byte> realmGet$fieldByteListNotNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldByteListNotNullRealmList != null) {
+            return fieldByteListNotNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldByteListNotNullIndex);
+            fieldByteListNotNullRealmList = new RealmList<java.lang.Byte>(java.lang.Byte.class, osList, proxyState.getRealm$realm());
+            return fieldByteListNotNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldByteListNotNull(RealmList<Byte> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldByteListNotNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldByteListNotNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Byte item : value) {
+            if (item == null) {
+                throw new IllegalArgumentException("Storing 'null' into fieldByteListNotNull' is not allowed by schema.");
+            } else {
+                osList.addLong(item.longValue());
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Byte> realmGet$fieldByteListNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldByteListNullRealmList != null) {
+            return fieldByteListNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldByteListNullIndex);
+            fieldByteListNullRealmList = new RealmList<java.lang.Byte>(java.lang.Byte.class, osList, proxyState.getRealm$realm());
+            return fieldByteListNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldByteListNull(RealmList<Byte> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldByteListNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldByteListNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Byte item : value) {
+            if (item == null) {
+                osList.addNull();
+            } else {
+                osList.addLong(item.longValue());
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Double> realmGet$fieldDoubleListNotNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldDoubleListNotNullRealmList != null) {
+            return fieldDoubleListNotNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldDoubleListNotNullIndex);
+            fieldDoubleListNotNullRealmList = new RealmList<java.lang.Double>(java.lang.Double.class, osList, proxyState.getRealm$realm());
+            return fieldDoubleListNotNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldDoubleListNotNull(RealmList<Double> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldDoubleListNotNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldDoubleListNotNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Double item : value) {
+            if (item == null) {
+                throw new IllegalArgumentException("Storing 'null' into fieldDoubleListNotNull' is not allowed by schema.");
+            } else {
+                osList.addDouble(item.doubleValue());
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Double> realmGet$fieldDoubleListNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldDoubleListNullRealmList != null) {
+            return fieldDoubleListNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldDoubleListNullIndex);
+            fieldDoubleListNullRealmList = new RealmList<java.lang.Double>(java.lang.Double.class, osList, proxyState.getRealm$realm());
+            return fieldDoubleListNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldDoubleListNull(RealmList<Double> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldDoubleListNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldDoubleListNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Double item : value) {
+            if (item == null) {
+                osList.addNull();
+            } else {
+                osList.addDouble(item.doubleValue());
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Float> realmGet$fieldFloatListNotNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldFloatListNotNullRealmList != null) {
+            return fieldFloatListNotNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldFloatListNotNullIndex);
+            fieldFloatListNotNullRealmList = new RealmList<java.lang.Float>(java.lang.Float.class, osList, proxyState.getRealm$realm());
+            return fieldFloatListNotNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldFloatListNotNull(RealmList<Float> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldFloatListNotNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldFloatListNotNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Float item : value) {
+            if (item == null) {
+                throw new IllegalArgumentException("Storing 'null' into fieldFloatListNotNull' is not allowed by schema.");
+            } else {
+                osList.addFloat(item.floatValue());
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Float> realmGet$fieldFloatListNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldFloatListNullRealmList != null) {
+            return fieldFloatListNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldFloatListNullIndex);
+            fieldFloatListNullRealmList = new RealmList<java.lang.Float>(java.lang.Float.class, osList, proxyState.getRealm$realm());
+            return fieldFloatListNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldFloatListNull(RealmList<Float> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldFloatListNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldFloatListNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.lang.Float item : value) {
+            if (item == null) {
+                osList.addNull();
+            } else {
+                osList.addFloat(item.floatValue());
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Date> realmGet$fieldDateListNotNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldDateListNotNullRealmList != null) {
+            return fieldDateListNotNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldDateListNotNullIndex);
+            fieldDateListNotNullRealmList = new RealmList<java.util.Date>(java.util.Date.class, osList, proxyState.getRealm$realm());
+            return fieldDateListNotNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldDateListNotNull(RealmList<Date> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldDateListNotNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldDateListNotNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.util.Date item : value) {
+            if (item == null) {
+                throw new IllegalArgumentException("Storing 'null' into fieldDateListNotNull' is not allowed by schema.");
+            } else {
+                osList.addDate(item);
+            }
+        }
+    }
+
+    @Override
+    public RealmList<Date> realmGet$fieldDateListNull() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (fieldDateListNullRealmList != null) {
+            return fieldDateListNullRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldDateListNullIndex);
+            fieldDateListNullRealmList = new RealmList<java.util.Date>(java.util.Date.class, osList, proxyState.getRealm$realm());
+            return fieldDateListNullRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$fieldDateListNull(RealmList<Date> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldDateListNull")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getList(columnInfo.fieldDateListNullIndex);
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (java.util.Date item : value) {
+            if (item == null) {
+                osList.addNull();
+            } else {
+                osList.addDate(item);
+            }
+        }
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
@@ -849,6 +1729,26 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         builder.addPersistedProperty("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedLinkProperty("fieldObjectNull", RealmFieldType.OBJECT, "NullTypes");
+        builder.addPersistedLinkProperty("fieldStringListNotNull", RealmFieldType.LIST, "String");
+        builder.addPersistedLinkProperty("fieldStringListNull", RealmFieldType.LIST, "String");
+        builder.addPersistedLinkProperty("fieldBinaryListNotNull", RealmFieldType.LIST, "byte[]");
+        builder.addPersistedLinkProperty("fieldBinaryListNull", RealmFieldType.LIST, "byte[]");
+        builder.addPersistedLinkProperty("fieldBooleanListNotNull", RealmFieldType.LIST, "Boolean");
+        builder.addPersistedLinkProperty("fieldBooleanListNull", RealmFieldType.LIST, "Boolean");
+        builder.addPersistedLinkProperty("fieldLongListNotNull", RealmFieldType.LIST, "Long");
+        builder.addPersistedLinkProperty("fieldLongListNull", RealmFieldType.LIST, "Long");
+        builder.addPersistedLinkProperty("fieldIntegerListNotNull", RealmFieldType.LIST, "Integer");
+        builder.addPersistedLinkProperty("fieldIntegerListNull", RealmFieldType.LIST, "Integer");
+        builder.addPersistedLinkProperty("fieldShortListNotNull", RealmFieldType.LIST, "Short");
+        builder.addPersistedLinkProperty("fieldShortListNull", RealmFieldType.LIST, "Short");
+        builder.addPersistedLinkProperty("fieldByteListNotNull", RealmFieldType.LIST, "Byte");
+        builder.addPersistedLinkProperty("fieldByteListNull", RealmFieldType.LIST, "Byte");
+        builder.addPersistedLinkProperty("fieldDoubleListNotNull", RealmFieldType.LIST, "Double");
+        builder.addPersistedLinkProperty("fieldDoubleListNull", RealmFieldType.LIST, "Double");
+        builder.addPersistedLinkProperty("fieldFloatListNotNull", RealmFieldType.LIST, "Float");
+        builder.addPersistedLinkProperty("fieldFloatListNull", RealmFieldType.LIST, "Float");
+        builder.addPersistedLinkProperty("fieldDateListNotNull", RealmFieldType.LIST, "Date");
+        builder.addPersistedLinkProperty("fieldDateListNull", RealmFieldType.LIST, "Date");
         return builder.build();
     }
 
@@ -871,11 +1771,72 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     @SuppressWarnings("cast")
     public static some.test.NullTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        final List<String> excludeFields = new ArrayList<String>(1);
+        final List<String> excludeFields = new ArrayList<String>(21);
         if (json.has("fieldObjectNull")) {
             excludeFields.add("fieldObjectNull");
         }
+        if (json.has("fieldStringListNotNull")) {
+            excludeFields.add("fieldStringListNotNull");
+        }
+        if (json.has("fieldStringListNull")) {
+            excludeFields.add("fieldStringListNull");
+        }
+        if (json.has("fieldBinaryListNotNull")) {
+            excludeFields.add("fieldBinaryListNotNull");
+        }
+        if (json.has("fieldBinaryListNull")) {
+            excludeFields.add("fieldBinaryListNull");
+        }
+        if (json.has("fieldBooleanListNotNull")) {
+            excludeFields.add("fieldBooleanListNotNull");
+        }
+        if (json.has("fieldBooleanListNull")) {
+            excludeFields.add("fieldBooleanListNull");
+        }
+        if (json.has("fieldLongListNotNull")) {
+            excludeFields.add("fieldLongListNotNull");
+        }
+        if (json.has("fieldLongListNull")) {
+            excludeFields.add("fieldLongListNull");
+        }
+        if (json.has("fieldIntegerListNotNull")) {
+            excludeFields.add("fieldIntegerListNotNull");
+        }
+        if (json.has("fieldIntegerListNull")) {
+            excludeFields.add("fieldIntegerListNull");
+        }
+        if (json.has("fieldShortListNotNull")) {
+            excludeFields.add("fieldShortListNotNull");
+        }
+        if (json.has("fieldShortListNull")) {
+            excludeFields.add("fieldShortListNull");
+        }
+        if (json.has("fieldByteListNotNull")) {
+            excludeFields.add("fieldByteListNotNull");
+        }
+        if (json.has("fieldByteListNull")) {
+            excludeFields.add("fieldByteListNull");
+        }
+        if (json.has("fieldDoubleListNotNull")) {
+            excludeFields.add("fieldDoubleListNotNull");
+        }
+        if (json.has("fieldDoubleListNull")) {
+            excludeFields.add("fieldDoubleListNull");
+        }
+        if (json.has("fieldFloatListNotNull")) {
+            excludeFields.add("fieldFloatListNotNull");
+        }
+        if (json.has("fieldFloatListNull")) {
+            excludeFields.add("fieldFloatListNull");
+        }
+        if (json.has("fieldDateListNotNull")) {
+            excludeFields.add("fieldDateListNotNull");
+        }
+        if (json.has("fieldDateListNull")) {
+            excludeFields.add("fieldDateListNull");
+        }
         some.test.NullTypes obj = realm.createObjectInternal(some.test.NullTypes.class, true, excludeFields);
+
         final NullTypesRealmProxyInterface objProxy = (NullTypesRealmProxyInterface) obj;
         if (json.has("fieldStringNotNull")) {
             if (json.isNull("fieldStringNotNull")) {
@@ -1206,6 +2167,26 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                     some.test.NullTypes fieldObjectNullObj = NullTypesRealmProxy.createUsingJsonStream(realm, reader);
                     objProxy.realmSet$fieldObjectNull(fieldObjectNullObj);
                 }
+            } else if (name.equals("fieldStringListNotNull")) {
+            } else if (name.equals("fieldStringListNull")) {
+            } else if (name.equals("fieldBinaryListNotNull")) {
+            } else if (name.equals("fieldBinaryListNull")) {
+            } else if (name.equals("fieldBooleanListNotNull")) {
+            } else if (name.equals("fieldBooleanListNull")) {
+            } else if (name.equals("fieldLongListNotNull")) {
+            } else if (name.equals("fieldLongListNull")) {
+            } else if (name.equals("fieldIntegerListNotNull")) {
+            } else if (name.equals("fieldIntegerListNull")) {
+            } else if (name.equals("fieldShortListNotNull")) {
+            } else if (name.equals("fieldShortListNull")) {
+            } else if (name.equals("fieldByteListNotNull")) {
+            } else if (name.equals("fieldByteListNull")) {
+            } else if (name.equals("fieldDoubleListNotNull")) {
+            } else if (name.equals("fieldDoubleListNull")) {
+            } else if (name.equals("fieldFloatListNotNull")) {
+            } else if (name.equals("fieldFloatListNull")) {
+            } else if (name.equals("fieldDateListNotNull")) {
+            } else if (name.equals("fieldDateListNull")) {
             } else {
                 reader.skipValue();
             }
@@ -1278,6 +2259,26 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                 realmObjectCopy.realmSet$fieldObjectNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, update, cache));
             }
         }
+        realmObjectCopy.realmSet$fieldStringListNotNull(realmObjectSource.realmGet$fieldStringListNotNull());
+        realmObjectCopy.realmSet$fieldStringListNull(realmObjectSource.realmGet$fieldStringListNull());
+        realmObjectCopy.realmSet$fieldBinaryListNotNull(realmObjectSource.realmGet$fieldBinaryListNotNull());
+        realmObjectCopy.realmSet$fieldBinaryListNull(realmObjectSource.realmGet$fieldBinaryListNull());
+        realmObjectCopy.realmSet$fieldBooleanListNotNull(realmObjectSource.realmGet$fieldBooleanListNotNull());
+        realmObjectCopy.realmSet$fieldBooleanListNull(realmObjectSource.realmGet$fieldBooleanListNull());
+        realmObjectCopy.realmSet$fieldLongListNotNull(realmObjectSource.realmGet$fieldLongListNotNull());
+        realmObjectCopy.realmSet$fieldLongListNull(realmObjectSource.realmGet$fieldLongListNull());
+        realmObjectCopy.realmSet$fieldIntegerListNotNull(realmObjectSource.realmGet$fieldIntegerListNotNull());
+        realmObjectCopy.realmSet$fieldIntegerListNull(realmObjectSource.realmGet$fieldIntegerListNull());
+        realmObjectCopy.realmSet$fieldShortListNotNull(realmObjectSource.realmGet$fieldShortListNotNull());
+        realmObjectCopy.realmSet$fieldShortListNull(realmObjectSource.realmGet$fieldShortListNull());
+        realmObjectCopy.realmSet$fieldByteListNotNull(realmObjectSource.realmGet$fieldByteListNotNull());
+        realmObjectCopy.realmSet$fieldByteListNull(realmObjectSource.realmGet$fieldByteListNull());
+        realmObjectCopy.realmSet$fieldDoubleListNotNull(realmObjectSource.realmGet$fieldDoubleListNotNull());
+        realmObjectCopy.realmSet$fieldDoubleListNull(realmObjectSource.realmGet$fieldDoubleListNull());
+        realmObjectCopy.realmSet$fieldFloatListNotNull(realmObjectSource.realmGet$fieldFloatListNotNull());
+        realmObjectCopy.realmSet$fieldFloatListNull(realmObjectSource.realmGet$fieldFloatListNull());
+        realmObjectCopy.realmSet$fieldDateListNotNull(realmObjectSource.realmGet$fieldDateListNotNull());
+        realmObjectCopy.realmSet$fieldDateListNull(realmObjectSource.realmGet$fieldDateListNull());
         return realmObject;
     }
 
@@ -1918,6 +2919,86 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         stringBuilder.append("{fieldObjectNull:");
         stringBuilder.append(realmGet$fieldObjectNull() != null ? "NullTypes" : "null");
         stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldStringListNotNull:");
+        stringBuilder.append("RealmList<String>[").append(realmGet$fieldStringListNotNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldStringListNull:");
+        stringBuilder.append("RealmList<String>[").append(realmGet$fieldStringListNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldBinaryListNotNull:");
+        stringBuilder.append("RealmList<byte[]>[").append(realmGet$fieldBinaryListNotNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldBinaryListNull:");
+        stringBuilder.append("RealmList<byte[]>[").append(realmGet$fieldBinaryListNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldBooleanListNotNull:");
+        stringBuilder.append("RealmList<Boolean>[").append(realmGet$fieldBooleanListNotNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldBooleanListNull:");
+        stringBuilder.append("RealmList<Boolean>[").append(realmGet$fieldBooleanListNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldLongListNotNull:");
+        stringBuilder.append("RealmList<Long>[").append(realmGet$fieldLongListNotNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldLongListNull:");
+        stringBuilder.append("RealmList<Long>[").append(realmGet$fieldLongListNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldIntegerListNotNull:");
+        stringBuilder.append("RealmList<Integer>[").append(realmGet$fieldIntegerListNotNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldIntegerListNull:");
+        stringBuilder.append("RealmList<Integer>[").append(realmGet$fieldIntegerListNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldShortListNotNull:");
+        stringBuilder.append("RealmList<Short>[").append(realmGet$fieldShortListNotNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldShortListNull:");
+        stringBuilder.append("RealmList<Short>[").append(realmGet$fieldShortListNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldByteListNotNull:");
+        stringBuilder.append("RealmList<Byte>[").append(realmGet$fieldByteListNotNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldByteListNull:");
+        stringBuilder.append("RealmList<Byte>[").append(realmGet$fieldByteListNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldDoubleListNotNull:");
+        stringBuilder.append("RealmList<Double>[").append(realmGet$fieldDoubleListNotNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldDoubleListNull:");
+        stringBuilder.append("RealmList<Double>[").append(realmGet$fieldDoubleListNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldFloatListNotNull:");
+        stringBuilder.append("RealmList<Float>[").append(realmGet$fieldFloatListNotNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldFloatListNull:");
+        stringBuilder.append("RealmList<Float>[").append(realmGet$fieldFloatListNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldDateListNotNull:");
+        stringBuilder.append("RealmList<Date>[").append(realmGet$fieldDateListNotNull().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldDateListNull:");
+        stringBuilder.append("RealmList<Date>[").append(realmGet$fieldDateListNull().size()).append("]");
+        stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();
     }
@@ -1958,5 +3039,4 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
         return true;
     }
-
 }
