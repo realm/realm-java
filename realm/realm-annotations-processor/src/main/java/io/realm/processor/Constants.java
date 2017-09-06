@@ -142,7 +142,7 @@ public class Constants {
         m.put("java.lang.Long", RealmFieldType.INTEGER_LIST);
         m.put("java.lang.Float", RealmFieldType.FLOAT_LIST);
         m.put("java.lang.Double", RealmFieldType.DOUBLE_LIST);
-        m.put("java.lang.Boolean", RealmFieldType.BOOLEAN);
+        m.put("java.lang.Boolean", RealmFieldType.BOOLEAN_LIST);
         m.put("java.lang.String", RealmFieldType.STRING_LIST);
         m.put("java.util.Date", RealmFieldType.DATE_LIST);
         m.put("byte[]", RealmFieldType.BINARY_LIST);
