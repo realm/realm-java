@@ -688,7 +688,7 @@ public class RealmProxyClassGenerator {
 
                 default:
                     if (fieldType.isList()) {
-                        writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.%s, \"%s\")",
+                        writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", %s, \"%s\")",
                                 fieldName, fieldType.getRealmType(), "");
 
                     } else {
