@@ -17,6 +17,7 @@
 
 * Fixed potential memory leaks of `LinkView` when calling bulk insertions APIs.
 * Fixed possible assertion when using `PermissionManager` at the beginning (#5195).
+* Crash caused by JNI couldn't find `SharedRealm`'s inner classes when ProGuard is enabled (#5211).
 
 ### Internal
 

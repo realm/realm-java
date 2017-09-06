@@ -134,6 +134,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     /**
      * The migration callback which will be called when manual migration is needed.
      */
+    @Keep
     public interface MigrationCallback {
 
         /**
@@ -150,6 +151,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     /**
      * Callback function to be executed when the schema is created.
      */
+    @Keep
     public interface InitializationCallback {
         /**
          * @param sharedRealm a {@link SharedRealm} instance which is in transaction state.
@@ -161,6 +163,7 @@ public final class SharedRealm implements Closeable, NativeObject {
      * Callback function to be called from JNI by Object Store when the schema is changed.
      */
     @SuppressWarnings("unused")
+    @Keep
     public interface SchemaChangedCallback {
         void onSchemaChanged();
     }
