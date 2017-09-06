@@ -716,7 +716,7 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public Observable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
+            public <E> Observable<RealmResults<E>> from(DynamicRealm realm, RealmResults<E> results) {
                 return null;
             }
 
@@ -726,7 +726,7 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public Observable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
+            public <E> Observable<RealmList<E>> from(DynamicRealm realm, RealmList<E> list) {
                 return null;
             }
 

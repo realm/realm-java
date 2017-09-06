@@ -1119,7 +1119,7 @@ public class RealmListTests extends CollectionTests {
         realm.commitTransaction();
         assertEquals(sizeBefore - 1, collection.size());
 
-        assertNotNull(collection.osList);
-        assertEquals(collection.osList.getTargetTable().getName(), snapshot.getTable().getName());
+        assertNotNull(collection.getOsList());
+        assertEquals(collection.getOsList().getTargetTable().getName(), snapshot.getTable().getName());
     }
 }
