@@ -43,29 +43,41 @@ public class Constants {
      * Realm types and their corresponding Java types
      */
     public enum RealmFieldType {
-        NOTYPE(null, "Void"),
-        INTEGER("INTEGER", "Long"),
-        FLOAT("FLOAT", "Float"),
-        DOUBLE("DOUBLE", "Double"),
-        BOOLEAN("BOOLEAN", "Boolean"),
-        STRING("STRING", "String"),
-        DATE("DATE", "Date"),
-        BINARY("BINARY", "BinaryByteArray"),
-        REALM_INTEGER("INTEGER", "Long"),
-        OBJECT("OBJECT", "Object"),
-        LIST("LIST", "List"),
-        BACKLINK("BACKLINK", null);
+        NOTYPE(null, "Void", false),
+        INTEGER("INTEGER", "Long", false),
+        FLOAT("FLOAT", "Float", false),
+        DOUBLE("DOUBLE", "Double", false),
+        BOOLEAN("BOOLEAN", "Boolean", false),
+        STRING("STRING", "String", false),
+        DATE("DATE", "Date", false),
+        BINARY("BINARY", "BinaryByteArray", false),
+        REALM_INTEGER("INTEGER", "Long", false),
+        OBJECT("OBJECT", "Object", false),
+        LIST("LIST", "List", true),
+
+        BACKLINK("LINKING_OBJECTS", null, true),
+
+        INTEGER_LIST("INTEGER_LIST", "List", true),
+        BOOLEAN_LIST("BOOLEAN_LIST", "List", true),
+        STRING_LIST("STRING_LIST", "List", true),
+        BINARY_LIST("BINARY_LIST", "List", true),
+        DATE_LIST("DATE_LIST", "List", true),
+        FLOAT_LIST("FLOAT_LIST", "List", true),
+        DOUBLE_LIST("DOUBLE_LIST", "List", true);
 
         private final String realmType;
         private final String javaType;
+        private final boolean isList;
 
         /**
          * @param realmType The simple name of the Enum type used in the Java bindings, to represent this type.
          * @param javaType The simple name of the Java type needed to store this Realm Type
+         * @param isList {@code true} is the type represents list (that can contain multiple values).
          */
-        RealmFieldType(String realmType, String javaType) {
+        RealmFieldType(String realmType, String javaType, boolean isList) {
             this.realmType = "RealmFieldType." + realmType;
             this.javaType = javaType;
+            this.isList = isList;
         }
 
         /**
@@ -82,6 +94,14 @@ public class Constants {
          */
         public String getJavaType() {
             return javaType;
+        }
+
+        /**
+         * The type is List or not.
+         * @return {@code true} is the type represents list (that can contain multiple values).
+         */
+        public boolean isList() {
+            return isList;
         }
     }
 
@@ -109,5 +129,23 @@ public class Constants {
         m.put("byte[]", RealmFieldType.BINARY);
         // TODO: add support for char and Char
         JAVA_TO_REALM_TYPES = Collections.unmodifiableMap(m);
+    }
+
+
+    static final Map<String, RealmFieldType> LIST_ELEMENT_TYPE_TO_REALM_TYPES;
+
+    static {
+        Map<String, RealmFieldType> m = new HashMap<String, RealmFieldType>();
+        m.put("java.lang.Byte", RealmFieldType.INTEGER_LIST);
+        m.put("java.lang.Short", RealmFieldType.INTEGER_LIST);
+        m.put("java.lang.Integer", RealmFieldType.INTEGER_LIST);
+        m.put("java.lang.Long", RealmFieldType.INTEGER_LIST);
+        m.put("java.lang.Float", RealmFieldType.FLOAT_LIST);
+        m.put("java.lang.Double", RealmFieldType.DOUBLE_LIST);
+        m.put("java.lang.Boolean", RealmFieldType.BOOLEAN);
+        m.put("java.lang.String", RealmFieldType.STRING_LIST);
+        m.put("java.util.Date", RealmFieldType.DATE_LIST);
+        m.put("byte[]", RealmFieldType.BINARY_LIST);
+        LIST_ELEMENT_TYPE_TO_REALM_TYPES = Collections.unmodifiableMap(m);
     }
 }
