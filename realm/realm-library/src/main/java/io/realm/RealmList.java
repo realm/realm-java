@@ -59,6 +59,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
+    private static final String ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE = "This feature is available only when the element type is implementing RealmModel";
     private static final String INVALID_OBJECT_TYPE_MESSAGE = "Unacceptable value type. Acceptable: %1$s, actual: %2$s";
     public static final String REMOVE_OUTSIDE_TRANSACTION_ERROR = "Objects can only be removed from inside a write transaction";
 
@@ -578,6 +579,9 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     public RealmQuery<E> where() {
         if (isManaged()) {
             checkValidRealm();
+            if (!osListOperator.forRealmModel()) {
+                throw new IllegalStateException(ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE);
+            }
             return RealmQuery.createQueryFromList(this);
         } else {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
@@ -590,11 +594,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     @Override
     @Nullable
     public Number min(String fieldName) {
-        if (isManaged()) {
-            return this.where().min(fieldName);
-        } else {
-            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
-        }
+        // where() throws if not managed
+        return where().min(fieldName);
     }
 
     /**
@@ -603,11 +604,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     @Override
     @Nullable
     public Number max(String fieldName) {
-        if (isManaged()) {
-            return this.where().max(fieldName);
-        } else {
-            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
-        }
+        // where() throws if not managed
+        return this.where().max(fieldName);
     }
 
     /**
@@ -615,11 +613,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public Number sum(String fieldName) {
-        if (isManaged()) {
-            return this.where().sum(fieldName);
-        } else {
-            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
-        }
+        // where() throws if not managed
+        return this.where().sum(fieldName);
     }
 
     /**
@@ -627,11 +622,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public double average(String fieldName) {
-        if (isManaged()) {
-            return this.where().average(fieldName);
-        } else {
-            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
-        }
+        // where() throws if not managed
+        return this.where().average(fieldName);
     }
 
     /**
@@ -640,11 +632,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     @Override
     @Nullable
     public Date maxDate(String fieldName) {
-        if (isManaged()) {
-            return this.where().maximumDate(fieldName);
-        } else {
-            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
-        }
+        // where() throws if not managed
+        return this.where().maximumDate(fieldName);
     }
 
     /**
@@ -653,11 +642,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     @Override
     @Nullable
     public Date minDate(String fieldName) {
-        if (isManaged()) {
-            return this.where().minimumDate(fieldName);
-        } else {
-            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
-        }
+        // where() throws if not managed
+        return this.where().minimumDate(fieldName);
     }
 
     /**
@@ -1369,6 +1355,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             this.osList = osList;
         }
 
+        abstract boolean forRealmModel();
+
         OsList getOsList() {
             return osList;
         }
@@ -1432,6 +1420,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         RealmModelListOperator(BaseRealm realm, OsList osList, @Nullable Class<T> clazz, @Nullable String className) {
             super(realm, osList, clazz);
             this.className = className;
+        }
+
+        @Override
+        boolean forRealmModel() {
+            return true;
         }
 
         @Override
@@ -1535,6 +1528,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             super(realm, osList, clazz);
         }
 
+        @Override
+        boolean forRealmModel() {
+            return false;
+        }
+
         @Nullable
         @Override
         String get(int index) {
@@ -1596,6 +1594,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
         LongListOperator(BaseRealm realm, OsList osList, Class<T> clazz) {
             super(realm, osList, clazz);
+        }
+
+        @Override
+        boolean forRealmModel() {
+            return false;
         }
 
         @Nullable
@@ -1682,6 +1685,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             super(realm, osList, clazz);
         }
 
+        @Override
+        boolean forRealmModel() {
+            return false;
+        }
+
         @Nullable
         @Override
         Boolean get(int index) {
@@ -1743,6 +1751,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
         BinaryListOperator(BaseRealm realm, OsList osList, Class<byte[]> clazz) {
             super(realm, osList, clazz);
+        }
+
+        @Override
+        boolean forRealmModel() {
+            return false;
         }
 
         @Nullable
@@ -1808,6 +1821,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             super(realm, osList, clazz);
         }
 
+        @Override
+        boolean forRealmModel() {
+            return false;
+        }
+
         @Nullable
         @Override
         Double get(int index) {
@@ -1871,6 +1889,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             super(realm, osList, clazz);
         }
 
+        @Override
+        boolean forRealmModel() {
+            return false;
+        }
+
         @Nullable
         @Override
         Float get(int index) {
@@ -1932,6 +1955,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
         DateListOperator(BaseRealm realm, OsList osList, Class<Date> clazz) {
             super(realm, osList, clazz);
+        }
+
+        @Override
+        boolean forRealmModel() {
+            return false;
         }
 
         @Nullable
