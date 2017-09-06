@@ -871,16 +871,16 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         builder.addPersistedProperty("columnMutableRealmInteger", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedLinkProperty("columnObject", RealmFieldType.OBJECT, "AllTypes");
         builder.addPersistedLinkProperty("columnRealmList", RealmFieldType.LIST, "AllTypes");
-        builder.addPersistedLinkProperty("columnStringList", RealmFieldType.LIST, "String");
-        builder.addPersistedLinkProperty("columnBinaryList", RealmFieldType.LIST, "byte[]");
-        builder.addPersistedLinkProperty("columnBooleanList", RealmFieldType.LIST, "Boolean");
-        builder.addPersistedLinkProperty("columnLongList", RealmFieldType.LIST, "Long");
-        builder.addPersistedLinkProperty("columnIntegerList", RealmFieldType.LIST, "Integer");
-        builder.addPersistedLinkProperty("columnShortList", RealmFieldType.LIST, "Short");
-        builder.addPersistedLinkProperty("columnByteList", RealmFieldType.LIST, "Byte");
-        builder.addPersistedLinkProperty("columnDoubleList", RealmFieldType.LIST, "Double");
-        builder.addPersistedLinkProperty("columnFloatList", RealmFieldType.LIST, "Float");
-        builder.addPersistedLinkProperty("columnDateList", RealmFieldType.LIST, "Date");
+        builder.addPersistedLinkProperty("columnStringList", RealmFieldType.STRING_LIST, "");
+        builder.addPersistedLinkProperty("columnBinaryList", RealmFieldType.BINARY_LIST, "");
+        builder.addPersistedLinkProperty("columnBooleanList", RealmFieldType.BOOLEAN_LIST, "");
+        builder.addPersistedLinkProperty("columnLongList", RealmFieldType.INTEGER_LIST, "");
+        builder.addPersistedLinkProperty("columnIntegerList", RealmFieldType.INTEGER_LIST, "");
+        builder.addPersistedLinkProperty("columnShortList", RealmFieldType.INTEGER_LIST, "");
+        builder.addPersistedLinkProperty("columnByteList", RealmFieldType.INTEGER_LIST, "");
+        builder.addPersistedLinkProperty("columnDoubleList", RealmFieldType.DOUBLE_LIST, "");
+        builder.addPersistedLinkProperty("columnFloatList", RealmFieldType.FLOAT_LIST, "");
+        builder.addPersistedLinkProperty("columnDateList", RealmFieldType.DATE_LIST, "");
         builder.addComputedLinkProperty("parentObjects", "AllTypes", "columnObject");
         return builder.build();
     }
