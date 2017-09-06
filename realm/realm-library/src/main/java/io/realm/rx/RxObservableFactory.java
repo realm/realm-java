@@ -77,7 +77,7 @@ public interface RxObservableFactory {
      * @param realm {@link DynamicRealm} instance results are coming from.
      * @return Rx observable that emit all updates to the RealmResults.
      */
-    Observable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results);
+    <E> Observable<RealmResults<E>> from(DynamicRealm realm, RealmResults<E> results);
 
     /**
      * Creates an Observable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
@@ -104,7 +104,7 @@ public interface RxObservableFactory {
      * @param list RealmList to listen to changes for.
      * @param realm {@link DynamicRealm} instance list is coming from.
      */
-    Observable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list);
+    <E> Observable<RealmList<E>> from(DynamicRealm realm, RealmList<E> list);
 
     /**
      * Creates an Observable for a {@link RealmObject}. It should emit the initial object when subscribed to and on each

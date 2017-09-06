@@ -76,7 +76,7 @@ public class RealmQuery<E> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
-    public static <E extends RealmModel> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
+    static <E extends RealmModel> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
         return new RealmQuery<>(realm, clazz);
     }
 
@@ -88,7 +88,7 @@ public class RealmQuery<E> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
-    public static <E extends RealmModel> RealmQuery<E> createDynamicQuery(DynamicRealm realm, String className) {
+    static <E extends RealmModel> RealmQuery<E> createDynamicQuery(DynamicRealm realm, String className) {
         return new RealmQuery<>(realm, className);
     }
 
@@ -100,7 +100,7 @@ public class RealmQuery<E> {
      * to run it.
      */
     @SuppressWarnings("unchecked")
-    public static <E> RealmQuery<E> createQueryFromResult(RealmResults<E> queryResults) {
+    static <E> RealmQuery<E> createQueryFromResult(RealmResults<E> queryResults) {
         //noinspection ConstantConditions
         return (queryResults.classSpec == null)
                 ? new RealmQuery(queryResults, queryResults.className)
@@ -115,11 +115,11 @@ public class RealmQuery<E> {
      * to run it.
      */
     @SuppressWarnings("unchecked")
-    public static <E> RealmQuery<E> createQueryFromList(RealmList<E> list) {
+    static <E> RealmQuery<E> createQueryFromList(RealmList<E> list) {
         //noinspection ConstantConditions
         return (list.clazz == null)
-                ? new RealmQuery(list.realm, list.osList, list.className)
-                : new RealmQuery(list.realm, list.osList, list.clazz);
+                ? new RealmQuery(list.realm, list.getOsList(), list.className)
+                : new RealmQuery(list.realm, list.getOsList(), list.clazz);
     }
 
     private static boolean isClassForRealmModel(Class<?> clazz) {
