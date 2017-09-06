@@ -106,9 +106,6 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
 void ThrowException(JNIEnv* env, ExceptionKind exception, const char* classStr);
 void ThrowNullValueException(JNIEnv* env, realm::Table* table, size_t col_ndx);
 
-jclass GetClass(JNIEnv* env, const char* classStr);
-
-
 // Check parameters
 
 #define TABLE_VALID(env, ptr) TableIsValid(env, ptr)
@@ -691,35 +688,6 @@ private:
     jint m_releaseMode;
 };
 
-extern jclass java_lang_long;
-extern jmethodID java_lang_long_init;
-extern jclass java_lang_float;
-extern jmethodID java_lang_float_init;
-extern jclass java_lang_double;
-extern jclass java_lang_string;
-extern jmethodID java_lang_double_init;
-extern jclass java_util_date;
-extern jmethodID java_util_date_init;
-#if REALM_ENABLE_SYNC
-extern jclass java_syncmanager_class;
-extern jmethodID java_notify_progress_listener;
-#endif
-
-inline jobject NewLong(JNIEnv* env, int64_t value)
-{
-    return env->NewObject(java_lang_long, java_lang_long_init, value);
-}
-
-inline jobject NewDouble(JNIEnv* env, double value)
-{
-    return env->NewObject(java_lang_double, java_lang_double_init, value);
-}
-
-inline jobject NewFloat(JNIEnv* env, float value)
-{
-    return env->NewObject(java_lang_float, java_lang_float_init, value);
-}
-
 inline jlong to_milliseconds(const realm::Timestamp& ts)
 {
     // From core's reference implementation aka unit test
@@ -736,11 +704,6 @@ inline realm::Timestamp from_milliseconds(jlong milliseconds)
     int64_t seconds = milliseconds / 1000;
     int32_t nanoseconds = (milliseconds % 1000) * 1000000;
     return realm::Timestamp(seconds, nanoseconds);
-}
-
-inline jobject NewDate(JNIEnv* env, const realm::Timestamp& ts)
-{
-    return env->NewObject(java_util_date, java_util_date_init, to_milliseconds(ts));
 }
 
 extern const std::string TABLE_PREFIX;

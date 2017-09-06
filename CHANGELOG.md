@@ -3,11 +3,13 @@
 ### Bug Fixes
 
 * Fixed potential memory leaks of `LinkView` when calling bulk insertions APIs.
+* Fixed possible assertion when using `PermissionManager` at the beginning (#5195).
 * Crash caused by JNI couldn't find `SharedRealm`'s inner classes when ProGuard is enabled (#5211).
 
 ### Internal
 
 * Replaced LinkView with Object Store's List.
+* Renaming `io.realm.internal.CollectionChangeSet` to `io.realm.internal.OsCollectionChangeSet`.
 
 ## 3.7.0 (2017-09-01)
 
