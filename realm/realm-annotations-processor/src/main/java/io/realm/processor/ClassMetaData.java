@@ -463,8 +463,8 @@ public class ClassMetaData {
         if (Utils.isRealmList(field)) {
             // We only check @Required annotation. @org.jetbrains.annotations.NotNull annotation should not affect nullability of the list values.
             if (!hasRequiredAnnotation(field)) {
-                final TypeMirror elementTypeMirror = ((DeclaredType) field.asType()).getTypeArguments().get(0);
-                if (!Utils.isRealmModel(elementTypeMirror)) {
+                final List<? extends TypeMirror> fieldTypeArguments = ((DeclaredType) field.asType()).getTypeArguments();
+                if (fieldTypeArguments.isEmpty() || !Utils.isRealmModel(fieldTypeArguments.get(0))) {
                     nullableValueListFields.add(field);
                 }
             }
