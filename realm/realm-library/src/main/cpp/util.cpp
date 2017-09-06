@@ -38,17 +38,6 @@ using namespace realm::util;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
-// Caching classes and constructors for boxed types.
-jclass java_lang_long;
-jmethodID java_lang_long_init;
-jclass java_lang_float;
-jmethodID java_lang_float_init;
-jclass java_lang_double;
-jclass java_lang_string;
-jmethodID java_lang_double_init;
-jclass java_util_date;
-jmethodID java_util_date_init;
-
 void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind);
 
 void ConvertException(JNIEnv* env, const char* file, int line)
@@ -241,19 +230,6 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
     env->Throw(reinterpret_cast<jthrowable>(exception));
     env->DeleteLocalRef(cls);
     env->DeleteLocalRef(exception);
-}
-
-jclass GetClass(JNIEnv* env, const char* classStr)
-{
-    jclass localRefClass = env->FindClass(classStr);
-    if (localRefClass == NULL) {
-        ThrowException(env, ClassNotFound, classStr);
-        return NULL;
-    }
-
-    jclass myClass = reinterpret_cast<jclass>(env->NewGlobalRef(localRefClass));
-    env->DeleteLocalRef(localRefClass);
-    return myClass;
 }
 
 void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx)

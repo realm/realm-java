@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_internal_CollectionChangeSet.h"
+#include "io_realm_internal_OsCollectionChangeSet.h"
 
 #include <collection_notifications.hpp>
 
@@ -44,11 +44,11 @@ static jintArray index_set_to_jint_array(JNIEnv* env, const IndexSet& index_set)
         ranges_vector.push_back(changes.second - changes.first);
     }
 
-    if (ranges_vector.size() > io_realm_internal_CollectionChangeSet_MAX_ARRAY_LENGTH) {
+    if (ranges_vector.size() > io_realm_internal_OsCollectionChangeSet_MAX_ARRAY_LENGTH) {
         std::ostringstream error_msg;
         error_msg << "There are too many ranges changed in this change set. They cannot fit into an array."
                   << " ranges_vector's size: " << ranges_vector.size()
-                  << " Java array's max size: " << io_realm_internal_CollectionChangeSet_MAX_ARRAY_LENGTH << ".";
+                  << " Java array's max size: " << io_realm_internal_OsCollectionChangeSet_MAX_ARRAY_LENGTH << ".";
         ThrowException(env, IllegalState, error_msg.str());
         return nullptr;
     }
@@ -67,11 +67,11 @@ static jintArray index_set_to_indices_array(JNIEnv* env, const IndexSet& index_s
     for (auto index : index_set.as_indexes()) {
         indices_vector.push_back(index);
     }
-    if (indices_vector.size() > io_realm_internal_CollectionChangeSet_MAX_ARRAY_LENGTH) {
+    if (indices_vector.size() > io_realm_internal_OsCollectionChangeSet_MAX_ARRAY_LENGTH) {
         std::ostringstream error_msg;
         error_msg << "There are too many indices in this change set. They cannot fit into an array."
                   << " indices_vector's size: " << indices_vector.size()
-                  << " Java array's max size: " << io_realm_internal_CollectionChangeSet_MAX_ARRAY_LENGTH << ".";
+                  << " Java array's max size: " << io_realm_internal_OsCollectionChangeSet_MAX_ARRAY_LENGTH << ".";
         ThrowException(env, IllegalState, error_msg.str());
         return nullptr;
     }
@@ -80,42 +80,42 @@ static jintArray index_set_to_indices_array(JNIEnv* env, const IndexSet& index_s
     return jint_array;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_CollectionChangeSet_nativeGetFinalizerPtr(JNIEnv*, jclass)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
     TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_changeset);
 }
 
-JNIEXPORT jintArray JNICALL Java_io_realm_internal_CollectionChangeSet_nativeGetRanges(JNIEnv* env, jclass,
+JNIEXPORT jintArray JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetRanges(JNIEnv* env, jclass,
                                                                                        jlong native_ptr, jint type)
 {
     TR_ENTER_PTR(native_ptr)
     // no throws
     auto& change_set = *reinterpret_cast<CollectionChangeSet*>(native_ptr);
     switch (type) {
-        case io_realm_internal_CollectionChangeSet_TYPE_DELETION:
+        case io_realm_internal_OsCollectionChangeSet_TYPE_DELETION:
             return index_set_to_jint_array(env, change_set.deletions);
-        case io_realm_internal_CollectionChangeSet_TYPE_INSERTION:
+        case io_realm_internal_OsCollectionChangeSet_TYPE_INSERTION:
             return index_set_to_jint_array(env, change_set.insertions);
-        case io_realm_internal_CollectionChangeSet_TYPE_MODIFICATION:
+        case io_realm_internal_OsCollectionChangeSet_TYPE_MODIFICATION:
             return index_set_to_jint_array(env, change_set.modifications_new);
         default:
             REALM_UNREACHABLE();
     }
 }
 
-JNIEXPORT jintArray JNICALL Java_io_realm_internal_CollectionChangeSet_nativeGetIndices(JNIEnv* env, jclass,
+JNIEXPORT jintArray JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetIndices(JNIEnv* env, jclass,
                                                                                         jlong native_ptr, jint type)
 {
     TR_ENTER_PTR(native_ptr)
     // no throws
     auto& change_set = *reinterpret_cast<CollectionChangeSet*>(native_ptr);
     switch (type) {
-        case io_realm_internal_CollectionChangeSet_TYPE_DELETION:
+        case io_realm_internal_OsCollectionChangeSet_TYPE_DELETION:
             return index_set_to_indices_array(env, change_set.deletions);
-        case io_realm_internal_CollectionChangeSet_TYPE_INSERTION:
+        case io_realm_internal_OsCollectionChangeSet_TYPE_INSERTION:
             return index_set_to_indices_array(env, change_set.insertions);
-        case io_realm_internal_CollectionChangeSet_TYPE_MODIFICATION:
+        case io_realm_internal_OsCollectionChangeSet_TYPE_MODIFICATION:
             return index_set_to_indices_array(env, change_set.modifications_new);
         default:
             REALM_UNREACHABLE();
