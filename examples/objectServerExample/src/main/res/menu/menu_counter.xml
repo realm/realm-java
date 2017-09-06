@@ -5,7 +5,7 @@
     <item
         android:id="@+id/action_logout"
         android:orderInCategory="100"
-        android:title="Logout"
+        android:title="@string/logout"
         android:icon="@drawable/ic_exit_to_app_white_24dp"
         app:showAsAction="always"/>
 </menu>
