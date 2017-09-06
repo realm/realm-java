@@ -1433,7 +1433,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             return (T) realm.get((Class<? extends RealmModel>) clazz, className, osList.getUncheckedRow(index));
         }
 
-        private void checkValidValue(@Nullable Object value) {
+        @Nonnull
+        private RealmModel castToNonNullModel(@Nullable Object value) {
             if (value == null) {
                 throw new IllegalArgumentException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
             }
@@ -1443,30 +1444,31 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                                 "java.lang.String",
                                 value.getClass().getName()));
             }
+            return (RealmModel) value;
         }
 
         @Override
-        public void add(@SuppressWarnings("NullableProblems") Object value) {
-            checkValidValue(value);
-            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
+        public void add(@Nullable Object value) {
+            final RealmModel model = castToNonNullModel(value);
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(model);
             osList.addRow(proxy.realmGet$proxyState().getRow$realm().getIndex());
         }
 
         @Override
-        public void insert(int index, @SuppressWarnings("NullableProblems") Object value) {
-            checkValidValue(value);
+        public void insert(int index, @Nullable Object value) {
+            final RealmModel model = castToNonNullModel(value);
             checkInsertIndex(index);
 
-            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(model);
             osList.insertRow(index, proxy.realmGet$proxyState().getRow$realm().getIndex());
         }
 
         @Override
         protected T set(int index, @Nullable Object value) {
-            checkValidValue(value);
+            final RealmModel model = castToNonNullModel(value);
             checkElementExists(index);
 
-            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(model);
             //noinspection unchecked
             final T oldObject = get(index);
             osList.setRow(index, proxy.realmGet$proxyState().getRow$realm().getIndex());
