@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import java.lang.reflect.Array;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1178,8 +1179,205 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         }
     }
 
+    @Override
+    public <T> T[] toArray(T[] a) {
+        if (!isManaged()) {
+            return super.toArray(a);
+        }
+
+        final Class<?> componentType = a.getClass().getComponentType();
+        final OsList osList = osListOperator.getOsList();
+        final int size = size();
+        if (componentType == String.class) {
+            if (a.length < size) {
+                //noinspection unchecked
+                a = (T[]) Array.newInstance(componentType, size);
+            }
+            for (int i = 0; i < size; i++) {
+                //noinspection unchecked
+                a[i] = (T) osListOperator.get(i);
+            }
+            return a;
+        }
+
+        if (componentType == Long.class) {
+            if (a.length < size) {
+                //noinspection unchecked
+                a = (T[]) Array.newInstance(componentType, size);
+            }
+
+            for (int i = 0; i < size; i++) {
+                final E e = osListOperator.get(i);
+                if (e == null || e instanceof Long) {
+                    //noinspection unchecked
+                    a[i] = (T) e;
+                } else {
+                    //noinspection unchecked
+                    a[i] = (T) Long.valueOf(((Number) e).longValue());
+                }
+            }
+            return a;
+        }
+
+        if (componentType == Integer.class) {
+            if (a.length < size) {
+                //noinspection unchecked
+                a = (T[]) Array.newInstance(componentType, size);
+            }
+
+            for (int i = 0; i < size; i++) {
+                final E e = osListOperator.get(i);
+
+                if (e == null || e instanceof Integer) {
+                    //noinspection unchecked
+                    a[i] = null;
+                } else {
+                    //noinspection unchecked
+                    a[i] = (T) Integer.valueOf(((Number) e).intValue());
+                }
+            }
+            return a;
+        }
+
+        if (componentType == Short.class) {
+            if (a.length < size) {
+                //noinspection unchecked
+                a = (T[]) Array.newInstance(componentType, size);
+            }
+
+            for (int i = 0; i < size; i++) {
+                final E e = osListOperator.get(i);
+                if (e == null || e instanceof Short) {
+                    //noinspection unchecked
+                    a[i] = null;
+                } else {
+                    //noinspection unchecked
+                    a[i] = (T) Short.valueOf(((Number) e).shortValue());
+                }
+            }
+            return a;
+        }
+
+        if (componentType == Byte.class) {
+            if (a.length < size) {
+                //noinspection unchecked
+                a = (T[]) Array.newInstance(componentType, size);
+            }
+
+            for (int i = 0; i < size; i++) {
+                final E e = osListOperator.get(i);
+                if (e == null || e instanceof Byte) {
+                    //noinspection unchecked
+                    a[i] = null;
+                } else {
+                    //noinspection unchecked
+                    a[i] = (T) Byte.valueOf(((Number) e).byteValue());
+                }
+            }
+            return a;
+        }
+
+        if (componentType == Double.class) {
+            if (a.length < size) {
+                //noinspection unchecked
+                a = (T[]) Array.newInstance(componentType, size);
+            }
+
+            for (int i = 0; i < size; i++) {
+                final E e = osListOperator.get(i);
+                if (e == null || e instanceof Double) {
+                    //noinspection unchecked
+                    a[i] = null;
+                } else {
+                    //noinspection unchecked
+                    a[i] = (T) Double.valueOf(((Number) e).doubleValue());
+                }
+            }
+            return a;
+        }
+
+        if (componentType == Float.class) {
+            if (a.length < size) {
+                //noinspection unchecked
+                a = (T[]) Array.newInstance(componentType, size);
+            }
+
+            for (int i = 0; i < size; i++) {
+                final E e = osListOperator.get(i);
+                if (e == null || e instanceof Float) {
+                    //noinspection unchecked
+                    a[i] = null;
+                } else {
+                    //noinspection unchecked
+                    a[i] = (T) Float.valueOf(((Number) e).floatValue());
+                }
+            }
+            return a;
+        }
+
+        if (componentType == Boolean.class) {
+            if (a.length < size) {
+                //noinspection unchecked
+                a = (T[]) Array.newInstance(componentType, size);
+            }
+
+            for (int i = 0; i < size; i++) {
+                final E e = osListOperator.get(i);
+                //noinspection unchecked
+                a[i] = (T) e;
+            }
+            return a;
+        }
+
+        if (componentType == Date.class) {
+            if (a.length < size) {
+                //noinspection unchecked
+                a = (T[]) Array.newInstance(componentType, size);
+            }
+
+            for (int i = 0; i < size; i++) {
+                final E e = osListOperator.get(i);
+                //noinspection unchecked
+                a[i] = (T) e;
+            }
+            return a;
+        }
+
+        if (componentType == byte[].class) {
+            if (a.length < size) {
+                //noinspection unchecked
+                a = (T[]) Array.newInstance(componentType, size);
+            }
+
+            for (int i = 0; i < size; i++) {
+                final E e = osListOperator.get(i);
+                //noinspection unchecked
+                a[i] = (T) e;
+            }
+            return a;
+        }
+
+        return super.toArray(a);
+    }
+
+    /**
+     * Returns newly allocated {@code long} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code valueForNull} is used instead.
+     *
+     * @return newly allocated {@code long} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toLongArray()
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     @SuppressWarnings("WeakerAccess")
     public long[] toLongArray(@SuppressWarnings("SameParameterValue") long valueForNull) {
+        if (!isManaged()) {
+            throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
         if (clazz == null || Number.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("toLongArray() is only supported when the element type is implementing 'java.lang.Number' interface.");
         }
@@ -1192,12 +1390,41 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         return result;
     }
 
+    /**
+     * Returns newly allocated {@code long} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code 0L} is used instead.
+     *
+     * @return newly allocated {@code long} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toLongArray(long)
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     public long[] toLongArray() {
         return toLongArray(0L);
     }
 
+    /**
+     * Returns newly allocated {@code int} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code valueForNull} is used instead.
+     *
+     * @return newly allocated {@code int} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toIntArray()
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     @SuppressWarnings("WeakerAccess")
     public int[] toIntArray(@SuppressWarnings("SameParameterValue") int valueForNull) {
+        if (!isManaged()) {
+            throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
         if (clazz == null || Number.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("toIntArray() is only supported when the element type is implementing 'java.lang.Number' interface.");
         }
@@ -1210,12 +1437,41 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         return result;
     }
 
+    /**
+     * Returns newly allocated {@code int} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code 0} is used instead.
+     *
+     * @return newly allocated {@code int} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toIntArray(int)
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     public int[] toIntArray() {
         return toIntArray(0);
     }
 
+    /**
+     * Returns newly allocated {@code short} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code valueForNull} is used instead.
+     *
+     * @return newly allocated {@code short} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toShortArray()
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     @SuppressWarnings("WeakerAccess")
     public short[] toShortArray(@SuppressWarnings("SameParameterValue") short valueForNull) {
+        if (!isManaged()) {
+            throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
         if (clazz == null || Number.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("toShortArray() is only supported when the element type is implementing 'java.lang.Number' interface.");
         }
@@ -1228,12 +1484,41 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         return result;
     }
 
+    /**
+     * Returns newly allocated {@code short} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code (short) 0} is used instead.
+     *
+     * @return newly allocated {@code short} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toShortArray(short)
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     public short[] toShortArray() {
         return toShortArray((short) 0);
     }
 
+    /**
+     * Returns newly allocated {@code byte} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code valueForNull} is used instead.
+     *
+     * @return newly allocated {@code byte} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toByteArray()
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     @SuppressWarnings("WeakerAccess")
     public byte[] toByteArray(@SuppressWarnings("SameParameterValue") byte valueForNull) {
+        if (!isManaged()) {
+            throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
         if (clazz == null || Number.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("toByteArray() is only supported when the element type is implementing 'java.lang.Number' interface.");
         }
@@ -1245,12 +1530,42 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         }
         return result;
     }
+
+    /**
+     * Returns newly allocated {@code byte} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code (byte) 0} is used instead.
+     *
+     * @return newly allocated {@code byte} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toByteArray(byte)
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     public byte[] toByteArray() {
         return toByteArray((byte) 0);
     }
 
+    /**
+     * Returns newly allocated {@code boolean} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code valueForNull} is used instead.
+     *
+     * @return newly allocated {@code boolean} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toBooleanArray()
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean[] toBooleanArray(@SuppressWarnings("SameParameterValue") boolean valueForNull) {
+        if (!isManaged()) {
+            throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
         if (clazz != Boolean.class) {
             throw new IllegalStateException("toBooleanArray() is only supported when the element type is 'java.lang.Boolean'.");
         }
@@ -1263,12 +1578,41 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         return result;
     }
 
+    /**
+     * Returns newly allocated {@code boolean} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code false} is used instead.
+     *
+     * @return newly allocated {@code boolean} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toBooleanArray(boolean)
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     public boolean[] toBooleanArray() {
         return toBooleanArray(false);
     }
 
+    /**
+     * Returns newly allocated {@code double} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code valueForNull} is used instead.
+     *
+     * @return newly allocated {@code double} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toDoubleArray()
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     @SuppressWarnings("WeakerAccess")
     public double[] toDoubleArray(@SuppressWarnings("SameParameterValue") double valueForNull) {
+        if (!isManaged()) {
+            throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
         if (clazz == null || Number.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("toDoubleArray() is only supported when the element type is implementing 'java.lang.Number' interface.");
         }
@@ -1282,12 +1626,41 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         return result;
     }
 
+    /**
+     * Returns newly allocated {@code double} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code 0D} is used instead.
+     *
+     * @return newly allocated {@code double} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toDoubleArray(double)
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     public double[] toDoubleArray() {
         return toDoubleArray(0D);
     }
 
+    /**
+     * Returns newly allocated {@code float} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code valueForNull} is used instead.
+     *
+     * @return newly allocated {@code float} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toFloatArray()
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     @SuppressWarnings("WeakerAccess")
     public float[] toFloatArray(@SuppressWarnings("SameParameterValue") float valueForNull) {
+        if (!isManaged()) {
+            throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
         if (clazz == null || Number.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("toFloatArray() is only supported when the element type is implementing 'java.lang.Number' interface.");
         }
@@ -1301,6 +1674,19 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         return result;
     }
 
+    /**
+     * Returns newly allocated {@code float} array that contains all values in this {@link RealmList}.
+     * <p>
+     * This method is available only when the list is managed and the element type is implementing {@link Number} interface.
+     * <p>
+     * If this list contains {@code null} value, {@code 0F} is used instead.
+     *
+     * @return newly allocated {@code float} array.
+     * @throws IllegalStateException if this {@link RealmList} is not managed or element type is not implementing {@link Number}.
+     * @see #toFloatArray(float)
+     * @see #toArray()
+     * @see #toArray(Object[])
+     */
     public float[] toFloatArray() {
         return toFloatArray(0F);
     }
