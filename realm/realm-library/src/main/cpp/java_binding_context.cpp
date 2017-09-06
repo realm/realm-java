@@ -15,7 +15,7 @@
  */
 
 #include "java_binding_context.hpp"
-#include "jni_util/java_class.hpp"
+#include "java_class_global_def.hpp"
 #include "jni_util/java_method.hpp"
 
 #include "util.hpp"
@@ -32,7 +32,8 @@ void JavaBindingContext::before_notify()
     if (m_java_notifier) {
         m_java_notifier.call_with_local_ref([&](JNIEnv* env, jobject notifier_obj) {
             // Method IDs from RealmNotifier implementation. Cache them as member vars.
-            static JavaMethod notify_by_other_method(env, get_notifier_class(env), "beforeNotify", "()V");
+            static JavaMethod notify_by_other_method(env, JavaClassGlobalDef::realm_notifier(), "beforeNotify",
+                                                     "()V");
             env->CallVoidMethod(notifier_obj, notify_by_other_method);
         });
     }
@@ -48,7 +49,8 @@ void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> c
     }
     if (version_changed) {
         m_java_notifier.call_with_local_ref(env, [&](JNIEnv*, jobject notifier_obj) {
-            static JavaMethod realm_notifier_did_change_method(env, get_notifier_class(env), "didChange", "()V");
+            static JavaMethod realm_notifier_did_change_method(env, JavaClassGlobalDef::realm_notifier(), "didChange",
+                                                               "()V");
             env->CallVoidMethod(notifier_obj, realm_notifier_did_change_method);
         });
     }
@@ -60,8 +62,8 @@ void JavaBindingContext::schema_did_change(Schema const&)
         return;
     }
     auto env = JniUtils::get_env(false);
-    static JavaClass callback_class(env, "io/realm/internal/SharedRealm$SchemaChangedCallback");
-    static JavaMethod on_schema_changed_method(env, callback_class, "onSchemaChanged", "()V");
+    static JavaMethod on_schema_changed_method(env, JavaClassGlobalDef::shared_realm_schema_change_callback(),
+                                               "onSchemaChanged", "()V");
     m_schema_changed_callback.call_with_local_ref(
         env, [](JNIEnv* env, jobject callback_obj) { env->CallVoidMethod(callback_obj, on_schema_changed_method); });
 }
@@ -69,10 +71,4 @@ void JavaBindingContext::schema_did_change(Schema const&)
 void JavaBindingContext::set_schema_changed_callback(JNIEnv* env, jobject schema_changed_callback)
 {
     m_schema_changed_callback = JavaGlobalWeakRef(env, schema_changed_callback);
-}
-
-JavaClass const& JavaBindingContext::get_notifier_class(JNIEnv* env)
-{
-    static JavaClass notifier_class(env, "io/realm/internal/RealmNotifier");
-    return notifier_class;
 }
