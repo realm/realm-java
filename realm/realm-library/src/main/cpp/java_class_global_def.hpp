@@ -46,6 +46,7 @@ private:
         , m_java_lang_double(env, "java/lang/Double", false)
         , m_java_util_date(env, "java/util/Date", false)
         , m_java_lang_string(env, "java/lang/String", false)
+        , m_java_lang_boolean(env, "java/lang/Boolean", false)
         , m_shared_realm_schema_change_callback(env, "io/realm/internal/SharedRealm$SchemaChangedCallback", false)
         , m_realm_notifier(env, "io/realm/internal/RealmNotifier", false)
     {
@@ -56,6 +57,7 @@ private:
     jni_util::JavaClass m_java_lang_double;
     jni_util::JavaClass m_java_util_date;
     jni_util::JavaClass m_java_lang_string;
+    jni_util::JavaClass m_java_lang_boolean;
 
     jni_util::JavaClass m_shared_realm_schema_change_callback;
     jni_util::JavaClass m_realm_notifier;
@@ -111,6 +113,17 @@ public:
     inline static const jni_util::JavaClass& java_lang_double()
     {
         return instance()->m_java_lang_double;
+    }
+
+    // java.lang.Boolean
+    inline static jobject new_boolean(JNIEnv* env, bool value)
+    {
+        static jni_util::JavaMethod init(env, instance()->m_java_lang_boolean, "<init>", "(Z)V");
+        return env->NewObject(instance()->m_java_lang_boolean, init, value ? JNI_TRUE : JNI_FALSE);
+    }
+    inline static const jni_util::JavaClass& java_lang_boolean()
+    {
+        return instance()->m_java_lang_boolean;
     }
 
     // java.util.Date

@@ -23,7 +23,11 @@ public class OsList implements NativeObject {
         this.context = sharedRealm.context;
         context.addReference(this);
 
-        targetTable = new Table(sharedRealm, ptrs[1]);
+        if (ptrs[1] != 0) {
+            targetTable = new Table(sharedRealm, ptrs[1]);
+        } else {
+            targetTable = null;
+        }
     }
 
     @Override
@@ -53,105 +57,140 @@ public class OsList implements NativeObject {
     }
 
     public void addNull() {
-        // FIXME zaki50 implement this
+        nativeAddNull(nativePtr);
     }
 
     public void insertNull(long pos) {
-        // FIXME zaki50 implement this
+        nativeInsertNull(nativePtr, pos);
     }
 
     public void setNull(long pos) {
-        // FIXME zaki50 implement this
+        nativeSetNull(nativePtr, pos);
     }
 
     public void addLong(long value) {
-        // FIXME zaki50 implement this
+        nativeAddLong(nativePtr, value);
     }
 
     public void insertLong(long pos, long value) {
-        // FIXME zaki50 implement this
+        nativeInsertLong(nativePtr, pos, value);
     }
 
     public void setLong(long pos, long value) {
-        // FIXME zaki50 implement this
+        nativeSetLong(nativePtr, pos, value);
     }
 
     public void addDouble(double value) {
-        // FIXME zaki50 implement this
+        nativeAddDouble(nativePtr, value);
     }
 
     public void insertDouble(long pos, double value) {
-        // FIXME zaki50 implement this
+        nativeInsertDouble(nativePtr, pos, value);
     }
 
     public void setDouble(long pos, double value) {
-        // FIXME zaki50 implement this
+        nativeSetDouble(nativePtr, pos, value);
     }
 
     public void addFloat(float value) {
-        // FIXME zaki50 implement this
+        nativeAddFloat(nativePtr, value);
     }
 
     public void insertFloat(long pos, float value) {
-        // FIXME zaki50 implement this
+        nativeInsertFloat(nativePtr, pos, value);
     }
 
     public void setFloat(long pos, float value) {
-        // FIXME zaki50 implement this
+        nativeSetFloat(nativePtr, pos, value);
     }
 
     public void addBoolean(boolean value) {
-        // FIXME zaki50 implement this
+        nativeAddBoolean(nativePtr, value);
     }
 
     public void insertBoolean(long pos, boolean value) {
-        // FIXME zaki50 implement this
+        nativeInsertBoolean(nativePtr, pos, value);
     }
 
     public void setBoolean(long pos, boolean value) {
-        // FIXME zaki50 implement this
+        nativeSetBoolean(nativePtr, pos, value);
     }
 
-    public void addBinary(byte[] value) {
-        // FIXME zaki50 implement this
+    public void addBinary(@Nullable byte[] value) {
+        if (value == null) {
+            nativeAddNull(nativePtr);
+        } else {
+            nativeAddBinary(nativePtr, value);
+        }
     }
 
-    public void insertBinary(long pos, byte[] value) {
-        // FIXME zaki50 implement this
+    public void insertBinary(long pos, @Nullable byte[] value) {
+        if (value == null) {
+            nativeInsertNull(nativePtr, pos);
+        } else {
+            nativeInsertBinary(nativePtr, pos, value);
+        }
     }
 
-    public void setBinary(long pos, byte[] value) {
-        // FIXME zaki50 implement this
+    public void setBinary(long pos, @Nullable byte[] value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, pos);
+        } else {
+            nativeSetBinary(nativePtr, pos, value);
+        }
     }
 
-    public void addString(String value) {
-        // FIXME zaki50 implement this
+    public void addString(@Nullable String value) {
+        if (value == null) {
+            nativeAddNull(nativePtr);
+        } else {
+            nativeAddString(nativePtr, value);
+        }
     }
 
-    public void insertString(long pos, String value) {
-        // FIXME zaki50 implement this
+    public void insertString(long pos, @Nullable String value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, pos);
+        } else {
+            nativeInsertString(nativePtr, pos, value);
+        }
     }
 
-    public void setString(long pos, String value) {
-        // FIXME zaki50 implement this
+    public void setString(long pos, @Nullable String value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, pos);
+        } else {
+            nativeSetString(nativePtr, pos, value);
+        }
     }
 
-    public void addDate(Date value) {
-        // FIXME zaki50 implement this
+    public void addDate(@Nullable Date value) {
+        if (value == null) {
+            nativeAddNull(nativePtr);
+        } else {
+            nativeAddDate(nativePtr, value.getTime());
+        }
     }
 
-    public void insertDate(long pos, Date value) {
-        // FIXME zaki50 implement this
+    public void insertDate(long pos, @Nullable  Date value) {
+        if (value == null) {
+            nativeInsertNull(nativePtr, pos);
+        } else {
+            nativeInsertDate(nativePtr, pos, value.getTime());
+        }
     }
 
-    public void setDate(long pos, Date value) {
-        // FIXME zaki50 implement this
+    public void setDate(long pos, @Nullable  Date value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, pos);
+        } else {
+            nativeSetDate(nativePtr, pos, value.getTime());
+        }
     }
 
     @Nullable
     public Object getValue(long pos) {
-        // FIXME zaki50 implement this
-        return null;
+        return nativeGetValue(nativePtr, pos);
     }
 
     public void move(long sourceIndex, long targetIndex) {
@@ -221,4 +260,55 @@ public class OsList implements NativeObject {
     private static native boolean nativeIsValid(long nativePtr);
 
     private static native void nativeDeleteAll(long nativePtr);
+
+    private static native void nativeAddNull(long nativePtr);
+
+    private static native void nativeInsertNull(long nativePtr, long pos);
+
+    private static native void nativeSetNull(long nativePtr, long pos);
+
+    private static native void nativeAddLong(long nativePtr, long value);
+
+    private static native void nativeInsertLong(long nativePtr, long pos, long value);
+
+    private static native void nativeSetLong(long nativePtr, long pos, long value);
+
+    private static native void nativeAddDouble(long nativePtr, double value);
+
+    private static native void nativeInsertDouble(long nativePtr, long pos, double value);
+
+    private static native void nativeSetDouble(long nativePtr, long pos, double value);
+
+    private static native void nativeAddFloat(long nativePtr, float value);
+
+    private static native void nativeInsertFloat(long nativePtr, long pos, float value);
+
+    private static native void nativeSetFloat(long nativePtr, long pos, float value);
+
+    private static native void nativeAddBoolean(long nativePtr, boolean value);
+
+    private static native void nativeInsertBoolean(long nativePtr, long pos, boolean value);
+
+    private static native void nativeSetBoolean(long nativePtr, long pos, boolean value);
+
+    private static native void nativeAddBinary(long nativePtr, byte[] value);
+
+    private static native void nativeInsertBinary(long nativePtr, long pos, byte[] value);
+
+    private static native void nativeSetBinary(long nativePtr, long pos, byte[] value);
+
+    private static native void nativeAddDate(long nativePtr, long value);
+
+    private static native void nativeInsertDate(long nativePtr, long pos, long value);
+
+    private static native void nativeSetDate(long nativePtr, long pos, long value);
+
+    private static native void nativeAddString(long nativePtr, String value);
+
+    private static native void nativeInsertString(long nativePtr, long pos, String value);
+
+    private static native void nativeSetString(long nativePtr, long pos, String value);
+
+
+    private static native Object nativeGetValue(long nativePtr, long pos);
 }
