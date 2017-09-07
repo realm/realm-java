@@ -1486,7 +1486,7 @@ public class RealmProxyClassGenerator {
                         .endControlFlow()
                         .emitEmptyLine();
 
-            } else if (Utils.isRealmModelList(field)) {
+            } else if (Utils.isRealmValueList(field)) {
                 // FIXME need to implement logic for value list fields.
 
             } else if (Utils.isMutableRealmInteger(field)) {
