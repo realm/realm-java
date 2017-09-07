@@ -19,6 +19,8 @@ package io.realm.internal;
 
 import java.util.Locale;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmFieldType;
 
 import static io.realm.RealmFieldType.BINARY_LIST;
@@ -71,7 +73,7 @@ public class Property implements NativeObject {
         this(nativeCreatePersistedProperty(name, convertFromRealmFieldType(type, isRequired), isPrimary, isIndexed));
     }
 
-    Property(String name, RealmFieldType type, String linkedClassName) {
+    Property(String name, RealmFieldType type, @Nullable String linkedClassName) {
         // Ignore the isRequired when creating the linking property.
         this(nativeCreatePersistedLinkProperty(name, convertFromRealmFieldType(type, false), linkedClassName));
     }
@@ -221,7 +223,7 @@ public class Property implements NativeObject {
     private static native long nativeCreatePersistedProperty(
             String name, int type, boolean isPrimary, boolean isIndexed);
 
-    private static native long nativeCreatePersistedLinkProperty(String name, int type, String linkedToName);
+    private static native long nativeCreatePersistedLinkProperty(String name, int type, @Nullable String linkedToName);
 
     private static native long nativeCreateComputedLinkProperty(
             String name, String sourceClassName, String sourceFieldName);
