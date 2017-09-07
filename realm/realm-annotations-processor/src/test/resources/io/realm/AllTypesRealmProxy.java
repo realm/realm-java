@@ -2108,6 +2108,107 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 unmanagedcolumnRealmListList.add(item);
             }
         }
+
+        do {
+            RealmList<java.lang.String> managedcolumnStringListList = realmSource.realmGet$columnStringList();
+            RealmList<java.lang.String> unmanagedcolumnStringListList = new RealmList<java.lang.String>();
+            unmanagedCopy.realmSet$columnStringList(unmanagedcolumnStringListList);
+            int size = managedcolumnStringListList.size();
+            for (int i = 0; i < size; i++) {
+                unmanagedcolumnStringListList.add(managedcolumnStringListList.get(i));
+            }
+        } while (false);
+
+        do {
+            RealmList<byte[]> managedcolumnBinaryListList = realmSource.realmGet$columnBinaryList();
+            RealmList<byte[]> unmanagedcolumnBinaryListList = new RealmList<byte[]>();
+            unmanagedCopy.realmSet$columnBinaryList(unmanagedcolumnBinaryListList);
+            int size = managedcolumnBinaryListList.size();
+            for (int i = 0; i < size; i++) {
+                unmanagedcolumnBinaryListList.add(managedcolumnBinaryListList.get(i));
+            }
+        } while (false);
+
+        do {
+            RealmList<java.lang.Boolean> managedcolumnBooleanListList = realmSource.realmGet$columnBooleanList();
+            RealmList<java.lang.Boolean> unmanagedcolumnBooleanListList = new RealmList<java.lang.Boolean>();
+            unmanagedCopy.realmSet$columnBooleanList(unmanagedcolumnBooleanListList);
+            int size = managedcolumnBooleanListList.size();
+            for (int i = 0; i < size; i++) {
+                unmanagedcolumnBooleanListList.add(managedcolumnBooleanListList.get(i));
+            }
+        } while (false);
+
+        do {
+            RealmList<java.lang.Long> managedcolumnLongListList = realmSource.realmGet$columnLongList();
+            RealmList<java.lang.Long> unmanagedcolumnLongListList = new RealmList<java.lang.Long>();
+            unmanagedCopy.realmSet$columnLongList(unmanagedcolumnLongListList);
+            int size = managedcolumnLongListList.size();
+            for (int i = 0; i < size; i++) {
+                unmanagedcolumnLongListList.add(managedcolumnLongListList.get(i));
+            }
+        } while (false);
+
+        do {
+            RealmList<java.lang.Integer> managedcolumnIntegerListList = realmSource.realmGet$columnIntegerList();
+            RealmList<java.lang.Integer> unmanagedcolumnIntegerListList = new RealmList<java.lang.Integer>();
+            unmanagedCopy.realmSet$columnIntegerList(unmanagedcolumnIntegerListList);
+            int size = managedcolumnIntegerListList.size();
+            for (int i = 0; i < size; i++) {
+                unmanagedcolumnIntegerListList.add(managedcolumnIntegerListList.get(i));
+            }
+        } while (false);
+
+        do {
+            RealmList<java.lang.Short> managedcolumnShortListList = realmSource.realmGet$columnShortList();
+            RealmList<java.lang.Short> unmanagedcolumnShortListList = new RealmList<java.lang.Short>();
+            unmanagedCopy.realmSet$columnShortList(unmanagedcolumnShortListList);
+            int size = managedcolumnShortListList.size();
+            for (int i = 0; i < size; i++) {
+                unmanagedcolumnShortListList.add(managedcolumnShortListList.get(i));
+            }
+        } while (false);
+
+        do {
+            RealmList<java.lang.Byte> managedcolumnByteListList = realmSource.realmGet$columnByteList();
+            RealmList<java.lang.Byte> unmanagedcolumnByteListList = new RealmList<java.lang.Byte>();
+            unmanagedCopy.realmSet$columnByteList(unmanagedcolumnByteListList);
+            int size = managedcolumnByteListList.size();
+            for (int i = 0; i < size; i++) {
+                unmanagedcolumnByteListList.add(managedcolumnByteListList.get(i));
+            }
+        } while (false);
+
+        do {
+            RealmList<java.lang.Double> managedcolumnDoubleListList = realmSource.realmGet$columnDoubleList();
+            RealmList<java.lang.Double> unmanagedcolumnDoubleListList = new RealmList<java.lang.Double>();
+            unmanagedCopy.realmSet$columnDoubleList(unmanagedcolumnDoubleListList);
+            int size = managedcolumnDoubleListList.size();
+            for (int i = 0; i < size; i++) {
+                unmanagedcolumnDoubleListList.add(managedcolumnDoubleListList.get(i));
+            }
+        } while (false);
+
+        do {
+            RealmList<java.lang.Float> managedcolumnFloatListList = realmSource.realmGet$columnFloatList();
+            RealmList<java.lang.Float> unmanagedcolumnFloatListList = new RealmList<java.lang.Float>();
+            unmanagedCopy.realmSet$columnFloatList(unmanagedcolumnFloatListList);
+            int size = managedcolumnFloatListList.size();
+            for (int i = 0; i < size; i++) {
+                unmanagedcolumnFloatListList.add(managedcolumnFloatListList.get(i));
+            }
+        } while (false);
+
+        do {
+            RealmList<java.util.Date> managedcolumnDateListList = realmSource.realmGet$columnDateList();
+            RealmList<java.util.Date> unmanagedcolumnDateListList = new RealmList<java.util.Date>();
+            unmanagedCopy.realmSet$columnDateList(unmanagedcolumnDateListList);
+            int size = managedcolumnDateListList.size();
+            for (int i = 0; i < size; i++) {
+                unmanagedcolumnDateListList.add(managedcolumnDateListList.get(i));
+            }
+        } while (false);
+
         return unmanagedObject;
     }
 
