@@ -121,7 +121,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     RealmList(Class<E> clazz, OsList osList, BaseRealm realm) {
         this.collection = new io.realm.internal.Collection(realm.sharedRealm, osList, null);
         this.clazz = clazz;
-        osListOperator = getOperator(realm, osList, clazz);
+        osListOperator = getOperator(realm, osList, clazz , null);
         this.realm = realm;
     }
 
@@ -129,7 +129,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         this.collection = new io.realm.internal.Collection(realm.sharedRealm, osList, null);
         this.realm = realm;
         this.className = className;
-        osListOperator = getOperator(realm, osList, null);
+        osListOperator = getOperator(realm, osList, null, className);
     }
 
     OsList getOsList() {
@@ -1695,7 +1695,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         return RealmModel.class.isAssignableFrom(clazz);
     }
 
-    private ManagedListOperator<E> getOperator(BaseRealm realm, OsList osList, @Nullable Class<E> clazz) {
+    private ManagedListOperator<E> getOperator(BaseRealm realm, OsList osList, @Nullable Class<E> clazz, @Nullable String className) {
         if (clazz == null || isClassForRealmModel(clazz)) {
             return new RealmModelListOperator<>(realm, osList, clazz, className);
         }
