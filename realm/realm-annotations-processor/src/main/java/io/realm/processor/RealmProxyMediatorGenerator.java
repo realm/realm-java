@@ -49,7 +49,7 @@ public class RealmProxyMediatorGenerator {
         this.className = className;
 
         for (ClassMetaData metadata : classesToValidate) {
-            String simpleName = metadata.getSimpleClassName();
+            String simpleName = metadata.getSimpleJavaClassName();
             qualifiedModelClasses.add(metadata.getFullyQualifiedClassName());
             qualifiedProxyClasses.add(REALM_PACKAGE_NAME + "." + getProxyClassName(simpleName));
         }

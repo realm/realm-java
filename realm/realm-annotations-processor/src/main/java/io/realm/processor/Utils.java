@@ -278,6 +278,11 @@ public class Utils {
     }
 
     public static void error(String message, Element element) {
+        if (element instanceof RealmFieldElement) {
+            // Element is being cast to Symbol internally which breaks any implementors of the
+            // Element interface. This is a hack to work around that. Bad bad Oracle
+            element = ((RealmFieldElement) element).getFieldReference();
+        }
         messager.printMessage(Diagnostic.Kind.ERROR, message, element);
     }
 

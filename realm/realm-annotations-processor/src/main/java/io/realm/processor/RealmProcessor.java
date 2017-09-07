@@ -129,10 +129,12 @@ public class RealmProcessor extends AbstractProcessor {
 
     // Don't consume annotations. This allows 3rd party annotation processors to run.
     private static final boolean CONSUME_ANNOTATIONS = false;
+    private static final boolean ABORT = true; // Abort the annotation processor by consuming all annotations
 
+    // List of all fields maintained by Realm
+    private final ClassCollection classCollection = new ClassCollection();
+    private ModuleMetaData moduleMetaData;
 
-    // List of all fields maintained by Realm (RealmResults)
-    private final Set<ClassMetaData> classesToValidate = new HashSet<ClassMetaData>();
     // List of backlinks
     private final Set<Backlink> backlinksToValidate = new HashSet<Backlink>();
 
@@ -152,26 +154,30 @@ public class RealmProcessor extends AbstractProcessor {
             RealmVersionChecker.getInstance(processingEnv).executeRealmVersionUpdate();
         }
 
-        if (roundEnv.errorRaised()) { return true; }
+        if (roundEnv.errorRaised()) { return ABORT; }
 
         if (!hasProcessedModules) {
             Utils.initialize(processingEnv);
 
-            if (!processAnnotations(roundEnv)) { return true; }
-
+            // Build up internal metadata
+            if (!processClassAnnotations(roundEnv)) { return ABORT; }
+            if (!processModules(roundEnv)) { return ABORT; }
             hasProcessedModules = true;
-            if (!processModules(roundEnv)) { return true; }
+
+            // Create all files
+            if (!createProxyClassFiles(roundEnv)) { return ABORT; };
+            if (!createModuleFiles(roundEnv)) { return ABORT; }
         }
 
         if (roundEnv.processingOver()) {
-            if (!validateBacklinks()) { return true; }
+            if (!validateBacklinks()) { return ABORT; }
         }
 
         return CONSUME_ANNOTATIONS;
     }
 
     // Create all proxy classes
-    private boolean processAnnotations(RoundEnvironment roundEnv) {
+    private boolean processClassAnnotations(RoundEnvironment roundEnv) {
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
 
             // The class must either extend RealmObject or implement RealmModel
@@ -189,27 +195,11 @@ public class RealmProcessor extends AbstractProcessor {
             ClassMetaData metadata = new ClassMetaData(processingEnv, (TypeElement) classElement);
             if (!metadata.isModelClass()) { continue; }
 
-            Utils.note("Processing class " + metadata.getSimpleClassName());
+            Utils.note("Processing class " + metadata.getSimpleJavaClassName());
             if (!metadata.generate()) { return false; }
 
-            classesToValidate.add(metadata);
+            classCollection.addClass(metadata);
             backlinksToValidate.addAll(metadata.getBacklinkFields());
-
-            RealmProxyInterfaceGenerator interfaceGenerator = new RealmProxyInterfaceGenerator(processingEnv, metadata);
-            try {
-                interfaceGenerator.generate();
-            } catch (IOException e) {
-                Utils.error(e.getMessage(), classElement);
-            }
-
-            RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, metadata);
-            try {
-                sourceCodeGenerator.generate();
-            } catch (IOException e) {
-                Utils.error(e.getMessage(), classElement);
-            } catch (UnsupportedOperationException e) {
-                Utils.error(e.getMessage(), classElement);
-            }
         }
 
         return true;
@@ -217,11 +207,11 @@ public class RealmProcessor extends AbstractProcessor {
 
     // Returns true if modules was processed successfully, false otherwise
     private boolean processModules(RoundEnvironment roundEnv) {
-        ModuleMetaData moduleMetaData = new ModuleMetaData(classesToValidate);
-        if (!moduleMetaData.generate(roundEnv.getElementsAnnotatedWith(RealmModule.class))) {
-            return false;
-        }
+        moduleMetaData = new ModuleMetaData(classCollection);
+        return moduleMetaData.generate(roundEnv.getElementsAnnotatedWith(RealmModule.class));
+    }
 
+    private boolean createModuleFiles(RoundEnvironment roundEnv) {
         // Create default module if needed
         if (moduleMetaData.shouldCreateDefaultModule()) {
             if (!createDefaultModule()) {
@@ -237,6 +227,31 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         return true;
+    }
+
+    private boolean createProxyClassFiles(RoundEnvironment roundEnv) {
+        boolean success = true;
+        for (ClassMetaData metadata : classCollection.getClasses()) {
+            RealmProxyInterfaceGenerator interfaceGenerator = new RealmProxyInterfaceGenerator(processingEnv, metadata);
+            try {
+                interfaceGenerator.generate();
+            } catch (IOException e) {
+                Utils.error(e.getMessage(), metadata.getClassElement());
+                success = false;
+            }
+
+            RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, metadata, classCollection);
+            try {
+                sourceCodeGenerator.generate();
+            } catch (IOException e) {
+                Utils.error(e.getMessage(), metadata.getClassElement());
+                success = false;
+            } catch (UnsupportedOperationException e) {
+                Utils.error(e.getMessage(), metadata.getClassElement());
+                success = false;
+            }
+        }
+        return success;
     }
 
     private boolean createDefaultModule() {
@@ -275,8 +290,8 @@ public class RealmProcessor extends AbstractProcessor {
     private boolean validateBacklinks() {
         boolean allValid = true;
 
-        Map<String, ClassMetaData> realmClasses = new HashMap<String, ClassMetaData>(classesToValidate.size());
-        for (ClassMetaData classData : classesToValidate) {
+        Map<String, ClassMetaData> realmClasses = new HashMap<String, ClassMetaData>(classCollection.size());
+        for (ClassMetaData classData : classCollection.getClasses()) {
             realmClasses.put(classData.getFullyQualifiedClassName(), classData);
         }
 

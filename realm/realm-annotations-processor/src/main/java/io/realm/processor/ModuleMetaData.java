@@ -37,15 +37,15 @@ import io.realm.annotations.RealmModule;
  */
 public class ModuleMetaData {
 
-    private final Set<ClassMetaData> availableClasses;
+    private final ClassCollection availableClasses;
     private Map<String, Set<ClassMetaData>> modules = new HashMap<String, Set<ClassMetaData>>();
     private Map<String, Set<ClassMetaData>> libraryModules = new HashMap<String, Set<ClassMetaData>>();
     private Map<String, ClassMetaData> classMetaData = new HashMap<String, ClassMetaData>(); // <FullyQualifiedClassName, ClassMetaData>
     private boolean shouldCreateDefaultModule;
 
-    public ModuleMetaData(Set<ClassMetaData> availableClasses) {
+    public ModuleMetaData(ClassCollection availableClasses) {
         this.availableClasses = availableClasses;
-        for (ClassMetaData classMetaData : availableClasses) {
+        for (ClassMetaData classMetaData : availableClasses.getClasses()) {
             this.classMetaData.put(classMetaData.getFullyQualifiedClassName(), classMetaData);
         }
     }
@@ -79,7 +79,7 @@ public class ModuleMetaData {
             String qualifiedName = ((TypeElement) classElement).getQualifiedName().toString();
             Set<ClassMetaData> classes;
             if (module.allClasses()) {
-                classes = availableClasses;
+                classes = availableClasses.getClasses();
             } else {
                 classes = new HashSet<ClassMetaData>();
                 Set<String> classNames = getClassMetaDataFromModule(classElement);
@@ -114,7 +114,7 @@ public class ModuleMetaData {
         if (libraryModules.size() == 0 && availableClasses.size() > 0) {
             shouldCreateDefaultModule = true;
             String defaultModuleName = Constants.REALM_PACKAGE_NAME + "." + Constants.DEFAULT_MODULE_CLASS_NAME;
-            modules.put(defaultModuleName, availableClasses);
+            modules.put(defaultModuleName, availableClasses.getClasses());
         }
 
         return true;

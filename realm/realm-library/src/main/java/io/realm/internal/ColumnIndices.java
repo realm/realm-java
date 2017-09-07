@@ -88,7 +88,7 @@ public final class ColumnIndices {
     }
 
     /**
-     * Returns the {@link ColumnInfo} for the passed class name.
+     * Returns the {@link ColumnInfo} for the passed class (internal) name.
      *
      * @param simpleClassName the simple name of the class for which to get the ColumnInfo.
      * @return the corresponding {@link ColumnInfo} object.
@@ -100,7 +100,7 @@ public final class ColumnIndices {
         if (columnInfo == null) {
             Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
             for (Class<? extends RealmModel> modelClass : modelClasses) {
-                if (modelClass.getSimpleName().equals(simpleClassName)) {
+                if (mediator.getTableName(modelClass).endsWith(simpleClassName)) {
                     columnInfo = getColumnInfo(modelClass);
                     simpleClassNameToColumnInfoMap.put(simpleClassName, columnInfo);
                     break;

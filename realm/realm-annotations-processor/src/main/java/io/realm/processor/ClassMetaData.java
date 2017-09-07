@@ -44,7 +44,12 @@ import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmName;
+import io.realm.annotations.RealmNamePolicy;
 import io.realm.annotations.Required;
+import io.realm.processor.nameformatter.GuavaCaseFormatter;
+import io.realm.processor.nameformatter.IdentityFormatter;
+import io.realm.processor.nameformatter.CaseFormatter;
 
 
 /**
@@ -52,26 +57,27 @@ import io.realm.annotations.Required;
  */
 public class ClassMetaData {
     private final TypeElement classType; // Reference to model class.
-    private final String className; // Model class simple name.
-    private final List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
-    private final List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
+    private final String javaClassName; // Model class simple name as defined in Java.
+    private final List<RealmFieldElement> fields = new ArrayList<RealmFieldElement>(); // List of all fields in the class except those @Ignored.
+    private final List<RealmFieldElement> indexedFields = new ArrayList<RealmFieldElement>(); // list of all fields marked @Index.
     private final Set<Backlink> backlinks = new HashSet<Backlink>();
-    private final Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
-
+    private final Set<RealmFieldElement> nullableFields = new HashSet<RealmFieldElement>(); // Set of fields which can be nullable
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
     private boolean containsToString;
     private boolean containsEquals;
     private boolean containsHashCode;
+    private String internalClassName;
 
     private final List<TypeMirror> validPrimaryKeyTypes;
     private final Types typeUtils;
     private final Elements elements;
+    private CaseFormatter defaultNameFormatter;
 
     public ClassMetaData(ProcessingEnvironment env, TypeElement clazz) {
         this.classType = clazz;
-        this.className = clazz.getSimpleName().toString();
+        this.javaClassName = clazz.getSimpleName().toString();
         typeUtils = env.getTypeUtils();
         elements = env.getElementUtils();
         TypeMirror stringType = env.getElementUtils().getTypeElement("java.lang.String").asType();
@@ -102,8 +108,15 @@ public class ClassMetaData {
         return "class " + getFullyQualifiedClassName();
     }
 
-    public String getSimpleClassName() {
-        return className;
+    public String getSimpleJavaClassName() {
+        return javaClassName;
+    }
+
+    /**
+     * Returns the name that Realm Core uses when saving data from this Java class.
+     */
+    public String getInternalClassName() {
+        return internalClassName;
     }
 
     public String getPackageName() {
@@ -111,10 +124,10 @@ public class ClassMetaData {
     }
 
     public String getFullyQualifiedClassName() {
-        return packageName + "." + className;
+        return packageName + "." + javaClassName;
     }
 
-    public List<VariableElement> getFields() {
+    public List<RealmFieldElement> getFields() {
         return Collections.unmodifiableList(fields);
     }
 
@@ -130,7 +143,7 @@ public class ClassMetaData {
         return "realmSet$" + fieldName;
     }
 
-    public List<VariableElement> getIndexedFields() {
+    public List<RealmFieldElement> getIndexedFields() {
         return Collections.unmodifiableList(indexedFields);
     }
 
@@ -230,6 +243,7 @@ public class ClassMetaData {
             return false;
         }
 
+        // Check if the @RealmClass is considered valid with respect to the type hierarchy
         TypeElement parentElement = (TypeElement) Utils.getSuperClass(classType);
         if (!parentElement.toString().equals("java.lang.Object") && !parentElement.toString().equals("io.realm.RealmObject")) {
             Utils.error("Valid model classes must either extend RealmObject or implement RealmModel.", classType);
@@ -239,6 +253,27 @@ public class ClassMetaData {
         PackageElement packageElement = (PackageElement) enclosingElement;
         packageName = packageElement.getQualifiedName().toString();
 
+        // Determine naming rules for this class
+        // TODO: Get initial defaultNameFormatter from the module
+        defaultNameFormatter = getNameFormatter(RealmNamePolicy.NO_POLICY);
+        RealmName nameAnnotation = classType.getAnnotation(RealmName.class);
+        if (nameAnnotation != null) {
+            // Let the class policy override the module policy
+            defaultNameFormatter = getNameFormatter(nameAnnotation.policy());
+
+            // If name has been specifically set. This should take precedence over everything else.
+            // If not, apply the class policy
+            if (!nameAnnotation.name().equals("")) {
+                internalClassName = nameAnnotation.name();
+            } else {
+                internalClassName = defaultNameFormatter.format(javaClassName);
+            }
+        } else {
+            internalClassName = defaultNameFormatter.format(javaClassName); // Use inherited formatter
+        }
+
+
+        // Categorize and check the rest of the file
         if (!categorizeClassElements()) { return false; }
         if (!checkListTypes()) { return false; }
         if (!checkReferenceTypes()) { return false; }
@@ -268,7 +303,7 @@ public class ClassMetaData {
         }
 
         if (fields.size() == 0) {
-            Utils.error(String.format(Locale.US, "Class \"%s\" must contain at least 1 persistable field.", className));
+            Utils.error(String.format(Locale.US, "Class \"%s\" must contain at least 1 persistable field.", javaClassName));
         }
 
         return true;
@@ -284,8 +319,7 @@ public class ClassMetaData {
                 }
 
                 // Check that the referenced type is a concrete class and not an interface
-                TypeMirror fieldType = field.asType();
-                List<? extends TypeMirror> typeArguments = ((DeclaredType) fieldType).getTypeArguments();
+                List<? extends TypeMirror> typeArguments = ((DeclaredType) field.asType()).getTypeArguments();
                 String genericCanonicalType = typeArguments.get(0).toString();
                 TypeElement typeElement = elements.getTypeElement(genericCanonicalType);
                 if (typeElement.getSuperclass().getKind() == TypeKind.NONE) {
@@ -324,7 +358,7 @@ public class ClassMetaData {
         if (!hasDefaultConstructor) {
             Utils.error(String.format(Locale.US,
                     "Class \"%s\" must declare a public constructor with no arguments if it contains custom constructors.",
-                    className));
+                    javaClassName));
             return false;
         } else {
             return true;
@@ -340,7 +374,7 @@ public class ClassMetaData {
                 continue;
             }
 
-            Utils.error(String.format(Locale.US, "Class \"%s\" contains illegal final field \"%s\".", className,
+            Utils.error(String.format(Locale.US, "Class \"%s\" contains illegal final field \"%s\".", javaClassName,
                     field.getSimpleName().toString()));
 
             return false;
@@ -353,7 +387,7 @@ public class ClassMetaData {
             if (field.getModifiers().contains(Modifier.VOLATILE)) {
                 Utils.error(String.format(Locale.US,
                         "Class \"%s\" contains illegal volatile field \"%s\".",
-                        className,
+                        javaClassName,
                         field.getSimpleName().toString()));
                 return false;
             }
@@ -362,15 +396,19 @@ public class ClassMetaData {
     }
 
     private boolean categorizeField(Element element) {
-        VariableElement field = (VariableElement) element;
+        VariableElement fieldRef = (VariableElement) element;
 
         // completely ignore any static fields
-        if (field.getModifiers().contains(Modifier.STATIC)) { return true; }
+        if (fieldRef.getModifiers().contains(Modifier.STATIC)) { return true; }
 
         // Ignore fields marked with @Ignore or if they are transient
-        if (field.getAnnotation(Ignore.class) != null || field.getModifiers().contains(Modifier.TRANSIENT)) {
+        if (fieldRef.getAnnotation(Ignore.class) != null || fieldRef.getModifiers().contains(Modifier.TRANSIENT)) {
             return true;
         }
+
+        // Determine name for field
+        String internalFieldName = getInternalFieldName(fieldRef, defaultNameFormatter);
+        RealmFieldElement field = new RealmFieldElement(fieldRef, internalFieldName);
 
         if (field.getAnnotation(Index.class) != null) {
             if (!categorizeIndexField(element, field)) { return false; }
@@ -409,6 +447,20 @@ public class ClassMetaData {
         return true;
     }
 
+    private String getInternalFieldName(VariableElement field, CaseFormatter defaultFormatter) {
+        RealmName nameAnnotation = field.getAnnotation(RealmName.class);
+        if (nameAnnotation != null ) {
+            String declaredName = nameAnnotation.name();
+            if (!declaredName.equals("")) {
+                return declaredName;
+            } else {
+                return getNameFormatter(nameAnnotation.policy()).format(field.getSimpleName().toString());
+            }
+        } else {
+            return defaultFormatter.format(field.getSimpleName().toString());
+        }
+    }
+
     private boolean isRequiredField(VariableElement field) {
         if (field.getAnnotation(Required.class) != null) {
             return true;
@@ -428,13 +480,13 @@ public class ClassMetaData {
 
     // The field has the @Index annotation. It's only valid for column types:
     // STRING, DATE, INTEGER, BOOLEAN, and RealmMutableInteger
-    private boolean categorizeIndexField(Element element, VariableElement variableElement) {
+    private boolean categorizeIndexField(Element element, RealmFieldElement fieldElement) {
         boolean indexable = false;
 
-        if (Utils.isMutableRealmInteger(variableElement)) {
+        if (Utils.isMutableRealmInteger(fieldElement)) {
             indexable = true;
         } else {
-            Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(variableElement.asType().toString());
+            Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(fieldElement.asType().toString());
             if (realmType != null) {
                 switch (realmType) {
                     case STRING:
@@ -447,7 +499,7 @@ public class ClassMetaData {
         }
 
         if (indexable) {
-            indexedFields.add(variableElement);
+            indexedFields.add(fieldElement);
             return true;
         }
 
@@ -480,29 +532,29 @@ public class ClassMetaData {
 
     // The field has the @PrimaryKey annotation. It is only valid for
     // String, short, int, long and must only be present one time
-    private boolean categorizePrimaryKeyField(VariableElement variableElement) {
+    private boolean categorizePrimaryKeyField(RealmFieldElement fieldElement) {
         if (primaryKey != null) {
             Utils.error(String.format(Locale.US,
                     "A class cannot have more than one @PrimaryKey. Both \"%s\" and \"%s\" are annotated as @PrimaryKey.",
                     primaryKey.getSimpleName().toString(),
-                    variableElement.getSimpleName().toString()));
+                    fieldElement.getSimpleName().toString()));
             return false;
         }
 
-        TypeMirror fieldType = variableElement.asType();
+        TypeMirror fieldType = fieldElement.asType();
         if (!isValidPrimaryKeyType(fieldType)) {
             Utils.error(String.format(Locale.US,
                     "Field \"%s\" with type \"%s\" cannot be used as primary key. See @PrimaryKey for legal types.",
-                    variableElement.getSimpleName().toString(),
+                    fieldElement.getSimpleName().toString(),
                     fieldType));
             return false;
         }
 
-        primaryKey = variableElement;
+        primaryKey = fieldElement;
 
         // Also add as index. All types of primary key can be indexed.
-        if (!indexedFields.contains(variableElement)) {
-            indexedFields.add(variableElement);
+        if (!indexedFields.contains(fieldElement)) {
+            indexedFields.add(fieldElement);
         }
 
         return true;
@@ -535,6 +587,26 @@ public class ClassMetaData {
             }
         }
         return false;
+    }
+
+    public Element getClassElement() {
+        return classType;
+    }
+
+    private CaseFormatter getNameFormatter(RealmNamePolicy policy) {
+        if (policy == null) {
+            return new IdentityFormatter();
+        }
+        switch (policy) {
+            case NO_POLICY: return IdentityFormatter.INSTANCE;
+            case IDENTITY: return IdentityFormatter.INSTANCE;
+            case LOWER_CASE_WITH_UNDERSCORES: return GuavaCaseFormatter.INSTANCE_LOWER_WITH_UNDERSCORE;
+            case LOWER_CASE_WITH_DASHES: return GuavaCaseFormatter.INSTANCE_LOWER_WITH_DASHES;
+            case CAMEL_CASE: return GuavaCaseFormatter.INSTANCE_CAMEL_CASE;
+            case PASCAL_CASE: return GuavaCaseFormatter.INSTANCE_PASCAL_CASE;
+            default:
+                throw new IllegalArgumentException("Unknown policy: " + policy);
+        }
     }
 }
 
