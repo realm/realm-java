@@ -19,6 +19,8 @@ package io.realm.internal;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmFieldType;
 
 /**
@@ -69,7 +71,7 @@ public class OsObjectSchemaInfo implements NativeObject {
          * {@link RealmFieldType#LIST}.
          * @return this {@code OsObjectSchemaInfo.Builder}.
          */
-        public Builder addPersistedLinkProperty(String name, RealmFieldType type, String linkedClassName) {
+        public Builder addPersistedLinkProperty(String name, RealmFieldType type, @Nullable String linkedClassName) {
             final Property property = new Property(name, type, linkedClassName);
             persistedPropertyList.add(property);
             return this;
