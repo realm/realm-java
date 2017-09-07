@@ -24,6 +24,7 @@
 #include "java_sort_descriptor.hpp"
 #include "util.hpp"
 #include "java_class_global_def.hpp"
+#include "java_accessor_context.hpp"
 
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_global_weak_ref.hpp"
@@ -475,4 +476,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResultsFro
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jobject JNICALL Java_io_realm_internal_Collection_nativeGetValue(JNIEnv* env, jclass,
+                                                                           jlong results_wrapper_ptr, jlong pos)
+{
+    TR_ENTER_PTR(results_wrapper_ptr)
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(results_wrapper_ptr);
+        JavaAccessorContext context(env);
+        return any_cast<jobject>(wrapper->m_results.get(context, pos));
+    }
+    CATCH_STD()
+
+    return nullptr;
 }
