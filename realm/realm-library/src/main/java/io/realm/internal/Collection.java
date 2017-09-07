@@ -172,13 +172,7 @@ public class Collection implements NativeObject {
         }
 
         @Nullable
-        T get(int pos) {
-            return convertRowToObject(iteratorCollection.getUncheckedRow(pos));
-        }
-
-        // Returns the RealmModel by given row in this list. This has to be implemented in the upper layer since
-        // we don't have information about the object types in the internal package.
-        protected abstract T convertRowToObject(UncheckedRow row);
+        protected abstract T get(int pos);
     }
 
     // Custom Realm collection list iterator.
