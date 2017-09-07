@@ -410,6 +410,12 @@ public class Collection implements NativeObject {
         return nativeFinalizerPtr;
     }
 
+    @Nullable
+    public Object getValue(long index) {
+        // FIXME zaki50 implement this
+        return null;
+    }
+
     public UncheckedRow getUncheckedRow(int index) {
         return table.getUncheckedRowByPointer(nativeGetRow(nativePtr, index));
     }
