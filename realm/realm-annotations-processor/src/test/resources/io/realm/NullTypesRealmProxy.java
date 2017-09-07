@@ -2728,6 +2728,246 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                 }
                 table.setLink(columnInfo.fieldObjectNullIndex, rowIndex, cachefieldObjectNull, false);
             }
+
+            RealmList<java.lang.String> fieldStringListNotNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringListNotNull();
+            if (fieldStringListNotNullList != null) {
+                OsList fieldStringListNotNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldStringListNotNullIndex);
+                for (java.lang.String fieldStringListNotNullItem : fieldStringListNotNullList) {
+                    if (fieldStringListNotNullItem == null) {
+                        fieldStringListNotNullOsList.addNull();
+                    } else {
+                        fieldStringListNotNullOsList.addString(fieldStringListNotNullItem);
+                    }
+                }
+            }
+
+            RealmList<java.lang.String> fieldStringListNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldStringListNull();
+            if (fieldStringListNullList != null) {
+                OsList fieldStringListNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldStringListNullIndex);
+                for (java.lang.String fieldStringListNullItem : fieldStringListNullList) {
+                    if (fieldStringListNullItem == null) {
+                        fieldStringListNullOsList.addNull();
+                    } else {
+                        fieldStringListNullOsList.addString(fieldStringListNullItem);
+                    }
+                }
+            }
+
+            RealmList<byte[]> fieldBinaryListNotNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldBinaryListNotNull();
+            if (fieldBinaryListNotNullList != null) {
+                OsList fieldBinaryListNotNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldBinaryListNotNullIndex);
+                for (byte[] fieldBinaryListNotNullItem : fieldBinaryListNotNullList) {
+                    if (fieldBinaryListNotNullItem == null) {
+                        fieldBinaryListNotNullOsList.addNull();
+                    } else {
+                        fieldBinaryListNotNullOsList.addBinary(fieldBinaryListNotNullItem);
+                    }
+                }
+            }
+
+            RealmList<byte[]> fieldBinaryListNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldBinaryListNull();
+            if (fieldBinaryListNullList != null) {
+                OsList fieldBinaryListNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldBinaryListNullIndex);
+                for (byte[] fieldBinaryListNullItem : fieldBinaryListNullList) {
+                    if (fieldBinaryListNullItem == null) {
+                        fieldBinaryListNullOsList.addNull();
+                    } else {
+                        fieldBinaryListNullOsList.addBinary(fieldBinaryListNullItem);
+                    }
+                }
+            }
+
+            RealmList<java.lang.Boolean> fieldBooleanListNotNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldBooleanListNotNull();
+            if (fieldBooleanListNotNullList != null) {
+                OsList fieldBooleanListNotNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldBooleanListNotNullIndex);
+                for (java.lang.Boolean fieldBooleanListNotNullItem : fieldBooleanListNotNullList) {
+                    if (fieldBooleanListNotNullItem == null) {
+                        fieldBooleanListNotNullOsList.addNull();
+                    } else {
+                        fieldBooleanListNotNullOsList.addBoolean(fieldBooleanListNotNullItem);
+                    }
+                }
+            }
+
+            RealmList<java.lang.Boolean> fieldBooleanListNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldBooleanListNull();
+            if (fieldBooleanListNullList != null) {
+                OsList fieldBooleanListNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldBooleanListNullIndex);
+                for (java.lang.Boolean fieldBooleanListNullItem : fieldBooleanListNullList) {
+                    if (fieldBooleanListNullItem == null) {
+                        fieldBooleanListNullOsList.addNull();
+                    } else {
+                        fieldBooleanListNullOsList.addBoolean(fieldBooleanListNullItem);
+                    }
+                }
+            }
+
+            RealmList<java.lang.Long> fieldLongListNotNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldLongListNotNull();
+            if (fieldLongListNotNullList != null) {
+                OsList fieldLongListNotNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldLongListNotNullIndex);
+                for (java.lang.Long fieldLongListNotNullItem : fieldLongListNotNullList) {
+                    if (fieldLongListNotNullItem == null) {
+                        fieldLongListNotNullOsList.addNull();
+                    } else {
+                        fieldLongListNotNullOsList.addLong(fieldLongListNotNullItem.longValue());
+                    }
+                }
+            }
+
+            RealmList<java.lang.Long> fieldLongListNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldLongListNull();
+            if (fieldLongListNullList != null) {
+                OsList fieldLongListNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldLongListNullIndex);
+                for (java.lang.Long fieldLongListNullItem : fieldLongListNullList) {
+                    if (fieldLongListNullItem == null) {
+                        fieldLongListNullOsList.addNull();
+                    } else {
+                        fieldLongListNullOsList.addLong(fieldLongListNullItem.longValue());
+                    }
+                }
+            }
+
+            RealmList<java.lang.Integer> fieldIntegerListNotNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldIntegerListNotNull();
+            if (fieldIntegerListNotNullList != null) {
+                OsList fieldIntegerListNotNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldIntegerListNotNullIndex);
+                for (java.lang.Integer fieldIntegerListNotNullItem : fieldIntegerListNotNullList) {
+                    if (fieldIntegerListNotNullItem == null) {
+                        fieldIntegerListNotNullOsList.addNull();
+                    } else {
+                        fieldIntegerListNotNullOsList.addLong(fieldIntegerListNotNullItem.longValue());
+                    }
+                }
+            }
+
+            RealmList<java.lang.Integer> fieldIntegerListNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldIntegerListNull();
+            if (fieldIntegerListNullList != null) {
+                OsList fieldIntegerListNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldIntegerListNullIndex);
+                for (java.lang.Integer fieldIntegerListNullItem : fieldIntegerListNullList) {
+                    if (fieldIntegerListNullItem == null) {
+                        fieldIntegerListNullOsList.addNull();
+                    } else {
+                        fieldIntegerListNullOsList.addLong(fieldIntegerListNullItem.longValue());
+                    }
+                }
+            }
+
+            RealmList<java.lang.Short> fieldShortListNotNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldShortListNotNull();
+            if (fieldShortListNotNullList != null) {
+                OsList fieldShortListNotNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldShortListNotNullIndex);
+                for (java.lang.Short fieldShortListNotNullItem : fieldShortListNotNullList) {
+                    if (fieldShortListNotNullItem == null) {
+                        fieldShortListNotNullOsList.addNull();
+                    } else {
+                        fieldShortListNotNullOsList.addLong(fieldShortListNotNullItem.longValue());
+                    }
+                }
+            }
+
+            RealmList<java.lang.Short> fieldShortListNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldShortListNull();
+            if (fieldShortListNullList != null) {
+                OsList fieldShortListNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldShortListNullIndex);
+                for (java.lang.Short fieldShortListNullItem : fieldShortListNullList) {
+                    if (fieldShortListNullItem == null) {
+                        fieldShortListNullOsList.addNull();
+                    } else {
+                        fieldShortListNullOsList.addLong(fieldShortListNullItem.longValue());
+                    }
+                }
+            }
+
+            RealmList<java.lang.Byte> fieldByteListNotNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldByteListNotNull();
+            if (fieldByteListNotNullList != null) {
+                OsList fieldByteListNotNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldByteListNotNullIndex);
+                for (java.lang.Byte fieldByteListNotNullItem : fieldByteListNotNullList) {
+                    if (fieldByteListNotNullItem == null) {
+                        fieldByteListNotNullOsList.addNull();
+                    } else {
+                        fieldByteListNotNullOsList.addLong(fieldByteListNotNullItem.longValue());
+                    }
+                }
+            }
+
+            RealmList<java.lang.Byte> fieldByteListNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldByteListNull();
+            if (fieldByteListNullList != null) {
+                OsList fieldByteListNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldByteListNullIndex);
+                for (java.lang.Byte fieldByteListNullItem : fieldByteListNullList) {
+                    if (fieldByteListNullItem == null) {
+                        fieldByteListNullOsList.addNull();
+                    } else {
+                        fieldByteListNullOsList.addLong(fieldByteListNullItem.longValue());
+                    }
+                }
+            }
+
+            RealmList<java.lang.Double> fieldDoubleListNotNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldDoubleListNotNull();
+            if (fieldDoubleListNotNullList != null) {
+                OsList fieldDoubleListNotNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldDoubleListNotNullIndex);
+                for (java.lang.Double fieldDoubleListNotNullItem : fieldDoubleListNotNullList) {
+                    if (fieldDoubleListNotNullItem == null) {
+                        fieldDoubleListNotNullOsList.addNull();
+                    } else {
+                        fieldDoubleListNotNullOsList.addDouble(fieldDoubleListNotNullItem.doubleValue());
+                    }
+                }
+            }
+
+            RealmList<java.lang.Double> fieldDoubleListNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldDoubleListNull();
+            if (fieldDoubleListNullList != null) {
+                OsList fieldDoubleListNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldDoubleListNullIndex);
+                for (java.lang.Double fieldDoubleListNullItem : fieldDoubleListNullList) {
+                    if (fieldDoubleListNullItem == null) {
+                        fieldDoubleListNullOsList.addNull();
+                    } else {
+                        fieldDoubleListNullOsList.addDouble(fieldDoubleListNullItem.doubleValue());
+                    }
+                }
+            }
+
+            RealmList<java.lang.Float> fieldFloatListNotNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldFloatListNotNull();
+            if (fieldFloatListNotNullList != null) {
+                OsList fieldFloatListNotNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldFloatListNotNullIndex);
+                for (java.lang.Float fieldFloatListNotNullItem : fieldFloatListNotNullList) {
+                    if (fieldFloatListNotNullItem == null) {
+                        fieldFloatListNotNullOsList.addNull();
+                    } else {
+                        fieldFloatListNotNullOsList.addFloat(fieldFloatListNotNullItem.floatValue());
+                    }
+                }
+            }
+
+            RealmList<java.lang.Float> fieldFloatListNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldFloatListNull();
+            if (fieldFloatListNullList != null) {
+                OsList fieldFloatListNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldFloatListNullIndex);
+                for (java.lang.Float fieldFloatListNullItem : fieldFloatListNullList) {
+                    if (fieldFloatListNullItem == null) {
+                        fieldFloatListNullOsList.addNull();
+                    } else {
+                        fieldFloatListNullOsList.addFloat(fieldFloatListNullItem.floatValue());
+                    }
+                }
+            }
+
+            RealmList<java.util.Date> fieldDateListNotNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldDateListNotNull();
+            if (fieldDateListNotNullList != null) {
+                OsList fieldDateListNotNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldDateListNotNullIndex);
+                for (java.util.Date fieldDateListNotNullItem : fieldDateListNotNullList) {
+                    if (fieldDateListNotNullItem == null) {
+                        fieldDateListNotNullOsList.addNull();
+                    } else {
+                        fieldDateListNotNullOsList.addDate(fieldDateListNotNullItem);
+                    }
+                }
+            }
+
+            RealmList<java.util.Date> fieldDateListNullList = ((NullTypesRealmProxyInterface) object).realmGet$fieldDateListNull();
+            if (fieldDateListNullList != null) {
+                OsList fieldDateListNullOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.fieldDateListNullIndex);
+                for (java.util.Date fieldDateListNullItem : fieldDateListNullList) {
+                    if (fieldDateListNullItem == null) {
+                        fieldDateListNullOsList.addNull();
+                    } else {
+                        fieldDateListNullOsList.addDate(fieldDateListNullItem);
+                    }
+                }
+            }
         }
     }
 

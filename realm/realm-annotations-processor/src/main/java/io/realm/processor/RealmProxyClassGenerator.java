@@ -1177,8 +1177,22 @@ public class RealmProxyClassGenerator {
                         .endControlFlow();
 
             } else if (Utils.isRealmValueList(field)) {
-                // FIXME need to implement logic for value list fields.
-
+                final String genericType = Utils.getGenericTypeQualifiedName(field);
+                final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+                writer
+                        .emitEmptyLine()
+                        .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
+                                genericType, fieldName, interfaceName, getter)
+                        .beginControlFlow("if (%sList != null)", fieldName)
+                        .emitStatement("OsList %1$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
+                        .beginControlFlow("for (%1$s %2$sItem : %2$sList)", genericType, fieldName)
+                        .beginControlFlow("if (%1$sItem == null)", fieldName)
+                        .emitStatement(fieldName + "OsList.addNull()")
+                        .nextControlFlow("else")
+                        .emitStatement(getStatementForAppendingValueToOsList(fieldName + "OsList", fieldName + "Item", elementTypeMirror))
+                        .endControlFlow()
+                        .endControlFlow()
+                        .endControlFlow();
             } else {
                 if (metadata.getPrimaryKey() != field) {
                     setTableValues(writer, fieldType, fieldName, interfaceName, getter, false);
