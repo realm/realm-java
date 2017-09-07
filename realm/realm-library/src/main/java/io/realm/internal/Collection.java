@@ -405,9 +405,8 @@ public class Collection implements NativeObject {
     }
 
     @Nullable
-    public Object getValue(long index) {
-        // FIXME zaki50 implement this
-        return null;
+    public Object getValue(long pos) {
+        return nativeGetValue(nativePtr, pos);
     }
 
     public UncheckedRow getUncheckedRow(int index) {
@@ -604,4 +603,6 @@ public class Collection implements NativeObject {
     private static native byte nativeGetMode(long nativePtr);
 
     private static native long nativeCreateResultsFromBacklinks(long sharedRealmNativePtr, long rowNativePtr, long srcTableNativePtr, long srColIndex);
+
+    private static native Object nativeGetValue(long nativePtr, long pos);
 }
