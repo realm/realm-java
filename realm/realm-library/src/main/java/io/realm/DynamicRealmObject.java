@@ -367,8 +367,17 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a list of values.
      */
     public <T> RealmList<T> getValueList(String fieldName, Class<T> valueClass) {
-        // TODO implement this
-        return null;
+        proxyState.getRealm$realm().checkIfValid();
+
+        long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
+        try {
+            OsList osList = proxyState.getRow$realm().getList(columnIndex);
+            //noinspection ConstantConditions
+            return new RealmList<T>(valueClass, osList, proxyState.getRealm$realm());
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnIndex, RealmFieldType.LIST);
+            throw e;
+        }
     }
 
     /**
