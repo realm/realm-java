@@ -1327,6 +1327,126 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 columnRealmListOsList.addRow(cacheItemIndexcolumnRealmList);
             }
         }
+
+        RealmList<java.lang.String> columnStringListList = ((AllTypesRealmProxyInterface) object).realmGet$columnStringList();
+        if (columnStringListList != null) {
+            OsList columnStringListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnStringListIndex);
+            for (java.lang.String columnStringListItem : columnStringListList) {
+                if (columnStringListItem == null) {
+                    columnStringListOsList.addNull();
+                } else {
+                    columnStringListOsList.addString(columnStringListItem);
+                }
+            }
+        }
+
+        RealmList<byte[]> columnBinaryListList = ((AllTypesRealmProxyInterface) object).realmGet$columnBinaryList();
+        if (columnBinaryListList != null) {
+            OsList columnBinaryListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnBinaryListIndex);
+            for (byte[] columnBinaryListItem : columnBinaryListList) {
+                if (columnBinaryListItem == null) {
+                    columnBinaryListOsList.addNull();
+                } else {
+                    columnBinaryListOsList.addBinary(columnBinaryListItem);
+                }
+            }
+        }
+
+        RealmList<java.lang.Boolean> columnBooleanListList = ((AllTypesRealmProxyInterface) object).realmGet$columnBooleanList();
+        if (columnBooleanListList != null) {
+            OsList columnBooleanListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnBooleanListIndex);
+            for (java.lang.Boolean columnBooleanListItem : columnBooleanListList) {
+                if (columnBooleanListItem == null) {
+                    columnBooleanListOsList.addNull();
+                } else {
+                    columnBooleanListOsList.addBoolean(columnBooleanListItem);
+                }
+            }
+        }
+
+        RealmList<java.lang.Long> columnLongListList = ((AllTypesRealmProxyInterface) object).realmGet$columnLongList();
+        if (columnLongListList != null) {
+            OsList columnLongListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnLongListIndex);
+            for (java.lang.Long columnLongListItem : columnLongListList) {
+                if (columnLongListItem == null) {
+                    columnLongListOsList.addNull();
+                } else {
+                    columnLongListOsList.addLong(columnLongListItem.longValue());
+                }
+            }
+        }
+
+        RealmList<java.lang.Integer> columnIntegerListList = ((AllTypesRealmProxyInterface) object).realmGet$columnIntegerList();
+        if (columnIntegerListList != null) {
+            OsList columnIntegerListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnIntegerListIndex);
+            for (java.lang.Integer columnIntegerListItem : columnIntegerListList) {
+                if (columnIntegerListItem == null) {
+                    columnIntegerListOsList.addNull();
+                } else {
+                    columnIntegerListOsList.addLong(columnIntegerListItem.longValue());
+                }
+            }
+        }
+
+        RealmList<java.lang.Short> columnShortListList = ((AllTypesRealmProxyInterface) object).realmGet$columnShortList();
+        if (columnShortListList != null) {
+            OsList columnShortListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnShortListIndex);
+            for (java.lang.Short columnShortListItem : columnShortListList) {
+                if (columnShortListItem == null) {
+                    columnShortListOsList.addNull();
+                } else {
+                    columnShortListOsList.addLong(columnShortListItem.longValue());
+                }
+            }
+        }
+
+        RealmList<java.lang.Byte> columnByteListList = ((AllTypesRealmProxyInterface) object).realmGet$columnByteList();
+        if (columnByteListList != null) {
+            OsList columnByteListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnByteListIndex);
+            for (java.lang.Byte columnByteListItem : columnByteListList) {
+                if (columnByteListItem == null) {
+                    columnByteListOsList.addNull();
+                } else {
+                    columnByteListOsList.addLong(columnByteListItem.longValue());
+                }
+            }
+        }
+
+        RealmList<java.lang.Double> columnDoubleListList = ((AllTypesRealmProxyInterface) object).realmGet$columnDoubleList();
+        if (columnDoubleListList != null) {
+            OsList columnDoubleListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnDoubleListIndex);
+            for (java.lang.Double columnDoubleListItem : columnDoubleListList) {
+                if (columnDoubleListItem == null) {
+                    columnDoubleListOsList.addNull();
+                } else {
+                    columnDoubleListOsList.addDouble(columnDoubleListItem.doubleValue());
+                }
+            }
+        }
+
+        RealmList<java.lang.Float> columnFloatListList = ((AllTypesRealmProxyInterface) object).realmGet$columnFloatList();
+        if (columnFloatListList != null) {
+            OsList columnFloatListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnFloatListIndex);
+            for (java.lang.Float columnFloatListItem : columnFloatListList) {
+                if (columnFloatListItem == null) {
+                    columnFloatListOsList.addNull();
+                } else {
+                    columnFloatListOsList.addFloat(columnFloatListItem.floatValue());
+                }
+            }
+        }
+
+        RealmList<java.util.Date> columnDateListList = ((AllTypesRealmProxyInterface) object).realmGet$columnDateList();
+        if (columnDateListList != null) {
+            OsList columnDateListOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.columnDateListIndex);
+            for (java.util.Date columnDateListItem : columnDateListList) {
+                if (columnDateListItem == null) {
+                    columnDateListOsList.addNull();
+                } else {
+                    columnDateListOsList.addDate(columnDateListItem);
+                }
+            }
+        }
         return rowIndex;
     }
 
