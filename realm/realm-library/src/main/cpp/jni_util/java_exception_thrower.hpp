@@ -21,6 +21,8 @@
 
 #include <stdexcept>
 
+#include <util/format.hpp>
+
 #include "java_class.hpp"
 
 namespace realm {

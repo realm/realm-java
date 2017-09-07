@@ -15,6 +15,7 @@
  */
 
 
+#include "java_accessor.hpp"
 #include "java_sort_descriptor.hpp"
 #include "util.hpp"
 #include "jni_util/java_class.hpp"
@@ -53,14 +54,14 @@ std::vector<std::vector<size_t>> JavaSortDescriptor::get_column_indices() const 
     static JavaMethod get_column_indices_method(m_env, get_sort_desc_class(), "getColumnIndices", "()[[J");
     jobjectArray column_indices =
         static_cast<jobjectArray>(m_env->CallObjectMethod(m_sort_desc_obj, get_column_indices_method));
-    JniArrayOfArrays<JniLongArray, jlongArray> arrays(m_env, column_indices);
-    jsize arr_len = arrays.len();
+    JObjectArrayAccessor<JLongArrayAccessor, jlongArray> arrays(m_env, column_indices);
+    jsize arr_len = arrays.size();
     std::vector<std::vector<size_t>> indices;
 
     for (int i = 0; i < arr_len; ++i) {
-        JniLongArray& jni_long_array = arrays[i];
+        auto jni_long_array = arrays[i];
         std::vector<size_t> col_indices;
-        for (int j = 0; j < jni_long_array.len(); ++j) {
+        for (int j = 0; j < jni_long_array.size(); ++j) {
             col_indices.push_back(static_cast<size_t>(jni_long_array[j]));
         }
         indices.push_back(std::move(col_indices));
@@ -79,9 +80,9 @@ std::vector<bool> JavaSortDescriptor::get_ascendings() const noexcept
         return {};
     }
 
-    JniBooleanArray ascending_array(m_env, ascendings);
+    JBooleanArrayAccessor ascending_array(m_env, ascendings);
     std::vector<bool> ascending_list;
-    jsize arr_len = ascending_array.len();
+    jsize arr_len = ascending_array.size();
 
     for (int i = 0; i < arr_len; i++) {
         ascending_list.push_back(static_cast<bool>(ascending_array[i]));

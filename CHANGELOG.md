@@ -1,3 +1,9 @@
+## 3.7.1 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Fixed a JNI memory issue when doing queries which might potentially cause various native crashes.
+
 ## 3.7.1 (2017-09-07)
 
 ### Bug Fixes
