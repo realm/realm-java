@@ -22,8 +22,9 @@
 
 #include "util/format.hpp"
 
-#include "jni_util/java_exception_thrower.hpp"
+#include "java_accessor.hpp"
 #include "java_exception_def.hpp"
+#include "jni_util/java_exception_thrower.hpp"
 
 using namespace std;
 using namespace realm;
@@ -818,8 +819,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(JNIEnv* e
             return;
         }
 
-        JniByteArray byteAccessor(env, dataArray);
-        TBL(nativeTablePtr)->set_binary(S(columnIndex), S(rowIndex), byteAccessor, B(isDefault));
+        JByteArrayAccessor jarray_accessor(env, dataArray);
+        TBL(nativeTablePtr)
+            ->set_binary(S(columnIndex), S(rowIndex), jarray_accessor.transform<BinaryData>(), B(isDefault));
     }
     CATCH_STD()
 }
@@ -1183,10 +1185,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(JN
 {
     Table* pTable = TBL(nativeTablePtr);
 
-    JniLongArray long_arr(env, columnIndices);
-    JniBooleanArray bool_arr(env, ascending);
-    jsize arr_len = long_arr.len();
-    jsize asc_len = bool_arr.len();
+    JLongArrayAccessor long_arr(env, columnIndices);
+    JBooleanArrayAccessor bool_arr(env, ascending);
+    jsize arr_len = long_arr.size();
+    jsize asc_len = bool_arr.size();
 
     if (arr_len == 0) {
         ThrowException(env, IllegalArgument, "You must provide at least one field name.");
