@@ -30,8 +30,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import io.realm.DynamicRealm;
+import io.realm.DynamicRealmObject;
+import io.realm.FieldAttribute;
+import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
+import io.realm.RealmObjectSchema;
+import io.realm.RealmSchema;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -84,37 +90,40 @@ public class PrimaryKeyTests {
         return t;
     }
 
-    // Tests that primary key constraints are actually removed.
+    /**
+     * This test surfaces a bunch of problems, most of them seem to be around caching of the schema
+     * during a transaction
+     * 
+     * 1) Removing the primary key do not invalidate the cache in RealmSchema and those cached
+     *    are ImmutableRealmObjectSchema so do not change when the primary key is removed.
+     *
+     * 2) Addding `schema.refresh()` to RealmObjectSchema.removePrimaryKey()` causes
+     *    RealmPrimaryKeyConstraintException anyway. Unclear why.
+     */
     @Test
-    @Ignore("Waiting for https://github.com/realm/realm-sync/issues/1628")
+    @Ignore
     public void removingPrimaryKeyRemovesConstraint_typeSetters() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name("removeConstraints").build();
-        SharedRealm sharedRealm = SharedRealm.getInstance(config);
 
-        sharedRealm.beginTransaction();
-        Table tbl = sharedRealm.createTable(Table.getTableNameForClass("EmployeeTable"));
-        tbl.addColumn(RealmFieldType.STRING, "name");
-        tbl.setPrimaryKey("name");
+        DynamicRealm realm = DynamicRealm.getInstance(config);
+        RealmSchema realmSchema = realm.getSchema();
+        realm.beginTransaction();
+        RealmObjectSchema tableSchema = realmSchema.create("Employee")
+                .addField("name", String.class, FieldAttribute.PRIMARY_KEY);
 
-        // Creates first entry with name "Foo".
-        tbl.setString(0, OsObject.createRow(tbl), "Foo", false);
+        realm.createObject("Employee", "Foo");
+        DynamicRealmObject obj = realm.createObject("Employee", "Foo2");
 
-        long rowIndex = OsObject.createRow(tbl);
         try {
-            tbl.setString(0, rowIndex, "Foo", false); // Tries to create 2nd entry with name Foo.
-        } catch (RealmPrimaryKeyConstraintException e1) {
-            tbl.setPrimaryKey(""); // Primary key check worked, now removes it and tries again.
-            try {
-                tbl.setString(0, rowIndex, "Foo", false);
-                return;
-            } catch (RealmException e2) {
-                fail("Primary key not removed");
-            }
+            // Tries to create 2nd entry with name Foo.
+            obj.setString("name", "Foo");
+        } catch (IllegalArgumentException e) {
+            tableSchema.removePrimaryKey();
+            obj.setString("name", "Foo");
+        } finally {
+            realm.close();
         }
-
-        fail("Primary key not enforced.");
-        sharedRealm.close();
     }
 
     @Test
