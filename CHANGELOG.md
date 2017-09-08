@@ -1,4 +1,4 @@
-## 3.7.1 (YYYY-MM-DD)
+## 3.7.2 (YYYY-MM-DD)
 
 ### Bug Fixes
 
