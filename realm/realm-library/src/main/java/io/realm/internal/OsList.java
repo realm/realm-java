@@ -150,7 +150,7 @@ public class OsList implements NativeObject {
 
     public void insertString(long pos, @Nullable String value) {
         if (value == null) {
-            nativeSetNull(nativePtr, pos);
+            nativeInsertString(nativePtr, pos, value);
         } else {
             nativeInsertString(nativePtr, pos, value);
         }
