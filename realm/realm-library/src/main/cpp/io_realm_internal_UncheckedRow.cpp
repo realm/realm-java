@@ -15,6 +15,7 @@
  */
 
 #include "io_realm_internal_UncheckedRow.h"
+#include "io_realm_internal_Property.h"
 #include "util.hpp"
 
 using namespace realm;
@@ -68,7 +69,12 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(J
                                                                                jlong columnIndex)
 {
     TR_ENTER_PTR(nativeRowPtr)
-    return static_cast<jint>(ROW(nativeRowPtr)->get_column_type(S(columnIndex))); // noexcept
+    auto column_type = ROW(nativeRowPtr)->get_column_type(S(columnIndex)); // noexcept
+    if (column_type != type_Table) {
+        return static_cast<jint>(column_type);
+    }
+    return static_cast<jint>(ROW(nativeRowPtr)->get_table()->get_descriptor()->get_subdescriptor(S(columnIndex))->get_column_type(S(0))
+                             + io_realm_internal_Property_TYPE_ARRAY); // noexcept
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetIndex(JNIEnv* env, jobject, jlong nativeRowPtr)
