@@ -94,6 +94,10 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             }
         }
 
+        if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
+            checkAddPrimaryKeyForSync();
+        }
+
         checkNewFieldName(fieldName);
         boolean nullable = metadata.defaultNullable;
         if (containsAttribute(attributes, FieldAttribute.REQUIRED)) {
@@ -184,6 +188,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
 
     @Override
     public RealmObjectSchema addPrimaryKey(String fieldName) {
+        checkAddPrimaryKeyForSync();
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
         if (table.hasPrimaryKey()) {
@@ -287,7 +292,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         }
     }
 
-    private boolean containsAttribute(FieldAttribute[] attributeList, FieldAttribute attribute) {
+    static boolean containsAttribute(FieldAttribute[] attributeList, FieldAttribute attribute) {
         //noinspection ConstantConditions
         if (attributeList == null || attributeList.length == 0) {
             return false;
@@ -308,6 +313,12 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     private void checkFieldNameIsAvailable(String fieldName) {
         if (table.getColumnIndex(fieldName) != Table.NO_MATCH) {
             throw new IllegalArgumentException("Field already exists in '" + getClassName() + "': " + fieldName);
+        }
+    }
+
+    private void checkAddPrimaryKeyForSync() {
+        if (realm.configuration.isSyncConfiguration()) {
+            throw new UnsupportedOperationException("'addPrimaryKey' is not supported by synced Realms.");
         }
     }
 }

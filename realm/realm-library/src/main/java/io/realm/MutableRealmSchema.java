@@ -56,6 +56,31 @@ class MutableRealmSchema extends RealmSchema {
     }
 
     @Override
+    public RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName, Class<?> fieldType,
+                                                       FieldAttribute... attributes) {
+        checkNotEmpty(className, EMPTY_STRING_MSG);
+        RealmObjectSchema.checkLegalName(primaryKeyFieldName);
+        String internalTableName = checkAndGetTableNameFromClassName(className);
+
+        RealmObjectSchema.FieldMetaData metadata = RealmObjectSchema.getSupportedSimpleFields().get(fieldType);
+        if (metadata == null || (metadata.realmType != RealmFieldType.STRING &&
+                metadata.realmType != RealmFieldType.INTEGER)) {
+            throw new IllegalArgumentException(String.format("Realm doesn't support primary key field type '%s'.",
+                    fieldType));
+        }
+        boolean isStringField = (metadata.realmType == RealmFieldType.STRING);
+
+        boolean nullable = metadata.defaultNullable;
+        if (MutableRealmObjectSchema.containsAttribute(attributes, FieldAttribute.REQUIRED)) {
+            nullable = false;
+        }
+
+        return new MutableRealmObjectSchema(realm, this,
+                realm.getSharedRealm().createTableWithPrimaryKey(internalTableName, primaryKeyFieldName,
+                        isStringField, nullable));
+    }
+
+    @Override
     public void remove(String className) {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
         checkNotEmpty(className, EMPTY_STRING_MSG);
@@ -104,5 +129,16 @@ class MutableRealmSchema extends RealmSchema {
         putToClassNameToSchemaMap(newInternalName, objectSchema);
 
         return objectSchema;
+    }
+
+    private String checkAndGetTableNameFromClassName(String className) {
+        if (className.length() > Table.CLASS_NAME_MAX_LENGTH) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.US,
+                            "Class name is too long. Limit is %1$d characters: %2$s",
+                            Table.CLASS_NAME_MAX_LENGTH,
+                            className.length()));
+        }
+        return Table.getTableNameForClass(className);
     }
 }
