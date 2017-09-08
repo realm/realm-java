@@ -24,8 +24,9 @@
 #include <object_store.hpp>
 #include <results.hpp>
 
-#include "util.hpp"
+#include "java_accessor.hpp"
 #include "java_class_global_def.hpp"
+#include "util.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
@@ -69,10 +70,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery(
 // If the corresponding entry in tablesArray is anything other than a nullptr, the link is a backlink.
 // In that case, the tablesArray element is the pointer to the backlink source table and the
 // indicesArray entry is the source column index in the source table.
-static TableRef getTableForLinkQuery(jlong nativeQueryPtr, JniLongArray& tablesArray, JniLongArray& indicesArray)
+static TableRef getTableForLinkQuery(jlong nativeQueryPtr, const JLongArrayAccessor& tablesArray,
+                                     const JLongArrayAccessor& indicesArray)
 {
     auto table_ref = reinterpret_cast<Query *>(nativeQueryPtr)->get_table();
-    jsize link_element_count = indicesArray.len() - 1;
+    jsize link_element_count = indicesArray.size() - 1;
     for (int i = 0; i < link_element_count; ++i) {
         auto col_index = size_t(indicesArray[i]);
         auto table_ptr = reinterpret_cast<Table *>(tablesArray[i]);
@@ -87,10 +89,11 @@ static TableRef getTableForLinkQuery(jlong nativeQueryPtr, JniLongArray& tablesA
 }
 
 // Return TableRef point to original table or the link table
-static TableRef getTableByArray(jlong nativeQueryPtr, JniLongArray& tablesArray, JniLongArray& indicesArray)
+static TableRef getTableByArray(jlong nativeQueryPtr, const JLongArrayAccessor& tablesArray,
+                                const JLongArrayAccessor& indicesArray)
 {
     auto table_ref = reinterpret_cast<Query *>(nativeQueryPtr)->get_table();
-    jsize link_element_count = indicesArray.len() - 1;
+    jsize link_element_count = indicesArray.size() - 1;
     for (int i = 0; i < link_element_count; ++i) {
         auto table_ptr = reinterpret_cast<Table *>(tablesArray[i]);
         if (table_ptr == nullptr) {
@@ -161,9 +164,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JJ(J
                                                                             jlongArray columnIndexes,
                                                                             jlongArray tablePointers, jlong value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Int)) {
@@ -185,9 +188,9 @@ JNIEXPORT void JNICALL JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual_
                                                                                        jlongArray tablePointers,
                                                                                        jlong value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Int)) {
@@ -209,9 +212,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreater__J_3J_3JJ
                                                                               jlongArray columnIndexes,
                                                                               jlongArray tablePointers, jlong value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Int)) {
@@ -234,9 +237,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqual__J_3
                                                                                    jlongArray tablePointers,
                                                                                    jlong value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Int)) {
@@ -257,9 +260,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLess__J_3J_3JJ(JN
                                                                            jlongArray columnIndexes,
                                                                            jlongArray tablePointers, jlong value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Int)) {
@@ -280,9 +283,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqual__J_3J_3
                                                                                 jlongArray columnIndexes,
                                                                                 jlongArray tablePointers, jlong value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Int)) {
@@ -304,8 +307,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JJJ(J
                                                                                jlongArray columnIndexes, jlong value1,
                                                                                jlong value2)
 {
-    JniLongArray arr(env, columnIndexes);
-    jsize arr_len = arr.len();
+    JLongArrayAccessor arr(env, columnIndexes);
+    jsize arr_len = arr.size();
     if (arr_len == 1) {
         if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Int)) {
             return;
@@ -327,9 +330,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JF(J
                                                                             jlongArray columnIndexes,
                                                                             jlongArray tablePointers, jfloat value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Float)) {
@@ -352,9 +355,9 @@ JNIEXPORT void JNICALL JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual_
                                                                                        jlongArray tablePointers,
                                                                                        jfloat value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Float)) {
@@ -376,9 +379,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreater__J_3J_3JF
                                                                               jlongArray columnIndexes,
                                                                               jlongArray tablePointers, jfloat value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Float)) {
@@ -401,9 +404,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqual__J_3
                                                                                    jlongArray tablePointers,
                                                                                    jfloat value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Float)) {
@@ -424,9 +427,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLess__J_3J_3JF(JN
                                                                            jlongArray columnIndexes,
                                                                            jlongArray tablePointers, jfloat value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Float)) {
@@ -448,9 +451,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqual__J_3J_3
                                                                                 jlongArray tablePointers,
                                                                                 jfloat value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Float)) {
@@ -472,8 +475,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JFF(J
                                                                                jlongArray columnIndexes,
                                                                                jfloat value1, jfloat value2)
 {
-    JniLongArray arr(env, columnIndexes);
-    jsize arr_len = arr.len();
+    JLongArrayAccessor arr(env, columnIndexes);
+    jsize arr_len = arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Float)) {
@@ -496,9 +499,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JD(J
                                                                             jlongArray columnIndexes,
                                                                             jlongArray tablePointers, jdouble value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Double)) {
@@ -521,9 +524,9 @@ JNIEXPORT void JNICALL JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual_
                                                                                        jlongArray tablePointers,
                                                                                        jdouble value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Double)) {
@@ -545,9 +548,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreater__J_3J_3JD
                                                                               jlongArray columnIndexes,
                                                                               jlongArray tablePointers, jdouble value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Double)) {
@@ -570,9 +573,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqual__J_3
                                                                                    jlongArray tablePointers,
                                                                                    jdouble value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Double)) {
@@ -593,9 +596,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLess__J_3J_3JD(JN
                                                                            jlongArray columnIndexes,
                                                                            jlongArray tablePointers, jdouble value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Double)) {
@@ -618,9 +621,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqual__J_3J_3
                                                                                 jlongArray tablePointers,
                                                                                 jdouble value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Double)) {
@@ -642,8 +645,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JDD(J
                                                                                jlongArray columnIndexes,
                                                                                jdouble value1, jdouble value2)
 {
-    JniLongArray arr(env, columnIndexes);
-    jsize arr_len = arr.len();
+    JLongArrayAccessor arr(env, columnIndexes);
+    jsize arr_len = arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Double)) {
@@ -666,9 +669,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualTimestamp(JN
                                                                               jlongArray columnIndexes,
                                                                               jlongArray tablePointers, jlong value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Timestamp)) {
@@ -692,9 +695,9 @@ JNIEXPORT void JNICALL JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualT
                                                                                          jlongArray tablePointers,
                                                                                          jlong value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Timestamp)) {
@@ -717,9 +720,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterTimestamp(
                                                                                 jlongArray columnIndexes,
                                                                                 jlongArray tablePointers, jlong value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Timestamp)) {
@@ -743,9 +746,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualTimes
                                                                                      jlongArray tablePointers,
                                                                                      jlong value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Timestamp)) {
@@ -768,9 +771,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessTimestamp(JNI
                                                                              jlongArray columnIndexes,
                                                                              jlongArray tablePointers, jlong value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Timestamp)) {
@@ -794,9 +797,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualTimestam
                                                                                   jlongArray tablePointers,
                                                                                   jlong value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Timestamp)) {
@@ -819,8 +822,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenTimestamp(
                                                                                 jlongArray columnIndexes,
                                                                                 jlong value1, jlong value2)
 {
-    JniLongArray arr(env, columnIndexes);
-    jsize arr_len = arr.len();
+    JLongArrayAccessor arr(env, columnIndexes);
+    jsize arr_len = arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Timestamp)) {
@@ -844,9 +847,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JZ(J
                                                                             jlongArray columnIndexes,
                                                                             jlongArray tablePointers, jboolean value)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Bool)) {
@@ -872,9 +875,9 @@ static void TableQuery_StringPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongA
                                        jlongArray tablePointers, jstring value,
                                        jboolean caseSensitive, StringPredicate predicate)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     try {
         TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
         if (value == NULL) {
@@ -998,50 +1001,43 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains(JNIEnv* 
 enum BinaryPredicate { BinaryEqual, BinaryNotEqual };
 
 static void TableQuery_BinaryPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongArray columnIndexes,
-                                       jlongArray tablePointers, jbyteArray value,
-                                       BinaryPredicate predicate)
+                                       jlongArray tablePointers, jbyteArray value, BinaryPredicate predicate)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
     try {
+        JLongArrayAccessor table_arr(env, tablePointers);
+        JLongArrayAccessor index_arr(env, columnIndexes);
+        jsize arr_len = index_arr.size();
         TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
-        JniByteArray bytes(env, value);
-        BinaryData value2;
-        if (value == NULL) {
-            if (!TBL_AND_COL_NULLABLE(env, table_ref.get(), index_arr[arr_len - 1])) {
-                return;
-            }
-            value2 = BinaryData();
-        }
-        else {
-            if (!bytes.ptr()) {
-                ThrowException(env, IllegalArgument, "binaryPredicate");
-                return;
-            }
-            value2 = BinaryData(reinterpret_cast<char*>(bytes.ptr()), S(bytes.len()));
+
+        if (value == NULL && !TBL_AND_COL_NULLABLE(env, table_ref.get(), index_arr[arr_len - 1])) {
+            return;
         }
 
+        JByteArrayAccessor jarray_accessor(env, value);
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, index_arr[0], type_Binary)) {
                 return;
             }
             switch (predicate) {
                 case BinaryEqual:
-                    Q(nativeQueryPtr)->equal(S(index_arr[0]), value2);
+                    Q(nativeQueryPtr)->equal(S(index_arr[0]), jarray_accessor.transform<BinaryData>());
                     break;
                 case BinaryNotEqual:
-                    Q(nativeQueryPtr)->not_equal(S(index_arr[0]), value2);
+                    Q(nativeQueryPtr)->not_equal(S(index_arr[0]), jarray_accessor.transform<BinaryData>());
                     break;
             }
         }
         else {
             switch (predicate) {
                 case BinaryEqual:
-                    Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(index_arr[arr_len - 1])) == value2);
+                    Q(nativeQueryPtr)
+                        ->and_query(table_ref->column<Binary>(size_t(index_arr[arr_len - 1])) ==
+                                    jarray_accessor.transform<BinaryData>());
                     break;
                 case BinaryNotEqual:
-                    Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(index_arr[arr_len - 1])) != value2);
+                    Q(nativeQueryPtr)
+                        ->and_query(table_ref->column<Binary>(size_t(index_arr[arr_len - 1])) !=
+                                    jarray_accessor.transform<BinaryData>());
                     break;
             }
         }
@@ -1499,9 +1495,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
                                                                       jlongArray tablePointers)
 {
     try {
-        JniLongArray table_arr(env, tablePointers);
-        JniLongArray index_arr(env, columnIndexes);
-        jsize arr_len = index_arr.len();
+        JLongArrayAccessor table_arr(env, tablePointers);
+        JLongArrayAccessor index_arr(env, columnIndexes);
+        jsize arr_len = index_arr.size();
         auto pQuery = reinterpret_cast<Query *>(nativeQueryPtr);
 
         jlong column_idx = index_arr[arr_len - 1];
@@ -1579,9 +1575,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
                                                                          jlongArray columnIndexes,
                                                                          jlongArray tablePointers)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     Query* pQuery = Q(nativeQueryPtr);
     try {
         jlong column_idx = index_arr[arr_len - 1];
@@ -1661,9 +1657,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty(JNIEnv* e
                                                                        jlongArray columnIndexes,
                                                                        jlongArray tablePointers)
 {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     Query* pQuery = reinterpret_cast<Query *>(nativeQueryPtr);
     try {
         TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
@@ -1732,9 +1728,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty(JNIEnv* e
 JNIEXPORT void JNICALL
 Java_io_realm_internal_TableQuery_nativeIsNotEmpty(JNIEnv *env, jobject, jlong nativeQueryPtr,
                                                    jlongArray columnIndexes, jlongArray tablePointers) {
-    JniLongArray table_arr(env, tablePointers);
-    JniLongArray index_arr(env, columnIndexes);
-    jsize arr_len = index_arr.len();
+    JLongArrayAccessor table_arr(env, tablePointers);
+    JLongArrayAccessor index_arr(env, columnIndexes);
+    jsize arr_len = index_arr.size();
     Query* pQuery = reinterpret_cast<Query *>(nativeQueryPtr);
     try {
         TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, index_arr);
