@@ -18,6 +18,7 @@
 
 #include "util.hpp"
 #include "io_realm_internal_Table.h"
+#include "io_realm_internal_Property.h"
 #include "tablebase_tpl.hpp"
 
 #include "util/format.hpp"
@@ -164,8 +165,12 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
         ThrowException(env, UnsupportedOperation, "Not allowed to convert field in subtable.");
         return JNI_FALSE;
     }
+
     size_t column_index = S(columnIndex);
-    return to_jbool(table->is_nullable(column_index));
+    if (table->get_column_type(S(columnIndex)) != type_Table) {
+        return to_jbool(table->is_nullable(column_index)); // noexcept
+    }
+    return to_jbool(table->get_descriptor()->get_subdescriptor(S(columnIndex))->is_nullable(S(0))); // noexcept
 }
 
 
@@ -504,7 +509,12 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv* 
         return 0;
     }
 
-    return static_cast<jint>(TBL(nativeTablePtr)->get_column_type(S(columnIndex))); // noexcept
+    auto column_type = TBL(nativeTablePtr)->get_column_type(S(columnIndex)); // noexcept
+    if (column_type != type_Table) {
+        return static_cast<jint>(column_type);
+    }
+    return static_cast<jint>(TBL(nativeTablePtr)->get_descriptor()->get_subdescriptor(S(columnIndex))->get_column_type(S(0))
+                             + io_realm_internal_Property_TYPE_ARRAY); // noexcept
 }
 
 
