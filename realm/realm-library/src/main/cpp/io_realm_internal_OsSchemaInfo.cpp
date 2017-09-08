@@ -21,9 +21,10 @@
 #include <property.hpp>
 #include <util/format.hpp>
 
+#include "java_accessor.hpp"
 #include "java_exception_def.hpp"
-#include "jni_util/java_exception_thrower.hpp"
 #include "util.hpp"
+#include "jni_util/java_exception_thrower.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
@@ -42,8 +43,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeCreateFromList
     TR_ENTER()
     try {
         std::vector<ObjectSchema> object_schemas;
-        JniLongArray array(env, objectSchemaPtrs_);
-        for (jsize i = 0; i < array.len(); ++i) {
+        JLongArrayAccessor array(env, objectSchemaPtrs_);
+        for (jsize i = 0; i < array.size(); ++i) {
             object_schemas.push_back(*reinterpret_cast<ObjectSchema*>(array[i]));
         }
         auto* schema = new Schema(std::move(object_schemas));
