@@ -24,6 +24,8 @@
 
 #include <realm/binary_data.hpp>
 
+#include <util/format.hpp>
+
 #include "java_exception_def.hpp"
 #include "jni_util/java_exception_thrower.hpp"
 
@@ -78,6 +80,8 @@ public:
         return m_elements_holder->m_data_ptr[index];
     }
 
+    // Converts the Java array into an instance of T. The returned value's life cycle may still rely on this accessor.
+    // (e.g.: BinaryData/StringData)
     template <typename T>
     T transform();
 
