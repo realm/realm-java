@@ -172,20 +172,15 @@ public class SyncedRealmMigrationTests {
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
-        try {
-            Realm realm = Realm.getInstance(config); // Opening at same schema version (42) will not rebuild indexes
-            fail();
-        } catch (RealmMigrationNeededException ignored) {
-        }
+        Realm realm = Realm.getInstance(config); // Opening at same schema version (42) will not rebuild indexes
 
-// FIXME: This is the intended behaviour
-//        RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
-//        try {
-//            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
-//            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
-//        } finally {
-//            realm.close();
-//        }
+        RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
+        try {
+            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
+            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
+        } finally {
+            realm.close();
+        }
     }
 
     // Check that indexes are being added if the schema version is different
@@ -212,7 +207,7 @@ public class SyncedRealmMigrationTests {
         Realm realm = Realm.getInstance(config); // Opening at different schema version (42) should rebuild indexes
         try {
             RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
-            assertNotNull(indexedFieldsSchema );
+            assertNotNull(indexedFieldsSchema);
             assertTrue(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
             assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
         } finally {

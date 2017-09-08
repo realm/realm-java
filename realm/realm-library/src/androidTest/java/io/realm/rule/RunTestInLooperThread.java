@@ -33,4 +33,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface RunTestInLooperThread {
         String threadName() default "RunTestInLooperThread";
         Class<?extends RunInLooperThread.RunnableBefore> before() default RunInLooperThread.RunnableBefore.class;
+        boolean emulateMainThread() default false;
 }

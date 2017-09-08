@@ -25,9 +25,11 @@
 #include <results.hpp>
 
 #include "util.hpp"
+#include "java_class_global_def.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
+using namespace realm::_impl;
 
 #if 1
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type) query_col_type_valid(env, jPtr, col, type)
@@ -1196,7 +1198,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt(JNI
         size_t return_ndx;
         int64_t result = pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
         if (return_ndx != npos) {
-            return NewLong(env, result);
+            return JavaClassGlobalDef::new_long(env, result);
         }
     }
     CATCH_STD()
@@ -1217,7 +1219,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(JNI
         size_t return_ndx;
         int64_t result = pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
         if (return_ndx != npos) {
-            return NewLong(env, result);
+            return JavaClassGlobalDef::new_long(env, result);
         }
     }
     CATCH_STD()
@@ -1280,7 +1282,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat(J
         size_t return_ndx;
         float result = pQuery->maximum_float(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
         if (return_ndx != npos) {
-            return NewFloat(env, result);
+            return JavaClassGlobalDef::new_float(env, result);
         }
     }
     CATCH_STD()
@@ -1302,7 +1304,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(J
         size_t return_ndx;
         float result = pQuery->minimum_float(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
         if (return_ndx != npos) {
-            return NewFloat(env, result);
+            return JavaClassGlobalDef::new_float(env, result);
         }
     }
     CATCH_STD()
@@ -1363,7 +1365,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
         size_t return_ndx;
         double result = pQuery->maximum_double(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
         if (return_ndx != npos) {
-            return NewDouble(env, result);
+            return JavaClassGlobalDef::new_double(env, result);
         }
     }
     CATCH_STD()
@@ -1385,7 +1387,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
         size_t return_ndx;
         double result = pQuery->minimum_double(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
         if (return_ndx != npos) {
-            return NewDouble(env, result);
+            return JavaClassGlobalDef::new_double(env, result);
         }
     }
     CATCH_STD()
@@ -1431,7 +1433,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimesta
         size_t return_ndx;
         Timestamp result = pQuery->find_all().maximum_timestamp(S(columnIndex), &return_ndx);
         if (return_ndx != npos && !result.is_null()) {
-            return NewLong(env, to_milliseconds(result));
+            return JavaClassGlobalDef::new_long(env, to_milliseconds(result));
         }
     }
     CATCH_STD()
@@ -1453,7 +1455,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimesta
         size_t return_ndx;
         Timestamp result = pQuery->find_all().minimum_timestamp(S(columnIndex), &return_ndx);
         if (return_ndx != npos && !result.is_null()) {
-            return NewLong(env, to_milliseconds(result));
+            return JavaClassGlobalDef::new_long(env, to_milliseconds(result));
         }
     }
     CATCH_STD()

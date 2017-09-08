@@ -17,6 +17,7 @@ import java.util.concurrent.CountDownLatch;
 
 import io.realm.BaseIntegrationTest;
 import io.realm.Realm;
+import io.realm.StandardIntegrationTest;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
@@ -37,7 +38,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class SyncSessionTests extends BaseIntegrationTest {
+public class SyncSessionTests extends StandardIntegrationTest {
     @Rule
     public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
@@ -246,6 +247,7 @@ public class SyncSessionTests extends BaseIntegrationTest {
         });
 
         TestHelper.awaitOrFail(testCompleted, 60);
+        realm.close();
     }
 
     // A Realm that was opened before a user logged out should be able to resume uploading if the user logs back in.
@@ -375,6 +377,7 @@ public class SyncSessionTests extends BaseIntegrationTest {
                     e.printStackTrace();
                     fail(e.getMessage());
                 }
+                adminRealm.close();
 
                 backgroundUpload.countDown();
                 handlerThread.quit();

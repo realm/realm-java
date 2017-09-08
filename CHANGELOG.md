@@ -1,3 +1,10 @@
+4.0.0-BETA3 (YYYY-MM-DD)
+
+### Internal
+
+* Upgraded to Realm Sync 2.0.0-rc16.
+* Upgraded to Realm Core 3.0.0-rc5.
+
 ## 4.0.0-BETA2 (2017-07-27)
 
 ### Bug Fixes
@@ -32,10 +39,37 @@
 * Upgraded to Realm Sync 2.0.0-rc12.
 * Upgraded to Realm Core 3.0.0-rc3.
 
-### Credits
+
+## 3.7.1 (2017-09-07)
+
+### Bug Fixes
+
+* Fixed potential memory leaks of `LinkView` when calling bulk insertions APIs.
+* Fixed possible assertion when using `PermissionManager` at the beginning (#5195).
+* Crash caused by JNI couldn't find `SharedRealm`'s inner classes when ProGuard is enabled (#5211).
+
+### Internal
+
+* Replaced LinkView with Object Store's List.
+* Renaming `io.realm.internal.CollectionChangeSet` to `io.realm.internal.OsCollectionChangeSet`.
 
 
-## 3.6.0 (YYYY-MM-DD)
+## 3.7.0 (2017-09-01)
+
+### Deprecated
+
+* [ObjectServer] `SyncUser.getManagementRealm()`. Use `SyncUser.getPermissionManager()` instead.
+
+### Enhancements
+
+* [ObjectServer] `SyncUser.getPermissionManager` added as a helper API for working with permissions and permission offers.
+
+### Internal
+
+* [ObjectServer] Upgraded OkHttp to 3.7.0.
+
+
+## 3.6.0 (2017-09-01)
 
 ### Breaking Changes
 
@@ -53,26 +87,27 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 * [ObjectServer] APIs of `UserStore` have been changed to support same user identity but different authentication server scenario.
 * [ObjectServer] Added `SyncUser.allSessions` to retrieve the all valid sessions belonging to the user (#4783).
 * Added `Nullable` annotation to methods that may return `null` in order to improve Kotlin usability. This also introduced a dependency to `com.google.code.findbugs:jsr305`.
+* `org.jetbrains.annotations.NotNull` is now an alias for `@Required`. This means that the Realm Schema now fully understand Kotlin non-null types.
 * Added support for new data type `MutableRealmIntegers`. The new type behaves almost exactly as a reference to a Long (mutable nullable, etc) but supports `increment` and `decrement` methods, which implement a Conflict Free Replicated Data Type, whose value will converge even when changed across distributed devices with poor connections (#4266).
-
-### Bug Fixes
-
-### Internal
-* [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
-* [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
-
-
-## 3.5.1 (YYYY-MM-DD)
+* Added more detailed exception message for `RealmMigrationNeeded`.
+* Bumping schema version only without any actual schema changes will just succeed even when the migration block is not supplied. It threw an `RealmMigrationNeededException` before in the same case.
+* Throw `IllegalStateException` when schema validation fails because of wrong declaration of `@LinkingObjects`.
 
 ### Bug Fixes
 
 * Potential crash after using `Realm.getSchema()` to change the schema of a typed Realm. `Realm.getSchema()` now returns an immutable `RealmSchema` instance.
-* `Realm.copyToRealmOrUpdate()` might cause a `RealmList` field to contain duplicated elements (#4957).
+* `Realm.copyToRealmOrUpdate()` could cause a `RealmList` field to contain duplicated elements (#4957).
 * `RealmSchema.create(String)` and `RealmObjectSchema.setClassName(String)` did not accept class name whose length was 51 to 57.
 * Workaround for an Android JVM crash when using `compactOnLaunch()` (#4964).
 * Class name in exception message from link query is wrong (#5096).
+* The `compactOnLaunch` callback is no longer invoked if the Realm at that path is already open on other threads.
 
 ### Internal
+
+* [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
+* [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
+* Upgraded Realm Sync to 1.10.8
+* Let Object Store handle migration.
 
 
 ## 3.5.0 (2017-07-11)
@@ -190,6 +225,7 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 ### Enhancements
 
 * [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
+* [ObjectServer] New set of Permission API's have been added to `SyncUser` through `SyncUser.getPermissionManager()` (#4296).
 * [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` (#4423).
 * [ObjectServer] Added support for `SyncConfiguration.Builder.waitForInitialRemoteData()` (#4270).
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).

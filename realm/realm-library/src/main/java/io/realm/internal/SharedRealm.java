@@ -25,13 +25,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.Nullable;
 
-import io.realm.CompactOnLaunchCallback;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
-
+@Keep
 public final class SharedRealm implements Closeable, NativeObject {
 
     // Const value for RealmFileException conversion
@@ -70,41 +69,6 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     private static volatile File temporaryDirectory;
-
-    public enum Durability {
-        FULL(0),
-        MEM_ONLY(1);
-
-        final int value;
-
-        Durability(int value) {
-            this.value = value;
-        }
-    }
-
-    private static final byte SCHEMA_MODE_VALUE_AUTOMATIC = 0;
-    private static final byte SCHEMA_MODE_VALUE_READONLY = 1;
-    private static final byte SCHEMA_MODE_VALUE_RESET_FILE = 2;
-    private static final byte SCHEMA_MODE_VALUE_ADDITIVE = 3;
-    private static final byte SCHEMA_MODE_VALUE_MANUAL = 4;
-
-    private enum SchemaMode {
-        SCHEMA_MODE_AUTOMATIC(SCHEMA_MODE_VALUE_AUTOMATIC),
-        SCHEMA_MODE_READONLY(SCHEMA_MODE_VALUE_READONLY),
-        SCHEMA_MODE_RESET_FILE(SCHEMA_MODE_VALUE_RESET_FILE),
-        SCHEMA_MODE_ADDITIVE(SCHEMA_MODE_VALUE_ADDITIVE),
-        SCHEMA_MODE_MANUAL(SCHEMA_MODE_VALUE_MANUAL);
-
-        final byte value;
-
-        SchemaMode(byte value) {
-            this.value = value;
-        }
-
-        public byte getNativeValue() {
-            return value;
-        }
-    }
 
     private final List<WeakReference<PendingRow>> pendingRows = new CopyOnWriteArrayList<>();
     public final List<WeakReference<Collection>> collections = new CopyOnWriteArrayList<>();
@@ -168,97 +132,106 @@ public final class SharedRealm implements Closeable, NativeObject {
         }
     }
 
-    public interface SchemaVersionListener {
-        void onSchemaVersionChanged(long currentVersion);
+    /**
+     * The migration callback which will be called when manual migration is needed.
+     */
+    @Keep
+    public interface MigrationCallback {
+
+        /**
+         * Callback function.
+         *
+         * @param sharedRealm the same {@link SharedRealm} instance which has been created from the same
+         * {@link OsRealmConfig} instance.
+         * @param oldVersion the schema version of the existing Realm file.
+         * @param newVersion the expected schema version after migration.
+         */
+        void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion);
     }
 
-    private final SchemaVersionListener schemaChangeListener;
-    private final RealmConfiguration configuration;
+    /**
+     * Callback function to be executed when the schema is created.
+     */
+    @Keep
+    public interface InitializationCallback {
+        /**
+         * @param sharedRealm a {@link SharedRealm} instance which is in transaction state.
+         */
+        void onInit(SharedRealm sharedRealm);
+    }
+
+    /**
+     * Callback function to be called from JNI by Object Store when the schema is changed.
+     */
+    @SuppressWarnings("unused")
+    @Keep
+    public interface SchemaChangedCallback {
+        void onSchemaChanged();
+    }
+
+    private final OsRealmConfig osRealmConfig;
     private final long nativePtr;
-
-    private long lastSchemaVersion;
-
     final NativeContext context;
+    private final OsSchemaInfo schemaInfo;
 
-    private SharedRealm(long nativeConfigPtr,
-            RealmConfiguration configuration,
-            @Nullable SchemaVersionListener schemaVersionListener) {
+    private SharedRealm(OsRealmConfig osRealmConfig) {
         Capabilities capabilities = new AndroidCapabilities();
         RealmNotifier realmNotifier = new AndroidRealmNotifier(this, capabilities);
 
-        this.nativePtr = nativeGetSharedRealm(nativeConfigPtr, realmNotifier);
-        this.configuration = configuration;
+        this.nativePtr = nativeGetSharedRealm(osRealmConfig.getNativePtr(), realmNotifier);
+        this.osRealmConfig = osRealmConfig;
+        this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
+        this.context = osRealmConfig.getContext();
+        this.context.addReference(this);
 
         this.capabilities = capabilities;
         this.realmNotifier = realmNotifier;
-        this.schemaChangeListener = schemaVersionListener;
-        context = new NativeContext();
-        context.addReference(this);
-        this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
         nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
     }
 
-    // This will create a SharedRealm where autoChangeNotifications is false,
-    // If autoChangeNotifications is true, an additional SharedGroup might be created in the OS's external commit helper.
-    // That is not needed for some cases: eg.: An extra opened SharedGroup will cause a compact failure.
-    public static SharedRealm getInstance(RealmConfiguration config) {
-        return getInstance(config, null, false);
+    /**
+     * Creates a {@code SharedRealm} instance from a given Object Store's {@code SharedRealm} pointer. This is used to
+     * create {@code SharedRealm} from the callback functions. When this is called, there is another
+     * {@code SharedRealm} instance with the same {@link OsRealmConfig} which has been created before. Although they
+     * are different {@code shared_ptr}, they point to the same {@code SharedGroup} instance. The {@code context} has
+     * to be the same one to ensure core's destructor thread safety.
+     */
+    private SharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
+        this.nativePtr = nativeSharedRealmPtr;
+        this.osRealmConfig = osRealmConfig;
+        this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
+        this.context = osRealmConfig.getContext();
+        this.context.addReference(this);
+
+        this.capabilities = new AndroidCapabilities();
+        // This instance should never need notifications.
+        this.realmNotifier = null;
+        nativeSetAutoRefresh(nativePtr, false);
     }
 
 
-    public static SharedRealm getInstance(RealmConfiguration config, @Nullable SchemaVersionListener schemaVersionListener,
-            boolean autoChangeNotifications) {
-        Object[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
-        String syncUserIdentifier = (String) syncUserConf[0];
-        String syncRealmUrl = (String) syncUserConf[1];
-        String syncRealmAuthUrl = (String) syncUserConf[2];
-        String syncRefreshToken = (String) syncUserConf[3];
-        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncUserConf[4]));
-        String syncSslTrustCertificatePath = (String) syncUserConf[5];
+    /**
+     * Creates a {@code SharedRealm} instance in dynamic schema mode.
+     */
+    public static SharedRealm getInstance(RealmConfiguration config) {
+        OsRealmConfig.Builder builder = new OsRealmConfig.Builder(config);
+        return getInstance(builder);
+    }
 
-        final boolean enableCaching = false; // Handled in Java currently
-        final boolean enableFormatUpgrade = true;
+    /**
+     * Creates a {@code ShareRealm} instance from the given {@link OsRealmConfig.Builder}.
+     */
+    public static SharedRealm getInstance(OsRealmConfig.Builder configBuilder) {
+        OsRealmConfig osRealmConfig = configBuilder.build();
+        ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osRealmConfig.getRealmConfiguration());
 
-        long nativeConfigPtr = nativeCreateConfig(
-                config.getPath(),
-                config.getEncryptionKey(),
-                syncRealmUrl != null ? SchemaMode.SCHEMA_MODE_ADDITIVE.getNativeValue() : SchemaMode.SCHEMA_MODE_MANUAL.getNativeValue(),
-                config.getDurability() == Durability.MEM_ONLY,
-                enableCaching,
-                config.getSchemaVersion(),
-                enableFormatUpgrade,
-                autoChangeNotifications,
-                config.getCompactOnLaunchCallback(),
-                syncRealmUrl,
-                syncRealmAuthUrl,
-                syncUserIdentifier,
-                syncRefreshToken,
-                syncClientValidateSsl,
-                syncSslTrustCertificatePath);
-
-        try {
-            ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(config);
-
-            return new SharedRealm(nativeConfigPtr, config, schemaVersionListener);
-        } finally {
-            nativeCloseConfig(nativeConfigPtr);
-        }
+        return new SharedRealm(osRealmConfig);
     }
 
     public void beginTransaction() {
-        beginTransaction(false);
-    }
-
-    public void beginTransaction(boolean ignoreReadOnly) {
-        // TODO ReadOnly is also supported by the Object Store Schema, but until we support that we need to enforce it
-        // ourselves.
-        if (!ignoreReadOnly && configuration.isReadOnly()) {
-            throw new IllegalStateException("Write transactions cannot be used when a Realm is marked as read-only.");
-        }
         detachIterators();
         executePendingRowQueries();
         nativeBeginTransaction(nativePtr);
-        invokeSchemaChangeListenerIfSchemaChanged();
     }
 
     public void commitTransaction() {
@@ -359,7 +332,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     public String getPath() {
-        return configuration.getPath();
+        return osRealmConfig.getRealmConfiguration().getPath();
     }
 
     public boolean isEmpty() {
@@ -368,7 +341,6 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     public void refresh() {
         nativeRefresh(nativePtr);
-        invokeSchemaChangeListenerIfSchemaChanged();
     }
 
     public SharedRealm.VersionID getVersionID() {
@@ -399,17 +371,6 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeCompact(nativePtr);
     }
 
-    /**
-     * Initializes the underlying schema based on the schema description.
-     * Calling this method must be done from inside a write transaction.
-     *
-     * @param schemaInfo the expected schema.
-     * @param version the target version.
-     */
-    public void updateSchema(OsSchemaInfo schemaInfo, long version) {
-        nativeUpdateSchema(nativePtr, schemaInfo.getNativePtr(), version);
-    }
-
     public void setAutoRefresh(boolean enabled) {
         capabilities.checkCanDeliverNotification(null);
         nativeSetAutoRefresh(nativePtr, enabled);
@@ -419,19 +380,8 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeIsAutoRefresh(nativePtr);
     }
 
-    /**
-     * Determine whether the passed schema needs to be updated.
-     * <p>
-     * TODO: This method should not require the caller to get the native pointer.
-     * Instead, the signature should be something like:
-     * public <T extends RealmSchema & NativeObject> </T>void updateSchema(T schema, long version)
-     * ... that is, something that is a schema and that wraps a native object.
-     *
-     * @param schemaNativePtr the pointer to a native schema object.
-     * @return true if it will be necessary to call {@code updateSchema}
-     */
-    public boolean requiresMigration(long schemaNativePtr) {
-        return nativeRequiresMigration(nativePtr, schemaNativePtr);
+    public RealmConfiguration getConfiguration() {
+        return osRealmConfig.getRealmConfiguration();
     }
 
     @Override
@@ -456,17 +406,21 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeFinalizerPtr;
     }
 
-    public void invokeSchemaChangeListenerIfSchemaChanged() {
-        if (schemaChangeListener == null) {
-            return;
-        }
+    /**
+     * @return the {@link OsSchemaInfo} of this {@code SharedRealm}.
+     */
+    public OsSchemaInfo getSchemaInfo() {
+        return schemaInfo;
+    }
 
-        final long before = lastSchemaVersion;
-        final long current = getSchemaVersion();
-        if (current != before) {
-            lastSchemaVersion = current;
-            schemaChangeListener.onSchemaVersionChanged(current);
-        }
+    /**
+     * Registers a {@link SchemaChangedCallback} with JNI {@code BindingContext}.
+     *
+     * @param callback to be registered. It will be held as a weak ref in the JNI. The caller needs to hold a strong ref
+     *                 to the callback to ensure it won't be GCed before calling.
+     */
+    public void registerSchemaChangedCallback(SchemaChangedCallback callback) {
+        nativeRegisterSchemaChangedCallback(nativePtr, callback);
     }
 
     // addIterator(), detachIterators() and invalidateIterators() are used to make RealmResults stable iterators work.
@@ -531,23 +485,30 @@ public final class SharedRealm implements Closeable, NativeObject {
         pendingRows.clear();
     }
 
+    /**
+     * Called from JNI when the expected schema doesn't match the existing one.
+     *
+     * @param callback the {@link MigrationCallback} in the {@link RealmConfiguration}.
+     * @param oldVersion the schema version of the existing Realm file.
+     */
+    @SuppressWarnings("unused")
+    private static void runMigrationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, MigrationCallback callback,
+                                             long oldVersion) {
+        callback.onMigrationNeeded(new SharedRealm(nativeSharedRealmPtr, osRealmConfig), oldVersion,
+                osRealmConfig.getRealmConfiguration().getSchemaVersion());
+    }
+
+    /**
+     * Called from JNI when the schema is created the first time.
+     *
+     * @param callback to be executed with a given in-transact {@link SharedRealm}.
+     */
+    @SuppressWarnings("unused")
+    private static void runInitializationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, InitializationCallback callback) {
+        callback.onInit(new SharedRealm(nativeSharedRealmPtr, osRealmConfig));
+    }
+
     private static native void nativeInit(String temporaryDirectoryPath);
-
-    // Keep last session as an 'object' to avoid any reference to sync code
-    private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
-            boolean cache,
-            long schemaVersion,
-            boolean enabledFormatUpgrade,
-            boolean autoChangeNotification,
-            CompactOnLaunchCallback compactOnLaunch,
-            String syncServerURL,
-            String syncServerAuthURL,
-            String syncUserIdentity,
-            String syncRefreshToken,
-            boolean syncClientValidateSsl,
-            String syncSslTrustCertificatePath);
-
-    private static native void nativeCloseConfig(long nativeConfigPtr);
 
     private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
 
@@ -607,13 +568,14 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
 
-    private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version);
-
     private static native void nativeSetAutoRefresh(long nativePtr, boolean enabled);
 
     private static native boolean nativeIsAutoRefresh(long nativePtr);
 
-    private static native boolean nativeRequiresMigration(long nativePtr, long nativeSchemaPtr);
-
     private static native long nativeGetFinalizerPtr();
+
+    // Return the pointer to the Realm::m_schema.
+    private static native long nativeGetSchemaInfo(long nativePtr);
+
+    private static native void nativeRegisterSchemaChangedCallback(long nativePtr, SchemaChangedCallback callback);
 }

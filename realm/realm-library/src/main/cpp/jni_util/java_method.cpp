@@ -30,5 +30,5 @@ JavaMethod::JavaMethod(JNIEnv* env, JavaClass const& cls, const char* method_nam
         m_method_id = env->GetMethodID(cls, method_name, signature);
     }
 
-    REALM_ASSERT_RELEASE(m_method_id != nullptr);
+    REALM_ASSERT_RELEASE_EX(m_method_id != nullptr, method_name, signature);
 }

@@ -22,6 +22,14 @@
 using namespace realm::util;
 using namespace realm::jni_util;
 
+JavaExceptionThrower::JavaExceptionThrower(const char* file_path, int line_num)
+    : std::runtime_error("Java exception has been occurred. Terminate JNI by throwing a c++ exception.")
+    , m_exception_class()
+    , m_file_path(file_path)
+    , m_line_num(line_num)
+{
+}
+
 JavaExceptionThrower::JavaExceptionThrower(JNIEnv* env, const char* class_name, std::string message,
                                            const char* file_path, int line_num)
     : std::runtime_error(std::move(message))
@@ -35,5 +43,19 @@ void JavaExceptionThrower::throw_java_exception(JNIEnv* env)
 {
     std::string message = format("%1\n(%2:%3)", what(), m_file_path, m_line_num);
     Log::w(message.c_str());
+
+    // There is a pending Java exception, just return.
+    if (env->ExceptionCheck()) {
+        Log::w("There is a pending Java exception.");
+        return;
+    }
     env->ThrowNew(m_exception_class, message.c_str());
+}
+
+void JavaExceptionThrower::terminate_jni_if_java_exception_occurred(JNIEnv* env, const char* file_path, int line_num)
+{
+    if (!env->ExceptionCheck()) {
+        return;
+    }
+    throw JavaExceptionThrower(file_path, line_num);
 }

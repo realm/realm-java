@@ -118,6 +118,22 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveColumn(JNIEnv* e
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertColumn(JNIEnv* env, jclass, jlong native_table_ptr,
+                                                                       jlong column_index, jint type, jstring j_name)
+{
+    auto table_ptr = reinterpret_cast<realm::Table*>(native_table_ptr);
+    if (!TABLE_VALID(env, table_ptr)) {
+        return;
+    }
+    try {
+        JStringAccessor name(env, j_name); // throws
+
+        DataType data_type = DataType(type);
+        table_ptr->insert_column(column_index, data_type, name);
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                        jlong columnIndex, jstring name)
 {
@@ -604,20 +620,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLink(JNIEnv* env, 
         return 0;
     }
     return static_cast<jlong>(TBL(nativeTablePtr)->get_link(S(columnIndex), S(rowIndex))); // noexcept
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkView(JNIEnv* env, jclass, jlong nativeTablePtr,
-                                                                       jlong columnIndex, jlong rowIndex)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_LinkList)) {
-        return 0;
-    }
-    try {
-        LinkViewRef* link_view_ptr = new LinkViewRef(TBL(nativeTablePtr)->get_linklist(S(columnIndex), S(rowIndex)));
-        return reinterpret_cast<jlong>(link_view_ptr);
-    }
-    CATCH_STD()
-    return 0;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkTarget(JNIEnv* env, jobject, jlong nativeTablePtr,

@@ -27,8 +27,8 @@ import io.realm.RealmFieldType;
  * Wrapper around a Row in Realm Core.
  * <p>
  * IMPORTANT: All access to methods using this class are non-checking. Safety guarantees are given by the
- * annotation processor and {@link RealmProxyMediator#validateTable(Class, SharedRealm, boolean)}
- * which is called before the typed API can be used.
+ * annotation processor and Object Store's typed Realm schema validation which is called before the typed API can be
+ * used.
  * <p>
  * For low-level access to Row data where error checking is required, use {@link CheckedRow}.
  */
@@ -88,19 +88,6 @@ public class UncheckedRow implements NativeObject, Row {
      */
     static UncheckedRow getByRowPointer(NativeContext context, Table table, long nativeRowPointer) {
         return new UncheckedRow(context, table, nativeRowPointer);
-    }
-
-    /**
-     * Gets the row object associated to an index in a LinkView.
-     *
-     * @param context the Realm context.
-     * @param linkView the LinkView holding the row.
-     * @param index the index of the row.
-     * @return an instance of Row for the LinkView and index specified.
-     */
-    static UncheckedRow getByRowIndex(NativeContext context, LinkView linkView, long index) {
-        long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePtr(), index);
-        return new UncheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
     }
 
     @Override
@@ -186,9 +173,8 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public LinkView getLinkList(long columnIndex) {
-        long nativeLinkViewPtr = nativeGetLinkView(nativePtr, columnIndex);
-        return new LinkView(context, parent, columnIndex, nativeLinkViewPtr);
+    public OsList getLinkList(long columnIndex) {
+        return new OsList(this, columnIndex);
     }
 
     // Setters
@@ -333,8 +319,6 @@ public class UncheckedRow implements NativeObject, Row {
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
 
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
-
-    protected native long nativeGetLinkView(long nativePtr, long columnIndex);
 
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
 

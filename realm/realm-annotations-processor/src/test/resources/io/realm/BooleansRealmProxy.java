@@ -7,9 +7,10 @@ import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.LinkView;
+import io.realm.internal.OsList;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.Property;
 import io.realm.internal.ProxyUtils;
 import io.realm.internal.RealmObjectProxy;
@@ -40,12 +41,13 @@ public class BooleansRealmProxy extends some.test.Booleans
         long mCompletedIndex;
         long anotherBooleanIndex;
 
-        BooleansColumnInfo(SharedRealm realm, Table table) {
+        BooleansColumnInfo(OsSchemaInfo schemaInfo) {
             super(4);
-            this.doneIndex = addColumnDetails(table, "done", RealmFieldType.BOOLEAN);
-            this.isReadyIndex = addColumnDetails(table, "isReady", RealmFieldType.BOOLEAN);
-            this.mCompletedIndex = addColumnDetails(table, "mCompleted", RealmFieldType.BOOLEAN);
-            this.anotherBooleanIndex = addColumnDetails(table, "anotherBoolean", RealmFieldType.BOOLEAN);
+            OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("Booleans");
+            this.doneIndex = addColumnDetails("done", objectSchemaInfo);
+            this.isReadyIndex = addColumnDetails("isReady", objectSchemaInfo);
+            this.mCompletedIndex = addColumnDetails("mCompleted", objectSchemaInfo);
+            this.anotherBooleanIndex = addColumnDetails("anotherBoolean", objectSchemaInfo);
         }
 
         BooleansColumnInfo(ColumnInfo src, boolean mutable) {
@@ -191,10 +193,10 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
         OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("Booleans");
-        builder.addProperty("done", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("isReady", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("mCompleted", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addProperty("anotherBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("done", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("isReady", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("mCompleted", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty("anotherBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         return builder.build();
     }
 
@@ -202,51 +204,8 @@ public class BooleansRealmProxy extends some.test.Booleans
         return expectedObjectSchemaInfo;
     }
 
-    public static BooleansColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
-        if (!sharedRealm.hasTable("class_Booleans")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "The 'Booleans' class is missing from the schema for this Realm.");
-        }
-        Table table = sharedRealm.getTable("class_Booleans");
-        final long columnCount = table.getColumnCount();
-        if (columnCount != 4) {
-            if (columnCount < 4) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 4 but was " + columnCount);
-            }
-            if (allowExtraColumns) {
-                RealmLog.debug("Field count is more than expected - expected 4 but was %1$d", columnCount);
-            } else {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 4 but was " + columnCount);
-            }
-        }
-        Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
-        for (long i = 0; i < columnCount; i++) {
-            columnTypes.put(table.getColumnName(i), table.getColumnType(i));
-        }
-
-        final BooleansColumnInfo columnInfo = new BooleansColumnInfo(sharedRealm, table);
-
-        if (table.hasPrimaryKey()) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
-        }
-
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "done", RealmFieldType.BOOLEAN, "boolean");
-        if (table.isColumnNullable(columnInfo.doneIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'done' does support null values in the existing Realm file. Use corresponding boxed type for field 'done' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "isReady", RealmFieldType.BOOLEAN, "boolean");
-        if (table.isColumnNullable(columnInfo.isReadyIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'isReady' does support null values in the existing Realm file. Use corresponding boxed type for field 'isReady' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "mCompleted", RealmFieldType.BOOLEAN, "boolean");
-        if (table.isColumnNullable(columnInfo.mCompletedIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'mCompleted' does support null values in the existing Realm file. Use corresponding boxed type for field 'mCompleted' or migrate using RealmObjectSchema.setNullable().");
-        }
-        ProxyUtils.verifyField(sharedRealm, columnTypes, "anotherBoolean", RealmFieldType.BOOLEAN, "boolean");
-        if (table.isColumnNullable(columnInfo.anotherBooleanIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'anotherBoolean' does support null values in the existing Realm file. Use corresponding boxed type for field 'anotherBoolean' or migrate using RealmObjectSchema.setNullable().");
-        }
-
-        return columnInfo;
+    public static BooleansColumnInfo createColumnInfo(OsSchemaInfo schemaInfo) {
+        return new BooleansColumnInfo(schemaInfo);
     }
 
     public static String getTableName() {

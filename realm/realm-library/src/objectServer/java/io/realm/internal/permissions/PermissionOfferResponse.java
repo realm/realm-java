@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.permissions;
+package io.realm.internal.permissions;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
+import io.realm.permissions.PermissionOffer;
+
 
 /**
  * This model is used to apply permission changes defined in the permission offer
@@ -35,7 +39,8 @@ import io.realm.annotations.Required;
  * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
  * documentation.
  */
-public class PermissionOfferResponse extends RealmObject {
+@RealmClass
+public class PermissionOfferResponse implements BasePermissionApi {
 
     // Base fields
     @PrimaryKey
@@ -77,15 +82,18 @@ public class PermissionOfferResponse extends RealmObject {
         this.token = token;
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getCreatedAt() {
         return createdAt;
     }
 
+    @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getUpdatedAt() {
         return updatedAt;
@@ -96,6 +104,7 @@ public class PermissionOfferResponse extends RealmObject {
      *
      * @return {@code null} if not yet processed. {@code 0} if successful, {@code >0} if an error happened. See {@link #getStatusMessage()}.
      */
+    @Override
     @Nullable
     public Integer getStatusCode() {
         return statusCode;
@@ -111,6 +120,7 @@ public class PermissionOfferResponse extends RealmObject {
         return statusCode != null && statusCode == 0;
     }
 
+    @Override
     @Nullable
     public String getStatusMessage() {
         return statusMessage;
@@ -123,5 +133,13 @@ public class PermissionOfferResponse extends RealmObject {
     @Nullable
     public String getRealmUrl() {
         return realmUrl;
+    }
+
+    public String getPath() {
+        try {
+            return new URI(realmUrl).getPath();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -26,6 +26,7 @@
 #include <util/format.hpp>
 
 #include "util.hpp"
+#include "java_class_global_def.hpp"
 
 #include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/java_method.hpp"
@@ -93,7 +94,7 @@ struct ChangeCallback {
             // wrapper->m_object.get_object_schema() will be faster.
             field_names.push_back(JavaGlobalRef(env, to_jstring(env, table->get_column_name(i)), true));
         }
-        m_field_names_array = env->NewObjectArray(field_names.size(), java_lang_string, 0);
+        m_field_names_array = env->NewObjectArray(field_names.size(), JavaClassGlobalDef::java_lang_string(), 0);
         for (size_t i = 0; i < field_names.size(); ++i) {
             env->SetObjectArrayElement(m_field_names_array, i, field_names[i].get());
         }
