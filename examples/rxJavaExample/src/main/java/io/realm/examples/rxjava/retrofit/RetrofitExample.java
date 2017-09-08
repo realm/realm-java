@@ -63,7 +63,7 @@ public class RetrofitExample extends AppCompatActivity {
         disposable = realm.where(Person.class).isNotNull("githubUserName").findAllSortedAsync("name").asFlowable()
                 // We only want the list once it is loaded.
                 .filter(people -> people.isLoaded())
-                .flatMap(people -> Flowable.fromIterable(people))
+                .switchMap(people -> Flowable.fromIterable(people))
 
                 // get GitHub statistics.
                 .flatMap(person -> api.user(person.getGithubUserName()))
