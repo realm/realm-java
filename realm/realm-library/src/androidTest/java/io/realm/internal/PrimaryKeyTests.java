@@ -21,6 +21,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,6 +86,7 @@ public class PrimaryKeyTests {
 
     // Tests that primary key constraints are actually removed.
     @Test
+    @Ignore("Waiting for https://github.com/realm/realm-sync/issues/1628")
     public void removingPrimaryKeyRemovesConstraint_typeSetters() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name("removeConstraints").build();
