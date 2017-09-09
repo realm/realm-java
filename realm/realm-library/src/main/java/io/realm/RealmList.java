@@ -397,7 +397,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     public boolean deleteLastFromRealm() {
         if (isManaged()) {
             if (!osListOperator.isEmpty()) {
-                osListOperator.removeLast();
+                osListOperator.deleteLast();
                 modCount++;
                 return true;
             } else {
@@ -546,7 +546,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     public void deleteFromRealm(int location) {
         if (isManaged()) {
             checkValidRealm();
-            osListOperator.remove(location);
+            osListOperator.delete(location);
             modCount++;
         } else {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
@@ -655,7 +655,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (isManaged()) {
             checkValidRealm();
             if (!osListOperator.isEmpty()) {
-                osListOperator.removeAll();
+                osListOperator.deleteAll();
                 modCount++;
                 return true;
             } else {
@@ -1789,12 +1789,20 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             osList.remove(index);
         }
 
-        final void removeLast() {
-            osList.remove(osList.size() - 1);
-        }
-
         final void removeAll() {
             osList.removeAll();
+        }
+
+        final void delete(int index) {
+            osList.delete(index);
+        }
+
+        final void deleteLast() {
+            osList.delete(osList.size() - 1);
+        }
+
+        final void deleteAll() {
+            osList.deleteAll();
         }
     }
 
