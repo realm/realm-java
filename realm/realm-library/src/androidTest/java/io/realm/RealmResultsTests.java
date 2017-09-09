@@ -37,14 +37,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
-import io.realm.entities.CyclicType;
 import io.realm.entities.DefaultValueOfField;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.entities.StringOnly;
-import io.realm.internal.Table;
+import io.realm.internal.Collection;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -103,14 +102,15 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     public void size_returns_Integer_MAX_VALUE_for_huge_results() {
-        final Table table = Mockito.mock(Table.class);
-        final RealmResults<AllTypes> targetResult = TestHelper.newRealmResults(realm, table, AllTypes.class);
+        final Collection collection = Mockito.mock(Collection.class);
+        final RealmResults<AllTypes> targetResult = TestHelper.newRealmResults(realm, collection, AllTypes.class);
 
-        Mockito.when(table.size()).thenReturn(((long) Integer.MAX_VALUE) - 1);
+        Mockito.when(collection.isLoaded()).thenReturn(true);
+        Mockito.when(collection.size()).thenReturn(((long) Integer.MAX_VALUE) - 1);
         assertEquals(Integer.MAX_VALUE - 1, targetResult.size());
-        Mockito.when(table.size()).thenReturn(((long) Integer.MAX_VALUE));
+        Mockito.when(collection.size()).thenReturn(((long) Integer.MAX_VALUE));
         assertEquals(Integer.MAX_VALUE, targetResult.size());
-        Mockito.when(table.size()).thenReturn(((long) Integer.MAX_VALUE) + 1);
+        Mockito.when(collection.size()).thenReturn(((long) Integer.MAX_VALUE) + 1);
         assertEquals(Integer.MAX_VALUE, targetResult.size());
     }
 
@@ -128,14 +128,14 @@ public class RealmResultsTests extends CollectionTests {
         for (CollectionMutatorMethod method : CollectionMutatorMethod.values()) {
             try {
                 switch (method) {
-                    case ADD_OBJECT: collection.add(new AllTypes());
+                    case ADD_OBJECT: collection.add(new AllTypes()); break;
                     case ADD_ALL_OBJECTS: collection.addAll(Collections.singletonList(new AllTypes())); break;
                     case CLEAR: collection.clear(); break;
-                    case REMOVE_OBJECT: collection.remove(new AllTypes());
+                    case REMOVE_OBJECT: collection.remove(new AllTypes()); break;
                     case REMOVE_ALL: collection.removeAll(Collections.singletonList(new AllTypes())); break;
                     case RETAIN_ALL: collection.retainAll(Collections.singletonList(new AllTypes())); break;
 
-                    // Supported methods
+                    // Supported methods.
                     case DELETE_ALL:
                         continue;
                 }
@@ -152,7 +152,7 @@ public class RealmResultsTests extends CollectionTests {
                     case SET: collection.set(0, new AllTypes()); break;
                     case REMOVE_INDEX: collection.remove(0); break;
 
-                    // Supported methods
+                    // Supported methods.
                     case DELETE_INDEX:
                     case DELETE_FIRST:
                     case DELETE_LAST:
@@ -164,7 +164,7 @@ public class RealmResultsTests extends CollectionTests {
         }
     }
 
-    // Triggered an ARM bug
+    // Triggers an ARM bug.
     @Test
     public void verifyArmComparisons() {
         realm.beginTransaction();
@@ -185,7 +185,7 @@ public class RealmResultsTests extends CollectionTests {
         assertEquals(10, realm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 0).findAll().size());
     }
 
-    // RealmResults.distinct(): requires indexing, and type = boolean, integer, date, string
+    // RealmResults.distinct(): requires indexing, and type = boolean, integer, date, string.
     private void populateForDistinct(Realm realm, long numberOfBlocks, long numberOfObjects, boolean withNull) {
         realm.beginTransaction();
         for (int i = 0; i < numberOfObjects * numberOfBlocks; i++) {
@@ -217,7 +217,7 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     public void distinct() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).findAll().distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL);
@@ -229,29 +229,30 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
+    @SuppressWarnings("ReferenceEquality")
     public void distinct_restrictedByPreviousDistinct() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        // all objects
+        // All objects
         RealmResults<AnnotationIndexTypes> allResults = realm.where(AnnotationIndexTypes.class).findAll();
         assertEquals("All Objects Count", numberOfBlocks * numberOfBlocks * numberOfObjects, allResults.size());
-        // distinctive dates
+        // Distinctive dates
         RealmResults<AnnotationIndexTypes> distinctDates = allResults.distinct(AnnotationIndexTypes.FIELD_INDEX_DATE);
         assertEquals("Distinctive Dates", numberOfBlocks, distinctDates.size());
-        // distinctive Booleans
+        // Distinctive Booleans
         RealmResults<AnnotationIndexTypes> distinctBooleans = distinctDates.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL);
         assertEquals("Distinctive Booleans", 2, distinctBooleans.size());
-        // all three results are the same object
-        assertTrue(allResults == distinctDates);
-        assertTrue(allResults == distinctBooleans);
+        // distinct results are not the same object
+        assertTrue(allResults != distinctDates);
+        assertTrue(allResults != distinctBooleans);
     }
 
     @Test
     public void distinct_withNullValues() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         for (String field : new String[]{AnnotationIndexTypes.FIELD_INDEX_DATE, AnnotationIndexTypes.FIELD_INDEX_STRING}) {
@@ -263,22 +264,24 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     public void distinct_notIndexedFields() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
-            try {
-                realm.where(AnnotationIndexTypes.class).findAll().distinct(field);
-                fail(field);
-            } catch (IllegalArgumentException ignored) {
-            }
+        RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class)
+                .findAll().distinct(AnnotationIndexTypes.FIELD_NOT_INDEX_BOOL);
+        assertEquals(2, distinctBool.size());
+        for (String field : new String[]{AnnotationIndexTypes.FIELD_NOT_INDEX_LONG,
+                AnnotationIndexTypes.FIELD_NOT_INDEX_DATE, AnnotationIndexTypes.FIELD_NOT_INDEX_STRING}) {
+            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).findAll()
+                    .distinct(field);
+            assertEquals(field, numberOfBlocks, distinct.size());
         }
     }
 
     @Test
     public void distinct_noneExistingField() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         try {
@@ -304,7 +307,7 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     public void distinct_indexedLinkedFields() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         for (String field : AnnotationIndexTypes.INDEX_FIELDS) {
@@ -319,7 +322,7 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     public void distinct_notIndexedLinkedFields() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
@@ -345,13 +348,13 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     @RunTestInLooperThread
     public void changeListener_syncIfNeeded_updatedFromOtherThread() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);
 
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 10).findAll();
         assertEquals(10, results.size());
 
-        // 1. Delete first object from another thread.
+        // 1. Deletes first object from another thread.
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -360,7 +363,7 @@ public class RealmResultsTests extends CollectionTests {
         }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
-                // 2. RealmResults are refreshed before onSuccess is called
+                // 2. RealmResults are refreshed before onSuccess is called.
                 assertEquals(9, results.size());
                 realm.close();
                 looperThread.testComplete();
@@ -377,7 +380,7 @@ public class RealmResultsTests extends CollectionTests {
             allTypes.setColumnBoolean((i % 2) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date(YEAR_MILLIS * (i - objects / 2)));
-            allTypes.setColumnDouble(3.1415 + i);
+            allTypes.setColumnDouble(Math.PI + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -401,7 +404,7 @@ public class RealmResultsTests extends CollectionTests {
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date(DECADE_MILLIS * (i - (objects / 2))));
-            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnDouble(Math.PI);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -418,9 +421,9 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void distinctAsync() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(4);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).findAll().distinctAsync(AnnotationIndexTypes.FIELD_INDEX_BOOL);
@@ -453,10 +456,10 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
-        looperThread.keepStrongReference.add(distinctBool);
-        looperThread.keepStrongReference.add(distinctLong);
-        looperThread.keepStrongReference.add(distinctDate);
-        looperThread.keepStrongReference.add(distinctString);
+        looperThread.keepStrongReference(distinctBool);
+        looperThread.keepStrongReference(distinctLong);
+        looperThread.keepStrongReference(distinctDate);
+        looperThread.keepStrongReference(distinctString);
         distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
             public void onChange(RealmResults<AnnotationIndexTypes> object) {
@@ -494,9 +497,9 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void distinctAsync_withNullValues() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(2);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).findAll().distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
@@ -519,8 +522,8 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
-        looperThread.keepStrongReference.add(distinctDate);
-        looperThread.keepStrongReference.add(distinctString);
+        looperThread.keepStrongReference(distinctDate);
+        looperThread.keepStrongReference(distinctString);
         distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
             public void onChange(RealmResults<AnnotationIndexTypes> object) {
@@ -539,21 +542,87 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_notIndexedFields() {
+        final AtomicInteger changeListenerCalled = new AtomicInteger(4);
+        Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
-            try {
-                realm.where(AnnotationIndexTypes.class).findAll().distinctAsync(field);
-                fail(field);
-            } catch (IllegalArgumentException ignored) {
+        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_BOOL);
+        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_LONG);
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_DATE);
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_STRING);
+
+        assertFalse(distinctBool.isLoaded());
+        assertTrue(distinctBool.isValid());
+        assertTrue(distinctBool.isEmpty());
+
+        assertFalse(distinctLong.isLoaded());
+        assertTrue(distinctLong.isValid());
+        assertTrue(distinctLong.isEmpty());
+
+        assertFalse(distinctDate.isLoaded());
+        assertTrue(distinctDate.isValid());
+        assertTrue(distinctDate.isEmpty());
+
+        assertFalse(distinctString.isLoaded());
+        assertTrue(distinctString.isValid());
+        assertTrue(distinctString.isEmpty());
+
+        final Runnable endTest = new Runnable() {
+            @Override
+            public void run() {
+                if (changeListenerCalled.decrementAndGet() == 0) {
+                    looperThread.testComplete();
+                }
             }
-        }
+        };
+
+        looperThread.keepStrongReference(distinctBool);
+        looperThread.keepStrongReference(distinctLong);
+        looperThread.keepStrongReference(distinctDate);
+        looperThread.keepStrongReference(distinctString);
+        distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(2, distinctBool.size());
+                endTest.run();
+            }
+        });
+
+        distinctLong.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(numberOfBlocks, distinctLong.size());
+                endTest.run();
+            }
+        });
+
+        distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(numberOfBlocks, distinctDate.size());
+                endTest.run();
+            }
+        });
+
+        distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+            @Override
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
+                assertEquals(numberOfBlocks, distinctString.size());
+                endTest.run();
+            }
+        });
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_doesNotExist() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -563,9 +632,11 @@ public class RealmResultsTests extends CollectionTests {
             realm.where(AnnotationIndexTypes.class).findAll().distinctAsync("doesNotExist");
         } catch (IllegalArgumentException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_invalidTypes() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
@@ -575,9 +646,11 @@ public class RealmResultsTests extends CollectionTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_indexedLinkedFields() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -590,9 +663,11 @@ public class RealmResultsTests extends CollectionTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_notIndexedLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
@@ -600,12 +675,13 @@ public class RealmResultsTests extends CollectionTests {
             realm.where(AllJavaTypes.class).findAll().distinctAsync(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY);
         } catch (IllegalArgumentException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
     public void distinctMultiArgs() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmResults<AnnotationIndexTypes> results = realm.where(AnnotationIndexTypes.class).findAll();
@@ -618,7 +694,7 @@ public class RealmResultsTests extends CollectionTests {
         final long numberOfBlocks = 25;
         TestHelper.populateForDistinctFieldsOrder(realm, numberOfBlocks);
 
-        // Regardless of the block size defined above, the output size is expected to be the same, 4 in this case, due to receiving unique combinations of tuples
+        // Regardless of the block size defined above, the output size is expected to be the same, 4 in this case, due to receiving unique combinations of tuples.
         RealmResults<AnnotationIndexTypes> results = realm.where(AnnotationIndexTypes.class).findAll();
         RealmResults<AnnotationIndexTypes> distinctStringLong = results.distinct(AnnotationIndexTypes.FIELD_INDEX_STRING, AnnotationIndexTypes.FIELD_INDEX_LONG);
         RealmResults<AnnotationIndexTypes> distinctLongString = results.distinct(AnnotationIndexTypes.FIELD_INDEX_LONG, AnnotationIndexTypes.FIELD_INDEX_STRING);
@@ -634,47 +710,47 @@ public class RealmResultsTests extends CollectionTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmResults<AnnotationIndexTypes> results = realm.where(AnnotationIndexTypes.class).findAll();
-        // an empty string field in the middle
+        // An empty string field in the middle.
         try {
             results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, "", AnnotationIndexTypes.FIELD_INDEX_INT);
         } catch (IllegalArgumentException ignored) {
         }
-        // an empty string field at the end
+        // An empty string field at the end.
         try {
             results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, "");
         } catch (IllegalArgumentException ignored) {
         }
-        // a null string field in the middle
+        // A null string field in the middle.
         try {
             results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, null, AnnotationIndexTypes.FIELD_INDEX_INT);
         } catch (IllegalArgumentException ignored) {
         }
-        // a null string field at the end
+        // A null string field at the end.
         try {
             results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, null);
         } catch (IllegalArgumentException ignored) {
         }
-        // (String)null makes varargs a null array.
+        // (String) Null makes varargs a null array.
         try {
             results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String)null);
         } catch (IllegalArgumentException ignored) {
         }
-        // Two (String)null for first and varargs fields
+        // Two (String) null for first and varargs fields.
         try {
             results.distinct(null, (String) null);
         } catch (IllegalArgumentException ignored) {
         }
-        // "" & (String)null combination
+        // "" & (String)null combination.
         try {
             results.distinct("", (String) null);
         } catch (IllegalArgumentException ignored) {
         }
-        // "" & (String)null combination
+        // "" & (String)null combination.
         try {
             results.distinct(null, "");
         } catch (IllegalArgumentException ignored) {
         }
-        // Two empty fields tests
+        // Two empty fields tests.
         try {
             results.distinct("", "");
         } catch (IllegalArgumentException ignored) {
@@ -766,106 +842,151 @@ public class RealmResultsTests extends CollectionTests {
         }
     }
 
-    private RealmResults<Dog> populateRealmResultsOnDeletedLinkView() {
+    private RealmResults<Dog> populateRealmResultsOnLinkView(Realm realm) {
         realm.beginTransaction();
         Owner owner = realm.createObject(Owner.class);
         for (int i = 0; i < 10; i++) {
             Dog dog = new Dog();
             dog.setName("name_" + i);
             dog.setOwner(owner);
+            dog.setAge(i);
+            dog.setBirthday(new Date(i));
             owner.getDogs().add(dog);
         }
         realm.commitTransaction();
 
 
-        RealmResults<Dog> dogs = owner.getDogs().where().equalTo(Dog.FIELD_NAME, "name_0").findAll();
-
-        realm.beginTransaction();
-        owner.deleteFromRealm();
-        realm.commitTransaction();
-        return dogs;
+        return owner.getDogs().where().lessThan(Dog.FIELD_AGE, 5).findAll();
     }
 
-    // It will still be treated as valid table view in core, just always be empty.
+    // If a RealmResults is built on a link view, when the link view is deleted on the same thread, within the same
+    // event loop, the RealmResults stays without changes since it is detached until the next event loop. In the next
+    // event loop, the results will be empty because of the parent link view is deleted.
+    // 1. Create results from link view.
+    // 2. Delete the parent link view by a local transaction.
+    // 3. Within the same event loop, the results stays the same.
+    // 4. The results change listener called, the results becomes empty.
     @Test
-    public void isValid_resultsBuiltOnDeletedLinkView() {
-        assertEquals(true, populateRealmResultsOnDeletedLinkView().isValid());
+    @RunTestInLooperThread
+    public void accessors_resultsBuiltOnDeletedLinkView_deletionAsALocalCommit() {
+        Realm realm = looperThread.getRealm();
+        // Step 1
+        RealmResults<Dog> dogs = populateRealmResultsOnLinkView(realm);
+        looperThread.keepStrongReference(dogs);
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
+            @Override
+            public void onChange(RealmResults<Dog> dogs) {
+                // Step 4.
+                // The results is still valid, but empty.
+                assertEquals(true, dogs.isValid());
+                assertEquals(true, dogs.isEmpty());
+                assertEquals(0, dogs.size());
+                try {
+                    dogs.first();
+                    fail();
+                } catch (IndexOutOfBoundsException ignored) {
+                }
+
+                assertEquals(0, dogs.sum(Dog.FIELD_AGE).intValue());
+                assertEquals(0f, dogs.sum(Dog.FIELD_HEIGHT).floatValue(), 0f);
+                assertEquals(0d, dogs.sum(Dog.FIELD_WEIGHT).doubleValue(), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_AGE), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_HEIGHT), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_WEIGHT), 0d);
+                assertEquals(null, dogs.min(Dog.FIELD_AGE));
+                assertEquals(null, dogs.max(Dog.FIELD_AGE));
+                assertEquals(null, dogs.minDate(Dog.FIELD_BIRTHDAY));
+                assertEquals(null, dogs.maxDate(Dog.FIELD_BIRTHDAY));
+
+                assertEquals(0, dogs.where().findAll().size());
+
+                looperThread.testComplete();
+            }
+        });
+
+        // Step 2
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(Owner.class).findAll().deleteAllFromRealm();
+            }
+        });
+
+        // Step 3
+        assertEquals(true, dogs.isValid());
+        assertEquals(0, dogs.size());
+        // The link view has been deleted.
+        assertEquals(0, dogs.where().findAll().size());
     }
 
+    // If a RealmResults is built on a link view, when the link view is deleted on a remote thread, within the same
+    // event loop, the RealmResults stays without changes since the Realm version doesn't change. In the next
+    // event loop, the results will be empty because of the parent link view is deleted.
+    // 1. Create results from link view.
+    // 2. Delete the parent link view by a remote transaction.
+    // 3. Within the same event loop, the results stays the same.
+    // 4. The results change listener called, the results becomes empty.
     @Test
-    public void size_resultsBuiltOnDeletedLinkView() {
-        assertEquals(0, populateRealmResultsOnDeletedLinkView().size());
-    }
+    @RunTestInLooperThread
+    public void accessors_resultsBuiltOnDeletedLinkView_deletionAsARemoteCommit() {
+        // Step 1
+        Realm realm = looperThread.getRealm();
+        RealmResults<Dog> dogs = populateRealmResultsOnLinkView(realm);
+        looperThread.keepStrongReference(dogs);
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
+            @Override
+            public void onChange(RealmResults<Dog> dogs) {
+                // Step 4
+                // The results is still valid, but empty.
+                assertEquals(true, dogs.isValid());
+                assertEquals(true, dogs.isEmpty());
+                assertEquals(0, dogs.size());
+                try {
+                    dogs.first();
+                    fail();
+                } catch (IndexOutOfBoundsException ignored) {
+                }
 
-    @Test
-    public void first_resultsBuiltOnDeletedLinkView() {
-        try {
-            populateRealmResultsOnDeletedLinkView().first();
-        } catch (IndexOutOfBoundsException ignored) {
-        }
-    }
+                assertEquals(0, dogs.sum(Dog.FIELD_AGE).intValue());
+                assertEquals(0f, dogs.sum(Dog.FIELD_HEIGHT).floatValue(), 0f);
+                assertEquals(0d, dogs.sum(Dog.FIELD_WEIGHT).doubleValue(), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_AGE), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_HEIGHT), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_WEIGHT), 0d);
+                assertEquals(null, dogs.min(Dog.FIELD_AGE));
+                assertEquals(null, dogs.max(Dog.FIELD_AGE));
+                assertEquals(null, dogs.minDate(Dog.FIELD_BIRTHDAY));
+                assertEquals(null, dogs.maxDate(Dog.FIELD_BIRTHDAY));
 
-    @Test
-    public void last_resultsBuiltOnDeletedLinkView() {
-        try {
-            populateRealmResultsOnDeletedLinkView().last();
-        } catch (IndexOutOfBoundsException ignored) {
-        }
-    }
+                assertEquals(0, dogs.where().findAll().size());
 
-    @Test
-    public void sum_resultsBuiltOnDeletedLinkView() {
-        RealmResults<Dog> dogs = populateRealmResultsOnDeletedLinkView();
-        assertEquals(0, dogs.sum(Dog.FIELD_AGE).intValue());
-        assertEquals(0f, dogs.sum(Dog.FIELD_HEIGHT).floatValue(), 0f);
-        assertEquals(0d, dogs.sum(Dog.FIELD_WEIGHT).doubleValue(), 0d);
-    }
+                looperThread.testComplete();
+            }
+        });
 
-    @Test
-    public void average_resultsBuiltOnDeletedLinkView() {
-        RealmResults<Dog> dogs = populateRealmResultsOnDeletedLinkView();
-        assertEquals(0d, dogs.average(Dog.FIELD_AGE), 0d);
-        assertEquals(0d, dogs.average(Dog.FIELD_HEIGHT), 0d);
-        assertEquals(0d, dogs.average(Dog.FIELD_WEIGHT), 0d);
-    }
 
-    @Test
-    public void where_resultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertEquals(0, results.where().findAll().size());
-    }
+        // Step 2
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(Owner.class).findAll().deleteAllFromRealm();
+            }
+        });
 
-    @Test
-    public void min_resultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertNull(results.min(CyclicType.FIELD_ID));
-    }
-
-    @Test
-    public void min_dateResultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertEquals(null, results.minDate(CyclicType.FIELD_DATE));
-    }
-
-    @Test
-    public void max_dateResultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertEquals(null, results.maxDate(CyclicType.FIELD_DATE));
-    }
-
-    @Test
-    public void max_resultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertNull(results.max(CyclicType.FIELD_ID));
+        // Step 3
+        assertEquals(true, dogs.isValid());
+        assertEquals(5, dogs.size());
+        // The link view still exists
+        assertEquals(5, dogs.where().findAll().size());
     }
 
     @Test
     @RunTestInLooperThread
     public void addChangeListener() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
@@ -882,7 +1003,7 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void addChangeListener_twice() {
         final AtomicInteger listenersTriggered = new AtomicInteger(0);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
         RealmChangeListener<RealmResults<AllTypes>> listener = new RealmChangeListener<RealmResults<AllTypes>>() {
@@ -910,7 +1031,7 @@ public class RealmResultsTests extends CollectionTests {
         });
 
         // Adding it twice will be ignored, so removing it will not cause the listener to be triggered.
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addChangeListener(listener);
         collection.addChangeListener(listener);
         collection.removeChangeListener(listener);
@@ -924,7 +1045,7 @@ public class RealmResultsTests extends CollectionTests {
     @UiThreadTest
     public void addChangeListener_null() {
         try {
-            collection.addChangeListener(null);
+            collection.addChangeListener((RealmChangeListener<RealmResults<AllTypes>>) null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -934,7 +1055,7 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void removeChangeListener() {
         final AtomicInteger listenersTriggered = new AtomicInteger(0);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
         RealmChangeListener<RealmResults<AllTypes>> listener = new RealmChangeListener<RealmResults<AllTypes>>() {
@@ -944,7 +1065,7 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addChangeListener(listener);
         collection.removeChangeListener(listener);
 
@@ -969,7 +1090,7 @@ public class RealmResultsTests extends CollectionTests {
     @UiThreadTest
     public void removeChangeListener_null() {
         try {
-            collection.removeChangeListener(null);
+            collection.removeChangeListener((RealmChangeListener) null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -979,7 +1100,7 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void removeAllChangeListeners() {
         final AtomicInteger listenersTriggered = new AtomicInteger(0);
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
         RealmChangeListener<RealmResults<AllTypes>> listenerA = new RealmChangeListener<RealmResults<AllTypes>>() {
@@ -995,10 +1116,10 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
-        looperThread.keepStrongReference.add(collection);
+        looperThread.keepStrongReference(collection);
         collection.addChangeListener(listenerA);
         collection.addChangeListener(listenerB);
-        collection.removeChangeListeners();
+        collection.removeAllChangeListeners();
 
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
@@ -1018,6 +1139,33 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
+    @RunTestInLooperThread
+    public void removeAllChangeListeners_thenAdd() {
+        final Realm realm = looperThread.getRealm();
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
+
+        collection.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                fail();
+            }
+        });
+        collection.removeAllChangeListeners();
+
+        collection.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                assertEquals(1, results.size());
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+    }
+
+    @Test
     public void deleteAndDeleteAll() {
         realm.beginTransaction();
         for (int i = 0; i < 10; i++) {
@@ -1029,12 +1177,12 @@ public class RealmResultsTests extends CollectionTests {
         RealmResults<StringOnly> stringOnlies = realm.where(StringOnly.class).findAll();
 
         realm.beginTransaction();
-        // remove one object
+        // Removes one object.
         stringOnlies.get(0).deleteFromRealm();
         realm.commitTransaction();
 
         realm.beginTransaction();
-        // remove the rest
+        // Removes the rest.
         stringOnlies.deleteAllFromRealm();
         realm.commitTransaction();
 
@@ -1081,7 +1229,7 @@ public class RealmResultsTests extends CollectionTests {
                 fieldObjectValue.setFieldInt(fieldObjectIntValue);
                 obj.setFieldObject(fieldObjectValue);
 
-                final RealmList<RandomPrimaryKey> list = new RealmList<>();
+                final RealmList<RandomPrimaryKey> list = new RealmList<RandomPrimaryKey>();
                 final RandomPrimaryKey listItem = new RandomPrimaryKey();
                 listItem.setFieldInt(fieldListIntValue);
                 list.add(listItem);

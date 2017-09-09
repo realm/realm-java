@@ -14,132 +14,126 @@
  * limitations under the License.
  */
 
-#include <jni.h>
-
-#include <chrono>
-#include <functional>
-#include <mutex>
-#include <vector>
-
-#include <realm/group_shared.hpp>
-#include <realm/sync/history.hpp>
-#include <realm/sync/client.hpp>
-
-#include "objectserver_shared.hpp"
-
 #include "io_realm_SyncManager.h"
 
+#include <realm/group_shared.hpp>
+
+#include <sync/sync_manager.hpp>
+#include <sync/sync_session.hpp>
+#include <binding_callback_thread_observer.hpp>
+
+#include "util.hpp"
+#include "jni_util/java_class.hpp"
+#include "jni_util/java_method.hpp"
+#include "jni_util/jni_utils.hpp"
+
 using namespace realm;
-using namespace realm::sync;
+using namespace realm::jni_util;
+using namespace realm::util;
 
-std::unique_ptr<Client> sync_client;
-
-class AndroidLogger: public util::RootLogger
-{
-public:
-    void do_log(Level level, std::string msg)
+struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
+    AndroidClientListener(JNIEnv* env)
+        : m_realm_exception_class(env, "io/realm/exceptions/RealmError")
     {
-        // FIXME Sync only calls the logger from the thread running the client, so it should
-        // be safe to store the env when starting the thread.
-        JNIEnv *env;
-        g_vm->AttachCurrentThread(&env, nullptr);
-        jmethodID log_method;
-        switch (level) {
-            case Level::trace: log_method = log_trace; break;
-            case Level::debug: log_method = log_debug; break;
-            case Level::detail: log_method = log_debug; break;
-            case Level::info: log_method = log_info; break;
-            case Level::warn: log_method = log_warn; break;
-            case Level::error: log_method = log_error; break;
-            case Level::fatal: log_method = log_fatal; break;
-            case Level::all:
-            case Level::off:
-                ThrowException(env, IllegalArgument,
-                        util::format("Unknown logger argument: %s.", util::Logger::get_level_prefix(level)));
-                return;
-        }
-        log_message(env, log_method, msg.c_str());
     }
-    static AndroidLogger& shared() noexcept;
+
+    void did_create_thread() override
+    {
+        Log::d("SyncClient thread created");
+        // Attach the sync client thread to the JVM so errors can be returned properly
+        JniUtils::get_env(true);
+    }
+
+    void will_destroy_thread() override
+    {
+        // avoid allocating any NewString if we have a pending exception
+        // otherwise a "JNI called with pending exception" will be called
+        if (JniUtils::get_env(true)->ExceptionCheck() == JNI_FALSE) {
+            Log::d("SyncClient thread destroyed");
+        }
+
+        // Failing to detach the JVM before closing the thread will crash on ART
+        JniUtils::detach_current_thread();
+    }
+
+    void handle_error(std::exception const& e) override
+    {
+        JNIEnv* env = JniUtils::get_env(true);
+        std::string msg = format("An exception has been thrown on the sync client thread:\n%1", e.what());
+        Log::f(msg.c_str());
+        // Since user has no way to handle exceptions thrown on the sync client thread, we just convert it to a Java
+        // exception to get more debug information for ourself.
+        // FIXME: We really need to find a universal and clever way to get the native backtrace when exception thrown
+        env->ThrowNew(m_realm_exception_class, msg.c_str());
+    }
+
+private:
+    // For some reasons, FindClass() doesn't work in the native thread even when the JVM is attached before. Get the
+    // RealmError class on a normal JVM thread and throw it later on the sync client thread.
+    JavaClass m_realm_exception_class;
 };
 
-// Not used by now
-struct AndroidLoggerFactory : public realm::SyncLoggerFactory {
-    std::unique_ptr<util::Logger> make_logger(util::Logger::Level level) {
-        auto logger = std::make_unique<AndroidLogger>();
-        logger->set_level_threshold(level);
-        return std::unique_ptr<util::Logger>(std::move(logger));
+struct AndroidSyncLoggerFactory : public realm::SyncLoggerFactory {
+    // The level param is ignored. Use the global RealmLog.setLevel() to control all log levels.
+    std::unique_ptr<util::Logger> make_logger(Logger::Level) override
+    {
+        auto logger = std::make_unique<CoreLoggerBridge>(std::string("REALM_SYNC"));
+        // Cast to std::unique_ptr<util::Logger>
+        return std::move(logger);
     }
-} s_logger_factory;
+} s_sync_logger_factory;
 
-// TODO: Move to a better place & not needed after moving to OS
-AndroidLogger& AndroidLogger::shared() noexcept
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass)
 {
-    static AndroidLogger logger;
-    return logger;
-}
-
-static jclass sync_manager = nullptr;
-static jmethodID sync_manager_notify_error_handler = nullptr;
-
-static void error_handler(int error_code, std::string message)
-{
-    JNIEnv* env;
-    if (g_vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-        throw std::runtime_error("JVM is not attached to this thread. Called in error_handler.");
+    TR_ENTER()
+    try {
+        SyncManager::shared().reset_for_testing();
     }
-
-    env->CallStaticVoidMethod(sync_manager,
-                              sync_manager_notify_error_handler, error_code, env->NewStringUTF(message.c_str()));
+    CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
-    (JNIEnv *env, jclass sync_manager_class)
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNIEnv* env, jclass, jstring sync_base_dir)
 {
-    TR_ENTER(env)
-    if (sync_client) return;
-
+    TR_ENTER()
     try {
-        AndroidLogger::shared().set_level_threshold(util::Logger::Level::warn);
+        JStringAccessor base_file_path(env, sync_base_dir); // throws
+        SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
 
-        sync::Client::Config config;
-        config.logger = &AndroidLogger::shared();
-        sync_client = std::make_unique<Client>(std::move(config)); // Throws
+        static AndroidClientListener client_thread_listener(env);
+        // Register Sync Client thread start/stop callback
+        g_binding_callback_thread_observer = &client_thread_listener;
 
-        // This function should only be called once, so below is safe.
-        sync_manager = sync_manager_class;
-        sync_manager_notify_error_handler = env->GetStaticMethodID(sync_manager,
-                                                                   "notifyErrorHandler", "(ILjava/lang/String;)V");
-        sync_client->set_error_handler(error_handler);
-    } CATCH_STD()
+        // init logger
+        SyncManager::shared().set_logger_factory(s_sync_logger_factory);
+    }
+    CATCH_STD()
 }
 
-// Create the thread from java side to avoid some strange errors when native throws.
-JNIEXPORT void JNICALL
-Java_io_realm_SyncManager_nativeRunClient(JNIEnv *env, jclass)
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv* env, jclass, jstring local_realm_path,
+                                                                         jint err_code, jstring err_message,
+                                                                         jboolean is_fatal)
 {
+    TR_ENTER()
     try {
-        sync_client->run();
-    } CATCH_STD()
-}
+        JStringAccessor path(env, local_realm_path);
+        JStringAccessor message(env, err_message);
 
-JNIEXPORT void JNICALL
-Java_io_realm_SyncManager_nativeSetSyncClientLogLevel(JNIEnv* env, jclass, jint logLevel)
-{
-    util::Logger::Level native_log_level;
-    switch(logLevel) {
-        case io_realm_log_LogLevel_ALL: native_log_level = util::Logger::Level::all; break;
-        case io_realm_log_LogLevel_TRACE: native_log_level = util::Logger::Level::trace; break;
-        case io_realm_log_LogLevel_DEBUG: native_log_level = util::Logger::Level::debug; break;
-        case io_realm_log_LogLevel_INFO: native_log_level = util::Logger::Level::info; break;
-        case io_realm_log_LogLevel_WARN: native_log_level = util::Logger::Level::warn; break;
-        case io_realm_log_LogLevel_ERROR: native_log_level = util::Logger::Level::error; break;
-        case io_realm_log_LogLevel_FATAL: native_log_level = util::Logger::Level::fatal; break;
-        case io_realm_log_LogLevel_OFF: native_log_level = util::Logger::Level::off; break;
-        default:
-            ThrowException(env, IllegalArgument, "Invalid log level: " + logLevel);
+        auto session = SyncManager::shared().get_existing_active_session(path);
+        if (!session) {
+            ThrowException(env, IllegalArgument, concat_stringdata("Session not found: ", path));
             return;
+        }
+        std::error_code code = std::error_code{static_cast<int>(err_code), realm::sync::protocol_error_category()};
+        SyncSession::OnlyForTesting::handle_error(*session, {code, std::string(message), to_bool(is_fatal)});
     }
-    // FIXME: This call is not thread safe. Switch to OS implementation to make it thread safe.
-    AndroidLogger::shared().set_level_threshold(native_log_level);
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReconnect(JNIEnv* env, jclass)
+{
+    TR_ENTER()
+    try {
+        SyncManager::shared().reconnect();
+    }
+    CATCH_STD()
 }

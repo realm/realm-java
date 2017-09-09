@@ -20,7 +20,6 @@ import android.app.Application;
 import android.util.Log;
 
 import io.realm.Realm;
-import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
 
 public class MyApplication extends Application {
@@ -32,8 +31,7 @@ public class MyApplication extends Application {
 
         // Enable full log output when debugging
         if (BuildConfig.DEBUG) {
-            RealmLog.clear();
-            RealmLog.add(new AndroidLogger(Log.VERBOSE));
+            RealmLog.setLevel(Log.VERBOSE);
         }
     }
 }

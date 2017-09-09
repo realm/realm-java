@@ -16,11 +16,11 @@
 
 package io.realm;
 
-import io.realm.annotations.Beta;
+import javax.annotation.Nullable;
+
 import io.realm.internal.Util;
 
 /**
- * @Beta
  * This class is a wrapper for all errors happening when communicating with the Realm Object Server.
  * This include both exceptions and protocol errors.
  *
@@ -30,7 +30,6 @@ import io.realm.internal.Util;
  *
  * @see ErrorCode for a list of possible errors.
  */
-@Beta
 public class ObjectServerError extends RuntimeException {
 
     private final ErrorCode error;
@@ -64,7 +63,7 @@ public class ObjectServerError extends RuntimeException {
      * @param errorMessage detailed error message.
      * @param exception underlying exception if the error was caused by this.
      */
-    public ObjectServerError(ErrorCode errorCode, String errorMessage, Throwable exception) {
+    public ObjectServerError(ErrorCode errorCode, @Nullable String errorMessage, @Nullable Throwable exception) {
         this.error = errorCode;
         this.errorMessage = errorMessage;
         this.exception = exception;
@@ -77,7 +76,7 @@ public class ObjectServerError extends RuntimeException {
      * @param title Title for this type of error.
      * @param hint a hint for resolving the error.
      */
-    public ObjectServerError(ErrorCode errorCode, String title, String hint) {
+    public ObjectServerError(ErrorCode errorCode, String title, @Nullable String hint) {
         this(errorCode, (hint != null) ? title + " : " + hint : title, (Throwable) null);
     }
 
@@ -112,7 +111,7 @@ public class ObjectServerError extends RuntimeException {
     /**
      * Returns the {@link ErrorCode.Category} category for this error.
      * Errors that are {@link ErrorCode.Category#RECOVERABLE} mean that it is still possible for a
-     * given {@link Session} to resume synchronization. {@link ErrorCode.Category#FATAL} errors
+     * given {@link SyncSession} to resume synchronization. {@link ErrorCode.Category#FATAL} errors
      * means that session has stopped and cannot be recovered.
      *
      * @return the error category.

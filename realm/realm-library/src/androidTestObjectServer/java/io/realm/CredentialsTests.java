@@ -35,7 +35,7 @@ public class CredentialsTests {
 
     @Test
     public void getUserInfo_isUnmodifiable() {
-        Credentials creds = Credentials.custom("foo", "bar", null);
+        SyncCredentials creds = SyncCredentials.custom("foo", "customProvider", null);
         Map<java.lang.String, Object> userInfo = creds.getUserInfo();
         try {
             userInfo.put("boom", null);
@@ -46,37 +46,19 @@ public class CredentialsTests {
 
     @Test
     public void facebook() {
-        Credentials creds = Credentials.facebook("foo");
+        SyncCredentials creds = SyncCredentials.facebook("foo");
 
-        assertEquals(Credentials.IdentityProvider.FACEBOOK, creds.getIdentityProvider());
-        assertEquals("foo", creds.getUserIdentifier());
-        assertTrue(creds.getUserInfo().isEmpty());
-    }
-
-    @Test
-    public void google() {
-        Credentials creds = Credentials.google("foo");
-
-        assertEquals(Credentials.IdentityProvider.GOOGLE, creds.getIdentityProvider());
-        assertEquals("foo", creds.getUserIdentifier());
-        assertTrue(creds.getUserInfo().isEmpty());
-    }
-
-    @Test
-    public void twitter() {
-        Credentials creds = Credentials.twitter("foo");
-
-        assertEquals(Credentials.IdentityProvider.TWITTER, creds.getIdentityProvider());
+        assertEquals(SyncCredentials.IdentityProvider.FACEBOOK, creds.getIdentityProvider());
         assertEquals("foo", creds.getUserIdentifier());
         assertTrue(creds.getUserInfo().isEmpty());
     }
 
     @Test
     public void facebook_invalidInput() {
-        String[] invalidInput = { null, ""};
+        String[] invalidInput = {null, ""};
         for (String input : invalidInput) {
             try {
-                Credentials.facebook(input);
+                SyncCredentials.facebook(input);
                 fail(input + " should have failed");
             } catch (IllegalArgumentException ignored) {
             }
@@ -84,47 +66,69 @@ public class CredentialsTests {
     }
 
     @Test
-    public void usernamePassword() {
-        Credentials creds = Credentials.usernamePassword("foo", "bar", true);
-        assertEquals("foo", creds.getUserIdentifier());
-        Map<String, Object> userInfo = creds.getUserInfo();
+    public void google() {
+        SyncCredentials creds = SyncCredentials.google("foo");
 
-        assertEquals(Credentials.IdentityProvider.USERNAME_PASSWORD, creds.getIdentityProvider());
-        assertEquals("bar", userInfo.get("password"));
-        assertTrue((Boolean) userInfo.get("register"));
+        assertEquals(SyncCredentials.IdentityProvider.GOOGLE, creds.getIdentityProvider());
+        assertEquals("foo", creds.getUserIdentifier());
+        assertTrue(creds.getUserInfo().isEmpty());
+    }
+
+    @Test
+    public void google_invalidInput() {
+        String[] invalidInput = {null, ""};
+        for (String input : invalidInput) {
+            try {
+                SyncCredentials.google(input);
+                fail(input + " should have failed");
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void usernamePassword_register() {
+        SyncCredentials creds = SyncCredentials.usernamePassword("foo", "bar", true);
+        assertUsernamePassword(creds, "foo", "bar", true);
+    }
+
+    @Test
+    public void usernamePassword_noRegister() {
+        SyncCredentials creds = SyncCredentials.usernamePassword("foo", "bar", false);
+        assertUsernamePassword(creds, "foo", "bar", false);
+    }
+
+    @Test
+    public void usernamePassword_defaultRegister() {
+        SyncCredentials creds = SyncCredentials.usernamePassword("foo", "bar");
+        assertUsernamePassword(creds, "foo", "bar", false);
     }
 
     // Only validate username. All passwords are allowed
     @Test
     public void usernamePassword_invalidUserName() {
-        String[] invalidInput = { null, ""};
+        String[] invalidInput = {null, ""};
         for (String input : invalidInput) {
             try {
-                Credentials.usernamePassword(input, "bar", true);
+                SyncCredentials.usernamePassword(input, "bar", true);
                 fail(input + " should have failed");
             } catch (IllegalArgumentException ignored) {
             }
         }
     }
 
+    // Null passwords are allowed
     @Test
-    public void custom_invalidUserName() {
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("custom", "property");
-        for (String username : new String[]{null, ""}) {
-            try {
-                Credentials.custom("facebook", username, userInfo);
-                fail();
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
+    public void usernamePassword_nullPassword() {
+        SyncCredentials creds = SyncCredentials.usernamePassword("foo", null, true);
+        assertUsernamePassword(creds, "foo", null, true);
     }
 
     @Test
     public void custom() {
         Map<java.lang.String, Object> userInfo = new HashMap<String, Object>();
         userInfo.put("custom", "property");
-        Credentials creds = Credentials.custom("customProvider", "foo", userInfo);
+        SyncCredentials creds = SyncCredentials.custom("foo", "customProvider", userInfo);
 
         assertEquals("foo", creds.getUserIdentifier());
         assertEquals("customProvider", creds.getIdentityProvider());
@@ -133,16 +137,42 @@ public class CredentialsTests {
     }
 
     @Test
-    public void custom_invalidProvider() {
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("custom", "property");
+    public void custom_invalidUserName() {
+        Map<String, Object> userInfo = new HashMap<String, Object>();
 
-        for (String provider : new String[]{null, ""}) {
+        String[] invalidInput = {null, ""};
+        for (String username : invalidInput) {
             try {
-                Credentials.custom(null, "foo", userInfo);
+                SyncCredentials.custom(username, SyncCredentials.IdentityProvider.FACEBOOK, userInfo);
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
         }
+    }
+
+    @Test
+    public void custom_invalidProvider() {
+        Map<String, Object> userInfo = new HashMap<String, Object>();
+
+        try {
+            SyncCredentials.custom("foo", null, userInfo);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    private void assertUsernamePassword(SyncCredentials creds, String username, String password, boolean register) {
+        assertEquals(username, creds.getUserIdentifier());
+
+        Map<String, Object> userInfo = creds.getUserInfo();
+        assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, creds.getIdentityProvider());
+
+        assertEquals(password, userInfo.get("password"));
+
+        Boolean registerActual = (Boolean) userInfo.get("register");
+        if (registerActual == null) {
+            registerActual = Boolean.FALSE;
+        }
+        assertEquals(register, registerActual);
     }
 }

@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -27,9 +25,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.Collection;
-import java.util.Set;
+import java.util.Collections;
 
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
@@ -39,7 +39,6 @@ import static org.junit.Assert.assertTrue;
 @RunWith(AndroidJUnit4.class)
 public class SyncManagerTests {
 
-    private Context context;
     private UserStore userStore;
 
     @Rule
@@ -50,46 +49,40 @@ public class SyncManagerTests {
 
     @Before
     public void setUp() {
-        context = InstrumentationRegistry.getContext();
         userStore = new UserStore() {
             @Override
-            public User put(String key, User user) {
+            public void put(SyncUser user) {}
+
+            @Override
+            public SyncUser getCurrent() {
                 return null;
             }
 
             @Override
-            public User get(String key) {
+            public SyncUser get(String identity, String authenticationUrl) {
                 return null;
             }
 
             @Override
-            public User remove(String key) {
-                return null;
+            public void remove(String identity, String authenticationUrl) {
             }
 
             @Override
-            public Collection<User> allUsers() {
-                return null;
+            public Collection<SyncUser> allUsers() {
+                return Collections.emptySet();
+            }
+
+            @Override
+            public boolean isActive(String identity, String authenticationUrl) {
+                return true;
             }
         };
     }
 
     @After
     public void tearDown() {
-    }
-
-    @Test
-    public void init() {
-        // Realm.init() calls SyncManager.init() wihich will start a thread for the sync client
-        boolean found = false;
-        Set<Thread> threads = Thread.getAllStackTraces().keySet();
-        for (Thread thread : threads) {
-            if (thread.getName().equals("RealmSyncClient")) {
-                found = true;
-                break;
-            }
-        }
-        assertTrue(found);
+        UserFactory.logoutAllUsers();
+        SyncManager.reset();
     }
 
     @Test
@@ -105,17 +98,17 @@ public class SyncManagerTests {
 
     @Test
     public void authListener() {
-        User user = createTestUser();
+        SyncUser user = createTestUser();
         final int[] counter = {0, 0};
 
         AuthenticationListener authenticationListener = new AuthenticationListener() {
             @Override
-            public void loggedIn(User user) {
+            public void loggedIn(SyncUser user) {
                 counter[0]++;
             }
 
             @Override
-            public void loggedOut(User user) {
+            public void loggedOut(SyncUser user) {
                 counter[1]++;
             }
         };
@@ -134,17 +127,17 @@ public class SyncManagerTests {
 
     @Test
     public void authListener_remove() {
-        User user = createTestUser();
+        SyncUser user = createTestUser();
         final int[] counter = {0, 0};
 
         AuthenticationListener authenticationListener = new AuthenticationListener() {
             @Override
-            public void loggedIn(User user) {
+            public void loggedIn(SyncUser user) {
                 counter[0]++;
             }
 
             @Override
-            public void loggedOut(User user) {
+            public void loggedOut(SyncUser user) {
                 counter[1]++;
             }
         };
@@ -162,13 +155,17 @@ public class SyncManagerTests {
     }
 
     @Test
-    public void session() {
-        User user = createTestUser();
+    public void session() throws IOException {
+        SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         SyncConfiguration config = new SyncConfiguration.Builder(user, url)
                 .build();
-
-        Session session = SyncManager.getSession(config);
+        // This will trigger the creation of the session
+        Realm realm = Realm.getInstance(config);
+        SyncSession session = SyncManager.getSession(config);
         assertEquals(user, session.getUser()); // see also SessionTests
+
+        realm.close();
+        SyncManager.reset();
     }
 }

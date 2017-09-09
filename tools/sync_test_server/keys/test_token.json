@@ -1,0 +1,11 @@
+{
+  "identity": "test2",
+  "access": [
+    "download",
+    "upload"
+  ],
+  "timestamp": 1455530614,
+  "expires": null,
+  "app_id": "io.realm.tests.sync"
+}
+

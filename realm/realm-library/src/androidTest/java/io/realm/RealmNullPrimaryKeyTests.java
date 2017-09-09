@@ -36,6 +36,7 @@ import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
@@ -98,7 +99,7 @@ public class RealmNullPrimaryKeyTests {
         return obj;
     }
 
-    // create a RealmObject with null primarykey
+    // Creates a RealmObject with null primarykey.
     private void createNullPrimaryKeyObjectFromTestRealm(Realm testRealm) {
         testRealm.beginTransaction();
 
@@ -112,7 +113,7 @@ public class RealmNullPrimaryKeyTests {
         testRealm.commitTransaction();
     }
 
-    // update existing null PrimaryKey object with a new updating value.
+    // Updates existing null PrimaryKey object with a new updating value.
     private void updatePrimaryKeyObject(Realm testRealm, RealmObject realmObject) {
         if (testClazz.equals(PrimaryKeyAsString.class)) {
             ((PrimaryKeyAsString) realmObject).setId((long) updatingFieldValue);
@@ -125,7 +126,7 @@ public class RealmNullPrimaryKeyTests {
         testRealm.commitTransaction();
     }
 
-    // @PrimaryKey annotation accept null value properly as a primary key value for Realm version 0.89.1+
+    // @PrimaryKey annotation accept null value properly as a primary key value for Realm version 0.89.1+.
     @Test
     public void copyToRealm_primaryKeyIsNull() throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         addPrimaryKeyObjectToTestRealm(realm);
@@ -144,7 +145,7 @@ public class RealmNullPrimaryKeyTests {
         }
     }
 
-    // @PrimaryKey annotation accept & update null value properly as a primary key value for Realm version 0.89.1+
+    // @PrimaryKey annotation accept & update null value properly as a primary key value for Realm version 0.89.1+.
     @Test
     public void copyToRealmOrUpdate_primaryKeyFieldIsNull() throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         RealmObject obj = addPrimaryKeyObjectToTestRealm(realm);
@@ -163,7 +164,7 @@ public class RealmNullPrimaryKeyTests {
 
         }
 
-        // commit to the Realm
+        // Commits to the Realm.
         updatePrimaryKeyObject(realm, obj);
 
         if (testClazz.equals(PrimaryKeyAsString.class)) {
@@ -173,7 +174,7 @@ public class RealmNullPrimaryKeyTests {
         }
     }
 
-    // @PrimaryKey annotation creates null value properly as a primary key value for Realm version 0.89.1+
+    // @PrimaryKey annotation creates null value properly as a primary key value for Realm version 0.89.1+.
     @Test
     public void createObject_primaryKeyFieldIsNull() {
         createNullPrimaryKeyObjectFromTestRealm(realm);
@@ -192,7 +193,7 @@ public class RealmNullPrimaryKeyTests {
         }
     }
 
-    // @PrimaryKey annotation checked duplicated null value properly as a primary key value for Realm version 0.89.1+
+    // @PrimaryKey annotation checked duplicated null value properly as a primary key value for Realm version 0.89.1+.
     @Test
     public void createObject_duplicatedNullPrimaryKeyThrows() throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         addPrimaryKeyObjectToTestRealm(realm);
@@ -202,7 +203,8 @@ public class RealmNullPrimaryKeyTests {
             realm.createObject(testClazz, null);
             fail("Null value as primary key already exists.");
         } catch (RealmPrimaryKeyConstraintException expected) {
-            assertEquals("Value already exists: null", expected.getMessage());
+            assertTrue("Exception message is: " + expected.getMessage(),
+                    expected.getMessage().contains("Primary key value already exists: 'null' ."));
         } finally {
             realm.cancelTransaction();
         }

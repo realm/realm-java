@@ -17,9 +17,13 @@
 package io.realm;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 
-import java.util.Collections;
+import javax.annotation.Nullable;
+
+import io.realm.internal.ManagableObject;
+
 
 /**
  * {@code RealmCollection} is the root of the collection hierarchy that Realm supports. It defines operations on data
@@ -31,7 +35,7 @@ import java.util.Collections;
  *
  * @param <E> type of {@link RealmObject} stored in the collection.
  */
-public interface RealmCollection<E extends RealmModel> extends Collection<E> {
+public interface RealmCollection<E extends RealmModel> extends Collection<E>, ManagableObject {
 
     /**
      * Returns a {@link RealmQuery}, which can be used to query for specific objects from this collection.
@@ -52,6 +56,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
+    @Nullable
     Number min(String fieldName);
 
     /**
@@ -64,6 +69,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
+    @Nullable
     Number max(String fieldName);
 
     /**
@@ -93,33 +99,35 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * Finds the maximum date.
      *
      * @param fieldName the field to look for the maximum date. If fieldName is not of Date type, an exception is
-     *                  thrown.
+     * thrown.
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
      * will be returned. Otherwise the maximum date is returned. When determining the maximum date, objects with
      * {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
+    @Nullable
     Date maxDate(String fieldName);
 
     /**
      * Finds the minimum date.
      *
      * @param fieldName the field to look for the minimum date. If fieldName is not of Date type, an exception is
-     *                  thrown.
+     * thrown.
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
      * will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
      * {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
+    @Nullable
     Date minDate(String fieldName);
 
     /**
      * This deletes all objects in the collection from the underlying Realm as well as from the collection.
      *
-     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @return {@code true} if objects was deleted, {@code false} otherwise.
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
     boolean deleteAllFromRealm();
@@ -144,6 +152,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      *
      * @return {@code true} if it is still valid to use or an unmanaged collection, {@code false} otherwise.
      */
+    @Override
     boolean isValid();
 
     /**
@@ -152,13 +161,14 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * latest data. Managed collections are thread confined so that they cannot be accessed from other threads than the
      * one that created them.
      * <p>
-     *
+     * <p>
      * If this method returns {@code false}, the collection is unmanaged. An unmanaged collection is just a normal java
      * collection, so it will not be live updated.
      * <p>
      *
      * @return {@code true} if this is a managed {@link RealmCollection}, {@code false} otherwise.
      */
+    @Override
     boolean isManaged();
 
     /**
@@ -170,7 +180,8 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @param object the object to search for.
      * @return {@code true} if object is an element of this {@code Collection}, {@code false} otherwise.
      * @throws NullPointerException if the object to look for is {@code null} and this {@code Collection} doesn't
-     *                              support {@code null} elements.
+     * support {@code null} elements.
      */
-    boolean contains(Object object);
+    @Override
+    boolean contains(@Nullable Object object);
 }

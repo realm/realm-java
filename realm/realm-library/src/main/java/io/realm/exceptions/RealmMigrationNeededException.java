@@ -18,8 +18,12 @@ package io.realm.exceptions;
 
 import java.io.File;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.Keep;
 
+
+// Constructed from JNI
 @Keep
 public final class RealmMigrationNeededException extends RuntimeException {
 
@@ -30,14 +34,9 @@ public final class RealmMigrationNeededException extends RuntimeException {
         this.canonicalRealmPath = canonicalRealmPath;
     }
 
-    public RealmMigrationNeededException(String canonicalRealmPath, String detailMessage, Throwable throwable) {
-        super(detailMessage, throwable);
-        this.canonicalRealmPath = canonicalRealmPath;
-    }
-
     /**
      * Returns the canonical path to the Realm file that needs to be migrated.
-     *
+     * <p>
      * This can be used for easy reference during a migration:
      *
      * @return Canonical path to the Realm file.

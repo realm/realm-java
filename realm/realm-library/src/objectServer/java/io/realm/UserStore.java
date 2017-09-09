@@ -18,53 +18,72 @@ package io.realm;
 
 import java.util.Collection;
 
-import io.realm.android.SharedPrefsUserStore;
-import io.realm.annotations.Beta;
+import javax.annotation.Nullable;
+
 
 /**
- * @Beta
  * Interface for classes responsible for saving and retrieving Object Server users again.
  * <p>
  * Any implementation of a User Store is expected to not perform lengthy blocking operations as it might
  * be called on the Main Thread. All implementations of this interface should be thread safe.
  *
  * @see SyncManager#setUserStore(UserStore)
- * @see SharedPrefsUserStore
+ * @see RealmFileUserStore
  */
-@Beta
 public interface UserStore {
 
-    String CURRENT_USER_KEY = "realm$currentUser";
+    /**
+     * Saves a {@link SyncUser} object. If another user already exists, it will be replaced.
+     *  {@link SyncUser#getIdentity()} is used as a unique identifier of a given {@link SyncUser}.
+     *
+     * @param user {@link SyncUser} object to store.
+     */
+    void put(SyncUser user);
 
     /**
-     * Saves a {@link User} object under the given key. If another user already exists, it will be replaced.
-     *
-     * @param key key used to store the User.
-     * @param user {@link User} object to store.
-     * @return The previous user saved with this key or {@code null} if no user was replaced.
-     *
+     * Retrieves the current {@link SyncUser}.
+     * <p>
+     * This method will throw an exception if more than one valid, logged in users exist.
+     * @return {@link SyncUser} object or {@code null} if not found.
      */
-    User put(String key, User user);
+    @Nullable
+    SyncUser getCurrent();
 
     /**
-     * Retrieves the {@link User} with the given key.
+     * Retrieves specified {@link SyncUser}.
      *
-     * @param key {@link User} saved under the given key or {@code null} if no user exists for that key.
+     * @param identity identity of the user.
+     * @param authenticationUrl the URL of the authentication.
+     * @return {@link SyncUser} object or {@code null} if not found.
      */
-    User get(String key);
+    @Nullable
+    SyncUser get(String identity, String authenticationUrl);
 
     /**
-     * Removes the user with the given key from the store.
+     * Removes the user from the store.
+     * <p>
+     * If the user is not found, this method does nothing.
      *
-     * @param key key for the user to remove.
-     * @return {@link User} that was removed or {@code null} if no user matched the key.
+     * @param identity identity of the user.
+     * @param authenticationUrl the URL of the authentication.
      */
-    User remove(String key);
+    void remove(String identity, String authenticationUrl);
 
     /**
      * Returns a collection of all users saved in the User store.
      *
      * @return Collection of all users. If no users exist, an empty collection is returned.
      */
-    Collection<User> allUsers();
+    Collection<SyncUser> allUsers();
+
+    /**
+     * Returns the state of the specified user: {@code true} if active (not logged out), {@code false} otherwise.
+     * This method checks if the user was marked as logged out. If the user has expired but not actively logged out
+     * this method will return {@code true}.
+     *
+     * @param identity identity of the user.
+     * @param authenticationUrl the URL of the authentication.
+     * @return {@code true} if the user is not logged out, {@code false} otherwise.
+     */
+    boolean isActive(String identity, String authenticationUrl);
 }

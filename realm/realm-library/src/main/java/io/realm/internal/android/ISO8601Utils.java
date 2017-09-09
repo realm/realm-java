@@ -24,10 +24,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+
 /**
  * Utilities methods for manipulating dates in iso8601 format. This is much much faster and GC friendly than using SimpleDateFormat so
  * highly suitable if you (un)serialize lots of date objects.
- *
+ * <p>
  * Supported parse format: [yyyy-MM-dd|yyyyMMdd][T(hh:mm[:ss[.sss]]|hhmm[ss[.sss]])]?[Z|[+-]hh[:]mm]]
  *
  * @see <a href="http://www.w3.org/TR/NOTE-datetime">this specification</a>
@@ -70,27 +71,27 @@ public class ISO8601Utils {
         try {
             int offset = pos.getIndex();
 
-            // extract year
+            // Extracts year.
             int year = parseInt(date, offset, offset += 4);
             if (checkOffset(date, offset, '-')) {
                 offset += 1;
             }
 
-            // extract month
+            // Extracts month.
             int month = parseInt(date, offset, offset += 2);
             if (checkOffset(date, offset, '-')) {
                 offset += 1;
             }
 
-            // extract day
+            // Extracts day.
             int day = parseInt(date, offset, offset += 2);
-            // default time value
+            // Default time value.
             int hour = 0;
             int minutes = 0;
             int seconds = 0;
-            int milliseconds = 0; // always use 0 otherwise returned date will include millis of current time
+            int milliseconds = 0; // Always use 0 otherwise returned date will include millis of current time.
 
-            // if the value has no time component (and no time zone), we are done
+            // If the value has no time component (and no time zone), we are done.
             boolean hasT = checkOffset(date, offset, 'T');
 
             if (!hasT && (date.length() <= offset)) {
@@ -102,7 +103,7 @@ public class ISO8601Utils {
 
             if (hasT) {
 
-                // extract hours, minutes, seconds and milliseconds
+                // Extracts hours, minutes, seconds and milliseconds.
                 hour = parseInt(date, offset += 1, offset += 2);
                 if (checkOffset(date, offset, ':')) {
                     offset += 1;
@@ -112,20 +113,22 @@ public class ISO8601Utils {
                 if (checkOffset(date, offset, ':')) {
                     offset += 1;
                 }
-                // second and milliseconds can be optional
+                // Second and milliseconds can be optional.
                 if (date.length() > offset) {
                     char c = date.charAt(offset);
                     if (c != 'Z' && c != '+' && c != '-') {
                         seconds = parseInt(date, offset, offset += 2);
-                        if (seconds > 59 && seconds < 63) seconds = 59; // truncate up to 3 leap seconds
-                        // milliseconds can be optional in the format
+                        if (seconds > 59 && seconds < 63) {
+                            seconds = 59; // Truncates up to 3 leap seconds.
+                        }
+                        // Milliseconds can be optional in the format.
                         if (checkOffset(date, offset, '.')) {
                             offset += 1;
-                            int endOffset = indexOfNonDigit(date, offset + 1); // assume at least one digit
-                            int parseEndOffset = Math.min(endOffset, offset + 3); // parse up to 3 digits
+                            int endOffset = indexOfNonDigit(date, offset + 1); // Assumes at least one digit.
+                            int parseEndOffset = Math.min(endOffset, offset + 3); // Parses up to 3 digits.
                             int fraction = parseInt(date, offset, parseEndOffset);
-                            // compensate for "missing" digits
-                            switch (parseEndOffset - offset) { // number of digits parsed
+                            // Compensates for "missing" digits.
+                            switch (parseEndOffset - offset) { // Number of digits parsed.
                                 case 2:
                                     milliseconds = fraction * 10;
                                     break;
@@ -141,7 +144,7 @@ public class ISO8601Utils {
                 }
             }
 
-            // extract timezone
+            // Extracts timezone.
             if (date.length() <= offset) {
                 throw new IllegalArgumentException("No time zone indicator");
             }
@@ -164,7 +167,6 @@ public class ISO8601Utils {
                     //    `java.util.TimeZone` specifically instruct use of GMT as base for
                     //    custom timezones... odd.
                     String timezoneId = "GMT" + timezoneOffset;
-//                    String timezoneId = "UTC" + timezoneOffset;
 
                     timezone = TimeZone.getTimeZone(timezoneId);
 
@@ -177,13 +179,13 @@ public class ISO8601Utils {
                          */
                         String cleaned = act.replace(":", "");
                         if (!cleaned.equals(timezoneId)) {
-                            throw new IndexOutOfBoundsException("Mismatching time zone indicator: "+timezoneId+" given, resolves to "
-                                    +timezone.getID());
+                            throw new IndexOutOfBoundsException("Mismatching time zone indicator: " + timezoneId + " given, resolves to "
+                                    + timezone.getID());
                         }
                     }
                 }
             } else {
-                throw new IndexOutOfBoundsException("Invalid time zone indicator '" + timezoneIndicator+"'");
+                throw new IndexOutOfBoundsException("Invalid time zone indicator '" + timezoneIndicator + "'");
             }
 
             Calendar calendar = new GregorianCalendar(timezone);
@@ -210,7 +212,7 @@ public class ISO8601Utils {
         String input = (date == null) ? null : ('"' + date + "'");
         String msg = fail.getMessage();
         if (msg == null || msg.isEmpty()) {
-            msg = "("+fail.getClass().getName()+")";
+            msg = "(" + fail.getClass().getName() + ")";
         }
         ParseException ex = new ParseException("Failed to parse date [" + input + "]: " + msg, pos.getIndex());
         ex.initCause(fail);
@@ -271,7 +273,7 @@ public class ISO8601Utils {
     private static int indexOfNonDigit(String string, int offset) {
         for (int i = offset; i < string.length(); i++) {
             char c = string.charAt(i);
-            if (c < '0' || c > '9') return i;
+            if (c < '0' || c > '9') { return i; }
         }
         return string.length();
     }

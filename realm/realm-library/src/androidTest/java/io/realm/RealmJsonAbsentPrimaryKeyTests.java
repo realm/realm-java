@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.os.Build;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,6 +38,9 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.rule.TestRealmConfigurationFactory;
+
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
+import static org.junit.Assume.assumeThat;
 
 @RunWith(Parameterized.class)
 public class RealmJsonAbsentPrimaryKeyTests {
@@ -59,7 +64,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
         }
     }
 
-    // parameters for testing absent primary key value. PrimaryKey field is absent.
+    // Parameters for testing absent primary key value. PrimaryKey field is absent.
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
@@ -79,7 +84,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
         this.clazz = clazz;
     }
 
-    // Testing absent primary key value for createObjectFromJson()
+    // Tests absent primary key value for createObjectFromJson().
     @Test
     public void createObjectFromJson_primaryKey_isAbsent_fromJsonObject() throws JSONException {
         realm.beginTransaction();
@@ -88,7 +93,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
         realm.commitTransaction();
     }
 
-    // Testing absent primary key value for createOrUpdateObjectFromJson()
+    // Tests absent primary key value for createOrUpdateObjectFromJson().
     @Test
     public void createOrUpdateObjectFromJson_primaryKey_isAbsent_fromJsonObject() throws JSONException {
         realm.beginTransaction();
@@ -97,7 +102,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
         realm.commitTransaction();
     }
 
-    // Testing absent primary key value for createAllFromJson()
+    // Tests absent primary key value for createAllFromJson().
     @Test
     public void createAllFromJson_primaryKey_isAbsent_fromJsonObject() throws JSONException {
         JSONArray jsonArray = new JSONArray();
@@ -108,7 +113,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
         realm.commitTransaction();
     }
 
-    // Testing absent primary key value for createOrUpdateAllFromJson()
+    // Tests absent primary key value for createOrUpdateAllFromJson().
     @Test
     public void createOrUpdateAllFromJson_primaryKey_isAbsent_fromJsonObject() throws JSONException {
         JSONArray jsonArray = new JSONArray();
@@ -119,16 +124,18 @@ public class RealmJsonAbsentPrimaryKeyTests {
         realm.commitTransaction();
     }
 
-    // Testing absent primary key value for createObjectFromJson() stream version
+    // Tests absent primary key value for createObjectFromJson() stream version.
     @Test
     public void createObjectFromJson_primaryKey_isAbsent_fromJsonStream() throws JSONException, IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         realm.beginTransaction();
         thrown.expect(IllegalArgumentException.class);
         realm.createObjectFromJson(clazz, TestHelper.stringToStream(jsonString));
         realm.commitTransaction();
     }
 
-    // Testing absent primary key value for createOrUpdateObjectFromJson() stream version
+    // Tests absent primary key value for createOrUpdateObjectFromJson() stream version.
     @Test
     public void createOrUpdateObjectFromJson_primaryKey_isAbsent_fromJsonStream() throws JSONException, IOException {
         realm.beginTransaction();
@@ -137,9 +144,11 @@ public class RealmJsonAbsentPrimaryKeyTests {
         realm.commitTransaction();
     }
 
-    // Testing absent primary key value for createAllFromJson() stream version
+    // Tests absent primary key value for createAllFromJson() stream version.
     @Test
     public void createAllFromJson_primaryKey_isAbsent_fromJsonStream() throws JSONException, IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         JSONArray jsonArray = new JSONArray();
         jsonArray.put(new JSONObject(jsonString));
         realm.beginTransaction();
@@ -148,9 +157,11 @@ public class RealmJsonAbsentPrimaryKeyTests {
         realm.commitTransaction();
     }
 
-    // Testing absent primary key value for createOrUpdateAllFromJson() stream version
+    // Tests absent primary key value for createOrUpdateAllFromJson() stream version.
     @Test
     public void createOrUpdateAllFromJson_primaryKey_isAbsent_fromJsonStream() throws JSONException, IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         JSONArray jsonArray = new JSONArray();
         jsonArray.put(new JSONObject(jsonString));
         realm.beginTransaction();

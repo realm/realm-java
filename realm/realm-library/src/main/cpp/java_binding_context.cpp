@@ -15,46 +15,60 @@
  */
 
 #include "java_binding_context.hpp"
+#include "java_class_global_def.hpp"
+#include "jni_util/java_method.hpp"
 
-#include "util/format.hpp"
+#include "util.hpp"
 
 using namespace realm;
 using namespace realm::_impl;
+using namespace realm::jni_util;
 
-JavaBindingContext::JavaBindingContext(const ConcreteJavaBindContext& concrete_context)
-    : m_local_jni_env(concrete_context.jni_env)
+void JavaBindingContext::before_notify()
 {
-    jint ret = m_local_jni_env->GetJavaVM(&m_jvm);
-    if (ret != 0) {
-        throw std::runtime_error(util::format("Failed to get Java vm. Error: %d", ret));
+    if (JniUtils::get_env()->ExceptionCheck()) {
+        return;
     }
-    if (concrete_context.java_notifier) {
-        m_java_notifier = m_local_jni_env->NewWeakGlobalRef(concrete_context.java_notifier);
-        jclass cls = m_local_jni_env->GetObjectClass(m_java_notifier);
-        m_notify_by_other_method = m_local_jni_env->GetMethodID(cls, "notifyCommitByOtherThread", "()V");
-    } else {
-        m_java_notifier = nullptr;
-    }
-}
-
-JavaBindingContext::~JavaBindingContext()
-{
     if (m_java_notifier) {
-        // Always try to attach here since this may be called in the finalizer/phantom thread where m_local_jni_env
-        // should not be used on. No need to call DetachCurrentThread since this thread should always be created by
-        // JVM.
-        JNIEnv *env;
-        m_jvm->AttachCurrentThread(&env, nullptr);
-        env->DeleteWeakGlobalRef(m_java_notifier);
+        m_java_notifier.call_with_local_ref([&](JNIEnv* env, jobject notifier_obj) {
+            // Method IDs from RealmNotifier implementation. Cache them as member vars.
+            static JavaMethod notify_by_other_method(env, JavaClassGlobalDef::realm_notifier(), "beforeNotify",
+                                                     "()V");
+            env->CallVoidMethod(notifier_obj, notify_by_other_method);
+        });
     }
 }
 
-void JavaBindingContext::changes_available()
+void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> const&, std::vector<void*> const&,
+                                    bool version_changed)
 {
-    jobject notifier = m_local_jni_env->NewLocalRef(m_java_notifier);
-    if (notifier) {
-        m_local_jni_env->CallVoidMethod(m_java_notifier, m_notify_by_other_method);
-        m_local_jni_env->DeleteLocalRef(notifier);
+    auto env = JniUtils::get_env();
+
+    if (JniUtils::get_env()->ExceptionCheck()) {
+        return;
+    }
+    if (version_changed) {
+        m_java_notifier.call_with_local_ref(env, [&](JNIEnv*, jobject notifier_obj) {
+            static JavaMethod realm_notifier_did_change_method(env, JavaClassGlobalDef::realm_notifier(), "didChange",
+                                                               "()V");
+            env->CallVoidMethod(notifier_obj, realm_notifier_did_change_method);
+        });
     }
 }
 
+void JavaBindingContext::schema_did_change(Schema const&)
+{
+    if (!m_schema_changed_callback) {
+        return;
+    }
+    auto env = JniUtils::get_env(false);
+    static JavaMethod on_schema_changed_method(env, JavaClassGlobalDef::shared_realm_schema_change_callback(),
+                                               "onSchemaChanged", "()V");
+    m_schema_changed_callback.call_with_local_ref(
+        env, [](JNIEnv* env, jobject callback_obj) { env->CallVoidMethod(callback_obj, on_schema_changed_method); });
+}
+
+void JavaBindingContext::set_schema_changed_callback(JNIEnv* env, jobject schema_changed_callback)
+{
+    m_schema_changed_callback = JavaGlobalWeakRef(env, schema_changed_callback);
+}

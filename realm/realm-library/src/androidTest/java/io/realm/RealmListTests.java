@@ -18,6 +18,7 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,10 +26,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
@@ -37,11 +39,15 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Table;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -58,6 +64,8 @@ public class RealmListTests extends CollectionTests {
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
 
     private Realm realm;
     private RealmList<Dog> collection;
@@ -104,9 +112,9 @@ public class RealmListTests extends CollectionTests {
         return dogs;
     }
 
-            //noinspection TryWithIdenticalCatches
+    //noinspection TryWithIdenticalCatches
     /*********************************************************
-     * Unmanaged mode tests                                *
+     * Unmanaged mode tests                                  *
      *********************************************************/
 
     @Test(expected = IllegalArgumentException.class)
@@ -252,7 +260,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(object1, object2);
     }
 
-    // Test move where oldPosition > newPosition
+    // Tests move where oldPosition > newPosition.
     @Test
     public void move_down() {
         Owner owner = realm.where(Owner.class).findFirst();
@@ -264,7 +272,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(0, owner.getDogs().indexOf(dog1));
     }
 
-    // Test move where oldPosition < newPosition
+    // Tests move where oldPosition < newPosition.
     @Test
     public void move_up() {
         Owner owner = realm.where(Owner.class).findFirst();
@@ -279,7 +287,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(newIndex, owner.getDogs().indexOf(dog));
     }
 
-    // Test move where oldPosition > newPosition
+    // Tests move where oldPosition > newPosition.
     @Test
     public void move_downInUnmanagedMode() {
         RealmList<Dog> dogs = createUnmanagedDogList();
@@ -289,7 +297,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(0, dogs.indexOf(dog1));
     }
 
-    // Test move where oldPosition < newPosition
+    // Tests move where oldPosition < newPosition.
     @Test
     public void move_upInUnmanagedMode() {
         RealmList<Dog> dogs = createUnmanagedDogList();
@@ -371,7 +379,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(1, realm.where(Owner.class).findFirst().getDogs().size());
     }
 
-    // Test that add correctly uses Realm.copyToRealm() on unmanaged objects.
+    // Tests that add correctly uses Realm.copyToRealm() on unmanaged objects.
     @Test
     public void add_unmanagedObjectToManagedList() {
         realm.beginTransaction();
@@ -382,7 +390,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(1, realm.where(CyclicType.class).findFirst().getObjects().size());
     }
 
-    // Make sure that unmanaged objects with a primary key are added using copyToRealmOrUpdate
+    // Makes sure that unmanaged objects with a primary key are added using copyToRealmOrUpdate.
     @Test
     public void add_unmanagedPrimaryKeyObjectToManagedList() {
         realm.beginTransaction();
@@ -395,7 +403,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals("new", realm.where(CyclicTypePrimaryKey.class).equalTo("id", 2).findFirst().getName());
     }
 
-    // Test that set correctly uses Realm.copyToRealm() on unmanaged objects.
+    // Tests that set correctly uses Realm.copyToRealm() on unmanaged objects.
     @Test
     public void set_unmanagedObjectToManagedList() {
         realm.beginTransaction();
@@ -413,7 +421,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(5, realm.where(CyclicType.class).count());
     }
 
-    // Test that set correctly uses Realm.copyToRealmOrUpdate() on unmanaged objects with a primary key.
+    // Tests that set correctly uses Realm.copyToRealmOrUpdate() on unmanaged objects with a primary key.
     @Test
     public void set_unmanagedPrimaryKeyObjectToManagedList() {
         realm.beginTransaction();
@@ -580,12 +588,13 @@ public class RealmListTests extends CollectionTests {
     @Test
     public void removeAll_managedMode() {
         realm.beginTransaction();
-        List<Dog> objectsToRemove = Arrays.asList(collection.get(0));
+        List<Dog> objectsToRemove = Collections.singletonList(collection.get(0));
         assertTrue(collection.removeAll(objectsToRemove));
         assertFalse(collection.contains(objectsToRemove.get(0)));
     }
 
     @Test
+    @SuppressWarnings("CollectionIncompatibleType")
     public void removeAll_managedMode_wrongClass() {
         realm.beginTransaction();
         //noinspection SuspiciousMethodCalls
@@ -593,6 +602,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
+    @SuppressWarnings("CollectionIncompatibleType")
     public void removeAll_unmanaged_wrongClass() {
         RealmList<Dog> list = createUnmanagedDogList();
         //noinspection SuspiciousMethodCalls
@@ -723,8 +733,8 @@ public class RealmListTests extends CollectionTests {
                     case MIN_DATE: results.minDate(CyclicType.FIELD_DATE); break;
                     case MAX_DATE: results.maxDate(CyclicType.FIELD_DATE); break;
                     case DELETE_ALL_FROM_REALM: results.deleteAllFromRealm(); break;
-                    case IS_VALID: continue; // Does not throw
-                    case IS_MANAGED: continue; // Does not throw
+                    case IS_VALID: continue; // Does not throw.
+                    case IS_MANAGED: continue; // Does not throw.
                 }
                 fail(method + " should have thrown an Exception.");
             } catch (IllegalStateException ignored) {
@@ -741,7 +751,8 @@ public class RealmListTests extends CollectionTests {
                     case SORT: results.sort(CyclicType.FIELD_NAME); break;
                     case SORT_FIELD: results.sort(CyclicType.FIELD_NAME, Sort.ASCENDING); break;
                     case SORT_2FIELDS: results.sort(CyclicType.FIELD_NAME, Sort.ASCENDING, CyclicType.FIELD_DATE, Sort.DESCENDING); break;
-                    case SORT_MULTI: results.sort(new String[] { CyclicType.FIELD_NAME, CyclicType.FIELD_DATE }, new Sort[] { Sort.ASCENDING, Sort.DESCENDING});
+                    case SORT_MULTI: results.sort(new String[] { CyclicType.FIELD_NAME, CyclicType.FIELD_DATE }, new Sort[] { Sort.ASCENDING, Sort.DESCENDING}); break;
+                    case CREATE_SNAPSHOT: results.createSnapshot(); break;
                 }
                 fail(method + " should have thrown an Exception");
             } catch (IllegalStateException ignored) {
@@ -772,7 +783,7 @@ public class RealmListTests extends CollectionTests {
             dogs.deleteAllFromRealm();
             fail("removeAllFromRealm should be called in a transaction.");
         } catch (IllegalStateException e) {
-            assertEquals("Changing Realm data can only be done from inside a write transaction.", e.getMessage());
+            assertThat(e.getMessage(), CoreMatchers.containsString("Must be in a write transaction "));
         }
     }
 
@@ -854,49 +865,60 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void add_set_dynamicObjectFromOtherThread() {
+    public void add_set_dynamicObjectFromOtherThread() throws Throwable {
         final CountDownLatch finishedLatch = new CountDownLatch(1);
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         final DynamicRealmObject dynDog = dynamicRealm.where(Dog.CLASS_NAME).findFirst();
         final String expectedMsg = "Cannot copy an object to a Realm instance created in another thread.";
+
+        final AtomicReference<Throwable> thrownErrorRef = new AtomicReference<Throwable>();
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
                 dynamicRealm.beginTransaction();
-                RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
-                        .getList(Owner.FIELD_DOGS);
-                list.add(dynamicRealm.createObject(Dog.CLASS_NAME));
-
                 try {
-                    list.add(dynDog);
-                    fail();
-                } catch (IllegalStateException expected) {
-                    assertEquals(expectedMsg, expected.getMessage());
-                }
+                    RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
+                            .getList(Owner.FIELD_DOGS);
+                    list.add(dynamicRealm.createObject(Dog.CLASS_NAME));
 
-                try {
-                    list.add(0, dynDog);
-                    fail();
-                } catch (IllegalStateException expected) {
-                    assertEquals(expectedMsg, expected.getMessage());
-                }
+                    try {
+                        list.add(dynDog);
+                        fail();
+                    } catch (IllegalStateException expected) {
+                        assertEquals(expectedMsg, expected.getMessage());
+                    }
 
-                try {
-                    list.set(0, dynDog);
-                    fail();
-                } catch (IllegalStateException expected) {
-                    assertEquals(expectedMsg, expected.getMessage());
-                }
+                    try {
+                        list.add(0, dynDog);
+                        fail();
+                    } catch (IllegalStateException expected) {
+                        assertEquals(expectedMsg, expected.getMessage());
+                    }
 
-                dynamicRealm.cancelTransaction();
-                dynamicRealm.close();
-                finishedLatch.countDown();
+                    try {
+                        list.set(0, dynDog);
+                        fail();
+                    } catch (IllegalStateException expected) {
+                        assertEquals(expectedMsg, expected.getMessage());
+                    }
+                } catch (Throwable throwable) {
+                    thrownErrorRef.set(throwable);
+                } finally {
+                    dynamicRealm.cancelTransaction();
+                    dynamicRealm.close();
+                    finishedLatch.countDown();
+                }
             }
         }).start();
         TestHelper.awaitOrFail(finishedLatch);
         dynamicRealm.close();
+
+        final Throwable thrown = thrownErrorRef.get();
+        if (thrown != null) {
+            throw thrown;
+        }
     }
 
     @Test
@@ -973,4 +995,131 @@ public class RealmListTests extends CollectionTests {
         dynamicRealm.close();
     }
 
+    private RealmList<Dog> prepareRealmListInLooperThread() {
+        Realm realm = looperThread.getRealm();
+        realm.beginTransaction();
+        Owner owner = realm.createObject(Owner.class);
+        owner.setName("Owner");
+        for (int i = 0; i < TEST_SIZE; i++) {
+            Dog dog = realm.createObject(Dog.class);
+            dog.setName("Dog " + i);
+            owner.getDogs().add(dog);
+        }
+        realm.commitTransaction();
+        return owner.getDogs();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void addChangeListener() {
+        collection = prepareRealmListInLooperThread();
+        Realm realm = looperThread.getRealm();
+        final AtomicInteger listenerCalledCount = new AtomicInteger(0);
+        collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> element) {
+                assertEquals(0, listenerCalledCount.getAndIncrement());
+            }
+        });
+        collection.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
+                assertEquals(1, listenerCalledCount.getAndIncrement());
+            }
+        });
+        realm.beginTransaction();
+        collection.get(0).setAge(42);
+        realm.commitTransaction();
+
+        // This should trigger the listener.
+        realm.beginTransaction();
+        realm.cancelTransaction();
+        assertEquals(2, listenerCalledCount.get());
+        looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeAllChangeListeners() {
+        collection = prepareRealmListInLooperThread();
+        Realm realm = looperThread.getRealm();
+        final AtomicInteger listenerCalledCount = new AtomicInteger(0);
+        collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> element) {
+                fail();
+            }
+        });
+        collection.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
+                fail();
+            }
+        });
+
+        collection.removeAllChangeListeners();
+
+        // This one is added after removal, so it should be triggered.
+        collection.addChangeListener(new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> element) {
+                listenerCalledCount.incrementAndGet();
+                looperThread.testComplete();
+            }
+        });
+
+        // This should trigger the listener if there is any.
+        realm.beginTransaction();
+        collection.get(0).setAge(42);
+        realm.commitTransaction();
+
+        assertEquals(1, listenerCalledCount.get());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeChangeListener() {
+        collection = prepareRealmListInLooperThread();
+        Realm realm = looperThread.getRealm();
+        final AtomicInteger listenerCalledCount = new AtomicInteger(0);
+        RealmChangeListener<RealmList<Dog>> listener1 = new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> element) {
+                fail();
+            }
+        };
+        OrderedRealmCollectionChangeListener<RealmList<Dog>> listener2 =
+                new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
+                    @Override
+                    public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changes) {
+                        assertEquals(0, listenerCalledCount.getAndIncrement());
+                        looperThread.testComplete();
+                    }
+                };
+
+        collection.addChangeListener(listener1);
+        collection.addChangeListener(listener2);
+
+        collection.removeChangeListener(listener1);
+
+        // This should trigger the listener if there is any.
+        realm.beginTransaction();
+        collection.get(0).setAge(42);
+        realm.commitTransaction();
+        assertEquals(1, listenerCalledCount.get());
+    }
+
+    // https://github.com/realm/realm-java/issues/4554
+    @Test
+    public void createSnapshot_shouldUseTargetTable() {
+        int sizeBefore = collection.size();
+        OrderedRealmCollectionSnapshot<Dog> snapshot = collection.createSnapshot();
+        realm.beginTransaction();
+        snapshot.get(0).deleteFromRealm();
+        realm.commitTransaction();
+        assertEquals(sizeBefore - 1, collection.size());
+
+        assertNotNull(collection.osList);
+        assertEquals(collection.osList.getTargetTable().getName(), snapshot.getTable().getName());
+    }
 }

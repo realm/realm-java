@@ -22,6 +22,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -29,6 +30,7 @@ import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
 
 import io.realm.annotations.RealmModule;
+
 
 /**
  * This class is responsible for creating the DefaultRealmModule that contains all known
@@ -43,7 +45,7 @@ public class DefaultModuleGenerator {
     }
 
     public void generate() throws IOException {
-        String qualifiedGeneratedClassName = String.format("%s.%s", Constants.REALM_PACKAGE_NAME, Constants.DEFAULT_MODULE_CLASS_NAME);
+        String qualifiedGeneratedClassName = String.format(Locale.US, "%s.%s", Constants.REALM_PACKAGE_NAME, Constants.DEFAULT_MODULE_CLASS_NAME);
         JavaFileObject sourceFile = env.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
         writer.setIndent("    ");

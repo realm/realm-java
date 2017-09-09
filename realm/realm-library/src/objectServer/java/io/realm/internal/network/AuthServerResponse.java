@@ -24,7 +24,7 @@ import io.realm.ObjectServerError;
 /**
  * Base class for all response types from the Realm Authentication Server.
  */
-public class AuthServerResponse {
+public abstract class AuthServerResponse {
 
     protected ObjectServerError error;
 
@@ -49,8 +49,6 @@ public class AuthServerResponse {
     protected void setError(ObjectServerError error) {
         this.error = error;
     }
-
-
 
     /**
      * Parse an HTTP error from a Realm Authentication Server. The server returns errors following

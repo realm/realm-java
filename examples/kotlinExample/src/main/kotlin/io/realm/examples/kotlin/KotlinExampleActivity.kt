@@ -23,55 +23,50 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import io.realm.Realm
 import io.realm.Sort
-import io.realm.RealmConfiguration
 import io.realm.examples.kotlin.model.Cat
 import io.realm.examples.kotlin.model.Dog
 import io.realm.examples.kotlin.model.Person
-import org.jetbrains.anko.async
+import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import kotlin.properties.Delegates
-
 
 class KotlinExampleActivity : Activity() {
 
     companion object {
-        val TAG: String = KotlinExampleActivity::class.qualifiedName as String
+        val TAG: String = KotlinExampleActivity::class.java.simpleName
     }
 
     private var rootLayout: LinearLayout by Delegates.notNull()
     private var realm: Realm by Delegates.notNull()
-    private var realmConfig: RealmConfiguration by Delegates.notNull()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_realm_basic_example)
-        rootLayout = findViewById(R.id.container) as LinearLayout
+        rootLayout = findViewById(R.id.container)
         rootLayout.removeAllViews()
 
         // These operations are small enough that
         // we can generally safely run them on the UI thread.
 
         // Open the realm for the UI thread.
-        realm = Realm.getDefaultInstance();
-
-        basicCRUD(realm)
-        basicQuery(realm)
-        basicLinkQuery(realm)
+        realm = Realm.getDefaultInstance()
 
         // Delete all persons
         // Using executeTransaction with a lambda reduces code size and makes it impossible
         // to forget to commit the transaction.
         realm.executeTransaction {
-            realm.delete(Person::class.java)
+            realm.deleteAll()
         }
 
-        // More complex operations can be executed on another thread, for example using
-        // Anko's async extension method.
-        async() {
-            var info: String
-            info = complexReadWrite()
-            info += complexQuery()
+        basicCRUD(realm)
+        basicQuery(realm)
+        basicLinkQuery(realm)
 
+        // More complex operations can be executed on another thread, for example using
+        // Anko's doAsync extension method.
+        doAsync {
+            var info = complexReadWrite()
+            info += complexQuery()
             uiThread {
                 showStatus(info)
             }
@@ -96,14 +91,13 @@ class KotlinExampleActivity : Activity() {
         // All writes must be wrapped in a transaction to facilitate safe multi threading
         realm.executeTransaction {
             // Add a person
-            var person = realm.createObject(Person::class.java)
-            person.id = 1
+            val person = realm.createObject(Person::class.java, 0)
             person.name = "Young Person"
             person.age = 14
         }
 
         // Find the first person (no query conditions) and read a field
-        var person = realm.where(Person::class.java).findFirst()
+        val person = realm.where(Person::class.java).findFirst()!!
         showStatus(person.name + ": " + person.age)
 
         // Update person in a transaction
@@ -118,7 +112,7 @@ class KotlinExampleActivity : Activity() {
         showStatus("\nPerforming basic Query operation...")
         showStatus("Number of persons: ${realm.where(Person::class.java).count()}")
 
-        val results = realm.where(Person::class.java).equalTo("age", 99).findAll()
+        val results = realm.where(Person::class.java).equalTo("age", 99.toInt()).findAll()
 
         showStatus("Size of result set: " + results.size)
     }
@@ -135,56 +129,56 @@ class KotlinExampleActivity : Activity() {
     private fun complexReadWrite(): String {
         var status = "\nPerforming complex Read/Write operation..."
 
-        // Open the default realm. All threads must use it's own reference to the realm.
+        // Open the default realm. All threads must use its own reference to the realm.
         // Those can not be transferred across threads.
-        val realm = Realm.getInstance(realmConfig)
+        val realm = Realm.getDefaultInstance()
+        try {
+            // Add ten persons in one transaction
+            realm.executeTransaction {
+                val fido = realm.createObject(Dog::class.java)
+                fido.name = "fido"
+                for (i in 1..9) {
+                    val person = realm.createObject(Person::class.java, i.toLong())
+                    person.name = "Person no. $i"
+                    person.age = i
+                    person.dog = fido
 
-        // Add ten persons in one transaction
-        realm.executeTransaction {
-            val fido = realm.createObject(Dog::class.java)
-            fido.name = "fido"
-            for (i in 0..9) {
-                val person = realm.createObject(Person::class.java)
-                person.id = i.toLong()
-                person.name = "Person no. $i"
-                person.age = i
-                person.dog = fido
+                    // The field tempReference is annotated with @Ignore.
+                    // This means setTempReference sets the Person tempReference
+                    // field directly. The tempReference is NOT saved as part of
+                    // the RealmObject:
+                    person.tempReference = 42
 
-                // The field tempReference is annotated with @Ignore.
-                // This means setTempReference sets the Person tempReference
-                // field directly. The tempReference is NOT saved as part of
-                // the RealmObject:
-                person.tempReference = 42
-
-                for (j in 0..i - 1) {
-                    val cat = realm.createObject(Cat::class.java)
-                    cat.name = "Cat_$j"
-                    person.cats.add(cat)
+                    for (j in 0..i - 1) {
+                        val cat = realm.createObject(Cat::class.java)
+                        cat.name = "Cat_$j"
+                        person.cats.add(cat)
+                    }
                 }
             }
+
+            // Implicit read transactions allow you to access your objects
+            status += "\nNumber of persons: ${realm.where(Person::class.java).count()}"
+
+            // Iterate over all objects
+            for (person in realm.where(Person::class.java).findAll()) {
+                val dogName: String = person?.dog?.name ?: "None"
+
+                status += "\n${person.name}: ${person.age} : $dogName : ${person.cats.size}"
+
+                // The field tempReference is annotated with @Ignore
+                // Though we initially set its value to 42, it has
+                // not been saved as part of the Person RealmObject:
+                check(person.tempReference == 0)
+            }
+
+            // Sorting
+            val sortedPersons = realm.where(Person::class.java).findAllSorted("age", Sort.DESCENDING)
+            status += "\nSorting ${sortedPersons.last().name} == ${realm.where(Person::class.java).findAll().first().name}"
+
+        } finally {
+            realm.close()
         }
-
-        // Implicit read transactions allow you to access your objects
-        status += "\nNumber of persons: ${realm.where(Person::class.java).count()}"
-
-        // Iterate over all objects
-        for (person in realm.where(Person::class.java).findAll()) {
-            val dogName: String = person?.dog?.name ?: "None"
-
-            status += "\n${person.name}: ${person.age} : $dogName : ${person.cats.size}"
-
-            // The field tempReference is annotated with @Ignore
-            // Though we initially set its value to 42, it has
-            // not been saved as part of the Person RealmObject:
-            check(person.tempReference == 0)
-        }
-
-        // Sorting
-        val sortedPersons = realm.where(Person::class.java).findAllSorted("age", Sort.DESCENDING);
-        check(realm.where(Person::class.java).findAll().last().name == sortedPersons.first().name)
-        status += "\nSorting ${sortedPersons.last().name} == ${realm.where(Person::class.java).findAll().first().name}"
-
-        realm.close()
         return status
     }
 
@@ -193,7 +187,7 @@ class KotlinExampleActivity : Activity() {
 
         // Realm implements the Closable interface, therefore we can make use of Kotlin's built-in
         // extension method 'use' (pun intended).
-        Realm.getInstance(realmConfig).use {
+        Realm.getDefaultInstance().use {
             // 'it' is the implicit lambda parameter of type Realm
             status += "\nNumber of persons: ${it.where(Person::class.java).count()}"
 

@@ -20,6 +20,7 @@ import java.util.Date;
 
 import io.realm.RealmFieldType;
 
+
 /**
  * Row wrapper that stubs all access with IllegalStateExceptions except for isAttached. This can be used instead of
  * adding null checks everywhere when the underlying Row accessor in Realm's underlying storage engine is no longer
@@ -104,7 +105,7 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public LinkView getLinkList(long columnIndex) {
+    public OsList getLinkList(long columnIndex) {
         throw getStubException();
     }
 
@@ -166,6 +167,11 @@ public enum InvalidRow implements Row {
     @Override
     public boolean isAttached() {
         return false;
+    }
+
+    @Override
+    public void checkIfAttached() {
+        throw getStubException();
     }
 
     @Override

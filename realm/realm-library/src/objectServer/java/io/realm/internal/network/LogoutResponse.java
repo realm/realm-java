@@ -28,29 +28,39 @@ import okhttp3.Response;
  */
 public class LogoutResponse extends AuthServerResponse {
 
-    private final ObjectServerError error;
-
     /**
-     * Helper method for creating the proper Authenticate response. This method will set the appropriate error
+     * Helper method for creating the proper Logout response. This method will set the appropriate error
      * depending on any HTTP response codes or I/O errors.
      *
      * @param response the server response.
      * @return the log out response.
      */
-    static LogoutResponse createFrom(Response response) {
-        String serverResponse;
+    static LogoutResponse from(Response response) {
+        if (response.isSuccessful()) {
+            // success
+            return new LogoutResponse();
+        }
         try {
-            serverResponse = response.body().string();
+            String serverResponse = response.body().string();
+            return new LogoutResponse(AuthServerResponse.createError(serverResponse, response.code()));
         } catch (IOException e) {
             ObjectServerError error = new ObjectServerError(ErrorCode.IO_EXCEPTION, e);
             return new LogoutResponse(error);
         }
-        RealmLog.debug("Authenticate response: " + serverResponse);
-        if (response.code() != 200) {
-            return new LogoutResponse(AuthServerResponse.createError(serverResponse, response.code()));
-        } else {
-            return new LogoutResponse(serverResponse);
-        }
+    }
+
+    /**
+     * Helper method for creating a failed response.
+     */
+    public static LogoutResponse from(ObjectServerError error) {
+        return new LogoutResponse(error);
+    }
+
+    /**
+     * Helper method for creating a failed response from an {@link Exception}.
+     */
+    public static LogoutResponse from(Exception exception) {
+        return LogoutResponse.from(new ObjectServerError(ErrorCode.fromException(exception), exception));
     }
 
     /**
@@ -60,17 +70,16 @@ public class LogoutResponse extends AuthServerResponse {
      * @param error an authentication response error.
      */
     private LogoutResponse(ObjectServerError error) {
-        this.error = error;
+        RealmLog.debug("Logout response - Error: " + error.getErrorMessage());
+        setError(error);
     }
 
     /**
-     * Parses a valid (200) server response.
-     *
-     * @param serverResponse the server response.
+     * Parses a valid (204) server response.
      */
-    private LogoutResponse(String serverResponse) {
-        this.error = null;
-        // TODO endpoint not finalized
+    private LogoutResponse() {
+        RealmLog.debug("Logout response - Success");
+        setError(null);
     }
 
     /**
@@ -78,17 +87,8 @@ public class LogoutResponse extends AuthServerResponse {
      *
      * @return {@code true} if valid.
      */
+    @Override
     public boolean isValid() {
-//        return (error == null);
-        return true;
-    }
-
-    /**
-     * Returns the error.
-     *
-     * @return the error.
-     */
-    public ObjectServerError getError() {
-        return error;
+        return (error == null) || (error.getErrorCode() == ErrorCode.EXPIRED_REFRESH_TOKEN);
     }
 }

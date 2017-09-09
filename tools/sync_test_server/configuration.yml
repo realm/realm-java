@@ -1,0 +1,320 @@
+# Realm Object Server Configuration
+#
+# For each possible setting, the commented out values are the default values
+# unless another default is mentioned explicitly.
+#
+# Paths specified in this file can be either absolute or relative.
+# Relative paths are relative to the current working directory.
+
+
+## ----------------------------------------------------------------------------
+## The following options are MANDATORY, either by providing them in this file,
+## or as command-line options:
+## - storage: root_path
+## - auth:public_key_path
+## - auth:private_key_path
+## ----------------------------------------------------------------------------
+
+
+storage:
+  ## The directory in which the realm server will store all its data files.
+  ## This configuration option is MANDATORY.
+  root_path: '/var/realm/sync-services'
+
+## ----------------------------------------------------------------------------
+
+auth:
+  ## The path to the public and private keys (in PEM format) that will be used
+  ## to validate identity tokens sent by clients.
+  ## These configuration options are MANDATORY.
+  public_key_path: '/public.pem'
+  private_key_path: '/private.pem'
+
+  sync_hosts:
+    ## The hosts for which the authentication service will consider itself
+    ## authoritative. It will decline to process any kind of requests for Realm
+    ## files at other URLs. Addresses specified here must include host and port
+    ## (authority part of the URL according to RFC 3986) on which the sync
+    ## server is externally reachable. In addition to hosts configured here,
+    ## the authentication service will always accept the following hosts:
+    # - localhost:27800
+    #
+    # Additionally if a proxy server for the given protocol is configured, it
+    # will also accept requests for Realm files at these hosts:
+    # - ${proxy:http:listen_address}:${proxy:http:listen_port}
+    # - ${proxy:https:listen_address}:${proxy:https:listen_port}
+    #
+    # The derived hosts will also include aliases for local addresses
+    # with the following host names: '127.0.0.1', 'localhost' and '::'.
+
+  ttls:
+    ## The validity duration for Refresh Tokens. This can be a fairly high
+    ## value, ranging from a single day to multiple years, depending on
+    ## individual needs. Whenever the Refresh Token expires, clients will be
+    ## forced to delegate again to the authorizing party. If the credentials
+    ## there can be revoked by the user or are not opaquely managed by the
+    ## client, then this would force the user to manual intervention after the
+    ## expiration. Depending on the use case, this can be either desired or
+    ## should be prevented. This value is represented in seconds.
+    ## Default: 10 years.
+    # refresh_token: 315360000
+
+    ## The validity duration for Access Tokens. This should be a fairly small
+    ## number, especially if you are concerned with revocations being applied
+    ## quickly. This value is represented in seconds. Default: 1 minute.
+    ##
+    ## WARNING : Changing this value may impact the timeout of the refresh
+    ##           token test (AuthTests#preemptiveTokenRefresh)
+    access_token: 20
+
+  providers:
+    ## Providers of authentication tokens. Each provider has a configuration
+    ## object associated with it. If a provider is included here and its
+    ## configuration is valid, it will be enabled.
+
+    ## Possible providers: cloudkit, debug, google, facebook, realm, password
+    ## Providers 'realm' and 'password' are always enabled:
+    ## - The 'realm' provider is used to derive access tokens from a refresh token.
+    ## - The 'password' provider is required for the dashboard to work. It supports
+    ##   authentication through username/password and uses a PBKDF2 implementation.
+
+    ## This enables login via CloudKit's user record name.
+    # cloudkit:
+      ## The key ID retrieved when adding the public key derived from the
+      ## specified private_key_path in CloudKit's Server-to-Server Keys,
+      ## available through the API Access settings in the CloudKit dashboard.
+      # key_id: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+
+      ## The path to the certificate.
+      # private_key_path: 'cloudkit_eckey.pem'
+
+      ## The container identifier in reverse domain name notation.
+      # container: "iCloud.io.realm.exampleApp.ios"
+
+      ## The environment in which CloudKit should be used. The default is
+      ## 'development'. For the production deployment for apps on the AppStore
+      ## you must specify 'production'.
+      # environment: 'development'
+
+    ## This enables authentication via a Google Sign-In access token for a
+    ## specific app.
+    # google:
+      ## The client ID as retrieved when setting up the app in the Google
+      ## Developer Console.
+      # clientId: '012345678901-abcdefghijklmnopqrstvuvwxyz01234.apps.googleusercontent.com'
+
+    ## This enables authentication via a Facebook access token for a specific app.
+    ## This provider needs no configuration (uncommenting the next line enables it).
+    # facebook: {}
+
+    ## This enables authentication via an Azure Active Directory access token for a specific directory.
+    # azuread:
+      ## The Directory Id as retrieved from the Active Directory properties in the Azure portal.
+      # tenant_id: '01234567-89ab-cdef-0123-4567890a'
+
+    ## This would enable a custom authentication provider with the name "custom/twitter".
+    ## The prefix "custom/" is necessary for all authentication providers using a custom
+    ## implementation to ensure forwards-compatiblity and avoid name clashes.
+    # custom/twitter:
+      ## The implementation to be used. This can be either one of the predefined
+      ## implementations under a custom name or a custom implementation found at
+      ## the include_path or if not given at the auth:providers_include_path.
+      # implementation: custom_provider_implementation.js
+
+      ## The include path to use for this providers custom implementation.
+      # include_path: /~/.realm/auth
+
+      ## Beyond that custom implementations can define custom configuration
+      ## options which will be populated to their configuration and merged with
+      ## the default values they can define.
+     debug: {}
+
+## ----------------------------------------------------------------------------
+
+proxy:
+  ## Network settings for the externally accessible proxy module.
+  ## This can be enabled for both HTTP and HTTPS traffic simultaneously, and
+  ## forwards traffic to the sync and services internal modules.
+  ## It is possible to disable and replace the proxy module by another reverse proxy.
+  ##
+  ## Note: The proxy module forwards traffic to the internal modules on the
+  ## addresses and ports they listen on (as configured in the `network' section below).
+  ##
+  ## Shown below is a diagram of the default network configuration:
+  ##
+  ##                                                                     +----------------------+
+  ##                                                                     |                      |
+  ##                                                                     |     Sync module      |
+  ##                                                                     |                      |
+  ##                                                                     |      (internal)      |
+  ##                                                                     |                      |
+  ##                                                                 +-> |  Defaults:           |
+  ## +----------------+             +---------------------------+    |   |   Listen: 127.0.0.1  |
+  ## |                |             |                           |    |   |   Ports:             |
+  ## |  Realm Client  +------+      |        Proxy module       |    |   |    WS: tcp/27800     |
+  ## |                |      |      |                           |    |   |                      |
+  ## +-----------------      |      |  (externally accessible)  |    |   +----------------------+
+  ##                         +----> |                           |    |
+  ##                                |  Defaults:                |    |
+  ##                         +----> |   Listen: 0.0.0.0         +----+
+  ##      +------------      |      |   Ports:                  |    |   +----------------------+
+  ##      |           |      |      |    HTTP & WS: tcp/9080    |    |   |                      |
+  ##      |  Browser  +------+      |    HTTPS & WSS: tcp/9443  |    |   |    Services module   |
+  ##      |           |             |                           |    |   |                      |
+  ##      +-----------+             +---------------------------+    |   |      (internal)      |
+  ##                                                                 +-> |                      |
+  ##                                                                     |  Defaults:           |
+  ##                            Note: The proxy module can be            |   Listen: 127.0.0.1  |
+  ##                                  replaced by NGINX or other         |    Ports:            |
+  ##                                  reverse proxies                    |     HTTP: tcp/27080  |
+  ##                                                                     |                      |
+  ##                                                                     +----------------------+
+
+  http:
+    ## Whether or not to enable the HTTP proxy module. It enables multiplexing requests
+    ## by forwarding incoming requests on a single port to all services.
+    # enable: true
+
+    ## The address/interface on which the HTTP proxy module should listen. This defaults
+    ## to 127.0.0.1. If you wish to listen on all available interfaces,
+    ## uncomment the following line.
+    listen_address: '0.0.0.0'
+
+    ## The port that the HTTP proxy module should bind to.
+    listen_port: 9080
+
+  https:
+    ## Whether or not to enable the HTTPS proxy module. It enables multiplexing requests
+    ## by forwarding incoming requests on a single port to all services.
+    ## Note that even if it enabled, the HTTPS proxy will only start if supplied
+    ## with a valid pair of certificates through certificate_path and private_key_path below.
+     enable: true
+
+    ## The path to the certificate and private keys (in PEM format) that will be used
+    ## to set up the HTTPS server accepting connections.
+    ## These configuration options are MANDATORY to start the HTTPS proxy module.
+     certificate_path: '/127_0_0_1-chain.crt.pem'
+     private_key_path: '/127_0_0_1-server.key.pem'
+
+    ## The address/interface on which the HTTPS proxy module should listen. This defaults
+    ## to 127.0.0.1. If you wish to listen on all available interfaces,
+    ## uncomment the following line.
+     listen_address: '0.0.0.0'
+
+    ## The port that the HTTPS proxy module should bind to.
+     listen_port: 9443
+
+## ----------------------------------------------------------------------------
+
+network:
+  ## Network settings for internal modules, to which traffic is forwarded from
+  ## the proxy module. The proxy module will automatically forward traffic to the
+  ## internal modules on the ports they are configured to listen on in this section.
+
+  http:
+    ## The address/interface on which the server should listen for HTTP
+    ## services. This includes Dashboard and Authentication APIs.
+    ## This defaults to 127.0.0.1. If you wish to listen on all available
+    ## interfaces, uncomment the following line.
+    # listen_address: '0.0.0.0'
+
+    ## The port on which to listen for incoming requests to the Dashboard
+    ## and authentication APIs. This defaults to 27080.
+    # listen_port: 27080
+
+## ----------------------------------------------------------------------------
+
+sync:
+  ## Synchronization service settings, including clustering and load balancing.
+
+  servers:
+    ## An array of entries describing the cluster configuration.
+    ##
+    ## If no servers are configured, a default entry is inserted with the
+    ## following settings:
+    ##   - id: '0'
+    ##     address: '0.0.0.0'
+    ##     port: 27800
+    ##
+    ## Each entry must contain the following entries:
+    ##
+    ##    'id': A unique string ID used to distinguish between backend servers.
+    ##          This must remain stable, even if the particular backend server
+    ##          is moved to a different address or port.
+    ##
+    ##    'address': The address of the cluster participant. If '0.0.0.0' or
+    ##               '::', a sync server will be started on localhost (listening
+    ##               on '127.0.0.1' or '::1', respectively). Otherwise, it is
+    ##               assumed that the sync server is an external process,
+    ##               potentially on a separate machine.
+    ##
+    ##    'port': The port on which to connect to the particular cluster node.
+    ##            If address was '0.0.0.0' or '::', this is also the port number
+    ##            on which the local cluster node will listen for connections.
+
+## ----------------------------------------------------------------------------
+
+logging:
+  ## The logging level of the server.
+  ##
+  ## Note: This used to be an integer, but has been updated to be more
+  ## descriptive. The integer values are no longer supported.
+  ##
+  ## Possible values (from most to least verbose):
+  ##
+  ##   all: no filtering
+  ##   trace
+  ##   debug
+  ##   detail
+  ##   info: good for production (default)
+  ##   warn
+  ##   error
+  ##   fatal
+  ##   off: all output suppressed
+   level: 'detail'
+
+  ## The file to which the synchronisation server should log. This should
+  ## be a writable path from the perspective of the user under which the
+  ## server runs. If no path is specified, the server will log to stdout.
+  # path: '/var/log/realm-object-server.log'
+
+## ----------------------------------------------------------------------------
+
+performance:
+  ## The maximum number of Realm files that the server will have open
+  ## concurrently (LRU cache). The default is 256.
+  ## Only change this option if directed to by Realm support.
+  # max_open_files: 256
+
+## ----------------------------------------------------------------------------
+
+backup:
+  ## The backup is a server that delivers continuous backup of the Realms in
+  ## storage.root_path specified above. The backup is delivered to all connected
+  ## backup clients. Backup clients must be started separately with network
+  ## configuration parameters matching those of the server.
+
+  enable:
+    ## Whether or not to enable the backup server.
+    # enable: true
+
+  network:
+    ## The address/interface on which the backup server should listen. This
+    ## defaults to 127.0.0.1. If you wish to listen on all available interfaces,
+    ## uncomment the following line.
+    # listen_address: '0.0.0.0'
+
+    ## The port on which to listen. The backup server uses port 27810 by
+    ## default. For most deployments, there should not be a need to change this.
+    # listen_port: 27810
+
+  logging:
+    ## The logging level of the backup server.
+    ## The values are identical to the logging levels described above.
+    ## The default level is 'info'.
+    # level: 'info'
+
+    ## The file to which the synchronisation server should log. This should
+    ## be a writable path from the perspective of the user under which the
+    ## server runs. If no path is specified, the server will log to stdout.
+    # path: '/var/log/realm-object-server-backup.log'

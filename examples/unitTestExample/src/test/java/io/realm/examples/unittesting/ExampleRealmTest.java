@@ -26,7 +26,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
 import org.powermock.modules.junit4.rule.PowerMockRule;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import io.realm.Realm;
@@ -44,7 +44,8 @@ import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-@RunWith(RobolectricGradleTestRunner.class)
+
+@RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 19)
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*"})
 @SuppressStaticInitializationFor("io.realm.internal.Util")
@@ -107,7 +108,7 @@ public class ExampleRealmTest {
         dogRepo.createDog("Spot");
 
         // Attempting to verify that a method was called (executeTransaction) on a partial
-        // mock will return unexpected resultes due to the partial mock. For example,
+        // mock will return unexpected results due to the partial mock. For example,
         // verifying that `executeTransaction` was called only once will fail as Powermock
         // actually calls the method 3 times for some reason. I cannot determine why at this
         // point.

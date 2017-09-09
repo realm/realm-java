@@ -22,40 +22,42 @@
 
 #include "binding_context.hpp"
 
+#include "jni_util/java_global_weak_ref.hpp"
+
 namespace realm {
 
 namespace _impl {
-
 // Binding context which will be called from OS.
 class JavaBindingContext final : public BindingContext {
 private:
     struct ConcreteJavaBindContext {
         JNIEnv* jni_env;
         jobject java_notifier;
-        explicit ConcreteJavaBindContext(JNIEnv* env, jobject notifier)
-            :jni_env(env), java_notifier(notifier) { }
     };
 
-    // The JNIEnv for the thread which creates the Realm. This should only be used on the current thread.
-    JNIEnv* m_local_jni_env;
-    // All methods should be called from the thread which creates the realm except the destructor which might be
-    // called from finalizer/phantom daemon. So we need a jvm pointer to create JNIEnv there if needed.
-    JavaVM* m_jvm;
-    // A weak global ref to the implementation of RealmNotifier
-    // Java should hold a strong ref to it as long as the SharedRealm lives
-    jobject m_java_notifier;
-    // Method IDs from RealmNotifier implementation. Cache them as member vars.
-    jmethodID m_notify_by_other_method;
+    // Weak global refs to the needed Java objects.
+    // Java should hold a strong ref to them as long as the SharedRealm lives
+    jni_util::JavaGlobalWeakRef m_java_notifier;
+    jni_util::JavaGlobalWeakRef m_schema_changed_callback;
 
 public:
-    virtual ~JavaBindingContext();
-    virtual void changes_available();
+    virtual ~JavaBindingContext(){};
+    void before_notify() override;
+    void did_change(std::vector<ObserverState> const& observers, std::vector<void*> const& invalidated,
+                    bool version_changed = true) override;
+    void schema_did_change(Schema const&) override;
 
-    explicit JavaBindingContext(const ConcreteJavaBindContext&);
+    explicit JavaBindingContext(const ConcreteJavaBindContext& concrete_context)
+        : m_java_notifier(concrete_context.jni_env, concrete_context.java_notifier)
+        , m_schema_changed_callback()
+    {
+    }
     JavaBindingContext(const JavaBindingContext&) = delete;
     JavaBindingContext& operator=(const JavaBindingContext&) = delete;
     JavaBindingContext(JavaBindingContext&&) = delete;
     JavaBindingContext& operator=(JavaBindingContext&&) = delete;
+
+    void set_schema_changed_callback(JNIEnv* env, jobject schema_changed_callback);
 
     static inline std::unique_ptr<JavaBindingContext> create(JNIEnv* env, jobject notifier)
     {
@@ -68,4 +70,3 @@ public:
 } // namespace realm
 
 #endif
-

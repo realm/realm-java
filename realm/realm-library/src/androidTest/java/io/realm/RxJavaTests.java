@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
+import io.realm.entities.Dog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -43,6 +44,7 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -68,13 +70,13 @@ public class RxJavaTests {
 
     @Before
     public void setUp() throws Exception {
-        // For non-LooperThread tests
+        // For non-LooperThread tests.
         realm = Realm.getInstance(configFactory.createConfiguration());
     }
 
     @After
     public void tearDown() throws Exception {
-        // For non-LooperThread tests
+        // For non-LooperThread tests.
         if (realm != null) {
             realm.close();
         }
@@ -103,7 +105,7 @@ public class RxJavaTests {
     @RunTestInLooperThread
     public void realmObject_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         final AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
@@ -165,7 +167,7 @@ public class RxJavaTests {
     @RunTestInLooperThread
     public void findFirstAsync_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
@@ -184,14 +186,72 @@ public class RxJavaTests {
     }
 
     @Test
+    @RunTestInLooperThread
+    public void findFirstAsync_emittedOnDelete() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        final Realm realm = looperThread.getRealm();
+        realm.beginTransaction();
+        final AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        subscription = realm.where(AllTypes.class).findFirstAsync().<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
+            @Override
+            public void call(final AllTypes rxObject) {
+                switch (subscriberCalled.incrementAndGet()) {
+                    case 1:
+                        assertFalse(rxObject.isLoaded());
+                        break;
+                    case 2:
+                        assertTrue(rxObject.isLoaded());
+                        assertTrue(rxObject.isValid());
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.delete(AllTypes.class);
+                            }
+                        });
+                        break;
+                    case 3:
+                        assertTrue(rxObject.isLoaded());
+                        assertFalse(rxObject.isValid());
+                        looperThread.testComplete();
+                        break;
+                    default:
+                        fail();
+                }
+            }
+        });
+    }
+
+    @Test
     @UiThreadTest
     public void realmResults_emittedOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         subscription = results.asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
             @Override
+            @SuppressWarnings("ReferenceEquality")
             public void call(RealmResults<AllTypes> rxResults) {
                 assertTrue(rxResults == results);
+                subscribedNotified.set(true);
+            }
+        });
+        assertTrue(subscribedNotified.get());
+        subscription.unsubscribe();
+    }
+
+    @Test
+    @UiThreadTest
+    public void realmList_emittedOnSubscribe() {
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        realm.beginTransaction();
+        final RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
+        realm.commitTransaction();
+        subscription = list.asObservable().subscribe(new Action1<RealmList<Dog>>() {
+            @Override
+            @SuppressWarnings("ReferenceEquality")
+            public void call(RealmList<Dog> rxList) {
+                assertTrue(rxList == list);
                 subscribedNotified.set(true);
             }
         });
@@ -207,6 +267,7 @@ public class RxJavaTests {
         final RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
         subscription = results.asObservable().subscribe(new Action1<RealmResults<DynamicRealmObject>>() {
             @Override
+            @SuppressWarnings("ReferenceEquality")
             public void call(RealmResults<DynamicRealmObject> rxResults) {
                 assertTrue(rxResults == results);
                 subscribedNotified.set(true);
@@ -221,7 +282,7 @@ public class RxJavaTests {
     @RunTestInLooperThread
     public void realmResults_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         realm.commitTransaction();
@@ -242,9 +303,33 @@ public class RxJavaTests {
 
     @Test
     @RunTestInLooperThread
+    public void realmList_emittedOnUpdate() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        Realm realm = looperThread.getRealm();
+        realm.beginTransaction();
+        final RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
+        realm.commitTransaction();
+
+        subscription = list.asObservable().subscribe(new Action1<RealmList<Dog>>() {
+            @Override
+            public void call(RealmList<Dog> dogs) {
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    assertEquals(1, list.size());
+                    looperThread.testComplete();
+                }
+            }
+        });
+
+        realm.beginTransaction();
+        list.add(new Dog());
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
     public void dynamicRealmResults_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
-        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
         dynamicRealm.beginTransaction();
         RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
         dynamicRealm.commitTransaction();
@@ -271,6 +356,7 @@ public class RxJavaTests {
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         subscription = results.asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
             @Override
+            @SuppressWarnings("ReferenceEquality")
             public void call(RealmResults<AllTypes> rxResults) {
                 assertTrue(rxResults == results);
                 subscribedNotified.set(true);
@@ -284,7 +370,7 @@ public class RxJavaTests {
     @RunTestInLooperThread
     public void findAllAsync_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         subscription = realm.where(AllTypes.class).findAllAsync().asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
             @Override
             public void call(RealmResults<AllTypes> rxResults) {
@@ -318,7 +404,7 @@ public class RxJavaTests {
     @RunTestInLooperThread
     public void realm_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         subscription = realm.asObservable().subscribe(new Action1<Realm>() {
             @Override
             public void call(Realm rxRealm) {
@@ -359,7 +445,7 @@ public class RxJavaTests {
     @Test
     @RunTestInLooperThread
     public void dynamicRealm_emittedOnUpdate() {
-        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         subscription = dynamicRealm.asObservable().subscribe(new Action1<DynamicRealm>() {
             @Override
@@ -387,9 +473,9 @@ public class RxJavaTests {
                 subscribedNotified.set(true);
             }
         });
-        assertEquals(1, realm.handlerController.changeListeners.size());
+        assertEquals(1, realm.sharedRealm.realmNotifier.getListenersListSize());
         subscription.unsubscribe();
-        assertEquals(0, realm.handlerController.changeListeners.size());
+        assertEquals(0, realm.sharedRealm.realmNotifier.getListenersListSize());
     }
 
     @Test
@@ -405,7 +491,7 @@ public class RxJavaTests {
             }
         });
         assertTrue(subscribedNotified.get());
-        assertEquals(1, realm.handlerController.changeListeners.size());
+        assertEquals(1, realm.sharedRealm.realmNotifier.getListenersListSize());
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -419,7 +505,7 @@ public class RxJavaTests {
             }
         }).start();
         TestHelper.awaitOrFail(unsubscribeCompleted);
-        assertEquals(1, realm.handlerController.changeListeners.size());
+        assertEquals(1, realm.sharedRealm.realmNotifier.getListenersListSize());
         // We cannot call subscription.unsubscribe() again, so manually close the extra Realm instance opened by
         // the Observable.
         realm.close();
@@ -512,6 +598,29 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
+    public void realmList_closeInDoOnUnsubscribe() {
+        realm.beginTransaction();
+        RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
+        realm.commitTransaction();
+
+        Observable<RealmList<Dog>> observable = list.asObservable().doOnUnsubscribe(new Action0() {
+            @Override
+            public void call() {
+                realm.close();
+            }
+        });
+        subscription = observable.subscribe(new Action1<RealmList<Dog>>() {
+            @Override
+            public void call(RealmList<Dog> dogs) {
+            }
+        });
+
+        subscription.unsubscribe();
+        assertTrue(realm.isClosed());
+    }
+
+    @Test
+    @UiThreadTest
     public void dynamicRealmResults_closeInDoOnUnsubscribe() {
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
 
@@ -591,7 +700,7 @@ public class RxJavaTests {
     public void realmResults_gcStressTest() {
         final int TEST_SIZE = 50;
         final AtomicLong innerCounter = new AtomicLong();
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -600,7 +709,7 @@ public class RxJavaTests {
         realm.commitTransaction();
 
         for (int i = 0; i < TEST_SIZE; i++) {
-            // Don't keep a reference to the Observable
+            // Doesn't keep a reference to the Observable.
             realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, i).findAllAsync().asObservable()
                     .filter(new Func1<RealmResults<AllTypes>, Boolean>() {
                         @Override
@@ -608,11 +717,11 @@ public class RxJavaTests {
                             return results.isLoaded();
                         }
                     })
-                    .take(1) // Unsubscribes from Realm
+                    .take(1) // Unsubscribes from Realm.
                     .subscribe(new Action1<RealmResults<AllTypes>>() {
                         @Override
                         public void call(RealmResults<AllTypes> result) {
-                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result
+                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result.
                             Runtime.getRuntime().gc();
                             if (innerCounter.incrementAndGet() == TEST_SIZE) {
                                 looperThread.testComplete();
@@ -634,7 +743,7 @@ public class RxJavaTests {
     public void dynamicRealmResults_gcStressTest() {
         final int TEST_SIZE = 50;
         final AtomicLong innerCounter = new AtomicLong();
-        final DynamicRealm realm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        final DynamicRealm realm = DynamicRealm.getInstance(looperThread.getConfiguration());
 
         realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -643,7 +752,7 @@ public class RxJavaTests {
         realm.commitTransaction();
 
         for (int i = 0; i < TEST_SIZE; i++) {
-            // Don't keep a reference to the Observable
+            // Doesn't keep a reference to the Observable.
             realm.where(AllTypes.CLASS_NAME).equalTo(AllTypes.FIELD_LONG, i).findAllAsync().asObservable()
                     .filter(new Func1<RealmResults<DynamicRealmObject>, Boolean>() {
                         @Override
@@ -651,11 +760,11 @@ public class RxJavaTests {
                             return results.isLoaded();
                         }
                     })
-                    .take(1) // Unsubscribes from Realm
+                    .take(1) // Unsubscribes from Realm.
                     .subscribe(new Action1<RealmResults<DynamicRealmObject>>() {
                         @Override
                         public void call(RealmResults<DynamicRealmObject> result) {
-                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result
+                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result.
                             Runtime.getRuntime().gc();
                             if (innerCounter.incrementAndGet() == TEST_SIZE) {
                                 realm.close();
@@ -678,7 +787,7 @@ public class RxJavaTests {
     public void realmObject_gcStressTest() {
         final int TEST_SIZE = 50;
         final AtomicLong innerCounter = new AtomicLong();
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
 
         realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -687,7 +796,7 @@ public class RxJavaTests {
         realm.commitTransaction();
 
         for (int i = 0; i < TEST_SIZE; i++) {
-            // Don't keep a reference to the Observable
+            // Doesn't keep a reference to the Observable.
             realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, i).findFirstAsync().<AllTypes>asObservable()
                     .filter(new Func1<AllTypes, Boolean>() {
                         @Override
@@ -695,11 +804,11 @@ public class RxJavaTests {
                             return obj.isLoaded();
                         }
                     })
-                    .take(1) // Unsubscribes from Realm
+                    .take(1) // Unsubscribes from Realm.
                     .subscribe(new Action1<AllTypes>() {
                         @Override
                         public void call(AllTypes result) {
-                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result
+                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result.
                             Runtime.getRuntime().gc();
                             if (innerCounter.incrementAndGet() == TEST_SIZE) {
                                 looperThread.testComplete();
@@ -721,7 +830,7 @@ public class RxJavaTests {
     public void dynamicRealmObject_gcStressTest() {
         final int TEST_SIZE = 50;
         final AtomicLong innerCounter = new AtomicLong();
-        final DynamicRealm realm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        final DynamicRealm realm = DynamicRealm.getInstance(looperThread.getConfiguration());
 
         realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -730,7 +839,7 @@ public class RxJavaTests {
         realm.commitTransaction();
 
         for (int i = 0; i < TEST_SIZE; i++) {
-            // Don't keep a reference to the Observable
+            // Doesn't keep a reference to the Observable.
             realm.where(AllTypes.CLASS_NAME).equalTo(AllTypes.FIELD_LONG, i).findFirstAsync().<DynamicRealmObject>asObservable()
                     .filter(new Func1<DynamicRealmObject, Boolean>() {
                         @Override
@@ -738,11 +847,11 @@ public class RxJavaTests {
                             return obj.isLoaded();
                         }
                     })
-                    .take(1) // Unsubscribes from Realm
+                    .take(1) // Unsubscribes from Realm.
                     .subscribe(new Action1<DynamicRealmObject>() {
                         @Override
                         public void call(DynamicRealmObject result) {
-                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result
+                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result.
                             Runtime.getRuntime().gc();
                             if (innerCounter.incrementAndGet() == TEST_SIZE) {
                                 realm.close();

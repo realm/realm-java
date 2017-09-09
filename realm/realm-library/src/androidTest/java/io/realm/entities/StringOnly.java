@@ -19,6 +19,10 @@ package io.realm.entities;
 import io.realm.RealmObject;
 
 public class StringOnly extends RealmObject {
+
+    public static final String CLASS_NAME = "StringOnly";
+    public static final String FIELD_CHARS = "chars";
+
     private String chars;
 
     public String getChars() {

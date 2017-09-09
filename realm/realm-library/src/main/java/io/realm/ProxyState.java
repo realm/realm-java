@@ -17,62 +17,78 @@
 package io.realm;
 
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Future;
 
+import javax.annotation.Nullable;
+
+import io.realm.internal.ObserverPairList;
+import io.realm.internal.PendingRow;
 import io.realm.internal.Row;
-import io.realm.internal.Table;
-import io.realm.internal.TableQuery;
-import io.realm.log.RealmLog;
+import io.realm.internal.OsObject;
+import io.realm.internal.UncheckedRow;
+
 
 /**
  * This implements {@code RealmObjectProxy} interface, to eliminate copying logic between
  * {@link RealmObject} and {@link DynamicRealmObject}.
  */
-public final class ProxyState<E extends RealmModel> {
+public final class ProxyState<E extends RealmModel> implements PendingRow.FrontEnd {
+
+    static class RealmChangeListenerWrapper<T extends RealmModel> implements RealmObjectChangeListener<T> {
+        private final RealmChangeListener<T> listener;
+
+        RealmChangeListenerWrapper(RealmChangeListener<T> listener) {
+            //noinspection ConstantConditions
+            if (listener == null) {
+                throw new IllegalArgumentException("Listener should not be null");
+            }
+            this.listener = listener;
+        }
+
+        @Override
+        public void onChange(T object, @Nullable ObjectChangeSet changes) {
+            listener.onChange(object);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof RealmChangeListenerWrapper &&
+                    listener == ((RealmChangeListenerWrapper) obj).listener;
+        }
+
+        @Override
+        public int hashCode() {
+            return listener.hashCode();
+        }
+    }
+
+    private static class QueryCallback implements ObserverPairList.Callback<OsObject.ObjectObserverPair> {
+
+        @Override
+        public void onCalled(OsObject.ObjectObserverPair pair, Object observer) {
+            //noinspection unchecked
+            pair.onChange((RealmModel) observer, null);
+        }
+    }
+
     private E model;
-    private String className;
-    private Class<? extends RealmModel> clazzName;
 
     // true only while executing the constructor of the enclosing proxy object
     private boolean underConstruction = true;
 
     private Row row;
+    private OsObject osObject;
     private BaseRealm realm;
     private boolean acceptDefaultValue;
     private List<String> excludeFields;
 
-    private final List<RealmChangeListener<E>> listeners = new CopyOnWriteArrayList<RealmChangeListener<E>>();
-    private Future<Long> pendingQuery;
-    private boolean isCompleted = false;
-    protected long currentTableVersion = -1;
+    private ObserverPairList<OsObject.ObjectObserverPair> observerPairs =
+            new ObserverPairList<OsObject.ObjectObserverPair>();
+    private static QueryCallback queryCallback = new QueryCallback();
 
     public ProxyState() {}
 
     public ProxyState(E model) {
         this.model = model;
-    }
-
-    public ProxyState(Class<? extends RealmModel> clazzName, E model) {
-        this.clazzName = clazzName;
-        this.model = model;
-    }
-
-    /**
-     * Sets the Future instance returned by the worker thread, we need this instance to force {@link RealmObject#load()} an async
-     * query, we use it to determine if the current RealmResults is a sync or async one.
-     *
-     * @param pendingQuery pending query.
-     */
-    public void setPendingQuery$realm(Future<Long> pendingQuery) {
-        this.pendingQuery = pendingQuery;
-        if (isLoaded()) {
-            // the query completed before RealmQuery
-            // had a chance to call setPendingQuery to register the pendingQuery (used btw
-            // to determine isLoaded behaviour)
-            onCompleted$realm();
-
-        } // else, it will be handled by the Realm#handler
     }
 
     public BaseRealm getRealm$realm() {
@@ -99,6 +115,7 @@ public final class ProxyState<E extends RealmModel> {
         this.acceptDefaultValue = acceptDefaultValue;
     }
 
+    @SuppressWarnings("unused")
     public List<String> getExcludeFields$realm() {
         return excludeFields;
     }
@@ -107,95 +124,38 @@ public final class ProxyState<E extends RealmModel> {
         this.excludeFields = excludeFields;
     }
 
-    public Object getPendingQuery$realm() {
-        return pendingQuery;
-    }
-
-    public boolean isCompleted$realm() {
-        return isCompleted;
-    }
-
-    /**
-     * Called to import the handover row pointer and notify listeners.
-     *
-     * @return {@code true} if it successfully completed the query, {@code false} otherwise.
-     */
-    public boolean onCompleted$realm() {
-        try {
-            Long handoverResult = pendingQuery.get();// make the query blocking
-            if (handoverResult != 0) {
-                // this may fail with BadVersionException if the caller and/or the worker thread
-                // are not in sync (same shared_group version).
-                // COMPLETED_ASYNC_REALM_OBJECT will be fired by the worker thread
-                // this should handle more complex use cases like retry, ignore etc
-                onCompleted$realm(handoverResult);
-                notifyChangeListeners$realm();
-            } else {
-                isCompleted = true;
-            }
-        } catch (Exception e) {
-            RealmLog.debug(e);
-            return false;
-        }
-        return true;
-    }
-
-    public List<RealmChangeListener<E>> getListeners$realm() {
-        return listeners;
-    }
-
-    public void onCompleted$realm(long handoverRowPointer) {
-        if (handoverRowPointer == 0) {
-            // we'll retry later to update the row pointer, but we consider
-            // the query done
-            isCompleted = true;
-
-        } else if (!isCompleted || row == Row.EMPTY_ROW) {
-            isCompleted = true;
-            long nativeRowPointer = TableQuery.importHandoverRow(handoverRowPointer, realm.sharedRealm);
-            Table table = getTable();
-            this.row = table.getUncheckedRowByPointer(nativeRowPointer);
-        }// else: already loaded query no need to import again the pointer
-    }
-
     /**
      * Notifies all registered listeners.
      */
-    void notifyChangeListeners$realm() {
-        if (!listeners.isEmpty()) {
-            boolean notify = false;
+    private void notifyQueryFinished() {
+        observerPairs.foreach(queryCallback);
+    }
 
-            Table table = row.getTable();
-            if (table == null) {
-                // Completed async queries might result in `table == null`, `isCompleted == true` and `row == Row.EMPTY_ROW`
-                // We still want to trigger change notifications for these cases.
-                // isLoaded / isValid should be considered properties on RealmObjects as well so any change to these
-                // should trigger a RealmChangeListener.
-                notify = true;
-            } else {
-                long version = table.getVersion();
-                if (currentTableVersion != version) {
-                    currentTableVersion = version;
-                    notify = true;
-                }
-            }
-
-            if (notify) {
-                for (RealmChangeListener listener : listeners) {
-                    listener.onChange(model);
-                }
+    public void addChangeListener(RealmObjectChangeListener<E> listener) {
+        if (row instanceof PendingRow) {
+            observerPairs.add(new OsObject.ObjectObserverPair<E>(model, listener));
+        } else if (row instanceof UncheckedRow) {
+            registerToObjectNotifier();
+            if (osObject != null) {
+                osObject.addListener(model, listener);
             }
         }
     }
 
-    public void setTableVersion$realm() {
-        if (row.getTable() != null) {
-            currentTableVersion = row.getTable().getVersion();
+    public void removeChangeListener(RealmObjectChangeListener<E> listener) {
+        if (osObject != null) {
+            osObject.removeListener(model, listener);
+        } else {
+            observerPairs.remove(model, listener);
         }
     }
 
-    public void setClassName(String className) {
-        this.className = className;
+    public void removeAllChangeListeners() {
+        if (osObject != null) {
+            osObject.removeListener(model);
+        } else {
+            observerPairs.clear();
+        }
     }
 
     public boolean isUnderConstruction() {
@@ -204,19 +164,40 @@ public final class ProxyState<E extends RealmModel> {
 
     public void setConstructionFinished() {
         underConstruction = false;
-        // only used while construction.
+        // Only used while construction.
         excludeFields = null;
     }
 
-    private Table getTable () {
-        if (className != null) {
-            return getRealm$realm().schema.getTable(className);
+    private void registerToObjectNotifier() {
+        if (realm.sharedRealm == null || realm.sharedRealm.isClosed() || !row.isAttached()) {
+            return;
         }
-        return getRealm$realm().schema.getTable(clazzName);
+
+        if (osObject == null) {
+            osObject = new OsObject(realm.sharedRealm, (UncheckedRow) row);
+            osObject.setObserverPairs(observerPairs);
+            // We should never need observerPairs after pending row returns.
+            observerPairs = null;
+        }
     }
 
-    private boolean isLoaded() {
-        realm.checkIfValid();
-        return getPendingQuery$realm() == null || isCompleted$realm();
+    public boolean isLoaded() {
+        return !(row instanceof PendingRow);
+    }
+
+    public void load() {
+        if (row instanceof PendingRow) {
+            ((PendingRow) row).executeQuery();
+        }
+    }
+
+    @Override
+    public void onQueryFinished(Row row) {
+        this.row = row;
+        // getTable should return a non-null table since the row should always be valid here.
+        notifyQueryFinished();
+        if (row.isAttached()) {
+            registerToObjectNotifier();
+        }
     }
 }

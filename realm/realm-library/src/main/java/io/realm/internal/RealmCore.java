@@ -21,10 +21,11 @@ import android.content.Context;
 import com.getkeepsafe.relinker.ReLinker;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Locale;
+
+import io.realm.BuildConfig;
+
 
 /**
  * Utility methods for Realm Core.
@@ -48,7 +49,7 @@ public class RealmCore {
      * can be damaged or missing. This happens for the Android installer, especially when apps are installed
      * through other means than the official Play store. In this case, the .so file can be found in the .apk.
      * In other to access the .apk, an {@link android.content.Context} must be provided.
-     *
+     * <p>
      * Although loadLibrary is synchronized internally from AOSP 4.3, for compatibility reasons,
      * KEEP synchronized here for old devices!
      */
@@ -56,7 +57,7 @@ public class RealmCore {
         if (libraryIsLoaded) {
             return;
         }
-        ReLinker.loadLibrary(context, "realm-jni");
+        ReLinker.loadLibrary(context, "realm-jni", BuildConfig.VERSION_NAME);
         libraryIsLoaded = true;
     }
 
@@ -65,12 +66,11 @@ public class RealmCore {
         try {
             addNativeLibraryPath(BINARIES_PATH);
             resetLibraryPath();
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             // Above can't be used on Android.
         }
 //*/
-        // Load debug library first - if available
+        // Loads debug library first - if available.
         String jnilib;
         jnilib = loadCorrectLibrary("realm_jni32d", "realm_jni64d");
         if (jnilib != null) {
@@ -80,7 +80,7 @@ public class RealmCore {
             if (jnilib == null) {
                 System.err.println("Searched java.library.path=" + System.getProperty("java.library.path"));
                 throw new RuntimeException("Couldn't load the Realm JNI library 'realm_jni32.dll or realm_jni64.dll" +
-                                           "'. Please include the directory to the library in java.library.path.");
+                        "'. Please include the directory to the library in java.library.path.");
             }
         }
         return jnilib;
@@ -110,10 +110,10 @@ public class RealmCore {
     // The ClassLoader has a static field (sys_paths) that contains the paths.
     // If that field is set to null, it is initialized automatically.
     // Therefore forcing that field to null will result into the reevaluation of the library path
-    // as soon as loadLibrary() is called
+    // as soon as loadLibrary() is called.
     private static void resetLibraryPath() {
         try {
-            // reset the library path (a hack)
+            // Resets the library path (a hack).
             Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
             fieldSysPath.setAccessible(true);
             fieldSysPath.set(null, null);

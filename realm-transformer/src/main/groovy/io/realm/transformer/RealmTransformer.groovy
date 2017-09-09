@@ -26,7 +26,6 @@ import io.realm.annotations.Ignore
 import io.realm.annotations.RealmClass
 import javassist.ClassPool
 import javassist.CtClass
-import javassist.LoaderClassPath
 import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -67,6 +66,7 @@ class RealmTransformer extends Transform {
 
     @Override
     Set<Scope> getReferencedScopes() {
+        // Scope.PROJECT_LOCAL_DEPS and Scope.SUB_PROJECTS_LOCAL_DEPS is only for compatibility with AGP 1.x, 2.x
         return Sets.immutableEnumSet(Scope.EXTERNAL_LIBRARIES, Scope.PROJECT_LOCAL_DEPS,
                 Scope.SUB_PROJECTS, Scope.SUB_PROJECTS_LOCAL_DEPS, Scope.TESTED_CODE)
     }
@@ -94,7 +94,7 @@ class RealmTransformer extends Transform {
         // javassist. See https://github.com/realm/realm-java/issues/2703.
         addBootClassesToClassPool(classPool)
 
-        logger.info "ClassPool contains Realm classes: ${classPool.getOrNull('io.realm.RealmList') != null}"
+        logger.debug "ClassPool contains Realm classes: ${classPool.getOrNull('io.realm.RealmList') != null}"
 
         // mark as transformed
         def baseProxyMediator = classPool.get('io.realm.internal.RealmProxyMediator')
@@ -103,7 +103,7 @@ class RealmTransformer extends Transform {
                 .findAll { it.matches(mediatorPattern) }
                 .collect { classPool.getCtClass(it) }
                 .findAll { it.superclass?.equals(baseProxyMediator) }
-        logger.info "Proxy Mediator Classes: ${proxyMediatorClasses*.name}"
+        logger.debug "Proxy Mediator Classes: ${proxyMediatorClasses*.name}"
         proxyMediatorClasses.each {
             BytecodeModifier.overrideTransformedMarker(it);
         }
@@ -116,26 +116,27 @@ class RealmTransformer extends Transform {
         def inputModelClasses = allModelClasses.findAll {
             inputClassNames.contains(it.name)
         }
-        logger.info "Model Classes: ${allModelClasses*.name}"
+        logger.debug "Model Classes: ${allModelClasses*.name}"
 
         // Populate a list of the fields that need to be managed with bytecode manipulation
         def allManagedFields = []
         allModelClasses.each {
             allManagedFields.addAll(it.declaredFields.findAll {
-                !it.hasAnnotation(Ignore.class) && !Modifier.isStatic(it.getModifiers())
+                BytecodeModifier.isModelField(it)
             })
         }
-        logger.info "Managed Fields: ${allManagedFields*.name}"
+        logger.debug "Managed Fields: ${allManagedFields*.name}"
 
         // Add accessors to the model classes in the target project
         inputModelClasses.each {
             BytecodeModifier.addRealmAccessors(it)
             BytecodeModifier.addRealmProxyInterface(it, classPool)
+            BytecodeModifier.callInjectObjectContextFromConstructors(it)
         }
 
         // Use accessors instead of direct field access
         inputClassNames.each {
-            logger.info "  Modifying class ${it}"
+            logger.debug "  Modifying class ${it}"
             def ctClass = classPool.getCtClass(it)
             BytecodeModifier.useRealmAccessors(ctClass, allManagedFields)
             ctClass.writeFile(getOutputFile(outputProvider).canonicalPath)
@@ -144,7 +145,7 @@ class RealmTransformer extends Transform {
         copyResourceFiles(inputs, outputProvider)
 
         def toc = System.currentTimeMillis()
-        logger.info "Realm Transform time: ${toc-tic} milliseconds"
+        logger.debug "Realm Transform time: ${toc-tic} milliseconds"
 
         this.sendAnalytics(inputs, inputModelClasses)
     }
@@ -174,11 +175,14 @@ class RealmTransformer extends Transform {
             it.getPackageName()
         }
 
+        def targetSdk = project?.android?.defaultConfig?.targetSdkVersion?.mApiLevel as String;
+        def minSdk = project?.android?.defaultConfig?.minSdkVersion?.mApiLevel as String;
+
         def env = System.getenv()
         def disableAnalytics = env["REALM_DISABLE_ANALYTICS"]
         if (disableAnalytics == null || disableAnalytics != "true") {
             boolean sync = project?.realm?.syncEnabled != null && project.realm.syncEnabled
-            def analytics = new RealmAnalytics(packages as Set, containsKotlin, sync)
+            def analytics = new RealmAnalytics(packages as Set, containsKotlin, sync, targetSdk, minSdk)
             analytics.execute()
         }
     }
@@ -195,7 +199,6 @@ class RealmTransformer extends Transform {
         // will use a cached object and all the classes will be frozen.
         ClassPool classPool = new ClassPool(null)
         classPool.appendSystemPath()
-        classPool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()))
 
         inputs.each {
             it.directoryInputs.each {
@@ -263,7 +266,7 @@ class RealmTransformer extends Transform {
                 def dirPath = it.file.absolutePath
                 it.file.eachFileRecurse(FileType.FILES) {
                     if (!it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
-                        logger.info "  Copying resource ${it}"
+                        logger.debug "  Copying resource ${it}"
                         def dest = new File(getOutputFile(outputProvider),
                                 it.absolutePath.substring(dirPath.length()))
                         dest.parentFile.mkdirs()
@@ -294,13 +297,13 @@ class RealmTransformer extends Transform {
         try {
             project.android.bootClasspath.each {
                 String path = it.absolutePath
-                logger.info "Add boot class " + path + " to class pool."
+                logger.debug "Add boot class " + path + " to class pool."
                 classPool.appendClassPath(path)
             }
         } catch (Exception e) {
             // Just log it. It might not impact the transforming if the method which needs to be transformer doesn't
             // contain classes from android.jar.
-            logger.info("Cannot get bootClasspath caused by:", e)
+            logger.debug("Cannot get bootClasspath caused by:", e)
         }
     }
 }

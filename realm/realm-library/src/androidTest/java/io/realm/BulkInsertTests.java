@@ -43,6 +43,7 @@ import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.HumanModule;
 import io.realm.entities.NoPrimaryKeyWithPrimaryKeyObjectRelation;
 import io.realm.entities.NullTypes;
+import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
@@ -130,7 +131,7 @@ public class BulkInsertTests {
         assertNull(realmTypes.getFieldList().get(0).getFieldIgnored());
 
 
-        // make sure Dog was not inserted twice in the recursive process
+        // Makes sure Dog was not inserted twice in the recursive process.
         assertEquals(2, realm.where(AllJavaTypes.class).findAll().size());
     }
 
@@ -141,10 +142,10 @@ public class BulkInsertTests {
         allTypes.columnBoolean = false;
         allTypes.columnBinary = new byte[]{1, 2, 3};
         allTypes.columnDate = new Date();
-        allTypes.columnDouble = 3.1415;
+        allTypes.columnDouble = Math.PI;
         allTypes.columnFloat = 1.234567f;
         allTypes.columnString = "test data";
-        allTypes.columnByte = 0b0010_1010;
+        allTypes.columnByte = 0x2A;
 
         realm.beginTransaction();
         realm.insert(allTypes);
@@ -293,6 +294,46 @@ public class BulkInsertTests {
     }
 
     @Test
+    public void insertOrUpdate_cyclicDependenciesFromOtherRealm() {
+        RealmConfiguration config1 = configFactory.createConfiguration("realm1");
+        RealmConfiguration config2 = configFactory.createConfiguration("realm2");
+
+        Realm realm1 = Realm.getInstance(config1);
+        Realm realm2 = Realm.getInstance(config2);
+
+        realm1.beginTransaction();
+        Owner owner = realm1.createObject(Owner.class);
+        owner.setName("Kiba");
+        Dog dog = realm1.createObject(Dog.class);
+        dog.setName("Akamaru");
+        owner.getDogs().add(dog);
+        dog.setOwner(owner);
+        realm1.commitTransaction();
+
+        // Copies object with relations from realm1 to realm2.
+        realm2.beginTransaction();
+        realm2.insertOrUpdate(owner);
+        realm2.commitTransaction();
+
+        assertEquals(1, realm1.where(Owner.class).count());
+        assertEquals(1, realm1.where(Owner.class).findFirst().getDogs().size());
+        assertEquals(1, realm1.where(Dog.class).count());
+
+        assertEquals(realm1.where(Owner.class).count(), realm2.where(Owner.class).count());
+        assertEquals(realm1.where(Dog.class).count(), realm2.where(Dog.class).count());
+
+        assertEquals(1, realm2.where(Owner.class).findFirst().getDogs().size());
+
+        assertEquals(realm1.where(Owner.class).findFirst().getName(), realm2.where(Owner.class).findFirst().getName());
+
+        assertEquals(realm1.where(Owner.class).findFirst().getDogs().first().getName()
+                , realm2.where(Owner.class).findFirst().getDogs().first().getName());
+
+        realm1.close();
+        realm2.close();
+    }
+
+    @Test
     public void insert_nullPrimaryKey() {
         PrimaryKeyAsString primaryKeyAsString = new PrimaryKeyAsString();
         primaryKeyAsString.setId(19);
@@ -381,7 +422,7 @@ public class BulkInsertTests {
         assertEquals(1, realm.where(AllTypesPrimaryKey.class).count());
         AllTypesPrimaryKey obj = realm.where(AllTypesPrimaryKey.class).findFirst();
 
-        // Check that the only element has all its properties updated
+        // Checks that the only element has all its properties updated.
         assertNotNull(obj);
         assertEquals("Bar", obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
@@ -430,7 +471,7 @@ public class BulkInsertTests {
     }
 
     /**
-     * added to reproduce https://github.com/realm/realm-java/issues/3103
+     * Added to reproduce https://github.com/realm/realm-java/issues/3103
      */
     @Test
     public void insert_emptyListWithCompositeMediator() {
@@ -458,13 +499,13 @@ public class BulkInsertTests {
     }
 
     /**
-     * added to reproduce https://github.com/realm/realm-java/issues/3103
+     * Added to reproduce https://github.com/realm/realm-java/issues/3103
      */
     @Test
     public void insert_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(CatOwner.class, Cat.class)
+                .schema(CatOwner.class, Cat.class, Owner.class, DogPrimaryKey.class, Dog.class)
                 .name("filterable.realm")
                 .build();
         Realm.deleteRealm(config);
@@ -526,7 +567,7 @@ public class BulkInsertTests {
     }
 
     /**
-     * added to reproduce https://github.com/realm/realm-java/issues/3103
+     * Added to reproduce https://github.com/realm/realm-java/issues/3103
      */
     @Test
     public void insertOrUpdate_emptyListWithCompositeMediator() {
@@ -554,13 +595,13 @@ public class BulkInsertTests {
     }
 
     /**
-     * added to reproduce https://github.com/realm/realm-java/issues/3103
+     * Added to reproduce https://github.com/realm/realm-java/issues/3103
      */
     @Test
     public void insertOrUpdate_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(CatOwner.class, Cat.class)
+                .schema(CatOwner.class, Cat.class, Owner.class, DogPrimaryKey.class, Dog.class)
                 .name("filterable.realm")
                 .build();
         Realm.deleteRealm(config);
@@ -616,7 +657,7 @@ public class BulkInsertTests {
         assertEquals(42, all.get(0).getColumnInt());
         assertNotNull(all.get(0).getColumnRealmObjectNoPK());
         assertEquals("updated B", all.get(0).getColumnRealmObjectNoPK().getColumnString());
-        // since AllTypes doesn't have a PK we now have two instances
+        // Since AllTypes doesn't have a PK we now have two instances.
         assertEquals(2, realm.where(AllTypes.class).findAll().size());
     }
 
@@ -645,8 +686,8 @@ public class BulkInsertTests {
         assertEquals(1, realm.where(AllTypesPrimaryKey.class).findAll().size());
 
         objA_no_pk.setColumnString("different A");
-        objA_no_pk.setColumnInt(42);//should insert a new instance
-        // update (since it has a PK) now both AllTypesPrimaryKey points to the same objB_pk instance
+        objA_no_pk.setColumnInt(42); // Should insert a new instance
+        // Updates (since it has a PK) now both AllTypesPrimaryKey points to the same objB_pk instance.
         objB_pk.setColumnString("updated B");
 
         realm.beginTransaction();
@@ -708,7 +749,7 @@ public class BulkInsertTests {
         assertEquals(1, realm.where(AllTypesPrimaryKey.class).findAll().size());
     }
 
-    //any omitted argument should not end in a SIGSEGV but an exception
+    // Any omitted argument should not end in a SIGSEGV but an exception.
 
     @Test
     public void insert_nullObject() {
@@ -762,7 +803,7 @@ public class BulkInsertTests {
         }
     }
 
-    //Inserting a managed object will result in it being copied or updated again
+    // Inserting a managed object will result in it being copied or updated again.
     @Test
     public void insertOrUpdate_managedObject() {
         AllJavaTypes obj = new AllJavaTypes();
@@ -854,7 +895,7 @@ public class BulkInsertTests {
         assertEquals(1, allTypes.getColumnRealmList().size());
     }
 
-    // To reproduce https://github.com/realm/realm-java/issues/3105
+    // To reproduce https://github.com/realm/realm-java/issues/3105.
     @Test
     public void insertOrUpdate_shouldNotClearRealmList() {
         realm.beginTransaction();

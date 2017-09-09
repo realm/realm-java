@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import io.realm.internal.objectserver.Token;
-import io.realm.Credentials;
+import io.realm.SyncCredentials;
 import io.realm.SyncManager;
 
 /**
@@ -42,7 +42,7 @@ public class AuthenticateRequest {
     /**
      * Generates a proper login request for a new user.
      */
-    public static AuthenticateRequest userLogin(Credentials credentials) {
+    public static AuthenticateRequest userLogin(SyncCredentials credentials) {
         if (credentials == null) {
            throw new IllegalArgumentException("Non-null credentials required.");
         }
@@ -56,11 +56,11 @@ public class AuthenticateRequest {
     /**
      * Generates a request for refreshing a user token.
      */
-    public static AuthenticateRequest userRefresh(Token userToken) {
+    public static AuthenticateRequest userRefresh(Token userToken, URI serverUrl) {
         return new AuthenticateRequest("realm",
                 userToken.value(),
                 SyncManager.APP_ID,
-                null,
+                serverUrl.getPath(),
                 Collections.<String, Object>emptyMap()
         );
     }

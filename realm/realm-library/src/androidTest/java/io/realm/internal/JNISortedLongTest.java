@@ -16,56 +16,92 @@
 
 package io.realm.internal;
 
-import junit.framework.TestCase;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
+import io.realm.TestHelper;
+import io.realm.rule.TestRealmConfigurationFactory;
 
-public class JNISortedLongTest extends TestCase {
-    Table table;
-    TableView view;
+import static org.junit.Assert.assertEquals;
 
-    void init() {
-        table = new Table();
-        table.addColumn(RealmFieldType.INTEGER, "number");
-        table.addColumn(RealmFieldType.STRING, "name");
 
-        table.add(1, "A");
-        table.add(10, "B");
-        table.add(20, "C");
-        table.add(30, "B");
-        table.add(40, "D");
-        table.add(50, "D");
-        table.add(60, "D");
-        table.add(60, "D");
+@RunWith(AndroidJUnit4.class)
+public class JNISortedLongTest {
 
-        assertEquals(8, table.size());
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-        view = table.where().findAll();
+    @SuppressWarnings("FieldCanBeLocal")
+    private RealmConfiguration config;
+    private SharedRealm sharedRealm;
+    private Table table;
 
-        assertEquals(view.size(), table.size());
-
+    @Before
+    public void setUp() throws Exception {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
+        config = configFactory.createConfiguration();
+        sharedRealm = SharedRealm.getInstance(config);
     }
 
-    public void testShouldTestSortedIntTable() {
+    @After
+    public void tearDown() {
+        if (sharedRealm != null && !sharedRealm.isClosed()) {
+            sharedRealm.close();
+        }
+    }
+
+    private void init() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
+        table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+            @Override
+            public void execute(Table table) {
+                table.addColumn(RealmFieldType.INTEGER, "number");
+                table.addColumn(RealmFieldType.STRING, "name");
+
+                TestHelper.addRowWithValues(table, 1, "A");
+                TestHelper.addRowWithValues(table, 10, "B");
+                TestHelper.addRowWithValues(table, 20, "C");
+                TestHelper.addRowWithValues(table, 30, "B");
+                TestHelper.addRowWithValues(table, 40, "D");
+                TestHelper.addRowWithValues(table, 50, "D");
+                TestHelper.addRowWithValues(table, 60, "D");
+                TestHelper.addRowWithValues(table, 60, "D");
+            }
+        });
+
+        assertEquals(8, table.size());
+    }
+
+    @Test
+    public void shouldTestSortedIntTable() {
         init();
 
-        // before first entry
+        // Before first entry.
         assertEquals(0, table.lowerBoundLong(0, 0));
         assertEquals(0, table.upperBoundLong(0, 0));
 
-        // find middle match
+        // Finds middle match.
         assertEquals(4, table.lowerBoundLong(0, 40));
         assertEquals(5, table.upperBoundLong(0, 40));
 
-        // find middle (nonexisting)
+        // Finds middle (nonexisting).
         assertEquals(5, table.lowerBoundLong(0, 41));
         assertEquals(5, table.upperBoundLong(0, 41));
 
-        // beyond last entry
+        // Beyond last entry.
         assertEquals(8, table.lowerBoundLong(0, 100));
         assertEquals(8, table.upperBoundLong(0, 100));
 
-        // find last match (duplicated)
+        // Finds last match (duplicated).
         assertEquals(6, table.lowerBoundLong(0, 60));
         assertEquals(8, table.upperBoundLong(0, 60));
 

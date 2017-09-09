@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -35,14 +36,15 @@ import io.realm.annotations.RealmModule;
 
 import static io.realm.processor.Constants.REALM_PACKAGE_NAME;
 
+
 public class RealmProxyMediatorGenerator {
     private final String className;
-    private ProcessingEnvironment processingEnvironment;
-    private List<String> qualifiedModelClasses = new ArrayList<String>();
-    private List<String> qualifiedProxyClasses = new ArrayList<String>();
+    private final ProcessingEnvironment processingEnvironment;
+    private final List<String> qualifiedModelClasses = new ArrayList<String>();
+    private final List<String> qualifiedProxyClasses = new ArrayList<String>();
 
     public RealmProxyMediatorGenerator(ProcessingEnvironment processingEnvironment,
-                                       String className, Set<ClassMetaData> classesToValidate) {
+            String className, Set<ClassMetaData> classesToValidate) {
         this.processingEnvironment = processingEnvironment;
         this.className = className;
 
@@ -54,7 +56,7 @@ public class RealmProxyMediatorGenerator {
     }
 
     public void generate() throws IOException {
-        String qualifiedGeneratedClassName = String.format("%s.%sMediator", REALM_PACKAGE_NAME, className);
+        String qualifiedGeneratedClassName = String.format(Locale.US, "%s.%sMediator", REALM_PACKAGE_NAME, className);
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
         writer.setIndent("    ");
@@ -69,7 +71,7 @@ public class RealmProxyMediatorGenerator {
                 "java.util.HashSet",
                 "java.util.List",
                 "java.util.Map",
-                "java.util.IdentityHashMap",
+                "java.util.HashMap",
                 "java.util.Set",
                 "java.util.Iterator",
                 "java.util.Collection",
@@ -79,7 +81,8 @@ public class RealmProxyMediatorGenerator {
                 "io.realm.internal.RealmProxyMediator",
                 "io.realm.internal.Row",
                 "io.realm.internal.Table",
-                "io.realm.RealmObjectSchema",
+                "io.realm.internal.OsSchemaInfo",
+                "io.realm.internal.OsObjectSchemaInfo",
                 "org.json.JSONException",
                 "org.json.JSONObject"
         );
@@ -95,9 +98,8 @@ public class RealmProxyMediatorGenerator {
         writer.emitEmptyLine();
 
         emitFields(writer);
-        emitCreateTableMethod(writer);
-        emitCreateRealmObjectSchema(writer);
-        emitValidateTableMethod(writer);
+        emitGetExpectedObjectSchemaInfoMap(writer);
+        emitCreateColumnInfoMethod(writer);
         emitGetFieldNamesMethod(writer);
         emitGetTableNameMethod(writer);
         emitNewInstanceMethod(writer);
@@ -126,56 +128,40 @@ public class RealmProxyMediatorGenerator {
         writer.emitEmptyLine();
     }
 
-    private void emitCreateRealmObjectSchema(JavaWriter writer) throws IOException {
+    private void emitGetExpectedObjectSchemaInfoMap(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod(
-                "RealmObjectSchema",
-                "createRealmObjectSchema",
-                EnumSet.of(Modifier.PUBLIC),
-                "Class<? extends RealmModel>", "clazz", "RealmSchema", "realmSchema"
-        );
-        emitMediatorSwitch(new ProxySwitchStatement() {
-            @Override
-            public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.createRealmObjectSchema(realmSchema)", qualifiedProxyClasses.get(i));
-            }
-        }, writer);
+                "Map<Class<? extends RealmModel>, OsObjectSchemaInfo>",
+                "getExpectedObjectSchemaInfoMap",
+                EnumSet.of(Modifier.PUBLIC));
+
+        writer.emitStatement(
+                "Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap = " +
+                        "new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>()");
+        for (int i = 0; i < qualifiedProxyClasses.size(); i++) {
+            writer.emitStatement("infoMap.put(%s.class, %s.getExpectedObjectSchemaInfo())",
+                    qualifiedModelClasses.get(i), qualifiedProxyClasses.get(i));
+        }
+        writer.emitStatement("return infoMap");
+
         writer.endMethod();
         writer.emitEmptyLine();
     }
 
-    private void emitCreateTableMethod(JavaWriter writer) throws IOException {
-        writer.emitAnnotation("Override");
-        writer.beginMethod(
-                "Table",
-                "createTable",
-                EnumSet.of(Modifier.PUBLIC),
-                "Class<? extends RealmModel>", "clazz", "SharedRealm", "sharedRealm"
-        );
-        emitMediatorSwitch(new ProxySwitchStatement() {
-            @Override
-            public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.initTable(sharedRealm)", qualifiedProxyClasses.get(i));
-            }
-        }, writer);
-        writer.endMethod();
-        writer.emitEmptyLine();
-    }
-
-    private void emitValidateTableMethod(JavaWriter writer) throws IOException {
+    private void emitCreateColumnInfoMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod(
                 "ColumnInfo",
-                "validateTable",
+                "createColumnInfo",
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<? extends RealmModel>", "clazz", // Argument type & argument name
-                "SharedRealm", "sharedRealm",
-                "boolean", "allowExtraColumns"
+                "OsSchemaInfo", "schemaInfo"
         );
-        emitMediatorSwitch(new ProxySwitchStatement() {
+
+        emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.validateTable(sharedRealm, allowExtraColumns)",
+                writer.emitStatement("return %s.createColumnInfo(schemaInfo)",
                         qualifiedProxyClasses.get(i));
             }
         }, writer);
@@ -191,7 +177,7 @@ public class RealmProxyMediatorGenerator {
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<? extends RealmModel>", "clazz"
         );
-        emitMediatorSwitch(new ProxySwitchStatement() {
+        emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
                 writer.emitStatement("return %s.getFieldNames()", qualifiedProxyClasses.get(i));
@@ -209,7 +195,7 @@ public class RealmProxyMediatorGenerator {
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<? extends RealmModel>", "clazz"
         );
-        emitMediatorSwitch(new ProxySwitchStatement() {
+        emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
                 writer.emitStatement("return %s.getTableName()", qualifiedProxyClasses.get(i));
@@ -235,7 +221,7 @@ public class RealmProxyMediatorGenerator {
         writer.emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()");
         writer.beginControlFlow("try")
                 .emitStatement("objectContext.set((BaseRealm) baseRealm, row, columnInfo, acceptDefaultValue, excludeFields)");
-        emitMediatorSwitch(new ProxySwitchStatement() {
+        emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
                 writer.emitStatement("return clazz.cast(new %s())", qualifiedProxyClasses.get(i));
@@ -262,13 +248,13 @@ public class RealmProxyMediatorGenerator {
                 "<E extends RealmModel> E",
                 "copyOrUpdate",
                 EnumSet.of(Modifier.PUBLIC),
-                "Realm", "realm", "E", "obj", "boolean", "update", "Map<RealmModel, RealmObjectProxy>",  "cache"
+                "Realm", "realm", "E", "obj", "boolean", "update", "Map<RealmModel, RealmObjectProxy>", "cache"
         );
         writer.emitSingleLineComment("This cast is correct because obj is either");
         writer.emitSingleLineComment("generated by RealmProxy or the original type extending directly from RealmObject");
         writer.emitStatement("@SuppressWarnings(\"unchecked\") Class<E> clazz = (Class<E>) ((obj instanceof RealmObjectProxy) ? obj.getClass().getSuperclass() : obj.getClass())");
         writer.emitEmptyLine();
-        emitMediatorSwitch(new ProxySwitchStatement() {
+        emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
                 writer.emitStatement("return clazz.cast(%s.copyOrUpdate(realm, (%s) obj, update, cache))", qualifiedProxyClasses.get(i), qualifiedModelClasses.get(i));
@@ -330,7 +316,7 @@ public class RealmProxyMediatorGenerator {
 
         writer.emitStatement("Iterator<? extends RealmModel> iterator = objects.iterator()");
         writer.emitStatement("RealmModel object = null");
-        writer.emitStatement("Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>(objects.size())");
+        writer.emitStatement("Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>(objects.size())");
 
         writer.beginControlFlow("if (iterator.hasNext())")
                 .emitSingleLineComment(" access the first element to figure out the clazz for the routing below")
@@ -371,7 +357,7 @@ public class RealmProxyMediatorGenerator {
 
         writer.emitStatement("Iterator<? extends RealmModel> iterator = objects.iterator()");
         writer.emitStatement("RealmModel object = null");
-        writer.emitStatement("Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>(objects.size())");
+        writer.emitStatement("Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>(objects.size())");
 
         writer.beginControlFlow("if (iterator.hasNext())")
                 .emitSingleLineComment(" access the first element to figure out the clazz for the routing below")
@@ -411,7 +397,7 @@ public class RealmProxyMediatorGenerator {
                 Arrays.asList("Class<E>", "clazz", "Realm", "realm", "JSONObject", "json", "boolean", "update"),
                 Arrays.asList("JSONException")
         );
-        emitMediatorSwitch(new ProxySwitchStatement() {
+        emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
                 writer.emitStatement("return clazz.cast(%s.createOrUpdateUsingJsonObject(realm, json, update))", qualifiedProxyClasses.get(i));
@@ -430,7 +416,7 @@ public class RealmProxyMediatorGenerator {
                 Arrays.asList("Class<E>", "clazz", "Realm", "realm", "JsonReader", "reader"),
                 Arrays.asList("java.io.IOException")
         );
-        emitMediatorSwitch(new ProxySwitchStatement() {
+        emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
                 writer.emitStatement("return clazz.cast(%s.createUsingJsonStream(realm, reader))", qualifiedProxyClasses.get(i));
@@ -452,7 +438,7 @@ public class RealmProxyMediatorGenerator {
         writer.emitSingleLineComment("generated by RealmProxy or the original type extending directly from RealmObject");
         writer.emitStatement("@SuppressWarnings(\"unchecked\") Class<E> clazz = (Class<E>) realmObject.getClass().getSuperclass()");
         writer.emitEmptyLine();
-        emitMediatorSwitch(new ProxySwitchStatement() {
+        emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
                 writer.emitStatement("return clazz.cast(%s.createDetachedCopy((%s) realmObject, 0, maxDepth, cache))",
@@ -466,10 +452,6 @@ public class RealmProxyMediatorGenerator {
     // Emits the control flow for selecting the appropriate proxy class based on the model class
     // Currently it is just if..else, which is inefficient for large amounts amounts of model classes.
     // Consider switching to HashMap or similar.
-    private void emitMediatorSwitch(ProxySwitchStatement statement, JavaWriter writer) throws IOException {
-        emitMediatorSwitch(statement, writer, true);
-    }
-
     private void emitMediatorSwitch(ProxySwitchStatement statement, JavaWriter writer, boolean nullPointerCheck)
             throws IOException {
         if (nullPointerCheck) {
@@ -490,6 +472,26 @@ public class RealmProxyMediatorGenerator {
             writer.endControlFlow();
         }
     }
+
+    // Identical to the above, but eliminates the un-needed "else" clauses for, e.g., return statements
+    private void emitMediatorShortCircuitSwitch(ProxySwitchStatement statement, JavaWriter writer) throws IOException {
+        emitMediatorShortCircuitSwitch(statement, writer, true);
+    }
+
+    private void emitMediatorShortCircuitSwitch(ProxySwitchStatement statement, JavaWriter writer, boolean nullPointerCheck)
+            throws IOException {
+        if (nullPointerCheck) {
+            writer.emitStatement("checkClass(clazz)");
+            writer.emitEmptyLine();
+        }
+        for (int i = 0; i < qualifiedModelClasses.size(); i++) {
+            writer.beginControlFlow("if (clazz.equals(%s.class))", qualifiedModelClasses.get(i));
+            statement.emitStatement(i, writer);
+            writer.endControlFlow();
+        }
+        writer.emitStatement("throw getMissingProxyClassException(clazz)");
+    }
+
 
     private String getProxyClassName(String clazz) {
         return clazz + Constants.PROXY_SUFFIX;

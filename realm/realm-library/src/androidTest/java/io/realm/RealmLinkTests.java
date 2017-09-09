@@ -296,7 +296,7 @@ public class RealmLinkTests {
         assertEquals(0, none1.size());
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).notEqualTo("cat.name", "Max").findAll();
-        assertEquals(1, owners1.size());
+        assertEquals(1, owners2.size());
 
         RealmResults<Owner> none2 = testRealm.where(Owner.class).notEqualTo("cat.name", "Blackie").findAll();
         assertEquals(0, none2.size());
@@ -465,7 +465,7 @@ public class RealmLinkTests {
         assertEquals(0, none1.size());
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).notEqualTo("dogs.name", "King").findAll();
-        assertEquals(1, owners1.size());
+        assertEquals(1, owners2.size());
 
         RealmResults<Owner> none2 = testRealm.where(Owner.class).notEqualTo("dogs.name", "Pluto").findAll();
         assertEquals(0, none1.size());
@@ -484,22 +484,22 @@ public class RealmLinkTests {
     public void queryShouldFail() {
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat..hasTail", true).findAll();
-            fail("Should throw Exception");
+            fail("Should throw Exception (double dot)");
         } catch (IllegalArgumentException ignored) {
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo(".cat.hasTail", true).findAll();
-            fail("Should throw Exception");
+            fail("Should throw Exception (initial dot)");
         } catch (IllegalArgumentException ignored) {
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat.hasTail.", true).findAll();
-            fail("Should throw Exception");
+            fail("Should throw Exception (final dot)");
         } catch (IllegalArgumentException ignored) {
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("not.there", true).findAll();
-            fail("Should throw Exception");
+            fail("Should throw Exception (non-existent column)");
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -534,6 +534,9 @@ public class RealmLinkTests {
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNull("cat").findAll();
         assertEquals(1, owners2.size());
+
+        RealmResults<Owner> owners3 = testRealm.where(Owner.class).isNull("dogs.birthday").findAll();
+        assertEquals(0, owners3.size());
     }
 
     @Test
@@ -547,12 +550,33 @@ public class RealmLinkTests {
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotNull("cat").findAll();
         assertEquals(0, owners2.size());
+
+        RealmResults<Owner> owners3 = testRealm.where(Owner.class).isNotNull("dogs.birthday").findAll();
+        assertEquals(1, owners3.size());
+    }
+
+    @Test
+    public void isEmpty() {
+        RealmResults<Owner> owners1 = testRealm.where(Owner.class).isEmpty("cat.name").findAll();
+        assertEquals(0, owners1.size());
+
+        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isEmpty("dogs.name").findAll();
+        assertEquals(0, owners2.size());
+    }
+
+    @Test
+    public void isNotEmpty() {
+        RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNotEmpty("cat.name").findAll();
+        assertEquals(1, owners1.size());
+
+        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotEmpty("dogs.name").findAll();
+        assertEquals(1, owners2.size());
     }
 
     @Test
     public void isNullWrongType() {
         try {
-            // AllTypes.columnFloat is not nullable
+            // AllTypes.columnFloat is not nullable.
             testRealm.where(AllTypes.class).isNull("columnFloat").findAll();
             fail();
         } catch (IllegalArgumentException ignored) {

@@ -100,10 +100,9 @@ public class PassingObjectsFragment extends Fragment {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                person = realm.createObject(Person.class);
+                person = realm.createObject(Person.class, UUID.randomUUID().toString());
                 person.setName("Jane");
                 person.setAge(42);
-                person.setId(UUID.randomUUID().toString());
             }
         });
         textContent.setText(person.toString());

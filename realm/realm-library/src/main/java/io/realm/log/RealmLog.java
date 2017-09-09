@@ -16,48 +16,54 @@
 
 package io.realm.log;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.util.Log;
 
-import io.realm.internal.Keep;
-import io.realm.internal.Util;
+import java.util.Locale;
+
+import javax.annotation.Nullable;
+
 
 /**
  * Global logger used by all Realm components.
- * Custom loggers can be added by registering classes implementing {@link Logger}.
+ * Custom loggers can be added by registering classes implementing {@link RealmLogger}.
  */
-@Keep
 public final class RealmLog {
 
-    private static final Logger[] NO_LOGGERS = new Logger[0];
-
-    // All of the below should be modified together under under a lock on LOGGERS.
-    private static final List<Logger> LOGGERS = new ArrayList<>();
-    private static volatile Logger[] loggersAsArray = NO_LOGGERS;
-    private static int minimumNativeLogLevel = Integer.MAX_VALUE;
+    @SuppressWarnings("FieldCanBeLocal")
+    private static String REALM_JAVA_TAG = "REALM_JAVA";
 
     /**
      * Adds a logger implementation that will be notified on log events.
      *
-     * @param logger the reference to a {@link Logger} implementation.
+     * @param logger the reference to a {@link RealmLogger} implementation.
      */
-    public static void add(Logger logger) {
+    public static void add(RealmLogger logger) {
+        //noinspection ConstantConditions
         if (logger == null) {
             throw new IllegalArgumentException("A non-null logger has to be provided");
         }
-        synchronized (LOGGERS) {
-            LOGGERS.add(logger);
-            int minimumLogLevel = logger.getMinimumNativeDebugLevel();
-            if (minimumLogLevel < minimumNativeLogLevel) {
-                setMinimumNativeDebugLevel(minimumLogLevel);
-            }
-            loggersAsArray = LOGGERS.toArray(new Logger[LOGGERS.size()]);
-        }
+        nativeAddLogger(logger);
     }
 
-    private static void setMinimumNativeDebugLevel(int nativeDebugLevel) {
-        minimumNativeLogLevel = nativeDebugLevel;
-        Util.setDebugLevel(nativeDebugLevel); // Log level for Realm Core
+    /**
+     * Sets the current {@link LogLevel}. Setting this will affect all registered loggers.
+     *
+     * @param level see {@link LogLevel}.
+     */
+    public static void setLevel(int level) {
+        if (level < LogLevel.ALL || level > LogLevel.OFF) {
+            throw new IllegalArgumentException("Invalid log level: " + level);
+        }
+        nativeSetLogLevel(level);
+    }
+
+    /**
+     * Get the current {@link LogLevel}.
+     *
+     * @return the current {@link LogLevel}.
+     */
+    public static int getLevel() {
+        return nativeGetLogLevel();
     }
 
     /**
@@ -65,34 +71,29 @@ public final class RealmLog {
      *
      * @return {@code true} if the logger was removed, {@code false} otherwise.
      */
-    public static boolean remove(Logger logger) {
+    public static boolean remove(RealmLogger logger) {
+        //noinspection ConstantConditions
         if (logger == null) {
             throw new IllegalArgumentException("A non-null logger has to be provided");
         }
-        synchronized (LOGGERS) {
-            LOGGERS.remove(logger);
-            int newMinLevel = Integer.MAX_VALUE;
-            for (int i = 0; i < LOGGERS.size(); i++) {
-                int logMin = LOGGERS.get(i).getMinimumNativeDebugLevel();
-                if (logMin < newMinLevel) {
-                    newMinLevel = logMin;
-                }
-            }
-            setMinimumNativeDebugLevel(newMinLevel);
-            loggersAsArray = LOGGERS.toArray(new Logger[LOGGERS.size()]);
-        }
+        nativeRemoveLogger(logger);
         return true;
     }
 
     /**
-     * Remove all loggers.
+     * Removes all loggers. The default native logger will be removed as well. Use {@link #registerDefaultLogger()} to
+     * add it back.
      */
     public static void clear() {
-        synchronized (LOGGERS) {
-            LOGGERS.clear();
-            setMinimumNativeDebugLevel(Integer.MAX_VALUE);
-            loggersAsArray = NO_LOGGERS;
-        }
+        nativeClearLoggers();
+    }
+
+    /**
+     * Adds default native logger if it has been removed before. If the default logger has been registered already,
+     * it won't be added again. The default logger on Android will log to logcat.
+     */
+    public static void registerDefaultLogger() {
+        nativeRegisterDefaultLogger();
     }
 
     /**
@@ -121,12 +122,8 @@ public final class RealmLog {
      * @param message optional message.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    public static void trace(Throwable throwable, String message, Object... args) {
-        Logger[] loggers = loggersAsArray;
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < loggers.length; i++) {
-            loggers[i].trace(throwable, message, args);
-        }
+    public static void trace(@Nullable Throwable throwable, @Nullable String message, Object... args) {
+        log(LogLevel.TRACE, throwable, message, args);
     }
 
     /**
@@ -134,7 +131,7 @@ public final class RealmLog {
      *
      * @param throwable exception to log.
      */
-    public static void debug(Throwable throwable) {
+    public static void debug(@Nullable Throwable throwable) {
         debug(throwable, null);
     }
 
@@ -155,12 +152,8 @@ public final class RealmLog {
      * @param message optional message.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    public static void debug(Throwable throwable, String message, Object... args) {
-        Logger[] loggers = loggersAsArray;
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < loggers.length; i++) {
-            loggers[i].debug(throwable, message, args);
-        }
+    public static void debug(@Nullable Throwable throwable, @Nullable String message, Object... args) {
+        log(LogLevel.DEBUG, throwable, message, args);
     }
 
     /**
@@ -189,12 +182,8 @@ public final class RealmLog {
      * @param message optional message.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    public static void info(Throwable throwable, String message, Object... args) {
-        Logger[] loggers = loggersAsArray;
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < loggers.length; i++) {
-            loggers[i].info(throwable, message, args);
-        }
+    public static void info(@Nullable Throwable throwable, @Nullable String message, Object... args) {
+        log(LogLevel.INFO, throwable, message, args);
     }
 
     /**
@@ -223,12 +212,8 @@ public final class RealmLog {
      * @param message optional message.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    public static void warn(Throwable throwable, String message, Object... args) {
-        Logger[] loggers = loggersAsArray;
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < loggers.length; i++) {
-            loggers[i].warn(throwable, message, args);
-        }
+    public static void warn(@Nullable Throwable throwable, @Nullable String message, Object... args) {
+        log(LogLevel.WARN, throwable, message, args);
     }
 
     /**
@@ -257,12 +242,8 @@ public final class RealmLog {
      * @param message optional message.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    public static void error(Throwable throwable, String message, Object... args) {
-        Logger[] loggers = loggersAsArray;
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < loggers.length; i++) {
-            loggers[i].error(throwable, message, args);
-        }
+    public static void error(@Nullable Throwable throwable, @Nullable String message, Object... args) {
+        log(LogLevel.ERROR, throwable, message, args);
     }
 
     /**
@@ -291,11 +272,50 @@ public final class RealmLog {
      * @param message optional message.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    public static void fatal(Throwable throwable, String message, Object... args) {
-        Logger[] loggers = loggersAsArray;
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < loggers.length; i++) {
-            loggers[i].fatal(throwable, message, args);
-        }
+    public static void fatal(@Nullable Throwable throwable, @Nullable String message, Object... args) {
+        log(LogLevel.FATAL, throwable, message, args);
     }
+
+    // Formats the message, parses the stacktrace of given throwable and passes them to nativeLog.
+    private static void log(int level, @Nullable Throwable throwable, @Nullable String message, @Nullable Object... args) {
+        if (level < getLevel()) {
+            return;
+        }
+
+        StringBuilder stringBuilder = new StringBuilder();
+        if (message != null && args != null && args.length > 0) {
+            message = String.format(Locale.US, message, args);
+        }
+        if (throwable != null) {
+            stringBuilder.append(Log.getStackTraceString(throwable));
+        }
+        if (message != null) {
+            if (throwable != null) {
+                stringBuilder.append("\n");
+            }
+            stringBuilder.append(message);
+        }
+        nativeLog(level, REALM_JAVA_TAG, throwable, stringBuilder.toString());
+    }
+
+    private static native void nativeAddLogger(RealmLogger logger);
+
+    private static native void nativeRemoveLogger(RealmLogger logger);
+
+    private static native void nativeClearLoggers();
+
+    private static native void nativeRegisterDefaultLogger();
+
+    private static native void nativeLog(int level, String tag, @Nullable Throwable throwable, @Nullable String message);
+
+    private static native void nativeSetLogLevel(int level);
+
+    private static native int nativeGetLogLevel();
+
+    // Methods below are used for testing core logger bridge only.
+    static native long nativeCreateCoreLoggerBridge(@SuppressWarnings("SameParameterValue") String tag);
+
+    static native void nativeCloseCoreLoggerBridge(long nativePtr);
+
+    static native void nativeLogToCoreLoggerBridge(long nativePtr, int level, String message);
 }

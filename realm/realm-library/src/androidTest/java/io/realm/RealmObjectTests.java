@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -28,16 +27,15 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.FileNotFoundException;
-import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllJavaTypes;
@@ -49,6 +47,7 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringAndInt;
+import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -63,8 +62,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 
 @RunWith(AndroidJUnit4.class)
 public class RealmObjectTests {
@@ -114,7 +115,7 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals(9, row.getColumnCount());
+        assertEquals(10, row.getColumnCount());
     }
 
     @Test
@@ -140,8 +141,8 @@ public class RealmObjectTests {
         }
     }
 
-    // invalid surrogate pairs:
-    // both high and low should lead to an IllegalArgumentException
+    // Invalid surrogate pairs:
+    // Both high and low should lead to an IllegalArgumentException.
     @Test
     public void invalidSurrogates() {
         String high = "Invalid high surrogate \uD83C\uD83C\uDF51";
@@ -168,7 +169,7 @@ public class RealmObjectTests {
         realm.cancelTransaction();
     }
 
-    // removing original object and see if has been removed
+    // Removes original object and sees if has been removed.
     @Test
     public void deleteFromRealm() {
         realm.beginTransaction();
@@ -195,7 +196,7 @@ public class RealmObjectTests {
             fail();
         } catch (IllegalStateException ignored) {}
 
-        // deleting rex twice should fail
+        // Deleting rex twice should fail.
         realm.beginTransaction();
         try {
             rex.deleteFromRealm();
@@ -236,7 +237,7 @@ public class RealmObjectTests {
         }
     }
 
-    // query for an object, remove it and see it has been removed from realm
+    // Queries for an object, removes it and sees it has been removed from realm.
     @Test
     public void deleteFromRealm_removedFromResults() {
         realm.beginTransaction();
@@ -270,7 +271,7 @@ public class RealmObjectTests {
     }
 
     private void removeOneByOne(boolean removeFromFront) {
-        // Create test data
+        // Creates test data.
         realm.beginTransaction();
         realm.delete(Dog.class);
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -278,22 +279,23 @@ public class RealmObjectTests {
         }
         realm.commitTransaction();
 
-        // Check initial size
+        // Checks initial size.
         RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
-        assertEquals(TEST_SIZE, dogs.size());
+        OrderedRealmCollectionSnapshot<Dog> snapshot = dogs.createSnapshot();
+        assertEquals(TEST_SIZE, snapshot.size());
 
-        // Check that calling deleteFromRealm doesn't remove the object from the RealmResult
+        // Checks that calling deleteFromRealm doesn't remove the object from the RealmResult.
         realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
-            dogs.get(removeFromFront ? i : TEST_SIZE - 1 - i).deleteFromRealm();
+            snapshot.get(removeFromFront ? i : TEST_SIZE - 1 - i).deleteFromRealm();
         }
         realm.commitTransaction();
 
-        assertEquals(TEST_SIZE, dogs.size());
-        assertEquals(0, realm.where(Dog.class).count());
+        assertEquals(TEST_SIZE, snapshot.size());
+        assertEquals(0, dogs.size());
     }
 
-    // Tests calling deleteFromRealm on a RealmResults instead of RealmResults.remove()
+    // Tests calling deleteFromRealm on a OrderedRealmCollectionSnapshot instead of RealmResults.remove().
     @Test
     public void deleteFromRealm_atPosition() {
         removeOneByOne(REMOVE_FIRST);
@@ -426,23 +428,6 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void equals_reverseCustomMethod() {
-        realm.beginTransaction();
-        CustomMethods cm = realm.createObject(CustomMethods.class);
-        cm.setName("Foo");
-        realm.commitTransaction();
-
-        CustomMethods cm1 = realm.where(CustomMethods.class).findFirst();
-        CustomMethods cm2 = realm.where(CustomMethods.class).findFirst();
-
-        realm.beginTransaction();
-        cm1.reverseEquals = true;
-        realm.commitTransaction();
-
-        assertFalse(cm1.equals(cm2));
-    }
-
-    @Test
     public void equals_unmanagedCustomMethod() {
         CustomMethods cm1 = new CustomMethods();
         cm1.setName("Bar");
@@ -464,8 +449,8 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         CustomMethods cm3 = realm.where(CustomMethods.class).findFirst();
-        assertFalse(cm3.equals(cm2));
-        assertTrue(cm3.getName().equals(cm2.getName()));
+        assertTrue(cm3.equals(cm2));
+        assertTrue(cm2.equals(cm3));
     }
 
     @Test
@@ -473,8 +458,9 @@ public class RealmObjectTests {
         realm.beginTransaction();
         CyclicType foo = createCyclicData();
         realm.commitTransaction();
-        String expected = "CyclicType = [{id:0},{name:Foo},{date:null},{object:CyclicType},{otherObject:null},{objects:RealmList<CyclicType>[0]}]";
-        assertEquals(expected, foo.toString());
+        assertEquals(
+                "CyclicType = proxy[{id:0},{name:Foo},{date:null},{object:CyclicType},{otherObject:null},{objects:RealmList<CyclicType>[0]}]",
+                foo.toString());
     }
 
     @Test
@@ -493,11 +479,11 @@ public class RealmObjectTests {
         final CyclicType foo = createCyclicData();
         realm.commitTransaction();
 
-        // Check that the hash code is always the same between multiple calls.
+        // Checks that the hash code is always the same between multiple calls.
         assertEquals(foo.hashCode(), foo.hashCode());
-        // Check that the hash code is the same among same object
+        // Checks that the hash code is the same among same object.
         assertEquals(foo.hashCode(), realm.where(CyclicType.class).equalTo("name", foo.getName()).findFirst().hashCode());
-        // hash code is different from other objects.
+        // Hash code is different from other objects.
         assertNotEquals(foo.getObject().hashCode(), foo.hashCode());
 
         final int originalHashCode = foo.hashCode();
@@ -507,10 +493,10 @@ public class RealmObjectTests {
                 foo.setName(foo.getName() + "1234");
             }
         });
-        // Check that Updating the value of its field does not affect the hash code.
+        // Checks that Updating the value of its field does not affect the hash code.
         assertEquals(originalHashCode, foo.hashCode());
 
-        // Check the hash code of the object from a Realm in different file name.
+        // Checks the hash code of the object from a Realm in different file name.
         RealmConfiguration realmConfig_differentName = configFactory.createConfiguration(
                 "another_" + realmConfig.getRealmFileName());
         Realm realm_differentName = Realm.getInstance(realmConfig_differentName);
@@ -525,7 +511,7 @@ public class RealmObjectTests {
             realm_differentName.close();
         }
 
-        // Check the hash code of the object from a Realm in different directory.
+        // Checks the hash code of the object from a Realm in different directory.
         RealmConfiguration realmConfig_differentPath = configFactory.createConfiguration(
                 "anotherDir", realmConfig.getRealmFileName());
         Realm realm_differentPath = Realm.getInstance(realmConfig_differentPath);
@@ -556,7 +542,7 @@ public class RealmObjectTests {
         CyclicType bar = realm.createObject(CyclicType.class);
         bar.setName("Bar");
 
-        // Setup cycle on normal object references
+        // Setups cycle on normal object references.
         foo.setObject(bar);
         bar.setObject(foo);
         return foo;
@@ -718,32 +704,29 @@ public class RealmObjectTests {
         final CountDownLatch createLatch = new CountDownLatch(1);
         final CountDownLatch testEndLatch = new CountDownLatch(1);
 
-        final AtomicReference<CyclicType> objFromAnotherThread = new AtomicReference<>();
+        final AtomicReference<CyclicType> objFromAnotherThread = new AtomicReference<CyclicType>();
 
         java.lang.Thread thread = new java.lang.Thread() {
             @Override
             public void run() {
                 Realm realm = Realm.getInstance(realmConfig);
 
-                // 1. create an object
+                // 1. Creates an object.
                 realm.beginTransaction();
                 objFromAnotherThread.set(realm.createObject(CyclicType.class));
                 realm.commitTransaction();
 
                 createLatch.countDown();
-                try {
-                    testEndLatch.await();
-                } catch (InterruptedException ignored) {
-                }
+                TestHelper.awaitOrFail(testEndLatch);
 
-                // 3. close Realm in this thread and finish.
+                // 3. Closes Realm in this thread and finishes.
                 realm.close();
             }
         };
         thread.start();
 
-        createLatch.await();
-        // 2. set created object to target
+        TestHelper.awaitOrFail(createLatch);
+        // 2. Sets created object to target.
         realm.beginTransaction();
         try {
             CyclicType target = realm.createObject(CyclicType.class);
@@ -757,7 +740,7 @@ public class RealmObjectTests {
             realm.cancelTransaction();
         }
 
-        // wait for finishing the thread
+        // Waits for finishing the thread.
         thread.join();
     }
 
@@ -769,7 +752,7 @@ public class RealmObjectTests {
         try {
             CyclicType target = realm.createObject(CyclicType.class);
 
-            RealmList<CyclicType> list = new RealmList<>();
+            RealmList<CyclicType> list = new RealmList<CyclicType>();
             list.add(realm.createObject(CyclicType.class));
             list.add(unmanaged); // List contains an unmanaged object
             list.add(realm.createObject(CyclicType.class));
@@ -793,9 +776,9 @@ public class RealmObjectTests {
             CyclicType removed = realm.createObject(CyclicType.class);
             removed.deleteFromRealm();
 
-            RealmList<CyclicType> list = new RealmList<>();
+            RealmList<CyclicType> list = new RealmList<CyclicType>();
             list.add(realm.createObject(CyclicType.class));
-            list.add(removed); // List contains a deleted object
+            list.add(removed); // List contains a deleted object.
             list.add(realm.createObject(CyclicType.class));
 
             try {
@@ -821,9 +804,9 @@ public class RealmObjectTests {
         try {
             CyclicType target = realm.createObject(CyclicType.class);
 
-            RealmList<CyclicType> list = new RealmList<>();
+            RealmList<CyclicType> list = new RealmList<CyclicType>();
             list.add(realm.createObject(CyclicType.class));
-            list.add(closed); // List contains a closed object
+            list.add(closed); // List contains a closed object.
             list.add(realm.createObject(CyclicType.class));
 
             try {
@@ -850,9 +833,9 @@ public class RealmObjectTests {
             try {
                 CyclicType target = realm.createObject(CyclicType.class);
 
-                RealmList<CyclicType> list = new RealmList<>();
+                RealmList<CyclicType> list = new RealmList<CyclicType>();
                 list.add(realm.createObject(CyclicType.class));
-                list.add(objFromAnotherRealm); // List contains an object from another Realm
+                list.add(objFromAnotherRealm); // List contains an object from another Realm.
                 list.add(realm.createObject(CyclicType.class));
 
                 try {
@@ -873,37 +856,34 @@ public class RealmObjectTests {
         final CountDownLatch createLatch = new CountDownLatch(1);
         final CountDownLatch testEndLatch = new CountDownLatch(1);
 
-        final AtomicReference<CyclicType> objFromAnotherThread = new AtomicReference<>();
+        final AtomicReference<CyclicType> objFromAnotherThread = new AtomicReference<CyclicType>();
 
         java.lang.Thread thread = new java.lang.Thread() {
             @Override
             public void run() {
                 Realm realm = Realm.getInstance(realmConfig);
 
-                // 1. create an object
+                // 1. Creates an object.
                 realm.beginTransaction();
                 objFromAnotherThread.set(realm.createObject(CyclicType.class));
                 realm.commitTransaction();
 
                 createLatch.countDown();
-                try {
-                    testEndLatch.await();
-                } catch (InterruptedException ignored) {
-                }
+                TestHelper.awaitOrFail(testEndLatch);
 
-                // 3. close Realm in this thread and finish.
+                // 3. Close Realm in this thread and finishes.
                 realm.close();
             }
         };
         thread.start();
 
-        createLatch.await();
-        // 2. set created object to target
+        TestHelper.awaitOrFail(createLatch);
+        // 2. Sets created object to target.
         realm.beginTransaction();
         try {
             CyclicType target = realm.createObject(CyclicType.class);
 
-            RealmList<CyclicType> list = new RealmList<>();
+            RealmList<CyclicType> list = new RealmList<CyclicType>();
             list.add(realm.createObject(CyclicType.class));
             list.add(objFromAnotherThread.get()); // List contains an object from another thread.
             list.add(realm.createObject(CyclicType.class));
@@ -918,7 +898,7 @@ public class RealmObjectTests {
             realm.cancelTransaction();
         }
 
-        // wait for finishing the thread
+        // Waits for finishing the thread.
         thread.join();
     }
 
@@ -969,7 +949,7 @@ public class RealmObjectTests {
         assertTrue(allTypes.isValid());
     }
 
-    // store and retrieve null values for nullable fields
+    // Stores and retrieves null values for nullable fields.
     @Test
     public void set_get_nullOnNullableFields() {
         realm.beginTransaction();
@@ -1019,7 +999,7 @@ public class RealmObjectTests {
         assertNull(nullTypes.getFieldDateNull());
     }
 
-    // store and retrieve non-null values when field can contain null strings
+    // Stores and retrieves non-null values when field can contain null strings.
     @Test
     public void get_set_nonNullValueOnNullableFields() {
         final String testString = "FooBar";
@@ -1034,9 +1014,9 @@ public class RealmObjectTests {
         // 3 Boolean
         nullTypes.setFieldBooleanNull(true);
         // 4 Byte
-        nullTypes.setFieldByteNull((byte)42);
+        nullTypes.setFieldByteNull((byte) 42);
         // 5 Short
-        nullTypes.setFieldShortNull((short)42);
+        nullTypes.setFieldShortNull((short) 42);
         // 6 Integer
         nullTypes.setFieldIntegerNull(42);
         // 7 Long
@@ -1057,9 +1037,9 @@ public class RealmObjectTests {
         // 3 Boolean
         assertTrue(nullTypes.getFieldBooleanNull());
         // 4 Byte
-        assertEquals((byte)42, (byte)nullTypes.getFieldByteNull().intValue());
+        assertEquals((byte) 42, (byte) nullTypes.getFieldByteNull().intValue());
         // 5 Short
-        assertEquals((short)42, (short)nullTypes.getFieldShortNull().intValue());
+        assertEquals((short) 42, (short) nullTypes.getFieldShortNull().intValue());
         // 6 Integer
         assertEquals(42, nullTypes.getFieldIntegerNull().intValue());
         // 7 Long
@@ -1072,7 +1052,7 @@ public class RealmObjectTests {
         assertEquals(testDate.getTime(), nullTypes.getFieldDateNull().getTime());
     }
 
-    // try to store null values in non-nullable fields
+    // Tries to store null values in non-nullable fields.
     @Test
     public void set_nullValuesToNonNullableFields() {
         try {
@@ -1204,7 +1184,7 @@ public class RealmObjectTests {
         TestHelper.awaitOrFail(bgRealmDone);
         realm.waitForChange();
 
-        // Object should no longer be available
+        // Object should no longer be available.
         assertFalse(obj.isValid());
         try {
             obj.getColumnLong();
@@ -1244,7 +1224,7 @@ public class RealmObjectTests {
         assertFalse(dog.isManaged());
     }
 
-    // Test NaN value on float and double columns
+    // Tests NaN value on float and double columns.
     @Test
     public void float_double_NaN() {
         realm.beginTransaction();
@@ -1259,7 +1239,7 @@ public class RealmObjectTests {
         assertEquals(0, realm.where(AllTypes.class).equalTo("columnDouble", Double.NaN).count());
     }
 
-    // Test max value on float and double columns
+    // Tests max value on float and double columns.
     @Test
     public void float_double_maxValue() {
         realm.beginTransaction();
@@ -1273,7 +1253,7 @@ public class RealmObjectTests {
         assertEquals(1, realm.where(AllTypes.class).equalTo("columnDouble", Double.MAX_VALUE).count());
     }
 
-    // Test min normal value on float and double columns
+    // Tests min normal value on float and double columns.
     @Test
     public void float_double_minNormal() {
         realm.beginTransaction();
@@ -1287,7 +1267,7 @@ public class RealmObjectTests {
         assertEquals(1, realm.where(AllTypes.class).equalTo("columnDouble", Double.MIN_NORMAL).count());
     }
 
-    // Test min value on float and double columns
+    // Tests min value on float and double columns.
     @Test
     public void float_double_minValue() {
         realm.beginTransaction();
@@ -1301,7 +1281,7 @@ public class RealmObjectTests {
         assertEquals(1, realm.where(AllTypes.class).equalTo("columnDouble", Double.MIN_VALUE).count());
     }
 
-    // Test negative infinity value on float and double columns
+    // Tests negative infinity value on float and double columns.
     @Test
     public void float_double_negativeInfinity() {
         realm.beginTransaction();
@@ -1315,7 +1295,7 @@ public class RealmObjectTests {
         assertEquals(1, realm.where(AllTypes.class).equalTo("columnDouble", Double.NEGATIVE_INFINITY).count());
     }
 
-    // Test positive infinity value on float and double columns
+    // Tests positive infinity value on float and double columns.
     @Test
     public void float_double_positiveInfinity() {
         realm.beginTransaction();
@@ -1336,7 +1316,7 @@ public class RealmObjectTests {
                 .migration(new RealmMigration() {
                     @Override
                     public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                        final Table table = realm.schema.getTable(StringAndInt.class);
+                        final Table table = realm.getSchema().getTable(StringAndInt.class);
                         final long strIndex = table.getColumnIndex("str");
                         final long numberIndex = table.getColumnIndex("number");
 
@@ -1345,7 +1325,7 @@ public class RealmObjectTests {
                         }
 
                         final long newStrIndex;
-                        // swap column indices
+                        // Swaps column indices.
                         if (strIndex < numberIndex) {
                             table.addColumn(RealmFieldType.INTEGER, "number");
                             newStrIndex = table.addColumn(RealmFieldType.STRING, "str");
@@ -1363,7 +1343,7 @@ public class RealmObjectTests {
                 .migration(new RealmMigration() {
                     @Override
                     public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                        // Do nothing
+                        // Does nothing.
                     }
                 })
                 .schemaVersion(1L)
@@ -1379,7 +1359,7 @@ public class RealmObjectTests {
     public void realmProxy_columnIndex() throws FileNotFoundException {
         final RealmConfiguration configForSwapped = prepareColumnSwappedRealm();
 
-        // open swapped Realm in order to load column index
+        // Opens swapped Realm in order to load column index.
         Realm.getInstance(configForSwapped).close();
 
         realm.executeTransaction(new Realm.Transaction() {
@@ -1399,7 +1379,7 @@ public class RealmObjectTests {
     @Test
     public void conflictingFieldName_readAndUpdate() {
         final ConflictingFieldName unmanaged = new ConflictingFieldName();
-        unmanaged.setRealm("realm");
+        unmanaged.setRealmString("realm");
         unmanaged.setRow("row");
         unmanaged.setIsCompleted("isCompleted");
         unmanaged.setListeners("listeners");
@@ -1413,20 +1393,20 @@ public class RealmObjectTests {
             }
         });
 
-        // tests those values are persisted
+        // Tests those values are persisted.
         final ConflictingFieldName managed = realm.where(ConflictingFieldName.class).findFirst();
-        assertEquals("realm", managed.getRealm());
+        assertEquals("realm", managed.getRealmString());
         assertEquals("row", managed.getRow());
         assertEquals("isCompleted", managed.getIsCompleted());
         assertEquals("listeners", managed.getListeners());
         assertEquals("pendingQuery", managed.getPendingQuery());
         assertEquals("currentTableVersion", managed.getCurrentTableVersion());
 
-        // tests those values can be updated
+        // Tests those values can be updated.
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                managed.setRealm("realm_updated");
+                managed.setRealmString("realm_updated");
                 managed.setRow("row_updated");
                 managed.setIsCompleted("isCompleted_updated");
                 managed.setListeners("listeners_updated");
@@ -1435,7 +1415,7 @@ public class RealmObjectTests {
             }
         });
 
-        assertEquals("realm_updated", managed.getRealm());
+        assertEquals("realm_updated", managed.getRealmString());
         assertEquals("row_updated", managed.getRow());
         assertEquals("isCompleted_updated", managed.getIsCompleted());
         assertEquals("listeners_updated", managed.getListeners());
@@ -1443,7 +1423,7 @@ public class RealmObjectTests {
         assertEquals("currentTableVersion_updated", managed.getCurrentTableVersion());
     }
 
-    // Setting a not-nullable field to null is an error
+    // Setting a not-nullable field to null is an error.
     // TODO Move this to RealmObjectTests?
     @Test
     public void setter_nullValueInRequiredField() {
@@ -1456,6 +1436,7 @@ public class RealmObjectTests {
             list.first().setFieldStringNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_STRING_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1466,6 +1447,7 @@ public class RealmObjectTests {
             list.first().setFieldBytesNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_BYTES_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1476,6 +1458,7 @@ public class RealmObjectTests {
             list.first().setFieldBooleanNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_BOOLEAN_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1483,9 +1466,10 @@ public class RealmObjectTests {
         // 4 Byte
         try {
             realm.beginTransaction();
-            list.first().setFieldBytesNotNull(null);
+            list.first().setFieldByteNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_BYTE_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1498,6 +1482,7 @@ public class RealmObjectTests {
             list.first().setFieldFloatNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_FLOAT_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1508,6 +1493,7 @@ public class RealmObjectTests {
             list.first().setFieldDoubleNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DOUBLE_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
@@ -1518,12 +1504,13 @@ public class RealmObjectTests {
             list.first().setFieldDateNotNull(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DATE_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
     }
 
-    // Setting a nullable field to null is not an error
+    // Setting a nullable field to null is not an error.
     // TODO Move this to RealmObjectsTest?
     @Test
     public void setter_nullValueInNullableField() {
@@ -1586,36 +1573,60 @@ public class RealmObjectTests {
     @Test
     @RunTestInLooperThread
     public void addChangeListener_throwOnAddingNullListenerFromLooperThread() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         Dog dog = createManagedDogObjectFromRealmInstance(realm);
 
         try {
-            dog.addChangeListener(null);
+            dog.addChangeListener((RealmChangeListener) null);
             fail("adding null change listener must throw an exception.");
         } catch (IllegalArgumentException ignore) {
-        } finally {
-            looperThread.testComplete();
         }
+
+        try {
+            dog.addChangeListener((RealmObjectChangeListener) null);
+            fail("adding null change listener must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        looperThread.testComplete();
     }
 
     @Test
     public void addChangeListener_throwOnAddingNullListenerFromNonLooperThread() throws Throwable {
-        TestHelper.executeOnNonLooperThread(new TestHelper.Task() {
-            @Override
-            public void run() throws Exception {
-                final Realm realm = Realm.getInstance(realmConfig);
-                final Dog dog = createManagedDogObjectFromRealmInstance(realm);
+        final Dog dog = createManagedDogObjectFromRealmInstance(realm);
 
-                //noinspection TryFinallyCanBeTryWithResources
-                try {
-                    dog.addChangeListener(null);
-                    fail("adding null change listener must throw an exception.");
-                } catch (IllegalArgumentException ignore) {
-                } finally {
-                    realm.close();
-                }
+        try {
+            dog.addChangeListener((RealmChangeListener) null);
+            fail("adding null change listener must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        try {
+            dog.addChangeListener((RealmObjectChangeListener) null);
+            fail("adding null change listener must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        }
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changeListener_triggeredWhenObjectIsDeleted() {
+        final Realm realm = looperThread.getRealm();
+        realm.beginTransaction();
+        AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        obj.addChangeListener(new RealmChangeListener<AllTypes>() {
+            @Override
+            public void onChange(AllTypes obj) {
+                assertFalse(obj.isValid());
+                looperThread.testComplete();
             }
         });
+
+        realm.beginTransaction();
+        obj.deleteFromRealm();
+        realm.commitTransaction();
     }
 
     @Test
@@ -1631,44 +1642,115 @@ public class RealmObjectTests {
             });
             fail("adding change listener on unmanaged object must throw an exception.");
         } catch (IllegalArgumentException ignore) {
-        } finally {
-            looperThread.testComplete();
         }
+
+        try {
+            dog.addChangeListener(new RealmObjectChangeListener<Dog>() {
+                @Override
+                public void onChange(Dog object, ObjectChangeSet changeSet) {
+                }
+            });
+            fail("adding change listener on unmanaged object must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        looperThread.testComplete();
+    }
+
+    // Object Store will throw when adding change listener inside a transaction.
+    @Test
+    @RunTestInLooperThread
+    public void addChangeListener_throwInsiderTransaction() {
+        Realm realm = looperThread.getRealm();
+
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        try {
+            dog.addChangeListener(new RealmChangeListener<Dog>() {
+                @Override
+                public void onChange(Dog element) {
+                    fail();
+                }
+            });
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            dog.addChangeListener(new RealmObjectChangeListener<Dog>() {
+                @Override
+                public void onChange(Dog object, ObjectChangeSet changeSet) {
+                    fail();
+                }
+            });
+        } catch (IllegalStateException ignored) {
+        }
+        realm.cancelTransaction();
+
+        looperThread.testComplete();
     }
 
     @Test
     @RunTestInLooperThread
     public void removeChangeListener_throwOnRemovingNullListenerFromLooperThread() {
-        final Realm realm = looperThread.realm;
+        final Realm realm = looperThread.getRealm();
         Dog dog = createManagedDogObjectFromRealmInstance(realm);
 
         try {
-            dog.removeChangeListener(null);
+            dog.removeChangeListener((RealmChangeListener) null);
             fail("removing null change listener must throw an exception.");
         } catch (IllegalArgumentException ignore) {
-        } finally {
-            looperThread.testComplete();
         }
+
+        try {
+            dog.removeChangeListener((RealmObjectChangeListener) null);
+            fail("removing null change listener must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        looperThread.testComplete();
     }
 
     @Test
     public void removeChangeListener_throwOnRemovingNullListenerFromNonLooperThread() throws Throwable {
-        TestHelper.executeOnNonLooperThread(new TestHelper.Task() {
-            @Override
-            public void run() throws Exception {
-                final Realm realm = Realm.getInstance(realmConfig);
-                final Dog dog = createManagedDogObjectFromRealmInstance(realm);
+        final Dog dog = createManagedDogObjectFromRealmInstance(realm);
 
-                //noinspection TryFinallyCanBeTryWithResources
-                try {
-                    dog.removeChangeListener(null);
-                    fail("removing null change listener must throw an exception.");
-                } catch (IllegalArgumentException ignore) {
-                } finally {
-                    realm.close();
-                }
+        try {
+            dog.removeChangeListener((RealmChangeListener) null);
+            fail("removing null change listener must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        try {
+            dog.removeChangeListener((RealmObjectChangeListener) null);
+            fail("removing null change listener must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        }
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeChangeListener_insideTransaction() {
+        Realm realm = looperThread.getRealm();
+        final Dog dog = createManagedDogObjectFromRealmInstance(realm);
+        RealmChangeListener<Dog> realmChangeListener = new RealmChangeListener<Dog>() {
+            @Override
+            public void onChange(Dog element) {
             }
-        });
+        };
+        RealmObjectChangeListener<Dog> realmObjectChangeListener = new RealmObjectChangeListener<Dog>() {
+            @Override
+            public void onChange(Dog object, ObjectChangeSet changeSet) {
+            }
+        };
+
+        dog.addChangeListener(realmChangeListener);
+        dog.addChangeListener(realmObjectChangeListener);
+
+        realm.beginTransaction();
+        dog.removeChangeListener(realmChangeListener);
+        dog.removeChangeListener(realmObjectChangeListener);
+        realm.cancelTransaction();
+        looperThread.testComplete();
     }
 
     /**
@@ -1676,8 +1758,8 @@ public class RealmObjectTests {
      */
     @Test
     @RunTestInLooperThread
-    public void removeChangeListeners() {
-        final Realm realm = looperThread.realm;
+    public void removeAllChangeListeners() {
+        final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
         dog.setAge(13);
@@ -1685,16 +1767,53 @@ public class RealmObjectTests {
         dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
             public void onChange(Dog object) {
-                assertTrue(false);
+                fail();
             }
         });
-        dog.removeChangeListeners();
+        dog.addChangeListener(new RealmObjectChangeListener<Dog>() {
+            @Override
+            public void onChange(Dog object, ObjectChangeSet changeSet) {
+                fail();
+            }
+        });
+        dog.removeAllChangeListeners();
 
         realm.beginTransaction();
         Dog sameDog = realm.where(Dog.class).equalTo(Dog.FIELD_AGE, 13).findFirst();
         sameDog.setName("Jesper");
         realm.commitTransaction();
+        // Try to trigger the listeners.
+        realm.sharedRealm.refresh();
         looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeAllChangeListeners_thenAdd() {
+        final Realm realm = looperThread.getRealm();
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        dog.setAge(13);
+        realm.commitTransaction();
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
+            @Override
+            public void onChange(Dog object) {
+                fail();
+            }
+        });
+        dog.removeAllChangeListeners();
+
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
+            @Override
+            public void onChange(Dog dog) {
+                assertEquals(14, dog.getAge());
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        dog.setAge(14);
+        realm.commitTransaction();
     }
 
     @Test
@@ -1706,22 +1825,34 @@ public class RealmObjectTests {
             public void onChange(Dog object) {
             }
         };
+        RealmObjectChangeListener objectChangeListener = new RealmObjectChangeListener<Dog>() {
+            @Override
+            public void onChange(Dog object, ObjectChangeSet changeSet) {
+            }
+        };
 
         try {
             dog.removeChangeListener(listener);
             fail("Failed to remove a listener from null Realm.");
         } catch (IllegalArgumentException ignore) {
-            looperThread.testComplete();
         }
+
+        try {
+            dog.removeChangeListener(objectChangeListener);
+            fail("Failed to remove a listener from null Realm.");
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        looperThread.testComplete();
     }
 
     @Test
     @RunTestInLooperThread
-    public void removeChangeListeners_throwOnUnmanagedObject() {
+    public void removeAllChangeListeners_throwOnUnmanagedObject() {
         Dog dog = new Dog();
 
         try {
-            dog.removeChangeListeners();
+            dog.removeAllChangeListeners();
             fail("Failed to remove null listener.");
         } catch (IllegalArgumentException ignore) {
             looperThread.testComplete();
@@ -1732,17 +1863,17 @@ public class RealmObjectTests {
     @Test
     @RunTestInLooperThread
     public void addChangeListener_returnedObjectOfCopyToRealmOrUpdate() {
-        Realm realm = looperThread.realm;
+        Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         realm.createObject(AllTypesPrimaryKey.class, 1);
 
         AllTypesPrimaryKey allTypesPrimaryKey = new AllTypesPrimaryKey();
         allTypesPrimaryKey.setColumnLong(1);
-        allTypesPrimaryKey.setColumnFloat(42f);
+        allTypesPrimaryKey.setColumnFloat(0f);
         allTypesPrimaryKey = realm.copyToRealmOrUpdate(allTypesPrimaryKey);
         realm.commitTransaction();
 
-        looperThread.keepStrongReference.add(allTypesPrimaryKey);
+        looperThread.keepStrongReference(allTypesPrimaryKey);
         allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
             @Override
             public void onChange(AllTypesPrimaryKey element) {
@@ -1750,93 +1881,197 @@ public class RealmObjectTests {
                 looperThread.testComplete();
             }
         });
-    }
 
-    // The object should be added to HandlerController.realmObjects only when the first time addListener called.
-    @Test
-    @UiThreadTest
-    public void addChangeListener_shouldAddTheObjectToHandlerRealmObjects() {
+        // Change the object to trigger the listener.
         realm.beginTransaction();
-        AllTypesPrimaryKey allTypesPrimaryKey = realm.createObject(AllTypesPrimaryKey.class, 1);
+        allTypesPrimaryKey.setColumnFloat(42f);
         realm.commitTransaction();
-        final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
-                realm.handlerController.realmObjects;
-
-        assertTrue(realmObjects.isEmpty());
-
-        allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
-            @Override
-            public void onChange(AllTypesPrimaryKey element) {
-            }
-        });
-
-        assertEquals(1, realmObjects.size());
-        for (WeakReference<RealmObjectProxy> ref : realmObjects.keySet()) {
-            assertTrue(ref.get() == allTypesPrimaryKey);
-        }
     }
 
-    // The object should be added to HandlerController.realmObjects only once.
-    @Test
-    @UiThreadTest
-    public void addChangeListener_shouldNotAddDupEntriesToHandlerRealmObjects() {
-        realm.beginTransaction();
-        AllTypesPrimaryKey allTypesPrimaryKey = realm.createObject(AllTypesPrimaryKey.class, 1);
-        realm.commitTransaction();
-        final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
-                realm.handlerController.realmObjects;
-
-        for (WeakReference<RealmObjectProxy> ref : realmObjects.keySet()) {
-            assertFalse(ref.get() == allTypesPrimaryKey);
-        }
-
-        // Add different listeners twice
-        allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
-            @Override
-            public void onChange(AllTypesPrimaryKey element) {
-            }
-        });
-        allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
-            @Override
-            public void onChange(AllTypesPrimaryKey element) {
-            }
-        });
-
-        assertEquals(1, realmObjects.size());
-        for (WeakReference<RealmObjectProxy> ref : realmObjects.keySet()) {
-            assertTrue(ref.get() == allTypesPrimaryKey);
-        }
-    }
-
-    // The object should not be added to HandlerController again after the async query loaded.
+    // step 1: findFirstAsync
+    // step 2: async query returns, change the object in the listener
+    // step 3: listener gets called again
     @Test
     @RunTestInLooperThread
-    public void addChangeListener_checkHandlerRealmObjectsWhenCallingOnAsyncObject() {
-        Realm realm = looperThread.realm;
+    public void addChangeListener_listenerShouldBeCalledIfObjectChangesAfterAsyncReturn() {
+        final AtomicInteger listenerCounter = new AtomicInteger(0);
+        final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         realm.createObject(AllTypesPrimaryKey.class, 1);
         realm.commitTransaction();
-        final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
-                realm.handlerController.realmObjects;
 
+        // Step 1
         final AllTypesPrimaryKey allTypesPrimaryKey = realm.where(AllTypesPrimaryKey.class).findFirstAsync();
-        looperThread.keepStrongReference.add(allTypesPrimaryKey);
+        looperThread.keepStrongReference(allTypesPrimaryKey);
         allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
             @Override
             public void onChange(AllTypesPrimaryKey element) {
-                allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
-                    @Override
-                    public void onChange(AllTypesPrimaryKey element) {
-
-                    }
-                });
-                assertEquals(1, realmObjects.size());
-                looperThread.testComplete();
+                int count = listenerCounter.getAndAdd(1);
+                if (count == 0) {
+                    // Step 2
+                    realm.executeTransactionAsync(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            realm.where(AllTypesPrimaryKey.class).findFirst().setColumnFloat(42f);
+                        }
+                    });
+                } else if (count == 1) {
+                    // Step 3
+                    assertEquals(allTypesPrimaryKey.getColumnFloat(), 42f, 0);
+                    looperThread.testComplete();
+                } else {
+                    fail();
+                }
             }
         });
-        assertEquals(1, realmObjects.size());
-        for (Object query : realmObjects.values()) {
-            assertNotNull(query);
+    }
+
+    @Test
+    public void getRealm_managedRealmObject() {
+        realm.beginTransaction();
+        AllTypes object = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        assertSame(realm, object.getRealm());
+        assertSame(realm, RealmObject.getRealm(object));
+    }
+
+    @Test
+    public void getRealm_managedRealmModel() {
+        realm.beginTransaction();
+        AllTypesRealmModel object = realm.createObject(AllTypesRealmModel.class, 1L);
+        realm.commitTransaction();
+
+        assertSame(realm, RealmObject.getRealm(object));
+    }
+
+    @Test
+    public void getRealm_DynamicRealmObject() {
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realmConfig);
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            dynamicRealm.beginTransaction();
+            DynamicRealmObject object = dynamicRealm.createObject("AllTypesRealmModel", 1L);
+            dynamicRealm.commitTransaction();
+
+            try {
+                object.getRealm();
+                fail();
+            } catch (IllegalStateException expected) {
+                assertEquals(RealmObject.MSG_DYNAMIC_OBJECT, expected.getMessage());
+            }
+            try {
+                RealmObject.getRealm(object);
+                fail();
+            } catch (IllegalStateException expected) {
+                assertEquals(RealmObject.MSG_DYNAMIC_OBJECT, expected.getMessage());
+            }
+        } finally {
+            dynamicRealm.close();
         }
+    }
+
+    @Test
+    public void getRealm_unmanagedRealmObjectReturnsNull() {
+        assertNull(new AllTypes().getRealm());
+        assertNull(RealmObject.getRealm(new AllTypes()));
+    }
+
+    @Test
+    public void getRealm_unmanagedRealmModelReturnsNull() {
+        assertNull(RealmObject.getRealm(new AllTypesRealmModel()));
+    }
+
+    @Test
+    public void getRealm_null() {
+        try {
+            RealmObject.getRealm(null);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals(RealmObject.MSG_NULL_OBJECT, expected.getMessage());
+        }
+    }
+
+    @Test
+    public void getRealm_closedObjectThrows() {
+        realm.beginTransaction();
+        AllTypes object = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        realm.close();
+        realm = null;
+
+        try {
+            object.getRealm();
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(BaseRealm.CLOSED_REALM_MESSAGE, e.getMessage());
+        }
+        try {
+            RealmObject.getRealm(object);
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(BaseRealm.CLOSED_REALM_MESSAGE, e.getMessage());
+        }
+    }
+
+    @Test
+    public void getRealmConfiguration_deletedObjectThrows() {
+        realm.beginTransaction();
+        AllTypes object = realm.createObject(AllTypes.class);
+        object.deleteFromRealm();
+        realm.commitTransaction();
+
+        try {
+            object.getRealm();
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(RealmObject.MSG_DELETED_OBJECT, e.getMessage());
+        }
+        try {
+            RealmObject.getRealm(object);
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(RealmObject.MSG_DELETED_OBJECT, e.getMessage());
+        }
+    }
+
+    @Test
+    public void getRealm_illegalThreadThrows() throws Throwable {
+        realm.beginTransaction();
+        final AllTypes object = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        final CountDownLatch threadFinished = new CountDownLatch(1);
+        final AtomicReference<Throwable> throwable = new AtomicReference<>();
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    object.getRealm();
+                    fail();
+                } catch (Throwable t) {
+                    throwable.set(t);
+                    threadFinished.countDown();
+                    return;
+                }
+                try {
+                    RealmObject.getRealm(object);
+                    fail();
+                } catch (Throwable t) {
+                    throwable.set(t);
+                } finally {
+                    threadFinished.countDown();
+                }
+            }
+        });
+        thread.start();
+        TestHelper.awaitOrFail(threadFinished);
+
+        final Throwable thrownInTheThread = throwable.get();
+        if (!(thrownInTheThread instanceof IllegalStateException)) {
+            throw thrownInTheThread;
+        }
+        assertEquals(BaseRealm.INCORRECT_THREAD_MESSAGE, thrownInTheThread.getMessage());
     }
 }

@@ -19,11 +19,11 @@ android {
         }
     }
     command {
-        events 2000
+        monkey.events 2000
     }
 }
 
 dependencies {
     //noinspection GradleDependency
-    compile 'com.android.support:appcompat-v7:24.0.0'
+    implementation 'com.android.support:appcompat-v7:24.0.0'
 }

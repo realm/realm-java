@@ -2,8 +2,9 @@ package io.realm;
 
 
 import android.util.JsonReader;
-import io.realm.RealmObjectSchema;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
@@ -12,8 +13,8 @@ import io.realm.internal.Table;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,36 +33,21 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
-        checkClass(clazz);
-
-        if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.initTable(sharedRealm);
-        } else {
-            throw getMissingProxyClassException(clazz);
-        }
+    public Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap() {
+        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
+                    new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
+        infoMap.put(some.test.AllTypes.class, io.realm.AllTypesRealmProxy.getExpectedObjectSchemaInfo());
+        return infoMap;
     }
 
     @Override
-    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema) {
+    public ColumnInfo createColumnInfo(Class<? extends RealmModel> clazz, OsSchemaInfo schemaInfo) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.createRealmObjectSchema(realmSchema);
-        } else {
-            throw getMissingProxyClassException(clazz);
+            return io.realm.AllTypesRealmProxy.createColumnInfo(schemaInfo);
         }
-    }
-
-    @Override
-    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm, boolean allowExtraColumns) {
-        checkClass(clazz);
-
-        if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.validateTable(sharedRealm, allowExtraColumns);
-        } else {
-            throw getMissingProxyClassException(clazz);
-        }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -70,9 +56,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return io.realm.AllTypesRealmProxy.getFieldNames();
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -81,9 +66,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return io.realm.AllTypesRealmProxy.getTableName();
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -95,9 +79,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
             if (clazz.equals(some.test.AllTypes.class)) {
                 return clazz.cast(new io.realm.AllTypesRealmProxy());
-            } else {
-                throw getMissingProxyClassException(clazz);
             }
+            throw getMissingProxyClassException(clazz);
         } finally {
             objectContext.clear();
         }
@@ -116,9 +99,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return clazz.cast(io.realm.AllTypesRealmProxy.copyOrUpdate(realm, (some.test.AllTypes) obj, update, cache));
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -138,7 +120,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     public void insert(Realm realm, Collection<? extends RealmModel> objects) {
         Iterator<? extends RealmModel> iterator = objects.iterator();
         RealmModel object = null;
-        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>(objects.size());
+        Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>(objects.size());
         if (iterator.hasNext()) {
             //  access the first element to figure out the clazz for the routing below
             object = iterator.next();
@@ -178,7 +160,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     public void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects) {
         Iterator<? extends RealmModel> iterator = objects.iterator();
         RealmModel object = null;
-        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>(objects.size());
+        Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>(objects.size());
         if (iterator.hasNext()) {
             //  access the first element to figure out the clazz for the routing below
             object = iterator.next();
@@ -208,9 +190,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return clazz.cast(io.realm.AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json, update));
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -220,9 +201,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return clazz.cast(io.realm.AllTypesRealmProxy.createUsingJsonStream(realm, reader));
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
     @Override
@@ -233,9 +213,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return clazz.cast(io.realm.AllTypesRealmProxy.createDetachedCopy((some.test.AllTypes) realmObject, 0, maxDepth, cache));
-        } else {
-            throw getMissingProxyClassException(clazz);
         }
+        throw getMissingProxyClassException(clazz);
     }
 
 }

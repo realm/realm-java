@@ -10,9 +10,12 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
+
 
 /**
  * Utility methods working with the Realm processor.
@@ -21,17 +24,23 @@ public class Utils {
 
     public static Types typeUtils;
     private static Messager messager;
+    private static TypeMirror realmInteger;
     private static DeclaredType realmList;
+    private static DeclaredType realmResults;
     private static DeclaredType markerInterface;
     private static TypeMirror realmModel;
 
     public static void initialize(ProcessingEnvironment env) {
+        Elements elementUtils = env.getElementUtils();
         typeUtils = env.getTypeUtils();
         messager = env.getMessager();
-        realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"),
-                typeUtils.getWildcardType(null, null));
-        realmModel = env.getElementUtils().getTypeElement("io.realm.RealmModel").asType();
-        markerInterface = env.getTypeUtils().getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmModel"));
+        realmInteger = elementUtils.getTypeElement("io.realm.MutableRealmInteger").asType();
+        realmList = typeUtils.getDeclaredType(
+                elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
+        realmResults = typeUtils.getDeclaredType(
+                env.getElementUtils().getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null));
+        realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType();
+        markerInterface = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmModel"));
     }
 
     /**
@@ -142,6 +151,13 @@ public class Utils {
     }
 
     /**
+     * @return {@code true} if a given field type is {@code MutableRealmInteger}, {@code false} otherwise.
+     */
+    public static boolean isMutableRealmInteger(VariableElement field) {
+        return typeUtils.isAssignable(field.asType(), realmInteger);
+    }
+
+    /**
      * @return {@code true} if a given field type is {@code RealmList}, {@code false} otherwise.
      */
     public static boolean isRealmList(VariableElement field) {
@@ -155,6 +171,42 @@ public class Utils {
         return typeUtils.isAssignable(field.asType(), realmModel);
     }
 
+    public static boolean isRealmResults(VariableElement field) {
+        return typeUtils.isAssignable(field.asType(), realmResults);
+    }
+
+    // get the fully-qualified type name for the generic type of a RealmResults
+    public static String getRealmResultsType(VariableElement field) {
+        if (!Utils.isRealmResults(field)) { return null; }
+        DeclaredType type = getGenericTypeForContainer(field);
+        if (null == type) { return null; }
+        return type.toString();
+    }
+
+    // get the fully-qualified type name for the generic type of a RealmList
+    public static String getRealmListType(VariableElement field) {
+        if (!Utils.isRealmList(field)) { return null; }
+        DeclaredType type = getGenericTypeForContainer(field);
+        if (null == type) { return null; }
+        return type.toString();
+    }
+
+    // Note that, because subclassing subclasses of RealmObject is forbidden,
+    // there is no need to deal with constructs like:  <code>RealmResults&lt;? extends Foos&lt;</code>.
+    public static DeclaredType getGenericTypeForContainer(VariableElement field) {
+        TypeMirror fieldType = field.asType();
+        TypeKind kind = fieldType.getKind();
+        if (kind != TypeKind.DECLARED) { return null; }
+
+        List<? extends TypeMirror> args = ((DeclaredType) fieldType).getTypeArguments();
+        if (args.size() <= 0) { return null; }
+
+        fieldType = args.get(0);
+        kind = fieldType.getKind();
+        if (kind != TypeKind.DECLARED) { return null; }
+
+        return (DeclaredType) fieldType;
+    }
 
     /**
      * @return the qualified type name for a field.
@@ -167,11 +219,24 @@ public class Utils {
      * @return the simple type name for a field.
      */
     public static String getFieldTypeSimpleName(VariableElement field) {
-        String fieldTypeQualifiedName = getFieldTypeQualifiedName(field);
-        if (!fieldTypeQualifiedName.contains(".")) {
-            return fieldTypeQualifiedName;
+        return (null == field) ? null : getFieldTypeSimpleName(getFieldTypeQualifiedName(field));
+    }
+
+    /**
+     * @return the simple type name for a field.
+     */
+    public static String getFieldTypeSimpleName(DeclaredType type) {
+        return (null == type) ? null : getFieldTypeSimpleName(type.toString());
+    }
+
+    /**
+     * @return the simple type name for a field.
+     */
+    public static String getFieldTypeSimpleName(String fieldTypeQualifiedName) {
+        if ((null != fieldTypeQualifiedName) && (fieldTypeQualifiedName.contains("."))) {
+            fieldTypeQualifiedName = fieldTypeQualifiedName.substring(fieldTypeQualifiedName.lastIndexOf('.') + 1);
         }
-        return fieldTypeQualifiedName.substring(fieldTypeQualifiedName.lastIndexOf('.') + 1);
+        return fieldTypeQualifiedName;
     }
 
     /**
@@ -231,4 +296,5 @@ public class Utils {
     public static String getProxyInterfaceName(String className) {
         return className + Constants.INTERFACE_SUFFIX;
     }
+
 }

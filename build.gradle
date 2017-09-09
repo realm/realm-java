@@ -89,12 +89,45 @@ task check {
     dependsOn checkExamples
 }
 
+task assembleUnitTests(type:GradleBuild) {
+    group = 'Build'
+    description = 'Assemble Android unit tests of the Realm project'
+    dependsOn installTransformer
+    buildFile = file('realm/build.gradle')
+    tasks = ['assembleAndroidTest']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+}
+
 task connectedUnitTests(type:GradleBuild) {
     group = 'Test'
     description = 'Run the Android unit tests of the Realm project'
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
-    tasks = ['connectedUnitTests']
+    tasks = ['connectedAndroidTest']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+}
+
+task assembleBenchmarks(type:GradleBuild) {
+    group = 'Build'
+    description = 'Assemble benchmark tests for the library '
+    dependsOn installTransformer
+    buildFile = file('library-benchmarks/build.gradle')
+    tasks = ['assembleAndroidTest']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+}
+
+task connectedBenchmarks(type:GradleBuild) {
+    group = 'Test'
+    description = 'Run all the benchmark tests for the library '
+    dependsOn installTransformer
+    buildFile = file('library-benchmarks/build.gradle')
+    tasks = ['connectedAndroidTest']
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
     }
@@ -195,6 +228,7 @@ task distributionPackage(type:Zip) {
     from('changelog.txt')
     from('LICENSE')
     from('version.txt')
+    from('realm.properties')
     from('realm/realm-library/build/libs') {
         include 'realm-android-${currentVersion}-javadoc.jar'
         into 'docs'
@@ -266,13 +300,52 @@ task clean {
     dependsOn cleanLocalMavenRepos
 }
 
-task uploadDistributionPackage(type: Exec) {
+task manualClean {
+    description = 'Clean build files without using clean tasks defined in sub projects'
+    group = 'Clean'
+
+    doLast {
+        // clean 'build' directories
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'find', '.', '-type', 'd', '-name', 'build', '-print', '-exec', 'rm', '-rf', '{}', ';', '-prune'
+        }
+
+        // clean '.externalNativeBuild' directories
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'find', '.', '-type', 'd', '-name', '.externalNativeBuild', '-print', '-exec', 'rm', '-rf', '{}', ';', '-prune'
+        }
+
+        // clean '.gradle' directories except one in the root
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'find', '.', '-mindepth', '2', '-type', 'd', '-name', '.gradle', '-print', '-exec', 'rm', '-rf', '{}', ';', '-prune'
+        }
+
+        // clean ${System.env.HOME}/.m2/repository/io/realm
+        exec {
+            workingDir "${rootDir}"
+            commandLine 'sh', '-c', "echo \"${System.env.HOME}/.m2/repository/io/realm\" && rm -rf \"${System.env.HOME}/.m2/repository/io/realm\""
+        }
+    }
+}
+
+task uploadDistributionPackage {
     group = 'Release'
     description = 'Upload the distribution package to S3'
     dependsOn distributionPackage
     dependsOn distributionJniUnstrippedPackage
-    commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-java-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
-    commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-java-jni-libs-unstripped-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
+    doLast {
+        exec {
+            workingDir "${buildDir}/outputs/distribution/"
+            commandLine 's3cmd', 'put', "realm-java-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
+        }
+        exec {
+            workingDir "${buildDir}/outputs/distribution/"
+            commandLine 's3cmd', 'put', "realm-java-jni-libs-unstripped-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
+        }
+    }
 }
 
 task createEmptyFile(type: Exec) {
@@ -350,51 +423,11 @@ task bintrayUpload {
     dependsOn bintrayTransformer
 }
 
-task s3Realm(type: GradleBuild) {
-    description = 'Publish the Realm AAR and AP to the internal S3 maven repository.'
-    group = 'Publishing'
-    buildFile = file('realm/build.gradle')
-    tasks = ['publish']
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
-}
-
-task s3Annotations(type: GradleBuild) {
-    description = 'Publish the Realm Annotations to the internal S3 maven repository.'
-    group = 'Publishing'
-    buildFile = file('realm-annotations/build.gradle')
-    tasks = ['publish']
-}
-
-task s3GradlePlugin(type: GradleBuild) {
-    description = 'Publish the Realm Gradle Plugin to the internal S3 maven repository.'
-    group = 'Publishing'
-    buildFile = file('gradle-plugin/build.gradle')
-    tasks = ['publish']
-}
-
-task s3Transformer(type: GradleBuild) {
-    description = 'Publish the Realm Transformer to the internal S3 maven repository.'
-    group = 'Publishing'
-    buildFile = file('realm-transformer/build.gradle')
-    tasks = ['publish']
-}
-
-task s3Upload {
-    description = 'Publish all the Realm artifacts to the internal S3 maven repository.'
-    group = 'Publishing'
-    dependsOn s3Realm
-    dependsOn s3Annotations
-    dependsOn s3GradlePlugin
-    dependsOn s3Transformer
-}
-
 task ojoRealm(type: GradleBuild) {
     description = 'Publish the Realm AAR and AP SNAPSHOT to Bintray'
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
-    tasks = ['artifactoryPublish']
+    tasks = ['ojoUpload']
     startParameter.projectProperties = gradle.startParameter.projectProperties
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]

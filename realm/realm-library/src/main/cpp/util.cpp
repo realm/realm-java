@@ -18,6 +18,7 @@
 #include <stdexcept>
 
 #include <realm/util/assert.hpp>
+#include <realm/util/file.hpp>
 #include <realm/unicode.hpp>
 #include "utf8.hpp"
 
@@ -25,29 +26,28 @@
 #include "io_realm_internal_Util.h"
 #include "io_realm_internal_SharedRealm.h"
 #include "shared_realm.hpp"
+#include "results.hpp"
+#include "list.hpp"
+#include "java_exception_def.hpp"
+
+#include "jni_util/java_exception_thrower.hpp"
 
 using namespace std;
 using namespace realm;
 using namespace realm::util;
-
-// Caching classes and constructors for boxed types.
-JavaVM* g_vm;
-jclass java_lang_long;
-jmethodID java_lang_long_init;
-jclass java_lang_float;
-jmethodID java_lang_float_init;
-jclass java_lang_double;
-jmethodID java_lang_double_init;
-jclass session_class_ref;
-jmethodID session_error_handler;
+using namespace realm::jni_util;
+using namespace realm::_impl;
 
 void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind);
 
-void ConvertException(JNIEnv* env, const char *file, int line)
+void ConvertException(JNIEnv* env, const char* file, int line)
 {
     ostringstream ss;
     try {
         throw;
+    }
+    catch (JavaExceptionThrower& e) {
+        e.throw_java_exception(env);
     }
     catch (bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -66,8 +66,12 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ThrowException(env, IllegalArgument, ss.str());
     }
     catch (RealmFileException& e) {
-        ss << e.what() << " in " << file << " line " << line;
+        ss << e.what() << " (" << e.underlying() << ") (" << e.path() << ") in " << file << " line " << line;
         ThrowRealmFileException(env, ss.str(), e.kind());
+    }
+    catch (File::AccessError& e) {
+        ss << e.what() << " (" << e.get_path() << ") in " << file << " line " << line;
+        ThrowException(env, FatalError, ss.str());
     }
     catch (InvalidTransactionException& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -77,6 +81,39 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
+    catch (Results::OutOfBoundsIndexException& e) {
+        ss << "Out of range  in " << file << " line " << line << "(requested: " << e.requested
+           << " valid: " << e.valid_count << ")";
+        ThrowException(env, IndexOutOfBounds, ss.str());
+    }
+    catch (Results::IncorrectTableException& e) {
+        ss << "Incorrect class in " << file << " line " << line << "(actual: " << e.actual
+           << " expected: " << e.expected << ")";
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (Results::UnsupportedColumnTypeException& e) {
+        ss << "Unsupported type in " << file << " line " << line << "(field name: " << e.column_name << ")";
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (Results::InvalidatedException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalState, ss.str());
+    }
+    catch (List::OutOfBoundsIndexException& e) {
+        ss << "Out of range  in " << file << " line " << line << "(requested: " << e.requested
+           << " valid: " << e.valid_count << ")";
+        ThrowException(env, IndexOutOfBounds, ss.str());
+    }
+    catch (IncorrectThreadException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalState, ss.str());
+    }
+    catch (realm::LogicError e) {
+        ThrowException(env, IllegalState, e.what());
+    }
+    catch (std::logic_error e) {
+        ThrowException(env, IllegalState, e.what());
+    }
     catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
@@ -84,7 +121,7 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     /* catch (...) is not needed if we only throw exceptions derived from std::exception */
 }
 
-void ThrowException(JNIEnv* env, ExceptionKind exception, const char *classStr)
+void ThrowException(JNIEnv* env, ExceptionKind exception, const char* classStr)
 {
     ThrowException(env, exception, classStr, "");
 }
@@ -94,7 +131,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
     string message;
     jclass jExceptionClass = NULL;
 
-    TR_ERR(env, "jni: ThrowingException %d, %s, %s.", exception, classStr.c_str(), itemStr.c_str())
+    Log::e("jni: ThrowingException %1, %2, %3.", exception, classStr.c_str(), itemStr.c_str());
 
     switch (exception) {
         case ClassNotFound:
@@ -118,7 +155,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             break;
 
         case OutOfMemory:
-            jExceptionClass = env->FindClass("io/realm/internal/OutOfMemoryError");
+            jExceptionClass = env->FindClass(JavaExceptionDef::OutOfMemory);
             message = classStr + " " + itemStr;
             break;
 
@@ -148,11 +185,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             break;
     }
     if (jExceptionClass != NULL) {
+        Log::e("Exception has been thrown: %1", message.c_str());
         env->ThrowNew(jExceptionClass, message.c_str());
-        TR_ERR(env, "Exception has been throw: %s", message.c_str())
     }
     else {
-        TR_ERR_NO_VA_ARG(env, "ERROR: Couldn't throw exception.")
+        Log::e("ERROR: Couldn't throw exception.");
     }
 
     env->DeleteLocalRef(jExceptionClass);
@@ -164,10 +201,13 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
 
     jmethodID constructor = env->GetMethodID(cls, "<init>", "(BLjava/lang/String;)V");
     // Initial value to suppress gcc warning.
-    jbyte kind_code;
+    jbyte kind_code = -1; // To suppress compile warning.
     switch (kind) {
         case realm::RealmFileException::Kind::AccessError:
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_ACCESS_ERROR;
+            break;
+        case realm::RealmFileException::Kind::BadHistoryError:
+            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_BAD_HISTORY;
             break;
         case realm::RealmFileException::Kind::PermissionDenied:
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_PERMISSION_DENIED;
@@ -179,7 +219,7 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_NOT_FOUND;
             break;
         case realm::RealmFileException::Kind::IncompatibleLockFile:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_IMCOMPATIBLE_LOCK_FILE;
+            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE;
             break;
         case realm::RealmFileException::Kind::FormatUpgradeRequired:
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
@@ -192,25 +232,10 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
     env->DeleteLocalRef(exception);
 }
 
-jclass GetClass(JNIEnv* env, const char* classStr)
+void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx)
 {
-    jclass localRefClass = env->FindClass(classStr);
-    if (localRefClass == NULL) {
-        ThrowException(env, ClassNotFound, classStr);
-        return NULL;
-    }
-
-    jclass myClass = reinterpret_cast<jclass>( env->NewGlobalRef(localRefClass) );
-    env->DeleteLocalRef(localRefClass);
-    return myClass;
-}
-
-void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx) {
     std::ostringstream ss;
-    ss << "Trying to set a non-nullable field '"
-       << table->get_column_name(col_ndx)
-       << "' in '"
-       << table->get_name()
+    ss << "Trying to set a non-nullable field '" << table->get_column_name(col_ndx) << "' in '" << table->get_name()
        << "' to null.";
     ThrowException(env, IllegalArgument, ss.str());
 }
@@ -242,19 +267,36 @@ namespace {
 // non-sign value bits, that is, an unsigned 16-bit integer, or any
 // signed or unsigned integer with more than 16 bits.
 struct JcharTraits {
-    static jchar to_int_type(jchar c)  noexcept { return c; }
-    static jchar to_char_type(jchar i) noexcept { return i; }
+    static jchar to_int_type(jchar c) noexcept
+    {
+        return c;
+    }
+    static jchar to_char_type(jchar i) noexcept
+    {
+        return i;
+    }
 };
 
 struct JStringCharsAccessor {
-    JStringCharsAccessor(JNIEnv* e, jstring s):
-        m_env(e), m_string(s), m_data(e->GetStringChars(s,0)), m_size(get_size(e,s)) {}
+    JStringCharsAccessor(JNIEnv* e, jstring s)
+        : m_env(e)
+        , m_string(s)
+        , m_data(e->GetStringChars(s, 0))
+        , m_size(get_size(e, s))
+    {
+    }
     ~JStringCharsAccessor()
     {
         m_env->ReleaseStringChars(m_string, m_data);
     }
-    const jchar* data() const noexcept { return m_data; }
-    size_t size() const noexcept { return m_size; }
+    const jchar* data() const noexcept
+    {
+        return m_data;
+    }
+    size_t size() const noexcept
+    {
+        return m_size;
+    }
 
 private:
     JNIEnv* const m_env;
@@ -274,10 +316,11 @@ private:
 } // anonymous namespace
 
 static string string_to_hex(const string& message, StringData& str, const char* in_begin, const char* in_end,
-                     jchar* out_curr, jchar* out_end, size_t retcode, size_t error_code) {
+                            jchar* out_curr, jchar* out_end, size_t retcode, size_t error_code)
+{
     ostringstream ret;
 
-    const char *s = str.data();
+    const char* s = str.data();
     ret << message << " ";
     ret << "error_code = " << error_code << "; ";
     ret << "retcode = " << retcode << "; ";
@@ -294,17 +337,19 @@ static string string_to_hex(const string& message, StringData& str, const char* 
     return ret.str();
 }
 
-static string string_to_hex(const string& message, const jchar *str, size_t size, size_t error_code) {
+static string string_to_hex(const string& message, const jchar* str, size_t size, size_t error_code)
+{
     ostringstream ret;
 
     ret << message << "; ";
     ret << "error_code = " << error_code << "; ";
-    for (size_t i = 0; i < size; ++i)
-        ret << " 0x" << std::hex << std::setfill('0') << std::setw(4) << (int)str[i];
+    for (size_t i = 0; i < size; ++i) {
+        ret << " 0x" << std::hex << std::setfill('0') << std::setw(4) << (int) str[i];
+    }
     return ret.str();
 }
 
-string concat_stringdata(const char *message, StringData strData)
+string concat_stringdata(const char* message, StringData strData)
 {
     if (strData.is_null()) {
         return std::string(message);
@@ -329,47 +374,55 @@ jstring to_jstring(JNIEnv* env, StringData str)
     std::unique_ptr<jchar[]> dyn_buf;
 
     const char* in_begin = str.data();
-    const char* in_end   = str.data() + str.size();
+    const char* in_end = str.data() + str.size();
     jchar* out_begin = stack_buf;
-    jchar* out_curr  = stack_buf;
-    jchar* out_end   = stack_buf + stack_buf_size;
+    jchar* out_curr = stack_buf;
+    jchar* out_end = stack_buf + stack_buf_size;
 
     typedef Utf8x16<jchar, JcharTraits> Xcode;
 
     if (str.size() <= stack_buf_size) {
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
-        if (retcode != 0)
-            throw runtime_error(string_to_hex("Failure when converting short string to UTF-16",  str, in_begin, in_end, out_curr, out_end, size_t(0), retcode));
-        if (in_begin == in_end)
+        if (retcode != 0) {
+            throw runtime_error(string_to_hex("Failure when converting short string to UTF-16", str, in_begin, in_end,
+                                              out_curr, out_end, size_t(0), retcode));
+        }
+        if (in_begin == in_end) {
             goto transcode_complete;
+        }
     }
 
     {
         const char* in_begin2 = in_begin;
         size_t error_code;
         size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end, error_code);
-        if (in_begin2 != in_end)
-            throw runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr, out_end, size, error_code));
-        if (int_add_with_overflow_detect(size, stack_buf_size))
+        if (in_begin2 != in_end) {
+            throw runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr,
+                                              out_end, size, error_code));
+        }
+        if (int_add_with_overflow_detect(size, stack_buf_size)) {
             throw runtime_error("String size overflow");
+        }
         dyn_buf.reset(new jchar[size]);
         out_curr = copy(out_begin, out_curr, dyn_buf.get());
         out_begin = dyn_buf.get();
-        out_end   = dyn_buf.get() + size;
+        out_end = dyn_buf.get() + size;
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
-        if (retcode != 0)
-            throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end, out_curr, out_end, size_t(0), retcode));
+        if (retcode != 0) {
+            throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end,
+                                              out_curr, out_end, size_t(0), retcode));
+        }
         REALM_ASSERT(in_begin == in_end);
     }
 
-  transcode_complete:
-    {
-        jsize out_size;
-        if (int_cast_with_overflow_detect(out_curr - out_begin, out_size))
-            throw runtime_error("String size overflow");
-
-        return env->NewString(out_begin, out_size);
+transcode_complete : {
+    jsize out_size;
+    if (int_cast_with_overflow_detect(out_curr - out_begin, out_size)) {
+        throw runtime_error("String size overflow");
     }
+
+    return env->NewString(out_begin, out_size);
+}
 }
 
 
@@ -392,31 +445,35 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
 
     typedef Utf8x16<jchar, JcharTraits> Xcode;
     size_t max_project_size = 48;
-    REALM_ASSERT(max_project_size <= numeric_limits<size_t>::max()/4);
+    REALM_ASSERT(max_project_size <= numeric_limits<size_t>::max() / 4);
     size_t buf_size;
     if (chars.size() <= max_project_size) {
         buf_size = chars.size() * 4;
     }
     else {
         const jchar* begin = chars.data();
-        const jchar* end   = begin + chars.size();
+        const jchar* end = begin + chars.size();
         size_t error_code;
         buf_size = Xcode::find_utf8_buf_size(begin, end, error_code);
     }
-    m_data.reset(new char[buf_size]);  // throws
+    char* tmp_char_array = new char[buf_size]; // throws
+    m_data.reset(tmp_char_array);
     {
         const jchar* in_begin = chars.data();
-        const jchar* in_end   = in_begin + chars.size();
+        const jchar* in_end = in_begin + chars.size();
         char* out_begin = m_data.get();
-        char* out_end   = m_data.get() + buf_size;
+        char* out_end = m_data.get() + buf_size;
         size_t error_code;
         if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end, error_code)) {
-            throw invalid_argument(string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size(), error_code));
+            throw invalid_argument(
+                string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         if (in_begin != in_end) {
-            throw invalid_argument(string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size(), error_code));
+            throw invalid_argument(
+                string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         m_size = out_begin - m_data.get();
+        // FIXME: Does this help on string issues? Or does it only help lldb?
+        std::memset(tmp_char_array + m_size, 0, buf_size - m_size);
     }
 }
-

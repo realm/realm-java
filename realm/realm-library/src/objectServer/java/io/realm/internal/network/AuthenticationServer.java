@@ -19,8 +19,8 @@ package io.realm.internal.network;
 import java.net.URI;
 import java.net.URL;
 
-import io.realm.Credentials;
-import io.realm.User;
+import io.realm.SyncCredentials;
+import io.realm.SyncUser;
 import io.realm.internal.objectserver.Token;
 
 /**
@@ -34,12 +34,12 @@ public interface AuthenticationServer {
      * Login a User on the Object Server. This will create a "UserToken" (Currently called RefreshToken) that acts as
      * the users credentials.
      */
-    AuthenticateResponse loginUser(Credentials credentials, URL authenticationUrl);
+    AuthenticateResponse loginUser(SyncCredentials credentials, URL authenticationUrl);
 
     /**
      * Requests access to a specific Realm. Only users with a valid user token can ask for permission to a remote Realm.
      * Permission to a Realm is granted through an "AccessToken". Each Realm have their own access token, and all
-     * tokens should be managed by {@link User}.
+     * tokens should be managed by {@link SyncUser}.
      */
     AuthenticateResponse loginToRealm(Token userToken, URI serverUrl,  URL authenticationUrl);
 
@@ -48,12 +48,29 @@ public interface AuthenticationServer {
      * Before it expires, the client should try to refresh the token, effectively keeping the user logged in on the
      * Object Server. Failing to do so will cause a "soft logout", where the User will have limited access rights.
      */
-    AuthenticateResponse refreshUser(Token userToken, URL authenticationUrl);
+    AuthenticateResponse refreshUser(Token userToken, URI serverUrl, URL authenticationUrl);
 
     /**
      * Logs out the user on the Object Server by invalidating the refresh token. Each device should be given their
      * own refresh token, but if the refresh token for some reason was shared or stolen all these devices will be
      * logged out as well.
      */
-    LogoutResponse logout(User user, URL authenticationUrl);
+    LogoutResponse logout(Token userToken, URL authenticationUrl);
+
+    /**
+     * Changes a user's password.
+     */
+    ChangePasswordResponse changePassword(Token userToken, String newPassword, URL authenticationUrl);
+
+    /**
+     * Changes a user's password using admin account.
+     */
+    ChangePasswordResponse changePassword(Token adminToken, String userID, String newPassword, URL authenticationUrl);
+
+    /**
+     * Looks up a {@code SyncUser} using the identity provider {@link io.realm.SyncCredentials.IdentityProvider}
+     * used when the account was created and the username or email used to create the account for the first time
+     * what is needed will depend on what type of {@link SyncCredentials} was used.
+     */
+    LookupUserIdResponse retrieveUser(Token adminToken, String provider, String providerId, URL authenticationUrl);
 }

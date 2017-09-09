@@ -15,8 +15,11 @@
  */
 package io.realm.exceptions;
 
+import java.util.Locale;
+
 import io.realm.internal.Keep;
 import io.realm.internal.SharedRealm;
+
 
 /**
  * Class for reporting problems when accessing the Realm related files.
@@ -26,11 +29,16 @@ public class RealmFileException extends RuntimeException {
     /**
      * The specific kind of this {@link RealmFileException}.
      */
+    @Keep
     public enum Kind {
         /**
          * Thrown for any I/O related exception scenarios when a Realm is opened.
          */
         ACCESS_ERROR,
+        /**
+         * Thrown if the history type of the on-disk Realm is unexpected or incompatible.
+         */
+        BAD_HISTORY,
         /**
          * Thrown if the user does not have permission to open or create the specified file in the specified access
          * mode when the Realm is opened.
@@ -65,10 +73,12 @@ public class RealmFileException extends RuntimeException {
                     return EXISTS;
                 case SharedRealm.FILE_EXCEPTION_KIND_NOT_FOUND:
                     return NOT_FOUND;
-                case SharedRealm.FILE_EXCEPTION_KIND_IMCOMPATIBLE_LOCK_FILE:
+                case SharedRealm.FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE:
                     return INCOMPATIBLE_LOCK_FILE;
                 case SharedRealm.FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED:
                     return FORMAT_UPGRADE_REQUIRED;
+                case SharedRealm.FILE_EXCEPTION_KIND_BAD_HISTORY:
+                    return BAD_HISTORY;
                 default:
                     throw new RuntimeException("Unknown value for RealmFileException kind.");
             }
@@ -110,6 +120,6 @@ public class RealmFileException extends RuntimeException {
 
     @Override
     public String toString() {
-        return String.format("%s Kind: %s.", super.toString(), kind);
+        return String.format(Locale.US, "%s Kind: %s.", super.toString(), kind);
     }
 }

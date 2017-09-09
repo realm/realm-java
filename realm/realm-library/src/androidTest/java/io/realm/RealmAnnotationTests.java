@@ -54,6 +54,7 @@ public class RealmAnnotationTests {
         object.setNotIndexString("String 1");
         object.setIndexString("String 2");
         object.setIgnoreString("String 3");
+        object.setTransientString("String 4");
         realm.commitTransaction();
     }
 
@@ -67,10 +68,11 @@ public class RealmAnnotationTests {
     @Test
     public void ignore() {
         Table table = realm.getTable(AnnotationTypes.class);
-        assertEquals(-1, table.getColumnIndex("ignoreString"));
+        assertEquals(-1, table.getColumnIndex(AnnotationTypes.FIELD_IGNORE_STRING));
+        assertEquals(-1, table.getColumnIndex(AnnotationTypes.FIELD_TRANSIENT_STRING));
     }
 
-    // Test if "index" annotation works with supported types
+    // Tests if "index" annotation works with supported types.
     @Test
     public void index() {
         Table table = realm.getTable(AnnotationIndexTypes.class);
@@ -97,7 +99,7 @@ public class RealmAnnotationTests {
         assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexDate")));
     }
 
-    // Test migrating primary key from string to long with existing data
+    // Tests migrating primary key from string to long with existing data.
     @Test
     public void primaryKey_migration_long() {
         realm.beginTransaction();
@@ -112,13 +114,13 @@ public class RealmAnnotationTests {
         realm.cancelTransaction();
     }
 
-    // Test migrating primary key from string to long with existing data
+    // Tests migrating primary key from string to long with existing data.
     @Test
     public void primaryKey_migration_longDuplicateValues() {
         realm.beginTransaction();
         for (int i = 1; i <= 2; i++) {
             PrimaryKeyAsString obj = realm.createObject(PrimaryKeyAsString.class, "String" + i);
-            obj.setId(1); // Create duplicate values
+            obj.setId(1); // Creates duplicate values.
         }
 
         Table table = realm.getTable(PrimaryKeyAsString.class);
@@ -132,7 +134,7 @@ public class RealmAnnotationTests {
         }
     }
 
-    // Test migrating primary key from long to str with existing data
+    // Tests migrating primary key from long to str with existing data.
     @Test
     public void primaryKey_migration_string() {
         realm.beginTransaction();
@@ -147,13 +149,13 @@ public class RealmAnnotationTests {
         realm.cancelTransaction();
     }
 
-    // Test migrating primary key from long to str with existing data
+    // Tests migrating primary key from long to str with existing data.
     @Test
     public void primaryKey_migration_stringDuplicateValues() {
         realm.beginTransaction();
         for (int i = 1; i <= 2; i++) {
             PrimaryKeyAsLong obj = realm.createObject(PrimaryKeyAsLong.class, i);
-            obj.setName("String"); // Create duplicate values
+            obj.setName("String"); // Creates duplicate values.
         }
 
         Table table = realm.getTable(PrimaryKeyAsLong.class);
@@ -203,8 +205,8 @@ public class RealmAnnotationTests {
         assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
     }
 
-    // Annotation processor honors common naming conventions
-    // We check if setters and getters are generated and working
+    // Annotation processor honors common naming conventions.
+    // We check if setters and getters are generated and working.
     @Test
     public void namingConvention() {
         realm.beginTransaction();

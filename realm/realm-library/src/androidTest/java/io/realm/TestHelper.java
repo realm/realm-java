@@ -18,9 +18,9 @@ package io.realm;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.os.Build;
 import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
-import android.util.Log;
 
 import org.junit.Assert;
 
@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -38,7 +37,9 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -47,25 +48,34 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationIndexTypes;
+import io.realm.entities.BacklinksSource;
+import io.realm.entities.BacklinksTarget;
 import io.realm.entities.NullTypes;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
-import io.realm.entities.StringOnly;
+import io.realm.internal.Collection;
+import io.realm.internal.OsObject;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.log.AndroidLogger;
 import io.realm.log.LogLevel;
-import io.realm.log.Logger;
+import io.realm.log.RealmLogger;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 public class TestHelper {
+    public static final int VERY_SHORT_WAIT_SECS = 1;
+    public static final int SHORT_WAIT_SECS = 10;
+    public static final int STANDARD_WAIT_SECS = 100;
+    public static final int LONG_WAIT_SECS = 1000;
+
+    private static final Charset UTF_8 = Charset.forName("UTF-8");
+    private static final Random RANDOM = new Random();
 
     public static class ExpectedCountCallback implements RealmCache.Callback {
 
@@ -100,22 +110,185 @@ public class TestHelper {
     }
 
     /**
-     * Creates an empty table with 1 column of all our supported column types, currently 9 columns
+     * Appends the specified row to the end of the table. For internal testing usage only.
      *
-     * @return
+     * @param table the table where the object to be added.
+     * @param values values.
+     * @return the row index of the appended row.
+     * @deprecated Remove this functions since it doesn't seem to be useful. And this function does deal with tables
+     * with primary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
+     * added.
      */
-    public static Table getTableWithAllColumnTypes() {
-        Table t = new Table();
+    public static long addRowWithValues(Table table, Object... values) {
+        long rowIndex = OsObject.createRow(table);
 
-        t.addColumn(RealmFieldType.BINARY, "binary");
-        t.addColumn(RealmFieldType.BOOLEAN, "boolean");
-        t.addColumn(RealmFieldType.DATE, "date");
-        t.addColumn(RealmFieldType.DOUBLE, "double");
-        t.addColumn(RealmFieldType.FLOAT, "float");
-        t.addColumn(RealmFieldType.INTEGER, "long");
-        t.addColumn(RealmFieldType.STRING, "string");
+        // Checks values types.
+        int columns = (int) table.getColumnCount();
+        if (columns != values.length) {
+            throw new IllegalArgumentException("The number of value parameters (" +
+                    String.valueOf(values.length) +
+                    ") does not match the number of columns in the table (" +
+                    String.valueOf(columns) + ").");
+        }
+        RealmFieldType[] colTypes = new RealmFieldType[columns];
+        for (int columnIndex = 0; columnIndex < columns; columnIndex++) {
+            Object value = values[columnIndex];
+            RealmFieldType colType = table.getColumnType(columnIndex);
+            colTypes[columnIndex] = colType;
+            if (!colType.isValid(value)) {
+                // String representation of the provided value type.
+                String providedType;
+                if (value == null) {
+                    providedType = "null";
+                } else {
+                    providedType = value.getClass().toString();
+                }
 
-        return t;
+                throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
+                        ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
+            }
+        }
+
+        // Inserts values.
+        for (long columnIndex = 0; columnIndex < columns; columnIndex++) {
+            Object value = values[(int) columnIndex];
+            switch (colTypes[(int) columnIndex]) {
+                case BOOLEAN:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setBoolean(columnIndex, rowIndex, (Boolean) value, false);
+                    }
+                    break;
+                case INTEGER:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        long longValue = ((Number) value).longValue();
+                        table.setLong(columnIndex, rowIndex, longValue, false);
+                    }
+                    break;
+                case FLOAT:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setFloat(columnIndex, rowIndex, (Float) value, false);
+                    }
+                    break;
+                case DOUBLE:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setDouble(columnIndex, rowIndex, (Double) value, false);
+                    }
+                    break;
+                case STRING:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setString(columnIndex, rowIndex, (String) value, false);
+                    }
+                    break;
+                case DATE:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setDate(columnIndex, rowIndex, (Date) value, false);
+                    }
+                    break;
+                case BINARY:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setBinaryByteArray(columnIndex, rowIndex, (byte[]) value, false);
+                    }
+                    break;
+                case UNSUPPORTED_MIXED:
+                case UNSUPPORTED_TABLE:
+                default:
+                    throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int) columnIndex]));
+            }
+        }
+        return rowIndex;
+    }
+
+    /**
+     * Creates an empty table whose name is "temp" with 1 column of all our supported column types, currently 7 columns.
+     *
+     * @param sharedRealm A {@link SharedRealm} where the table is created.
+     * @return created table.
+     */
+    public static Table createTableWithAllColumnTypes(SharedRealm sharedRealm) {
+        return createTableWithAllColumnTypes(sharedRealm, "temp");
+    }
+
+    /**
+     * Creates an empty table with 1 column of all our supported column types, currently 7 columns.
+     *
+     * @param sharedRealm A {@link SharedRealm} where the table is created.
+     * @param name name of the table.
+     * @return created table.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static Table createTableWithAllColumnTypes(SharedRealm sharedRealm,
+            @SuppressWarnings("SameParameterValue") String name) {
+        boolean wasInTransaction = sharedRealm.isInTransaction();
+        if (!wasInTransaction) {
+            sharedRealm.beginTransaction();
+        }
+        try {
+            Table t = sharedRealm.createTable(name);
+
+            t.addColumn(RealmFieldType.BINARY, "binary");
+            t.addColumn(RealmFieldType.BOOLEAN, "boolean");
+            t.addColumn(RealmFieldType.DATE, "date");
+            t.addColumn(RealmFieldType.DOUBLE, "double");
+            t.addColumn(RealmFieldType.FLOAT, "float");
+            t.addColumn(RealmFieldType.INTEGER, "long");
+            t.addColumn(RealmFieldType.STRING, "string");
+
+            return t;
+        } catch (RuntimeException e) {
+            if (!wasInTransaction) {
+                sharedRealm.cancelTransaction();
+            }
+            throw e;
+        } finally {
+            if (!wasInTransaction && sharedRealm.isInTransaction()) {
+                sharedRealm.commitTransaction();
+            }
+        }
+    }
+
+    public static Table createTable(SharedRealm sharedRealm, String name) {
+        return createTable(sharedRealm, name, null);
+    }
+
+    public interface AdditionalTableSetup {
+        void execute(Table table);
+    }
+
+    public static Table createTable(SharedRealm sharedRealm, String name, AdditionalTableSetup additionalSetup) {
+        boolean wasInTransaction = sharedRealm.isInTransaction();
+        if (!wasInTransaction) {
+            sharedRealm.beginTransaction();
+        }
+        try {
+            Table table = sharedRealm.createTable(name);
+            if (additionalSetup != null) {
+                additionalSetup.execute(table);
+            }
+            return table;
+        } catch (RuntimeException e) {
+            if (!wasInTransaction) {
+                sharedRealm.cancelTransaction();
+            }
+            throw e;
+        } finally {
+            if (!wasInTransaction && sharedRealm.isInTransaction()) {
+                sharedRealm.commitTransaction();
+            }
+        }
     }
 
     public static String streamToString(InputStream in) throws IOException {
@@ -123,7 +296,7 @@ public class TestHelper {
         StringBuilder sb = new StringBuilder();
         String line;
         try {
-            br = new BufferedReader(new InputStreamReader(in));
+            br = new BufferedReader(new InputStreamReader(in, UTF_8));
             while ((line = br.readLine()) != null) {
                 sb.append(line);
             }
@@ -137,27 +310,21 @@ public class TestHelper {
     }
 
     public static InputStream stringToStream(String str) {
-        return new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
-    }
-
-    // Creates a simple migration step in order to support null
-    // FIXME: generate a new encrypted.realm will null support
-    public static RealmMigration prepareMigrationToNullSupportStep() {
-        RealmMigration realmMigration = new RealmMigration() {
-            @Override
-            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                Table stringOnly = realm.schema.getTable(StringOnly.class);
-                stringOnly.convertColumnToNullable(stringOnly.getColumnIndex("chars"));
-            }
-        };
-        return realmMigration;
+        return new ByteArrayInputStream(str.getBytes(UTF_8));
     }
 
     // Returns a random key used by encrypted Realms.
     public static byte[] getRandomKey() {
         byte[] key = new byte[64];
-        new Random().nextBytes(key);
+        RANDOM.nextBytes(key);
         return key;
+    }
+
+    public static String getRandomEmail() {
+        StringBuilder sb = new StringBuilder(UUID.randomUUID().toString().toLowerCase());
+        sb.append('@');
+        sb.append("androidtest.realm.io");
+        return sb.toString();
     }
 
     // Returns a random key from the given seed. Used by encrypted Realms.
@@ -168,58 +335,32 @@ public class TestHelper {
     }
 
     /**
-     * Returns a Logger that will fail if it is asked to log a message above a certain level.
+     * Returns a RealmLogger that will fail if it is asked to log a message above a certain level.
      *
-     * @param failureLevel {@link Log} level from which the unit test will fail.
-     * @return Logger implementation
+     * @param failureLevel level at which the unit test will fail: {@see Log}.
+     * @return RealmLogger implementation
      */
-    public static Logger getFailureLogger(final int failureLevel) {
-        return new AndroidLogger(Log.VERBOSE) {
-
-            private void failIfEqualOrAbove(int logLevel, int failureLevel) {
+    public static RealmLogger getFailureLogger(final int failureLevel) {
+        return new RealmLogger() {
+            private void failIfEqualOrAbove(int logLevel) {
                 if (logLevel >= failureLevel) {
                     fail("Message logged that was above valid level: " + logLevel + " >= " + failureLevel);
                 }
             }
 
             @Override
-            public void trace(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.VERBOSE, failureLevel);
+            public void log(int level, String tag, Throwable throwable, String message) {
+                failIfEqualOrAbove(level);
             }
-
-            @Override
-            public void debug(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.DEBUG, failureLevel);
-            }
-
-            @Override
-            public void info(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.INFO, failureLevel);
-            }
-
-            @Override
-            public void warn(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.WARN, failureLevel);
-            }
-
-            @Override
-            public void error(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.ERROR, failureLevel);
-            }
-
-            @Override
-            public void fatal(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.ERROR, failureLevel);
-            }
-
         };
     }
 
+    // Generate a random string with only capital letters which is always a valid class/field name.
     public static String getRandomString(int length) {
         Random r = new Random();
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            sb.append((char) r.nextInt(128)); // Restrict to standard ASCII chars.
+            sb.append((char) (r.nextInt(26) + 'A')); // Restrict to capital letters
         }
         return sb.toString();
     }
@@ -227,7 +368,7 @@ public class TestHelper {
     /**
      * Returns a naive logger that can be used to test the values that are sent to the logger.
      */
-    public static class TestLogger implements Logger {
+    public static class TestLogger implements RealmLogger {
 
         private final int minimumLevel;
         public String message;
@@ -242,53 +383,10 @@ public class TestHelper {
         }
 
         @Override
-        public int getMinimumNativeDebugLevel() {
-            return minimumLevel;
-        }
-
-        @Override
-        public void trace(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.TRACE) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
-            }
-        }
-
-        @Override
-        public void debug(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.DEBUG) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
-            }
-        }
-
-        @Override
-        public void info(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.INFO) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
-            }
-        }
-
-        @Override
-        public void warn(Throwable t, String message, Object... args) {
-            this.message = (message != null) ? String.format(message, args) : null;
-            this.throwable = t;
-        }
-
-        @Override
-        public void error(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.ERROR) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
-            }
-        }
-
-        @Override
-        public void fatal(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.FATAL) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
+        public void log(int level, String tag, Throwable throwable, String message) {
+            if (minimumLevel <= level) {
+                this.message = message;
+                this.throwable = throwable;
             }
         }
     }
@@ -300,7 +398,7 @@ public class TestHelper {
         }
     }
 
-    // Alloc as much garbage as we can. Pass maxSize = 0 to use it.
+    // Allocs as much garbage as we can. Pass maxSize = 0 to use it.
     public static byte[] allocGarbage(int garbageSize) {
         if (garbageSize == 0) {
             long maxMemory = Runtime.getRuntime().maxMemory();
@@ -325,11 +423,9 @@ public class TestHelper {
     public static byte[] SHA512(String str) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-512");
-            md.update(str.getBytes("UTF-8"), 0, str.length());
+            md.update(str.getBytes(UTF_8), 0, str.length());
             return md.digest();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
@@ -437,10 +533,10 @@ public class TestHelper {
         userObj.setId(primaryFieldValue);
         userObj.setName(secondaryFieldValue);
         testRealm.copyToRealm(userObj);
-        byte idValue = (byte)iteratorBeginValue;
+        byte idValue = (byte) iteratorBeginValue;
         for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedByte obj = new PrimaryKeyAsBoxedByte();
-            obj.setId(new Byte(idValue));
+            obj.setId(idValue);
             obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
@@ -473,7 +569,7 @@ public class TestHelper {
         short idValue = (short)iteratorBeginValue;
         for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedShort obj = new PrimaryKeyAsBoxedShort();
-            obj.setId(new Short(idValue));
+            obj.setId(idValue);
             obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
@@ -506,7 +602,7 @@ public class TestHelper {
         int idValue = iteratorBeginValue;
         for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedInteger obj = new PrimaryKeyAsBoxedInteger();
-            obj.setId(new Integer(idValue));
+            obj.setId(idValue);
             obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
@@ -539,7 +635,7 @@ public class TestHelper {
         long idValue = iteratorBeginValue;
         for (long i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong();
-            obj.setId(new Long(idValue));
+            obj.setId(idValue);
             obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
@@ -548,7 +644,7 @@ public class TestHelper {
 
     public static void populateTestRealmForNullTests(Realm testRealm) {
 
-        // Create 3 NullTypes objects. The objects are self-referenced (link) in
+        // Creates 3 NullTypes objects. The objects are self-referenced (link) in
         // order to test link queries.
         //
         // +-+--------+------+---------+--------+--------------------+
@@ -571,7 +667,7 @@ public class TestHelper {
         NullTypes[] nullTypesArray = new NullTypes[3];
 
         testRealm.beginTransaction();
-        for (int i = 0; i < words.length; i++) {
+        for (int i = 0; i < 3; i++) {
             NullTypes nullTypes = new NullTypes();
             nullTypes.setId(i + 1);
             // 1 String
@@ -847,12 +943,16 @@ public class TestHelper {
     }
 
     public static void awaitOrFail(CountDownLatch latch) {
-        awaitOrFail(latch, 7);
+        awaitOrFail(latch, STANDARD_WAIT_SECS);
     }
 
     public static void awaitOrFail(CountDownLatch latch, int numberOfSeconds) {
         try {
-            if (!latch.await(numberOfSeconds, TimeUnit.SECONDS)) {
+            if (android.os.Debug.isDebuggerConnected()) {
+                // If we are debugging the tests, just waits without a timeout.
+                // Don't want a timeout while we are stopped at a break point.
+                latch.await();
+            } else if (!latch.await(numberOfSeconds, TimeUnit.SECONDS)) {
                 fail("Test took longer than " + numberOfSeconds + " seconds");
             }
         } catch (InterruptedException e) {
@@ -860,35 +960,40 @@ public class TestHelper {
         }
     }
 
-    // clean resource, shutdown the executor service & throw any background exception
-    public static void exitOrThrow(final ExecutorService executorService,
-                                   final CountDownLatch signalTestFinished,
-                                   final CountDownLatch signalClosedRealm,
-                                   final Looper[] looper,
-                                   final Throwable[] throwable) throws Throwable {
+    public interface LooperTest {
+        CountDownLatch getRealmClosedSignal();
+        Looper getLooper();
+        Throwable getAssertionError();
+    }
 
-        // wait for the signal indicating the test's use case is done
+    // Cleans resource, shutdowns the executor service and throws any background exception.
+    @SuppressWarnings("Finally")
+    public static void exitOrThrow(ExecutorService executorService, CountDownLatch testFinishedSignal, LooperTest test) throws Throwable {
+
+        // Waits for the signal indicating the test's use case is done.
         try {
             // Even if this fails we want to try as hard as possible to cleanup. If we fail to close all resources
             // properly, the `after()` method will most likely throw as well because it tries do delete any Realms
             // used. Any exception in the `after()` code will mask the original error.
-            TestHelper.awaitOrFail(signalTestFinished);
+            TestHelper.awaitOrFail(testFinishedSignal);
         } finally {
-            if (looper[0] != null) {
-                // failing to quit the looper will not execute the finally block responsible
-                // of closing the Realm
-                looper[0].quit();
+            Looper looper = test.getLooper();
+            if (looper != null) {
+                // Failing to quit the looper will not execute the finally block responsible
+                // of closing the Realm.
+                looper.quit();
             }
 
-            // wait for the finally block to execute & close the Realm
-            TestHelper.awaitOrFail(signalClosedRealm);
-            // Close the executor.
+            // Waits for the finally block to execute and closes the Realm.
+            TestHelper.awaitOrFail(test.getRealmClosedSignal());
+            // Closes the executor.
             // This needs to be called after waiting since it might interrupt waitRealmThreadExecutorFinish().
             executorService.shutdownNow();
 
-            if (throwable[0] != null) {
-                // throw any assertion errors happened in the background thread
-                throw throwable[0];
+            Throwable fault = test.getAssertionError();
+            if (fault != null) {
+                // Throws any assertion errors happened in the background thread.
+                throw fault;
             }
         }
     }
@@ -912,19 +1017,19 @@ public class TestHelper {
      * This helper method is useful to create a mocked {@link RealmResults}.
      *
      * @param realm a {@link Realm} or a {@link DynamicRealm} instance.
-     * @param table a {@link Table} or a {@link io.realm.internal.TableView} instance.
+     * @param collection a {@link Collection} instance.
      * @param tableClass a Class of Table.
      * @return a created {@link RealmResults} instance.
      */
     public static <T extends RealmObject> RealmResults<T> newRealmResults(
-            BaseRealm realm, TableOrView table, Class<T> tableClass) {
+            BaseRealm realm, Collection collection, Class<T> tableClass) {
         //noinspection TryWithIdenticalCatches
         try {
             final Constructor<RealmResults> c = RealmResults.class.getDeclaredConstructor(
-                    BaseRealm.class, TableOrView.class, Class.class);
+                    BaseRealm.class, Collection.class, Class.class);
             c.setAccessible(true);
             //noinspection unchecked
-            return c.newInstance(realm, table, tableClass);
+            return c.newInstance(realm, collection, tableClass);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (InstantiationException e) {
@@ -1023,7 +1128,7 @@ public class TestHelper {
     }
 
     /**
-     * Wait and check if all tasks in BaseRealm.asyncTaskExecutor can be finished in 5 seconds, otherwise fail the test.
+     * Waits and checks if all tasks in BaseRealm.asyncTaskExecutor can be finished in 5 seconds, otherwise fails the test.
      */
     public static void waitRealmThreadExecutorFinish() {
         int counter = 50;
@@ -1038,7 +1143,7 @@ public class TestHelper {
             }
             counter--;
         }
-        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10 + " seconds");
+        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10.0D + " seconds");
     }
 
     /**
@@ -1086,4 +1191,82 @@ public class TestHelper {
             throw throwable;
         }
     }
+
+    @SuppressWarnings("WeakerAccess")
+    public static void deleteRecursively(File file) {
+        if (!file.exists()) {
+            return;
+        }
+        if (file.isDirectory()) {
+            for (File f : file.listFiles()) {
+                deleteRecursively(f);
+            }
+        }
+
+        if (!file.delete()) {
+            throw new AssertionError("failed to delete " + file.getAbsolutePath());
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static boolean isSelinuxEnforcing() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            // SELinux is not enabled for these versions.
+            return false;
+        }
+        try {
+            final Process process = new ProcessBuilder("/system/bin/getenforce").start();
+            try {
+                final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), UTF_8));
+                //noinspection TryFinallyCanBeTryWithResources
+                try {
+                    return reader.readLine().toLowerCase(Locale.ENGLISH).equals("enforcing");
+                } finally {
+                    try {
+                        reader.close();
+                    } catch (IOException ignored) {
+                    }
+                }
+            } finally {
+                try {
+                    process.waitFor();
+                } catch (InterruptedException ignored) {
+                }
+            }
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    public static void populateLinkedDataSet(Realm realm) {
+        realm.beginTransaction();
+        realm.delete(BacklinksSource.class);
+        realm.delete(BacklinksTarget.class);
+
+        BacklinksTarget target1 = realm.createObject(BacklinksTarget.class);
+        target1.setId(1);
+
+        BacklinksTarget target2 = realm.createObject(BacklinksTarget.class);
+        target2.setId(2);
+
+        BacklinksTarget target3 = realm.createObject(BacklinksTarget.class);
+        target3.setId(3);
+
+        BacklinksSource source1 = realm.createObject(BacklinksSource.class);
+        source1.setName("1");
+        source1.setChild(target1);
+        BacklinksSource source2 = realm.createObject(BacklinksSource.class);
+        source2.setName("2");
+        source2.setChild(target2);
+
+        BacklinksSource source3 = realm.createObject(BacklinksSource.class);
+        source3.setName("3");
+
+        BacklinksSource source4 = realm.createObject(BacklinksSource.class);
+        source4.setName("4");
+        source4.setChild(target1);
+
+        realm.commitTransaction();
+    }
+
 }

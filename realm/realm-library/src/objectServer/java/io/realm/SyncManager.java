@@ -16,23 +16,28 @@
 
 package io.realm;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.annotations.Beta;
+import javax.annotation.Nullable;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
 import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.network.OkHttpAuthenticationServer;
-import io.realm.internal.objectserver.SessionStore;
-import io.realm.internal.objectserver.SyncSession;
 import io.realm.log.RealmLog;
 
 /**
- * @Beta
  * The SyncManager is the central controller for interacting with the Realm Object Server.
- * It handles the creation of {@link Session}s and it is possible to configure session defaults and the underlying
+ * It handles the creation of {@link SyncSession}s and it is possible to configure session defaults and the underlying
  * network client using this class.
  * <p>
  * Through the SyncManager, it is possible to add authentication listeners. An authentication listener will
@@ -42,8 +47,25 @@ import io.realm.log.RealmLog;
  *
  */
 @Keep
-@Beta
-public final class SyncManager {
+@SuppressFBWarnings("MS_CANNOT_BE_FINAL")
+public class SyncManager {
+
+    /**
+     * Debugging related options.
+     */
+    @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
+    public static class Debug {
+        /**
+         * Set this to true to bypass checking if the device is offline before making HTTP requests.
+         */
+        public static boolean skipOnlineChecking = false;
+
+        /**
+         * Set this to true to init a SyncManager with a directory named by the process ID. This is useful for
+         * integration tests which are emulating multiple sync client by using multiple processes.
+         */
+        public static boolean separatedDirForSyncManager = false;
+    }
 
     /**
      * APP ID sent to the Realm Object Server. Is automatically initialized to the package name for the app.
@@ -52,13 +74,18 @@ public final class SyncManager {
 
     // Thread pool used when doing network requests against the Realm Authentication Server.
     // FIXME Set proper parameters
-    public static final ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
+    static final ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
             10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
 
-    private static final Session.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new Session.ErrorHandler() {
+    private static final SyncSession.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new SyncSession.ErrorHandler() {
         @Override
-        public void onError(Session session, ObjectServerError error) {
-            String errorMsg = String.format("Session Error[%s]: %s",
+        public void onError(SyncSession session, ObjectServerError error) {
+            if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
+                RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
+                return;
+            }
+
+            String errorMsg = String.format(Locale.US, "Session Error[%s]: %s",
                     session.getConfiguration().getServerUrl(),
                     error.toString());
             switch (error.getErrorCode().getCategory()) {
@@ -68,10 +95,13 @@ public final class SyncManager {
                 case RECOVERABLE:
                     RealmLog.info(errorMsg);
                     break;
+                default:
+                    throw new IllegalArgumentException("Unsupported error category: " + error.getErrorCode().getCategory());
             }
         }
     };
-
+    // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
+    private static Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
     private static CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
 
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
@@ -79,38 +109,36 @@ public final class SyncManager {
     private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
     private static volatile UserStore userStore;
 
-    static volatile Session.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
-    @SuppressWarnings("FieldCanBeLocal")
-    private static Thread clientThread;
+    private static NetworkStateReceiver.ConnectionListener networkListener = new NetworkStateReceiver.ConnectionListener() {
+        @Override
+        public void onChange(boolean connectionAvailable) {
+            if (connectionAvailable) {
+                RealmLog.debug("NetworkListener: Connection available");
+                // notify all sessions
+                notifyNetworkIsBack();
+            } else {
+                RealmLog.debug("NetworkListener: Connection lost");
+            }
+        }
+    };
+
+    static volatile SyncSession.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
 
     // Initialize the SyncManager
     static void init(String appId, UserStore userStore) {
-
         SyncManager.APP_ID = appId;
         SyncManager.userStore = userStore;
-
-        // Initialize underlying Sync Network Client
-        nativeInitializeSyncClient();
-
-        // Create the client thread in java to avoid problems when exceptions are being thrown. We need to attach
-        // any thread to the JVM anyway in order to send back log events.
-        SyncManager.clientThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                nativeRunClient();
-            }
-        }, "RealmSyncClient");
-        SyncManager.clientThread.start();
     }
 
     /**
      * Set the {@link UserStore} used by the Realm Object Server to save user information.
-     * If no Userstore is specified {@link User#currentUser()} will always return {@code null}.
+     * If no Userstore is specified {@link SyncUser#currentUser()} will always return {@code null}.
      *
      * @param userStore {@link UserStore} to use.
      * @throws IllegalArgumentException if {@code userStore} is {@code null}.
      */
     public static void setUserStore(UserStore userStore) {
+        //noinspection ConstantConditions
         if (userStore == null) {
             throw new IllegalArgumentException("Non-null 'userStore' required.");
         }
@@ -125,6 +153,7 @@ public final class SyncManager {
      * @throws IllegalArgumentException if {@code listener} is {@code null}.
      */
     public static void addAuthenticationListener(AuthenticationListener listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Non-null 'listener' required.");
         }
@@ -137,6 +166,7 @@ public final class SyncManager {
      * @param listener listener to remove.
      */
     public static void removeAuthenticationListener(AuthenticationListener listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             return;
         }
@@ -148,7 +178,7 @@ public final class SyncManager {
      *
      * @param errorHandler the default error handler used when interacting with a Realm managed by a Realm Object Server.
      */
-    public static void setDefaultSessionErrorHandler(Session.ErrorHandler errorHandler) {
+    public static void setDefaultSessionErrorHandler(@Nullable SyncSession.ErrorHandler errorHandler) {
         if (errorHandler == null) {
             defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
         } else {
@@ -157,37 +187,77 @@ public final class SyncManager {
     }
 
     /**
-     * Gets any cached {@link Session} for the given {@link SyncConfiguration} or create a new one if
+     * Gets any cached {@link SyncSession} for the given {@link SyncConfiguration} or create a new one if
      * no one exists.
      *
      * @param syncConfiguration configuration object for the synchronized Realm.
-     * @return the {@link Session} for the specified Realm.
+     * @return the {@link SyncSession} for the specified Realm.
      * @throws IllegalArgumentException if syncConfiguration is {@code null}.
      */
-    public static synchronized Session getSession(SyncConfiguration syncConfiguration) {
+    public static synchronized SyncSession getSession(SyncConfiguration syncConfiguration) {
+        // This will not create a new native (Object Store) session, this will only associate a Realm's path
+        // with a SyncSession. Object Store's SyncManager is responsible of the life cycle (including creation)
+        // of the native session, the provided Java wrap, helps interact with the native session, when reporting error
+        // or requesting an access_token for example.
+
+        //noinspection ConstantConditions
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
 
-        if (SessionStore.hasSession(syncConfiguration)) {
-            return SessionStore.getPublicSession(syncConfiguration);
-        } else {
-            SyncSession internalSession = new SyncSession(
-                    syncConfiguration,
-                    authServer,
-                    syncConfiguration.getUser().getSyncUser(),
-                    syncConfiguration.getSyncPolicy(),
-                    syncConfiguration.getErrorHandler()
-            );
-            Session publicSession = new Session(internalSession);
-            SessionStore.addSession(publicSession, internalSession);
-            syncConfiguration.getUser().getSyncUser().addSession(publicSession);
-            syncConfiguration.getSyncPolicy().onSessionCreated(internalSession);
-            return publicSession;
+        SyncSession session = sessions.get(syncConfiguration.getPath());
+        if (session == null) {
+            session = new SyncSession(syncConfiguration);
+            sessions.put(syncConfiguration.getPath(), session);
+            if (sessions.size() == 1) {
+                RealmLog.debug("first session created add network listener");
+                NetworkStateReceiver.addListener(networkListener);
+            }
+        }
+
+        return session;
+    }
+
+    /**
+     * Remove the wrapped Java session.
+     * @param syncConfiguration configuration object for the synchronized Realm.
+     */
+    @SuppressWarnings("unused")
+    private static synchronized void removeSession(SyncConfiguration syncConfiguration) {
+        //noinspection ConstantConditions
+        if (syncConfiguration == null) {
+            throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
+        }
+        SyncSession syncSession = sessions.remove(syncConfiguration.getPath());
+        if (syncSession != null) {
+            syncSession.close();
+        }
+        if (sessions.isEmpty()) {
+            RealmLog.debug("last session dropped, remove network listener");
+            NetworkStateReceiver.removeListener(networkListener);
         }
     }
 
-    public static AuthenticationServer getAuthServer() {
+    /**
+     * Retruns the all valid sessions belonging to the user.
+     *
+     * @param syncUser the user to use.
+     * @return the all valid sessions belonging to the user.
+     */
+    static List<SyncSession> getAllSessions(SyncUser syncUser) {
+        if (syncUser == null) {
+            throw new IllegalArgumentException("A non-empty 'syncUser' is required.");
+        }
+        ArrayList<SyncSession> allSessions = new ArrayList<SyncSession>();
+        for (SyncSession syncSession : sessions.values()) {
+            if (syncSession.getState() != SyncSession.State.ERROR && syncSession.getUser().equals(syncUser)) {
+                allSessions.add(syncSession);
+            }
+        }
+        return allSessions;
+    }
+
+    static AuthenticationServer getAuthServer() {
         return authServer;
     }
 
@@ -199,45 +269,121 @@ public final class SyncManager {
     }
 
     // Return the currently configured User store.
-    static UserStore getUserStore() {
+    public static UserStore getUserStore() {
         return userStore;
     }
 
-    // This is called from SyncManager.cpp from the worker thread the Sync Client is running on
-    // Right now Core doesn't send these errors to the proper session, so instead we need to notify all sessions
-    // from here. This can be removed once better error propagation is implemented in Sync Core.
-    @SuppressWarnings("unused")
-    private static void notifyErrorHandler(int errorCode, String errorMessage) {
-        ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
-        for (SyncSession session : SessionStore.getAllSessions()) {
-            session.onError(error);
-        }
-    }
-
     // Notify listeners that a user logged in
-    static void notifyUserLoggedIn(User user) {
+    static void notifyUserLoggedIn(SyncUser user) {
         for (AuthenticationListener authListener : authListeners) {
             authListener.loggedIn(user);
         }
     }
 
     // Notify listeners that a user logged out successfully
-    static void notifyUserLoggedOut(User user) {
+    static void notifyUserLoggedOut(SyncUser user) {
         for (AuthenticationListener authListener : authListeners) {
             authListener.loggedOut(user);
         }
     }
 
     /**
-     * Sets the log level for the underlying.
-     * @param logLevel
+     * All errors from native Sync is reported to this method. From the path we can determine which
+     * session to contact. If {@code path == null} all sessions are effected.
      */
-    public static void setLogLevel(int logLevel) {
-        nativeSetSyncClientLogLevel(logLevel);
+    @SuppressWarnings("unused")
+    private static synchronized void notifyErrorHandler(int errorCode, String errorMessage, @Nullable String path) {
+        for (SyncSession syncSession : sessions.values()) {
+            if (path == null || path.equals(syncSession.getConfiguration().getPath())) {
+                try {
+                    syncSession.notifySessionError(errorCode, errorMessage);
+                } catch (Exception exception) {
+                    RealmLog.error(exception);
+                }
+            }
+        }
     }
 
-    private static native void nativeInitializeSyncClient();
-    private static native void nativeSetSyncClientLogLevel(int logLevel);
-    private static native void nativeRunClient();
+    private static synchronized void notifyNetworkIsBack() {
+        try {
+            nativeReconnect();
+        } catch (Exception exception) {
+            RealmLog.error(exception);
+        }
+    }
 
+    /**
+     * All progress listener events from native Sync are reported to this method.
+     * It costs 2 HashMap lookups for each listener triggered (one to find the session, one to
+     * find the progress listener), but it means we don't have to cache anything on the C++ side which
+     * can leak since we don't have control over the session lifecycle.
+     */
+    @SuppressWarnings("unused")
+    private static synchronized void notifyProgressListener(String localRealmPath, long listenerId, long transferedBytes, long transferableBytes) {
+        SyncSession session = sessions.get(localRealmPath);
+        if (session != null) {
+            try {
+                session.notifyProgressListener(listenerId, transferedBytes, transferableBytes);
+            } catch (Exception exception) {
+                RealmLog.error(exception);
+            }
+        }
+    }
+
+    /**
+     * This is called from the Object Store (through JNI) to request an {@code access_token} for
+     * the session specified by sessionPath.
+     *
+     * This will also schedule a timer to proactively refresh the {@code access_token} regularly, before
+     * the {@code access_token} expires.
+     *
+     * @throws IllegalStateException if the wrapped Java session is not found.
+     * @param sessionPath The path to the previously Java wraped session.
+     * @return a valid cached {@code access_token} if available or null.
+     */
+    @SuppressWarnings("unused")
+    private synchronized static String bindSessionWithConfig(String sessionPath, String refreshToken) {
+        final SyncSession syncSession = sessions.get(sessionPath);
+        if (syncSession == null) {
+            RealmLog.error("Matching Java SyncSession could not be found for: " + sessionPath);
+        } else {
+            try {
+                return syncSession.getAccessToken(authServer, refreshToken);
+            } catch (Exception exception) {
+                RealmLog.error(exception);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Resets the SyncManger and clear all existing users.
+     * This will also terminate all sessions.
+     *
+     * Only call this method when testing.
+     */
+    static synchronized void reset() {
+        nativeReset();
+        sessions.clear();
+    }
+
+    /**
+     * Simulate a Client Reset by triggering the Object Store error handler with Sync Error Code that will be
+     * converted to a Client Reset (211 - Diverging Histories).
+     *
+     * Only call this method when testing.
+     *
+     * @param session Session to trigger Client Reset for.
+     */
+    static void simulateClientReset(SyncSession session) {
+        nativeSimulateSyncError(session.getConfiguration().getPath(),
+                ErrorCode.DIVERGING_HISTORIES.intValue(),
+                "Simulate Client Reset",
+                true);
+    }
+
+    protected static native void nativeInitializeSyncManager(String syncBaseDir);
+    private static native void nativeReset();
+    private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
+    private static native void nativeReconnect();
 }
