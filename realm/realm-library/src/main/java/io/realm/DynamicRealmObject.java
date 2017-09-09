@@ -879,10 +879,6 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
     }
 
-    private static boolean isClassForRealmModel(Class<?> clazz) {
-        return RealmModel.class.isAssignableFrom(clazz);
-    }
-
     private <E> ManagedListOperator<E> getOperator(BaseRealm realm, OsList osList, RealmFieldType valueListType, Class<E> valueClass) {
         if (valueListType == RealmFieldType.STRING_LIST) {
             //noinspection unchecked
