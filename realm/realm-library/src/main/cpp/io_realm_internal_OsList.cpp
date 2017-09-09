@@ -201,6 +201,17 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsList_nativeIsValid(JNIEnv* e
     return JNI_FALSE;
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeDelete(JNIEnv* env, jclass, jlong list_ptr, jlong index)
+{
+    TR_ENTER_PTR(list_ptr)
+
+    try {
+        auto& list = *reinterpret_cast<List*>(list_ptr);
+        list.delete_at(S(index));
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeDeleteAll(JNIEnv* env, jclass, jlong list_ptr)
 {
     TR_ENTER_PTR(list_ptr)
