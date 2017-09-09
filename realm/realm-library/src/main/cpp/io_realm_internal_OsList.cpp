@@ -20,11 +20,14 @@
 #include <results.hpp>
 #include <shared_realm.hpp>
 
+#include "java_accessor.hpp"
+#include "java_exception_def.hpp"
+#include "jni_util/java_exception_thrower.hpp"
 #include "util.hpp"
-#include "java_accessor_context.hpp"
 
 using namespace realm;
 using namespace realm::util;
+using namespace realm::_impl;
 
 static void finalize_list(jlong ptr)
 {
@@ -46,11 +49,17 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
     try {
         auto& row = *reinterpret_cast<realm::Row*>(row_ptr);
 
-        /*
-        if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, &row, column_index, type_LinkList)) {
+        if (!ROW_AND_COL_INDEX_VALID(env, &row, column_index)) {
             return 0;
         }
-        */
+        auto column_type = row.get_table()->get_column_type(column_index);
+        if (column_type != type_LinkList && column_type != type_Table) {
+            THROW_JAVA_EXCEPTION(
+                env, JavaExceptionDef::IllegalArgument,
+                format("The field '%1' is not a list type.", row.get_table()->get_column_name(column_index)));
+            return 0;
+        }
+
         auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
         jlong ret[2];
 
@@ -349,21 +358,24 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddBinary(JNIEnv* env
                                                                      jbyteArray value)
 {
     TR_ENTER_PTR(list_ptr)
-    add_value(env, list_ptr, Any(value));
+    JByteArrayAccessor accessor(env, value);
+    add_value(env, list_ptr, Any(accessor));
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertBinary(JNIEnv* env, jclass, jlong list_ptr,
                                                                         jlong pos, jbyteArray value)
 {
     TR_ENTER_PTR(list_ptr)
-    insert_value(env, list_ptr, pos, Any(value));
+    JByteArrayAccessor accessor(env, value);
+    insert_value(env, list_ptr, pos, Any(accessor));
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetBinary(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                      jbyteArray value)
 {
     TR_ENTER_PTR(list_ptr)
-    set_value(env, list_ptr, pos, Any(value));
+    JByteArrayAccessor accessor(env, value);
+    set_value(env, list_ptr, pos, Any(accessor));
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddDate(JNIEnv* env, jclass, jlong list_ptr, jlong value)
@@ -390,21 +402,24 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddString(JNIEnv* env
                                                                      jstring value)
 {
     TR_ENTER_PTR(list_ptr)
-    add_value(env, list_ptr, Any(value));
+    JStringAccessor accessor(env, value);
+    add_value(env, list_ptr, Any(accessor));
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertString(JNIEnv* env, jclass, jlong list_ptr,
                                                                         jlong pos, jstring value)
 {
     TR_ENTER_PTR(list_ptr)
-    insert_value(env, list_ptr, pos, Any(value));
+    JStringAccessor accessor(env, value);
+    insert_value(env, list_ptr, pos, Any(accessor));
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetString(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                      jstring value)
 {
     TR_ENTER_PTR(list_ptr)
-    set_value(env, list_ptr, pos, Any(value));
+    JStringAccessor accessor(env, value);
+    set_value(env, list_ptr, pos, Any(accessor));
 }
 
 JNIEXPORT jobject JNICALL Java_io_realm_internal_OsList_nativeGetValue(JNIEnv* env, jclass, jlong list_ptr, jlong pos)

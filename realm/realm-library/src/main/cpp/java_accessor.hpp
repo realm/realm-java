@@ -24,8 +24,11 @@
 
 #include <realm/binary_data.hpp>
 
+#include <object_accessor.hpp>
+#include <util/any.hpp>
 #include <util/format.hpp>
 
+#include "java_class_global_def.hpp"
 #include "java_exception_def.hpp"
 #include "jni_util/java_exception_thrower.hpp"
 
@@ -61,7 +64,8 @@ public:
     JPrimitiveArrayAccessor(const JPrimitiveArrayAccessor&) = default;
     JPrimitiveArrayAccessor& operator=(const JPrimitiveArrayAccessor&) = default;
 
-    inline bool is_null() {
+    inline bool is_null()
+    {
         return !m_elements_holder->m_jarray;
     }
 
@@ -147,6 +151,105 @@ private:
     jsize m_size;
 };
 
+// An object accessor context which can be used to create and access objects
+// using util::Any as the type-erased value type. In addition, this serves as
+// the reference implementation of an accessor context that must be implemented
+// by each binding.
+class JavaAccessorContext {
+public:
+    JavaAccessorContext(JNIEnv* env)
+        : m_env(env){};
+
+    // Convert from core types to the boxed type
+    util::Any box(BinaryData v) const
+    {
+        return reinterpret_cast<jobject>(JavaClassGlobalDef::new_byte_array(m_env, v));
+    }
+    util::Any box(List /*v*/) const
+    {
+        REALM_TERMINATE("not supported");
+    }
+    util::Any box(Object /*v*/) const
+    {
+        REALM_TERMINATE("not supported");
+    }
+    util::Any box(Results /*v*/) const
+    {
+        REALM_TERMINATE("not supported");
+    }
+    util::Any box(StringData v) const
+    {
+        return reinterpret_cast<jobject>(to_jstring(m_env, v));
+    }
+    util::Any box(Timestamp v) const
+    {
+        return JavaClassGlobalDef::new_date(m_env, v);
+    }
+    util::Any box(bool v) const
+    {
+        return v ? JNI_TRUE : JNI_FALSE;
+    }
+    util::Any box(double v) const
+    {
+        return static_cast<jdouble>(v);
+    }
+    util::Any box(float v) const
+    {
+        return static_cast<jfloat>(v);
+    }
+    util::Any box(int64_t v) const
+    {
+        return static_cast<jlong>(v);
+    }
+    util::Any box(util::Optional<bool> v) const
+    {
+        return v ? _impl::JavaClassGlobalDef::new_boolean(m_env, v.value()) : nullptr;
+    }
+    util::Any box(util::Optional<double> v) const
+    {
+        return v ? _impl::JavaClassGlobalDef::new_double(m_env, v.value()) : nullptr;
+    }
+    util::Any box(util::Optional<float> v) const
+    {
+        return v ? _impl::JavaClassGlobalDef::new_float(m_env, v.value()) : nullptr;
+    }
+    util::Any box(util::Optional<int64_t> v) const
+    {
+        return v ? _impl::JavaClassGlobalDef::new_long(m_env, v.value()) : nullptr;
+    }
+    util::Any box(RowExpr) const
+    {
+        REALM_TERMINATE("not supported");
+    };
+
+    // Any properties are only supported by the Cocoa binding to enable reading
+    // old Realm files that may have used them. Other bindings can safely not
+    // implement this.
+    util::Any box(Mixed) const
+    {
+        REALM_TERMINATE("not supported");
+    }
+
+    // Convert from the boxed type to core types. This needs to be implemented
+    // for all of the types which `box()` can take, plus `RowExpr` and optional
+    // versions of the numeric types, minus `List` and `Results`.
+    //
+    // `create` and `update` are only applicable to `unbox<RowExpr>`. If
+    // `create` is false then when given something which is not a managed Realm
+    // object `unbox()` should simply return a detached row expr, while if it's
+    // true then `unbox()` should create a new object in the context's Realm
+    // using the provided value. If `update` is true then upsert semantics
+    // should be used for this.
+    template <typename T>
+    T unbox(util::Any& v, bool /*create*/ = false, bool /*update*/ = false) const
+    {
+        return any_cast<T>(v);
+    }
+
+private:
+    JNIEnv* m_env;
+};
+
 // Accessor for jbyteArray
 template <>
 inline JPrimitiveArrayAccessor<jbyteArray, jbyte>::ElementsHolder::ElementsHolder(JNIEnv* env, jbyteArray jarray)
@@ -187,7 +290,8 @@ inline std::vector<char> JPrimitiveArrayAccessor<jbyteArray, jbyte>::transform<s
 
 // Accessor for jbooleanArray
 template <>
-inline JPrimitiveArrayAccessor<jbooleanArray, jboolean>::ElementsHolder::ElementsHolder(JNIEnv* env, jbooleanArray jarray)
+inline JPrimitiveArrayAccessor<jbooleanArray, jboolean>::ElementsHolder::ElementsHolder(JNIEnv* env,
+                                                                                        jbooleanArray jarray)
     : m_env(env)
     , m_jarray(jarray)
     , m_data_ptr(jarray ? env->GetBooleanArrayElements(jarray, nullptr) : nullptr)
@@ -217,6 +321,67 @@ inline JPrimitiveArrayAccessor<jlongArray, jlong>::ElementsHolder::~ElementsHold
     if (m_jarray) {
         m_env->ReleaseLongArrayElements(m_jarray, m_data_ptr, m_release_mode);
     }
+}
+
+template <>
+inline StringData JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+{
+    if (!v.has_value()) {
+        return StringData();
+    }
+    auto& value = any_cast<JStringAccessor&>(v);
+    return value;
+}
+
+template <>
+inline BinaryData JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+{
+    if (!v.has_value())
+        return BinaryData();
+    auto& value = any_cast<JByteArrayAccessor&>(v);
+    return value.transform<BinaryData>();
+}
+
+template <>
+inline Timestamp JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+{
+    return v.has_value() ? from_milliseconds(unbox<jlong>(v)) : Timestamp();
+}
+
+template <>
+inline RowExpr JavaAccessorContext::unbox(util::Any&, bool, bool) const
+{
+    REALM_TERMINATE("not supported");
+}
+
+template <>
+inline util::Optional<bool> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+{
+    return v.has_value() ? util::make_optional(unbox<jboolean>(v) == JNI_TRUE) : util::none;
+}
+
+template <>
+inline util::Optional<int64_t> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+{
+    return v.has_value() ? util::make_optional(unbox<jlong>(v)) : util::none;
+}
+
+template <>
+inline util::Optional<double> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+{
+    return v.has_value() ? util::make_optional(unbox<jdouble>(v)) : util::none;
+}
+
+template <>
+inline util::Optional<float> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+{
+    return v.has_value() ? util::make_optional(unbox<jfloat>(v)) : util::none;
+}
+
+template <>
+inline Mixed JavaAccessorContext::unbox(util::Any&, bool, bool) const
+{
+    REALM_TERMINATE("not supported");
 }
 
 } // namespace realm

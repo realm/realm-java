@@ -34,6 +34,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -242,7 +243,7 @@ public class OsListTests {
 
     @Test
     public void add_insert_get_String() {
-        long index = testObjectSchemaInfo.getProperty("dateList").getColumnIndex();
+        long index = testObjectSchemaInfo.getProperty("stringList").getColumnIndex();
         OsList osList = new OsList(row, index);
 
         osList.addString(null);
@@ -277,6 +278,52 @@ public class OsListTests {
 
         osList.setString(5, null);
         value = (String) osList.getValue(5);
+        assertNull(value);
+    }
+
+    @Test
+    public void add_insert_get_Binary() {
+        long index = testObjectSchemaInfo.getProperty("binaryList").getColumnIndex();
+        OsList osList = new OsList(row, index);
+
+        byte[] bytes42 = new byte[1];
+        bytes42[0] = 42;
+        byte[] bytes24 = new byte[2];
+        bytes24[0] = 24;
+        bytes24[1] = 24;
+
+        osList.addBinary(null);
+        byte[] value = (byte[]) osList.getValue(0);
+        assertNull(value);
+
+        osList.addBinary(bytes42);
+        value = (byte[]) osList.getValue(1);
+        assertNotNull(value);
+        assertArrayEquals(bytes42, value);
+
+        osList.insertBinary(0, null);
+        value = (byte[]) osList.getValue(0);
+        assertNull(value);
+
+        osList.insertBinary(0, bytes24);
+        value = (byte[]) osList.getValue(0);
+        assertNotNull(value);
+        assertArrayEquals(bytes24, value);
+
+        osList.insertNull(0);
+        value = (byte[]) osList.getValue(0);
+        assertNull(value);
+
+        osList.addNull();
+        assertNull(osList.getValue(5));
+
+        osList.setBinary(5, bytes24);
+        value = (byte[]) osList.getValue(5);
+        assertNotNull(value);
+        assertArrayEquals(bytes24, value);
+
+        osList.setBinary(5, null);
+        value = (byte[]) osList.getValue(5);
         assertNull(value);
     }
 }

@@ -17,9 +17,8 @@
 #include <sstream>
 
 #include "util.hpp"
-#include "io_realm_internal_Table.h"
 #include "io_realm_internal_Property.h"
-#include "tablebase_tpl.hpp"
+#include "io_realm_internal_Table.h"
 
 #include "util/format.hpp"
 
@@ -620,8 +619,13 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeGetByteArray(JNI
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Binary)) {
         return nullptr;
     }
+    try {
+        realm::BinaryData bin = TBL(nativeTablePtr)->get_binary(S(columnIndex), S(rowIndex));
+        return JavaClassGlobalDef::new_byte_array(env, bin);
+    }
+    CATCH_STD()
 
-    return tbl_GetByteArray<Table>(env, nativeTablePtr, columnIndex, rowIndex); // noexcept
+    return nullptr;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLink(JNIEnv* env, jobject, jlong nativeTablePtr,
