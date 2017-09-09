@@ -9,7 +9,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0-beta4'
+        classpath 'com.android.tools.build:gradle:3.0.0-beta5'
         classpath 'de.undercouch:gradle-download-task:3.2.0'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
         classpath 'com.novoda:gradle-android-command-plugin:1.7.1'
