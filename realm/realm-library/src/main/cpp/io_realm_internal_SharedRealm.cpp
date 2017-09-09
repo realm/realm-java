@@ -24,11 +24,12 @@
 #include <realm/util/assert.hpp>
 
 #include <shared_realm.hpp>
-#include "object_store.hpp"
-#include "java_binding_context.hpp"
-#include "util.hpp"
-#include "java_exception_def.hpp"
 
+#include "java_accessor.hpp"
+#include "java_binding_context.hpp"
+#include "java_exception_def.hpp"
+#include "object_store.hpp"
+#include "util.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_exception_thrower.hpp"
@@ -402,8 +403,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeWriteCopy(JNIEnv
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         JStringAccessor path_str(env, path);
-        JniByteArray key_buffer(env, key);
-        shared_realm->write_copy(path_str, key_buffer);
+        JByteArrayAccessor jarray_accessor(env, key);
+        shared_realm->write_copy(path_str, jarray_accessor.transform<BinaryData>());
     }
     CATCH_STD()
 }
