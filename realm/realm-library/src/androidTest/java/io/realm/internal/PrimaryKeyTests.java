@@ -93,7 +93,7 @@ public class PrimaryKeyTests {
     /**
      * This test surfaces a bunch of problems, most of them seem to be around caching of the schema
      * during a transaction
-     * 
+     *
      * 1) Removing the primary key do not invalidate the cache in RealmSchema and those cached
      *    are ImmutableRealmObjectSchema so do not change when the primary key is removed.
      *
@@ -101,7 +101,7 @@ public class PrimaryKeyTests {
      *    RealmPrimaryKeyConstraintException anyway. Unclear why.
      */
     @Test
-    @Ignore
+    @Ignore("See https://github.com/realm/realm-java/issues/5231")
     public void removingPrimaryKeyRemovesConstraint_typeSetters() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name("removeConstraints").build();
