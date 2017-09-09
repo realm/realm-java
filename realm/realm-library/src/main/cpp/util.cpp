@@ -240,23 +240,6 @@ void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx)
     ThrowException(env, IllegalArgument, ss.str());
 }
 
-bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& bin)
-{
-    const char* data = static_cast<char*>(env->GetDirectBufferAddress(jByteBuffer));
-    if (!data) {
-        ThrowException(env, IllegalArgument, "ByteBuffer is invalid");
-        return false;
-    }
-    jlong size = env->GetDirectBufferCapacity(jByteBuffer);
-    if (size < 0) {
-        ThrowException(env, IllegalArgument, "Can't get BufferCapacity.");
-        return false;
-    }
-    bin = BinaryData(data, S(size));
-    return true;
-}
-
-
 //*********************************************************************
 // String handling
 //*********************************************************************

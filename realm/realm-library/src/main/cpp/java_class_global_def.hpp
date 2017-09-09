@@ -26,6 +26,9 @@
 #include <realm/util/assert.hpp>
 
 namespace realm {
+
+class BinaryData;
+
 namespace _impl {
 
 // Manage a global static jclass pool which will be initialized when JNI_OnLoad() called.
@@ -127,8 +130,12 @@ public:
     }
 
     // java.util.Date
+    // return nullptr if ts is null
     inline static jobject new_date(JNIEnv* env, const realm::Timestamp& ts)
     {
+        if (ts.is_null()) {
+            return nullptr;
+        }
         static jni_util::JavaMethod init(env, instance()->m_java_util_date, "<init>", "(J)V");
         return env->NewObject(instance()->m_java_util_date, init, to_milliseconds(ts));
     }
@@ -142,6 +149,10 @@ public:
     {
         return instance()->m_java_lang_string;
     }
+
+    // byte[]
+    // return nullptr if binary_data is null
+    static jbyteArray new_byte_array(JNIEnv* env, const BinaryData& binary_data);
 
     // io.realm.internal.SharedRealm.SchemaChangedCallback
     inline static const jni_util::JavaClass& shared_realm_schema_change_callback()
