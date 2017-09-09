@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 
@@ -57,6 +58,22 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         map.put(Float.class, RealmFieldType.FLOAT_LIST);
         map.put(Date.class, RealmFieldType.DATE_LIST);
         VALUE_CLASS_TO_LIST_FIELD_TYPE = Collections.unmodifiableMap(map);
+    }
+
+    private static final Map<RealmFieldType, Class<?>> LIST_FIELD_TYPE_TO_VALUE_CLASS;
+    static {
+        final HashMap<RealmFieldType, Class<?>> map = new HashMap<>();
+        map.put(RealmFieldType.STRING_LIST, String.class);
+        map.put(RealmFieldType.BINARY_LIST, byte[].class);
+        map.put(RealmFieldType.BOOLEAN_LIST, Boolean.class);
+        map.put(RealmFieldType.INTEGER_LIST, Long.class);
+        map.put(RealmFieldType.INTEGER_LIST, Integer.class);
+        map.put(RealmFieldType.INTEGER_LIST, Short.class);
+        map.put(RealmFieldType.INTEGER_LIST, Byte.class);
+        map.put(RealmFieldType.DOUBLE_LIST, Double.class);
+        map.put(RealmFieldType.FLOAT_LIST, Float.class);
+        map.put(RealmFieldType.DATE_LIST, Date.class);
+        LIST_FIELD_TYPE_TO_VALUE_CLASS = Collections.unmodifiableMap(map);
     }
 
     private static RealmFieldType getFieldTypeForValueClass(Class<?> valueClass) {
@@ -864,6 +881,41 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
     }
 
+    private static boolean isClassForRealmModel(Class<?> clazz) {
+        return RealmModel.class.isAssignableFrom(clazz);
+    }
+
+    private <E> ManagedListOperator<E> getOperator(BaseRealm realm, OsList osList, RealmFieldType valueListType, Class<E> valueClass) {
+        if (valueListType == RealmFieldType.STRING_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new StringListOperator(realm, osList, (Class<String>) valueClass);
+        }
+        if (valueListType == RealmFieldType.INTEGER_LIST) {
+            return new LongListOperator<>(realm, osList, valueClass);
+        }
+        if (valueListType == RealmFieldType.BOOLEAN_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new BooleanListOperator(realm, osList, (Class<Boolean>) valueClass);
+        }
+        if (valueListType == RealmFieldType.BINARY_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new BinaryListOperator(realm, osList, (Class<byte[]>) valueClass);
+        }
+        if (valueListType == RealmFieldType.DOUBLE_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new DoubleListOperator(realm, osList, (Class<Double>) valueClass);
+        }
+        if (valueListType == RealmFieldType.FLOAT_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new FloatListOperator(realm, osList, (Class<Float>) valueClass);
+        }
+        if (valueListType == RealmFieldType.DATE_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new DateListOperator(realm, osList, (Class<Date>) valueClass);
+        }
+        throw new IllegalArgumentException("Unexpected list type: " + valueListType.name());
+    }
+
     /**
      * Sets the reference to a {@link RealmList} on the given field.
      *
@@ -874,7 +926,47 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * different Realm.
      */
     public void setValueList(String fieldName, RealmList<?> list) {
-        // TODO implement this
+        proxyState.getRealm$realm().checkIfValid();
+
+        //noinspection ConstantConditions
+        if (list == null) {
+            throw new IllegalArgumentException("Null values not allowed for lists");
+        }
+
+        final Row row = proxyState.getRow$realm();
+        long columnIndex = row.getColumnIndex(fieldName);
+        final OsList targetOsList = row.getList(columnIndex);
+        final Table linkTargetTable = targetOsList.getTargetTable();
+        if (linkTargetTable != null) {
+            // designated field was object list, not value list.
+            throw new IllegalArgumentException(String.format(Locale.US,
+                    "Unexpected field type. Was %s, expected %s.",
+                    row.getColumnType(columnIndex).name(), "one of the value list"));
+        }
+
+        final RealmFieldType fieldType = getFieldType(fieldName);
+        final Class<?> valueClass = LIST_FIELD_TYPE_TO_VALUE_CLASS.get(fieldType);
+
+        final ManagedListOperator<?> operator = getOperator(proxyState.getRealm$realm(), targetOsList, fieldType, valueClass);
+
+        if (list.isManaged() && targetOsList.size() == list.size()) {
+            /*
+             * There is a chance that the source list and the target list are the same list in the same object.
+             * In this case, we can't use clear.
+             */
+            final int size = list.size();
+            final Iterator<?> iterator = list.iterator();
+            for (int i = 0; i < size; i++) {
+                @Nullable
+                final Object value = iterator.next();
+                operator.set(i, value);
+            }
+        } else {
+            targetOsList.removeAll();
+            for (Object value : list) {
+                operator.add(value);
+            }
+        }
     }
 
     /**
