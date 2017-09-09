@@ -224,6 +224,10 @@ public class OsList implements NativeObject {
         return nativeIsValid(nativePtr);
     }
 
+    public void delete(long index) {
+        nativeDelete(nativePtr, index);
+    }
+
     public void deleteAll() {
         nativeDeleteAll(nativePtr);
     }
@@ -258,6 +262,8 @@ public class OsList implements NativeObject {
     private static native long nativeGetQuery(long nativePtr);
 
     private static native boolean nativeIsValid(long nativePtr);
+
+    private static native void nativeDelete(long nativePtr, long pos);
 
     private static native void nativeDeleteAll(long nativePtr);
 
