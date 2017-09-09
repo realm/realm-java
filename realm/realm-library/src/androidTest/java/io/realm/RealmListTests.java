@@ -29,8 +29,8 @@ import org.junit.runner.RunWith;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
@@ -39,7 +39,6 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -104,6 +103,7 @@ public class RealmListTests extends CollectionTests {
 
     private RealmList<Dog> createDeletedRealmList() {
         Owner owner = realm.where(Owner.class).findFirst();
+        //noinspection ConstantConditions
         RealmList<Dog> dogs = owner.getDogs();
 
         realm.beginTransaction();
@@ -473,6 +473,20 @@ public class RealmListTests extends CollectionTests {
 
         assertEquals(dog5, removedDog);
         assertEquals(TEST_SIZE - 1, dogs.size());
+        assertEquals(TEST_SIZE, realm.where(Dog.class).count());
+    }
+
+    @Test
+    public void remove_first() {
+        Owner owner = realm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+
+        realm.beginTransaction();
+        dogs.remove(0);
+        realm.commitTransaction();
+
+        assertEquals(TEST_SIZE - 1, dogs.size());
+        assertEquals(TEST_SIZE, realm.where(Dog.class).count());
     }
 
     @Test
@@ -485,6 +499,7 @@ public class RealmListTests extends CollectionTests {
         realm.commitTransaction();
 
         assertEquals(TEST_SIZE - 1, dogs.size());
+        assertEquals(TEST_SIZE, realm.where(Dog.class).count());
     }
 
     @Test
@@ -510,6 +525,7 @@ public class RealmListTests extends CollectionTests {
 
         assertTrue(result);
         assertEquals(TEST_SIZE - 1, dogs.size());
+        assertEquals(TEST_SIZE, realm.where(Dog.class).count());
     }
 
     @Test
@@ -763,8 +779,67 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void removeAllFromRealm() {
+    public void deleteFromRealm() {
         Owner owner = realm.where(Owner.class).findFirst();
+        //noinspection ConstantConditions
+        RealmList<Dog> dogs = owner.getDogs();
+        assertEquals(TEST_SIZE, dogs.size());
+
+        int expectedSize = TEST_SIZE;
+        realm.beginTransaction();
+        dogs.deleteFromRealm(TEST_SIZE / 2);
+        expectedSize--;
+        realm.commitTransaction();
+        assertEquals(expectedSize, dogs.size());
+        assertEquals(expectedSize, realm.where(Dog.class).count());
+
+        realm.beginTransaction();
+        dogs.deleteFromRealm(0);
+        expectedSize--;
+        realm.commitTransaction();
+        assertEquals(expectedSize, dogs.size());
+        assertEquals(expectedSize, realm.where(Dog.class).count());
+
+        realm.beginTransaction();
+        dogs.deleteFromRealm(dogs.size() - 1);
+        expectedSize--;
+        realm.commitTransaction();
+        assertEquals(expectedSize, dogs.size());
+        assertEquals(expectedSize, realm.where(Dog.class).count());
+    }
+
+    @Test
+    public void deleteFirstFromRealm() {
+        Owner owner = realm.where(Owner.class).findFirst();
+        //noinspection ConstantConditions
+        RealmList<Dog> dogs = owner.getDogs();
+        assertEquals(TEST_SIZE, dogs.size());
+
+        realm.beginTransaction();
+        dogs.deleteFirstFromRealm();
+        realm.commitTransaction();
+        assertEquals(TEST_SIZE - 1, dogs.size());
+        assertEquals(TEST_SIZE - 1, realm.where(Dog.class).count());
+    }
+
+    @Test
+    public void deleteLastFromRealm() {
+        Owner owner = realm.where(Owner.class).findFirst();
+        //noinspection ConstantConditions
+        RealmList<Dog> dogs = owner.getDogs();
+        assertEquals(TEST_SIZE, dogs.size());
+
+        realm.beginTransaction();
+        dogs.deleteLastFromRealm();
+        realm.commitTransaction();
+        assertEquals(TEST_SIZE - 1, dogs.size());
+        assertEquals(TEST_SIZE - 1, realm.where(Dog.class).count());
+    }
+
+    @Test
+    public void deleteAllFromRealm() {
+        Owner owner = realm.where(Owner.class).findFirst();
+        //noinspection ConstantConditions
         RealmList<Dog> dogs = owner.getDogs();
         assertEquals(TEST_SIZE, dogs.size());
 
@@ -776,8 +851,9 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void removeAllFromRealm_outsideTransaction() {
+    public void deleteAllFromRealm_outsideTransaction() {
         Owner owner = realm.where(Owner.class).findFirst();
+        //noinspection ConstantConditions
         RealmList<Dog> dogs = owner.getDogs();
         try {
             dogs.deleteAllFromRealm();
@@ -788,7 +864,8 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void removeAllFromRealm_emptyList() {
+    public void deleteAllFromRealm_emptyList() {
+        //noinspection ConstantConditions
         RealmList<Dog> dogs = realm.where(Owner.class).findFirst().getDogs();
         assertEquals(TEST_SIZE, dogs.size());
 
@@ -808,7 +885,8 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void removeAllFromRealm_invalidListShouldThrow() {
+    public void deleteAllFromRealm_invalidListShouldThrow() {
+        //noinspection ConstantConditions
         RealmList<Dog> dogs = realm.where(Owner.class).findFirst().getDogs();
         assertEquals(TEST_SIZE, dogs.size());
         realm.close();
@@ -871,7 +949,7 @@ public class RealmListTests extends CollectionTests {
         final DynamicRealmObject dynDog = dynamicRealm.where(Dog.CLASS_NAME).findFirst();
         final String expectedMsg = "Cannot copy an object to a Realm instance created in another thread.";
 
-        final AtomicReference<Throwable> thrownErrorRef = new AtomicReference<Throwable>();
+        final AtomicReference<Throwable> thrownErrorRef = new AtomicReference<>();
 
         new Thread(new Runnable() {
             @Override
@@ -963,6 +1041,7 @@ public class RealmListTests extends CollectionTests {
     @Test
     public void add_set_dynamicObjectCreatedFromTypedRealm() {
         final String expectedMsg = "Cannot copy DynamicRealmObject between Realm instances.";
+        //noinspection ConstantConditions
         DynamicRealmObject dynDog = new DynamicRealmObject(realm.where(Dog.class).findFirst());
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
 
