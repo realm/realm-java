@@ -198,7 +198,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeDelete(JNIEnv* env, j
 
     try {
         auto& list = *reinterpret_cast<List*>(list_ptr);
-        list.delete_(S(index));
+        list.delete_at(S(index));
     }
     CATCH_STD()
 }
