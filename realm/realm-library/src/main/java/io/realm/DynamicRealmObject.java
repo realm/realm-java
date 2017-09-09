@@ -18,6 +18,7 @@ package io.realm;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -46,7 +47,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
     private static final Map<Class<?>, RealmFieldType> VALUE_CLASS_TO_LIST_FIELD_TYPE;
     static {
-        final HashMap<Class<?>, RealmFieldType> map = new HashMap<>();
+        final Map<Class<?>, RealmFieldType> map = new HashMap<>();
         map.put(String.class, RealmFieldType.STRING_LIST);
         map.put(byte[].class, RealmFieldType.BINARY_LIST);
         map.put(Boolean.class, RealmFieldType.BOOLEAN_LIST);
@@ -62,14 +63,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
     private static final Map<RealmFieldType, Class<?>> LIST_FIELD_TYPE_TO_VALUE_CLASS;
     static {
-        final HashMap<RealmFieldType, Class<?>> map = new HashMap<>();
+        final Map<RealmFieldType, Class<?>> map = new EnumMap<>(RealmFieldType.class);
         map.put(RealmFieldType.STRING_LIST, String.class);
         map.put(RealmFieldType.BINARY_LIST, byte[].class);
         map.put(RealmFieldType.BOOLEAN_LIST, Boolean.class);
         map.put(RealmFieldType.INTEGER_LIST, Long.class);
-        map.put(RealmFieldType.INTEGER_LIST, Integer.class);
-        map.put(RealmFieldType.INTEGER_LIST, Short.class);
-        map.put(RealmFieldType.INTEGER_LIST, Byte.class);
         map.put(RealmFieldType.DOUBLE_LIST, Double.class);
         map.put(RealmFieldType.FLOAT_LIST, Float.class);
         map.put(RealmFieldType.DATE_LIST, Date.class);
@@ -952,7 +950,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         if (list.isManaged() && targetOsList.size() == list.size()) {
             /*
              * There is a chance that the source list and the target list are the same list in the same object.
-             * In this case, we can't use clear.
+             * In this case, we can't use removeAll().
              */
             final int size = list.size();
             final Iterator<?> iterator = list.iterator();
