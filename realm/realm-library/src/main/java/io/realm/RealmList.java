@@ -19,6 +19,7 @@ package io.realm;
 import java.lang.reflect.Array;
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
@@ -119,7 +120,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     RealmList(Class<E> clazz, OsList osList, BaseRealm realm) {
         this.collection = new io.realm.internal.Collection(realm.sharedRealm, osList, null);
         this.clazz = clazz;
-        osListOperator = getOperator(realm, osList, clazz , null);
+        osListOperator = getOperator(realm, osList, clazz, null);
         this.realm = realm;
     }
 
@@ -343,7 +344,29 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (isManaged() && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
+
+        if (object != null) {
+            if (clazz != object.getClass()) {
+                return false;
+            }
+            if (clazz == byte[].class) {
+                // we need special handling for class since equals against byte[] never matches.
+                return remove((byte[]) object);
+            }
+        }
         return super.remove(object);
+    }
+
+    private boolean remove(@Nonnull byte[] value) {
+        Iterator<E> it = iterator();
+        while (it.hasNext()) {
+            final E e = it.next();
+            if (e instanceof byte[] && Arrays.equals(value, (byte[]) e)) {
+                it.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -367,7 +390,27 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (isManaged() && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
-        return super.removeAll(collection);
+
+        boolean modified = false;
+        Iterator<?> it = iterator();
+        while (it.hasNext()) {
+            final Object element = it.next();
+            if (element instanceof byte[]) {
+                // we can't use collection.contains() since equals() of byte[] never be true
+                for (Object a : collection) {
+                    if (a instanceof byte[] && Arrays.equals((byte[]) element, (byte[]) a)) {
+                        it.remove();
+                        modified = true;
+                    }
+                }
+            } else {
+                if (collection.contains(element)) {
+                    it.remove();
+                    modified = true;
+                }
+            }
+        }
+        return modified;
     }
 
     /**
@@ -703,14 +746,45 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 }
             }
 
-            for (E e : this) {
-                if (e.equals(object)) {
-                    return true;
+            if (object == null) {
+                for (E e : this) {
+                    if (e == null) {
+                        return true;
+                    }
+                }
+                return false;
+            } else {
+                if (object instanceof byte[] && clazz == byte[].class) {
+                    // byte[] requires special handling
+                    final byte[] bytesObject = (byte[]) object;
+                    for (E e : this) {
+                        if (Arrays.equals((byte[]) e, bytesObject)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                } else {
+                    for (E e : this) {
+                        if (e != null && e.equals(object)) {
+                            return true;
+                        }
+                    }
+                    return false;
                 }
             }
-            return false;
         } else {
-            return unmanagedList.contains(object);
+            if (object instanceof byte[]) {
+                // byte[] requires special handling
+                final byte[] bytesObject = (byte[]) object;
+                for (E e : this) {
+                    if (e instanceof byte[] && Arrays.equals((byte[]) e, bytesObject)) {
+                        return true;
+                    }
+                }
+                return false;
+            } else {
+                return unmanagedList.contains(object);
+            }
         }
     }
 
@@ -821,7 +895,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 }
             }
         } else {
-           for (int i = 0; i < size(); i++) {
+            for (int i = 0; i < size(); i++) {
                 final E value = get(i);
                 if (value instanceof RealmModel) {
                     sb.append(System.identityHashCode(value));
@@ -1778,8 +1852,11 @@ abstract class ManagedListOperator<T> {
 
     @Nullable
     abstract T get(int index);
+
     abstract void add(@Nullable Object value);
+
     abstract void insert(int index, @Nullable Object value);
+
     @Nullable
     abstract T set(int index, @Nullable Object value);
 
@@ -2002,7 +2079,7 @@ final class LongListOperator<T> extends ManagedListOperator<T> {
     @Nullable
     @Override
     T get(int index) {
-        final Long value =  (Long) osList.getValue(index);
+        final Long value = (Long) osList.getValue(index);
         if (value == null) {
             return null;
         }
