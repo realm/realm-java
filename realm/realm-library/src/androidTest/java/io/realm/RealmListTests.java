@@ -626,12 +626,20 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void remove_allAfterContainerObjectRemoved() {
+    public void removeAll_afterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
         realm.beginTransaction();
         thrown.expect(IllegalStateException.class);
         dogs.removeAll(Collections.<Dog>emptyList());
+    }
+
+    @Test
+    public void removeAll_outsideTransaction() {
+        List<Dog> objectsToRemove = Collections.singletonList(collection.get(0));
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage(CoreMatchers.containsString("Objects can only be removed from inside a write transaction"));
+        collection.removeAll(objectsToRemove);
     }
 
     @Test
@@ -775,128 +783,6 @@ public class RealmListTests extends CollectionTests {
             } finally {
                 realm.cancelTransaction();
             }
-        }
-    }
-
-    @Test
-    public void deleteFromRealm() {
-        Owner owner = realm.where(Owner.class).findFirst();
-        //noinspection ConstantConditions
-        RealmList<Dog> dogs = owner.getDogs();
-        assertEquals(TEST_SIZE, dogs.size());
-
-        int expectedSize = TEST_SIZE;
-        realm.beginTransaction();
-        dogs.deleteFromRealm(TEST_SIZE / 2);
-        expectedSize--;
-        realm.commitTransaction();
-        assertEquals(expectedSize, dogs.size());
-        assertEquals(expectedSize, realm.where(Dog.class).count());
-
-        realm.beginTransaction();
-        dogs.deleteFromRealm(0);
-        expectedSize--;
-        realm.commitTransaction();
-        assertEquals(expectedSize, dogs.size());
-        assertEquals(expectedSize, realm.where(Dog.class).count());
-
-        realm.beginTransaction();
-        dogs.deleteFromRealm(dogs.size() - 1);
-        expectedSize--;
-        realm.commitTransaction();
-        assertEquals(expectedSize, dogs.size());
-        assertEquals(expectedSize, realm.where(Dog.class).count());
-    }
-
-    @Test
-    public void deleteFirstFromRealm() {
-        Owner owner = realm.where(Owner.class).findFirst();
-        //noinspection ConstantConditions
-        RealmList<Dog> dogs = owner.getDogs();
-        assertEquals(TEST_SIZE, dogs.size());
-
-        realm.beginTransaction();
-        dogs.deleteFirstFromRealm();
-        realm.commitTransaction();
-        assertEquals(TEST_SIZE - 1, dogs.size());
-        assertEquals(TEST_SIZE - 1, realm.where(Dog.class).count());
-    }
-
-    @Test
-    public void deleteLastFromRealm() {
-        Owner owner = realm.where(Owner.class).findFirst();
-        //noinspection ConstantConditions
-        RealmList<Dog> dogs = owner.getDogs();
-        assertEquals(TEST_SIZE, dogs.size());
-
-        realm.beginTransaction();
-        dogs.deleteLastFromRealm();
-        realm.commitTransaction();
-        assertEquals(TEST_SIZE - 1, dogs.size());
-        assertEquals(TEST_SIZE - 1, realm.where(Dog.class).count());
-    }
-
-    @Test
-    public void deleteAllFromRealm() {
-        Owner owner = realm.where(Owner.class).findFirst();
-        //noinspection ConstantConditions
-        RealmList<Dog> dogs = owner.getDogs();
-        assertEquals(TEST_SIZE, dogs.size());
-
-        realm.beginTransaction();
-        dogs.deleteAllFromRealm();
-        realm.commitTransaction();
-        assertEquals(0, dogs.size());
-        assertEquals(0, realm.where(Dog.class).count());
-    }
-
-    @Test
-    public void deleteAllFromRealm_outsideTransaction() {
-        Owner owner = realm.where(Owner.class).findFirst();
-        //noinspection ConstantConditions
-        RealmList<Dog> dogs = owner.getDogs();
-        try {
-            dogs.deleteAllFromRealm();
-            fail("removeAllFromRealm should be called in a transaction.");
-        } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), CoreMatchers.containsString("Must be in a write transaction "));
-        }
-    }
-
-    @Test
-    public void deleteAllFromRealm_emptyList() {
-        //noinspection ConstantConditions
-        RealmList<Dog> dogs = realm.where(Owner.class).findFirst().getDogs();
-        assertEquals(TEST_SIZE, dogs.size());
-
-        realm.beginTransaction();
-        dogs.deleteAllFromRealm();
-        realm.commitTransaction();
-        assertEquals(0, dogs.size());
-        assertEquals(0, realm.where(Dog.class).count());
-
-        // The dogs is empty now.
-        realm.beginTransaction();
-        dogs.deleteAllFromRealm();
-        realm.commitTransaction();
-        assertEquals(0, dogs.size());
-        assertEquals(0, realm.where(Dog.class).count());
-
-    }
-
-    @Test
-    public void deleteAllFromRealm_invalidListShouldThrow() {
-        //noinspection ConstantConditions
-        RealmList<Dog> dogs = realm.where(Owner.class).findFirst().getDogs();
-        assertEquals(TEST_SIZE, dogs.size());
-        realm.close();
-        realm = null;
-
-        try {
-            dogs.deleteAllFromRealm();
-            fail("dogs is invalid and it should throw an exception");
-        } catch (IllegalStateException e) {
-            assertEquals("This Realm instance has already been closed, making it unusable.", e.getMessage());
         }
     }
 
