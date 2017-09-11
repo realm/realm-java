@@ -147,16 +147,16 @@ private final URI serverUrl;
 
     /**
      * Returns a SyncConfiguration appropriate to open a synced Realm offline.
-     * This is useful when trying to open a backup Realm (after a Client Reset)
+     * This is useful when trying to open a backup Realm (after a Client Reset).
      *
      * @param canonicalPath the absolute path to the Realm file defined by this configuration.
      * @param encryptionKey the key used to encrypt/decrypt the Realm file.
      * @param modules if specified it will restricts Realm schema to the provided module.
      * @return SyncConfiguration that can be used offline
      */
-    public static RealmConfiguration forOffline(String canonicalPath, @Nullable byte[] encryptionKey, Object... modules) {
+    public static RealmConfiguration forOffline(String canonicalPath, @Nullable byte[] encryptionKey, @Nullable Object... modules) {
         HashSet<Object> validatedModules = new HashSet<>();
-        if (modules.length > 0) {
+        if (modules != null && modules.length > 0) {
             for (Object module : modules) {
                 if (!module.getClass().isAnnotationPresent(RealmModule.class)) {
                     throw new IllegalArgumentException(module.getClass().getCanonicalName() + " is not a RealmModule. " +
@@ -174,7 +174,21 @@ private final URI serverUrl;
         return forOffline(canonicalPath, encryptionKey, schemaMediator);
     }
 
-    static RealmConfiguration forOffline(String canonicalPath, byte[] encryptionKey, RealmProxyMediator schemaMediator) {
+    /**
+     * Returns a SyncConfiguration appropriate to open a synced Realm offline.
+     * This is useful when trying to open a backup Realm (after a Client Reset).
+     *
+     * Note: This will use the default Realm module (composed of all {@link RealmModel}), and
+     * assume no encryption should be used as well.
+     *
+     * @param canonicalPath the absolute path to the Realm file defined by this configuration.
+     * @return SyncConfiguration that can be used offline
+     */
+    public static RealmConfiguration forOffline(String canonicalPath) {
+        return forOffline(canonicalPath, null);
+    }
+
+    static RealmConfiguration forOffline(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
         return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, false, null, true);
     }
 
