@@ -263,7 +263,7 @@ public class OsList implements NativeObject {
 
     private static native boolean nativeIsValid(long nativePtr);
 
-    private static native void nativeDelete(long nativePtr, long pos);
+    private static native void nativeDelete(long nativePtr, long index);
 
     private static native void nativeDeleteAll(long nativePtr);
 
