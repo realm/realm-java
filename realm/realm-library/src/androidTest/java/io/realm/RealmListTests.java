@@ -18,6 +18,7 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,6 +47,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -781,7 +783,7 @@ public class RealmListTests extends CollectionTests {
             dogs.deleteAllFromRealm();
             fail("removeAllFromRealm should be called in a transaction.");
         } catch (IllegalStateException e) {
-            assertEquals("Changing Realm data can only be done from inside a write transaction.", e.getMessage());
+            assertThat(e.getMessage(), CoreMatchers.containsString("Must be in a write transaction "));
         }
     }
 
@@ -1117,7 +1119,7 @@ public class RealmListTests extends CollectionTests {
         realm.commitTransaction();
         assertEquals(sizeBefore - 1, collection.size());
 
-        assertNotNull(collection.view);
-        assertEquals(collection.view.getTargetTable().getName(), snapshot.getTable().getName());
+        assertNotNull(collection.osList);
+        assertEquals(collection.osList.getTargetTable().getName(), snapshot.getTable().getName());
     }
 }
