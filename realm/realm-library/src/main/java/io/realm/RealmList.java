@@ -396,11 +396,13 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         while (it.hasNext()) {
             final Object element = it.next();
             if (element instanceof byte[]) {
+                final byte[] bytesElement = (byte[]) element;
                 // we can't use collection.contains() since equals() of byte[] never be true
                 for (Object a : collection) {
-                    if (a instanceof byte[] && Arrays.equals((byte[]) element, (byte[]) a)) {
+                    if (a instanceof byte[] && Arrays.equals(bytesElement, (byte[]) a)) {
                         it.remove();
                         modified = true;
+                        break;
                     }
                 }
             } else {
@@ -864,7 +866,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                     //noinspection ConstantConditions,unchecked
                     sb.append(realm.getSchema().getSchemaForClass((Class<RealmModel>) clazz).getClassName());
                 } else {
-                    sb.append(clazz.getSimpleName());
+                    if (clazz == byte[].class) {
+                        sb.append(clazz.getSimpleName());
+                    } else {
+                        sb.append(clazz.getName());
+                    }
                 }
             }
         } else {
@@ -887,7 +893,12 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 }
             } else {
                 for (int i = 0; i < size(); i++) {
-                    sb.append(get(i));
+                    final E value = get(i);
+                    if (value instanceof byte[]) {
+                        sb.append("byte[").append(((byte[]) value).length).append("]");
+                    } else {
+                        sb.append(value);
+                    }
                     sb.append(separator);
                 }
                 if (0 < size()) {
@@ -900,7 +911,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 if (value instanceof RealmModel) {
                     sb.append(System.identityHashCode(value));
                 } else {
-                    sb.append(value);
+                    if (value instanceof byte[]) {
+                        sb.append("byte[").append(((byte[]) value).length).append("]");
+                    } else {
+                        sb.append(value);
+                    }
                 }
                 sb.append(separator);
             }
