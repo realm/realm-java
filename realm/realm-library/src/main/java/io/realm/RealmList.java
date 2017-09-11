@@ -866,7 +866,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                     //noinspection ConstantConditions,unchecked
                     sb.append(realm.getSchema().getSchemaForClass((Class<RealmModel>) clazz).getClassName());
                 } else {
-                    sb.append(clazz.getSimpleName());
+                    if (clazz == byte[].class) {
+                        sb.append(clazz.getSimpleName());
+                    } else {
+                        sb.append(clazz.getName());
+                    }
                 }
             }
         } else {
