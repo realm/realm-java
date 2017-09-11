@@ -77,6 +77,9 @@ public class DotsView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        if (results == null) {
+            return;
+        }
         canvas.drawColor(Color.TRANSPARENT);
         for (Dot dot : results) {
             circlePaint.setColor(dot.getColor());
