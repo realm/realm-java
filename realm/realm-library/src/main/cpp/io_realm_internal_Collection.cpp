@@ -24,7 +24,7 @@
 #include "java_sort_descriptor.hpp"
 #include "util.hpp"
 #include "java_class_global_def.hpp"
-#include "java_accessor_context.hpp"
+#include "java_accessor.hpp"
 
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_global_weak_ref.hpp"

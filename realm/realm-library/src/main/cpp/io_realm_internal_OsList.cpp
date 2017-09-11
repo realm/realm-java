@@ -56,7 +56,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
         if (column_type != type_LinkList && column_type != type_Table) {
             THROW_JAVA_EXCEPTION(
                 env, JavaExceptionDef::IllegalArgument,
-                format("The field '%1' is not a list type.", row.get_table()->get_column_name(column_index)));
+                format("The field '%1' is not a 'RealmList'.", row.get_table()->get_column_name(column_index)));
             return 0;
         }
 
