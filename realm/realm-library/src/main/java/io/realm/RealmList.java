@@ -893,7 +893,12 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 }
             } else {
                 for (int i = 0; i < size(); i++) {
-                    sb.append(get(i));
+                    final E value = get(i);
+                    if (value instanceof byte[]) {
+                        sb.append("byte[").append(((byte[]) value).length).append("]");
+                    } else {
+                        sb.append(value);
+                    }
                     sb.append(separator);
                 }
                 if (0 < size()) {
@@ -906,7 +911,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 if (value instanceof RealmModel) {
                     sb.append(System.identityHashCode(value));
                 } else {
-                    sb.append(value);
+                    if (value instanceof byte[]) {
+                        sb.append("byte[").append(((byte[]) value).length).append("]");
+                    } else {
+                        sb.append(value);
+                    }
                 }
                 sb.append(separator);
             }
