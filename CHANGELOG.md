@@ -1,4 +1,4 @@
-4.0.0-BETA3 (YYYY-MM-DD)
+## 4.0.0-BETA3 (YYYY-MM-DD)
 
 ### Internal
 
@@ -30,6 +30,13 @@
 * Upgraded to Realm Sync 2.0.0-rc12.
 * Upgraded to Realm Core 3.0.0-rc3.
 
+
+## 3.7.2 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Fixed a JNI memory issue when doing queries which might potentially cause various native crashes.
+* Fixed a bug that `RealmList.deleteFromRealm(int)`, `RealmList.deleteFirstFromRealm()` and `RealmList.deleteLastFromRealm()` did not remove target objects from Realm. This bug was introduced in `3.7.1` (#5233).
 
 ## 3.7.1 (2017-09-07)
 
