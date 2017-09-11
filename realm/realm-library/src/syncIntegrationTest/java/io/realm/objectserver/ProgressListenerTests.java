@@ -34,6 +34,7 @@ import io.realm.Progress;
 import io.realm.ProgressListener;
 import io.realm.ProgressMode;
 import io.realm.Realm;
+import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
@@ -50,7 +51,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class ProgressListenerTests extends BaseIntegrationTest {
+public class ProgressListenerTests extends StandardIntegrationTest {
 
     private static final long TEST_SIZE = 10;
     @Rule
@@ -180,7 +181,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
                             break;
                         }
                         default:
-                            fail();
+                            fail("Transfer complete called too many times:" + transferCompleted.get());
                     }
                 }
             }

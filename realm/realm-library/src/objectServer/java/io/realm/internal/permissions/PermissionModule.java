@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.model;
+package io.realm.internal.permissions;
 
-import io.realm.RealmObject;
+import io.realm.annotations.RealmModule;
+import io.realm.permissions.Permission;
 
-public class CounterOperation extends RealmObject {
-    public long adjustment;
-    public CounterOperation() {};
-    public CounterOperation(long adjustment) {
-        this.adjustment = adjustment;
-    }
+@RealmModule(library = true, classes = { Permission.class })
+public class PermissionModule {
 }

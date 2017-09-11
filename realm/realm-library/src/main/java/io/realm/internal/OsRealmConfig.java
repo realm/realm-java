@@ -146,6 +146,15 @@ public class OsRealmConfig implements NativeObject {
     // core destructor's thread safety.
     private final NativeContext context = new NativeContext();
 
+    // Hold a ref to callbacks to make sure they won't be GCed before getting called.
+    // JNI should only hold a weak ref in the lambda functions.
+    @SuppressWarnings({"FieldCanBeLocal", "unused"})
+    private final CompactOnLaunchCallback compactOnLaunchCallback;
+    @SuppressWarnings({"FieldCanBeLocal", "unused"})
+    private final SharedRealm.MigrationCallback migrationCallback;
+    @SuppressWarnings({"FieldCanBeLocal", "unused"})
+    private final SharedRealm.InitializationCallback initializationCallback;
+
     private OsRealmConfig(final RealmConfiguration config,
                           boolean autoUpdateNotification,
                           @Nullable OsSchemaInfo schemaInfo,
@@ -187,15 +196,17 @@ public class OsRealmConfig implements NativeObject {
         }
         final long schemaVersion = config.getSchemaVersion();
         final long nativeSchemaPtr = schemaInfo == null ? 0 : schemaInfo.getNativePtr();
+        this.migrationCallback = migrationCallback;
         nativeSetSchemaConfig(nativePtr, schemaMode.getNativeValue(), schemaVersion, nativeSchemaPtr, migrationCallback);
 
         // Compact on launch
-        CompactOnLaunchCallback compactOnLaunchCallback = config.getCompactOnLaunchCallback();
+        this.compactOnLaunchCallback = config.getCompactOnLaunchCallback();
         if (compactOnLaunchCallback != null) {
             nativeSetCompactOnLaunchCallback(nativePtr, compactOnLaunchCallback);
         }
 
         // Initial data transaction
+        this.initializationCallback = initializationCallback;
         if (initializationCallback != null) {
             nativeSetInitializationCallback(nativePtr, initializationCallback);
         }

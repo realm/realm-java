@@ -40,7 +40,7 @@ public class Table implements TableSchema, NativeObject {
     public static final boolean NOT_NULLABLE = false;
     public static final int NO_MATCH = -1;
 
-    private static final String PRIMARY_KEY_TABLE_NAME = "pk";
+    static final String PRIMARY_KEY_TABLE_NAME = "pk";
     private static final String PRIMARY_KEY_CLASS_COLUMN_NAME = "pk_table";
     private static final long PRIMARY_KEY_CLASS_COLUMN_INDEX = 0;
     private static final String PRIMARY_KEY_FIELD_COLUMN_NAME = "pk_property";
@@ -628,7 +628,7 @@ public class Table implements TableSchema, NativeObject {
 
         // FIXME: The PK table creation should be handle by Object Store after integration of OS Schema.
         if (!sharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
-            sharedRealm.createTable(PRIMARY_KEY_TABLE_NAME);
+            sharedRealm.createPkTable();
         }
 
         Table pkTable = sharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
@@ -939,8 +939,6 @@ public class Table implements TableSchema, NativeObject {
     private native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
 
     private native long nativeGetLink(long nativePtr, long columnIndex, long rowIndex);
-
-    public static native long nativeGetLinkView(long nativePtr, long columnIndex, long rowIndex);
 
     private native long nativeGetLinkTarget(long nativePtr, long columnIndex);
 

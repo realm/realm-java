@@ -19,9 +19,11 @@
 
 #include <shared_realm.hpp>
 #include <results.hpp>
+#include <list.hpp>
 
 #include "java_sort_descriptor.hpp"
 #include "util.hpp"
+#include "java_class_global_def.hpp"
 
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_global_weak_ref.hpp"
@@ -95,17 +97,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResults(JN
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResultsFromLinkView(JNIEnv* env, jclass,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResultsFromList(JNIEnv* env, jclass,
                                                                                           jlong shared_realm_ptr,
-                                                                                          jlong link_view_ptr,
+                                                                                          jlong list_ptr,
                                                                                           jobject j_sort_desc)
 {
     TR_ENTER()
     try {
-        auto link_view_ref = reinterpret_cast<LinkViewRef*>(link_view_ptr);
+        auto& list = *reinterpret_cast<List*>(list_ptr);
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        Results results(shared_realm, *link_view_ref, util::none,
-                        JavaSortDescriptor(env, j_sort_desc).sort_descriptor());
+        Results results = j_sort_desc ?
+            list.sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor()) :
+            list.as_results();
         auto wrapper = new ResultsWrapper(results);
 
         return reinterpret_cast<jlong>(wrapper);
@@ -243,13 +246,13 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Collection_nativeAggregate(JNIE
         Mixed m = *value;
         switch (m.get_type()) {
             case type_Int:
-                return NewLong(env, m.get_int());
+                return JavaClassGlobalDef::new_long(env, m.get_int());
             case type_Float:
-                return NewFloat(env, m.get_float());
+                return JavaClassGlobalDef::new_float(env, m.get_float());
             case type_Double:
-                return NewDouble(env, m.get_double());
+                return JavaClassGlobalDef::new_double(env, m.get_double());
             case type_Timestamp:
-                return NewDate(env, m.get_timestamp());
+                return JavaClassGlobalDef::new_date(env, m.get_timestamp());
             default:
                 throw std::invalid_argument("Excepted numeric type");
         }

@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.reactivex.Flowable;
 import javax.annotation.Nullable;
 
 import io.realm.exceptions.RealmException;
@@ -44,8 +45,6 @@ import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
-import rx.Observable;
-
 
 /**
  * Base class for all Realm instances.
@@ -57,9 +56,9 @@ import rx.Observable;
 abstract class BaseRealm implements Closeable {
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE =
             "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
-    private static final String INCORRECT_THREAD_MESSAGE =
+    static final String INCORRECT_THREAD_MESSAGE =
             "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
-    private static final String CLOSED_REALM_MESSAGE =
+    static final String CLOSED_REALM_MESSAGE =
             "This Realm instance has already been closed, making it unusable.";
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
@@ -222,16 +221,16 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Returns an RxJava Observable that monitors changes to this Realm. It will emit the current state
+     * Returns an RxJava Flowable that monitors changes to this Realm. It will emit the current state
      * when subscribed to. Items will continually be emitted as the Realm is updated -
      * {@code onComplete} will never be called.
      * <p>
-     * If you would like the {@code asObservable()} to stop emitting items, you can instruct RxJava to
+     * If you would like the {@code asFlowable()} to stop emitting items, you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      * <p>
      * <pre>
      * {@code
-     * realm.asObservable().first().subscribe( ... ) // You only get the results once
+     * realm.asFlowable().first().subscribe( ... ) // You only get the results once
      * }
      * </pre>
      *
@@ -239,7 +238,7 @@ abstract class BaseRealm implements Closeable {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public abstract Observable asObservable();
+    public abstract Flowable asFlowable();
 
     /**
      * Removes all user-defined change listeners.

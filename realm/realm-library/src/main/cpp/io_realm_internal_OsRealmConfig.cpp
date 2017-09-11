@@ -23,15 +23,17 @@
 #include <sync/sync_session.hpp>
 #endif
 
+#include "java_accessor.hpp"
 #include "util.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/java_class.hpp"
-#include "jni_util/java_global_ref.hpp"
+#include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/jni_utils.hpp"
 #include "jni_util/java_exception_thrower.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
+using namespace realm::_impl;
 
 static_assert(SchemaMode::Automatic ==
                   static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_AUTOMATIC),
@@ -92,11 +94,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetEncryptionK
 {
     TR_ENTER_PTR(native_ptr)
     try {
-        JniByteArray key_array(env, j_key_array);
+        JByteArrayAccessor jarray_accessor(env, j_key_array);
         auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
         // Encryption key should be set before creating sync_config.
         REALM_ASSERT(!config.sync_config);
-        config.encryption_key = key_array;
+        config.encryption_key = jarray_accessor.transform<std::vector<char>>();
     }
     CATCH_STD()
 }
@@ -132,16 +134,26 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
             static JavaMethod run_migration_callback_method(
                 env, get_shared_realm_class(env), "runMigrationCallback",
                 "(JLio/realm/internal/OsRealmConfig;Lio/realm/internal/SharedRealm$MigrationCallback;J)V", true);
-            JavaGlobalRef j_config_ref(env, j_config, true);
-            JavaGlobalRef j_migration_callback_ref(env, j_migration_callback, true);
-            config.migration_function = [j_config_ref, j_migration_callback_ref](SharedRealm old_realm,
+            // weak ref to avoid leaks caused by circular refs.
+            JavaGlobalWeakRef j_config_weak(env, j_config);
+            JavaGlobalWeakRef j_migration_cb_weak(env, j_migration_callback);
+            // TODO: It would be great if we can use move constructor in the lambda capture which was introduced in
+            // c++14. But sadly it seems to be a bug with gcc 4.9 to support it.
+            config.migration_function = [j_migration_cb_weak, j_config_weak](SharedRealm old_realm,
                                                                                  SharedRealm realm, Schema&) {
                 JNIEnv* env = JniUtils::get_env(false);
                 // Java needs a new pointer for the SharedRealm life control.
                 SharedRealm* new_shared_realm_ptr = new SharedRealm(realm);
-                env->CallStaticVoidMethod(get_shared_realm_class(env), run_migration_callback_method,
-                                          reinterpret_cast<jlong>(new_shared_realm_ptr), j_config_ref.get(),
-                                          j_migration_callback_ref.get(), old_realm->schema_version());
+                JavaGlobalRef config_global = j_config_weak.global_ref(env);
+                if (!config_global) {
+                    return;
+                }
+
+                j_migration_cb_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
+                    env->CallStaticVoidMethod(get_shared_realm_class(env), run_migration_callback_method,
+                                              reinterpret_cast<jlong>(new_shared_realm_ptr), config_global.get(), obj,
+                                              old_realm->schema_version());
+                });
                 TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env);
             };
         }
@@ -162,13 +174,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetCompactOnLa
         if (j_compact_on_launch) {
             static JavaClass compact_on_launch_class(env, "io/realm/CompactOnLaunchCallback");
             static JavaMethod should_compact(env, compact_on_launch_class, "shouldCompact", "(JJ)Z");
-            JavaGlobalRef java_compact_on_launch_ref(env, j_compact_on_launch);
+            // weak ref to avoid leaks caused by circular refs.
+            JavaGlobalWeakRef java_compact_on_launch_weak(env, j_compact_on_launch);
 
-            config.should_compact_on_launch_function = [java_compact_on_launch_ref](uint64_t totalBytes,
+            config.should_compact_on_launch_function = [java_compact_on_launch_weak](uint64_t totalBytes,
                                                                                     uint64_t usedBytes) {
                 JNIEnv* env = JniUtils::get_env(false);
-                bool result = env->CallBooleanMethod(java_compact_on_launch_ref.get(), should_compact,
-                                                     static_cast<jlong>(totalBytes), static_cast<jlong>(usedBytes));
+                bool result = false;
+                java_compact_on_launch_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
+                    result = env->CallBooleanMethod(obj, should_compact, static_cast<jlong>(totalBytes),
+                                                    static_cast<jlong>(usedBytes));
+                });
                 TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env);
                 return result;
             };
@@ -194,15 +210,22 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInitializat
             static JavaMethod run_initialization_callback_method(
                 env, get_shared_realm_class(env), "runInitializationCallback",
                 "(JLio/realm/internal/OsRealmConfig;Lio/realm/internal/SharedRealm$InitializationCallback;)V", true);
-            JavaGlobalRef j_init_callback_ref(env, j_init_callback, true);
-            JavaGlobalRef j_config_ref(env, j_config, true);
-            config.initialization_function = [j_init_callback_ref, j_config_ref](SharedRealm realm) {
+            // weak ref to avoid leaks caused by circular refs.
+            JavaGlobalWeakRef j_init_cb_weak(env, j_init_callback);
+            JavaGlobalWeakRef j_config_weak(env, j_config);
+            config.initialization_function = [j_init_cb_weak, j_config_weak](SharedRealm realm) {
                 JNIEnv* env = JniUtils::get_env(false);
                 // Java needs a new pointer for the SharedRealm life control.
                 SharedRealm* new_shared_realm_ptr = new SharedRealm(realm);
-                env->CallStaticVoidMethod(get_shared_realm_class(env), run_initialization_callback_method,
-                                          reinterpret_cast<jlong>(new_shared_realm_ptr), j_config_ref.get(),
-                                          j_init_callback_ref.get());
+                JavaGlobalRef config_global_ref = j_config_weak.global_ref(env);
+                if (!config_global_ref) {
+                    return;
+                }
+                j_init_cb_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
+                    env->CallStaticVoidMethod(get_shared_realm_class(env), run_initialization_callback_method,
+                                              reinterpret_cast<jlong>(new_shared_realm_ptr), config_global_ref.get(),
+                                              obj);
+                });
                 TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env);
             };
         }
