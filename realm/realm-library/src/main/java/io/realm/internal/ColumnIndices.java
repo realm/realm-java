@@ -100,7 +100,7 @@ public final class ColumnIndices {
         if (columnInfo == null) {
             Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
             for (Class<? extends RealmModel> modelClass : modelClasses) {
-                if (modelClass.getSimpleName().equals(simpleClassName)) {
+                if (Table.getClassNameForTable(mediator.getTableName(modelClass)).equals(simpleClassName)) {
                     columnInfo = getColumnInfo(modelClass);
                     simpleClassNameToColumnInfoMap.put(simpleClassName, columnInfo);
                     break;
