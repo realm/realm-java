@@ -158,7 +158,7 @@ private:
 class JavaAccessorContext {
 public:
     JavaAccessorContext(JNIEnv* env)
-        : m_env(env){};
+        : m_env(env){}
 
     // Convert from core types to the boxed type
     util::Any box(BinaryData v) const
@@ -220,7 +220,7 @@ public:
     util::Any box(RowExpr) const
     {
         REALM_TERMINATE("not supported");
-    };
+    }
 
     // Any properties are only supported by the Cocoa binding to enable reading
     // old Realm files that may have used them. Other bindings can safely not
@@ -363,7 +363,7 @@ inline util::Optional<bool> JavaAccessorContext::unbox(util::Any& v, bool, bool)
 template <>
 inline util::Optional<int64_t> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
 {
-    return v.has_value() ? util::make_optional(unbox<jlong>(v)) : util::none;
+    return v.has_value() ? util::make_optional(static_cast<int64_t>(unbox<jlong>(v))) : util::none;
 }
 
 template <>
