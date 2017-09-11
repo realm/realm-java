@@ -172,7 +172,7 @@ public class OsList implements NativeObject {
         }
     }
 
-    public void insertDate(long pos, @Nullable  Date value) {
+    public void insertDate(long pos, @Nullable Date value) {
         if (value == null) {
             nativeInsertNull(nativePtr, pos);
         } else {
@@ -180,7 +180,7 @@ public class OsList implements NativeObject {
         }
     }
 
-    public void setDate(long pos, @Nullable  Date value) {
+    public void setDate(long pos, @Nullable Date value) {
         if (value == null) {
             nativeSetNull(nativePtr, pos);
         } else {
@@ -308,7 +308,6 @@ public class OsList implements NativeObject {
     private static native void nativeInsertString(long nativePtr, long pos, String value);
 
     private static native void nativeSetString(long nativePtr, long pos, String value);
-
 
     private static native Object nativeGetValue(long nativePtr, long pos);
 }

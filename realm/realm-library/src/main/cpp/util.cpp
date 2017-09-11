@@ -109,7 +109,13 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ThrowException(env, IllegalState, ss.str());
     }
     catch (realm::LogicError e) {
-        ThrowException(env, IllegalState, e.what());
+        ExceptionKind kind;
+        if (e.kind() == LogicError::string_too_big || e.kind() == LogicError::binary_too_big) {
+            kind = IllegalArgument;
+        } else {
+            kind = IllegalState;
+        }
+        ThrowException(env, kind, e.what());
     }
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
