@@ -615,7 +615,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     public void deleteFromRealm(int location) {
         if (isManaged()) {
             checkValidRealm();
-            osList.remove(location);
+            osList.delete(location);
             modCount++;
         } else {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
