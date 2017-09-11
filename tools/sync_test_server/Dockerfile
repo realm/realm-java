@@ -2,21 +2,21 @@ FROM ubuntu:16.04
 
 ARG ROS_DE_VERSION
 
-# Add realm repo
+# Install all normal dependencies
 RUN apt-get update -qq \
-    && apt-get install -y curl npm \
-    && curl -s https://packagecloud.io/install/repositories/realm/realm-beta/script.deb.sh | bash
-    #&& curl -s https://packagecloud.io/install/repositories/realm/realm/script.deb.sh | bash
-    #&& curl -s https://packagecloud.io/install/repositories/realm/realm-testing/script.deb.sh | bash
+    && apt-get install -y curl
+
+# Install node using nodesource to be able to install desired major version
+# Not doing this will cause apt-get to install from 4.*
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \
+    && apt-get install -y nodejs build-essential
 
 # ROS npm dependencies
 RUN npm init -y
 RUN npm install winston temp httpdispatcher@1.0.0
 
 # Install realm object server
-RUN apt-get update -qq \
-    && apt-get install -y realm-object-server-developer=$ROS_DE_VERSION \
-    && apt-get clean
+RUN npm install realm-object-server@$ROS_DE_VERSION
 
 COPY keys/public.pem keys/private.pem keys/127_0_0_1-server.key.pem keys/127_0_0_1-chain.crt.pem configuration.yml /
 COPY ros-testing-server.js /usr/bin/
