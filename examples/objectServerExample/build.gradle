@@ -43,10 +43,12 @@ android {
         def host = getIP()
         debug {
             buildConfigField "String", "OBJECT_SERVER_IP", "\"${host}\""
+            minifyEnabled true
         }
         release {
-            minifyEnabled false
             buildConfigField "String", "OBJECT_SERVER_IP", "\"${host}\""
+            minifyEnabled true
+            signingConfig signingConfigs.debug
         }
     }
 
