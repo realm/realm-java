@@ -396,11 +396,13 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         while (it.hasNext()) {
             final Object element = it.next();
             if (element instanceof byte[]) {
+                final byte[] bytesElement = (byte[]) element;
                 // we can't use collection.contains() since equals() of byte[] never be true
                 for (Object a : collection) {
-                    if (a instanceof byte[] && Arrays.equals((byte[]) element, (byte[]) a)) {
+                    if (a instanceof byte[] && Arrays.equals(bytesElement, (byte[]) a)) {
                         it.remove();
                         modified = true;
+                        break;
                     }
                 }
             } else {
