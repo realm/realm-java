@@ -87,7 +87,8 @@ public class UserFactory {
 
     public static SyncUser createAdminUser(String authUrl) {
         // `admin` required as user identifier to be granted admin rights.
-        SyncCredentials credentials = SyncCredentials.custom("admin", "debug", null);
+        // ROS 2.0 comes with a default admin user named "realm-admin" with password "".
+        SyncCredentials credentials = SyncCredentials.usernamePassword("realm-admin", "");
         return SyncUser.login(credentials, authUrl);
     }
 
