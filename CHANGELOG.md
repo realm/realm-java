@@ -1,3 +1,45 @@
+## 4.0.0-BETA3 (YYYY-MM-DD)
+
+### Internal
+
+* Upgraded to Realm Sync 2.0.0-rc16.
+* Upgraded to Realm Core 3.0.0-rc5.
+
+## 4.0.0-BETA2 (2017-07-27)
+
+### Bug Fixes
+
+* [ObjectServer] Realm no longer throws a native “unsupported instruction” exception in some cases when opening a synced Realm asynchronously (https://github.com/realm/realm-object-store/issues/502).
+
+## 4.0.0-BETA1 (2017-07-13)
+
+### Breaking Changes
+
+* [ObjectServer] Updated protocol version to 19 which is only compatible with ROS > 2.0.0.
+* Realm has upgraded its RxJava1 support to RxJava2 (#3497)
+  * `Realm.asObservable()` has been renamed to `Realm.asFlowable()`.
+  * `RealmList.asObservable()` has been renamed to `RealmList.asFlowable()`.
+  * `RealmResults.asObservable()` has been renamed to `RealmResults.asFlowable()`.
+  * `RealmObject.asObservable()` has been renamed to `RealmObject.asFlowable()`.
+  * `RxObservableFactory` now return RxJava2 types instead of RxJava1 types.
+
+### Deprecated
+
+### Enhancements
+
+* Added `static RealmObject.getRealm(RealmModel)`, `RealmObject.getRealm()` and `DynamicRealmObject.getDynamicRealm()` (#4720).
+* Added `RealmResults.asChangesetObservable()` that emits the pair `(results, changeset)` (#4277).
+* Added `RealmList.asChangesetObservable()` that emits the pair `(list, changeset)` (#4277).
+* Added `RealmObject.asChangesetObservable()` that emits the pair `(object, changeset)` (#4277).
+
+### Bug Fixes
+
+### Internal
+
+* Upgraded to Realm Sync 2.0.0-rc12.
+* Upgraded to Realm Core 3.0.0-rc3.
+
+
 ## 3.7.2 (2017-09-12)
 
 ### Bug Fixes
@@ -18,6 +60,7 @@
 
 * Replaced LinkView with Object Store's List.
 * Renaming `io.realm.internal.CollectionChangeSet` to `io.realm.internal.OsCollectionChangeSet`.
+
 
 ## 3.7.0 (2017-09-01)
 
