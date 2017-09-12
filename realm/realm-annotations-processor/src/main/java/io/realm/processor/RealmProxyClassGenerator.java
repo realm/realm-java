@@ -731,29 +731,47 @@ public class RealmProxyClassGenerator {
                     break;
 
                 case LIST:
-                    // only for model list. primitive list is handled by default case.
+                    // only for model list.
                     String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
                     writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
                             fieldName, genericTypeSimpleName);
                     break;
 
-                default:
-                    if (fieldType.isList()) {
-                        writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", %s, \"%s\")",
-                                fieldName, fieldType.getRealmType(), "");
-
-                    } else {
-                        String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
-                        String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
-                        String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
-                        writer.emitStatement("builder.addPersistedProperty(\"%s\", %s, %s, %s, %s)",
-                                fieldName,
-                                fieldType.getRealmType(),
-                                primaryKeyFlag,
-                                indexedFlag,
-                                nullableFlag);
-                    }
+                case INTEGER_LIST:
+                case BOOLEAN_LIST:
+                case STRING_LIST:
+                case BINARY_LIST:
+                case DATE_LIST:
+                case FLOAT_LIST:
+                case DOUBLE_LIST:
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", %s, \"%s\")",
+                            fieldName, fieldType.getRealmType(), "");
                     break;
+
+                case BACKLINK:
+                    throw new IllegalArgumentException("LinkingObject field should not be added to metadata");
+
+                case INTEGER:
+                case FLOAT:
+                case DOUBLE:
+                case BOOLEAN:
+                case STRING:
+                case DATE:
+                case BINARY:
+                case REALM_INTEGER:
+                    String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
+                    String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
+                    String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
+                    writer.emitStatement("builder.addPersistedProperty(\"%s\", %s, %s, %s, %s)",
+                            fieldName,
+                            fieldType.getRealmType(),
+                            primaryKeyFlag,
+                            indexedFlag,
+                            nullableFlag);
+                    break;
+
+                default:
+                    throw new IllegalArgumentException("'fieldType' " + fieldName + " is not handled");
             }
         }
         for (Backlink backlink: metadata.getBacklinkFields()) {
@@ -2098,17 +2116,17 @@ public class RealmProxyClassGenerator {
         if (Utils.isRealmModel(field)) {
             return Constants.RealmFieldType.OBJECT;
         }
-        if (Utils.isRealmList(field)) {
+        if (Utils.isRealmModelList(field)) {
+            return Constants.RealmFieldType.LIST;
+        }
+        if (Utils.isRealmValueList(field)) {
             final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
-            if (Utils.isRealmModel(elementTypeMirror)) {
-                return Constants.RealmFieldType.LIST;
-            } else {
-                final Constants.RealmFieldType fieldType = Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES.get(elementTypeMirror.toString());
-                if (fieldType == null) {
-                    return Constants.RealmFieldType.NOTYPE;
-                }
-                return fieldType;
+            final Constants.RealmFieldType fieldType =
+                    Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES.get(elementTypeMirror.toString());
+            if (fieldType == null) {
+                return Constants.RealmFieldType.NOTYPE;
             }
+            return fieldType;
         }
         return Constants.RealmFieldType.NOTYPE;
     }
