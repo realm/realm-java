@@ -346,14 +346,9 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
 
-        if (object != null) {
-            if (clazz != object.getClass()) {
-                return false;
-            }
-            if (clazz == byte[].class) {
-                // we need special handling for class since equals against byte[] never matches.
-                return remove((byte[]) object);
-            }
+        if (object instanceof byte[] && clazz == byte[].class) {
+            // we need special handling for class since equals against byte[] never matches.
+            return remove((byte[]) object);
         }
         return super.remove(object);
     }
