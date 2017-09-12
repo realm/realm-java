@@ -72,7 +72,22 @@ public class OsObjectSchemaInfo implements NativeObject {
          * @return this {@code OsObjectSchemaInfo.Builder}.
          */
         public Builder addPersistedLinkProperty(String name, RealmFieldType type, @Nullable String linkedClassName) {
-            final Property property = new Property(name, type, linkedClassName);
+            final Property property = new Property(name, type, linkedClassName, false);
+            persistedPropertyList.add(property);
+            return this;
+        }
+
+        /**
+         * Adds a persisted link property to this {@code OsObjectSchemaInfo}. A persisted link property will be stored
+         * in the Realm file's schema.
+         *
+         * @param name the name of the link property.
+         * @param type the type of the link property. Can only be {@link RealmFieldType#OBJECT} or
+         * {@link RealmFieldType#LIST}.
+         * @return this {@code OsObjectSchemaInfo.Builder}.
+         */
+        public Builder addPersistedLinkProperty(String name, RealmFieldType type, @Nullable String linkedClassName, boolean required) {
+            final Property property = new Property(name, type, linkedClassName, required);
             persistedPropertyList.add(property);
             return this;
         }
