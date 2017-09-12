@@ -1496,7 +1496,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (!isManaged()) {
             throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
-        if (clazz == null || Number.class.isAssignableFrom(clazz)) {
+        if (clazz == null || !Number.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("toLongArray() is only supported when the element type is implementing 'java.lang.Number' interface.");
         }
         final int size = size();
@@ -1543,7 +1543,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (!isManaged()) {
             throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
-        if (clazz == null || Number.class.isAssignableFrom(clazz)) {
+        if (clazz == null || !Number.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("toIntArray() is only supported when the element type is implementing 'java.lang.Number' interface.");
         }
         final int size = size();
@@ -1590,7 +1590,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (!isManaged()) {
             throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
-        if (clazz == null || Number.class.isAssignableFrom(clazz)) {
+        if (clazz == null || !Number.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("toShortArray() is only supported when the element type is implementing 'java.lang.Number' interface.");
         }
         final int size = size();
@@ -1637,7 +1637,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (!isManaged()) {
             throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
-        if (clazz == null || Number.class.isAssignableFrom(clazz)) {
+        if (clazz == null || !Number.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("toByteArray() is only supported when the element type is implementing 'java.lang.Number' interface.");
         }
         final int size = size();
@@ -1731,7 +1731,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (!isManaged()) {
             throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
-        if (clazz == null || Number.class.isAssignableFrom(clazz)) {
+        if (clazz == null || !Number.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("toDoubleArray() is only supported when the element type is implementing 'java.lang.Number' interface.");
         }
 
@@ -1779,7 +1779,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (!isManaged()) {
             throw new IllegalStateException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
-        if (clazz == null || Number.class.isAssignableFrom(clazz)) {
+        if (clazz == null || !Number.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("toFloatArray() is only supported when the element type is implementing 'java.lang.Number' interface.");
         }
 
