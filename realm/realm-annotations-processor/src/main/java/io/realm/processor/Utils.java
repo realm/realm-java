@@ -175,7 +175,7 @@ public class Utils {
     }
 
     /**
-     * @return {@code true} if a given field type is {@code RealmList} and its value type is {@Code RealmObject},
+     * @return {@code true} if a given field type is {@code RealmList} and its element type is {@Code RealmObject},
      * {@code false} otherwise.
      */
     public static boolean isRealmModelList(VariableElement field) {
@@ -187,7 +187,7 @@ public class Utils {
     }
 
     /**
-     * @return {@code true} if a given field type is {@code RealmList} and its value type is primitive type,
+     * @return {@code true} if a given field type is {@code RealmList} and its element type is value type,
      * {@code false} otherwise.
      */
     public static boolean isRealmValueList(VariableElement field) {
