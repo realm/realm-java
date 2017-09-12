@@ -167,7 +167,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
         return JNI_FALSE;
     }
 
-    size_t column_index = S(columnIndex);
     // FIXME: Add test in https://github.com/realm/realm-java/pull/5221 before merging to master
     if (table->get_column_type(S(columnIndex)) == type_Table) {
         return false; // Primitive list is always not-nullable.
