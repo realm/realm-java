@@ -599,7 +599,7 @@ public class LinkingObjectsManagedTests {
                 .build();
         OsObjectSchemaInfo sourceSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksSource")
                 .addPersistedProperty("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
-                .addPersistedLinkProperty("child", RealmFieldType.OBJECT, "BacklinksTarget")
+                .addPersistedLinkProperty("child", RealmFieldType.OBJECT, "BacklinksTarget", !Property.REQUIRED)
                 .build();
         Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
                 new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
@@ -643,7 +643,7 @@ public class LinkingObjectsManagedTests {
         OsObjectSchemaInfo sourceSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksSource")
                 .addPersistedProperty("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
                 .addPersistedLinkProperty("child", RealmFieldType.OBJECT,
-                        "BacklinksSource"/*"BacklinksTarget" is the original value*/)
+                        "BacklinksSource"/*"BacklinksTarget" is the original value*/, !Property.REQUIRED)
                 .build();
         Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
                 new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
