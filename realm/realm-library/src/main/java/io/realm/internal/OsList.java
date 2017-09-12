@@ -117,51 +117,27 @@ public class OsList implements NativeObject {
     }
 
     public void addBinary(@Nullable byte[] value) {
-        if (value == null) {
-            nativeAddNull(nativePtr);
-        } else {
-            nativeAddBinary(nativePtr, value);
-        }
+        nativeAddBinary(nativePtr, value);
     }
 
     public void insertBinary(long pos, @Nullable byte[] value) {
-        if (value == null) {
-            nativeInsertNull(nativePtr, pos);
-        } else {
-            nativeInsertBinary(nativePtr, pos, value);
-        }
+        nativeInsertBinary(nativePtr, pos, value);
     }
 
     public void setBinary(long pos, @Nullable byte[] value) {
-        if (value == null) {
-            nativeSetNull(nativePtr, pos);
-        } else {
-            nativeSetBinary(nativePtr, pos, value);
-        }
+        nativeSetBinary(nativePtr, pos, value);
     }
 
     public void addString(@Nullable String value) {
-        if (value == null) {
-            nativeAddNull(nativePtr);
-        } else {
-            nativeAddString(nativePtr, value);
-        }
+        nativeAddString(nativePtr, value);
     }
 
     public void insertString(long pos, @Nullable String value) {
-        if (value == null) {
-            nativeInsertString(nativePtr, pos, value);
-        } else {
-            nativeInsertString(nativePtr, pos, value);
-        }
+        nativeInsertString(nativePtr, pos, value);
     }
 
     public void setString(long pos, @Nullable String value) {
-        if (value == null) {
-            nativeSetNull(nativePtr, pos);
-        } else {
-            nativeSetString(nativePtr, pos, value);
-        }
+        nativeSetString(nativePtr, pos, value);
     }
 
     public void addDate(@Nullable Date value) {
@@ -297,11 +273,11 @@ public class OsList implements NativeObject {
 
     private static native void nativeSetBoolean(long nativePtr, long pos, boolean value);
 
-    private static native void nativeAddBinary(long nativePtr, byte[] value);
+    private static native void nativeAddBinary(long nativePtr, @Nullable byte[] value);
 
-    private static native void nativeInsertBinary(long nativePtr, long pos, byte[] value);
+    private static native void nativeInsertBinary(long nativePtr, long pos, @Nullable byte[] value);
 
-    private static native void nativeSetBinary(long nativePtr, long pos, byte[] value);
+    private static native void nativeSetBinary(long nativePtr, long pos, @Nullable byte[] value);
 
     private static native void nativeAddDate(long nativePtr, long value);
 
@@ -309,11 +285,11 @@ public class OsList implements NativeObject {
 
     private static native void nativeSetDate(long nativePtr, long pos, long value);
 
-    private static native void nativeAddString(long nativePtr, String value);
+    private static native void nativeAddString(long nativePtr, @Nullable String value);
 
-    private static native void nativeInsertString(long nativePtr, long pos, String value);
+    private static native void nativeInsertString(long nativePtr, long pos, @Nullable String value);
 
-    private static native void nativeSetString(long nativePtr, long pos, String value);
+    private static native void nativeSetString(long nativePtr, long pos, @Nullable String value);
 
     private static native Object nativeGetValue(long nativePtr, long pos);
 }
