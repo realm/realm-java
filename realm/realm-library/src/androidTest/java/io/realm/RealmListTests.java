@@ -684,12 +684,12 @@ public class RealmListTests extends CollectionTests {
     @Test
     public void toString_AfterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
-        assertEquals("Dog@[invalid]", dogs.toString());
+        assertEquals("RealmList<Dog>@[invalid]", dogs.toString());
     }
 
     @Test
     public void toString_managedMode() {
-        StringBuilder sb = new StringBuilder("Dog@[");
+        StringBuilder sb = new StringBuilder("RealmList<Dog>@[");
         for (int i = 0; i < collection.size() - 1; i++) {
             sb.append(((RealmObjectProxy) (collection.get(i))).realmGet$proxyState().getRow$realm().getIndex());
             sb.append(",");
