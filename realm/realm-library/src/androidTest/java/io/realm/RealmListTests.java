@@ -894,6 +894,7 @@ public class RealmListTests extends CollectionTests {
         dynamicRealm.beginTransaction();
         RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
                 .getList(Owner.FIELD_DOGS);
+        list.add(dynamicRealm.createObject(Dog.CLASS_NAME));
         DynamicRealmObject dynCat = dynamicRealm.createObject(Cat.CLASS_NAME);
 
         try {
@@ -934,6 +935,7 @@ public class RealmListTests extends CollectionTests {
         dynamicRealm.beginTransaction();
         RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
                 .getList(Owner.FIELD_DOGS);
+        list.add(dynamicRealm.createObject(Dog.CLASS_NAME));
 
         try {
             list.add(dynDog);
