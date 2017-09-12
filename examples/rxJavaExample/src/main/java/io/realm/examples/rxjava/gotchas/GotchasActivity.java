@@ -16,24 +16,21 @@
 
 package io.realm.examples.rxjava.gotchas;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.List;
 import java.util.Random;
 
+import io.reactivex.Flowable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 import io.realm.Sort;
 import io.realm.examples.rxjava.R;
 import io.realm.examples.rxjava.model.Person;
-import rx.Observable;
-import rx.Subscription;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.CompositeSubscription;
 
 /**
  * This class shows some of the current obstacles when combining RxJava and Realm. 2 things are
@@ -52,151 +49,95 @@ import rx.subscriptions.CompositeSubscription;
  * - https://github.com/realm/realm-java/issues/1208
  * - https://github.com/realm/realm-java/issues/931
  */
-public class GotchasActivity extends Activity {
+public class GotchasActivity extends AppCompatActivity {
     private Realm realm;
-    private Subscription subscription;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private ViewGroup container;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gotchas);
-        container = (ViewGroup) findViewById(R.id.list);
+        container = findViewById(R.id.list);
         realm = Realm.getDefaultInstance();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        Subscription distinctSubscription = testDistinct();
-        Subscription bufferSubscription = testBuffer();
-        Subscription subscribeOnSubscription = testSubscribeOn();
+        testDistinct();
+        testBuffer();
+        testSubscribeOn();
 
         // Trigger updates
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.where(Person.class).findAllSorted( "name", Sort.ASCENDING).get(0).setAge(new Random().nextInt(100));
-            }
-        });
-
-        subscription = new CompositeSubscription(
-                distinctSubscription,
-                bufferSubscription,
-                subscribeOnSubscription
-        );
+        realm.executeTransaction(r ->
+                r.where(Person.class).findAllSorted( "name", Sort.ASCENDING).get(0).setAge(new Random().nextInt(100)));
     }
 
     /**
      * Shows how to be careful with `subscribeOn()`
      */
-    private Subscription testSubscribeOn() {
-        Subscription subscribeOn = realm.asObservable()
-                .map(new Func1<Realm, Person>() {
-                    @Override
-                    public Person call(Realm realm) {
-                        return realm.where(Person.class).findAllSorted("name").get(0);
-                    }
-                })
+    private void testSubscribeOn() {
+        Disposable subscribeOnDisposable = realm.asFlowable()
+                .map(realm -> realm.where(Person.class).findAllSorted("name").get(0))
                 // The Realm was created on the UI thread. Accessing it on `Schedulers.io()` will crash.
                 // Avoid using subscribeOn() and use Realms `findAllAsync*()` methods instead.
                 .subscribeOn(Schedulers.io()) //
-                .subscribe(new Action1<Person>() {
-                    @Override
-                    public void call(Person person) {
-                        // Do nothing
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        showStatus("subscribeOn: " + throwable.toString());
-                    }
-                });
+                .subscribe(
+                        person -> {}, // Do nothing
+                        throwable -> showStatus("subscribeOn: " + throwable.toString())
+                );
+        compositeDisposable.add(subscribeOnDisposable);
 
         // Use Realms Async API instead
-        Subscription asyncSubscribeOn = realm.where(Person.class).findAllSortedAsync("name").get(0).<Person>asObservable()
-                .subscribe(new Action1<Person>() {
-                    @Override
-                    public void call(Person person) {
-                        showStatus("subscribeOn/async: " + person.getName() + ":" + person.getAge());
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        showStatus("subscribeOn/async: " + throwable.toString());
-                    }
-                });
-
-        return new CompositeSubscription(subscribeOn, asyncSubscribeOn);
+        Disposable asyncSubscribeOnDisposable = realm.where(Person.class).findAllSortedAsync("name").get(0).<Person>asFlowable()
+                .subscribe(
+                        person -> showStatus("subscribeOn/async: " + person.getName() + ":" + person.getAge()),
+                        throwable -> showStatus("subscribeOn/async: " +throwable.toString())
+                );
+        compositeDisposable.add(asyncSubscribeOnDisposable);
     }
 
     /**
      * Shows how to be careful with `buffer()`
      */
-    private Subscription testBuffer() {
-        Observable<Person> personObserver = realm.asObservable().map(new Func1<Realm, Person>() {
-            @Override
-            public Person call(Realm realm) {
-                return realm.where(Person.class).findAllSorted("name").get(0);
-            }
-        });
+    private void testBuffer() {
+        Flowable<Person> personFlowable =
+                realm.asFlowable().map(realm -> realm.where(Person.class).findAllSorted("name").get(0));
 
         // buffer() caches objects until the buffer is full. Due to Realms auto-update of all objects it means
         // that all objects in the cache will contain the same data.
         // Either avoid using buffer or copy data into an unmanaged object.
-        return personObserver
+        Disposable disposable = personFlowable
                 .buffer(2)
-                .subscribe(new Action1<List<Person>>() {
-                    @Override
-                    public void call(List<Person> persons) {
-                        showStatus("Buffer[0] : " + persons.get(0).getName() + ":" + persons.get(0).getAge());
-                        showStatus("Buffer[1] : " + persons.get(1).getName() + ":" + persons.get(1).getAge());
-                    }
+                .subscribe(people -> {
+                    showStatus("Buffer[0] : " + people.get(0).getName() + ":" + people.get(0).getAge());
+                    showStatus("Buffer[1] : " + people.get(1).getName() + ":" + people.get(1).getAge());
                 });
+        compositeDisposable.add(disposable);
     }
 
     /**
      * Shows how to to be careful when using `distinct()`
      */
-    private Subscription testDistinct() {
-        Observable<Person> personObserver = realm.asObservable().map(new Func1<Realm, Person>() {
-            @Override
-            public Person call(Realm realm) {
-                return realm.where(Person.class).findAllSorted("name").get(0);
-            }
-        });
+    private void testDistinct() {
+        Flowable<Person> personFlowable =
+                realm.asFlowable().map(realm -> realm.where(Person.class).findAllSorted("name").get(0));
 
         // distinct() and distinctUntilChanged() uses standard equals with older objects stored in a HashMap.
         // Realm objects auto-update which means the objects stored will also auto-update.
         // This makes comparing against older objects impossible (even if the new object has changed) because the
         // cached object will also have changed.
         // Use a keySelector function to work around this.
-        Subscription distinctItemTest = personObserver
+        Disposable distinctDisposable = personFlowable
                 .distinct() // Because old == new. This will only allow the first version of the "Chris" object to pass.
-                .subscribe(new Action1<Person>() {
-                    @Override
-                    public void call(Person p) {
-                        showStatus("distinct(): " + p.getName() + ":" + p.getAge());
-                    }
-                });
+                .subscribe(person -> showStatus("distinct(): " + person.getName() + ":" + person.getAge()));
+        compositeDisposable.add(distinctDisposable);
 
-        Subscription distinctKeySelectorItemTest = personObserver
-                .distinct(new Func1<Person, Integer>() { // Use a keySelector function instead
-                    @Override
-                    public Integer call(Person p) {
-                        return p.getAge();
-                    }
-                })
-                .subscribe(new Action1<Person>() {
-                    @Override
-                    public void call(Person p) {
-                        showStatus("distinct(keySelector): " + p.getName() + ":" + p.getAge());
-                    }
-                });
-
-
-        return new CompositeSubscription(distinctItemTest, distinctKeySelectorItemTest);
+        Disposable distinctKeySelectorDisposable = personFlowable
+                .distinct(person -> person.getAge())
+                .subscribe(person -> showStatus("distinct(keySelector): " + person.getName() + ":" + person.getAge()));
+        compositeDisposable.add(distinctKeySelectorDisposable);
     }
 
     private void showStatus(String message) {
@@ -208,7 +149,7 @@ public class GotchasActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        subscription.unsubscribe();
+        compositeDisposable.clear();
     }
 
     @Override
@@ -216,5 +157,4 @@ public class GotchasActivity extends Activity {
         super.onDestroy();
         realm.close();
     }
-
 }
