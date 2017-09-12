@@ -3,7 +3,7 @@ FROM node:6.11.2
 ARG ROS_DE_VERSION
 
 # Install realm object server
-RUN npm install realm-object-server@$ROS_DE_VERSION
+RUN npm install -g realm-object-server@$ROS_DE_VERSION -S
 
 # Install test server dependencies
 RUN npm install winston temp httpdispatcher@1.0.0
