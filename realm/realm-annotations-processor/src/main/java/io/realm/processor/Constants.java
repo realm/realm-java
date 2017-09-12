@@ -43,41 +43,38 @@ public class Constants {
      * Realm types and their corresponding Java types
      */
     public enum RealmFieldType {
-        NOTYPE(null, "Void", false),
-        INTEGER("INTEGER", "Long", false),
-        FLOAT("FLOAT", "Float", false),
-        DOUBLE("DOUBLE", "Double", false),
-        BOOLEAN("BOOLEAN", "Boolean", false),
-        STRING("STRING", "String", false),
-        DATE("DATE", "Date", false),
-        BINARY("BINARY", "BinaryByteArray", false),
-        REALM_INTEGER("INTEGER", "Long", false),
-        OBJECT("OBJECT", "Object", false),
-        LIST("LIST", "List", true),
+        NOTYPE(null, "Void"),
+        INTEGER("INTEGER", "Long"),
+        FLOAT("FLOAT", "Float"),
+        DOUBLE("DOUBLE", "Double"),
+        BOOLEAN("BOOLEAN", "Boolean"),
+        STRING("STRING", "String"),
+        DATE("DATE", "Date"),
+        BINARY("BINARY", "BinaryByteArray"),
+        REALM_INTEGER("INTEGER", "Long"),
+        OBJECT("OBJECT", "Object"),
+        LIST("LIST", "List"),
 
-        BACKLINK("LINKING_OBJECTS", null, true),
+        BACKLINK("LINKING_OBJECTS", null),
 
-        INTEGER_LIST("INTEGER_LIST", "List", true),
-        BOOLEAN_LIST("BOOLEAN_LIST", "List", true),
-        STRING_LIST("STRING_LIST", "List", true),
-        BINARY_LIST("BINARY_LIST", "List", true),
-        DATE_LIST("DATE_LIST", "List", true),
-        FLOAT_LIST("FLOAT_LIST", "List", true),
-        DOUBLE_LIST("DOUBLE_LIST", "List", true);
+        INTEGER_LIST("INTEGER_LIST", "List"),
+        BOOLEAN_LIST("BOOLEAN_LIST", "List"),
+        STRING_LIST("STRING_LIST", "List"),
+        BINARY_LIST("BINARY_LIST", "List"),
+        DATE_LIST("DATE_LIST", "List"),
+        FLOAT_LIST("FLOAT_LIST", "List"),
+        DOUBLE_LIST("DOUBLE_LIST", "List");
 
         private final String realmType;
         private final String javaType;
-        private final boolean isList;
 
         /**
          * @param realmType The simple name of the Enum type used in the Java bindings, to represent this type.
          * @param javaType The simple name of the Java type needed to store this Realm Type
-         * @param isList {@code true} is the type represents list (that can contain multiple values).
          */
-        RealmFieldType(String realmType, String javaType, boolean isList) {
+        RealmFieldType(String realmType, String javaType) {
             this.realmType = "RealmFieldType." + realmType;
             this.javaType = javaType;
-            this.isList = isList;
         }
 
         /**
@@ -94,14 +91,6 @@ public class Constants {
          */
         public String getJavaType() {
             return javaType;
-        }
-
-        /**
-         * The type is List or not.
-         * @return {@code true} is the type represents list (that can contain multiple values).
-         */
-        public boolean isList() {
-            return isList;
         }
     }
 

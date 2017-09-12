@@ -76,6 +76,7 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(J
     if (column_type != type_Table) {
         return static_cast<jint>(column_type);
     }
+    // FIXME: Add test in https://github.com/realm/realm-java/pull/5221 before merging to master
     return static_cast<jint>(ROW(nativeRowPtr)->get_table()->get_descriptor()->get_subdescriptor(S(columnIndex))->get_column_type(S(0))
                              + io_realm_internal_Property_TYPE_ARRAY); // noexcept
 }
