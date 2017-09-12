@@ -26,7 +26,6 @@ import java.util.Random;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 import io.realm.Sort;
@@ -52,7 +51,7 @@ import io.realm.examples.rxjava.model.Person;
  */
 public class GotchasActivity extends AppCompatActivity {
     private Realm realm;
-    private Disposable disposables;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private ViewGroup container;
 
     @Override
@@ -66,23 +65,20 @@ public class GotchasActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-        Disposable distinctDisposable = testDistinct();
-        Disposable bufferDisposable = testBuffer();
-        Disposable subscribeOnDisposable = testSubscribeOn();
+        testDistinct();
+        testBuffer();
+        testSubscribeOn();
 
         // Trigger updates
         realm.executeTransaction(r ->
                 r.where(Person.class).findAllSorted( "name", Sort.ASCENDING).get(0).setAge(new Random().nextInt(100)));
-
-        disposables = new CompositeDisposable(distinctDisposable, bufferDisposable, subscribeOnDisposable);
     }
 
     /**
      * Shows how to be careful with `subscribeOn()`
      */
-    private Disposable testSubscribeOn() {
-        Disposable subscribeOn = realm.asFlowable()
+    private void testSubscribeOn() {
+        Disposable subscribeOnDisposable = realm.asFlowable()
                 .map(realm -> realm.where(Person.class).findAllSorted("name").get(0))
                 // The Realm was created on the UI thread. Accessing it on `Schedulers.io()` will crash.
                 // Avoid using subscribeOn() and use Realms `findAllAsync*()` methods instead.
@@ -91,39 +87,40 @@ public class GotchasActivity extends AppCompatActivity {
                         person -> {}, // Do nothing
                         throwable -> showStatus("subscribeOn: " + throwable.toString())
                 );
+        compositeDisposable.add(subscribeOnDisposable);
 
         // Use Realms Async API instead
-        Disposable asyncSubscribeOn = realm.where(Person.class).findAllSortedAsync("name").get(0).<Person>asFlowable()
+        Disposable asyncSubscribeOnDisposable = realm.where(Person.class).findAllSortedAsync("name").get(0).<Person>asFlowable()
                 .subscribe(
                         person -> showStatus("subscribeOn/async: " + person.getName() + ":" + person.getAge()),
                         throwable -> showStatus("subscribeOn/async: " +throwable.toString())
                 );
-
-        return new CompositeDisposable(subscribeOn, asyncSubscribeOn);
+        compositeDisposable.add(asyncSubscribeOnDisposable);
     }
 
     /**
      * Shows how to be careful with `buffer()`
      */
-    private Disposable testBuffer() {
+    private void testBuffer() {
         Flowable<Person> personFlowable =
                 realm.asFlowable().map(realm -> realm.where(Person.class).findAllSorted("name").get(0));
 
         // buffer() caches objects until the buffer is full. Due to Realms auto-update of all objects it means
         // that all objects in the cache will contain the same data.
         // Either avoid using buffer or copy data into an unmanaged object.
-        return personFlowable
+        Disposable disposable = personFlowable
                 .buffer(2)
                 .subscribe(people -> {
                     showStatus("Buffer[0] : " + people.get(0).getName() + ":" + people.get(0).getAge());
                     showStatus("Buffer[1] : " + people.get(1).getName() + ":" + people.get(1).getAge());
                 });
+        compositeDisposable.add(disposable);
     }
 
     /**
      * Shows how to to be careful when using `distinct()`
      */
-    private Disposable testDistinct() {
+    private void testDistinct() {
         Flowable<Person> personFlowable =
                 realm.asFlowable().map(realm -> realm.where(Person.class).findAllSorted("name").get(0));
 
@@ -132,15 +129,15 @@ public class GotchasActivity extends AppCompatActivity {
         // This makes comparing against older objects impossible (even if the new object has changed) because the
         // cached object will also have changed.
         // Use a keySelector function to work around this.
-        Disposable distinctItemTest = personFlowable
+        Disposable distinctDisposable = personFlowable
                 .distinct() // Because old == new. This will only allow the first version of the "Chris" object to pass.
                 .subscribe(person -> showStatus("distinct(): " + person.getName() + ":" + person.getAge()));
+        compositeDisposable.add(distinctDisposable);
 
-        Disposable distinctKeySelectorItemTest = personFlowable
-                .distinct((Function<Person, Object>) person -> person.getAge())
+        Disposable distinctKeySelectorDisposable = personFlowable
+                .distinct(person -> person.getAge())
                 .subscribe(person -> showStatus("distinct(keySelector): " + person.getName() + ":" + person.getAge()));
-
-        return new CompositeDisposable(distinctItemTest, distinctKeySelectorItemTest);
+        compositeDisposable.add(distinctKeySelectorDisposable);
     }
 
     private void showStatus(String message) {
@@ -152,7 +149,7 @@ public class GotchasActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        disposables.dispose();
+        compositeDisposable.clear();
     }
 
     @Override

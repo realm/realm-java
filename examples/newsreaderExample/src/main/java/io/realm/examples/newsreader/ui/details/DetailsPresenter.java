@@ -33,7 +33,7 @@ public class DetailsPresenter implements Presenter {
     private final DetailsActivity view;
     private final Model model;
     private final String storyId;
-    private CompositeDisposable disposables;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     public DetailsPresenter(DetailsActivity detailsActivity, Model model, String storyId) {
         this.storyId = storyId;
@@ -49,24 +49,24 @@ public class DetailsPresenter implements Presenter {
     @Override
     public void onResume() {
         // Show story details
-        Disposable detailsSubscription = model.getStory(storyId)
+        Disposable detailsDisposable = model.getStory(storyId)
                 .subscribe(story -> {
                     view.hideLoader();
                     view.showStory(story);
                     view.setRead(story.isRead());
                 });
+        compositeDisposable.add(detailsDisposable);
 
         // Mark story as read if screen is visible for 2 seconds
-        Disposable timerSubscription = Observable.timer(2, TimeUnit.SECONDS)
+        Disposable timberDisposable = Observable.timer(2, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(aLong -> model.markAsRead(storyId, true));
-
-        disposables = new CompositeDisposable(detailsSubscription, timerSubscription);
+        compositeDisposable.add(timberDisposable);
     }
 
     @Override
     public void onPause() {
-        disposables.dispose();
+        compositeDisposable.clear();
     }
 
     @Override
