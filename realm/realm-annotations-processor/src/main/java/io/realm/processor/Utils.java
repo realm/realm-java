@@ -175,7 +175,8 @@ public class Utils {
     }
 
     /**
-     * @return {@code true} if a given field type is {@code RealmList} and its value type is Realm Object, {@code false} otherwise.
+     * @return {@code true} if a given field type is {@code RealmList} and its element type is {@Code RealmObject},
+     * {@code false} otherwise.
      */
     public static boolean isRealmModelList(VariableElement field) {
         final TypeMirror elementTypeMirror = getRealmListElementTypeMirror(field);
@@ -186,7 +187,8 @@ public class Utils {
     }
 
     /**
-     * @return {@code true} if a given field type is {@code RealmList} and its value type is Realm Object, {@code false} otherwise.
+     * @return {@code true} if a given field type is {@code RealmList} and its element type is value type,
+     * {@code false} otherwise.
      */
     public static boolean isRealmValueList(VariableElement field) {
         final TypeMirror elementTypeMirror = getRealmListElementTypeMirror(field);

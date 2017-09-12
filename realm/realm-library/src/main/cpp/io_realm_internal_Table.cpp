@@ -167,8 +167,9 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
     }
 
     size_t column_index = S(columnIndex);
-    if (table->get_column_type(S(columnIndex)) != type_Table) {
-        return to_jbool(table->is_nullable(column_index)); // noexcept
+    // FIXME: Add test in https://github.com/realm/realm-java/pull/5221 before merging to master
+    if (table->get_column_type(S(columnIndex)) == type_Table) {
+        return false; // Primitive list is always not-nullable.
     }
     return to_jbool(table->get_descriptor()->get_subdescriptor(S(columnIndex))->is_nullable(S(0))); // noexcept
 }
@@ -513,6 +514,8 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv* 
     if (column_type != type_Table) {
         return static_cast<jint>(column_type);
     }
+    // FIXME: Add test in https://github.com/realm/realm-java/pull/5221 before merging to master
+    // FIXME: Add method in Object Store to return a PropertyType.
     return static_cast<jint>(TBL(nativeTablePtr)->get_descriptor()->get_subdescriptor(S(columnIndex))->get_column_type(S(0))
                              + io_realm_internal_Property_TYPE_ARRAY); // noexcept
 }
