@@ -726,14 +726,14 @@ public class RealmProxyClassGenerator {
 
                 case OBJECT:
                     String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
-                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.OBJECT, \"%s\")",
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.OBJECT, \"%s\", !Property.REQUIRED)",
                             fieldName, fieldTypeSimpleName);
                     break;
 
                 case LIST:
                     // only for model list.
                     String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, \"%s\", !Property.REQUIRED)",
                             fieldName, genericTypeSimpleName);
                     break;
 
@@ -744,8 +744,8 @@ public class RealmProxyClassGenerator {
                 case DATE_LIST:
                 case FLOAT_LIST:
                 case DOUBLE_LIST:
-                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", %s, \"%s\")",
-                            fieldName, fieldType.getRealmType(), "");
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", %s, \"%s\", %s)",
+                            fieldName, fieldType.getRealmType(), "", metadata.isElementNullable(field) ? "!Property.REQUIRED" : "Property.REQUIRED");
                     break;
 
                 case BACKLINK:

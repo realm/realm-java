@@ -51,13 +51,13 @@ public class OsListTests {
     @Before
     public void setUp() {
         OsObjectSchemaInfo objectSchemaInfo = new OsObjectSchemaInfo.Builder("TestModel")
-                .addPersistedLinkProperty("longList", RealmFieldType.INTEGER_LIST, null)
-                .addPersistedLinkProperty("doubleList", RealmFieldType.DOUBLE_LIST, null)
-                .addPersistedLinkProperty("floatList", RealmFieldType.FLOAT_LIST, null)
-                .addPersistedLinkProperty("booleanList", RealmFieldType.BOOLEAN_LIST, null)
-                .addPersistedLinkProperty("binaryList", RealmFieldType.BINARY_LIST, null)
-                .addPersistedLinkProperty("dateList", RealmFieldType.DATE_LIST, null)
-                .addPersistedLinkProperty("stringList", RealmFieldType.STRING_LIST, null)
+                .addPersistedLinkProperty("longList", RealmFieldType.INTEGER_LIST, null, !Property.REQUIRED)
+                .addPersistedLinkProperty("doubleList", RealmFieldType.DOUBLE_LIST, null, !Property.REQUIRED)
+                .addPersistedLinkProperty("floatList", RealmFieldType.FLOAT_LIST, null, !Property.REQUIRED)
+                .addPersistedLinkProperty("booleanList", RealmFieldType.BOOLEAN_LIST, null, !Property.REQUIRED)
+                .addPersistedLinkProperty("binaryList", RealmFieldType.BINARY_LIST, null, !Property.REQUIRED)
+                .addPersistedLinkProperty("dateList", RealmFieldType.DATE_LIST, null, !Property.REQUIRED)
+                .addPersistedLinkProperty("stringList", RealmFieldType.STRING_LIST, null, !Property.REQUIRED)
                 .build();
         List<OsObjectSchemaInfo> objectSchemaInfoList = new ArrayList<OsObjectSchemaInfo>();
         objectSchemaInfoList.add(objectSchemaInfo);
