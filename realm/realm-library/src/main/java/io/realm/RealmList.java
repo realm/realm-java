@@ -1304,7 +1304,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         }
 
         final Class<?> componentType = a.getClass().getComponentType();
-        final OsList osList = osListOperator.getOsList();
         final int size = size();
         if (componentType == String.class) {
             if (a.length < size) {
@@ -1330,6 +1329,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                     //noinspection unchecked
                     a[i] = (T) e;
                 } else {
+                    if (!(e instanceof Number)) {
+                        throw new ArrayStoreException(String.format(Locale.ENGLISH,
+                                "The element of type %1$s can't be stored into the array of %2$s",
+                                e.getClass().getName(), a.getClass().getComponentType()));
+                    }
                     //noinspection unchecked
                     a[i] = (T) Long.valueOf(((Number) e).longValue());
                 }
@@ -1348,8 +1352,13 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
                 if (e == null || e instanceof Integer) {
                     //noinspection unchecked
-                    a[i] = null;
+                    a[i] = (T) e;
                 } else {
+                    if (!(e instanceof Number)) {
+                        throw new ArrayStoreException(String.format(Locale.ENGLISH,
+                                "The element of type %1$s can't be stored into the array of %2$s",
+                                e.getClass().getName(), a.getClass().getComponentType()));
+                    }
                     //noinspection unchecked
                     a[i] = (T) Integer.valueOf(((Number) e).intValue());
                 }
@@ -1367,8 +1376,13 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 final E e = osListOperator.get(i);
                 if (e == null || e instanceof Short) {
                     //noinspection unchecked
-                    a[i] = null;
+                    a[i] = (T) e;
                 } else {
+                    if (!(e instanceof Number)) {
+                        throw new ArrayStoreException(String.format(Locale.ENGLISH,
+                                "The element of type %1$s can't be stored into the array of %2$s",
+                                e.getClass().getName(), a.getClass().getComponentType()));
+                    }
                     //noinspection unchecked
                     a[i] = (T) Short.valueOf(((Number) e).shortValue());
                 }
@@ -1386,8 +1400,13 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 final E e = osListOperator.get(i);
                 if (e == null || e instanceof Byte) {
                     //noinspection unchecked
-                    a[i] = null;
+                    a[i] = (T) e;
                 } else {
+                    if (!(e instanceof Number)) {
+                        throw new ArrayStoreException(String.format(Locale.ENGLISH,
+                                "The element of type %1$s can't be stored into the array of %2$s",
+                                e.getClass().getName(), a.getClass().getComponentType()));
+                    }
                     //noinspection unchecked
                     a[i] = (T) Byte.valueOf(((Number) e).byteValue());
                 }
@@ -1405,8 +1424,13 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 final E e = osListOperator.get(i);
                 if (e == null || e instanceof Double) {
                     //noinspection unchecked
-                    a[i] = null;
+                    a[i] = (T) e;
                 } else {
+                    if (!(e instanceof Number)) {
+                        throw new ArrayStoreException(String.format(Locale.ENGLISH,
+                                "The element of type %1$s can't be stored into the array of %2$s",
+                                e.getClass().getName(), a.getClass().getComponentType()));
+                    }
                     //noinspection unchecked
                     a[i] = (T) Double.valueOf(((Number) e).doubleValue());
                 }
@@ -1424,8 +1448,13 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 final E e = osListOperator.get(i);
                 if (e == null || e instanceof Float) {
                     //noinspection unchecked
-                    a[i] = null;
+                    a[i] = (T) e;
                 } else {
+                    if (!(e instanceof Number)) {
+                        throw new ArrayStoreException(String.format(Locale.ENGLISH,
+                                "The element of type %1$s can't be stored into the array of %2$s",
+                                e.getClass().getName(), a.getClass().getComponentType()));
+                    }
                     //noinspection unchecked
                     a[i] = (T) Float.valueOf(((Number) e).floatValue());
                 }
