@@ -169,7 +169,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
 
     if (table->get_column_type(S(columnIndex)) != type_Table) {
         // for other than primitive list (including object, object list).
-        return to_jbool(table->is_nullable(column_index)); // noexcept
+        return to_jbool(table->is_nullable(S(columnIndex))); // noexcept
     }
     // For primitive list
     // FIXME: Add test in https://github.com/realm/realm-java/pull/5221 before merging to master
