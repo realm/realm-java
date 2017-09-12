@@ -15,7 +15,9 @@ android {
     }
     buildTypes {
         release {
+            // FIXME: Fix the proguard with 3rd party libs
             minifyEnabled false
+            signingConfig signingConfigs.debug
         }
     }
     command {
