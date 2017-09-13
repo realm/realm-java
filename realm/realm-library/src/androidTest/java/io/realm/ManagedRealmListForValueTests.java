@@ -956,7 +956,57 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     }
 
     @Test
-    @Ignore
+    public void add_null_nonNullableListThrows() {
+        if (typeIsNullable) {
+            return;
+        }
+
+        realm.beginTransaction();
+        final int initialSize = list.size();
+        try {
+            //thrown.expect(IllegalArgumentException.class);
+            //noinspection unchecked
+            list.add(null);
+        } finally {
+            assertEquals(initialSize, list.size());
+        }
+    }
+
+    @Test
+    public void addAt_null_nonNullableListThrows() {
+        if (typeIsNullable) {
+            return;
+        }
+
+        realm.beginTransaction();
+        final int initialSize = list.size();
+        try {
+            thrown.expect(IllegalArgumentException.class);
+            //noinspection unchecked
+            list.add(1, null);
+        } finally {
+            assertEquals(initialSize, list.size());
+        }
+    }
+
+    @Test
+    public void set_null_nonNullableListThrows() {
+        if (typeIsNullable) {
+            return;
+        }
+
+        realm.beginTransaction();
+        final int initialSize = list.size();
+        try {
+            thrown.expect(IllegalArgumentException.class);
+            //noinspection unchecked
+            list.set(0, null);
+        } finally {
+            assertEquals(initialSize, list.size());
+        }
+    }
+
+    @Test
     @RunTestInLooperThread
     public void changeListener_forAddObject() {
         Realm realm = looperThread.getRealm();
@@ -1206,7 +1256,6 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     }
 
     @Test
-    @Ignore("unexpected native crash")
     @RunTestInLooperThread
     public void changeListener_forRemoveAll() {
         Realm realm = looperThread.getRealm();
@@ -1308,7 +1357,6 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     }
 
     @Test
-    @Ignore("unexpected native crash")
     @RunTestInLooperThread
     public void changeListener_forDeleteAll() {
         Realm realm = looperThread.getRealm();
