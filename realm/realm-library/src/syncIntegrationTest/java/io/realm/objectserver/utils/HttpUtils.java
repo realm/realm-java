@@ -20,6 +20,7 @@ import android.util.Log;
 
 import java.io.IOException;
 
+import io.realm.log.RealmLog;
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -75,15 +76,15 @@ public class HttpUtils {
         // Dummy invalid request, which will trigger a 400 (BAD REQUEST), but indicate the auth
         // server is responsive
         Request request = new Request.Builder()
-                .url(Constants.AUTH_SERVER_URL)
+                .url(Constants.AUTH_URL)
                 .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), ""))
                 .build();
 
-        while (retryTimes != 0) {
+        while (retryTimes > 0) {
             Response response = null;
             try {
                 response = client.newCall(request).execute();
-                if (response.isSuccessful()) {
+                if (response.code() == 400) {
                     return true;
                 }
             } catch (IOException e) {
