@@ -600,8 +600,10 @@ public class RealmSchemaTests {
             final RealmFieldType expectedType = entry.getValue();
 
             assertEquals(expectedType, objectSchema.getFieldType(fieldName));
-            assertEquals(!fieldName.endsWith("_NOT_NULL"), objectSchema.isNullable(fieldName));
-            assertEquals(fieldName.endsWith("_NOT_NULL"), objectSchema.isRequired(fieldName));
+            assertEquals("isNullable('" + fieldName + "')",
+                    !fieldName.endsWith("NotNull"), objectSchema.isNullable(fieldName));
+            assertEquals("isRequired('" + fieldName + "')",
+                    fieldName.endsWith("NotNull"), objectSchema.isRequired(fieldName));
             assertFalse(objectSchema.isPrimaryKey(fieldName));
         }
     }
