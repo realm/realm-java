@@ -64,8 +64,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.Nullable;
-
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -120,7 +118,6 @@ import static io.realm.TestHelper.testOneObjectFound;
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
@@ -130,7 +127,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 
 
 @RunWith(AndroidJUnit4.class)
@@ -1304,6 +1300,14 @@ public class RealmTests {
         allTypes.setColumnRealmObject(dog);
         allTypes.setColumnRealmList(list);
 
+        allTypes.setColumnStringList(new RealmList<String>("1"));
+        allTypes.setColumnBinaryList(new RealmList<byte[]>(new byte[] {1}));
+        allTypes.setColumnBooleanList(new RealmList<Boolean>(true));
+        allTypes.setColumnLongList(new RealmList<Long>(1L));
+        allTypes.setColumnDoubleList(new RealmList<Double>(1D));
+        allTypes.setColumnFloatList(new RealmList<Float>(1F));
+        allTypes.setColumnDateList(new RealmList<Date>(new Date(1L)));
+
         realm.beginTransaction();
         AllTypes realmTypes = realm.copyToRealm(allTypes);
         realm.commitTransaction();
@@ -1318,7 +1322,22 @@ public class RealmTests {
         assertArrayEquals(allTypes.getColumnBinary(), realmTypes.getColumnBinary());
         assertEquals(allTypes.getColumnRealmObject().getName(), dog.getName());
         assertEquals(list.size(), realmTypes.getColumnRealmList().size());
+        //noinspection ConstantConditions
         assertEquals(list.get(0).getName(), realmTypes.getColumnRealmList().get(0).getName());
+        assertEquals(1, realmTypes.getColumnStringList().size());
+        assertEquals("1", realmTypes.getColumnStringList().get(0));
+        assertEquals(1, realmTypes.getColumnBooleanList().size());
+        assertEquals(true, realmTypes.getColumnBooleanList().get(0));
+        assertEquals(1, realmTypes.getColumnBinaryList().size());
+        assertTrue(Arrays.equals(new byte[] {1}, realmTypes.getColumnBinaryList().get(0)));
+        assertEquals(1, realmTypes.getColumnLongList().size());
+        assertEquals((Long) 1L, realmTypes.getColumnLongList().get(0));
+        assertEquals(1, realmTypes.getColumnDoubleList().size());
+        assertEquals((Double) 1D, realmTypes.getColumnDoubleList().get(0));
+        assertEquals(1, realmTypes.getColumnFloatList().size());
+        assertEquals((Float) 1F, realmTypes.getColumnFloatList().get(0));
+        assertEquals(1, realmTypes.getColumnDateList().size());
+        assertEquals(new Date(1), realmTypes.getColumnDateList().get(0));
     }
 
     @Test
@@ -1393,8 +1412,8 @@ public class RealmTests {
         oneCyclicType.setName("One");
         CyclicType anotherCyclicType = new CyclicType();
         anotherCyclicType.setName("Two");
-        oneCyclicType.setObjects(new RealmList(anotherCyclicType));
-        anotherCyclicType.setObjects(new RealmList(oneCyclicType));
+        oneCyclicType.setObjects(new RealmList<>(anotherCyclicType));
+        anotherCyclicType.setObjects(new RealmList<>(oneCyclicType));
 
         realm.beginTransaction();
         CyclicType realmObject = realm.copyToRealm(oneCyclicType);
@@ -1414,6 +1433,15 @@ public class RealmTests {
         assertEquals("", realmTypes.getColumnString());
         assertEquals(new Date(0), realmTypes.getColumnDate());
         assertArrayEquals(new byte[0], realmTypes.getColumnBinary());
+
+        assertNotNull(realmTypes.getColumnRealmList());
+        assertNotNull(realmTypes.getColumnStringList());
+        assertNotNull(realmTypes.getColumnBinaryList());
+        assertNotNull(realmTypes.getColumnBooleanList());
+        assertNotNull(realmTypes.getColumnLongList());
+        assertNotNull(realmTypes.getColumnDoubleList());
+        assertNotNull(realmTypes.getColumnFloatList());
+        assertNotNull(realmTypes.getColumnDateList());
     }
 
     // Check that using copyToRealm will set the primary key directly instead of first setting
@@ -1713,6 +1741,13 @@ public class RealmTests {
                 obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
                 obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
                 obj.setColumnBoxedBoolean(true);
+                obj.setColumnStringList(new RealmList<>("1"));
+                obj.setColumnBooleanList(new RealmList<>(false));
+                obj.setColumnBinaryList(new RealmList<>(new byte[] {1}));
+                obj.setColumnLongList(new RealmList<>(1L));
+                obj.setColumnDoubleList(new RealmList<>(1D));
+                obj.setColumnFloatList(new RealmList<>(1F));
+                obj.setColumnDateList(new RealmList<>(new Date(1L)));
                 realm.copyToRealm(obj);
 
                 AllTypesPrimaryKey obj2 = new AllTypesPrimaryKey();
@@ -1726,6 +1761,13 @@ public class RealmTests {
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
                 obj2.setColumnBoxedBoolean(false);
+                obj2.setColumnStringList(new RealmList<>("2", "3"));
+                obj2.setColumnBooleanList(new RealmList<>(true, false));
+                obj2.setColumnBinaryList(new RealmList<>(new byte[] {2}, new byte[] {3}));
+                obj2.setColumnLongList(new RealmList<>(2L, 3L));
+                obj2.setColumnDoubleList(new RealmList<>(2D, 3D));
+                obj2.setColumnFloatList(new RealmList<>(2F, 3F));
+                obj2.setColumnDateList(new RealmList<>(new Date(2L), new Date(3L)));
                 realm.copyToRealmOrUpdate(obj2);
             }
         });
@@ -1745,6 +1787,27 @@ public class RealmTests {
         assertEquals(1, obj.getColumnRealmList().size());
         assertEquals("Dog4", obj.getColumnRealmList().get(0).getName());
         assertFalse(obj.getColumnBoxedBoolean());
+        assertEquals(2, obj.getColumnStringList().size());
+        assertEquals("2", obj.getColumnStringList().get(0));
+        assertEquals("3", obj.getColumnStringList().get(1));
+        assertEquals(2, obj.getColumnBooleanList().size());
+        assertEquals(true, obj.getColumnBooleanList().get(0));
+        assertEquals(false, obj.getColumnBooleanList().get(1));
+        assertEquals(2, obj.getColumnBinaryList().size());
+        assertTrue(Arrays.equals(new byte[] {2}, obj.getColumnBinaryList().get(0)));
+        assertTrue(Arrays.equals(new byte[] {3}, obj.getColumnBinaryList().get(1)));
+        assertEquals(2, obj.getColumnLongList().size());
+        assertEquals((Long) 2L, obj.getColumnLongList().get(0));
+        assertEquals((Long) 3L, obj.getColumnLongList().get(1));
+        assertEquals(2, obj.getColumnDoubleList().size());
+        assertEquals((Double) 2D, obj.getColumnDoubleList().get(0));
+        assertEquals((Double) 3D, obj.getColumnDoubleList().get(1));
+        assertEquals(2, obj.getColumnFloatList().size());
+        assertEquals((Float) 2F, obj.getColumnFloatList().get(0));
+        assertEquals((Float) 3F, obj.getColumnFloatList().get(1));
+        assertEquals(2, obj.getColumnDateList().size());
+        assertEquals(new Date(2L), obj.getColumnDateList().get(0));
+        assertEquals(new Date(3L), obj.getColumnDateList().get(1));
     }
 
     @Test
@@ -2764,6 +2827,17 @@ public class RealmTests {
             list.add(listItem);
             obj.setFieldList(list);
 
+            obj.setFieldStringList(new RealmList<>("2", "3"));
+            obj.setFieldBooleanList(new RealmList<>(true, false));
+            obj.setFieldBinaryList(new RealmList<>(new byte[] {2}, new byte[] {3}));
+            obj.setFieldLongList(new RealmList<>(2L, 3L));
+            obj.setFieldIntegerList(new RealmList<>(2, 3));
+            obj.setFieldShortList(new RealmList<>((short) 2, (short) 3));
+            obj.setFieldByteList(new RealmList<>((byte) 2, (byte) 3));
+            obj.setFieldDoubleList(new RealmList<>(2D, 3D));
+            obj.setFieldFloatList(new RealmList<>(2F, 3F));
+            obj.setFieldDateList(new RealmList<>(new Date(2L), new Date(3L)));
+
             managedObj = realm.copyToRealm(obj);
         }
         realm.commitTransaction();
@@ -2785,6 +2859,37 @@ public class RealmTests {
         assertEquals(fieldObjectIntValue, managedObj.getFieldObject().getFieldInt());
         assertEquals(1, managedObj.getFieldList().size());
         assertEquals(fieldListIntValue, managedObj.getFieldList().first().getFieldInt());
+
+        assertEquals(2, managedObj.getFieldStringList().size());
+        assertEquals("2", managedObj.getFieldStringList().get(0));
+        assertEquals("3", managedObj.getFieldStringList().get(1));
+        assertEquals(2, managedObj.getFieldBooleanList().size());
+        assertEquals(true, managedObj.getFieldBooleanList().get(0));
+        assertEquals(false, managedObj.getFieldBooleanList().get(1));
+        assertEquals(2, managedObj.getFieldBinaryList().size());
+        assertTrue(Arrays.equals(new byte[] {2}, managedObj.getFieldBinaryList().get(0)));
+        assertTrue(Arrays.equals(new byte[] {3}, managedObj.getFieldBinaryList().get(1)));
+        assertEquals(2, managedObj.getFieldLongList().size());
+        assertEquals((Long) 2L, managedObj.getFieldLongList().get(0));
+        assertEquals((Long) 3L, managedObj.getFieldLongList().get(1));
+        assertEquals(2, managedObj.getFieldIntegerList().size());
+        assertEquals((Integer) 2, managedObj.getFieldIntegerList().get(0));
+        assertEquals((Integer) 3, managedObj.getFieldIntegerList().get(1));
+        assertEquals(2, managedObj.getFieldShortList().size());
+        assertEquals((Short) (short) 2, managedObj.getFieldShortList().get(0));
+        assertEquals((Short) (short) 3, managedObj.getFieldShortList().get(1));
+        assertEquals(2, managedObj.getFieldByteList().size());
+        assertEquals((Byte) (byte) 2, managedObj.getFieldByteList().get(0));
+        assertEquals((Byte) (byte) 3, managedObj.getFieldByteList().get(1));
+        assertEquals(2, managedObj.getFieldDoubleList().size());
+        assertEquals((Double) 2D, managedObj.getFieldDoubleList().get(0));
+        assertEquals((Double) 3D, managedObj.getFieldDoubleList().get(1));
+        assertEquals(2, managedObj.getFieldFloatList().size());
+        assertEquals((Float) 2F, managedObj.getFieldFloatList().get(0));
+        assertEquals((Float) 3F, managedObj.getFieldFloatList().get(1));
+        assertEquals(2, managedObj.getFieldDateList().size());
+        assertEquals(new Date(2L), managedObj.getFieldDateList().get(0));
+        assertEquals(new Date(3L), managedObj.getFieldDateList().get(1));
 
         // Makes sure that excess object by default value is not created.
         assertEquals(2, realm.where(RandomPrimaryKey.class).count());
@@ -2820,6 +2925,17 @@ public class RealmTests {
             list.add(listItem);
             obj.setFieldList(list);
 
+            obj.setFieldStringList(new RealmList<>("2", "3"));
+            obj.setFieldBooleanList(new RealmList<>(true, false));
+            obj.setFieldBinaryList(new RealmList<>(new byte[] {2}, new byte[] {3}));
+            obj.setFieldLongList(new RealmList<>(2L, 3L));
+            obj.setFieldIntegerList(new RealmList<>(2, 3));
+            obj.setFieldShortList(new RealmList<>((short) 2, (short) 3));
+            obj.setFieldByteList(new RealmList<>((byte) 2, (byte) 3));
+            obj.setFieldDoubleList(new RealmList<>(2D, 3D));
+            obj.setFieldFloatList(new RealmList<>(2F, 3F));
+            obj.setFieldDateList(new RealmList<>(new Date(2L), new Date(3L)));
+
             managedObj = realm.copyToRealm(obj);
         }
         realm.commitTransaction();
@@ -2841,7 +2957,39 @@ public class RealmTests {
         assertTrue(Arrays.equals(managedObj.getFieldBinary(), copy.getFieldBinary()));
         assertEquals(managedObj.getFieldObject().getFieldInt(), copy.getFieldObject().getFieldInt());
         assertEquals(1, copy.getFieldList().size());
+        //noinspection ConstantConditions
         assertEquals(managedObj.getFieldList().first().getFieldInt(), copy.getFieldList().first().getFieldInt());
+
+        assertEquals(2, managedObj.getFieldStringList().size());
+        assertEquals("2", managedObj.getFieldStringList().get(0));
+        assertEquals("3", managedObj.getFieldStringList().get(1));
+        assertEquals(2, managedObj.getFieldBooleanList().size());
+        assertEquals(true, managedObj.getFieldBooleanList().get(0));
+        assertEquals(false, managedObj.getFieldBooleanList().get(1));
+        assertEquals(2, managedObj.getFieldBinaryList().size());
+        assertTrue(Arrays.equals(new byte[] {2}, managedObj.getFieldBinaryList().get(0)));
+        assertTrue(Arrays.equals(new byte[] {3}, managedObj.getFieldBinaryList().get(1)));
+        assertEquals(2, managedObj.getFieldLongList().size());
+        assertEquals((Long) 2L, managedObj.getFieldLongList().get(0));
+        assertEquals((Long) 3L, managedObj.getFieldLongList().get(1));
+        assertEquals(2, managedObj.getFieldIntegerList().size());
+        assertEquals((Integer) 2, managedObj.getFieldIntegerList().get(0));
+        assertEquals((Integer) 3, managedObj.getFieldIntegerList().get(1));
+        assertEquals(2, managedObj.getFieldShortList().size());
+        assertEquals((Short) (short) 2, managedObj.getFieldShortList().get(0));
+        assertEquals((Short) (short) 3, managedObj.getFieldShortList().get(1));
+        assertEquals(2, managedObj.getFieldByteList().size());
+        assertEquals((Byte) (byte) 2, managedObj.getFieldByteList().get(0));
+        assertEquals((Byte) (byte) 3, managedObj.getFieldByteList().get(1));
+        assertEquals(2, managedObj.getFieldDoubleList().size());
+        assertEquals((Double) 2D, managedObj.getFieldDoubleList().get(0));
+        assertEquals((Double) 3D, managedObj.getFieldDoubleList().get(1));
+        assertEquals(2, managedObj.getFieldFloatList().size());
+        assertEquals((Float) 2F, managedObj.getFieldFloatList().get(0));
+        assertEquals((Float) 3F, managedObj.getFieldFloatList().get(1));
+        assertEquals(2, managedObj.getFieldDateList().size());
+        assertEquals(new Date(2L), managedObj.getFieldDateList().get(0));
+        assertEquals(new Date(3L), managedObj.getFieldDateList().get(1));
     }
 
     // Tests close Realm in another thread different from where it is created.
@@ -4157,6 +4305,7 @@ public class RealmTests {
         when(mockContext.getFilesDir()).then(new Answer<File>() {
             int calls = 0;
             File userFolder = tmpFolder.newFolder();
+
             @Override
             public File answer(InvocationOnMock invocationOnMock) throws Throwable {
                 calls++;
