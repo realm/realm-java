@@ -7,6 +7,10 @@ const exec = require('child_process').exec;
 var http = require('http');
 var dispatcher = require('httpdispatcher');
 
+// Turn of event limit
+// TODO Figure out why we actually hit it
+require('events').EventEmitter.prototype._maxListeners = 0;
+
 // Automatically track and cleanup files at exit
 temp.track();
 
