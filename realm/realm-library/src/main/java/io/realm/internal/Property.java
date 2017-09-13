@@ -73,9 +73,9 @@ public class Property implements NativeObject {
         this(nativeCreatePersistedProperty(name, convertFromRealmFieldType(type, isRequired), isPrimary, isIndexed));
     }
 
-    Property(String name, RealmFieldType type, @Nullable String linkedClassName, boolean required) {
+    Property(String name, RealmFieldType type, @Nullable String linkedClassName) {
         // Ignore the isRequired when creating the linking property.
-        this(nativeCreatePersistedLinkProperty(name, convertFromRealmFieldType(type, required), linkedClassName));
+        this(nativeCreatePersistedLinkProperty(name, convertFromRealmFieldType(type, false), linkedClassName));
     }
 
     Property(String name, String sourceClassName, String sourceFieldName) {
