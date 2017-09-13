@@ -110,22 +110,28 @@ public class OsListTests {
     }
 
     private void addNull_insertNull_setNull_requiredList(OsList osList) {
+        long initialSize = osList.size();
         try {
             osList.insertNull(0);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertEquals(initialSize, osList.size());
         }
 
+        initialSize = osList.size();
         try {
             osList.addNull();
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertEquals(initialSize, osList.size());
         }
 
+        initialSize = osList.size();
         try {
             osList.setNull(0);
             fail();
         } catch (IllegalArgumentException ignored) {
+            assertEquals(initialSize, osList.size());
         }
     }
 
