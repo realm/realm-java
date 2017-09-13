@@ -175,6 +175,15 @@ public class Utils {
     }
 
     /**
+     * @param field {@link VariableElement} of a value list field.
+     * @return element type of the list field.
+     */
+    public static Constants.RealmFieldType getValueListFieldType(VariableElement field) {
+        final TypeMirror elementTypeMirror = getRealmListElementTypeMirror(field);
+        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES.get(elementTypeMirror.toString());
+    }
+
+    /**
      * @return {@code true} if a given field type is {@code RealmList} and its element type is {@Code RealmObject},
      * {@code false} otherwise.
      */
