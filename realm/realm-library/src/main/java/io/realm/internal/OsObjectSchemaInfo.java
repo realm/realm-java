@@ -46,18 +46,32 @@ public class OsObjectSchemaInfo implements NativeObject {
         }
 
         /**
-         * Adds a persisted non-link property to this builder.
+         * Adds a persisted non-link, non value list property to this builder.
          *
          * @param name the name of the property.
          * @param type the type of the property.
          * @param isPrimaryKey set to true if this property is the primary key.
          * @param isIndexed set to true if this property needs an index.
-         * @param isRequired set to false if this property is not nullable.
+         * @param isRequired set to true if this property is not nullable.
          * @return this {@code OsObjectSchemaInfo}.
          */
         public Builder addPersistedProperty(String name, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
-                                   boolean isRequired) {
+                boolean isRequired) {
             final Property property = new Property(name, type, isPrimaryKey, isIndexed, isRequired);
+            persistedPropertyList.add(property);
+            return this;
+        }
+
+        /**
+         * Adds a persisted value list property to this builder.
+         *
+         * @param name the name of the property.
+         * @param type the type of the property. It must be one of value list type.
+         * @param isRequired set to true if this property is not nullable.
+         * @return this {@code OsObjectSchemaInfo}.
+         */
+        public Builder addPersistedValueListProperty(String name, RealmFieldType type, boolean isRequired) {
+            final Property property = new Property(name, type, !Property.PRIMARY_KEY, !Property.INDEXED, isRequired);
             persistedPropertyList.add(property);
             return this;
         }
@@ -71,8 +85,8 @@ public class OsObjectSchemaInfo implements NativeObject {
          * {@link RealmFieldType#LIST}.
          * @return this {@code OsObjectSchemaInfo.Builder}.
          */
-        public Builder addPersistedLinkProperty(String name, RealmFieldType type, @Nullable String linkedClassName, boolean required) {
-            final Property property = new Property(name, type, linkedClassName, required);
+        public Builder addPersistedLinkProperty(String name, RealmFieldType type, @Nullable String linkedClassName) {
+            final Property property = new Property(name, type, linkedClassName);
             persistedPropertyList.add(property);
             return this;
         }
