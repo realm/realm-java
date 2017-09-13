@@ -38,7 +38,7 @@ function startRealmObjectServer(done) {
     // Consider the ROS is initialized fully only if log below shows twice
     // "client: Closing Realm file: /tmp/ros117521-7-1eiqt7a/internal_data/permission/__auth.realm"
     // https://github.com/realm/realm-object-server/issues/1297
-    var logFindingCounter = 2
+    var logFindingCounter = 1
 
     stopRealmObjectServer(function(err) {
         if(err) {
@@ -55,13 +55,12 @@ function startRealmObjectServer(done) {
                         { env: env, cwd: path});
                 // local config:
                 syncServerChildProcess.stdout.on('data', (data) => {
-                    if (logFindingCounter != 0 && /client: Closing Realm file: .*__auth.realm/.test(data)) {
-                        if (logFindingCounter == 1) {
-                            done()
-                        }
-                        logFindingCounter--
-                    }
                     winston.info(`stdout: ${data}`);
+                    if (logFindingCounter > 0 && data.indexOf("Realm Object Server has started and is listening") != -1) {
+                        winston.info("Successfully detected that ROS started")
+                        logFindingCounter--
+                        done()
+                    }
                 });
 
                 syncServerChildProcess.stderr.on('data', (data) => {
