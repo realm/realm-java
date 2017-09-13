@@ -964,7 +964,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         realm.beginTransaction();
         final int initialSize = list.size();
         try {
-            //thrown.expect(IllegalArgumentException.class);
+            thrown.expect(IllegalArgumentException.class);
             //noinspection unchecked
             list.add(null);
         } finally {
