@@ -173,11 +173,6 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public OsList getList(long columnIndex) {
-        return new OsList(this, columnIndex);
-    }
-
-    @Override
     public OsList getModelList(long columnIndex) {
         return new OsList(this, columnIndex);
     }

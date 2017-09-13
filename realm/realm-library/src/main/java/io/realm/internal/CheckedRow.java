@@ -16,7 +16,9 @@
 
 package io.realm.internal;
 
+import java.util.EnumSet;
 import java.util.Locale;
+import java.util.Set;
 
 import io.realm.RealmFieldType;
 
@@ -98,17 +100,6 @@ public class CheckedRow extends UncheckedRow {
     }
 
     @Override
-    public OsList getList(long columnIndex) {
-        RealmFieldType fieldType = getTable().getColumnType(columnIndex);
-        if (fieldType != RealmFieldType.LIST) {
-            throw new IllegalArgumentException(
-                    String.format(Locale.US, "Field '%s' is not a 'RealmList'.",
-                            getTable().getColumnName(columnIndex)));
-        }
-        return super.getList(columnIndex);
-    }
-
-    @Override
     public OsList getModelList(long columnIndex) {
         RealmFieldType fieldType = getTable().getColumnType(columnIndex);
         if (fieldType != RealmFieldType.LIST) {
@@ -119,8 +110,18 @@ public class CheckedRow extends UncheckedRow {
         return super.getModelList(columnIndex);
     }
 
+    private static final Set<RealmFieldType> VALUE_LIST_TYPES = EnumSet.of(RealmFieldType.STRING_LIST,
+            RealmFieldType.BINARY_LIST, RealmFieldType.BOOLEAN_LIST, RealmFieldType.INTEGER_LIST,
+            RealmFieldType.DOUBLE_LIST, RealmFieldType.FLOAT_LIST, RealmFieldType.DATE_LIST);
+
     @Override
     public OsList getValueList(long columnIndex, RealmFieldType fieldType) {
+        if (!VALUE_LIST_TYPES.contains(fieldType)) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.US, "The type of field '%1$s' (RealmFieldType.%2$s) is not a value list type.",
+                            getTable().getColumnName(columnIndex), fieldType.name()));
+        }
+
         final RealmFieldType actualFieldType = getTable().getColumnType(columnIndex);
         if (fieldType != actualFieldType) {
             throw new IllegalArgumentException(

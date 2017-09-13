@@ -391,7 +391,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
-            OsList osList = proxyState.getRow$realm().getList(columnIndex);
+            OsList osList = proxyState.getRow$realm().getModelList(columnIndex);
             final Table targetTable = osList.getTargetTable();
             if (targetTable == null) {
                 throw new IllegalArgumentException("The field is value list.");
@@ -423,7 +423,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         final OsList osList;
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
-            osList = proxyState.getRow$realm().getList(columnIndex);
+            osList = proxyState.getRow$realm().getValueList(columnIndex, expectedFieldType);
             final Table targetTable = osList.getTargetTable();
             if (targetTable != null) {
                 throw new IllegalArgumentException("The field is object list.");
@@ -822,7 +822,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
         final Row row = proxyState.getRow$realm();
         long columnIndex = row.getColumnIndex(fieldName);
-        OsList osList = row.getList(columnIndex);
+        OsList osList = row.getModelList(columnIndex);
         Table linkTargetTable = osList.getTargetTable();
         if (linkTargetTable == null) {
             // designated field was value list, not object list.
@@ -928,8 +928,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
 
         final Row row = proxyState.getRow$realm();
-        long columnIndex = row.getColumnIndex(fieldName);
-        final OsList targetOsList = row.getList(columnIndex);
+        final long columnIndex = row.getColumnIndex(fieldName);
+        final RealmFieldType fieldType = proxyState.getRow$realm().getColumnType(columnIndex);
+        final OsList targetOsList = row.getValueList(columnIndex, fieldType);
         final Table linkTargetTable = targetOsList.getTargetTable();
         if (linkTargetTable != null) {
             // designated field was object list, not value list.
@@ -938,7 +939,6 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     row.getColumnType(columnIndex).name(), "one of the value list"));
         }
 
-        final RealmFieldType fieldType = getFieldType(fieldName);
         final Class<?> valueClass = LIST_FIELD_TYPE_TO_VALUE_CLASS.get(fieldType);
 
         final ManagedListOperator<?> operator = getOperator(proxyState.getRealm$realm(), targetOsList, fieldType, valueClass);
@@ -1126,7 +1126,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     break;
                 case LIST:
                     String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName();
-                    sb.append(String.format(Locale.US, "RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getList(columnIndex).size()));
+                    sb.append(String.format(Locale.US, "RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getModelList(columnIndex).size()));
                     break;
                 case UNSUPPORTED_TABLE:
                 case UNSUPPORTED_MIXED:
