@@ -505,7 +505,7 @@ public class RealmProxyClassGenerator {
     //@formatter:on
 
     /**
-     * LinkLists
+     * ModelList, ValueList
      */
     //@formatter:off
     private void emitRealmList(
@@ -524,9 +524,15 @@ public class RealmProxyClassGenerator {
                 .emitSingleLineComment("use the cached value if available")
                 .beginControlFlow("if (" + fieldName + "RealmList != null)")
                 .emitStatement("return " + fieldName + "RealmList")
-                .nextControlFlow("else")
-                .emitStatement("OsList osList = proxyState.getRow$realm().getList(%s)", fieldIndexVariableReference(field))
-                .emitStatement(fieldName + "RealmList = new RealmList<%s>(%s.class, osList, proxyState.getRealm$realm())",
+                .nextControlFlow("else");
+                if (Utils.isRealmModelList(field)) {
+                    writer.emitStatement("OsList osList = proxyState.getRow$realm().getModelList(%s)",
+                            fieldIndexVariableReference(field));
+                } else {
+                    writer.emitStatement("OsList osList = proxyState.getRow$realm().getValueList(%1$s, RealmFieldType.%2$s)",
+                            fieldIndexVariableReference(field), Utils.getValueListFieldType(field).name());
+                }
+                writer.emitStatement(fieldName + "RealmList = new RealmList<%s>(%s.class, osList, proxyState.getRealm$realm())",
                         genericType, genericType)
                 .emitStatement("return " + fieldName + "RealmList")
                 .endControlFlow()
@@ -566,9 +572,15 @@ public class RealmProxyClassGenerator {
                 // LinkView currently does not support default value feature. Just fallback to normal code.
             }
         });
-        writer.emitStatement("proxyState.getRealm$realm().checkIfValid()")
-                .emitStatement("OsList osList = proxyState.getRow$realm().getList(%s)", fieldIndexVariableReference(field))
-                .emitStatement("osList.removeAll()")
+        writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
+                if (Utils.isRealmModelList(field)) {
+                    writer.emitStatement("OsList osList = proxyState.getRow$realm().getModelList(%s)",
+                            fieldIndexVariableReference(field));
+                } else {
+                    writer.emitStatement("OsList osList = proxyState.getRow$realm().getValueList(%1$s, RealmFieldType.%2$s)",
+                            fieldIndexVariableReference(field), Utils.getValueListFieldType(field).name());
+                }
+                writer.emitStatement("osList.removeAll()")
                 .beginControlFlow("if (value == null)")
                 .emitStatement("return")
                 .endControlFlow();
@@ -2120,9 +2132,7 @@ public class RealmProxyClassGenerator {
             return Constants.RealmFieldType.LIST;
         }
         if (Utils.isRealmValueList(field)) {
-            final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
-            final Constants.RealmFieldType fieldType =
-                    Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES.get(elementTypeMirror.toString());
+            final Constants.RealmFieldType fieldType = Utils.getValueListFieldType(field);
             if (fieldType == null) {
                 return Constants.RealmFieldType.NOTYPE;
             }
