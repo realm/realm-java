@@ -187,19 +187,19 @@ public:
     }
     util::Any box(bool v) const
     {
-        return v ? JNI_TRUE : JNI_FALSE;
+        return _impl::JavaClassGlobalDef::new_boolean(m_env, v);
     }
     util::Any box(double v) const
     {
-        return static_cast<jdouble>(v);
+        return _impl::JavaClassGlobalDef::new_double(m_env, v);
     }
     util::Any box(float v) const
     {
-        return static_cast<jfloat>(v);
+        return _impl::JavaClassGlobalDef::new_float(m_env, v);
     }
     util::Any box(int64_t v) const
     {
-        return static_cast<jlong>(v);
+        return _impl::JavaClassGlobalDef::new_long(m_env, v);
     }
     util::Any box(util::Optional<bool> v) const
     {
@@ -248,6 +248,15 @@ public:
 
 private:
     JNIEnv* m_env;
+
+    inline void check_value_not_null(util::Any& v, const char* expected_type) const
+    {
+        if (!v.has_value()) {
+            THROW_JAVA_EXCEPTION(
+                m_env, JavaExceptionDef::IllegalArgument,
+                util::format("This field is required. A non-null '%1' type value is expected.", expected_type));
+        }
+    }
 };
 
 // Accessor for jbyteArray
@@ -324,6 +333,34 @@ inline JPrimitiveArrayAccessor<jlongArray, jlong>::ElementsHolder::~ElementsHold
 }
 
 template <>
+inline bool JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+{
+    check_value_not_null(v, "Boolean");
+    return any_cast<jboolean>(v) == JNI_TRUE;
+}
+
+template <>
+inline int64_t JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+{
+    check_value_not_null(v, "Long");
+    return static_cast<int64_t>(any_cast<jlong>(v));
+}
+
+template <>
+inline double JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+{
+    check_value_not_null(v, "Double");
+    return static_cast<double>(any_cast<jdouble>(v));
+}
+
+template <>
+inline float JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+{
+    check_value_not_null(v, "Float");
+    return static_cast<float>(any_cast<jfloat>(v));
+}
+
+template <>
 inline StringData JavaAccessorContext::unbox(util::Any& v, bool, bool) const
 {
     if (!v.has_value()) {
@@ -345,7 +382,7 @@ inline BinaryData JavaAccessorContext::unbox(util::Any& v, bool, bool) const
 template <>
 inline Timestamp JavaAccessorContext::unbox(util::Any& v, bool, bool) const
 {
-    return v.has_value() ? from_milliseconds(unbox<jlong>(v)) : Timestamp();
+    return v.has_value() ? from_milliseconds(any_cast<jlong>(v)) : Timestamp();
 }
 
 template <>
@@ -357,25 +394,25 @@ inline RowExpr JavaAccessorContext::unbox(util::Any&, bool, bool) const
 template <>
 inline util::Optional<bool> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
 {
-    return v.has_value() ? util::make_optional(unbox<jboolean>(v) == JNI_TRUE) : util::none;
+    return v.has_value() ? util::make_optional(any_cast<jboolean>(v) == JNI_TRUE) : util::none;
 }
 
 template <>
 inline util::Optional<int64_t> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
 {
-    return v.has_value() ? util::make_optional(static_cast<int64_t>(unbox<jlong>(v))) : util::none;
+    return v.has_value() ? util::make_optional(static_cast<int64_t>(any_cast<jlong>(v))) : util::none;
 }
 
 template <>
 inline util::Optional<double> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
 {
-    return v.has_value() ? util::make_optional(unbox<jdouble>(v)) : util::none;
+    return v.has_value() ? util::make_optional(any_cast<jdouble>(v)) : util::none;
 }
 
 template <>
 inline util::Optional<float> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
 {
-    return v.has_value() ? util::make_optional(unbox<jfloat>(v)) : util::none;
+    return v.has_value() ? util::make_optional(any_cast<jfloat>(v)) : util::none;
 }
 
 template <>
