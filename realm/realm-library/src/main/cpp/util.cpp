@@ -110,7 +110,8 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     }
     catch (realm::LogicError e) {
         ExceptionKind kind;
-        if (e.kind() == LogicError::string_too_big || e.kind() == LogicError::binary_too_big) {
+        if (e.kind() == LogicError::string_too_big || e.kind() == LogicError::binary_too_big ||
+            e.kind() == LogicError::column_not_nullable) {
             kind = IllegalArgument;
         } else {
             kind = IllegalState;
