@@ -40,7 +40,7 @@
 * Upgraded to Realm Core 3.0.0-rc3.
 
 
-## 3.7.2 (YYYY-MM-DD)
+## 3.7.2 (2017-09-12)
 
 ### Bug Fixes
 
