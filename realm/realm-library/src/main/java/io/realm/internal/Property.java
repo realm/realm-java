@@ -21,6 +21,14 @@ import java.util.Locale;
 
 import io.realm.RealmFieldType;
 
+import static io.realm.RealmFieldType.BINARY_LIST;
+import static io.realm.RealmFieldType.BOOLEAN_LIST;
+import static io.realm.RealmFieldType.DATE_LIST;
+import static io.realm.RealmFieldType.DOUBLE_LIST;
+import static io.realm.RealmFieldType.FLOAT_LIST;
+import static io.realm.RealmFieldType.INTEGER_LIST;
+import static io.realm.RealmFieldType.STRING_LIST;
+
 
 /**
  * Class for handling properties/fields.
@@ -110,6 +118,28 @@ public class Property implements NativeObject {
             case DOUBLE:
                 type = TYPE_DOUBLE;
                 break;
+            case INTEGER_LIST:
+                //noinspection PointlessBitwiseExpression
+                type = TYPE_INT | TYPE_ARRAY;
+                break;
+            case BOOLEAN_LIST:
+                type = TYPE_BOOL | TYPE_ARRAY;
+                break;
+            case STRING_LIST:
+                type = TYPE_STRING | TYPE_ARRAY;
+                break;
+            case BINARY_LIST:
+                type = TYPE_DATA | TYPE_ARRAY;
+                break;
+            case DATE_LIST:
+                type = TYPE_DATE | TYPE_ARRAY;
+                break;
+            case FLOAT_LIST:
+                type = TYPE_FLOAT | TYPE_ARRAY;
+                break;
+            case DOUBLE_LIST:
+                type = TYPE_DOUBLE | TYPE_ARRAY;
+                break;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported filed type: '%s'.", fieldType.name()));
@@ -142,6 +172,21 @@ public class Property implements NativeObject {
                 return RealmFieldType.FLOAT;
             case TYPE_DOUBLE:
                 return RealmFieldType.DOUBLE;
+            //noinspection PointlessBitwiseExpression
+            case TYPE_INT | TYPE_ARRAY:
+                return INTEGER_LIST;
+            case TYPE_BOOL | TYPE_ARRAY:
+                return BOOLEAN_LIST;
+            case TYPE_STRING | TYPE_ARRAY:
+                return STRING_LIST;
+            case TYPE_DATA | TYPE_ARRAY:
+                return BINARY_LIST;
+            case TYPE_DATE | TYPE_ARRAY:
+                return DATE_LIST;
+            case TYPE_FLOAT | TYPE_ARRAY:
+                return FLOAT_LIST;
+            case TYPE_DOUBLE | TYPE_ARRAY:
+                return DOUBLE_LIST;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));

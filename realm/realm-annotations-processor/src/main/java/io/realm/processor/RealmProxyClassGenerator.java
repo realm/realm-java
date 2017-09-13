@@ -32,6 +32,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 
@@ -666,7 +667,7 @@ public class RealmProxyClassGenerator {
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
 
-            Constants.RealmFieldType fieldType = getRealmType(field);
+            Constants.RealmFieldType fieldType = getRealmTypeChecked(field);
             switch (fieldType) {
                 case NOTYPE:
                     // Perhaps this should fail quickly?
@@ -679,12 +680,34 @@ public class RealmProxyClassGenerator {
                     break;
 
                 case LIST:
+                    // only for model list.
                     String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
                     writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
                             fieldName, genericTypeSimpleName);
                     break;
 
-                default:
+                case INTEGER_LIST:
+                case BOOLEAN_LIST:
+                case STRING_LIST:
+                case BINARY_LIST:
+                case DATE_LIST:
+                case FLOAT_LIST:
+                case DOUBLE_LIST:
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", %s, \"%s\")",
+                            fieldName, fieldType.getRealmType(), "");
+                    break;
+
+                case BACKLINK:
+                    throw new IllegalArgumentException("LinkingObject field should not be added to metadata");
+
+                case INTEGER:
+                case FLOAT:
+                case DOUBLE:
+                case BOOLEAN:
+                case STRING:
+                case DATE:
+                case BINARY:
+                case REALM_INTEGER:
                     String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
                     String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
                     String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
@@ -694,6 +717,10 @@ public class RealmProxyClassGenerator {
                             primaryKeyFlag,
                             indexedFlag,
                             nullableFlag);
+                    break;
+
+                default:
+                    throw new IllegalArgumentException("'fieldType' " + fieldName + " is not handled");
             }
         }
         for (Backlink backlink: metadata.getBacklinkFields()) {
@@ -1942,8 +1969,17 @@ public class RealmProxyClassGenerator {
         if (Utils.isRealmModel(field)) {
             return Constants.RealmFieldType.OBJECT;
         }
-        if (Utils.isRealmList(field)) {
+        if (Utils.isRealmModelList(field)) {
             return Constants.RealmFieldType.LIST;
+        }
+        if (Utils.isRealmValueList(field)) {
+            final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+            final Constants.RealmFieldType fieldType =
+                    Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES.get(elementTypeMirror.toString());
+            if (fieldType == null) {
+                return Constants.RealmFieldType.NOTYPE;
+            }
+            return fieldType;
         }
         return Constants.RealmFieldType.NOTYPE;
     }
