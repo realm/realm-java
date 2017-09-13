@@ -52,13 +52,6 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
         if (!ROW_AND_COL_INDEX_VALID(env, &row, column_index)) {
             return 0;
         }
-        auto column_type = row.get_table()->get_column_type(column_index);
-        if (column_type != type_LinkList && column_type != type_Table) {
-            THROW_JAVA_EXCEPTION(
-                env, JavaExceptionDef::IllegalArgument,
-                format("The field '%1' is not a 'RealmList'.", row.get_table()->get_column_name(column_index)));
-            return 0;
-        }
 
         auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
         jlong ret[2];
