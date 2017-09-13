@@ -1128,8 +1128,23 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName();
                     sb.append(String.format(Locale.US, "RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getModelList(columnIndex).size()));
                     break;
+                case BOOLEAN_LIST: // fall-through
+                case STRING_LIST: // fall-through
+                case BINARY_LIST: // fall-through
+                case INTEGER_LIST: // fall-through
+                case DOUBLE_LIST: // fall-through
+                case FLOAT_LIST: // fall-through
+                case DATE_LIST:
+                    final String valueClassName = LIST_FIELD_TYPE_TO_VALUE_CLASS.get(type).getSimpleName();
+                    final OsList modelList = proxyState.getRow$realm().getValueList(columnIndex, type);
+                    sb.append(String.format(Locale.US, "RealmList<%s>[%s]", valueClassName, modelList.size()));
+                    break;
+                case LINKING_OBJECTS:
+                    // nothing to print
+                    break;
                 case UNSUPPORTED_TABLE:
                 case UNSUPPORTED_MIXED:
+                case UNSUPPORTED_DATE:
                 default:
                     sb.append("?");
                     break;
