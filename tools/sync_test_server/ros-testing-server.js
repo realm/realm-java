@@ -57,7 +57,6 @@ function startRealmObjectServer(done) {
                 syncServerChildProcess.stdout.on('data', (data) => {
                     winston.info(`stdout: ${data}`);
                     if (logFindingCounter > 0 && data.indexOf("Realm Object Server has started and is listening") != -1) {
-                        winston.info("Successfully detected that ROS started")
                         logFindingCounter--
                         done()
                     }

@@ -21,8 +21,10 @@ import android.util.Log;
 import java.io.IOException;
 
 import okhttp3.Headers;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
@@ -74,6 +76,7 @@ public class HttpUtils {
         // server is responsive
         Request request = new Request.Builder()
                 .url(Constants.AUTH_SERVER_URL)
+                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), ""))
                 .build();
 
         while (retryTimes != 0) {
