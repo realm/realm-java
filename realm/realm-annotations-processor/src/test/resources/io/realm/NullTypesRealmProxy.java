@@ -958,7 +958,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.String item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldStringListNotNull' is not allowed by schema.");
+                throw new IllegalArgumentException("Storing 'null' into fieldStringListNotNull' is not allowed by the schema.");
             } else {
                 osList.addString(item);
             }
@@ -1036,7 +1036,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (byte[] item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldBinaryListNotNull' is not allowed by schema.");
+                throw new IllegalArgumentException("Storing 'null' into fieldBinaryListNotNull' is not allowed by the schema.");
             } else {
                 osList.addBinary(item);
             }
@@ -1114,7 +1114,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Boolean item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldBooleanListNotNull' is not allowed by schema.");
+                throw new IllegalArgumentException("Storing 'null' into fieldBooleanListNotNull' is not allowed by the schema.");
             } else {
                 osList.addBoolean(item);
             }
@@ -1192,7 +1192,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Long item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldLongListNotNull' is not allowed by schema.");
+                throw new IllegalArgumentException("Storing 'null' into fieldLongListNotNull' is not allowed by the schema.");
             } else {
                 osList.addLong(item.longValue());
             }
@@ -1270,7 +1270,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Integer item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldIntegerListNotNull' is not allowed by schema.");
+                throw new IllegalArgumentException("Storing 'null' into fieldIntegerListNotNull' is not allowed by the schema.");
             } else {
                 osList.addLong(item.longValue());
             }
@@ -1348,7 +1348,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Short item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldShortListNotNull' is not allowed by schema.");
+                throw new IllegalArgumentException("Storing 'null' into fieldShortListNotNull' is not allowed by the schema.");
             } else {
                 osList.addLong(item.longValue());
             }
@@ -1426,7 +1426,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Byte item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldByteListNotNull' is not allowed by schema.");
+                throw new IllegalArgumentException("Storing 'null' into fieldByteListNotNull' is not allowed by the schema.");
             } else {
                 osList.addLong(item.longValue());
             }
@@ -1504,7 +1504,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Double item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldDoubleListNotNull' is not allowed by schema.");
+                throw new IllegalArgumentException("Storing 'null' into fieldDoubleListNotNull' is not allowed by the schema.");
             } else {
                 osList.addDouble(item.doubleValue());
             }
@@ -1582,7 +1582,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Float item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldFloatListNotNull' is not allowed by schema.");
+                throw new IllegalArgumentException("Storing 'null' into fieldFloatListNotNull' is not allowed by the schema.");
             } else {
                 osList.addFloat(item.floatValue());
             }
@@ -1660,7 +1660,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.util.Date item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldDateListNotNull' is not allowed by schema.");
+                throw new IllegalArgumentException("Storing 'null' into fieldDateListNotNull' is not allowed by the schema.");
             } else {
                 osList.addDate(item);
             }
@@ -1996,6 +1996,26 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                 objProxy.realmSet$fieldObjectNull(fieldObjectNullObj);
             }
         }
+        // TODO implement logic for value listfieldStringListNotNull.
+        // TODO implement logic for value listfieldStringListNull.
+        // TODO implement logic for value listfieldBinaryListNotNull.
+        // TODO implement logic for value listfieldBinaryListNull.
+        // TODO implement logic for value listfieldBooleanListNotNull.
+        // TODO implement logic for value listfieldBooleanListNull.
+        // TODO implement logic for value listfieldLongListNotNull.
+        // TODO implement logic for value listfieldLongListNull.
+        // TODO implement logic for value listfieldIntegerListNotNull.
+        // TODO implement logic for value listfieldIntegerListNull.
+        // TODO implement logic for value listfieldShortListNotNull.
+        // TODO implement logic for value listfieldShortListNull.
+        // TODO implement logic for value listfieldByteListNotNull.
+        // TODO implement logic for value listfieldByteListNull.
+        // TODO implement logic for value listfieldDoubleListNotNull.
+        // TODO implement logic for value listfieldDoubleListNull.
+        // TODO implement logic for value listfieldFloatListNotNull.
+        // TODO implement logic for value listfieldFloatListNull.
+        // TODO implement logic for value listfieldDateListNotNull.
+        // TODO implement logic for value listfieldDateListNull.
         return obj;
     }
 
@@ -2168,25 +2188,45 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                     objProxy.realmSet$fieldObjectNull(fieldObjectNullObj);
                 }
             } else if (name.equals("fieldStringListNotNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldStringListNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldBinaryListNotNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldBinaryListNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldBooleanListNotNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldBooleanListNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldLongListNotNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldLongListNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldIntegerListNotNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldIntegerListNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldShortListNotNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldShortListNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldByteListNotNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldByteListNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldDoubleListNotNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldDoubleListNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldFloatListNotNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldFloatListNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldDateListNotNull")) {
+                // TODO implement logic for value list.
             } else if (name.equals("fieldDateListNull")) {
+                // TODO implement logic for value list.
             } else {
                 reader.skipValue();
             }

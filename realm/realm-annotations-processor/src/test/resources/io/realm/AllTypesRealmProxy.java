@@ -1044,6 +1044,16 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+        // TODO implement logic for value listcolumnStringList.
+        // TODO implement logic for value listcolumnBinaryList.
+        // TODO implement logic for value listcolumnBooleanList.
+        // TODO implement logic for value listcolumnLongList.
+        // TODO implement logic for value listcolumnIntegerList.
+        // TODO implement logic for value listcolumnShortList.
+        // TODO implement logic for value listcolumnByteList.
+        // TODO implement logic for value listcolumnDoubleList.
+        // TODO implement logic for value listcolumnFloatList.
+        // TODO implement logic for value listcolumnDateList.
         return obj;
     }
 
@@ -1143,15 +1153,25 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     reader.endArray();
                 }
             } else if (name.equals("columnStringList")) {
+                // TODO implement logic for value list.
             } else if (name.equals("columnBinaryList")) {
+                // TODO implement logic for value list.
             } else if (name.equals("columnBooleanList")) {
+                // TODO implement logic for value list.
             } else if (name.equals("columnLongList")) {
+                // TODO implement logic for value list.
             } else if (name.equals("columnIntegerList")) {
+                // TODO implement logic for value list.
             } else if (name.equals("columnShortList")) {
+                // TODO implement logic for value list.
             } else if (name.equals("columnByteList")) {
+                // TODO implement logic for value list.
             } else if (name.equals("columnDoubleList")) {
+                // TODO implement logic for value list.
             } else if (name.equals("columnFloatList")) {
+                // TODO implement logic for value list.
             } else if (name.equals("columnDateList")) {
+                // TODO implement logic for value list.
             } else {
                 reader.skipValue();
             }
