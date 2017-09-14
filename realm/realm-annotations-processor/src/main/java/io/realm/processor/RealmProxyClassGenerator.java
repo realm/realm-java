@@ -598,7 +598,7 @@ public class RealmProxyClassGenerator {
         } else {
             writer.beginControlFlow("for (%1$s item : value)", genericType)
                     .beginControlFlow("if (item == null)")
-                    .emitStatement(metadata.isElementNullable(field) ? "osList.addNull()" : "throw new IllegalArgumentException(\"Storing 'null' into " + fieldName + "' is not allowed by schema.\")")
+                    .emitStatement(metadata.isElementNullable(field) ? "osList.addNull()" : "throw new IllegalArgumentException(\"Storing 'null' into " + fieldName + "' is not allowed by the schema.\")")
                     .nextControlFlow("else")
                     .emitStatement(getStatementForAppendingValueToOsList("osList", "item", elementTypeMirror))
                     .endControlFlow()
