@@ -184,7 +184,7 @@ public class ClassMetaData {
     }
 
     /**
-     * Checks if the element of RealmList designated by {@code realmListVariableElement} is nullable.
+     * Checks if the element of {@code RealmList} designated by {@code realmListVariableElement} is nullable.
      *
      * @return {@code true} if the element is nullable type, {@code false} otherwise.
      */
@@ -468,17 +468,15 @@ public class ClassMetaData {
                     nullableValueListFields.add(field);
                 }
             }
+        } else if (isRequiredField(field)) {
+            categorizeRequiredField(element, field);
         } else {
-            if (isRequiredField(field)) {
-                categorizeRequiredField(element, field);
-            } else {
-                // The field doesn't have the @Required and @org.jetbrains.annotations.NotNull annotation.
-                // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
-                // nullableFields.
-                // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
-                if (!Utils.isPrimitiveType(field)) {
-                    nullableFields.add(field);
-                }
+            // The field doesn't have the @Required and @org.jetbrains.annotations.NotNull annotation.
+            // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
+            // nullableFields.
+            // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
+            if (!Utils.isPrimitiveType(field)) {
+                nullableFields.add(field);
             }
         }
 
