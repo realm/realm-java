@@ -36,7 +36,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String ACTION_LOGOUT = "revoke"; // Auth end point for logging out users
     private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
-    private static final String ACTION_LOOKUP_USER_ID = "api/providers"; // Auth end point for looking up user id
+    private static final String ACTION_LOOKUP_USER_ID = "users"; // Auth end point for looking up user id
 
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
@@ -129,11 +129,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
 
     private static URL buildLookupUserIdUrl(URL authenticationUrl, String action, String provider, String providerId) {
         String authURL = authenticationUrl.toExternalForm();
-        // we need the base URL without the '/auth' part
-        String baseUrlString = authURL.substring(0, authURL.indexOf(authenticationUrl.getPath()));
+        String separator = authURL.endsWith("/") ? "" : "/";
         try {
-            String separator = baseUrlString.endsWith("/") ? "" : "/";
-            return new URL(baseUrlString + separator + action + "/" + provider + "/accounts/" + providerId);
+            return new URL(authURL + separator + action + "/" + providerId);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

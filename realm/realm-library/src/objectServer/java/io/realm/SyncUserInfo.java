@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import java.util.Collections;
+import java.util.Map;
+
 import io.realm.internal.network.LookupUserIdResponse;
 
 /**
@@ -24,48 +27,39 @@ import io.realm.internal.network.LookupUserIdResponse;
  */
 
 public class SyncUserInfo {
-    private final String provider;
-    private final String providerUserIdentity;
     private final String identity;
     private final boolean isAdmin;
+    private final Map<String, String> metadata;
 
-    private SyncUserInfo(String provider, String providerUserIdentity, String identity, boolean isAdmin) {
-        this.provider = provider;
-        this.providerUserIdentity = providerUserIdentity;
+    private SyncUserInfo(String identity, boolean isAdmin, Map<String, String> metadata) {
         this.identity = identity;
         this.isAdmin = isAdmin;
+        this.metadata = Collections.unmodifiableMap(metadata);
     }
 
     static SyncUserInfo fromLookupUserIdResponse(LookupUserIdResponse response) {
-        return new SyncUserInfo(response.getProvider(), response.getProviderId(), response.getUserId(), response.isAdmin());
+        return new SyncUserInfo(response.getUserId(), response.isAdmin(), response.getMetadata());
     }
 
     /**
-     * @return identity providers {@link io.realm.SyncCredentials.IdentityProvider} which manages the user represented by this user info instance.
-     */
-    public String getProvider() {
-        return provider;
-    }
-
-    /**
-     * @return The username or identity issued to this user by the authentication provider.
-     */
-    public String getProviderUserIdentity() {
-        return providerUserIdentity;
-    }
-
-    /**
-     * @return The identity issued to this user by the Realm Object Server.
+     * @return the identity issued to this user by the Realm Object Server.
      */
     public String getIdentity() {
         return identity;
     }
 
     /**
-     * @return Whether the user is flagged on the Realm Object Server as an administrator.
+     * @return whether the user is flagged on the Realm Object Server as an administrator.
      */
     public boolean isAdmin() {
         return isAdmin;
+    }
+
+    /**
+     * @return the metadata associated with this user.
+     */
+    public Map<String, String> getMetadata() {
+        return metadata;
     }
 
     @Override
@@ -76,17 +70,15 @@ public class SyncUserInfo {
         SyncUserInfo that = (SyncUserInfo) o;
 
         if (isAdmin != that.isAdmin) return false;
-        if (!provider.equals(that.provider)) return false;
-        if (!providerUserIdentity.equals(that.providerUserIdentity)) return false;
-        return identity.equals(that.identity);
+        if (!identity.equals(that.identity)) return false;
+        return metadata.equals(that.metadata);
     }
 
     @Override
     public int hashCode() {
-        int result = provider.hashCode();
-        result = 31 * result + providerUserIdentity.hashCode();
-        result = 31 * result + identity.hashCode();
+        int result = identity.hashCode();
         result = 31 * result + (isAdmin ? 1 : 0);
+        result = 31 * result + metadata.hashCode();
         return result;
     }
 }

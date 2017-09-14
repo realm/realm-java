@@ -582,8 +582,8 @@ public class AuthTests extends StandardIntegrationTest {
         assertNotEquals(accessToken, newAccessToken);
 
         // refresh_token identity is the same
-        Assert.assertEquals(user.getAccessToken().identity(), newAccessToken.identity());
-        Assert.assertEquals(accessToken.identity(), newAccessToken.identity());
+        assertEquals(user.getAccessToken().identity(), newAccessToken.identity());
+        assertEquals(accessToken.identity(), newAccessToken.identity());
 
         realm.close();
     }
@@ -603,10 +603,9 @@ public class AuthTests extends StandardIntegrationTest {
         SyncUserInfo userInfo = adminUser.retrieveInfoForUser(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD);
 
         assertNotNull(userInfo);
-        assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, userInfo.getProvider());
-        assertEquals(username, userInfo.getProviderUserIdentity());
         assertEquals(identity, userInfo.getIdentity());
         assertFalse(userInfo.isAdmin());
+        assertTrue(userInfo.getMetadata().isEmpty());
     }
 
 
@@ -646,10 +645,9 @@ public class AuthTests extends StandardIntegrationTest {
                         SyncUserInfo userInfo = adminUser.retrieveInfoForUser(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD);
 
                         assertNotNull(userInfo);
-                        assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, userInfo.getProvider());
-                        assertEquals(username, userInfo.getProviderUserIdentity());
                         assertEquals(identity, userInfo.getIdentity());
                         assertFalse(userInfo.isAdmin());
+                        assertTrue(userInfo.getMetadata().isEmpty());
 
                         looperThread.testComplete();
                     }
@@ -658,15 +656,6 @@ public class AuthTests extends StandardIntegrationTest {
             }
         });
         user.logout();
-    }
-
-    @Test
-    public void retrieve_AdminUser() {
-        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
-        SyncUserInfo userInfo = adminUser.retrieveInfoForUser("admin", SyncCredentials.IdentityProvider.DEBUG);// TODO use enum for auth provider
-        assertNotNull(userInfo);
-        assertEquals(adminUser.getIdentity(), userInfo.getIdentity());
-        assertTrue(userInfo.isAdmin());
     }
 
     @Test
@@ -730,10 +719,9 @@ public class AuthTests extends StandardIntegrationTest {
             @Override
             public void onSuccess(SyncUserInfo userInfo) {
                 assertNotNull(userInfo);
-                assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, userInfo.getProvider());
-                assertEquals(username, userInfo.getProviderUserIdentity());
                 assertEquals(identity, userInfo.getIdentity());
                 assertFalse(userInfo.isAdmin());
+                assertTrue(userInfo.getMetadata().isEmpty());
 
                 looperThread.testComplete();
             }
