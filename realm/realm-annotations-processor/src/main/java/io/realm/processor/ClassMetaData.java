@@ -501,10 +501,24 @@ public class ClassMetaData {
         return true;
     }
 
+    /**
+     * This method only checks if the field has {@code @Required} annotation.
+     * In most cases, you should use {@link #isRequiredField(VariableElement)} to take into account
+     * Kotlin's annotation as well.
+     *
+     * @param field target field.
+     * @return {@code true} if the field has {@code @Required} annotation, {@code false} otherwise.
+     * @see #isRequiredField(VariableElement)
+     */
     private boolean hasRequiredAnnotation(VariableElement field) {
         return field.getAnnotation(Required.class) != null;
     }
 
+    /**
+     * Checks if the field is annotated as required.
+     * @param field target field.
+     * @return {@code true} if the field is annotated as required, {@code false} otherwise.
+     */
     private boolean isRequiredField(VariableElement field) {
         if (hasRequiredAnnotation(field)) {
             return true;
