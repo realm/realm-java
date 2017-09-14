@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import java.util.Locale;
+
 import io.realm.RealmFieldType;
 
 
@@ -93,6 +95,18 @@ public class CheckedRow extends UncheckedRow {
         } else {
             super.setNull(columnIndex);
         }
+    }
+
+    @Override
+    public OsList getList(long columnIndex) {
+        RealmFieldType fieldType = getTable().getColumnType(columnIndex);
+        // FIXME: Check types for primitive List.
+        if (fieldType != RealmFieldType.LIST) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.US, "Field '%s' is not a 'RealmList'.",
+                            getTable().getColumnName(columnIndex)));
+        }
+        return super.getList(columnIndex);
     }
 
     @Override

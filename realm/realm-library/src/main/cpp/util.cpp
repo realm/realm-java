@@ -109,7 +109,15 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ThrowException(env, IllegalState, ss.str());
     }
     catch (realm::LogicError e) {
-        ThrowException(env, IllegalState, e.what());
+        ExceptionKind kind;
+        if (e.kind() == LogicError::string_too_big || e.kind() == LogicError::binary_too_big ||
+            e.kind() == LogicError::column_not_nullable) {
+            kind = IllegalArgument;
+        }
+        else {
+            kind = IllegalState;
+        }
+        ThrowException(env, kind, e.what());
     }
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
@@ -239,23 +247,6 @@ void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx)
        << "' to null.";
     ThrowException(env, IllegalArgument, ss.str());
 }
-
-bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& bin)
-{
-    const char* data = static_cast<char*>(env->GetDirectBufferAddress(jByteBuffer));
-    if (!data) {
-        ThrowException(env, IllegalArgument, "ByteBuffer is invalid");
-        return false;
-    }
-    jlong size = env->GetDirectBufferCapacity(jByteBuffer);
-    if (size < 0) {
-        ThrowException(env, IllegalArgument, "Can't get BufferCapacity.");
-        return false;
-    }
-    bin = BinaryData(data, S(size));
-    return true;
-}
-
 
 //*********************************************************************
 // String handling
