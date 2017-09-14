@@ -59,48 +59,7 @@ public class HttpUtils {
         for (int i = 0; i < responseHeaders.size(); i++) {
             Log.d(TAG, responseHeaders.name(i) + ": " + responseHeaders.value(i));
         }
-
         Log.d(TAG, response.body().string());
-
-        // FIXME: Server ready checking should be done in the control server side!
-        if (!waitAuthServerReady()) {
-            stopSyncServer();
-            throw new RuntimeException("Auth server cannot be started.");
-        }
-    }
-
-    // Checking the server
-    private static boolean waitAuthServerReady() throws InterruptedException {
-        int retryTimes = 20;
-
-        // Dummy invalid request, which will trigger a 400 (BAD REQUEST), but indicate the auth
-        // server is responsive
-        Request request = new Request.Builder()
-                .url(Constants.AUTH_URL)
-                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), ""))
-                .build();
-
-        while (retryTimes > 0) {
-            Response response = null;
-            try {
-                response = client.newCall(request).execute();
-                if (response.code() == 400) {
-                    return true;
-                }
-            } catch (IOException e) {
-                // TODO As long as the auth server hasn't started yet, OKHttp cannot parse the response
-                // correctly. At this point it is unknown weather is a bug in OKHttp or an
-                // unknown host is reported. This can cause a lot of "false" errors in the log.
-                Thread.sleep(500);
-            } finally {
-                if (response != null) {
-                    response.close();
-                }
-            }
-            retryTimes--;
-        }
-
-        return false;
     }
 
     public static void stopSyncServer() throws Exception {

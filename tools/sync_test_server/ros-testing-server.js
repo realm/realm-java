@@ -33,6 +33,25 @@ function handleRequest(request, response) {
 
 var syncServerChildProcess = null;
 
+// Waits for ROS to be fully initialized.
+function waitForRosToInitialize(onSuccess) {
+    http.get("http://0.0.0.0:9080/health", function(res) {
+        if (res.statusCode != 200) {
+            winston.info("ROS /health/ returned: " + res.statusCode)
+            waitForRosToInitialize(onSuccess)
+        } else {
+            onSuccess();
+        }
+    }).on('error', function(err) {
+        // ROS not accepting any connections yet.
+        // Errors like ECONNREFUSED 0.0.0.0:9080 will be reported here.
+        // Wait a little before trying again (common startup is ~1 second).
+        setTimeout(function() {
+            waitForRosToInitialize(onSuccess);
+        }, 200);
+    });
+}
+
 function startRealmObjectServer(done) {
     // Hack for checking the ROS is fully initialized.
     // Consider the ROS is initialized fully only if log below shows twice
@@ -56,10 +75,6 @@ function startRealmObjectServer(done) {
                 // local config:
                 syncServerChildProcess.stdout.on('data', (data) => {
                     winston.info(`stdout: ${data}`);
-                    if (logFindingCounter > 0 && data.indexOf("Realm Object Server has started and is listening") != -1) {
-                        logFindingCounter--
-                        done()
-                    }
                 });
 
                 syncServerChildProcess.stderr.on('data', (data) => {
@@ -69,18 +84,17 @@ function startRealmObjectServer(done) {
                 syncServerChildProcess.on('close', (code) => {
                     winston.info(`child process exited with code ${code}`);
                 });
+
+                waitForRosToInitialize(done);
             }
         });
+
     });
 }
 
 function stopRealmObjectServer(callback) {
     if (syncServerChildProcess) {
         syncServerChildProcess.on('exit', function() {
-            syncServerChildProcess.stdout.removeListener('data')
-            syncServerChildProcess.stderr.removeListener('data')
-            syncServerChildProcess.removeListener('close')
-            syncServerChildProcess.removeListener('exit')
             syncServerChildProcess = null;
             callback();
         });
