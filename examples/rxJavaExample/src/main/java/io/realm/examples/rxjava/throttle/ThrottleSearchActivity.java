@@ -16,31 +16,27 @@
 
 package io.realm.examples.rxjava.throttle;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.jakewharton.rxbinding.widget.RxTextView;
-import com.jakewharton.rxbinding.widget.TextViewTextChangeEvent;
+import com.jakewharton.rxbinding2.widget.RxTextView;
 
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.realm.Realm;
-import io.realm.RealmResults;
 import io.realm.examples.rxjava.R;
 import io.realm.examples.rxjava.model.Person;
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
 
-public class ThrottleSearchActivity extends Activity {
+public class ThrottleSearchActivity extends AppCompatActivity {
 
     private Realm realm;
-    private Subscription subscription;
+    private Disposable disposable;
     private EditText searchInputView;
     private ViewGroup searchResultsView;
 
@@ -48,8 +44,8 @@ public class ThrottleSearchActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_throttlesearch);
-        searchInputView = (EditText) findViewById(R.id.search);
-        searchResultsView = (ViewGroup) findViewById(R.id.search_results);
+        searchInputView = findViewById(R.id.search);
+        searchResultsView = findViewById(R.id.search_results);
         realm = Realm.getDefaultInstance();
     }
 
@@ -58,49 +54,35 @@ public class ThrottleSearchActivity extends Activity {
         super.onResume();
 
         // Listen to key presses and only start search after user paused to avoid excessive redrawing on the screen.
-        subscription = RxTextView.textChangeEvents(searchInputView)
+        disposable = RxTextView.textChangeEvents(searchInputView)
                 .debounce(200, TimeUnit.MILLISECONDS) // default Scheduler is Schedulers.computation()
                 .observeOn(AndroidSchedulers.mainThread()) // Needed to access Realm data
-                .flatMap(new Func1<TextViewTextChangeEvent, Observable<RealmResults<Person>>>() {
-                    @Override
-                    public Observable<RealmResults<Person>> call(TextViewTextChangeEvent event) {
-                        // Use Async API to move Realm queries off the main thread.
-                        // Realm currently doesn't support the standard Schedulers.
-                        return realm.where(Person.class)
-                                .beginsWith("name", event.text().toString())
-                                .findAllSortedAsync("name").asObservable();
-                    }
+                .toFlowable(BackpressureStrategy.BUFFER)
+                .switchMap(textChangeEvent -> {
+                    // Use Async API to move Realm queries off the main thread.
+                    // Realm currently doesn't support the standard Schedulers.
+                    return realm.where(Person.class)
+                            .beginsWith("name", textChangeEvent.text().toString())
+                            .findAllSortedAsync("name")
+                            .asFlowable();
                 })
-                .filter(new Func1<RealmResults<Person>, Boolean>() {
-                    @Override
-                    public Boolean call(RealmResults<Person> persons) {
-                        // Only continue once data is actually loaded
-                        // RealmObservables will emit the unloaded (empty) list as its first item
-                        return persons.isLoaded();
+                // Only continue once data is actually loaded
+                // RealmObservables will emit the unloaded (empty) list as its first item
+                .filter(people -> people.isLoaded())
+                .subscribe(people -> {
+                    searchResultsView.removeAllViews();
+                    for (Person person : people) {
+                        TextView view = new TextView(ThrottleSearchActivity.this);
+                        view.setText(person.getName());
+                        searchResultsView.addView(view);
                     }
-                })
-                .subscribe(new Action1<RealmResults<Person>>() {
-                    @Override
-                    public void call(RealmResults<Person> persons) {
-                        searchResultsView.removeAllViews();
-                        for (Person person : persons) {
-                            TextView view = new TextView(ThrottleSearchActivity.this);
-                            view.setText(person.getName());
-                            searchResultsView.addView(view);
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
-                });
+                }, throwable -> throwable.printStackTrace());
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        subscription.unsubscribe();
+        disposable.dispose();
     }
 
     @Override
