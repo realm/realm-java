@@ -474,8 +474,8 @@ public class ClassMetaData {
             // The field doesn't have the @Required and @org.jetbrains.annotations.NotNull annotation.
             // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
             // nullableFields.
-            // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
-            if (!Utils.isPrimitiveType(field)) {
+            // RealmList of models, RealmResults(backlinks) and primitive types are NOT nullable. @Required annotation is not supported.
+            if (!Utils.isPrimitiveType(field) && !Utils.isRealmResults(field)) {
                 nullableFields.add(field);
             }
         }
