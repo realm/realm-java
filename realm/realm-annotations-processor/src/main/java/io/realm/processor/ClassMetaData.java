@@ -184,7 +184,7 @@ public class ClassMetaData {
     }
 
     /**
-     * Checks if the element of RealmList designated by {@code realmListVariableElement} is nullable.
+     * Checks if the element of {@code RealmList} designated by {@code realmListVariableElement} is nullable.
      *
      * @return {@code true} if the element is nullable type, {@code false} otherwise.
      */
@@ -468,17 +468,15 @@ public class ClassMetaData {
                     nullableValueListFields.add(field);
                 }
             }
+        } else if (isRequiredField(field)) {
+            categorizeRequiredField(element, field);
         } else {
-            if (isRequiredField(field)) {
-                categorizeRequiredField(element, field);
-            } else {
-                // The field doesn't have the @Required and @org.jetbrains.annotations.NotNull annotation.
-                // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
-                // nullableFields.
-                // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
-                if (!Utils.isPrimitiveType(field)) {
-                    nullableFields.add(field);
-                }
+            // The field doesn't have the @Required and @org.jetbrains.annotations.NotNull annotation.
+            // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
+            // nullableFields.
+            // RealmList of models, RealmResults(backlinks) and primitive types are NOT nullable. @Required annotation is not supported.
+            if (!Utils.isPrimitiveType(field) && !Utils.isRealmResults(field)) {
+                nullableFields.add(field);
             }
         }
 
@@ -503,10 +501,24 @@ public class ClassMetaData {
         return true;
     }
 
+    /**
+     * This method only checks if the field has {@code @Required} annotation.
+     * In most cases, you should use {@link #isRequiredField(VariableElement)} to take into account
+     * Kotlin's annotation as well.
+     *
+     * @param field target field.
+     * @return {@code true} if the field has {@code @Required} annotation, {@code false} otherwise.
+     * @see #isRequiredField(VariableElement)
+     */
     private boolean hasRequiredAnnotation(VariableElement field) {
         return field.getAnnotation(Required.class) != null;
     }
 
+    /**
+     * Checks if the field is annotated as required.
+     * @param field target field.
+     * @return {@code true} if the field is annotated as required, {@code false} otherwise.
+     */
     private boolean isRequiredField(VariableElement field) {
         if (hasRequiredAnnotation(field)) {
             return true;
