@@ -27,24 +27,27 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 
-public class TypeMirrors {
-    public final TypeMirror STRING_MIRROR;
-    public final TypeMirror BINARY_MIRROR;
-    public final TypeMirror BOOLEAN_MIRROR;
-    public final TypeMirror LONG_MIRROR;
-    public final TypeMirror INTEGER_MIRROR;
-    public final TypeMirror SHORT_MIRROR;
-    public final TypeMirror BYTE_MIRROR;
-    public final TypeMirror DOUBLE_MIRROR;
-    public final TypeMirror FLOAT_MIRROR;
-    public final TypeMirror DATE_MIRROR;
+/**
+ * This class provides {@link TypeMirror} instances used in annotation processor.
+ */
+class TypeMirrors {
+    final TypeMirror STRING_MIRROR;
+    final TypeMirror BINARY_MIRROR;
+    final TypeMirror BOOLEAN_MIRROR;
+    final TypeMirror LONG_MIRROR;
+    final TypeMirror INTEGER_MIRROR;
+    final TypeMirror SHORT_MIRROR;
+    final TypeMirror BYTE_MIRROR;
+    final TypeMirror DOUBLE_MIRROR;
+    final TypeMirror FLOAT_MIRROR;
+    final TypeMirror DATE_MIRROR;
 
-    public final TypeMirror PRIMITIVE_LONG_MIRROR;
-    public final TypeMirror PRIMITIVE_INT_MIRROR;
-    public final TypeMirror PRIMITIVE_SHORT_MIRROR;
-    public final TypeMirror PRIMITIVE_BYTE_MIRROR;
+    final TypeMirror PRIMITIVE_LONG_MIRROR;
+    final TypeMirror PRIMITIVE_INT_MIRROR;
+    final TypeMirror PRIMITIVE_SHORT_MIRROR;
+    final TypeMirror PRIMITIVE_BYTE_MIRROR;
 
-    public TypeMirrors(ProcessingEnvironment env) {
+    TypeMirrors(ProcessingEnvironment env) {
         final Types typeUtils = env.getTypeUtils();
         final Elements elementUtils = env.getElementUtils();
 
