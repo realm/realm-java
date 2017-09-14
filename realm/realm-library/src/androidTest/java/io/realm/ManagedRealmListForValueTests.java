@@ -427,9 +427,15 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
+                final long sizeBeforeException = list.size();
                 thrown.expect(IllegalArgumentException.class);
-                //noinspection unchecked
-                list.add(generateHugeValue(listType, sizeLimit + 1));
+                try {
+                    //noinspection unchecked
+                    list.add(generateHugeValue(listType, sizeLimit + 1));
+                } finally {
+                    // FIXME This assertion fails now. Code will be fixed in master branch first.
+                    assertEquals(sizeBeforeException, list.size());
+                }
             }
         });
     }

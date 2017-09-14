@@ -315,7 +315,7 @@ public class RealmProxyClassGenerator {
             } else if (Utils.isRealmModel(field)) {
                 emitRealmModel(writer, field, fieldName, fieldTypeCanonicalName);
             } else if (Utils.isRealmList(field)) {
-                final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+                final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
                 emitRealmList(writer, field, fieldName, fieldTypeCanonicalName, elementTypeMirror);
             } else {
                 throw new UnsupportedOperationException(String.format(Locale.US,
@@ -598,7 +598,7 @@ public class RealmProxyClassGenerator {
         } else {
             writer.beginControlFlow("for (%1$s item : value)", genericType)
                     .beginControlFlow("if (item == null)")
-                    .emitStatement(metadata.isElementNullable(field) ? "osList.addNull()" : "throw new IllegalArgumentException(\"Storing 'null' into " + fieldName + "' is not allowed by schema.\")")
+                    .emitStatement(metadata.isElementNullable(field) ? "osList.addNull()" : "throw new IllegalArgumentException(\"Storing 'null' into " + fieldName + "' is not allowed by the schema.\")")
                     .nextControlFlow("else")
                     .emitStatement(getStatementForAppendingValueToOsList("osList", "item", elementTypeMirror))
                     .endControlFlow()
@@ -1111,7 +1111,7 @@ public class RealmProxyClassGenerator {
                         .endControlFlow();
             } else if (Utils.isRealmValueList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
-                final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+                final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
                 writer
                         .emitEmptyLine()
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
@@ -1208,7 +1208,7 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isRealmValueList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
-                final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+                final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
                 writer
                         .emitEmptyLine()
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
@@ -1303,7 +1303,7 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isRealmValueList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
-                final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+                final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
                 writer
                         .emitEmptyLine()
                         .emitStatement("OsList %1$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
@@ -1406,7 +1406,7 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isRealmValueList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
-                final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+                final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
                 writer
                         .emitEmptyLine()
                         .emitStatement("OsList %1$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
@@ -1655,16 +1655,8 @@ public class RealmProxyClassGenerator {
             } else if (Utils.isRealmValueList(field)) {
                 writer
                         .emitEmptyLine()
-                        .beginControlFlow("do")
-                        .emitStatement("RealmList<%s> managed%sList = realmSource.%s()",
-                                Utils.getGenericTypeQualifiedName(field), fieldName, getter)
-                        .emitStatement("RealmList<%1$s> unmanaged%2$sList = new RealmList<%1$s>()", Utils.getGenericTypeQualifiedName(field), fieldName)
-                        .emitStatement("unmanagedCopy.%s(unmanaged%sList)", setter, fieldName)
-                        .emitStatement("int size = managed%sList.size()", fieldName)
-                        .beginControlFlow("for (int i = 0; i < size; i++)")
-                        .emitStatement("unmanaged%1$sList.add(managed%1$sList.get(i))", fieldName)
-                        .endControlFlow()
-                        .endControlFlow("while (false)");
+                        .emitStatement("unmanagedCopy.%1$s(new RealmList<%2$s>())", setter, Utils.getGenericTypeQualifiedName(field))
+                        .emitStatement("unmanagedCopy.%1$s().addAll(realmSource.%1$s())", getter);
             } else if (Utils.isMutableRealmInteger(field)) {
                 // If the user initializes the unmanaged MutableRealmInteger to null, this will fail mysteriously.
                 writer.emitStatement("unmanagedCopy.%s().set(realmSource.%s().get())", getter, getter);
@@ -1966,7 +1958,8 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isRealmValueList(field)) {
                 // FIXME need to implement logic for value list fields.
-
+                writer.emitSingleLineComment(String.format(Locale.ENGLISH,
+                        "TODO implement logic for value list%1$s.", field.getSimpleName()));
             } else if (Utils.isMutableRealmInteger(field)) {
                 RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
                         "objProxy",
@@ -2050,7 +2043,7 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isRealmValueList(field)) {
                 // FIXME need to implement logic for value list fields.
-
+                writer.emitSingleLineComment("TODO implement logic for value list.");
             } else if (Utils.isMutableRealmInteger(field)) {
                 RealmJsonTypeHelper.emitFillJavaTypeFromStream(
                         "objProxy",
