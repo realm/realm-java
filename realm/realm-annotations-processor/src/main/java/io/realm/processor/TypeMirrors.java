@@ -19,30 +19,35 @@ package io.realm.processor;
 import java.util.Date;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 
-public class TypeMirrors {
-    public final TypeMirror STRING_MIRROR;
-    public final TypeMirror BINARY_MIRROR;
-    public final TypeMirror BOOLEAN_MIRROR;
-    public final TypeMirror LONG_MIRROR;
-    public final TypeMirror INTEGER_MIRROR;
-    public final TypeMirror SHORT_MIRROR;
-    public final TypeMirror BYTE_MIRROR;
-    public final TypeMirror DOUBLE_MIRROR;
-    public final TypeMirror FLOAT_MIRROR;
-    public final TypeMirror DATE_MIRROR;
+/**
+ * This class provides {@link TypeMirror} instances used in annotation processor.
+ */
+class TypeMirrors {
+    final TypeMirror STRING_MIRROR;
+    final TypeMirror BINARY_MIRROR;
+    final TypeMirror BOOLEAN_MIRROR;
+    final TypeMirror LONG_MIRROR;
+    final TypeMirror INTEGER_MIRROR;
+    final TypeMirror SHORT_MIRROR;
+    final TypeMirror BYTE_MIRROR;
+    final TypeMirror DOUBLE_MIRROR;
+    final TypeMirror FLOAT_MIRROR;
+    final TypeMirror DATE_MIRROR;
 
-    public final TypeMirror PRIMITIVE_LONG_MIRROR;
-    public final TypeMirror PRIMITIVE_INT_MIRROR;
-    public final TypeMirror PRIMITIVE_SHORT_MIRROR;
-    public final TypeMirror PRIMITIVE_BYTE_MIRROR;
+    final TypeMirror PRIMITIVE_LONG_MIRROR;
+    final TypeMirror PRIMITIVE_INT_MIRROR;
+    final TypeMirror PRIMITIVE_SHORT_MIRROR;
+    final TypeMirror PRIMITIVE_BYTE_MIRROR;
 
-    public TypeMirrors(ProcessingEnvironment env) {
+    TypeMirrors(ProcessingEnvironment env) {
         final Types typeUtils = env.getTypeUtils();
         final Elements elementUtils = env.getElementUtils();
 
@@ -61,5 +66,15 @@ public class TypeMirrors {
         PRIMITIVE_INT_MIRROR = typeUtils.getPrimitiveType(TypeKind.INT);
         PRIMITIVE_SHORT_MIRROR = typeUtils.getPrimitiveType(TypeKind.SHORT);
         PRIMITIVE_BYTE_MIRROR = typeUtils.getPrimitiveType(TypeKind.BYTE);
+    }
+
+    /**
+     * @return the {@link TypeMirror} of the elements in {@code RealmList}.
+     */
+    public static TypeMirror getRealmListElementTypeMirror(VariableElement field) {
+        if (!Utils.isRealmList(field)) {
+            return null;
+        }
+        return ((DeclaredType) field.asType()).getTypeArguments().get(0);
     }
 }
