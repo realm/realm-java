@@ -7,10 +7,6 @@ const exec = require('child_process').exec;
 var http = require('http');
 var dispatcher = require('httpdispatcher');
 
-// Turn of event limit
-// TODO Figure out why we actually hit it
-require('events').EventEmitter.prototype._maxListeners = 0;
-
 // Automatically track and cleanup files at exit
 temp.track();
 
@@ -81,6 +77,10 @@ function startRealmObjectServer(done) {
 function stopRealmObjectServer(callback) {
     if (syncServerChildProcess) {
         syncServerChildProcess.on('exit', function() {
+            syncServerChildProcess.stdout.removeListener('data')
+            syncServerChildProcess.stderr.removeListener('data')
+            syncServerChildProcess.removeListener('close')
+            syncServerChildProcess.removeListener('exit')
             syncServerChildProcess = null;
             callback();
         });
