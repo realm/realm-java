@@ -19,6 +19,8 @@ package io.realm.processor;
 import java.util.Date;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -61,5 +63,15 @@ public class TypeMirrors {
         PRIMITIVE_INT_MIRROR = typeUtils.getPrimitiveType(TypeKind.INT);
         PRIMITIVE_SHORT_MIRROR = typeUtils.getPrimitiveType(TypeKind.SHORT);
         PRIMITIVE_BYTE_MIRROR = typeUtils.getPrimitiveType(TypeKind.BYTE);
+    }
+
+    /**
+     * @return the {@link TypeMirror} of the elements in {@code RealmList}.
+     */
+    public static TypeMirror getRealmListElementTypeMirror(VariableElement field) {
+        if (!Utils.isRealmList(field)) {
+            return null;
+        }
+        return ((DeclaredType) field.asType()).getTypeArguments().get(0);
     }
 }

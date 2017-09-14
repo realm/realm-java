@@ -315,7 +315,7 @@ public class RealmProxyClassGenerator {
             } else if (Utils.isRealmModel(field)) {
                 emitRealmModel(writer, field, fieldName, fieldTypeCanonicalName);
             } else if (Utils.isRealmList(field)) {
-                final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+                final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
                 emitRealmList(writer, field, fieldName, fieldTypeCanonicalName, elementTypeMirror);
             } else {
                 throw new UnsupportedOperationException(String.format(Locale.US,
@@ -1111,7 +1111,7 @@ public class RealmProxyClassGenerator {
                         .endControlFlow();
             } else if (Utils.isRealmValueList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
-                final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+                final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
                 writer
                         .emitEmptyLine()
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
@@ -1208,7 +1208,7 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isRealmValueList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
-                final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+                final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
                 writer
                         .emitEmptyLine()
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
@@ -1303,7 +1303,7 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isRealmValueList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
-                final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+                final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
                 writer
                         .emitEmptyLine()
                         .emitStatement("OsList %1$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
@@ -1406,7 +1406,7 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isRealmValueList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
-                final TypeMirror elementTypeMirror = Utils.getRealmListElementTypeMirror(field);
+                final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
                 writer
                         .emitEmptyLine()
                         .emitStatement("OsList %1$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1$sIndex)", fieldName)
