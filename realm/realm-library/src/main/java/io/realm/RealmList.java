@@ -62,7 +62,6 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
     public static final String REMOVE_OUTSIDE_TRANSACTION_ERROR = "Objects can only be removed from inside a write transaction";
 
-    private final io.realm.internal.Collection collection;
     @Nullable
     protected Class<E> clazz;
     @Nullable
@@ -79,7 +78,6 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist its elements in Realm.
      */
     public RealmList() {
-        collection = null;
         osList = null;
         realm = null;
         unmanagedList = new ArrayList<>();
@@ -99,7 +97,6 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         if (objects == null) {
             throw new IllegalArgumentException("The objects argument cannot be null");
         }
-        collection = null;
         osList = null;
         realm = null;
         unmanagedList = new ArrayList<>(objects.length);
@@ -114,14 +111,12 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @param realm reference to Realm containing the data.
      */
     RealmList(Class<E> clazz, OsList osList, BaseRealm realm) {
-        this.collection = new io.realm.internal.Collection(realm.sharedRealm, osList, null);
         this.clazz = clazz;
         this.osList = osList;
         this.realm = realm;
     }
 
     RealmList(String className, OsList osList, BaseRealm realm) {
-        this.collection = new io.realm.internal.Collection(realm.sharedRealm, osList, null);
         this.osList = osList;
         this.realm = realm;
         this.className = className;
@@ -990,7 +985,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.addListener(this, listener);
+        osList.addListener(this, listener);
     }
 
     /**
@@ -1003,7 +998,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.removeListener(this, listener);
+        osList.removeListener(this, listener);
     }
 
     /**
@@ -1041,7 +1036,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public void addChangeListener(RealmChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.addListener(this, listener);
+        osList.addListener(this, listener);
     }
 
     /**
@@ -1054,7 +1049,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public void removeChangeListener(RealmChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.removeListener(this, listener);
+        osList.removeListener(this, listener);
     }
 
     /**
@@ -1065,7 +1060,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public void removeAllChangeListeners() {
         checkForAddRemoveListener(null, false);
-        collection.removeAllListeners();
+        osList.removeAllListeners();
     }
 
     // Custom RealmList iterator.
