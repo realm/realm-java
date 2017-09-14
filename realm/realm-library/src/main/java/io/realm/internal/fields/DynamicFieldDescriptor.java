@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmFieldType;
 import io.realm.internal.Table;
 
@@ -38,7 +40,7 @@ class DynamicFieldDescriptor extends FieldDescriptor {
      * @param validInternalColumnTypes valid types for the last field in the field description.
      * @param validFinalColumnTypes valid types for the last field in the field description.
      */
-    DynamicFieldDescriptor(Table table, String fieldDescription, Set<RealmFieldType> validInternalColumnTypes, Set<RealmFieldType> validFinalColumnTypes) {
+    DynamicFieldDescriptor(Table table, String fieldDescription, Set<RealmFieldType> validInternalColumnTypes, @Nullable Set<RealmFieldType> validFinalColumnTypes) {
         super(fieldDescription, validInternalColumnTypes, validFinalColumnTypes);
         this.table = table;
     }
