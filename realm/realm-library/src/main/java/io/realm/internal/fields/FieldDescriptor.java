@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmFieldType;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
@@ -116,11 +118,11 @@ public abstract class FieldDescriptor {
      * and second, respectively.  --gbm
      */
     public static FieldDescriptor createFieldDescriptor(
-            SchemaProxy schema,
+            @Nullable SchemaProxy schema,
             Table table,
             String fieldDescription,
-            Set<RealmFieldType> validInternalColumnTypes,
-            Set<RealmFieldType> validFinalColumnTypes) {
+            @Nullable Set<RealmFieldType> validInternalColumnTypes,
+            @Nullable Set<RealmFieldType> validFinalColumnTypes) {
         return ((schema == null) || !schema.hasCache())
                 ? new DynamicFieldDescriptor(table, fieldDescription, (null != validInternalColumnTypes) ? validInternalColumnTypes : SIMPLE_LINK_FIELD_TYPES, validFinalColumnTypes)
                 : new CachedFieldDescriptor(schema, table.getClassName(), fieldDescription, (null != validInternalColumnTypes) ? validInternalColumnTypes : ALL_LINK_FIELD_TYPES, validFinalColumnTypes);
@@ -144,7 +146,7 @@ public abstract class FieldDescriptor {
     protected FieldDescriptor(
             String fieldDescription, Set<RealmFieldType>
             validInternalColumnTypes,
-            Set<RealmFieldType> validFinalColumnTypes) {
+            @Nullable Set<RealmFieldType> validFinalColumnTypes) {
         this.fields = parseFieldDescription(fieldDescription);
         int nFields = fields.size();
         if (nFields <= 0) {
