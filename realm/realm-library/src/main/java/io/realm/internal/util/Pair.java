@@ -16,6 +16,9 @@
 
 package io.realm.internal.util;
 
+import javax.annotation.Nullable;
+
+
 /**
  * Container to ease passing around a tuple of two objects. This object provides a sensible
  * implementation of equals(), returning true if equals() is true on each of the contained
@@ -31,7 +34,7 @@ public class Pair<F, S> {
      * Original source: https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/util/Pair.java
      */
     public F first;
-    public S second;
+    @Nullable public S second;
 
     /**
      * Constructor for a Pair.
@@ -39,7 +42,7 @@ public class Pair<F, S> {
      * @param first the first object in the Pair.
      * @param second the second object in the pair.
      */
-    public Pair(F first, S second) {
+    public Pair(F first, @Nullable S second) {
         this.first = first;
         this.second = second;
     }
@@ -61,7 +64,7 @@ public class Pair<F, S> {
         return equals(p.first, first) && (equals(p.second, second));
     }
 
-    private boolean equals(Object a, Object b) {
+    private boolean equals(@Nullable Object a, @Nullable Object b) {
         return (a == b) || (a != null && a.equals(b));
     }
 
