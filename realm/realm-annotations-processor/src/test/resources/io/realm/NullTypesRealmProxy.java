@@ -3867,205 +3867,65 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         // Deep copy of fieldObjectNull
         unmanagedCopy.realmSet$fieldObjectNull(NullTypesRealmProxy.createDetachedCopy(realmSource.realmGet$fieldObjectNull(), currentDepth + 1, maxDepth, cache));
 
-        do {
-            RealmList<java.lang.String> managedfieldStringListNotNullList = realmSource.realmGet$fieldStringListNotNull();
-            RealmList<java.lang.String> unmanagedfieldStringListNotNullList = new RealmList<java.lang.String>();
-            unmanagedCopy.realmSet$fieldStringListNotNull(unmanagedfieldStringListNotNullList);
-            int size = managedfieldStringListNotNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldStringListNotNullList.add(managedfieldStringListNotNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldStringListNotNull(new RealmList<java.lang.String>());
+        unmanagedCopy.realmGet$fieldStringListNotNull().addAll(realmSource.realmGet$fieldStringListNotNull());
 
-        do {
-            RealmList<java.lang.String> managedfieldStringListNullList = realmSource.realmGet$fieldStringListNull();
-            RealmList<java.lang.String> unmanagedfieldStringListNullList = new RealmList<java.lang.String>();
-            unmanagedCopy.realmSet$fieldStringListNull(unmanagedfieldStringListNullList);
-            int size = managedfieldStringListNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldStringListNullList.add(managedfieldStringListNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldStringListNull(new RealmList<java.lang.String>());
+        unmanagedCopy.realmGet$fieldStringListNull().addAll(realmSource.realmGet$fieldStringListNull());
 
-        do {
-            RealmList<byte[]> managedfieldBinaryListNotNullList = realmSource.realmGet$fieldBinaryListNotNull();
-            RealmList<byte[]> unmanagedfieldBinaryListNotNullList = new RealmList<byte[]>();
-            unmanagedCopy.realmSet$fieldBinaryListNotNull(unmanagedfieldBinaryListNotNullList);
-            int size = managedfieldBinaryListNotNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldBinaryListNotNullList.add(managedfieldBinaryListNotNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldBinaryListNotNull(new RealmList<byte[]>());
+        unmanagedCopy.realmGet$fieldBinaryListNotNull().addAll(realmSource.realmGet$fieldBinaryListNotNull());
 
-        do {
-            RealmList<byte[]> managedfieldBinaryListNullList = realmSource.realmGet$fieldBinaryListNull();
-            RealmList<byte[]> unmanagedfieldBinaryListNullList = new RealmList<byte[]>();
-            unmanagedCopy.realmSet$fieldBinaryListNull(unmanagedfieldBinaryListNullList);
-            int size = managedfieldBinaryListNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldBinaryListNullList.add(managedfieldBinaryListNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldBinaryListNull(new RealmList<byte[]>());
+        unmanagedCopy.realmGet$fieldBinaryListNull().addAll(realmSource.realmGet$fieldBinaryListNull());
 
-        do {
-            RealmList<java.lang.Boolean> managedfieldBooleanListNotNullList = realmSource.realmGet$fieldBooleanListNotNull();
-            RealmList<java.lang.Boolean> unmanagedfieldBooleanListNotNullList = new RealmList<java.lang.Boolean>();
-            unmanagedCopy.realmSet$fieldBooleanListNotNull(unmanagedfieldBooleanListNotNullList);
-            int size = managedfieldBooleanListNotNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldBooleanListNotNullList.add(managedfieldBooleanListNotNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldBooleanListNotNull(new RealmList<java.lang.Boolean>());
+        unmanagedCopy.realmGet$fieldBooleanListNotNull().addAll(realmSource.realmGet$fieldBooleanListNotNull());
 
-        do {
-            RealmList<java.lang.Boolean> managedfieldBooleanListNullList = realmSource.realmGet$fieldBooleanListNull();
-            RealmList<java.lang.Boolean> unmanagedfieldBooleanListNullList = new RealmList<java.lang.Boolean>();
-            unmanagedCopy.realmSet$fieldBooleanListNull(unmanagedfieldBooleanListNullList);
-            int size = managedfieldBooleanListNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldBooleanListNullList.add(managedfieldBooleanListNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldBooleanListNull(new RealmList<java.lang.Boolean>());
+        unmanagedCopy.realmGet$fieldBooleanListNull().addAll(realmSource.realmGet$fieldBooleanListNull());
 
-        do {
-            RealmList<java.lang.Long> managedfieldLongListNotNullList = realmSource.realmGet$fieldLongListNotNull();
-            RealmList<java.lang.Long> unmanagedfieldLongListNotNullList = new RealmList<java.lang.Long>();
-            unmanagedCopy.realmSet$fieldLongListNotNull(unmanagedfieldLongListNotNullList);
-            int size = managedfieldLongListNotNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldLongListNotNullList.add(managedfieldLongListNotNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldLongListNotNull(new RealmList<java.lang.Long>());
+        unmanagedCopy.realmGet$fieldLongListNotNull().addAll(realmSource.realmGet$fieldLongListNotNull());
 
-        do {
-            RealmList<java.lang.Long> managedfieldLongListNullList = realmSource.realmGet$fieldLongListNull();
-            RealmList<java.lang.Long> unmanagedfieldLongListNullList = new RealmList<java.lang.Long>();
-            unmanagedCopy.realmSet$fieldLongListNull(unmanagedfieldLongListNullList);
-            int size = managedfieldLongListNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldLongListNullList.add(managedfieldLongListNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldLongListNull(new RealmList<java.lang.Long>());
+        unmanagedCopy.realmGet$fieldLongListNull().addAll(realmSource.realmGet$fieldLongListNull());
 
-        do {
-            RealmList<java.lang.Integer> managedfieldIntegerListNotNullList = realmSource.realmGet$fieldIntegerListNotNull();
-            RealmList<java.lang.Integer> unmanagedfieldIntegerListNotNullList = new RealmList<java.lang.Integer>();
-            unmanagedCopy.realmSet$fieldIntegerListNotNull(unmanagedfieldIntegerListNotNullList);
-            int size = managedfieldIntegerListNotNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldIntegerListNotNullList.add(managedfieldIntegerListNotNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldIntegerListNotNull(new RealmList<java.lang.Integer>());
+        unmanagedCopy.realmGet$fieldIntegerListNotNull().addAll(realmSource.realmGet$fieldIntegerListNotNull());
 
-        do {
-            RealmList<java.lang.Integer> managedfieldIntegerListNullList = realmSource.realmGet$fieldIntegerListNull();
-            RealmList<java.lang.Integer> unmanagedfieldIntegerListNullList = new RealmList<java.lang.Integer>();
-            unmanagedCopy.realmSet$fieldIntegerListNull(unmanagedfieldIntegerListNullList);
-            int size = managedfieldIntegerListNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldIntegerListNullList.add(managedfieldIntegerListNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldIntegerListNull(new RealmList<java.lang.Integer>());
+        unmanagedCopy.realmGet$fieldIntegerListNull().addAll(realmSource.realmGet$fieldIntegerListNull());
 
-        do {
-            RealmList<java.lang.Short> managedfieldShortListNotNullList = realmSource.realmGet$fieldShortListNotNull();
-            RealmList<java.lang.Short> unmanagedfieldShortListNotNullList = new RealmList<java.lang.Short>();
-            unmanagedCopy.realmSet$fieldShortListNotNull(unmanagedfieldShortListNotNullList);
-            int size = managedfieldShortListNotNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldShortListNotNullList.add(managedfieldShortListNotNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldShortListNotNull(new RealmList<java.lang.Short>());
+        unmanagedCopy.realmGet$fieldShortListNotNull().addAll(realmSource.realmGet$fieldShortListNotNull());
 
-        do {
-            RealmList<java.lang.Short> managedfieldShortListNullList = realmSource.realmGet$fieldShortListNull();
-            RealmList<java.lang.Short> unmanagedfieldShortListNullList = new RealmList<java.lang.Short>();
-            unmanagedCopy.realmSet$fieldShortListNull(unmanagedfieldShortListNullList);
-            int size = managedfieldShortListNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldShortListNullList.add(managedfieldShortListNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldShortListNull(new RealmList<java.lang.Short>());
+        unmanagedCopy.realmGet$fieldShortListNull().addAll(realmSource.realmGet$fieldShortListNull());
 
-        do {
-            RealmList<java.lang.Byte> managedfieldByteListNotNullList = realmSource.realmGet$fieldByteListNotNull();
-            RealmList<java.lang.Byte> unmanagedfieldByteListNotNullList = new RealmList<java.lang.Byte>();
-            unmanagedCopy.realmSet$fieldByteListNotNull(unmanagedfieldByteListNotNullList);
-            int size = managedfieldByteListNotNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldByteListNotNullList.add(managedfieldByteListNotNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldByteListNotNull(new RealmList<java.lang.Byte>());
+        unmanagedCopy.realmGet$fieldByteListNotNull().addAll(realmSource.realmGet$fieldByteListNotNull());
 
-        do {
-            RealmList<java.lang.Byte> managedfieldByteListNullList = realmSource.realmGet$fieldByteListNull();
-            RealmList<java.lang.Byte> unmanagedfieldByteListNullList = new RealmList<java.lang.Byte>();
-            unmanagedCopy.realmSet$fieldByteListNull(unmanagedfieldByteListNullList);
-            int size = managedfieldByteListNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldByteListNullList.add(managedfieldByteListNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldByteListNull(new RealmList<java.lang.Byte>());
+        unmanagedCopy.realmGet$fieldByteListNull().addAll(realmSource.realmGet$fieldByteListNull());
 
-        do {
-            RealmList<java.lang.Double> managedfieldDoubleListNotNullList = realmSource.realmGet$fieldDoubleListNotNull();
-            RealmList<java.lang.Double> unmanagedfieldDoubleListNotNullList = new RealmList<java.lang.Double>();
-            unmanagedCopy.realmSet$fieldDoubleListNotNull(unmanagedfieldDoubleListNotNullList);
-            int size = managedfieldDoubleListNotNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldDoubleListNotNullList.add(managedfieldDoubleListNotNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldDoubleListNotNull(new RealmList<java.lang.Double>());
+        unmanagedCopy.realmGet$fieldDoubleListNotNull().addAll(realmSource.realmGet$fieldDoubleListNotNull());
 
-        do {
-            RealmList<java.lang.Double> managedfieldDoubleListNullList = realmSource.realmGet$fieldDoubleListNull();
-            RealmList<java.lang.Double> unmanagedfieldDoubleListNullList = new RealmList<java.lang.Double>();
-            unmanagedCopy.realmSet$fieldDoubleListNull(unmanagedfieldDoubleListNullList);
-            int size = managedfieldDoubleListNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldDoubleListNullList.add(managedfieldDoubleListNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldDoubleListNull(new RealmList<java.lang.Double>());
+        unmanagedCopy.realmGet$fieldDoubleListNull().addAll(realmSource.realmGet$fieldDoubleListNull());
 
-        do {
-            RealmList<java.lang.Float> managedfieldFloatListNotNullList = realmSource.realmGet$fieldFloatListNotNull();
-            RealmList<java.lang.Float> unmanagedfieldFloatListNotNullList = new RealmList<java.lang.Float>();
-            unmanagedCopy.realmSet$fieldFloatListNotNull(unmanagedfieldFloatListNotNullList);
-            int size = managedfieldFloatListNotNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldFloatListNotNullList.add(managedfieldFloatListNotNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldFloatListNotNull(new RealmList<java.lang.Float>());
+        unmanagedCopy.realmGet$fieldFloatListNotNull().addAll(realmSource.realmGet$fieldFloatListNotNull());
 
-        do {
-            RealmList<java.lang.Float> managedfieldFloatListNullList = realmSource.realmGet$fieldFloatListNull();
-            RealmList<java.lang.Float> unmanagedfieldFloatListNullList = new RealmList<java.lang.Float>();
-            unmanagedCopy.realmSet$fieldFloatListNull(unmanagedfieldFloatListNullList);
-            int size = managedfieldFloatListNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldFloatListNullList.add(managedfieldFloatListNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldFloatListNull(new RealmList<java.lang.Float>());
+        unmanagedCopy.realmGet$fieldFloatListNull().addAll(realmSource.realmGet$fieldFloatListNull());
 
-        do {
-            RealmList<java.util.Date> managedfieldDateListNotNullList = realmSource.realmGet$fieldDateListNotNull();
-            RealmList<java.util.Date> unmanagedfieldDateListNotNullList = new RealmList<java.util.Date>();
-            unmanagedCopy.realmSet$fieldDateListNotNull(unmanagedfieldDateListNotNullList);
-            int size = managedfieldDateListNotNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldDateListNotNullList.add(managedfieldDateListNotNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldDateListNotNull(new RealmList<java.util.Date>());
+        unmanagedCopy.realmGet$fieldDateListNotNull().addAll(realmSource.realmGet$fieldDateListNotNull());
 
-        do {
-            RealmList<java.util.Date> managedfieldDateListNullList = realmSource.realmGet$fieldDateListNull();
-            RealmList<java.util.Date> unmanagedfieldDateListNullList = new RealmList<java.util.Date>();
-            unmanagedCopy.realmSet$fieldDateListNull(unmanagedfieldDateListNullList);
-            int size = managedfieldDateListNullList.size();
-            for (int i = 0; i < size; i++) {
-                unmanagedfieldDateListNullList.add(managedfieldDateListNullList.get(i));
-            }
-        } while (false);
+        unmanagedCopy.realmSet$fieldDateListNull(new RealmList<java.util.Date>());
+        unmanagedCopy.realmGet$fieldDateListNull().addAll(realmSource.realmGet$fieldDateListNull());
 
         return unmanagedObject;
     }

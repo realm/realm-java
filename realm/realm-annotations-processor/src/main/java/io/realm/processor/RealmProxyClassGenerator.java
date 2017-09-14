@@ -1655,16 +1655,8 @@ public class RealmProxyClassGenerator {
             } else if (Utils.isRealmValueList(field)) {
                 writer
                         .emitEmptyLine()
-                        .beginControlFlow("do")
-                        .emitStatement("RealmList<%s> managed%sList = realmSource.%s()",
-                                Utils.getGenericTypeQualifiedName(field), fieldName, getter)
-                        .emitStatement("RealmList<%1$s> unmanaged%2$sList = new RealmList<%1$s>()", Utils.getGenericTypeQualifiedName(field), fieldName)
-                        .emitStatement("unmanagedCopy.%s(unmanaged%sList)", setter, fieldName)
-                        .emitStatement("int size = managed%sList.size()", fieldName)
-                        .beginControlFlow("for (int i = 0; i < size; i++)")
-                        .emitStatement("unmanaged%1$sList.add(managed%1$sList.get(i))", fieldName)
-                        .endControlFlow()
-                        .endControlFlow("while (false)");
+                        .emitStatement("unmanagedCopy.%1$s(new RealmList<%2$s>())", setter, Utils.getGenericTypeQualifiedName(field))
+                        .emitStatement("unmanagedCopy.%1$s().addAll(realmSource.%1$s())", getter);
             } else if (Utils.isMutableRealmInteger(field)) {
                 // If the user initializes the unmanaged MutableRealmInteger to null, this will fail mysteriously.
                 writer.emitStatement("unmanagedCopy.%s().set(realmSource.%s().get())", getter, getter);
