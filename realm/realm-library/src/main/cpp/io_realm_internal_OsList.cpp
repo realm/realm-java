@@ -60,24 +60,13 @@ inline void set_value(JNIEnv* env, jlong list_ptr, jlong pos, Any&& value)
     list.set(context, pos, value);
 }
 
-// FIXME: check_nullable in this file should be removed after https://github.com/realm/realm-object-store/issues/544
-// fixed.
-inline void check_nullable(JNIEnv* env, jlong list_ptr)
-{
-    auto& list = *reinterpret_cast<const List*>(list_ptr);
-    if (!is_nullable(list.get_type())) {
-        THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
-                             "The field is not nullable. A non-null value is expected.");
-    }
-}
-
-template <typename T>
-inline void check_nullable(JNIEnv* env, jlong list_ptr, T& jobject_ptr)
+// Check nullable earlier https://github.com/realm/realm-object-store/issues/544
+inline void check_nullable(JNIEnv* env, jlong list_ptr, jobject jobject_ptr = nullptr)
 {
     auto& list = *reinterpret_cast<const List*>(list_ptr);
     if (!jobject_ptr && !is_nullable(list.get_type())) {
         THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
-                             "The field is not nullable. A non-null value is expected.");
+                             "This 'RealmList' is not nullable. A non-null value is expected.");
     }
 }
 } // anonymous namespace
