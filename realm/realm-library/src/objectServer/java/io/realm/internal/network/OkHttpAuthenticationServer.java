@@ -35,7 +35,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String ACTION_LOGOUT = "revoke"; // Auth end point for logging out users
-    private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
+    private static final String ACTION_CHANGE_PASSWORD = "users/:userId:/password"; // Auth end point for changing passwords
     private static final String ACTION_LOOKUP_USER_ID = "users"; // Auth end point for looking up user id
 
     private final OkHttpClient client = new OkHttpClient.Builder()
@@ -101,7 +101,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public ChangePasswordResponse changePassword(Token adminToken, String userId, String newPassword, URL authenticationUrl) {
         try {
             String requestBody = ChangePasswordRequest.create(adminToken, userId, newPassword).toJson();
-            return changePassword(buildActionUrl(authenticationUrl, ACTION_CHANGE_PASSWORD), requestBody);
+            return changePassword(buildActionUrl(authenticationUrl, ACTION_CHANGE_PASSWORD.replace(":userId:", userId)), requestBody);
         } catch (Exception e) {
             return ChangePasswordResponse.from(e);
         }

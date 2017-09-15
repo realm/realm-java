@@ -194,6 +194,7 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
+    @Ignore("Resolve https://github.com/realm/ros/issues/273")
     public void changePassword() {
         String username = UUID.randomUUID().toString();
         String originalPassword = "password";
@@ -213,6 +214,7 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
+    @Ignore("Resolve https://github.com/realm/ros/issues/273")
     public void changePassword_using_admin() {
         String username = UUID.randomUUID().toString();
         String originalPassword = "password";
@@ -240,6 +242,7 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
+    @Ignore("Resolve https://github.com/realm/ros/issues/273")
     public void changePassword_using_admin_async() {
         final String username = UUID.randomUUID().toString();
         final String originalPassword = "password";
@@ -497,6 +500,7 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
+    @Ignore("Resolve https://github.com/realm/ros/issues/261")
     public void revokedRefreshTokenIsNotSameAfterLogin() throws InterruptedException {
         final String uniqueName = UUID.randomUUID().toString();
 
@@ -519,6 +523,7 @@ public class AuthTests extends StandardIntegrationTest {
     // WARNING: this test can fail if there's a difference between the server's and device's clock, causing the
     // refresh access token to be too far in time.
     @Test(timeout = 30000)
+    @Ignore("Resolve https://github.com/realm/ros/issues/277")
     public void preemptiveTokenRefresh() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
 
@@ -534,7 +539,7 @@ public class AuthTests extends StandardIntegrationTest {
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
-                        Assert.fail(error.getErrorMessage());
+                        fail(error.getErrorMessage());
                     }
                 })
                 .build();
