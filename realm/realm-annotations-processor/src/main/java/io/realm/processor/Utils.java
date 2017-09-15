@@ -165,13 +165,12 @@ public class Utils {
     }
 
     /**
-     * @return the {@link TypeMirror} of the elements in {@code RealmList}.
+     * @param field {@link VariableElement} of a value list field.
+     * @return element type of the list field.
      */
-    public static TypeMirror getRealmListElementTypeMirror(VariableElement field) {
-        if (!isRealmList(field)) {
-            return null;
-        }
-        return ((DeclaredType) field.asType()).getTypeArguments().get(0);
+    public static Constants.RealmFieldType getValueListFieldType(VariableElement field) {
+        final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
+        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES.get(elementTypeMirror.toString());
     }
 
     /**
@@ -179,7 +178,7 @@ public class Utils {
      * {@code false} otherwise.
      */
     public static boolean isRealmModelList(VariableElement field) {
-        final TypeMirror elementTypeMirror = getRealmListElementTypeMirror(field);
+        final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
         if (elementTypeMirror == null) {
             return false;
         }
@@ -191,7 +190,7 @@ public class Utils {
      * {@code false} otherwise.
      */
     public static boolean isRealmValueList(VariableElement field) {
-        final TypeMirror elementTypeMirror = getRealmListElementTypeMirror(field);
+        final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
         if (elementTypeMirror == null) {
             return false;
         }
