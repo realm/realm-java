@@ -1,5 +1,9 @@
 ## 4.0.0-BETA3 (YYYY-MM-DD)
 
+### Bug Fixes
+
+* Throw `IllegalArgumentException` instead of `IllegalStateException` when calling string/binary data setters if the data length exceeds the limit.
+
 ### Internal
 
 * Upgraded to Realm Sync 2.0.0-rc16.
