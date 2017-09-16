@@ -338,33 +338,4 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
         }
     }
-
-    /**
-     * @deprecated use {@link RealmQuery#distinct(String)} on the return value of {@link #where()} instead. This will
-     * be removed in coming 3.x.x minor releases.
-     */
-    @Deprecated
-    public RealmResults<E> distinct(String fieldName) {
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(new SchemaConnector(realm.getSchema()), collection.getTable(), fieldName);
-        Collection distinctCollection = collection.distinct(distinctDescriptor);
-        return createLoadedResults(distinctCollection);
-    }
-
-    /**
-     * @deprecated use {@link RealmQuery#distinctAsync(String)} on the return value of {@link #where()} instead. This
-     * will be removed in coming 3.x.x minor releases.
-     */
-    @Deprecated
-    public RealmResults<E> distinctAsync(String fieldName) {
-        return where().distinctAsync(fieldName);
-    }
-
-    /**
-     * @deprecated use {@link RealmQuery#distinct(String, String...)} on the return value of {@link #where()} instead.
-     * This will be removed in coming 3.x.x minor releases.
-     */
-    @Deprecated
-    public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
-        return where().distinct(firstFieldName, remainingFieldNames);
-    }
 }
