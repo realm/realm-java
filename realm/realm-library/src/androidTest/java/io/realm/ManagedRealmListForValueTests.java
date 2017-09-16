@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
 
 import io.realm.entities.NullTypes;
+import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -394,10 +395,6 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         assertFalse(list.isValid());
     }
 
-    private static final int HEADER_SIZE = 8;
-    private static final int MAX_STRING_SIZE = 0xFFFFF8 - HEADER_SIZE - 1;
-    private static final int MAX_BINARY_SIZE = 0xFFFFF8 - HEADER_SIZE;
-
     @Test
     public void add_exceedingSizeLimitValueThrows() {
         if (listType != STRING_LIST && listType != BINARY_LIST) {
@@ -407,10 +404,10 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         final int sizeLimit;
         switch (listType) {
             case STRING_LIST:
-                sizeLimit = MAX_STRING_SIZE;
+                sizeLimit = Table.MAX_STRING_SIZE;
                 break;
             case BINARY_LIST:
-                sizeLimit = MAX_BINARY_SIZE;
+                sizeLimit = Table.MAX_BINARY_SIZE;
                 break;
             default:
                 throw new AssertionError("Unexpected list type: " + listType.name());
