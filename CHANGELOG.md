@@ -4,6 +4,10 @@
 
 * Throw `IllegalArgumentException` instead of `IllegalStateException` when calling string/binary data setters if the data length exceeds the limit.
 
+### Breaking Changes
+
+* `RealmResults.distinct()`/`RealmResults.distinctAsync()` have been removed. Use `RealmQuery.distinct()`/`RealmQuery.distinctAsync()` instead.
+
 ### Internal
 
 * Upgraded to Realm Sync 2.0.0-rc16.
