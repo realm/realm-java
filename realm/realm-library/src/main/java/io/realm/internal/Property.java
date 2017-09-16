@@ -72,7 +72,6 @@ public class Property implements NativeObject {
     }
 
     Property(String name, RealmFieldType type, String linkedClassName) {
-        // Ignore the isRequired when creating the linking property.
         this(nativeCreatePersistedLinkProperty(name, convertFromRealmFieldType(type, false), linkedClassName));
     }
 
