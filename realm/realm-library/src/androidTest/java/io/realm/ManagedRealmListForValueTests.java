@@ -72,28 +72,21 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     static final int NULLABLE_TEST_SIZE = NON_NULL_TEST_SIZE * 2;
 
     enum ListType {
-        STRING_LIST(RealmFieldType.STRING_LIST, String.class.getName()),
-        BOOLEAN_LIST(RealmFieldType.BOOLEAN_LIST, Boolean.class.getName()),
-        BINARY_LIST(RealmFieldType.BINARY_LIST, byte[].class.getSimpleName()/* using simple name since array class is a bit special */),
-        LONG_LIST(RealmFieldType.INTEGER_LIST, Long.class.getName()),
-        INTEGER_LIST(RealmFieldType.INTEGER_LIST, Integer.class.getName()),
-        SHORT_LIST(RealmFieldType.INTEGER_LIST, Short.class.getName()),
-        BYTE_LIST(RealmFieldType.INTEGER_LIST, Byte.class.getName()),
-        DOUBLE_LIST(RealmFieldType.DOUBLE_LIST, Double.class.getName()),
-        FLOAT_LIST(RealmFieldType.FLOAT_LIST, Float.class.getName()),
-        DATE_LIST(RealmFieldType.DATE_LIST, Date.class.getName());
+        STRING_LIST(String.class.getName()),
+        BOOLEAN_LIST(Boolean.class.getName()),
+        BINARY_LIST(byte[].class.getSimpleName()/* using simple name since array class is a bit special */),
+        LONG_LIST(Long.class.getName()),
+        INTEGER_LIST(Integer.class.getName()),
+        SHORT_LIST(Short.class.getName()),
+        BYTE_LIST(Byte.class.getName()),
+        DOUBLE_LIST(Double.class.getName()),
+        FLOAT_LIST(Float.class.getName()),
+        DATE_LIST(Date.class.getName());
 
-        private final RealmFieldType fieldType;
         private final String valueTypeName;
 
-        ListType(RealmFieldType fieldType, String valueTypeName) {
-            this.fieldType = fieldType;
+        ListType(String valueTypeName) {
             this.valueTypeName = valueTypeName;
-        }
-
-        @SuppressWarnings("unused")
-        public RealmFieldType getFieldType() {
-            return fieldType;
         }
 
         public String getValueTypeName() {
@@ -122,7 +115,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     public ListType listType;
 
     @Parameterized.Parameter(1)
-    public Boolean typeIsNullable;
+    public Boolean isTypeNullable;
 
     private Realm realm;
     private NullTypes object;
@@ -229,7 +222,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         }
         realm.commitTransaction();
 
-        list = getListFor(object, listType, typeIsNullable);
+        list = getListFor(object, listType, isTypeNullable);
     }
 
     static RealmList<?> getListFor(NullTypes object, ListType listType, boolean nullable) {
@@ -323,55 +316,55 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         for (int i = 0; i < NON_NULL_TEST_SIZE; i++) {
             switch (listType) {
                 case STRING_LIST: {
-                    assertEquals(generateValue(STRING_LIST, i), list.get(typeIsNullable ? (i * 2) : i));
+                    assertEquals(generateValue(STRING_LIST, i), list.get(isTypeNullable ? (i * 2) : i));
                 }
                 break;
                 case BOOLEAN_LIST: {
-                    assertEquals(generateValue(BOOLEAN_LIST, i), list.get(typeIsNullable ? (i * 2) : i));
+                    assertEquals(generateValue(BOOLEAN_LIST, i), list.get(isTypeNullable ? (i * 2) : i));
                 }
                 break;
                 case BINARY_LIST: {
-                    assertArrayEquals((byte[]) generateValue(BINARY_LIST, i), (byte[]) list.get(typeIsNullable ? (i * 2) : i));
+                    assertArrayEquals((byte[]) generateValue(BINARY_LIST, i), (byte[]) list.get(isTypeNullable ? (i * 2) : i));
                 }
                 break;
                 case LONG_LIST: {
                     //noinspection UnnecessaryBoxing
-                    assertEquals(generateValue(LONG_LIST, i), list.get(typeIsNullable ? (i * 2) : i));
+                    assertEquals(generateValue(LONG_LIST, i), list.get(isTypeNullable ? (i * 2) : i));
                 }
                 break;
                 case INTEGER_LIST: {
                     //noinspection UnnecessaryBoxing
-                    assertEquals(generateValue(INTEGER_LIST, i), list.get(typeIsNullable ? (i * 2) : i));
+                    assertEquals(generateValue(INTEGER_LIST, i), list.get(isTypeNullable ? (i * 2) : i));
                 }
                 break;
                 case SHORT_LIST: {
                     //noinspection UnnecessaryBoxing
-                    assertEquals(generateValue(SHORT_LIST, i), list.get(typeIsNullable ? (i * 2) : i));
+                    assertEquals(generateValue(SHORT_LIST, i), list.get(isTypeNullable ? (i * 2) : i));
                 }
                 break;
                 case BYTE_LIST: {
                     //noinspection UnnecessaryBoxing
-                    assertEquals(generateValue(BYTE_LIST, i), list.get(typeIsNullable ? (i * 2) : i));
+                    assertEquals(generateValue(BYTE_LIST, i), list.get(isTypeNullable ? (i * 2) : i));
                 }
                 break;
                 case DOUBLE_LIST: {
                     //noinspection UnnecessaryBoxing
-                    assertEquals(generateValue(DOUBLE_LIST, i), list.get(typeIsNullable ? (i * 2) : i));
+                    assertEquals(generateValue(DOUBLE_LIST, i), list.get(isTypeNullable ? (i * 2) : i));
                 }
                 break;
                 case FLOAT_LIST: {
                     //noinspection UnnecessaryBoxing
-                    assertEquals(generateValue(FLOAT_LIST, i), list.get(typeIsNullable ? (i * 2) : i));
+                    assertEquals(generateValue(FLOAT_LIST, i), list.get(isTypeNullable ? (i * 2) : i));
                 }
                 break;
                 case DATE_LIST: {
-                    assertEquals(generateValue(DATE_LIST, i), list.get(typeIsNullable ? (i * 2) : i));
+                    assertEquals(generateValue(DATE_LIST, i), list.get(isTypeNullable ? (i * 2) : i));
                 }
                 break;
                 default:
                     throw new AssertionError("unexpected value type: " + listType.name());
             }
-            if (typeIsNullable) {
+            if (isTypeNullable) {
                 assertNull(list.get(i * 2 + 1));
             }
         }
@@ -480,7 +473,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
     @Test
     public void size() {
-        assertEquals(typeIsNullable ? NULLABLE_TEST_SIZE : NON_NULL_TEST_SIZE, list.size());
+        assertEquals(isTypeNullable ? NULLABLE_TEST_SIZE : NON_NULL_TEST_SIZE, list.size());
     }
 
     @Test
@@ -491,15 +484,15 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 final Object removed = list.remove(targetIndex);
-                final int dataIndex = typeIsNullable ? targetIndex / 2 : targetIndex;
+                final int dataIndex = isTypeNullable ? targetIndex / 2 : targetIndex;
                 assertValueEquals(generateValue(listType, dataIndex), removed);
             }
         });
 
-        assertEquals(typeIsNullable ? (NULLABLE_TEST_SIZE - 1) : (NON_NULL_TEST_SIZE - 1), list.size());
+        assertEquals(isTypeNullable ? (NULLABLE_TEST_SIZE - 1) : (NON_NULL_TEST_SIZE - 1), list.size());
         for (int i = 0; i < list.size(); i++) {
             final int originalIndex = i < targetIndex ? i : i + 1;
-            if (typeIsNullable) {
+            if (isTypeNullable) {
                 if (originalIndex % 2 == 1) {
                     assertNull(list.get(i));
                 } else {
@@ -513,7 +506,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
     @Test
     public void remove_nullByIndex() {
-        if (!typeIsNullable) {
+        if (!isTypeNullable) {
             return;
         }
 
@@ -546,7 +539,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             }
         });
 
-        assertEquals((typeIsNullable ? NULLABLE_TEST_SIZE : NON_NULL_TEST_SIZE) - 1, list.size());
+        assertEquals((isTypeNullable ? NULLABLE_TEST_SIZE : NON_NULL_TEST_SIZE) - 1, list.size());
     }
 
     @Test
@@ -554,8 +547,8 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                final Object removed = list.remove((typeIsNullable ? NULLABLE_TEST_SIZE : NON_NULL_TEST_SIZE) - 1);
-                if (typeIsNullable) {
+                final Object removed = list.remove((isTypeNullable ? NULLABLE_TEST_SIZE : NON_NULL_TEST_SIZE) - 1);
+                if (isTypeNullable) {
                     assertNull(removed);
                 } else {
                     assertValueEquals(generateValue(listType, NON_NULL_TEST_SIZE - 1), removed);
@@ -563,7 +556,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             }
         });
 
-        assertEquals((typeIsNullable ? NULLABLE_TEST_SIZE : NON_NULL_TEST_SIZE) - 1, list.size());
+        assertEquals((isTypeNullable ? NULLABLE_TEST_SIZE : NON_NULL_TEST_SIZE) - 1, list.size());
     }
 
     @Test
@@ -600,7 +593,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                if (typeIsNullable) {
+                if (isTypeNullable) {
                     assertTrue(list.remove(null));
                 } else {
                     assertFalse(list.remove(null));
@@ -608,7 +601,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             }
         });
 
-        assertEquals(typeIsNullable ? (initialSize - 1) : initialSize, list.size());
+        assertEquals(isTypeNullable ? (initialSize - 1) : initialSize, list.size());
     }
 
     @Test
@@ -620,10 +613,10 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             }
         });
 
-        assertEquals(typeIsNullable ? (NULLABLE_TEST_SIZE - 1) : (NON_NULL_TEST_SIZE - 1), list.size());
+        assertEquals(isTypeNullable ? (NULLABLE_TEST_SIZE - 1) : (NON_NULL_TEST_SIZE - 1), list.size());
         for (int i = 0; i < list.size(); i++) {
             final int originalIndex = i + 1;
-            if (typeIsNullable) {
+            if (isTypeNullable) {
                 if (originalIndex % 2 == 1) {
                     assertNull(list.get(i));
                 } else {
@@ -644,9 +637,9 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             }
         });
 
-        assertEquals(typeIsNullable ? (NULLABLE_TEST_SIZE - 1) : (NON_NULL_TEST_SIZE - 1), list.size());
+        assertEquals(isTypeNullable ? (NULLABLE_TEST_SIZE - 1) : (NON_NULL_TEST_SIZE - 1), list.size());
         for (int i = 0; i < list.size(); i++) {
-            if (typeIsNullable) {
+            if (isTypeNullable) {
                 if (i % 2 == 1) {
                     assertNull(list.get(i));
                 } else {
@@ -883,7 +876,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
                 sb.append(value);
             }
             sb.append(separator);
-            if (typeIsNullable) {
+            if (isTypeNullable) {
                 sb.append("null").append(separator);
             }
         }
@@ -961,7 +954,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
     @Test
     public void add_null_nonNullableListThrows() {
-        if (typeIsNullable) {
+        if (isTypeNullable) {
             return;
         }
 
@@ -978,7 +971,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
     @Test
     public void addAt_null_nonNullableListThrows() {
-        if (typeIsNullable) {
+        if (isTypeNullable) {
             return;
         }
 
@@ -995,7 +988,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
     @Test
     public void set_null_nonNullableListThrows() {
-        if (typeIsNullable) {
+        if (isTypeNullable) {
             return;
         }
 
@@ -1018,7 +1011,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 object = realm.createObject(NullTypes.class, 1000);
-                list = getListFor(object, listType, typeIsNullable);
+                list = getListFor(object, listType, isTypeNullable);
 
                 // add 3 elements as an initial data
                 //noinspection unchecked
@@ -1068,7 +1061,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 object = realm.createObject(NullTypes.class, 1000);
-                list = getListFor(object, listType, typeIsNullable);
+                list = getListFor(object, listType, isTypeNullable);
 
                 // add 3 elements as an initial data
                 //noinspection unchecked
@@ -1118,7 +1111,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 object = realm.createObject(NullTypes.class, 1000);
-                list = getListFor(object, listType, typeIsNullable);
+                list = getListFor(object, listType, isTypeNullable);
 
                 // add 3 elements as an initial data
                 //noinspection unchecked
@@ -1168,7 +1161,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 object = realm.createObject(NullTypes.class, 1000);
-                list = getListFor(object, listType, typeIsNullable);
+                list = getListFor(object, listType, isTypeNullable);
 
                 // add 3 elements as an initial data
                 //noinspection unchecked
@@ -1218,7 +1211,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 object = realm.createObject(NullTypes.class, 1000);
-                list = getListFor(object, listType, typeIsNullable);
+                list = getListFor(object, listType, isTypeNullable);
 
                 // add 3 elements as an initial data
                 //noinspection unchecked
@@ -1267,7 +1260,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 object = realm.createObject(NullTypes.class, 1000);
-                list = getListFor(object, listType, typeIsNullable);
+                list = getListFor(object, listType, isTypeNullable);
 
                 // add 3 elements as an initial data
                 //noinspection unchecked
@@ -1319,7 +1312,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 object = realm.createObject(NullTypes.class, 1000);
-                list = getListFor(object, listType, typeIsNullable);
+                list = getListFor(object, listType, isTypeNullable);
 
                 // add 3 elements as an initial data
                 //noinspection unchecked
@@ -1368,7 +1361,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 object = realm.createObject(NullTypes.class, 1000);
-                list = getListFor(object, listType, typeIsNullable);
+                list = getListFor(object, listType, isTypeNullable);
 
                 // add 3 elements as an initial data
                 //noinspection unchecked
@@ -1419,7 +1412,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 object = realm.createObject(NullTypes.class, 1000);
-                list = getListFor(object, listType, typeIsNullable);
+                list = getListFor(object, listType, isTypeNullable);
             }
         });
 
@@ -1469,7 +1462,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 object = realm.createObject(NullTypes.class, 1000);
-                list = getListFor(object, listType, typeIsNullable);
+                list = getListFor(object, listType, isTypeNullable);
             }
         });
 
