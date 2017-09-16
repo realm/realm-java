@@ -18,6 +18,7 @@ package io.realm.objectserver.utils;
 
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemClock;
 
 import java.util.Map;
 import java.util.UUID;
@@ -103,6 +104,7 @@ public class UserFactory {
                 if (e.getErrorCode() != ErrorCode.INVALID_CREDENTIALS) {
                     throw e;
                 }
+                SystemClock.sleep(1000);
             }
         }
 
