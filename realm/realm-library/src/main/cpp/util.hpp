@@ -29,13 +29,16 @@
 #include <realm.hpp>
 #include <realm/lang_bind_helper.hpp>
 #include <realm/timestamp.hpp>
+#include <realm/table.hpp>
 #include <realm/util/safe_int_ops.hpp>
 
 #include <util/format.hpp>
 
 #include "io_realm_internal_Util.h"
 
+#include "java_exception_def.hpp"
 #include "jni_util/log.hpp"
+#include "jni_util/java_exception_thrower.hpp"
 
 #define CHECK_PARAMETERS 1 // Check all parameters in API and throw exceptions in java if invalid
 
@@ -451,10 +454,20 @@ class JStringAccessor {
 public:
     JStringAccessor(JNIEnv*, jstring); // throws
 
-    operator realm::StringData() const noexcept
+    operator realm::StringData() const
     {
+        // To solve the link issue by directly using Table::max_string_size
+        static constexpr size_t max_string_size = realm::Table::max_string_size;
+
         if (m_is_null) {
             return realm::StringData(NULL);
+        }
+        else if (m_size > max_string_size) {
+            THROW_JAVA_EXCEPTION(
+                m_env, realm::_impl::JavaExceptionDef::IllegalArgument,
+                realm::util::format(
+                    "The length of 'String' value in UTF8 encoding is %1 which exceeds the max string length %2.",
+                    m_size, max_string_size));
         }
         else {
             return realm::StringData(m_data.get(), m_size);
@@ -470,6 +483,7 @@ public:
     }
 
 private:
+    JNIEnv* m_env;
     bool m_is_null;
     std::shared_ptr<char> m_data;
     std::size_t m_size;

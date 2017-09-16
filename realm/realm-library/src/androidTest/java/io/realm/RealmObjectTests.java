@@ -19,6 +19,7 @@ package io.realm;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +28,8 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.FileNotFoundException;
+import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Callable;
@@ -63,6 +66,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -2073,5 +2077,47 @@ public class RealmObjectTests {
             throw thrownInTheThread;
         }
         assertEquals(BaseRealm.INCORRECT_THREAD_MESSAGE, thrownInTheThread.getMessage());
+    }
+
+    @Test
+    public void setter_binary_long_values() {
+        byte[] longBinary = new byte[Table.MAX_BINARY_SIZE];
+        byte[] tooLongBinary = new byte[Table.MAX_BINARY_SIZE + 1];
+
+        realm.beginTransaction();
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        allTypes.setColumnBinary(longBinary);
+        realm.commitTransaction();
+        assertEquals(longBinary.length, allTypes.getColumnBinary().length);
+
+        realm.beginTransaction();
+        try {
+            allTypes.setColumnBinary(tooLongBinary);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString("which exceeds the max binary size"));
+        }
+    }
+
+    @Test
+    public void setter_string_long_values() {
+        byte[] tooLongBinary = new byte[Table.MAX_STRING_SIZE + 1];
+        Arrays.fill(tooLongBinary, (byte) 'a');
+        String longString = new String(tooLongBinary, 0, Table.MAX_STRING_SIZE, Charset.forName("US-ASCII"));
+        String tooLongString = new String(tooLongBinary, 0, Table.MAX_STRING_SIZE + 1, Charset.forName("US-ASCII"));
+
+        realm.beginTransaction();
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        allTypes.setColumnString(longString);
+        realm.commitTransaction();
+        assertEquals(longString.length(), allTypes.getColumnString().length());
+
+        realm.beginTransaction();
+        try {
+            allTypes.setColumnString(tooLongString);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString("which exceeds the max string length"));
+        }
     }
 }

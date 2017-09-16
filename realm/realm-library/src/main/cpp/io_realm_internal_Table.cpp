@@ -32,6 +32,9 @@ using namespace realm::_impl;
 using namespace realm::jni_util;
 using namespace realm::util;
 
+static_assert(io_realm_internal_Table_MAX_STRING_SIZE == Table::max_string_size, "");
+static_assert(io_realm_internal_Table_MAX_BINARY_SIZE == Table::max_binary_size, "");
+
 static const char* c_null_values_cannot_set_required_msg = "The primary key field '%1' has 'null' values stored.  It "
                                                            "cannot be converted to a '@Required' primary key field.";
 
