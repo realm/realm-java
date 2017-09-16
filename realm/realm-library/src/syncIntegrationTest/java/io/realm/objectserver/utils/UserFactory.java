@@ -25,6 +25,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.AuthenticationListener;
+import io.realm.ErrorCode;
+import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.SyncCredentials;
@@ -88,8 +90,23 @@ public class UserFactory {
     public static SyncUser createAdminUser(String authUrl) {
         // `admin` required as user identifier to be granted admin rights.
         // ROS 2.0 comes with a default admin user named "realm-admin" with password "".
-        SyncCredentials credentials = SyncCredentials.usernamePassword("realm-admin", "");
-        return SyncUser.login(credentials, authUrl);
+        SyncCredentials credentials = SyncCredentials.usernamePassword("realm-admin", "", false);
+        int attempts = 3;
+        while (attempts > 0) {
+            attempts--;
+            try {
+                return SyncUser.login(credentials, authUrl);
+            } catch (ObjectServerError e) {
+                // ROS default admin user might not be created yet, we need to retry.
+                // Remove this work-around when https://github.com/realm/ros/issues/282
+                // is fixed.
+                if (e.getErrorCode() != ErrorCode.INVALID_CREDENTIALS) {
+                    throw e;
+                }
+            }
+        }
+
+        throw new IllegalStateException("Could not login 'realm-admin'");
     }
 
     // Since we don't have a reliable way to reset the sync server and client, just use a new user factory for every
