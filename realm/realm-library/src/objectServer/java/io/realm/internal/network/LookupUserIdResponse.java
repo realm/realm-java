@@ -95,21 +95,12 @@ public class LookupUserIdResponse extends AuthServerResponse {
         Map<String, String> metadata;
         try {
             JSONObject obj = new JSONObject(serverResponse);
-            if (obj != null) {
-                userId = obj.getString(JSON_FIELD_USER_ID);
-                isAdmin = obj.getBoolean(JSON_FIELD_USER_IS_ADMIN);
-                metadata = jsonToMap(obj.getJSONObject(JSON_FIELD_METADATA));
-                error = null;
+            userId = obj.getString(JSON_FIELD_USER_ID);
+            isAdmin = obj.getBoolean(JSON_FIELD_USER_IS_ADMIN);
+            metadata = jsonToMap(obj.getJSONObject(JSON_FIELD_METADATA));
+            error = null;
 
-                message = String.format(Locale.US, "Identity %s; Path %b", userId, isAdmin);
-
-            } else {
-                userId = null;
-                isAdmin = null;
-                metadata = new HashMap<>();
-                error = null;
-                message = "user = null";
-            }
+            message = String.format(Locale.US, "Identity %s; Path %b", userId, isAdmin);
 
         } catch (JSONException e) {
             userId = null;
