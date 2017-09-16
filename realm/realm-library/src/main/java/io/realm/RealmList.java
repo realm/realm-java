@@ -212,7 +212,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     public boolean add(@Nullable E object) {
         if (isManaged()) {
             checkValidRealm();
-            //noinspection ConstantConditions
             osListOperator.add(object);
         } else {
             unmanagedList.add(object);
