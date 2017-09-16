@@ -70,7 +70,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     @Nullable
     protected String className;
 
-    // Always null if RealmList is unmanaged, always non-null is managed.
+    // Always null if RealmList is unmanaged, always non-null if managed.
     private final ManagedListOperator<E> osListOperator;
     final protected BaseRealm realm;
     private List<E> unmanagedList;
@@ -210,7 +210,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public boolean add(@Nullable E object) {
-        //noinspection ConstantConditions
         if (isManaged()) {
             checkValidRealm();
             //noinspection ConstantConditions
