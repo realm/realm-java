@@ -1959,7 +1959,7 @@ public class RealmProxyClassGenerator {
             } else if (Utils.isRealmValueList(field)) {
                 // FIXME need to implement logic for value list fields.
                 writer.emitSingleLineComment(String.format(Locale.ENGLISH,
-                        "TODO implement logic for value list%1$s.", field.getSimpleName()));
+                        "TODO implement logic for value list %1$s.", field.getSimpleName()));
             } else if (Utils.isMutableRealmInteger(field)) {
                 RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
                         "objProxy",
