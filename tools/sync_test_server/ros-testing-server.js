@@ -86,8 +86,6 @@ function stopRealmObjectServer(onSuccess, onError) {
         onError("No ROS process found to stop");
     }
 
-    // See https://stackoverflow.com/questions/14031763/doing-a-cleanup-action-just-before-node-js-exits
-
     syncServerChildProcess.on('exit', function(code) {
         winston.info("ROS server stopped due to process being killed. Exit code: " + code);
         syncServerChildProcess.removeAllListeners('exit');

@@ -41,7 +41,6 @@ public class HttpUtils {
     // "Realm could not be deleted errors".
     private final static OkHttpClient client = new OkHttpClient.Builder()
             .retryOnConnectionFailure(true)
-            .readTimeout(30, TimeUnit.SECONDS)
             .build();
 
     // adb reverse tcp:8888 tcp:8888
