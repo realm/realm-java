@@ -25,6 +25,7 @@ import io.realm.SyncCredentials;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 import okhttp3.Call;
+import okhttp3.ConnectionPool;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -42,6 +43,10 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             .connectTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
+            // using custom Connection Pool to evict idle connection after 5 seconds rather than 5 minutes (which is the default)
+            // keeping idle connection on the pool will prevent the ROS to be stopped, since the HttpUtils#stopSyncServer query
+            // will not return before the tests timeout (ex 10 seconds for AuthTests)
+            .connectionPool(new ConnectionPool(5, 5, TimeUnit.SECONDS))
             .build();
 
     /**
