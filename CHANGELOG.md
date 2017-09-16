@@ -1,8 +1,10 @@
-## 3.7.2 (YYYY-MM-DD)
+## 3.7.2 (2017-09-12)
 
 ### Bug Fixes
 
 * Fixed a JNI memory issue when doing queries which might potentially cause various native crashes.
+* Fixed a bug that `RealmList.deleteFromRealm(int)`, `RealmList.deleteFirstFromRealm()` and `RealmList.deleteLastFromRealm()` did not remove target objects from Realm. This bug was introduced in `3.7.1` (#5233).
+* Crash with "'xxx' doesn't exist in current schema." when ProGuard is enabled (#5211).
 
 ## 3.7.1 (2017-09-07)
 

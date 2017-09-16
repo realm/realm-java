@@ -239,4 +239,8 @@ public abstract class CollectionTests {
         return collectionClass == CollectionClass.REALMRESULTS_SNAPSHOT_LIST_BASE ||
                 collectionClass == CollectionClass.REALMRESULTS_SNAPSHOT_RESULTS_BASE;
     }
+
+    boolean isRealmList(ManagedCollection collectionClass) {
+        return collectionClass == ManagedCollection.MANAGED_REALMLIST;
+    }
 }
