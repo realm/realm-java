@@ -7,10 +7,6 @@ const exec = require('child_process').exec;
 var http = require('http');
 var dispatcher = require('httpdispatcher');
 
-// Turn of event limit
-// TODO Figure out why we actually hit it
-require('events').EventEmitter.prototype._maxListeners = 0;
-
 // Automatically track and cleanup files at exit
 temp.track();
 
@@ -70,6 +66,7 @@ function startRealmObjectServer(onSuccess, onError) {
             syncServerChildProcess = spawn('ros',
                     ['start', '--data', path],
                     { env: env, cwd: path});
+
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
                 winston.info(`stdout: ${data}`);
@@ -77,10 +74,6 @@ function startRealmObjectServer(onSuccess, onError) {
 
             syncServerChildProcess.stderr.on('data', (data) => {
                 winston.info(`stderr: ${data}`);
-            });
-
-            syncServerChildProcess.on('close', (code) => {
-                winston.info(`child process exited with code ${code}`);
             });
 
             waitForRosToInitialize(20, onSuccess, onError);
@@ -95,46 +88,37 @@ function stopRealmObjectServer(onSuccess, onError) {
 
     // See https://stackoverflow.com/questions/14031763/doing-a-cleanup-action-just-before-node-js-exits
 
-    syncServerChildProcess.on('exit', function() {
-        winston.info("Sync Server process exited");
-        syncServerChildProcess = null;
-        onSuccess();
-    });
-    process.on('SIGINT', function() {
-        winston.info("Syncer server stopped due to SIGINT");
-        syncServerChildProcess = null;
-        onSuccess();
-    });
-    process.on('uncaughtException', function() {
-        winston.info("Syncer server stopped due to uncaughtException");
+    syncServerChildProcess.on('exit', function(code) {
+        winston.info("ROS server stopped due to process being killed. Exit code: " + code);
+        syncServerChildProcess.removeAllListeners('exit');
         syncServerChildProcess = null;
         onSuccess();
     });
 
-    syncServerChildProcess.kill();
+    // Move back to `SIGTERM` once https://github.com/realm/ros/issues/234
+    // is resolved
+    syncServerChildProcess.kill('SIGKILL');
 }
 
 // start sync server
 dispatcher.onGet("/start", function(req, res) {
+    winston.info("Attempting to start ROS");
     startRealmObjectServer(() => {
         res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('Starting a server');
+        res.end('ROS server started');
     }, function (err) {
         res.writeHead(500, {'Content-Type': 'text/plain'});
-        res.end('Starting a server failed: ' + err);
+        res.end('Starting a ROS server failed: ' + err);
     });
 });
 
 // stop a previously started sync server
 dispatcher.onGet("/stop", function(req, res) {
-    stopRealmObjectServer(function() {
+  winston.info("Attempting to stop ROS")
+  stopRealmObjectServer(function() {
       res.writeHead(200, {'Content-Type': 'text/plain'});
-      res.end('Stopping the server');
-    }, function(err) {
-      winston.info("Failed to stop sync server");
-      res.writeHead(500, {'Content-Type': 'text/plain'});
-      res.end('Stopping the server failed: ' + err);
-    });
+      res.end('ROS server stopped');
+  });
 });
 
 //Create and start the Http server
