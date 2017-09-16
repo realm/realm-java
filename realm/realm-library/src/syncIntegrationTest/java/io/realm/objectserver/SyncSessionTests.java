@@ -274,7 +274,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
             realm.createObject(StringOnly.class).setChars(twoMBString);
         }
         realm.commitTransaction();
-        realm.close();
+        realm.close(); // Realm is not longer referenced anywhere
 
         final CountDownLatch testCompleted = new CountDownLatch(1);
 
@@ -313,9 +313,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
         });
 
         TestHelper.awaitOrFail(testCompleted, 60);
-
         user.logout();
-        realm.close();
     }
 
     // A Realm that was opened before a user logged out should be able to resume downloading if the user logs back in.
