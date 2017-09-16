@@ -427,6 +427,7 @@ transcode_complete : {
 
 
 JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
+    : m_env(env)
 {
     // For efficiency, if the incoming UTF-16 string is sufficiently
     // small, we will choose an UTF-8 output buffer whose size (in
