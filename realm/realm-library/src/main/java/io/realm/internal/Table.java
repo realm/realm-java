@@ -47,6 +47,9 @@ public class Table implements TableSchema, NativeObject {
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
     public static final long NO_PRIMARY_KEY = -2;
 
+    public static final int MAX_BINARY_SIZE = 0xFFFFF8 - 8/*array header size*/;
+    public static final int MAX_STRING_SIZE = 0xFFFFF8 - 8/*array header size*/ - 1;
+
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     private final long nativePtr;

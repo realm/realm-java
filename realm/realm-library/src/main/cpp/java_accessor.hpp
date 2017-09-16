@@ -23,6 +23,7 @@
 #include <memory>
 
 #include <realm/binary_data.hpp>
+#include <realm/table.hpp>
 
 #include <object_accessor.hpp>
 #include <util/any.hpp>
@@ -280,6 +281,14 @@ template <>
 template <>
 inline BinaryData JPrimitiveArrayAccessor<jbyteArray, jbyte>::transform<BinaryData>()
 {
+    // To solve the link issue by directly using Table::max_binary_size
+    static constexpr size_t max_binary_size = Table::max_binary_size;
+
+    if (static_cast<size_t>(m_size) > max_binary_size) {
+        THROW_JAVA_EXCEPTION(m_elements_holder->m_env, JavaExceptionDef::IllegalArgument,
+                             util::format("The length of 'byte[]' value is %1 which exceeds the max binary size %2.",
+                                 m_size, max_binary_size));
+    }
     return is_null() ? realm::BinaryData()
                      : realm::BinaryData(reinterpret_cast<const char*>(m_elements_holder->m_data_ptr), m_size);
 }
