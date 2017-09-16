@@ -19,6 +19,8 @@ package io.realm.objectserver.utils;
 import android.util.Log;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.log.RealmLog;
 import okhttp3.Headers;
@@ -39,6 +41,7 @@ public class HttpUtils {
     // "Realm could not be deleted errors".
     private final static OkHttpClient client = new OkHttpClient.Builder()
             .retryOnConnectionFailure(true)
+            .readTimeout(30, TimeUnit.SECONDS)
             .build();
 
     // adb reverse tcp:8888 tcp:8888
@@ -67,14 +70,19 @@ public class HttpUtils {
                 .url(STOP_SERVER)
                 .build();
 
-        Response response = client.newCall(request).execute();
-        if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-
-        Headers responseHeaders = response.headers();
-        for (int i = 0; i < responseHeaders.size(); i++) {
-            Log.d(TAG, responseHeaders.name(i) + ": " + responseHeaders.value(i));
+        Response response;
+        int attempts = 3;
+        while (attempts > 0) {
+            attempts--;
+            try {
+                response = client.newCall(request).execute();
+                if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+                return;
+            } catch (SocketTimeoutException e) {
+                RealmLog.error("HTTP test server did not respond to /stop in time. Retrying.");
+            }
         }
 
-        Log.d(TAG, response.body().string());
+        throw new IllegalStateException("Failed to stop ROS.");
     }
 }
