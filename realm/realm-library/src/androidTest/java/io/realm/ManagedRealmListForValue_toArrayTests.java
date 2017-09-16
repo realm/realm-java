@@ -52,6 +52,7 @@ import static io.realm.ManagedRealmListForValueTests.NON_NULL_TEST_SIZE;
 import static io.realm.ManagedRealmListForValueTests.NULLABLE_TEST_SIZE;
 import static io.realm.ManagedRealmListForValueTests.generateValue;
 import static io.realm.ManagedRealmListForValueTests.getListFor;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -225,7 +226,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
         }
 
         if (listType != BINARY_LIST) {
-            assertTrue(Arrays.equals(expected, list.toArray()));
+            assertArrayEquals(expected, list.toArray());
         } else {
             final Object[] array = list.toArray();
             assertEquals(expected.length, array.length);
@@ -234,7 +235,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
                     assertNull(array[i]);
                 } else {
                     assertTrue(array[i] instanceof byte[]);
-                    assertTrue(Arrays.equals((byte[]) expected[i], (byte[]) array[i]));
+                    assertArrayEquals((byte[]) expected[i], (byte[]) array[i]);
                 }
             }
         }
@@ -262,7 +263,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
         }
         final Object[] returnedArray = list.toArray(new String[0]);
         assertEquals(String.class, returnedArray.getClass().getComponentType());
-        assertTrue(Arrays.equals(expected, returnedArray));
+        assertArrayEquals(expected, returnedArray);
     }
 
     @Test
@@ -288,7 +289,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
 
         final Object[] returnedArray = list.toArray(new Boolean[0]);
         assertEquals(Boolean.class, returnedArray.getClass().getComponentType());
-        assertTrue(Arrays.equals(expected, returnedArray));
+        assertArrayEquals(expected, returnedArray);
     }
 
     @Test
@@ -320,7 +321,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
                 assertNull(returnedArray[i]);
             } else {
                 assertTrue(returnedArray[i] instanceof byte[]);
-                assertTrue(Arrays.equals(expected[i], (byte[]) returnedArray[i]));
+                assertArrayEquals(expected[i], (byte[]) returnedArray[i]);
             }
         }
     }
@@ -347,7 +348,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
         }
         final Object[] returnedArray = list.toArray(new Long[0]);
         assertEquals(Long.class, returnedArray.getClass().getComponentType());
-        assertTrue(Arrays.equals(expected, returnedArray));
+        assertArrayEquals(expected, returnedArray);
     }
 
     @Test
@@ -372,7 +373,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
         }
         final Object[] returnedArray = list.toArray(new Integer[0]);
         assertEquals(Integer.class, returnedArray.getClass().getComponentType());
-        assertTrue(Arrays.equals(expected, returnedArray));
+        assertArrayEquals(expected, returnedArray);
     }
 
     @Test
@@ -397,7 +398,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
         }
         final Object[] returnedArray = list.toArray(new Short[0]);
         assertEquals(Short.class, returnedArray.getClass().getComponentType());
-        assertTrue(Arrays.equals(expected, returnedArray));
+        assertArrayEquals(expected, returnedArray);
     }
 
     @Test
@@ -422,7 +423,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
         }
         final Object[] returnedArray = list.toArray(new Byte[0]);
         assertEquals(Byte.class, returnedArray.getClass().getComponentType());
-        assertTrue(Arrays.equals(expected, returnedArray));
+        assertArrayEquals(expected, returnedArray);
     }
 
     @Test
@@ -447,7 +448,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
         }
         final Object[] returnedArray = list.toArray(new Double[0]);
         assertEquals(Double.class, returnedArray.getClass().getComponentType());
-        assertTrue(Arrays.equals(expected, returnedArray));
+        assertArrayEquals(expected, returnedArray);
     }
 
     @Test
@@ -472,7 +473,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
         }
         final Object[] returnedArray = list.toArray(new Float[0]);
         assertEquals(Float.class, returnedArray.getClass().getComponentType());
-        assertTrue(Arrays.equals(expected, returnedArray));
+        assertArrayEquals(expected, returnedArray);
     }
 
     @Test
@@ -497,6 +498,6 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
         }
         final Object[] returnedArray = list.toArray(new Date[0]);
         assertEquals(Date.class, returnedArray.getClass().getComponentType());
-        assertTrue(Arrays.equals(expected, returnedArray));
+        assertArrayEquals(expected, returnedArray);
     }
 }

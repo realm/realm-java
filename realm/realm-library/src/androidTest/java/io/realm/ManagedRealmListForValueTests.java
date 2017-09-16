@@ -53,6 +53,7 @@ import static io.realm.ManagedRealmListForValueTests.ListType.LONG_LIST;
 import static io.realm.ManagedRealmListForValueTests.ListType.SHORT_LIST;
 import static io.realm.ManagedRealmListForValueTests.ListType.STRING_LIST;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -311,7 +312,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
     private void assertValueEquals(@SuppressWarnings("SameParameterValue") @Nullable String message, @Nullable Object expected, @Nullable Object actual) {
         if (listType == BINARY_LIST) {
-            assertTrue(message, Arrays.equals((byte[]) expected, (byte[]) actual));
+            assertArrayEquals(message, (byte[]) expected, (byte[]) actual);
         } else {
             assertEquals(message, expected, actual);
         }
@@ -330,7 +331,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
                 }
                 break;
                 case BINARY_LIST: {
-                    assertTrue(Arrays.equals((byte[]) generateValue(BINARY_LIST, i), (byte[]) list.get(typeIsNullable ? (i * 2) : i)));
+                    assertArrayEquals((byte[]) generateValue(BINARY_LIST, i), (byte[]) list.get(typeIsNullable ? (i * 2) : i));
                 }
                 break;
                 case LONG_LIST: {
