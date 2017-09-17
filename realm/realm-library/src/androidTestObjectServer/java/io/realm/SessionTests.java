@@ -336,7 +336,7 @@ public class SessionTests {
 
                         // this SyncConf doesn't specify any module, it will throw a migration required
                         // exception since the backup Realm contain only StringOnly table
-                        RealmConfiguration backupRealmConfiguration = SyncConfiguration.forOffline(backupFile, null);
+                        RealmConfiguration backupRealmConfiguration = SyncConfiguration.forRecovery(backupFile);
 
                         try {
                             Realm.getInstance(backupRealmConfiguration);
@@ -351,26 +351,28 @@ public class SessionTests {
                         RealmResults<DynamicRealmObject> all = dynamicRealm.where(StringOnly.CLASS_NAME).findAll();
                         assertEquals(1, all.size());
                         assertEquals("Foo", all.first().getString(StringOnly.FIELD_CHARS));
-                        // can write to it
-                        dynamicRealm.beginTransaction();
-                        dynamicRealm.createObject(StringOnly.CLASS_NAME).set(StringOnly.FIELD_CHARS, "Bar");
-                        dynamicRealm.commitTransaction();
+
+                        // make sure we can't write to it (read-only Realm)
+                        try {
+                            dynamicRealm.beginTransaction();
+                            fail("Can't perform transactions on read-only Realms");
+                        } catch (IllegalStateException expected) {
+                        }
                         dynamicRealm.close();
 
                         try {
-                            SyncConfiguration.forOffline(backupFile, null, StringOnly.class);
+                            SyncConfiguration.forRecovery(backupFile, null, StringOnly.class);
                             fail("Expected to throw java.lang.Class is not a RealmModule");
                         } catch (IllegalArgumentException expected) {
                         }
 
                         // specifying the module will allow to open the typed Realm
-                        backupRealmConfiguration = SyncConfiguration.forOffline(backupFile, null, new StringOnlyModule());
+                        backupRealmConfiguration = SyncConfiguration.forRecovery(backupFile, null, new StringOnlyModule());
                         Realm backupRealm = Realm.getInstance(backupRealmConfiguration);
                         assertFalse(backupRealm.isEmpty());
-                        assertEquals(2, backupRealm.where(StringOnly.class).count());
-                        RealmResults<StringOnly> allSorted = backupRealm.where(StringOnly.class).findAllSorted(StringOnly.FIELD_CHARS);
-                        assertEquals("Bar", allSorted.get(0).getChars());
-                        assertEquals("Foo", allSorted.get(1).getChars());
+                        assertEquals(1, backupRealm.where(StringOnly.class).count());
+                        RealmResults<StringOnly> allSorted = backupRealm.where(StringOnly.class).findAll();
+                        assertEquals("Foo", allSorted.get(0).getChars());
                         backupRealm.close();
 
                         looperThread.testComplete();
@@ -419,24 +421,20 @@ public class SessionTests {
                         assertEquals(1, backupEncryptedRealm.where(StringOnly.class).count());
                         RealmResults<StringOnly> allSorted = backupEncryptedRealm.where(StringOnly.class).findAll();
                         assertEquals("Foo", allSorted.get(0).getChars());
-                        backupEncryptedRealm.beginTransaction();
-                        backupEncryptedRealm.createObject(StringOnly.class).setChars("Bar");
-                        backupEncryptedRealm.commitTransaction();
                         backupEncryptedRealm.close();
 
                         String backupFile = handler.getBackupFile().getAbsolutePath();
                         // build a conf to open a DynamicRealm
-                        backupRealmConfiguration = SyncConfiguration.forOffline(backupFile, randomKey, new StringOnlyModule());
+                        backupRealmConfiguration = SyncConfiguration.forRecovery(backupFile, randomKey, new StringOnlyModule());
                         backupEncryptedRealm = Realm.getInstance(backupRealmConfiguration);
-                        assertEquals(2, backupEncryptedRealm.where(StringOnly.class).count());
-                        allSorted = backupEncryptedRealm.where(StringOnly.class).findAllSorted(StringOnly.FIELD_CHARS);
-                        assertEquals("Bar", allSorted.get(0).getChars());
-                        assertEquals("Foo", allSorted.get(1).getChars());
+                        assertEquals(1, backupEncryptedRealm.where(StringOnly.class).count());
+                        allSorted = backupEncryptedRealm.where(StringOnly.class).findAll();
+                        assertEquals("Foo", allSorted.get(0).getChars());
                         backupEncryptedRealm.close();
 
                         // using wrong key throw
                         try {
-                            Realm.getInstance(SyncConfiguration.forOffline(backupFile, TestHelper.getRandomKey(), new StringOnlyModule()));
+                            Realm.getInstance(SyncConfiguration.forRecovery(backupFile, TestHelper.getRandomKey(), new StringOnlyModule()));
                             fail("Expected to throw when using wrong encryption key");
                         } catch (RealmFileException expected) {
                         }
