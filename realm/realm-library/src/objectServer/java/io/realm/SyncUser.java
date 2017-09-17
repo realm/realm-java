@@ -274,31 +274,7 @@ public class SyncUser {
             // the similar SyncConfiguration using the same identity, but with different (new)
             // refresh-token.
             realms.clear();
-
-            // Finally revoke server token. The local user is logged out in any case.
-            final AuthenticationServer server = SyncManager.getAuthServer();
-            // don't reference directly the refreshToken inside the revoke request
-            // as it may revoke the newly acquired and refresh_token
-            final Token refreshTokenToBeRevoked = refreshToken;
-
-            ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
-            networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
-
-                @Override
-                protected LogoutResponse execute() {
-                    return server.logout(refreshTokenToBeRevoked, getAuthenticationUrl());
-                }
-
-                @Override
-                protected void onSuccess(LogoutResponse response) {
-                    SyncManager.notifyUserLoggedOut(SyncUser.this);
-                }
-
-                @Override
-                protected void onError(LogoutResponse response) {
-                    RealmLog.error("Failed to log user out.\n" + response.getError().toString());
-                }
-            });
+            SyncManager.notifyUserLoggedOut(SyncUser.this);
         }
     }
 
