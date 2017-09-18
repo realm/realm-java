@@ -1329,7 +1329,7 @@ public class RealmTests {
         assertEquals(1, realmTypes.getColumnBooleanList().size());
         assertEquals(true, realmTypes.getColumnBooleanList().get(0));
         assertEquals(1, realmTypes.getColumnBinaryList().size());
-        assertTrue(Arrays.equals(new byte[] {1}, realmTypes.getColumnBinaryList().get(0)));
+        assertArrayEquals(new byte[] {1}, realmTypes.getColumnBinaryList().get(0));
         assertEquals(1, realmTypes.getColumnLongList().size());
         assertEquals((Long) 1L, realmTypes.getColumnLongList().get(0));
         assertEquals(1, realmTypes.getColumnDoubleList().size());
@@ -1794,8 +1794,8 @@ public class RealmTests {
         assertEquals(true, obj.getColumnBooleanList().get(0));
         assertEquals(false, obj.getColumnBooleanList().get(1));
         assertEquals(2, obj.getColumnBinaryList().size());
-        assertTrue(Arrays.equals(new byte[] {2}, obj.getColumnBinaryList().get(0)));
-        assertTrue(Arrays.equals(new byte[] {3}, obj.getColumnBinaryList().get(1)));
+        assertArrayEquals(new byte[] {2}, obj.getColumnBinaryList().get(0));
+        assertArrayEquals(new byte[] {3}, obj.getColumnBinaryList().get(1));
         assertEquals(2, obj.getColumnLongList().size());
         assertEquals((Long) 2L, obj.getColumnLongList().get(0));
         assertEquals((Long) 3L, obj.getColumnLongList().get(1));
@@ -2855,7 +2855,7 @@ public class RealmTests {
         assertEquals(fieldDoubleValue, managedObj.getFieldDouble(), 0D);
         assertEquals(fieldBooleanValue, managedObj.isFieldBoolean());
         assertEquals(fieldDateValue, managedObj.getFieldDate());
-        assertTrue(Arrays.equals(fieldBinaryValue, managedObj.getFieldBinary()));
+        assertArrayEquals(fieldBinaryValue, managedObj.getFieldBinary());
         assertEquals(fieldObjectIntValue, managedObj.getFieldObject().getFieldInt());
         assertEquals(1, managedObj.getFieldList().size());
         assertEquals(fieldListIntValue, managedObj.getFieldList().first().getFieldInt());
@@ -2867,8 +2867,8 @@ public class RealmTests {
         assertEquals(true, managedObj.getFieldBooleanList().get(0));
         assertEquals(false, managedObj.getFieldBooleanList().get(1));
         assertEquals(2, managedObj.getFieldBinaryList().size());
-        assertTrue(Arrays.equals(new byte[] {2}, managedObj.getFieldBinaryList().get(0)));
-        assertTrue(Arrays.equals(new byte[] {3}, managedObj.getFieldBinaryList().get(1)));
+        assertArrayEquals(new byte[] {2}, managedObj.getFieldBinaryList().get(0));
+        assertArrayEquals(new byte[] {3}, managedObj.getFieldBinaryList().get(1));
         assertEquals(2, managedObj.getFieldLongList().size());
         assertEquals((Long) 2L, managedObj.getFieldLongList().get(0));
         assertEquals((Long) 3L, managedObj.getFieldLongList().get(1));
@@ -2954,7 +2954,7 @@ public class RealmTests {
         assertEquals(managedObj.getFieldDouble(), copy.getFieldDouble(), 0D);
         assertEquals(managedObj.isFieldBoolean(), copy.isFieldBoolean());
         assertEquals(managedObj.getFieldDate(), copy.getFieldDate());
-        assertTrue(Arrays.equals(managedObj.getFieldBinary(), copy.getFieldBinary()));
+        assertArrayEquals(managedObj.getFieldBinary(), copy.getFieldBinary());
         assertEquals(managedObj.getFieldObject().getFieldInt(), copy.getFieldObject().getFieldInt());
         assertEquals(1, copy.getFieldList().size());
         //noinspection ConstantConditions
@@ -2967,8 +2967,8 @@ public class RealmTests {
         assertEquals(true, managedObj.getFieldBooleanList().get(0));
         assertEquals(false, managedObj.getFieldBooleanList().get(1));
         assertEquals(2, managedObj.getFieldBinaryList().size());
-        assertTrue(Arrays.equals(new byte[] {2}, managedObj.getFieldBinaryList().get(0)));
-        assertTrue(Arrays.equals(new byte[] {3}, managedObj.getFieldBinaryList().get(1)));
+        assertArrayEquals(new byte[] {2}, managedObj.getFieldBinaryList().get(0));
+        assertArrayEquals(new byte[] {3}, managedObj.getFieldBinaryList().get(1));
         assertEquals(2, managedObj.getFieldLongList().size());
         assertEquals((Long) 2L, managedObj.getFieldLongList().get(0));
         assertEquals((Long) 3L, managedObj.getFieldLongList().get(1));
