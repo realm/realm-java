@@ -32,9 +32,11 @@ import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.SyncUserInfo;
+import io.realm.TestHelper;
 import io.realm.entities.StringOnly;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.objectserver.Token;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
@@ -90,7 +92,8 @@ public class AuthTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void login_newUser() {
-        SyncCredentials credentials = SyncCredentials.usernamePassword("myUser", "password", true);
+        String userId = UUID.randomUUID().toString();
+        SyncCredentials credentials = SyncCredentials.usernamePassword(userId, "password", true);
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
             public void onSuccess(SyncUser user) {
@@ -500,23 +503,38 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
-    @Ignore("Resolve https://github.com/realm/ros/issues/261")
     public void revokedRefreshTokenIsNotSameAfterLogin() throws InterruptedException {
+        final CountDownLatch userLoggedInAgain = new CountDownLatch(1);
         final String uniqueName = UUID.randomUUID().toString();
 
-        SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
+        final SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        Token revokedRefreshToken = user.getAccessToken();
+        final Token revokedRefreshToken = user.getAccessToken();
+
+        SyncManager.addAuthenticationListener(new AuthenticationListener() {
+            @Override
+            public void loggedIn(SyncUser user) {
+
+            }
+
+            @Override
+            public void loggedOut(SyncUser user) {
+                SystemClock.sleep(1000); // Remove once https://github.com/realm/ros/issues/304 is fixed
+                SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);
+                SyncUser loggedInUser = SyncUser.login(credentials, Constants.AUTH_URL);
+
+                // still comparing the same user
+                assertEquals(revokedRefreshToken.identity(), loggedInUser.getAccessToken().identity());
+
+                // different tokens
+                assertNotEquals(revokedRefreshToken.value(), loggedInUser.getAccessToken().value());
+                SyncManager.removeAuthenticationListener(this);
+                userLoggedInAgain.countDown();
+            }
+        });
 
         user.logout();
-
-        credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);
-        SyncUser loggedInUser = SyncUser.login(credentials, Constants.AUTH_URL);
-
-        // still comparing the same user
-        Assert.assertEquals(revokedRefreshToken.identity(), loggedInUser.getAccessToken().identity());
-        // different tokens
-        assertNotEquals(revokedRefreshToken.value(), loggedInUser.getAccessToken().value());
+        TestHelper.awaitOrFail(userLoggedInAgain);
     }
 
     // The pre-emptive token refresh subsystem should function, and properly refresh the access token.
