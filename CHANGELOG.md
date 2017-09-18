@@ -8,6 +8,7 @@
 
 * `RealmResults.distinct()`/`RealmResults.distinctAsync()` have been removed. Use `RealmQuery.distinct()`/`RealmQuery.distinctAsync()` instead.
 * `RealmQuery.createQuery(Realm, Class)`, `RealmQuery.createDynamicQuery(DynamicRealm, String)`, `RealmQuery.createQueryFromResult(RealmResults)` and `RealmQuery.createQueryFromList(RealmList)` have been removed. Use `Realm.where(Class)`, `DynamicRealm.where(String)`, RealmResults.where()` and `RealmList.where()` instead.
+* Some exception messages are revised.
 
 ### Internal
 
