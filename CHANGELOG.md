@@ -1,4 +1,33 @@
+## 4.0.0 (YYYY-MM-DD)
+
+## Breaking Changes
+
+* Calling `distinct()` on a sorted `RealmResults` no longer clears the sorting (#3503).
+
+## Deprecated
+
+## Enhancements
+
+## Bug Fixes
+
+## Internal
+
+## Credits
+
+
 ## 4.0.0-BETA3 (YYYY-MM-DD)
+
+### Breaking Changes
+
+* `RealmResults.distinct()`/`RealmResults.distinctAsync()` have been removed. Use `RealmQuery.distinct()`/`RealmQuery.distinctAsync()` instead.
+
+### Enhancements
+
+* [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
+
+### Bug Fixes
+
+* Throw `IllegalArgumentException` instead of `IllegalStateException` when calling string/binary data setters if the data length exceeds the limit.
 
 ### Internal
 
