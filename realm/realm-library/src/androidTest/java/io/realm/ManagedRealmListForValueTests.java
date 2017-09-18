@@ -1209,7 +1209,11 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
         realm.beginTransaction();
         //noinspection unchecked
-        assertEquals(generateValue(listType, 100), list.remove(1));
+        if (listType == BINARY_LIST) {
+            assertArrayEquals((byte[]) generateValue(listType, 100), (byte[]) list.remove(1));
+        } else {
+            assertEquals(generateValue(listType, 100), list.remove(1));
+        }
         realm.commitTransaction();
 
         assertEquals(2, listenerCalledCount.get());
@@ -1219,6 +1223,12 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     @Test
     @RunTestInLooperThread
     public void changeListener_forRemoveObject() {
+        if (listType == BINARY_LIST) {
+            // 'removeAll()' never remove byte array element since 'equals()' never return true against byte array.
+            looperThread.testComplete();
+            return;
+        }
+
         Realm realm = looperThread.getRealm();
         realm.executeTransaction(new Realm.Transaction() {
             @Override
