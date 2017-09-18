@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import java.lang.reflect.Array;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,6 +37,7 @@ import io.realm.internal.InvalidRow;
 import io.realm.internal.OsList;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.rx.CollectionChange;
+
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
@@ -900,7 +900,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * <p>
      * RealmList will continually be emitted as the RealmList is updated - {@code onComplete} will never be called.
      * <p>
- *   * Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * * Note that when the {@link Realm} is accessed from threads other than where it was created,
      * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
      * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
      * instead.
@@ -1303,13 +1303,6 @@ abstract class ManagedListOperator<T> {
         }
     }
 
-    final void checkElementExists(int index) {
-        final int size = size();
-        if (index < 0 || size <= index) {
-            throw new IndexOutOfBoundsException("Invalid index " + index + ", size is " + osList.size());
-        }
-    }
-
     @Nullable
     abstract T get(int index);
 
@@ -1390,6 +1383,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     @Override
     public void insert(int index, @Nullable Object value) {
         final RealmModel model = castToNonNullModel(value);
+        // need to check in advance to avoid unnecessary copy of unmanaged object into Realm.
         checkInsertIndex(index);
 
         RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(model);
@@ -1399,11 +1393,10 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     @Override
     protected T set(int index, @Nullable Object value) {
         final RealmModel model = castToNonNullModel(value);
-        checkElementExists(index);
 
-        RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(model);
         //noinspection unchecked
         final T oldObject = get(index);
+        RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(model);
         osList.setRow(index, proxy.realmGet$proxyState().getRow$realm().getIndex());
         return oldObject;
     }
@@ -1500,7 +1493,6 @@ final class StringListOperator extends ManagedListOperator<String> {
     @Override
     public void insert(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkInsertIndex(index);
 
         if (value == null) {
             osList.insertNull(index);
@@ -1513,7 +1505,6 @@ final class StringListOperator extends ManagedListOperator<String> {
     @Nullable
     protected String set(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkElementExists(index);
 
         final String oldValue = get(index);
         if (value == null) {
@@ -1589,7 +1580,6 @@ final class LongListOperator<T> extends ManagedListOperator<T> {
     @Override
     public void insert(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkInsertIndex(index);
 
         if (value == null) {
             osList.insertNull(index);
@@ -1602,7 +1592,6 @@ final class LongListOperator<T> extends ManagedListOperator<T> {
     @Override
     protected T set(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkElementExists(index);
 
         final T oldValue = get(index);
         if (value == null) {
@@ -1657,7 +1646,6 @@ final class BooleanListOperator extends ManagedListOperator<Boolean> {
     @Override
     public void insert(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkInsertIndex(index);
 
         if (value == null) {
             osList.insertNull(index);
@@ -1670,7 +1658,6 @@ final class BooleanListOperator extends ManagedListOperator<Boolean> {
     @Override
     protected Boolean set(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkElementExists(index);
 
         final Boolean oldValue = get(index);
         if (value == null) {
@@ -1725,7 +1712,6 @@ final class BinaryListOperator extends ManagedListOperator<byte[]> {
     @Override
     public void insert(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkInsertIndex(index);
 
         if (value == null) {
             osList.insertNull(index);
@@ -1738,7 +1724,6 @@ final class BinaryListOperator extends ManagedListOperator<byte[]> {
     @Override
     protected byte[] set(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkElementExists(index);
 
         final byte[] oldValue = get(index);
         if (value == null) {
@@ -1793,7 +1778,6 @@ final class DoubleListOperator extends ManagedListOperator<Double> {
     @Override
     public void insert(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkInsertIndex(index);
 
         if (value == null) {
             osList.insertNull(index);
@@ -1806,7 +1790,6 @@ final class DoubleListOperator extends ManagedListOperator<Double> {
     @Override
     protected Double set(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkElementExists(index);
 
         final Double oldValue = get(index);
         if (value == null) {
@@ -1861,7 +1844,6 @@ final class FloatListOperator extends ManagedListOperator<Float> {
     @Override
     public void insert(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkInsertIndex(index);
 
         if (value == null) {
             osList.insertNull(index);
@@ -1874,7 +1856,6 @@ final class FloatListOperator extends ManagedListOperator<Float> {
     @Override
     protected Float set(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkElementExists(index);
 
         final Float oldValue = get(index);
         if (value == null) {
@@ -1929,7 +1910,6 @@ final class DateListOperator extends ManagedListOperator<Date> {
     @Override
     public void insert(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkInsertIndex(index);
 
         if (value == null) {
             osList.insertNull(index);
@@ -1942,7 +1922,6 @@ final class DateListOperator extends ManagedListOperator<Date> {
     @Override
     protected Date set(int index, @Nullable Object value) {
         checkValidValue(value);
-        checkElementExists(index);
 
         final Date oldValue = get(index);
         if (value == null) {
