@@ -25,13 +25,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import io.realm.ManagedRealmListForValueTests.ListType;
 import io.realm.entities.NullTypes;
@@ -201,18 +197,6 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
         }
     }
 
-    private static final Set<ListType> NON_NUMBER_LIST_TYPES;
-
-    static {
-        final HashSet<ListType> set = new HashSet<>();
-        set.add(STRING_LIST);
-        set.add(BOOLEAN_LIST);
-        set.add(BINARY_LIST);
-        set.add(DATE_LIST);
-
-        NON_NUMBER_LIST_TYPES = Collections.unmodifiableSet(set);
-    }
-
     @Test
     public void toArray() {
         final Object[] expected = new Object[typeIsNullable ? NULLABLE_TEST_SIZE : NON_NULL_TEST_SIZE];
@@ -243,9 +227,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
 
     @Test
     public void toArray_withStringArray() {
-        final boolean exceptionExpected = (listType != STRING_LIST);
-
-        if (exceptionExpected) {
+        if (listType != STRING_LIST) {
             thrown.expect(ArrayStoreException.class);
             list.toArray(new String[0]);
             // should not reach here
@@ -268,9 +250,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
 
     @Test
     public void toArray_withBooleanArray() {
-        final boolean exceptionExpected = (listType != BOOLEAN_LIST);
-
-        if (exceptionExpected) {
+        if (listType != BOOLEAN_LIST) {
             thrown.expect(ArrayStoreException.class);
             list.toArray(new Boolean[0]);
             // should not reach here
@@ -294,9 +274,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
 
     @Test
     public void toArray_withBinaryArray() {
-        final boolean exceptionExpected = (listType != BINARY_LIST);
-
-        if (exceptionExpected) {
+        if (listType != BINARY_LIST) {
             thrown.expect(ArrayStoreException.class);
             list.toArray(new byte[0][]);
             // should not reach here
@@ -328,9 +306,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
 
     @Test
     public void toArray_withLongArray() {
-        final boolean exceptionExpected = NON_NUMBER_LIST_TYPES.contains(listType);
-
-        if (exceptionExpected) {
+        if (listType != LONG_LIST) {
             thrown.expect(ArrayStoreException.class);
             list.toArray(new Long[0]);
             // should not reach here
@@ -353,9 +329,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
 
     @Test
     public void toArray_withIntegerArray() {
-        final boolean exceptionExpected = NON_NUMBER_LIST_TYPES.contains(listType);
-
-        if (exceptionExpected) {
+        if (listType != INTEGER_LIST) {
             thrown.expect(ArrayStoreException.class);
             list.toArray(new Integer[0]);
             // should not reach here
@@ -378,9 +352,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
 
     @Test
     public void toArray_withShortArray() {
-        final boolean exceptionExpected = NON_NUMBER_LIST_TYPES.contains(listType);
-
-        if (exceptionExpected) {
+        if (listType != SHORT_LIST) {
             thrown.expect(ArrayStoreException.class);
             list.toArray(new Short[0]);
             // should not reach here
@@ -403,9 +375,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
 
     @Test
     public void toArray_withByteArray() {
-        final boolean exceptionExpected = NON_NUMBER_LIST_TYPES.contains(listType);
-
-        if (exceptionExpected) {
+        if (listType != BYTE_LIST) {
             thrown.expect(ArrayStoreException.class);
             list.toArray(new Byte[0]);
             // should not reach here
@@ -428,9 +398,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
 
     @Test
     public void toArray_withDoubleArray() {
-        final boolean exceptionExpected = NON_NUMBER_LIST_TYPES.contains(listType);
-
-        if (exceptionExpected) {
+        if (listType != DOUBLE_LIST) {
             thrown.expect(ArrayStoreException.class);
             list.toArray(new Double[0]);
             // should not reach here
@@ -453,9 +421,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
 
     @Test
     public void toArray_withFloatArray() {
-        final boolean exceptionExpected = NON_NUMBER_LIST_TYPES.contains(listType);
-
-        if (exceptionExpected) {
+        if (listType != FLOAT_LIST) {
             thrown.expect(ArrayStoreException.class);
             list.toArray(new Float[0]);
             // should not reach here
@@ -478,9 +444,7 @@ public class ManagedRealmListForValue_toArrayTests extends CollectionTests {
 
     @Test
     public void toArray_withDateArray() {
-        final boolean exceptionExpected = (listType != DATE_LIST);
-
-        if (exceptionExpected) {
+        if (listType != DATE_LIST) {
             thrown.expect(ArrayStoreException.class);
             list.toArray(new Date[0]);
             // should not reach here
