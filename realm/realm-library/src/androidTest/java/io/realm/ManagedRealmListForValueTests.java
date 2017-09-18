@@ -53,6 +53,7 @@ import static io.realm.ManagedRealmListForValueTests.ListType.LONG_LIST;
 import static io.realm.ManagedRealmListForValueTests.ListType.SHORT_LIST;
 import static io.realm.ManagedRealmListForValueTests.ListType.STRING_LIST;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -944,12 +945,9 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         realm.close();
         realm = null;
 
-        try {
-            list.deleteAllFromRealm();
-            fail("dogs is invalid and it should throw an exception");
-        } catch (IllegalStateException e) {
-            assertEquals("This Realm instance has already been closed, making it unusable.", e.getMessage());
-        }
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage(is("This Realm instance has already been closed, making it unusable."));
+        list.deleteAllFromRealm();
     }
 
     @Test
