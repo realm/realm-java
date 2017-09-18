@@ -1549,8 +1549,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 }
 
 abstract class ManagedListOperator<T> {
-    static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
-    static final String INVALID_OBJECT_TYPE_MESSAGE = "Unacceptable value type. Acceptable: %1$s, actual: %2$s";
+    static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values.";
+    static final String INVALID_OBJECT_TYPE_MESSAGE = "Unacceptable value type. Acceptable: %1$s, actual: %2$s .";
 
     final BaseRealm realm;
     final OsList osList;
