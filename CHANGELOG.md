@@ -17,6 +17,18 @@
 
 ## 4.0.0-BETA3 (YYYY-MM-DD)
 
+### Breaking Changes
+
+* `RealmResults.distinct()`/`RealmResults.distinctAsync()` have been removed. Use `RealmQuery.distinct()`/`RealmQuery.distinctAsync()` instead.
+
+### Enhancements
+
+* [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
+
+### Bug Fixes
+
+* Throw `IllegalArgumentException` instead of `IllegalStateException` when calling string/binary data setters if the data length exceeds the limit.
+
 ### Internal
 
 * Upgraded to Realm Sync 2.0.0-rc16.
@@ -33,12 +45,21 @@
 ### Breaking Changes
 
 * [ObjectServer] Updated protocol version to 19 which is only compatible with ROS > 2.0.0.
+* Realm has upgraded its RxJava1 support to RxJava2 (#3497)
+  * `Realm.asObservable()` has been renamed to `Realm.asFlowable()`.
+  * `RealmList.asObservable()` has been renamed to `RealmList.asFlowable()`.
+  * `RealmResults.asObservable()` has been renamed to `RealmResults.asFlowable()`.
+  * `RealmObject.asObservable()` has been renamed to `RealmObject.asFlowable()`.
+  * `RxObservableFactory` now return RxJava2 types instead of RxJava1 types.
 
 ### Deprecated
 
 ### Enhancements
 
 * Added `static RealmObject.getRealm(RealmModel)`, `RealmObject.getRealm()` and `DynamicRealmObject.getDynamicRealm()` (#4720).
+* Added `RealmResults.asChangesetObservable()` that emits the pair `(results, changeset)` (#4277).
+* Added `RealmList.asChangesetObservable()` that emits the pair `(list, changeset)` (#4277).
+* Added `RealmObject.asChangesetObservable()` that emits the pair `(object, changeset)` (#4277).
 
 ### Bug Fixes
 
@@ -48,11 +69,13 @@
 * Upgraded to Realm Core 3.0.0-rc3.
 
 
-## 3.7.2 (YYYY-MM-DD)
+## 3.7.2 (2017-09-12)
 
 ### Bug Fixes
 
 * Fixed a JNI memory issue when doing queries which might potentially cause various native crashes.
+* Fixed a bug that `RealmList.deleteFromRealm(int)`, `RealmList.deleteFirstFromRealm()` and `RealmList.deleteLastFromRealm()` did not remove target objects from Realm. This bug was introduced in `3.7.1` (#5233).
+* Crash with "'xxx' doesn't exist in current schema." when ProGuard is enabled (#5211).
 
 ## 3.7.1 (2017-09-07)
 

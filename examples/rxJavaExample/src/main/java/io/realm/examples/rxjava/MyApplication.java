@@ -28,7 +28,6 @@ import io.realm.examples.rxjava.model.Person;
 
 public class MyApplication extends Application {
 
-    private static MyApplication context;
     private static final TreeMap<String, String> testPersons = new TreeMap<>();
     static {
         testPersons.put("Chris", null);
@@ -39,12 +38,12 @@ public class MyApplication extends Application {
         testPersons.put("Donn", "donnfelker");
         testPersons.put("Nabil", "nhachicha");
         testPersons.put("Ron", null);
+        testPersons.put("Leonardo", "dalinaum");
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        context = this;
         Realm.init(this);
         RealmConfiguration config = new RealmConfiguration.Builder().build();
         Realm.deleteRealm(config);
@@ -54,23 +53,16 @@ public class MyApplication extends Application {
 
     // Create test data
     private void createTestData() {
-        final Random r = new Random(42);
+        final Random random = new Random(42);
         Realm realm = Realm.getDefaultInstance();
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                for (Map.Entry<String, String> entry : testPersons.entrySet()) {
-                    Person p = realm.createObject(Person.class);
-                    p.setName(entry.getKey());
-                    p.setGithubUserName(entry.getValue());
-                    p.setAge(r.nextInt(100));
-                }
+        realm.executeTransaction(r -> {
+            for (Map.Entry<String, String> entry : testPersons.entrySet()) {
+                Person p = r.createObject(Person.class);
+                p.setName(entry.getKey());
+                p.setGithubUserName(entry.getValue());
+                p.setAge(random.nextInt(100));
             }
         });
         realm.close();
-    }
-
-    public static MyApplication getContext() {
-        return context;
     }
 }
