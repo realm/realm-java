@@ -653,7 +653,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     }
 
     @Test
-    public void add_atAfterContainerObjectRemoved() {
+    public void addAt_afterContainerObjectRemoved() {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
