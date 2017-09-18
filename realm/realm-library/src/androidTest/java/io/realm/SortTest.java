@@ -565,7 +565,7 @@ public class SortTest {
 
         // After distinct:
         // (3, 1, "C")
-        RealmResults<AnnotationIndexTypes> results2 =  results1.distinct(AnnotationIndexTypes.FIELD_INDEX_INT);
+        RealmResults<AnnotationIndexTypes> results2 =  results1.where().distinct(AnnotationIndexTypes.FIELD_INDEX_INT);
         assertEquals(1, results2.size());
         assertEquals("C", results2.get(0).getIndexString());
         assertEquals(3, results2.get(0).getIndexLong());
