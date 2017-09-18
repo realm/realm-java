@@ -56,6 +56,9 @@ public class SyncUserInfo {
     }
 
     /**
+     * Returns the metadata associated with the user. The metadata is a generic key/value map with
+     * the only restriction that a key must be non-empty.
+     *
      * @return the metadata associated with this user.
      */
     public Map<String, String> getMetadata() {

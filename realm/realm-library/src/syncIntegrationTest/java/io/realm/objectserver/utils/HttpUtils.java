@@ -56,12 +56,6 @@ public class HttpUtils {
 
         Response response = client.newCall(request).execute();
         if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-
-        Headers responseHeaders = response.headers();
-        for (int i = 0; i < responseHeaders.size(); i++) {
-            Log.d(TAG, responseHeaders.name(i) + ": " + responseHeaders.value(i));
-        }
-        Log.d(TAG, response.body().string());
     }
 
     public static void stopSyncServer() throws Exception {
@@ -69,19 +63,7 @@ public class HttpUtils {
                 .url(STOP_SERVER)
                 .build();
 
-        Response response;
-        int attempts = 3;
-        while (attempts > 0) {
-            attempts--;
-            try {
-                response = client.newCall(request).execute();
-                if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-                return;
-            } catch (SocketTimeoutException e) {
-                RealmLog.error("HTTP test server did not respond to /stop in time. Retrying.");
-            }
-        }
-
-        throw new IllegalStateException("Failed to stop ROS.");
+        Response response = client.newCall(request).execute();
+        if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
     }
 }
