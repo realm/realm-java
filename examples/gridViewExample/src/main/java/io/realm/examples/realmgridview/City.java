@@ -19,7 +19,8 @@ package io.realm.examples.realmgridview;
 import io.realm.RealmObject;
 
 public class City extends RealmObject {
-
+    // Field names should not be obfuscated.
+    // Please make proguard rules or add `@SerializedName("XXX")` annotations to exclude fields.
     private String name;
     private long votes;
 
