@@ -745,7 +745,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             public void execute(Realm realm) {
                 for (Object unsupportedValue : unsupportedValues) {
                     //noinspection UseBulkOperation
-                    list.remove(unsupportedValue);
+                    assertFalse(list.remove(unsupportedValue));
                 }
             }
         });
@@ -763,7 +763,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 //noinspection unchecked
-                list.removeAll(toBeRemoved);
+                assertTrue(list.removeAll(toBeRemoved));
             }
         });
 
@@ -786,7 +786,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             @Override
             public void execute(Realm realm) {
                 //noinspection unchecked
-                list.removeAll(unsupportedValues);
+                assertFalse(list.removeAll(unsupportedValues));
             }
         });
 
@@ -1193,7 +1193,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
         realm.beginTransaction();
         //noinspection unchecked
-        list.remove(1);
+        assertEquals(generateValue(listType, 100), list.remove(1));
         realm.commitTransaction();
 
         assertEquals(2, listenerCalledCount.get());
@@ -1243,7 +1243,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
         realm.beginTransaction();
         //noinspection unchecked
-        list.remove(generateValue(listType, 100));
+        assertTrue(list.remove(generateValue(listType, 100)));
         realm.commitTransaction();
 
         assertEquals(2, listenerCalledCount.get());
@@ -1294,7 +1294,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
         realm.beginTransaction();
         //noinspection unchecked
-        list.removeAll(Arrays.asList(generateValue(listType, 100), generateValue(listType, 200), generateValue(listType, 300)));
+        assertTrue(list.removeAll(Arrays.asList(generateValue(listType, 100), generateValue(listType, 200), generateValue(listType, 300))));
         realm.commitTransaction();
 
         assertEquals(2, listenerCalledCount.get());
