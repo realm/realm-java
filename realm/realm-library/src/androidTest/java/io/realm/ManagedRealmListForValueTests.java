@@ -580,11 +580,15 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                assertTrue(list.remove(value));
+                if (listType == BINARY_LIST) {
+                    assertFalse(list.remove(value));  // since 'equals()' never return true against binary array.
+                } else {
+                    assertTrue(list.remove(value));
+                }
             }
         });
 
-        assertEquals(initialSize - 1, list.size());
+        assertEquals((listType == BINARY_LIST) ? initialSize : (initialSize - 1), list.size());
     }
 
     @Test
@@ -762,15 +766,26 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                //noinspection unchecked
-                assertTrue(list.removeAll(toBeRemoved));
+                if (!isTypeNullable && listType == BINARY_LIST) {
+                    //noinspection unchecked
+                    assertFalse(list.removeAll(toBeRemoved)); // since 'equals()' never return true against binary array.
+                } else {
+                    //noinspection unchecked
+                    assertTrue(list.removeAll(toBeRemoved));
+                }
             }
         });
 
-        if (listType == BOOLEAN_LIST) {
-            assertEquals(NON_NULL_TEST_SIZE / 2, list.size());
-        } else {
-            assertEquals(NON_NULL_TEST_SIZE - 2, list.size());
+        switch (listType) {
+            case BINARY_LIST:
+                assertEquals(NON_NULL_TEST_SIZE, list.size());
+                break;
+            case BOOLEAN_LIST:
+                assertEquals(NON_NULL_TEST_SIZE / 2, list.size());
+                break;
+            default:
+                assertEquals(NON_NULL_TEST_SIZE - 2, list.size());
+                break;
         }
     }
 
@@ -1232,7 +1247,8 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         //noinspection unchecked
         list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Object>>() {
             @Override
-            public void onChange(RealmList<Object> collection, OrderedCollectionChangeSet changes) {                assertEquals(1, changes.getInsertions().length);
+            public void onChange(RealmList<Object> collection, OrderedCollectionChangeSet changes) {
+                assertEquals(1, changes.getInsertions().length);
                 assertEquals(0, changes.getInsertions().length);
                 assertEquals(1, changes.getDeletions().length);
                 assertEquals(0, changes.getChanges().length);
@@ -1253,6 +1269,12 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     @Test
     @RunTestInLooperThread
     public void changeListener_forRemoveAll() {
+        if (listType == BINARY_LIST) {
+            // 'removeAll()' never remove byte array element since 'equals()' never return true against byte array.
+            looperThread.testComplete();
+            return;
+        }
+
         Realm realm = looperThread.getRealm();
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -1294,7 +1316,9 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
         realm.beginTransaction();
         //noinspection unchecked
-        assertTrue(list.removeAll(Arrays.asList(generateValue(listType, 100), generateValue(listType, 200), generateValue(listType, 300))));
+
+        final boolean removed = list.removeAll(Arrays.asList(generateValue(listType, 100), generateValue(listType, 200), generateValue(listType, 300)));
+        assertTrue(removed);
         realm.commitTransaction();
 
         assertEquals(2, listenerCalledCount.get());
