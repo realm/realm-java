@@ -1,3 +1,20 @@
+## 4.0.0 (YYYY-MM-DD)
+
+## Breaking Changes
+
+* Calling `distinct()` on a sorted `RealmResults` no longer clears the sorting (#3503).
+
+## Deprecated
+
+## Enhancements
+
+## Bug Fixes
+
+## Internal
+
+## Credits
+
+
 ## 4.0.0-BETA3 (YYYY-MM-DD)
 
 ### Breaking Changes
