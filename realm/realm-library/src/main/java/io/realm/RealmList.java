@@ -30,11 +30,11 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 
-import io.reactivex.Flowable;
-import io.reactivex.Observable;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.OsList;
 import io.realm.internal.RealmObjectProxy;
@@ -849,8 +849,38 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("RealmList<");
-        if (isManaged()) {
+        final String separator = ",";
+        final StringBuilder sb = new StringBuilder();
+
+        if (!isManaged()) {
+            // Build String for unmanaged RealmList
+
+            // Unmanaged RealmList does not know actual element type.
+            sb.append("RealmList<?>@[");
+            // Print list values
+            final int size = size();
+            for (int i = 0; i < size; i++) {
+                final E value = get(i);
+                if (value instanceof RealmModel) {
+                    sb.append(System.identityHashCode(value));
+                } else {
+                    if (value instanceof byte[]) {
+                        sb.append("byte[").append(((byte[]) value).length).append("]");
+                    } else {
+                        sb.append(value);
+                    }
+                }
+                sb.append(separator);
+            }
+            if (0 < size()) {
+                sb.setLength(sb.length() - separator.length());
+            }
+            sb.append("]");
+        } else {
+            // Build String for managed RealmList
+
+            // Determines type of List
+            sb.append("RealmList<");
             if (className != null) {
                 sb.append(className);
             } else {
@@ -867,13 +897,9 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                     }
                 }
             }
-        } else {
-            // unmanaged RealmList does not know actual element type.
-            sb.append("?");
-        }
-        sb.append(">@[");
-        final String separator = ",";
-        if (isManaged()) {
+            sb.append(">@[");
+
+            //Print list values
             if (!isAttached()) {
                 sb.append("invalid");
             } else if (isClassForRealmModel(clazz)) {
@@ -899,25 +925,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                     sb.setLength(sb.length() - separator.length());
                 }
             }
-        } else {
-            for (int i = 0; i < size(); i++) {
-                final E value = get(i);
-                if (value instanceof RealmModel) {
-                    sb.append(System.identityHashCode(value));
-                } else {
-                    if (value instanceof byte[]) {
-                        sb.append("byte[").append(((byte[]) value).length).append("]");
-                    } else {
-                        sb.append(value);
-                    }
-                }
-                sb.append(separator);
-            }
-            if (0 < size()) {
-                sb.setLength(sb.length() - separator.length());
-            }
+            sb.append("]");
         }
-        sb.append("]");
         return sb.toString();
     }
 
