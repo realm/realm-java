@@ -33,78 +33,90 @@ function handleRequest(request, response) {
 
 var syncServerChildProcess = null;
 
-function startRealmObjectServer(done) {
-    // Hack for checking the ROS is fully initialized.
-    // Consider the ROS is initialized fully only if log below shows twice
-    // "client: Closing Realm file: /tmp/ros117521-7-1eiqt7a/internal_data/permission/__auth.realm"
-    // https://github.com/realm/realm-object-server/issues/1297
-    var logFindingCounter = 2
-
-    stopRealmObjectServer(function(err) {
-        if(err) {
-          return;
+// Waits for ROS to be fully initialized.
+function waitForRosToInitialize(attempts, onSuccess, onError) {
+    if (attempts == 0) {
+        onError("Could not get ROS to start. See Docker log.");
+        return;
+    }
+    http.get("http://0.0.0.0:9080/health", function(res) {
+        if (res.statusCode != 200) {
+            winston.info("ROS /health/ returned: " + res.statusCode)
+            waitForRosToInitialize(attempts - 1,onSuccess)
+        } else {
+            onSuccess();
         }
-        temp.mkdir('ros', function(err, path) {
-            if (!err) {
-                winston.info("Starting sync server in ", path);
-                var env = Object.create( process.env );
-                winston.info(env.NODE_ENV);
-                env.NODE_ENV = 'development';
-                syncServerChildProcess = spawn('realm-object-server',
-                        ['--root', path,
-                        '--configuration', '/configuration.yml'],
-                        { env: env, cwd: path});
-                // local config:
-                syncServerChildProcess.stdout.on('data', (data) => {
-                    if (logFindingCounter != 0 && /client: Closing Realm file: .*__auth.realm/.test(data)) {
-                        if (logFindingCounter == 1) {
-                            done()
-                        }
-                        logFindingCounter--
-                    }
-                    winston.info(`stdout: ${data}`);
-                });
-
-                syncServerChildProcess.stderr.on('data', (data) => {
-                    winston.info(`stderr: ${data}`);
-                });
-
-                syncServerChildProcess.on('close', (code) => {
-                    winston.info(`child process exited with code ${code}`);
-                });
-            }
-        });
+    }).on('error', function(err) {
+        // ROS not accepting any connections yet.
+        // Errors like ECONNREFUSED 0.0.0.0:9080 will be reported here.
+        // Wait a little before trying again (common startup is ~1 second).
+        setTimeout(function() {
+            waitForRosToInitialize(attempts - 1, onSuccess);
+        }, 200);
     });
 }
 
-function stopRealmObjectServer(callback) {
-    if (syncServerChildProcess) {
-        syncServerChildProcess.on('exit', function() {
-            syncServerChildProcess = null;
-            callback();
-        });
-        syncServerChildProcess.kill();
-    } else {
-        callback();
-    }
+function startRealmObjectServer(onSuccess, onError) {
+    temp.mkdir('ros', function(err, path) {
+        if (!err) {
+            winston.info("Starting sync server in ", path);
+            var env = Object.create( process.env );
+            winston.info(env.NODE_ENV);
+            env.NODE_ENV = 'development';
+            syncServerChildProcess = spawn('ros',
+                    ['start', '--data', path],
+                    { env: env, cwd: path});
+
+            // local config:
+            syncServerChildProcess.stdout.on('data', (data) => {
+                winston.info(`stdout: ${data}`);
+            });
+
+            syncServerChildProcess.stderr.on('data', (data) => {
+                winston.info(`stderr: ${data}`);
+            });
+
+            waitForRosToInitialize(20, onSuccess, onError);
+        }
+    });
 }
 
+function stopRealmObjectServer(onSuccess, onError) {
+    if(syncServerChildProcess == null) {
+        onError("No ROS process found to stop");
+    }
+
+    syncServerChildProcess.on('exit', function(code) {
+        winston.info("ROS server stopped due to process being killed. Exit code: " + code);
+        syncServerChildProcess.removeAllListeners('exit');
+        syncServerChildProcess = null;
+        onSuccess();
+    });
+
+    // Move back to `SIGTERM` once https://github.com/realm/ros/issues/234
+    // is resolved
+    syncServerChildProcess.kill('SIGKILL');
+}
 
 // start sync server
 dispatcher.onGet("/start", function(req, res) {
+    winston.info("Attempting to start ROS");
     startRealmObjectServer(() => {
         res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('Starting a server');
-    })
+        res.end('ROS server started');
+    }, function (err) {
+        res.writeHead(500, {'Content-Type': 'text/plain'});
+        res.end('Starting a ROS server failed: ' + err);
+    });
 });
 
 // stop a previously started sync server
 dispatcher.onGet("/stop", function(req, res) {
-    stopRealmObjectServer(function() {
-      winston.info("Sync server stopped");
+  winston.info("Attempting to stop ROS")
+  stopRealmObjectServer(function() {
       res.writeHead(200, {'Content-Type': 'text/plain'});
-      res.end('Stopping the server');
-    });
+      res.end('ROS server stopped');
+  });
 });
 
 //Create and start the Http server
