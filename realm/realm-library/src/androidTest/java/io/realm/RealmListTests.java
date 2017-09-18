@@ -141,9 +141,11 @@ public class RealmListTests extends CollectionTests {
         assertEquals(object, list.get(0));
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void add_nullInUnmanagedMode() {
-        new RealmList<AllTypes>().add(null);
+        final RealmList<AllTypes> list = new RealmList<>();
+        assertTrue(list.add(null));
+        assertEquals(1, list.size());
     }
 
     @Test
@@ -189,9 +191,11 @@ public class RealmListTests extends CollectionTests {
         assertEquals("Dog 42", collection.get(0).getName());
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void add_nullAtIndexInUnmanagedMode() {
-        new RealmList<AllTypes>().add(0, null);
+        final RealmList<AllTypes> list = new RealmList<>();
+        list.add(0, null);
+        assertEquals(1, list.size());
     }
 
     @Test
@@ -223,11 +227,9 @@ public class RealmListTests extends CollectionTests {
 
     @Test
     public void set_nullInUnmanagedMode() {
-        @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        RealmList<AllTypes> list = new RealmList<>();
         list.add(new AllTypes());
-        thrown.expect(IllegalArgumentException.class);
-        list.set(0, null);
+        assertNotNull(list.set(0, null));
     }
 
     @Test
