@@ -19,7 +19,6 @@ package io.realm;
 import java.lang.reflect.Array;
 import java.util.AbstractList;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
@@ -30,11 +29,11 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 
-import io.reactivex.Flowable;
-import io.reactivex.Observable;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.OsList;
 import io.realm.internal.RealmObjectProxy;
@@ -60,9 +59,9 @@ import io.realm.rx.CollectionChange;
 
 public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
-    private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
-    private static final String ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE = "This feature is available only when the element type is implementing RealmModel";
-    public static final String REMOVE_OUTSIDE_TRANSACTION_ERROR = "Objects can only be removed from inside a write transaction";
+    private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode.";
+    private static final String ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE = "This feature is available only when the element type is implementing RealmModel.";
+    public static final String REMOVE_OUTSIDE_TRANSACTION_ERROR = "Objects can only be removed from inside a write transaction.";
 
     private final io.realm.internal.Collection collection;
     @Nullable
@@ -70,7 +69,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     @Nullable
     protected String className;
 
-    // Always null if RealmList is unmanaged, always non-null is managed.
+    // Always null if RealmList is unmanaged, always non-null if managed.
     private final ManagedListOperator<E> osListOperator;
     final protected BaseRealm realm;
     private List<E> unmanagedList;
@@ -210,10 +209,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public boolean add(@Nullable E object) {
-        //noinspection ConstantConditions
         if (isManaged()) {
             checkValidRealm();
-            //noinspection ConstantConditions
             osListOperator.add(object);
         } else {
             unmanagedList.add(object);
@@ -345,24 +342,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (isManaged() && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
-
-        if (object instanceof byte[] && clazz == byte[].class) {
-            // we need special handling for class since equals against byte[] never matches.
-            return remove((byte[]) object);
-        }
         return super.remove(object);
-    }
-
-    private boolean remove(@Nonnull byte[] value) {
-        Iterator<E> it = iterator();
-        while (it.hasNext()) {
-            final E e = it.next();
-            if (e instanceof byte[] && Arrays.equals(value, (byte[]) e)) {
-                it.remove();
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -386,29 +366,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (isManaged() && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
-
-        boolean modified = false;
-        Iterator<?> it = iterator();
-        while (it.hasNext()) {
-            final Object element = it.next();
-            if (element instanceof byte[]) {
-                final byte[] bytesElement = (byte[]) element;
-                // we can't use collection.contains() since equals() of byte[] never be true
-                for (Object a : collection) {
-                    if (a instanceof byte[] && Arrays.equals(bytesElement, (byte[]) a)) {
-                        it.remove();
-                        modified = true;
-                        break;
-                    }
-                }
-            } else {
-                if (collection.contains(element)) {
-                    it.remove();
-                    modified = true;
-                }
-            }
-        }
-        return modified;
+        return super.removeAll(collection);
     }
 
     /**
@@ -744,45 +702,9 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 }
             }
 
-            if (object == null) {
-                for (E e : this) {
-                    if (e == null) {
-                        return true;
-                    }
-                }
-                return false;
-            } else {
-                if (object instanceof byte[] && clazz == byte[].class) {
-                    // byte[] requires special handling
-                    final byte[] bytesObject = (byte[]) object;
-                    for (E e : this) {
-                        if (Arrays.equals((byte[]) e, bytesObject)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                } else {
-                    for (E e : this) {
-                        if (e != null && e.equals(object)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            }
+            return super.contains(object);
         } else {
-            if (object instanceof byte[]) {
-                // byte[] requires special handling
-                final byte[] bytesObject = (byte[]) object;
-                for (E e : this) {
-                    if (e instanceof byte[] && Arrays.equals((byte[]) e, bytesObject)) {
-                        return true;
-                    }
-                }
-                return false;
-            } else {
-                return unmanagedList.contains(object);
-            }
+            return unmanagedList.contains(object);
         }
     }
 
@@ -851,8 +773,38 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("RealmList<");
-        if (isManaged()) {
+        final String separator = ",";
+        final StringBuilder sb = new StringBuilder();
+
+        if (!isManaged()) {
+            // Build String for unmanaged RealmList
+
+            // Unmanaged RealmList does not know actual element type.
+            sb.append("RealmList<?>@[");
+            // Print list values
+            final int size = size();
+            for (int i = 0; i < size; i++) {
+                final E value = get(i);
+                if (value instanceof RealmModel) {
+                    sb.append(System.identityHashCode(value));
+                } else {
+                    if (value instanceof byte[]) {
+                        sb.append("byte[").append(((byte[]) value).length).append("]");
+                    } else {
+                        sb.append(value);
+                    }
+                }
+                sb.append(separator);
+            }
+            if (0 < size()) {
+                sb.setLength(sb.length() - separator.length());
+            }
+            sb.append("]");
+        } else {
+            // Build String for managed RealmList
+
+            // Determines type of List
+            sb.append("RealmList<");
             if (className != null) {
                 sb.append(className);
             } else {
@@ -869,13 +821,9 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                     }
                 }
             }
-        } else {
-            // unmanaged RealmList does not know actual element type.
-            sb.append("?");
-        }
-        sb.append(">@[");
-        final String separator = ",";
-        if (isManaged()) {
+            sb.append(">@[");
+
+            //Print list values
             if (!isAttached()) {
                 sb.append("invalid");
             } else if (isClassForRealmModel(clazz)) {
@@ -901,25 +849,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                     sb.setLength(sb.length() - separator.length());
                 }
             }
-        } else {
-            for (int i = 0; i < size(); i++) {
-                final E value = get(i);
-                if (value instanceof RealmModel) {
-                    sb.append(System.identityHashCode(value));
-                } else {
-                    if (value instanceof byte[]) {
-                        sb.append("byte[").append(((byte[]) value).length).append("]");
-                    } else {
-                        sb.append(value);
-                    }
-                }
-                sb.append(separator);
-            }
-            if (0 < size()) {
-                sb.setLength(sb.length() - separator.length());
-            }
+            sb.append("]");
         }
-        sb.append("]");
         return sb.toString();
     }
 
@@ -1292,216 +1223,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         }
     }
 
-    @Override
-    public <T> T[] toArray(T[] a) {
-        if (!isManaged()) {
-            return super.toArray(a);
-        }
-
-        final Class<?> componentType = a.getClass().getComponentType();
-        final int size = size();
-        if (componentType == String.class) {
-            if (a.length < size) {
-                //noinspection unchecked
-                a = (T[]) Array.newInstance(componentType, size);
-            }
-            for (int i = 0; i < size; i++) {
-                //noinspection unchecked
-                a[i] = (T) osListOperator.get(i);
-            }
-            return a;
-        }
-
-        if (componentType == Long.class) {
-            if (a.length < size) {
-                //noinspection unchecked
-                a = (T[]) Array.newInstance(componentType, size);
-            }
-
-            for (int i = 0; i < size; i++) {
-                final E e = osListOperator.get(i);
-                if (e == null || e instanceof Long) {
-                    //noinspection unchecked
-                    a[i] = (T) e;
-                } else {
-                    if (!(e instanceof Number)) {
-                        throw new ArrayStoreException(String.format(Locale.ENGLISH,
-                                "The element of type %1$s can't be stored into the array of %2$s",
-                                e.getClass().getName(), a.getClass().getComponentType()));
-                    }
-                    //noinspection unchecked
-                    a[i] = (T) Long.valueOf(((Number) e).longValue());
-                }
-            }
-            return a;
-        }
-
-        if (componentType == Integer.class) {
-            if (a.length < size) {
-                //noinspection unchecked
-                a = (T[]) Array.newInstance(componentType, size);
-            }
-
-            for (int i = 0; i < size; i++) {
-                final E e = osListOperator.get(i);
-
-                if (e == null || e instanceof Integer) {
-                    //noinspection unchecked
-                    a[i] = (T) e;
-                } else {
-                    if (!(e instanceof Number)) {
-                        throw new ArrayStoreException(String.format(Locale.ENGLISH,
-                                "The element of type %1$s can't be stored into the array of %2$s",
-                                e.getClass().getName(), a.getClass().getComponentType()));
-                    }
-                    //noinspection unchecked
-                    a[i] = (T) Integer.valueOf(((Number) e).intValue());
-                }
-            }
-            return a;
-        }
-
-        if (componentType == Short.class) {
-            if (a.length < size) {
-                //noinspection unchecked
-                a = (T[]) Array.newInstance(componentType, size);
-            }
-
-            for (int i = 0; i < size; i++) {
-                final E e = osListOperator.get(i);
-                if (e == null || e instanceof Short) {
-                    //noinspection unchecked
-                    a[i] = (T) e;
-                } else {
-                    if (!(e instanceof Number)) {
-                        throw new ArrayStoreException(String.format(Locale.ENGLISH,
-                                "The element of type %1$s can't be stored into the array of %2$s",
-                                e.getClass().getName(), a.getClass().getComponentType()));
-                    }
-                    //noinspection unchecked
-                    a[i] = (T) Short.valueOf(((Number) e).shortValue());
-                }
-            }
-            return a;
-        }
-
-        if (componentType == Byte.class) {
-            if (a.length < size) {
-                //noinspection unchecked
-                a = (T[]) Array.newInstance(componentType, size);
-            }
-
-            for (int i = 0; i < size; i++) {
-                final E e = osListOperator.get(i);
-                if (e == null || e instanceof Byte) {
-                    //noinspection unchecked
-                    a[i] = (T) e;
-                } else {
-                    if (!(e instanceof Number)) {
-                        throw new ArrayStoreException(String.format(Locale.ENGLISH,
-                                "The element of type %1$s can't be stored into the array of %2$s",
-                                e.getClass().getName(), a.getClass().getComponentType()));
-                    }
-                    //noinspection unchecked
-                    a[i] = (T) Byte.valueOf(((Number) e).byteValue());
-                }
-            }
-            return a;
-        }
-
-        if (componentType == Double.class) {
-            if (a.length < size) {
-                //noinspection unchecked
-                a = (T[]) Array.newInstance(componentType, size);
-            }
-
-            for (int i = 0; i < size; i++) {
-                final E e = osListOperator.get(i);
-                if (e == null || e instanceof Double) {
-                    //noinspection unchecked
-                    a[i] = (T) e;
-                } else {
-                    if (!(e instanceof Number)) {
-                        throw new ArrayStoreException(String.format(Locale.ENGLISH,
-                                "The element of type %1$s can't be stored into the array of %2$s",
-                                e.getClass().getName(), a.getClass().getComponentType()));
-                    }
-                    //noinspection unchecked
-                    a[i] = (T) Double.valueOf(((Number) e).doubleValue());
-                }
-            }
-            return a;
-        }
-
-        if (componentType == Float.class) {
-            if (a.length < size) {
-                //noinspection unchecked
-                a = (T[]) Array.newInstance(componentType, size);
-            }
-
-            for (int i = 0; i < size; i++) {
-                final E e = osListOperator.get(i);
-                if (e == null || e instanceof Float) {
-                    //noinspection unchecked
-                    a[i] = (T) e;
-                } else {
-                    if (!(e instanceof Number)) {
-                        throw new ArrayStoreException(String.format(Locale.ENGLISH,
-                                "The element of type %1$s can't be stored into the array of %2$s",
-                                e.getClass().getName(), a.getClass().getComponentType()));
-                    }
-                    //noinspection unchecked
-                    a[i] = (T) Float.valueOf(((Number) e).floatValue());
-                }
-            }
-            return a;
-        }
-
-        if (componentType == Boolean.class) {
-            if (a.length < size) {
-                //noinspection unchecked
-                a = (T[]) Array.newInstance(componentType, size);
-            }
-
-            for (int i = 0; i < size; i++) {
-                final E e = osListOperator.get(i);
-                //noinspection unchecked
-                a[i] = (T) e;
-            }
-            return a;
-        }
-
-        if (componentType == Date.class) {
-            if (a.length < size) {
-                //noinspection unchecked
-                a = (T[]) Array.newInstance(componentType, size);
-            }
-
-            for (int i = 0; i < size; i++) {
-                final E e = osListOperator.get(i);
-                //noinspection unchecked
-                a[i] = (T) e;
-            }
-            return a;
-        }
-
-        if (componentType == byte[].class) {
-            if (a.length < size) {
-                //noinspection unchecked
-                a = (T[]) Array.newInstance(componentType, size);
-            }
-
-            for (int i = 0; i < size; i++) {
-                final E e = osListOperator.get(i);
-                //noinspection unchecked
-                a[i] = (T) e;
-            }
-            return a;
-        }
-
-        return super.toArray(a);
-    }
-
     private static boolean isClassForRealmModel(Class<?> clazz) {
         return RealmModel.class.isAssignableFrom(clazz);
     }
@@ -1542,8 +1263,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 }
 
 abstract class ManagedListOperator<T> {
-    static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
-    static final String INVALID_OBJECT_TYPE_MESSAGE = "Unacceptable value type. Acceptable: %1$s, actual: %2$s";
+    static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values.";
+    static final String INVALID_OBJECT_TYPE_MESSAGE = "Unacceptable value type. Acceptable: %1$s, actual: %2$s .";
 
     final BaseRealm realm;
     final OsList osList;
