@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -2775,6 +2776,26 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    public void isEmpty_acrossLink_wrongTypeThrows() {
+        for (RealmFieldType type : RealmFieldType.values()) {
+            if (SUPPORTED_IS_EMPTY_TYPES.contains(type)) {
+                continue;
+            }
+
+            RealmQuery<Owner> query = realm.where(Owner.class);
+            try {
+                query.isEmpty(Owner.FIELD_CAT + "." + Cat.FIELD_AGE);
+                fail();
+            } catch (IllegalArgumentException expected) {
+                assertEquals(String.format(Locale.US,
+                        "Invalid query: field '%s' in class '%s' is of invalid type '%s'.",
+                        Cat.FIELD_AGE, Cat.CLASS_NAME, RealmFieldType.INTEGER.name()),
+                        expected.getMessage());
+            }
+        }
+    }
+
+    @Test
     public void isNotEmpty() {
         createIsNotEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_NOT_EMPTY_TYPES) {
@@ -3013,8 +3034,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinct() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // Must be greater than 1
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL);
@@ -3027,8 +3048,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinct_withNullValues() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         for (String field : new String[]{AnnotationIndexTypes.FIELD_INDEX_DATE, AnnotationIndexTypes.FIELD_INDEX_STRING}) {
@@ -3039,8 +3060,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinct_notIndexedFields() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class)
@@ -3055,8 +3076,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinct_doesNotExist() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // Must be greater than 1
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         try {
@@ -3080,8 +3101,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinct_indexedLinkedFields() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         for (String field : AnnotationIndexTypes.INDEX_FIELDS) {
@@ -3095,8 +3116,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinct_notIndexedLinkedFields() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
@@ -3123,8 +3144,8 @@ public class RealmQueryTests extends QueryTests {
     public void distinctAsync() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(4);
         final Realm realm = looperThread.getRealm();
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // Must be greater than 1
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_BOOL);
@@ -3199,8 +3220,8 @@ public class RealmQueryTests extends QueryTests {
     public void distinctAsync_withNullValues() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(2);
         final Realm realm = looperThread.getRealm();
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3; // must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class)
@@ -3240,8 +3261,8 @@ public class RealmQueryTests extends QueryTests {
     @Test
     @RunTestInLooperThread
     public void distinctAsync_doesNotExist() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         try {
@@ -3268,8 +3289,8 @@ public class RealmQueryTests extends QueryTests {
     @Test
     @RunTestInLooperThread
     public void distinctAsync_indexedLinkedFields() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         for (String field : AnnotationIndexTypes.INDEX_FIELDS) {
@@ -3296,8 +3317,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinctMultiArgs() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // Must be greater than 1
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
@@ -3307,7 +3328,7 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinctMultiArgs_switchedFieldsOrder() {
-        final long numberOfBlocks = 25;
+        final long numberOfBlocks = 3;
         TestHelper.populateForDistinctFieldsOrder(realm, numberOfBlocks);
 
         // Regardless of the block size defined above, the output size is expected to be the same, 4 in this case, due to receiving unique combinations of tuples.
@@ -3321,8 +3342,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinctMultiArgs_emptyField() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
@@ -3375,8 +3396,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinctMultiArgs_withNullValues() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
@@ -3386,8 +3407,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinctMultiArgs_notIndexedFields() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
@@ -3399,8 +3420,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinctMultiArgs_doesNotExistField() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
@@ -3423,8 +3444,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinctMultiArgs_indexedLinkedFields() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
@@ -3436,8 +3457,8 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void distinctMultiArgs_notIndexedLinkedFields() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10;
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);

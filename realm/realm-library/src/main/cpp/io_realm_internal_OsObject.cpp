@@ -17,12 +17,16 @@
 #include "io_realm_internal_OsObject.h"
 
 #include <realm/row.hpp>
+#if REALM_ENABLE_SYNC
+#include <realm/sync/object.hpp>
+#endif
 #include <object_schema.hpp>
 #include <object.hpp>
 #include <shared_realm.hpp>
 #include <util/format.hpp>
 
 #include "util.hpp"
+#include "java_class_global_def.hpp"
 
 #include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/java_method.hpp"
@@ -62,8 +66,9 @@ struct ObjectWrapper {
 };
 
 struct ChangeCallback {
-    ChangeCallback(ObjectWrapper* wrapper)
-        : m_wrapper(wrapper)
+    ChangeCallback(ObjectWrapper* wrapper, JavaMethod notify_change_listeners)
+        : m_wrapper(wrapper),
+        m_notify_change_listeners_method(notify_change_listeners)
     {
     }
 
@@ -89,7 +94,7 @@ struct ChangeCallback {
             // wrapper->m_object.get_object_schema() will be faster.
             field_names.push_back(JavaGlobalRef(env, to_jstring(env, table->get_column_name(i)), true));
         }
-        m_field_names_array = env->NewObjectArray(field_names.size(), java_lang_string, 0);
+        m_field_names_array = env->NewObjectArray(field_names.size(), JavaClassGlobalDef::java_lang_string(), 0);
         for (size_t i = 0; i < field_names.size(); ++i) {
             env->SetObjectArrayElement(m_field_names_array, i, field_names[i].get());
         }
@@ -126,11 +131,8 @@ struct ChangeCallback {
         }
 
         parse_fields(env, change_set);
-
         m_wrapper->m_row_object_weak_ref.call_with_local_ref(env, [&](JNIEnv*, jobject row_obj) {
-            static JavaMethod notify_change_listeners(env, row_obj, "notifyChangeListeners",
-                                                      "([Ljava/lang/String;)V");
-            env->CallVoidMethod(row_obj, notify_change_listeners, m_deleted ? nullptr : m_field_names_array);
+            env->CallVoidMethod(row_obj, m_notify_change_listeners_method, m_deleted ? nullptr : m_field_names_array);
         });
         m_field_names_array = nullptr;
         m_deleted = false;
@@ -152,6 +154,7 @@ private:
     ObjectWrapper* m_wrapper;
     bool m_deleted = false;
     jobjectArray m_field_names_array = nullptr;
+    JavaMethod m_notify_change_listeners_method;
 };
 
 static void finalize_object(jlong ptr)
@@ -165,7 +168,11 @@ static inline size_t do_create_row(jlong shared_realm_ptr, jlong table_ptr)
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
     shared_realm->verify_in_write();
+#if REALM_ENABLE_SYNC
+    return sync::create_object(shared_realm->read_group(), table);
+#else
     return table.add_empty_row();
+#endif
 }
 
 static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ptr,
@@ -190,7 +197,17 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
         }
     }
 
-    size_t row_ndx = table.add_empty_row();
+    size_t row_ndx;
+#if REALM_ENABLE_SYNC
+    if (is_pk_null) {
+        row_ndx = sync::create_object_with_primary_key(shared_realm->read_group(), table, util::none);
+    }
+    else {
+        row_ndx = sync::create_object_with_primary_key(shared_realm->read_group(), table,
+                                                       util::Optional<int64_t>(pk_value));
+    }
+#else
+    row_ndx = table.add_empty_row();
 
     if (is_pk_null) {
         table.set_null_unique(pk_column_ndx, row_ndx);
@@ -198,6 +215,7 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
     else {
         table.set_int_unique(pk_column_ndx, row_ndx, pk_value);
     }
+#endif
     return row_ndx;
 }
 
@@ -224,13 +242,18 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
         }
     }
 
-    size_t row_ndx = table.add_empty_row();
+    size_t row_ndx;
+#if REALM_ENABLE_SYNC
+    row_ndx = sync::create_object_with_primary_key(shared_realm->read_group(), table, str_accessor);
+#else
+    row_ndx = table.add_empty_row();
     if (pk_value) {
         table.set_string_unique(pk_column_ndx, row_ndx, str_accessor);
     }
     else {
         table.set_string_unique(pk_column_ndx, row_ndx, null{});
     }
+#endif
 
     return row_ndx;
 }
@@ -269,10 +292,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStartListening(JNIE
             wrapper->m_row_object_weak_ref = JavaGlobalWeakRef(env, instance);
         }
 
+        static JavaClass os_object_class(env, "io/realm/internal/OsObject");
+        static JavaMethod notify_change_listeners(env, os_object_class, "notifyChangeListeners",
+                                                  "([Ljava/lang/String;)V");
         // The wrapper pointer will be used in the callback. But it should never become an invalid pointer when the
         // notification block gets called. This should be guaranteed by the Object Store that after the notification
         // token is destroyed, the block shouldn't be called.
-        wrapper->m_notification_token = wrapper->m_object.add_notification_callback(ChangeCallback(wrapper));
+        wrapper->m_notification_token = wrapper->m_object.add_notification_callback(ChangeCallback(wrapper, notify_change_listeners));
     }
     CATCH_STD()
 }
@@ -361,4 +387,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithStrin
     CATCH_STD()
 
     return realm::npos;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_OsObject_nativeGetObjectIdColumName(JNIEnv* env, jclass)
+{
+// TODO: Remove the macro and get the name from core when core has stable ID support.
+#if REALM_ENABLE_SYNC
+    const char* object_id_column_name = sync::object_id_column_name;
+#else
+    const char* object_id_column_name = "!OID";
+#endif
+    return to_jstring(env, object_id_column_name);
 }

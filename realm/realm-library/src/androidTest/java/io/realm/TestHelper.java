@@ -39,6 +39,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -319,6 +320,13 @@ public class TestHelper {
         return key;
     }
 
+    public static String getRandomEmail() {
+        StringBuilder sb = new StringBuilder(UUID.randomUUID().toString().toLowerCase());
+        sb.append('@');
+        sb.append("androidtest.realm.io");
+        return sb.toString();
+    }
+
     // Returns a random key from the given seed. Used by encrypted Realms.
     public static byte[] getRandomKey(long seed) {
         byte[] key = new byte[64];
@@ -347,11 +355,12 @@ public class TestHelper {
         };
     }
 
+    // Generate a random string with only capital letters which is always a valid class/field name.
     public static String getRandomString(int length) {
         Random r = new Random();
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            sb.append((char) r.nextInt(128)); // Restrict to standard ASCII chars.
+            sb.append((char) (r.nextInt(26) + 'A')); // Restrict to capital letters
         }
         return sb.toString();
     }
@@ -1134,7 +1143,7 @@ public class TestHelper {
             }
             counter--;
         }
-        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10 + " seconds");
+        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10.0D + " seconds");
     }
 
     /**

@@ -28,11 +28,15 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 
-import io.realm.internal.InvalidRow;
-import io.realm.internal.LinkView;
-import io.realm.internal.RealmObjectProxy;
-import rx.Observable;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
+import io.realm.internal.InvalidRow;
+import io.realm.internal.OsList;
+import io.realm.internal.RealmObjectProxy;
+import io.realm.rx.CollectionChange;
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
@@ -59,10 +63,12 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public static final String REMOVE_OUTSIDE_TRANSACTION_ERROR = "Objects can only be removed from inside a write transaction";
 
     private final io.realm.internal.Collection collection;
+    @Nullable
     protected Class<E> clazz;
+    @Nullable
     protected String className;
-    final LinkView view;
-    protected BaseRealm realm;
+    final OsList osList;
+    final protected BaseRealm realm;
     private List<E> unmanagedList;
 
     /**
@@ -74,7 +80,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public RealmList() {
         collection = null;
-        view = null;
+        osList = null;
+        realm = null;
         unmanagedList = new ArrayList<>();
     }
 
@@ -88,32 +95,34 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @param objects initial objects in the list.
      */
     public RealmList(E... objects) {
+        //noinspection ConstantConditions
         if (objects == null) {
             throw new IllegalArgumentException("The objects argument cannot be null");
         }
         collection = null;
-        view = null;
+        osList = null;
+        realm = null;
         unmanagedList = new ArrayList<>(objects.length);
         Collections.addAll(unmanagedList, objects);
     }
 
     /**
-     * Creates a RealmList from a LinkView, so its elements are managed by Realm.
+     * Creates a RealmList from a OsList, so its elements are managed by Realm.
      *
      * @param clazz type of elements in the Array.
-     * @param linkView backing LinkView.
+     * @param osList backing {@link OsList}.
      * @param realm reference to Realm containing the data.
      */
-    RealmList(Class<E> clazz, LinkView linkView, BaseRealm realm) {
-        this.collection = new io.realm.internal.Collection(realm.sharedRealm, linkView, null);
+    RealmList(Class<E> clazz, OsList osList, BaseRealm realm) {
+        this.collection = new io.realm.internal.Collection(realm.sharedRealm, osList, null);
         this.clazz = clazz;
-        this.view = linkView;
+        this.osList = osList;
         this.realm = realm;
     }
 
-    RealmList(String className, LinkView linkView, BaseRealm realm) {
-        this.collection = new io.realm.internal.Collection(realm.sharedRealm, linkView, null);
-        this.view = linkView;
+    RealmList(String className, OsList osList, BaseRealm realm) {
+        this.collection = new io.realm.internal.Collection(realm.sharedRealm, osList, null);
+        this.osList = osList;
         this.realm = realm;
         this.className = className;
     }
@@ -142,7 +151,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     }
 
     private boolean isAttached() {
-        return view != null && view.isAttached();
+        return osList != null && osList.isValid();
     }
 
     /**
@@ -167,12 +176,12 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public void add(int location, E object) {
         checkValidObject(object);
         if (isManaged()) {
-            checkValidView();
+            checkValidRealm();
             if (location < 0 || location > size()) {
                 throw new IndexOutOfBoundsException("Invalid index " + location + ", size is " + size());
             }
             RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
-            view.insert(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
+            osList.insertRow(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
         } else {
             unmanagedList.add(location, object);
         }
@@ -198,9 +207,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public boolean add(E object) {
         checkValidObject(object);
         if (isManaged()) {
-            checkValidView();
+            checkValidRealm();
             RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
-            view.add(proxy.realmGet$proxyState().getRow$realm().getIndex());
+            osList.addRow(proxy.realmGet$proxyState().getRow$realm().getIndex());
         } else {
             unmanagedList.add(object);
         }
@@ -230,10 +239,10 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         checkValidObject(object);
         E oldObject;
         if (isManaged()) {
-            checkValidView();
+            checkValidRealm();
             RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
             oldObject = get(location);
-            view.set(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
+            osList.setRow(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
             return oldObject;
         } else {
             oldObject = unmanagedList.set(location, object);
@@ -247,7 +256,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             RealmObjectProxy proxy = (RealmObjectProxy) object;
 
             if (proxy instanceof DynamicRealmObject) {
-                String listClassName = view.getTargetTable().getClassName();
+                //noinspection ConstantConditions
+                @Nonnull
+                String listClassName = className;
                 if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
                     String objectClassName = ((DynamicRealmObject) object).getType();
                     if (listClassName.equals(objectClassName)) {
@@ -299,8 +310,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     public void move(int oldPos, int newPos) {
         if (isManaged()) {
-            checkValidView();
-            view.move(oldPos, newPos);
+            checkValidRealm();
+            osList.move(oldPos, newPos);
         } else {
             checkIndex(oldPos);
             checkIndex(newPos);
@@ -324,8 +335,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public void clear() {
         if (isManaged()) {
-            checkValidView();
-            view.clear();
+            checkValidRealm();
+            osList.removeAll();
         } else {
             unmanagedList.clear();
         }
@@ -344,9 +355,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public E remove(int location) {
         E removedItem;
         if (isManaged()) {
-            checkValidView();
+            checkValidRealm();
             removedItem = get(location);
-            view.remove(location);
+            osList.remove(location);
         } else {
             removedItem = unmanagedList.remove(location);
         }
@@ -450,9 +461,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public E get(int location) {
         if (isManaged()) {
-            checkValidView();
-            long rowIndex = view.getTargetRowIndex(location);
-            return realm.get(clazz, className, rowIndex);
+            checkValidRealm();
+            return realm.get(clazz, className, osList.getUncheckedRow(location));
         } else {
             return unmanagedList.get(location);
         }
@@ -470,14 +480,16 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
-    public E first(E defaultValue) {
+    @Nullable
+    public E first(@Nullable E defaultValue) {
         return firstImpl(false, defaultValue);
     }
 
-    private E firstImpl(boolean shouldThrow, E defaultValue) {
+    @Nullable
+    private E firstImpl(boolean shouldThrow, @Nullable E defaultValue) {
         if (isManaged()) {
-            checkValidView();
-            if (!view.isEmpty()) {
+            checkValidRealm();
+            if (!osList.isEmpty()) {
                 return get(0);
             }
         } else if (unmanagedList != null && !unmanagedList.isEmpty()) {
@@ -503,15 +515,17 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
-    public E last(E defaultValue) {
+    @Nullable
+    public E last(@Nullable E defaultValue) {
         return lastImpl(false, defaultValue);
     }
 
-    private E lastImpl(boolean shouldThrow, E defaultValue) {
+    @Nullable
+    private E lastImpl(boolean shouldThrow, @Nullable E defaultValue) {
         if (isManaged()) {
-            checkValidView();
-            if (!view.isEmpty()) {
-                return get((int) view.size() - 1);
+            checkValidRealm();
+            if (!osList.isEmpty()) {
+                return get((int) osList.size() - 1);
             }
         } else if (unmanagedList != null && !unmanagedList.isEmpty()) {
             return unmanagedList.get(unmanagedList.size() - 1);
@@ -570,8 +584,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public void deleteFromRealm(int location) {
         if (isManaged()) {
-            checkValidView();
-            view.removeTargetRow(location);
+            checkValidRealm();
+            osList.delete(location);
             modCount++;
         } else {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
@@ -587,8 +601,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public int size() {
         if (isManaged()) {
-            checkValidView();
-            long size = view.size();
+            checkValidRealm();
+            long size = osList.size();
             return size < Integer.MAX_VALUE ? (int) size : Integer.MAX_VALUE;
         } else {
             return unmanagedList.size();
@@ -605,7 +619,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public RealmQuery<E> where() {
         if (isManaged()) {
-            checkValidView();
+            checkValidRealm();
             return RealmQuery.createQueryFromList(this);
         } else {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
@@ -616,6 +630,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public Number min(String fieldName) {
         if (isManaged()) {
             return this.where().min(fieldName);
@@ -628,6 +643,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public Number max(String fieldName) {
         if (isManaged()) {
             return this.where().max(fieldName);
@@ -664,6 +680,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public Date maxDate(String fieldName) {
         if (isManaged()) {
             return this.where().maximumDate(fieldName);
@@ -676,6 +693,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public Date minDate(String fieldName) {
         if (isManaged()) {
             return this.where().minimumDate(fieldName);
@@ -690,9 +708,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public boolean deleteAllFromRealm() {
         if (isManaged()) {
-            checkValidView();
+            checkValidRealm();
             if (size() > 0) {
-                view.removeAllTargetRows();
+                osList.deleteAll();
                 modCount++;
                 return true;
             } else {
@@ -730,7 +748,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @return {@code true} if this list contains the specified element otherwise {@code false}.
      */
     @Override
-    public boolean contains(Object object) {
+    public boolean contains(@Nullable Object object) {
         if (isManaged()) {
             realm.checkIfValid();
 
@@ -757,6 +775,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
+    @Nonnull
     public Iterator<E> iterator() {
         if (isManaged()) {
             return new RealmItr();
@@ -769,6 +788,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
+    @Nonnull
     public ListIterator<E> listIterator() {
         return listIterator(0);
     }
@@ -777,6 +797,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
+    @Nonnull
     public ListIterator<E> listIterator(int location) {
         if (isManaged()) {
             return new RealmListItr(location);
@@ -786,6 +807,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     }
 
     private void checkValidObject(E object) {
+        //noinspection ConstantConditions
         if (object == null) {
             throw new IllegalArgumentException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
         }
@@ -798,11 +820,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         }
     }
 
-    private void checkValidView() {
+    private void checkValidRealm() {
         realm.checkIfValid();
-        if (view == null || !view.isAttached()) {
-            throw new IllegalStateException("Realm instance has been closed or this object or its parent has been deleted.");
-        }
     }
 
     /**
@@ -813,16 +832,18 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         if (!isManaged()) {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
-        checkValidView();
+        checkValidRealm();
         if (className != null) {
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    new io.realm.internal.Collection(realm.sharedRealm, view, null),
+                    new io.realm.internal.Collection(realm.sharedRealm, osList, null),
                     className);
         } else {
+            // 'clazz' is non-null when 'dynamicClassName' is null.
+            //noinspection ConstantConditions
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    new io.realm.internal.Collection(realm.sharedRealm, view, null),
+                    new io.realm.internal.Collection(realm.sharedRealm, osList, null),
                     clazz);
         }
     }
@@ -830,7 +851,13 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(isManaged() ? clazz.getSimpleName() : getClass().getSimpleName());
+        if (isManaged()) {
+            // 'clazz' is non-null when 'dynamicClassName' is null.
+            //noinspection ConstantConditions
+            sb.append(className != null ? className : realm.getSchema().getSchemaForClass(clazz).getClassName());
+        } else {
+            sb.append(getClass().getSimpleName());
+        }
         sb.append("@[");
         if (isManaged() && !isAttached()) {
             sb.append("invalid");
@@ -850,18 +877,17 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         return sb.toString();
     }
 
-
     /**
-     * Returns an Rx Observable that monitors changes to this RealmList. It will emit the current RealmList when
+     * Returns an Rx Flowable that monitors changes to this RealmList. It will emit the current RealmList when
      * subscribed to. RealmList will continually be emitted as the RealmList is updated -
      * {@code onComplete} will never be called.
      * <p>
-     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      * <p>
      * <pre>
      * {@code
-     * list.asObservable()
+     * list.asFlowable()
      *      .first()
      *      .subscribe( ... ) // You only get the results once
      * }
@@ -877,21 +903,51 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     @SuppressWarnings("unchecked")
-    public Observable<RealmList<E>> asObservable() {
+    public Flowable<RealmList<E>> asFlowable() {
         if (realm instanceof Realm) {
             return realm.configuration.getRxFactory().from((Realm) realm, this);
         } else if (realm instanceof DynamicRealm) {
             DynamicRealm dynamicRealm = (DynamicRealm) realm;
             RealmList<DynamicRealmObject> dynamicList = (RealmList<DynamicRealmObject>) this;
             @SuppressWarnings("UnnecessaryLocalVariable")
-            Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicList);
+            Flowable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicList);
             return results;
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava.");
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
         }
     }
 
-    private void checkForAddRemoveListener(Object listener, boolean checkListener) {
+    /**
+     * Returns an Rx Observable that monitors changes to this RealmList. It will emit the current RealmList when
+     * subscribed. For each update to the RealmList a pair consisting of the RealmList and the
+     * {@link OrderedCollectionChangeSet} will be sent. The changeset will be {@code null} the first
+     * time an RealmList is emitted.
+     * <p>
+     * RealmList will continually be emitted as the RealmList is updated - {@code onComplete} will never be called.
+     * <p>
+ *   * Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
+     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
+     * instead.
+     *
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    public Observable<CollectionChange<RealmList<E>>> asChangesetObservable() {
+        if (realm instanceof Realm) {
+            return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, this);
+        } else if (realm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+            RealmList<DynamicRealmObject> dynamicResults = (RealmList<DynamicRealmObject>) this;
+            return (Observable) realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
+        } else {
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+        }
+    }
+
+    private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {
         if (checkListener && listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -1038,7 +1094,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
          */
         @Override
         public boolean hasNext() {
-            realm.checkIfValid();
+            checkValidRealm();
             checkConcurrentModification();
             return cursor != size();
         }
@@ -1048,7 +1104,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
          */
         @Override
         public E next() {
-            realm.checkIfValid();
+            checkValidRealm();
             checkConcurrentModification();
             int i = cursor;
             try {
@@ -1067,7 +1123,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
          */
         @Override
         public void remove() {
-            realm.checkIfValid();
+            checkValidRealm();
             if (lastRet < 0) {
                 throw new IllegalStateException("Cannot call remove() twice. Must call next() in between.");
             }

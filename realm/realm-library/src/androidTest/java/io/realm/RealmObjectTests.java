@@ -19,6 +19,7 @@ package io.realm;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +28,8 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.FileNotFoundException;
+import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Callable;
@@ -47,6 +50,7 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringAndInt;
+import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -61,6 +65,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -113,7 +119,7 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals(9, row.getColumnCount());
+        assertEquals(10, row.getColumnCount());
     }
 
     @Test
@@ -1314,7 +1320,7 @@ public class RealmObjectTests {
                 .migration(new RealmMigration() {
                     @Override
                     public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                        final Table table = realm.schema.getTable(StringAndInt.class);
+                        final Table table = realm.getSchema().getTable(StringAndInt.class);
                         final long strIndex = table.getColumnIndex("str");
                         final long numberIndex = table.getColumnIndex("number");
 
@@ -1377,7 +1383,7 @@ public class RealmObjectTests {
     @Test
     public void conflictingFieldName_readAndUpdate() {
         final ConflictingFieldName unmanaged = new ConflictingFieldName();
-        unmanaged.setRealm("realm");
+        unmanaged.setRealmString("realm");
         unmanaged.setRow("row");
         unmanaged.setIsCompleted("isCompleted");
         unmanaged.setListeners("listeners");
@@ -1393,7 +1399,7 @@ public class RealmObjectTests {
 
         // Tests those values are persisted.
         final ConflictingFieldName managed = realm.where(ConflictingFieldName.class).findFirst();
-        assertEquals("realm", managed.getRealm());
+        assertEquals("realm", managed.getRealmString());
         assertEquals("row", managed.getRow());
         assertEquals("isCompleted", managed.getIsCompleted());
         assertEquals("listeners", managed.getListeners());
@@ -1404,7 +1410,7 @@ public class RealmObjectTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                managed.setRealm("realm_updated");
+                managed.setRealmString("realm_updated");
                 managed.setRow("row_updated");
                 managed.setIsCompleted("isCompleted_updated");
                 managed.setListeners("listeners_updated");
@@ -1413,7 +1419,7 @@ public class RealmObjectTests {
             }
         });
 
-        assertEquals("realm_updated", managed.getRealm());
+        assertEquals("realm_updated", managed.getRealmString());
         assertEquals("row_updated", managed.getRow());
         assertEquals("isCompleted_updated", managed.getIsCompleted());
         assertEquals("listeners_updated", managed.getListeners());
@@ -1922,5 +1928,196 @@ public class RealmObjectTests {
                 }
             }
         });
+    }
+
+    @Test
+    public void getRealm_managedRealmObject() {
+        realm.beginTransaction();
+        AllTypes object = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        assertSame(realm, object.getRealm());
+        assertSame(realm, RealmObject.getRealm(object));
+    }
+
+    @Test
+    public void getRealm_managedRealmModel() {
+        realm.beginTransaction();
+        AllTypesRealmModel object = realm.createObject(AllTypesRealmModel.class, 1L);
+        realm.commitTransaction();
+
+        assertSame(realm, RealmObject.getRealm(object));
+    }
+
+    @Test
+    public void getRealm_DynamicRealmObject() {
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realmConfig);
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            dynamicRealm.beginTransaction();
+            DynamicRealmObject object = dynamicRealm.createObject("AllTypesRealmModel", 1L);
+            dynamicRealm.commitTransaction();
+
+            try {
+                object.getRealm();
+                fail();
+            } catch (IllegalStateException expected) {
+                assertEquals(RealmObject.MSG_DYNAMIC_OBJECT, expected.getMessage());
+            }
+            try {
+                RealmObject.getRealm(object);
+                fail();
+            } catch (IllegalStateException expected) {
+                assertEquals(RealmObject.MSG_DYNAMIC_OBJECT, expected.getMessage());
+            }
+        } finally {
+            dynamicRealm.close();
+        }
+    }
+
+    @Test
+    public void getRealm_unmanagedRealmObjectReturnsNull() {
+        assertNull(new AllTypes().getRealm());
+        assertNull(RealmObject.getRealm(new AllTypes()));
+    }
+
+    @Test
+    public void getRealm_unmanagedRealmModelReturnsNull() {
+        assertNull(RealmObject.getRealm(new AllTypesRealmModel()));
+    }
+
+    @Test
+    public void getRealm_null() {
+        try {
+            RealmObject.getRealm(null);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals(RealmObject.MSG_NULL_OBJECT, expected.getMessage());
+        }
+    }
+
+    @Test
+    public void getRealm_closedObjectThrows() {
+        realm.beginTransaction();
+        AllTypes object = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        realm.close();
+        realm = null;
+
+        try {
+            object.getRealm();
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(BaseRealm.CLOSED_REALM_MESSAGE, e.getMessage());
+        }
+        try {
+            RealmObject.getRealm(object);
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(BaseRealm.CLOSED_REALM_MESSAGE, e.getMessage());
+        }
+    }
+
+    @Test
+    public void getRealmConfiguration_deletedObjectThrows() {
+        realm.beginTransaction();
+        AllTypes object = realm.createObject(AllTypes.class);
+        object.deleteFromRealm();
+        realm.commitTransaction();
+
+        try {
+            object.getRealm();
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(RealmObject.MSG_DELETED_OBJECT, e.getMessage());
+        }
+        try {
+            RealmObject.getRealm(object);
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(RealmObject.MSG_DELETED_OBJECT, e.getMessage());
+        }
+    }
+
+    @Test
+    public void getRealm_illegalThreadThrows() throws Throwable {
+        realm.beginTransaction();
+        final AllTypes object = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        final CountDownLatch threadFinished = new CountDownLatch(1);
+        final AtomicReference<Throwable> throwable = new AtomicReference<>();
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    object.getRealm();
+                    fail();
+                } catch (Throwable t) {
+                    throwable.set(t);
+                    threadFinished.countDown();
+                    return;
+                }
+                try {
+                    RealmObject.getRealm(object);
+                    fail();
+                } catch (Throwable t) {
+                    throwable.set(t);
+                } finally {
+                    threadFinished.countDown();
+                }
+            }
+        });
+        thread.start();
+        TestHelper.awaitOrFail(threadFinished);
+
+        final Throwable thrownInTheThread = throwable.get();
+        if (!(thrownInTheThread instanceof IllegalStateException)) {
+            throw thrownInTheThread;
+        }
+        assertEquals(BaseRealm.INCORRECT_THREAD_MESSAGE, thrownInTheThread.getMessage());
+    }
+
+    @Test
+    public void setter_binary_long_values() {
+        byte[] longBinary = new byte[Table.MAX_BINARY_SIZE];
+        byte[] tooLongBinary = new byte[Table.MAX_BINARY_SIZE + 1];
+
+        realm.beginTransaction();
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        allTypes.setColumnBinary(longBinary);
+        realm.commitTransaction();
+        assertEquals(longBinary.length, allTypes.getColumnBinary().length);
+
+        realm.beginTransaction();
+        try {
+            allTypes.setColumnBinary(tooLongBinary);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString("which exceeds the max binary size"));
+        }
+    }
+
+    @Test
+    public void setter_string_long_values() {
+        byte[] tooLongBinary = new byte[Table.MAX_STRING_SIZE + 1];
+        Arrays.fill(tooLongBinary, (byte) 'a');
+        String longString = new String(tooLongBinary, 0, Table.MAX_STRING_SIZE, Charset.forName("US-ASCII"));
+        String tooLongString = new String(tooLongBinary, 0, Table.MAX_STRING_SIZE + 1, Charset.forName("US-ASCII"));
+
+        realm.beginTransaction();
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        allTypes.setColumnString(longString);
+        realm.commitTransaction();
+        assertEquals(longString.length(), allTypes.getColumnString().length());
+
+        realm.beginTransaction();
+        try {
+            allTypes.setColumnString(tooLongString);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString("which exceeds the max string length"));
+        }
     }
 }

@@ -25,6 +25,7 @@ import io.realm.SyncCredentials;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 import okhttp3.Call;
+import okhttp3.ConnectionPool;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -35,13 +36,17 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String ACTION_LOGOUT = "revoke"; // Auth end point for logging out users
-    private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
-    private static final String ACTION_LOOKUP_USER_ID = "api/providers"; // Auth end point for looking up user id
+    private static final String ACTION_CHANGE_PASSWORD = "users/:userId:/password"; // Auth end point for changing passwords
+    private static final String ACTION_LOOKUP_USER_ID = "users"; // Auth end point for looking up user id
 
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
+            // using custom Connection Pool to evict idle connection after 5 seconds rather than 5 minutes (which is the default)
+            // keeping idle connection on the pool will prevent the ROS to be stopped, since the HttpUtils#stopSyncServer query
+            // will not return before the tests timeout (ex 10 seconds for AuthTests)
+            .connectionPool(new ConnectionPool(5, 5, TimeUnit.SECONDS))
             .build();
 
     /**
@@ -101,7 +106,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public ChangePasswordResponse changePassword(Token adminToken, String userId, String newPassword, URL authenticationUrl) {
         try {
             String requestBody = ChangePasswordRequest.create(adminToken, userId, newPassword).toJson();
-            return changePassword(buildActionUrl(authenticationUrl, ACTION_CHANGE_PASSWORD), requestBody);
+            return changePassword(buildActionUrl(authenticationUrl, ACTION_CHANGE_PASSWORD.replace(":userId:", userId)), requestBody);
         } catch (Exception e) {
             return ChangePasswordResponse.from(e);
         }
@@ -129,11 +134,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
 
     private static URL buildLookupUserIdUrl(URL authenticationUrl, String action, String provider, String providerId) {
         String authURL = authenticationUrl.toExternalForm();
-        // we need the base URL without the '/auth' part
-        String baseUrlString = authURL.substring(0, authURL.indexOf(authenticationUrl.getPath()));
+        String separator = authURL.endsWith("/") ? "" : "/";
         try {
-            String separator = baseUrlString.endsWith("/") ? "" : "/";
-            return new URL(baseUrlString + separator + action + "/" + provider + "/accounts/" + providerId);
+            return new URL(authURL + separator + action + "/" + providerId);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

@@ -40,6 +40,7 @@ import java.util.concurrent.ThreadFactory;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
+import io.realm.internal.android.AndroidCapabilities;
 
 
 /**
@@ -60,6 +61,9 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     // Thread safe
     private final CountDownLatch signalTestCompleted = new CountDownLatch(1);
+
+    // Thread safe
+    private boolean ruleBeingUsed = false;
 
     // Access guarded by 'lock'
     private RealmConfiguration realmConfiguration;
@@ -281,7 +285,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         // Wait for all async tasks to have completed to ensure a successful deleteRealm call.
         // If it times out, it will throw.
         TestHelper.waitRealmThreadExecutorFinish();
-
+        AndroidCapabilities.EMULATE_MAIN_THREAD = false;
         super.after();
 
         // probably belt *and* suspenders...
@@ -296,6 +300,9 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         final RunTestInLooperThread annotation = description.getAnnotation(RunTestInLooperThread.class);
         if (annotation == null) {
             return base;
+        }
+        synchronized (lock) {
+            ruleBeingUsed = true;
         }
         return new RunInLooperThreadStatement(annotation, base);
     }
@@ -348,6 +355,13 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     }
 
     /**
+     * Returns true if the current test being run is using this rule.
+     */
+    public boolean isRuleUsed() {
+        return ruleBeingUsed;
+    }
+
+    /**
      * If an implementation of this is supplied with the annotation, the {@link RunnableBefore#run(RealmConfiguration)}
      * will be executed before the looper thread starts. It is normally for populating the Realm before the test.
      */
@@ -376,6 +390,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                 runnableBefore.newInstance().run(getConfiguration());
             }
 
+            AndroidCapabilities.EMULATE_MAIN_THREAD = annotation.emulateMainThread();
             runTest(annotation.threadName());
         }
 

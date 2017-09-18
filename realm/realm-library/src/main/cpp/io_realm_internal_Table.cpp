@@ -22,14 +22,18 @@
 
 #include "util/format.hpp"
 
-#include "jni_util/java_exception_thrower.hpp"
+#include "java_accessor.hpp"
 #include "java_exception_def.hpp"
+#include "jni_util/java_exception_thrower.hpp"
 
 using namespace std;
 using namespace realm;
 using namespace realm::_impl;
 using namespace realm::jni_util;
 using namespace realm::util;
+
+static_assert(io_realm_internal_Table_MAX_STRING_SIZE == Table::max_string_size, "");
+static_assert(io_realm_internal_Table_MAX_BINARY_SIZE == Table::max_binary_size, "");
 
 static const char* c_null_values_cannot_set_required_msg = "The primary key field '%1' has 'null' values stored.  It "
                                                            "cannot be converted to a '@Required' primary key field.";
@@ -114,6 +118,22 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveColumn(JNIEnv* e
     }
     try {
         TBL(nativeTablePtr)->remove_column(S(columnIndex));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertColumn(JNIEnv* env, jclass, jlong native_table_ptr,
+                                                                       jlong column_index, jint type, jstring j_name)
+{
+    auto table_ptr = reinterpret_cast<realm::Table*>(native_table_ptr);
+    if (!TABLE_VALID(env, table_ptr)) {
+        return;
+    }
+    try {
+        JStringAccessor name(env, j_name); // throws
+
+        DataType data_type = DataType(type);
+        table_ptr->insert_column(column_index, data_type, name);
     }
     CATCH_STD()
 }
@@ -606,20 +626,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLink(JNIEnv* env, 
     return static_cast<jlong>(TBL(nativeTablePtr)->get_link(S(columnIndex), S(rowIndex))); // noexcept
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkView(JNIEnv* env, jclass, jlong nativeTablePtr,
-                                                                       jlong columnIndex, jlong rowIndex)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_LinkList)) {
-        return 0;
-    }
-    try {
-        LinkViewRef* link_view_ptr = new LinkViewRef(TBL(nativeTablePtr)->get_linklist(S(columnIndex), S(rowIndex)));
-        return reinterpret_cast<jlong>(link_view_ptr);
-    }
-    CATCH_STD()
-    return 0;
-}
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkTarget(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                          jlong columnIndex)
 {
@@ -662,6 +668,25 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLong(JNIEnv* env, j
     }
     try {
         TBL(nativeTablePtr)->set_int(S(columnIndex), S(rowIndex), value, B(isDefault));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeIncrementLong(JNIEnv* env, jclass, jlong nativeTablePtr,
+                                                                  jlong columnIndex, jlong rowIndex, jlong value)
+{
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Int)) {
+        return;
+    }
+
+    try {
+        Table* table = TBL(nativeTablePtr);
+        if (table->is_null(columnIndex, rowIndex)) {
+            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
+                                 "Cannot increment a MutableRealmInteger whose value is null. Set its value first.");
+        }
+
+        table->add_int(S(columnIndex), S(rowIndex), value);
     }
     CATCH_STD()
 }
@@ -797,8 +822,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(JNIEnv* e
             return;
         }
 
-        JniByteArray byteAccessor(env, dataArray);
-        TBL(nativeTablePtr)->set_binary(S(columnIndex), S(rowIndex), byteAccessor, B(isDefault));
+        JByteArrayAccessor jarray_accessor(env, dataArray);
+        TBL(nativeTablePtr)
+            ->set_binary(S(columnIndex), S(rowIndex), jarray_accessor.transform<BinaryData>(), B(isDefault));
     }
     CATCH_STD()
 }
@@ -1162,10 +1188,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(JN
 {
     Table* pTable = TBL(nativeTablePtr);
 
-    JniLongArray long_arr(env, columnIndices);
-    JniBooleanArray bool_arr(env, ascending);
-    jsize arr_len = long_arr.len();
-    jsize asc_len = bool_arr.len();
+    JLongArrayAccessor long_arr(env, columnIndices);
+    JBooleanArrayAccessor bool_arr(env, ascending);
+    jsize arr_len = long_arr.size();
+    jsize asc_len = bool_arr.size();
 
     if (arr_len == 0) {
         ThrowException(env, IllegalArgument, "You must provide at least one field name.");

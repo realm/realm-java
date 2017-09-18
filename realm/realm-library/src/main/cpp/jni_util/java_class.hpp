@@ -27,6 +27,7 @@ namespace jni_util {
 // To find the jclass and manage the lifecycle for the jclass's global ref.
 class JavaClass {
 public:
+    JavaClass();
     // when free_on_unload is true, the jclass's global ref will be released when JNI_OnUnload called. This is useful
     // when the JavaClass instance is static. Otherwise the jclass's global ref will be released when this object is
     // deleted.
@@ -45,6 +46,11 @@ public:
     inline operator jclass() const noexcept
     {
         return m_class;
+    }
+
+    inline operator bool() const noexcept
+    {
+        return m_class != nullptr;
     }
 
     // Not implemented for now.

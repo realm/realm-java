@@ -16,9 +16,9 @@
 
 package io.realm.objectserver;
 
-import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,11 +28,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.realm.BaseIntegrationTest;
+import javax.annotation.Nonnull;
+
 import io.realm.Progress;
 import io.realm.ProgressListener;
 import io.realm.ProgressMode;
 import io.realm.Realm;
+import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
@@ -49,13 +51,13 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class ProgressListenerTests extends BaseIntegrationTest {
+public class ProgressListenerTests extends StandardIntegrationTest {
 
     private static final long TEST_SIZE = 10;
     @Rule
     public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
-    @NonNull
+    @Nonnull
     private SyncConfiguration createSyncConfig() {
         SyncUser user = UserFactory.createAdminUser(Constants.AUTH_URL);
         return configFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL).build();
@@ -124,8 +126,6 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         });
         TestHelper.awaitOrFail(allChangesDownloaded);
         realm.close();
-        userWithData.logout();
-        adminUser.logout();
     }
 
     @Test
@@ -179,7 +179,7 @@ public class ProgressListenerTests extends BaseIntegrationTest {
                             break;
                         }
                         default:
-                            fail();
+                            fail("Transfer complete called too many times:" + transferCompleted.get());
                     }
                 }
             }
@@ -187,8 +187,6 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         TestHelper.awaitOrFail(allChangesDownloaded);
         adminRealm.close();
         userRealm.close();
-        userWithData.logout();
-        adminUser.logout();
         worker.join();
     }
 
@@ -226,7 +224,6 @@ public class ProgressListenerTests extends BaseIntegrationTest {
         TestHelper.awaitOrFail(testDone);
         realm.close();
     }
-
 
     @Test
     public void uploadProgressListener_changesOnly() {

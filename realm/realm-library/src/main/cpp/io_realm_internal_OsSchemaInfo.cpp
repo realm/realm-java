@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-#include <jni.h>
 #include "io_realm_internal_OsSchemaInfo.h"
 
-#include <object-store/src/schema.hpp>
-#include <object-store/src/object_schema.hpp>
-#include <object-store/src/property.hpp>
+#include <schema.hpp>
+#include <object_schema.hpp>
+#include <property.hpp>
+#include <util/format.hpp>
 
+#include "java_accessor.hpp"
+#include "java_exception_def.hpp"
 #include "util.hpp"
+#include "jni_util/java_exception_thrower.hpp"
 
 using namespace realm;
+using namespace realm::jni_util;
+using namespace realm::util;
+using namespace realm::_impl;
 
 static void finalize_schema(jlong ptr)
 {
@@ -37,8 +43,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeCreateFromList
     TR_ENTER()
     try {
         std::vector<ObjectSchema> object_schemas;
-        JniLongArray array(env, objectSchemaPtrs_);
-        for (jsize i = 0; i < array.len(); ++i) {
+        JLongArrayAccessor array(env, objectSchemaPtrs_);
+        for (jsize i = 0; i < array.size(); ++i) {
             object_schemas.push_back(*reinterpret_cast<ObjectSchema*>(array[i]));
         }
         auto* schema = new Schema(std::move(object_schemas));
@@ -52,4 +58,27 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeGetFinalizerPt
 {
     TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_schema);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeGetObjectSchemaInfo(JNIEnv* env, jclass,
+                                                                                      jlong native_ptr,
+                                                                                      jstring j_class_name)
+{
+    TR_ENTER_PTR(native_ptr)
+
+    try {
+        JStringAccessor class_name_accessor(env, j_class_name);
+        StringData class_name(class_name_accessor);
+        auto& schema = *reinterpret_cast<Schema*>(native_ptr);
+        auto it = schema.find(class_name);
+        if (it == schema.end()) {
+            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
+                                 format("Class '%1' cannot be found in the schema.", class_name.data()));
+        } else {
+            return reinterpret_cast<jlong>(new ObjectSchema(*it));
+        }
+    }
+    CATCH_STD()
+
+    return reinterpret_cast<jlong>(nullptr);
 }

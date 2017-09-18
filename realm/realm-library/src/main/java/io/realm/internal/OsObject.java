@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import javax.annotation.Nullable;
+
 import io.realm.ObjectChangeSet;
 import io.realm.RealmFieldType;
 import io.realm.RealmModel;
@@ -26,8 +28,10 @@ import io.realm.exceptions.RealmException;
 /**
  * Java wrapper for Object Store's {@code Object} class.
  */
-@KeepMember
+@Keep
 public class OsObject implements NativeObject {
+
+    private static final String OBJECT_ID_COLUMN_NAME = nativeGetObjectIdColumName();
 
     private static class OsObjectChangeSet implements ObjectChangeSet {
         final String[] changedFields;
@@ -65,7 +69,7 @@ public class OsObject implements NativeObject {
             super(observer, listener);
         }
 
-        public void onChange(T observer, ObjectChangeSet changeSet) {
+        public void onChange(T observer, @Nullable ObjectChangeSet changeSet) {
             listener.onChange(observer, changeSet);
         }
     }
@@ -185,7 +189,7 @@ public class OsObject implements NativeObject {
      * @param table the table where the object is created. This table must be atached to {@link SharedRealm}.
      * @return a newly created {@code UncheckedRow}.
      */
-    public static UncheckedRow createWithPrimaryKey(Table table, Object primaryKeyValue) {
+    public static UncheckedRow createWithPrimaryKey(Table table, @Nullable Object primaryKeyValue) {
         long primaryKeyColumnIndex = getAndVerifyPrimaryKeyColumnIndex(table);
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
         final SharedRealm sharedRealm = table.getSharedRealm();
@@ -237,9 +241,12 @@ public class OsObject implements NativeObject {
         }
     }
 
+    public static boolean isObjectIdColumn(String columnName) {
+        return OBJECT_ID_COLUMN_NAME.equals(columnName);
+    }
+
     // Called by JNI
     @SuppressWarnings("unused")
-    @KeepMember
     private void notifyChangeListeners(String[] changedFields) {
         observerPairs.foreach(new Callback(changedFields));
     }
@@ -270,10 +277,13 @@ public class OsObject implements NativeObject {
     // Return a pointer to newly created Row. We may need to return a OsObject pointer in the future.
     private static native long nativeCreateNewObjectWithStringPrimaryKey(long sharedRealmPtr,
                                                                          long tablePtr, long pk_column_index,
-                                                                         String primaryKeyValue);
+                                                                         @Nullable String primaryKeyValue);
 
     // Return a index of newly created Row.
     private static native long nativeCreateRowWithStringPrimaryKey(long sharedRealmPtr,
                                                                    long tablePtr, long pk_column_index,
                                                                    String primaryKeyValue);
+
+    // Return sync::object_id_column_name
+    private static native String nativeGetObjectIdColumName();
 }

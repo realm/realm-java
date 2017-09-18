@@ -33,6 +33,16 @@ While we havn't described our code style yet, please just follow the existing st
 
 For source code written in C++, we format it using `clang-format`. You can use the [plugin](https://plugins.jetbrains.com/plugin/8396-clangformatij): mark the entire file and right-click to execute `clang-format` before committing any changes. Of course, if you don't use Android Studio to edit C++ code, run `clang-format` on the command-line.
 
+### Nullability by Annotataion
+
+To improve code quality and usability in Kotlin, nullability of parameters and return types must be annotated with JSR305 annotations.
+
+If a parameter is nullable, you must add `@Nullable` annotation to the parameter. On the other hand, if a parameter is non-null, you don't need to add `@Nonnull` annotation since all parameters are treated as `@Nonnull` by default.
+
+For return types, there is no default nullability. If a method can return `null` as a return value, you must add `@Nullable` annotation to the return type. Currently, `Nonnull` annotation is not mandatory if the method never return `null`.
+
+When you add a new package, you must add `package-info.java` and add `@javax.annotation.ParametersAreNonnullByDefault` to the package. Please note that you can't add multiple `package-info.java` in the same package but different location (for example, main and androidTest). When you add a package to both main and androidTest, you only need to add `package-info.java` to main.
+
 ### Unit Tests
 
 All PR's must be accompanied by related unit tests. All bug fixes must have a unit test proving that the bug is fixed.

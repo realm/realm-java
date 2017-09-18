@@ -15,12 +15,13 @@
  */
 
 #include "java_method.hpp"
+#include "java_class.hpp"
 
 #include <realm/util/assert.hpp>
 
 using namespace realm::jni_util;
 
-JavaMethod::JavaMethod(JNIEnv* env, jclass cls, const char* method_name, const char* signature, bool static_method)
+JavaMethod::JavaMethod(JNIEnv* env, JavaClass const& cls, const char* method_name, const char* signature, bool static_method)
 {
     if (static_method) {
         m_method_id = env->GetStaticMethodID(cls, method_name, signature);
@@ -29,26 +30,5 @@ JavaMethod::JavaMethod(JNIEnv* env, jclass cls, const char* method_name, const c
         m_method_id = env->GetMethodID(cls, method_name, signature);
     }
 
-    REALM_ASSERT_RELEASE(m_method_id != nullptr);
-}
-
-JavaMethod::JavaMethod(JNIEnv* env, jobject obj, const char* method_name, const char* signature)
-{
-    jclass cls = env->GetObjectClass(obj);
-    m_method_id = env->GetMethodID(cls, method_name, signature);
-    REALM_ASSERT_RELEASE(m_method_id != nullptr);
-    env->DeleteLocalRef(cls);
-}
-
-JavaMethod::JavaMethod(JNIEnv* env, const char* class_name, const char* method_name, const char* signature,
-                       bool static_method)
-{
-    jclass cls = env->FindClass(class_name);
-    REALM_ASSERT_RELEASE(cls != nullptr);
-    if (static_method) {
-        m_method_id = env->GetStaticMethodID(cls, method_name, signature);
-    }
-    else {
-        m_method_id = env->GetMethodID(cls, method_name, signature);
-    }
+    REALM_ASSERT_RELEASE_EX(m_method_id != nullptr, method_name, signature);
 }
