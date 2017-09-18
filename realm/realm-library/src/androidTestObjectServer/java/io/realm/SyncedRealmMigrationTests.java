@@ -32,6 +32,7 @@ import io.realm.entities.PrimaryKeyAsInteger;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.OsObjectStore;
 import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
@@ -107,7 +108,7 @@ public class SyncedRealmMigrationTests {
                 .addField("newField", String.class);
         // A schema version has to be set otherwise Object Store will try to initialize the schema again and reach an
         // error branch. That is not a real case.
-        dynamicRealm.setVersion(0);
+        OsObjectStore.setSchemaVersion(dynamicRealm.getSharedRealm(), 0);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
@@ -168,7 +169,7 @@ public class SyncedRealmMigrationTests {
         schema.create(className)
                 .addField(IndexedFields.FIELD_INDEXED_STRING, String.class) // No index
                 .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String.class);
-        dynamicRealm.setVersion(42);
+        OsObjectStore.setSchemaVersion(dynamicRealm.getSharedRealm(), 42);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
@@ -200,7 +201,7 @@ public class SyncedRealmMigrationTests {
         schema.create(className)
                 .addField(IndexedFields.FIELD_INDEXED_STRING, String.class) // No index
                 .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String.class);
-        dynamicRealm.setVersion(43);
+        OsObjectStore.setSchemaVersion(dynamicRealm.getSharedRealm(), 43);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
@@ -232,7 +233,7 @@ public class SyncedRealmMigrationTests {
         schema.create(className)
                 .addField(IndexedFields.FIELD_INDEXED_STRING, String.class); // No index
                 // .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String.class); // Missing field
-        dynamicRealm.setVersion(41);
+        OsObjectStore.setSchemaVersion(dynamicRealm.getSharedRealm(), 41);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
@@ -258,7 +259,7 @@ public class SyncedRealmMigrationTests {
         RealmSchema schema = dynamicRealm.getSchema();
         dynamicRealm.beginTransaction();
         schema.create(className); // Create empty class
-        dynamicRealm.setVersion(1);
+        OsObjectStore.setSchemaVersion(dynamicRealm.getSharedRealm(), 1);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 

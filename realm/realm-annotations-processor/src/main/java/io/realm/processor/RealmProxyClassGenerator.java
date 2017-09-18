@@ -1319,10 +1319,10 @@ public class RealmProxyClassGenerator {
             writer.beginControlFlow("if (rowIndex == Table.NO_MATCH)");
             if (Utils.isString(metadata.getPrimaryKey())) {
                 writer.emitStatement(
-                        "rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue)");
+                        "rowIndex = OsObject.createRowWithPrimaryKey(table, pkColumnIndex, primaryKeyValue)");
             } else {
                 writer.emitStatement(
-                        "rowIndex = OsObject.createRowWithPrimaryKey(table, ((%s) object).%s())",
+                        "rowIndex = OsObject.createRowWithPrimaryKey(table, pkColumnIndex, ((%s) object).%s())",
                         interfaceName, primaryKeyGetter);
             }
 

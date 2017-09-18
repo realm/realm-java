@@ -18,6 +18,7 @@ package io.realm;
 
 import java.util.Locale;
 
+import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
 
 /**
@@ -85,12 +86,9 @@ class MutableRealmSchema extends RealmSchema {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
         checkNotEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = Table.getTableNameForClass(className);
-        checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
-        Table table = getTable(className);
-        if (table.hasPrimaryKey()) {
-            table.setPrimaryKey(null);
+        if (!OsObjectStore.deleteTableForObject(realm.getSharedRealm(), className)) {
+            throw new IllegalArgumentException("Cannot remove class because it is not in this Realm: " + className);
         }
-        realm.getSharedRealm().removeTable(internalTableName);
         removeFromClassNameToSchemaMap(internalTableName);
     }
 
@@ -107,11 +105,9 @@ class MutableRealmSchema extends RealmSchema {
         }
 
         // Checks if there is a primary key defined for the old class.
-        Table oldTable = getTable(oldClassName);
-        String pkField = null;
-        if (oldTable.hasPrimaryKey()) {
-            pkField = oldTable.getColumnName(oldTable.getPrimaryKey());
-            oldTable.setPrimaryKey(null);
+        String pkField = OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, oldClassName);
+        if (pkField != null) {
+            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, oldClassName, null);
         }
 
         realm.getSharedRealm().renameTable(oldInternalName, newInternalName);
@@ -119,7 +115,7 @@ class MutableRealmSchema extends RealmSchema {
 
         // Sets the primary key for the new class if necessary.
         if (pkField != null) {
-            table.setPrimaryKey(pkField);
+            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, newClassName, pkField);
         }
 
         RealmObjectSchema objectSchema = removeFromClassNameToSchemaMap(oldInternalName);
