@@ -38,7 +38,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String ACTION_LOGOUT = "revoke"; // Auth end point for logging out users
     private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
-    private static final String ACTION_LOOKUP_USER_ID = "users"; // Auth end point for looking up user id
+    private static final String ACTION_LOOKUP_USER_ID = "/users/:provider:/:providerId:"; // Auth end point for looking up user id
 
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
@@ -116,7 +116,10 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     @Override
     public LookupUserIdResponse retrieveUser(Token adminToken, String provider, String providerId, URL authenticationUrl) {
         try {
-            return lookupUserId(buildLookupUserIdUrl(authenticationUrl, ACTION_LOOKUP_USER_ID, provider, providerId), adminToken.value());
+            String action = ACTION_LOOKUP_USER_ID
+                .replace(":provider:", provider)
+                .replace(":providerId:", providerId);
+            return lookupUserId(buildActionUrl(authenticationUrl, action), adminToken.value());
         } catch (Exception e) {
             return LookupUserIdResponse.from(e);
         }
@@ -128,16 +131,6 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         try {
             String separator = baseUrlString.endsWith("/") ? "" : "/";
             return new URL(baseUrlString + separator + action);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static URL buildLookupUserIdUrl(URL authenticationUrl, String action, String provider, String providerId) {
-        String authURL = authenticationUrl.toExternalForm();
-        String separator = authURL.endsWith("/") ? "" : "/";
-        try {
-            return new URL(authURL + separator + action + "/" + providerId);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
