@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import java.lang.reflect.Array;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,6 +37,7 @@ import io.realm.internal.InvalidRow;
 import io.realm.internal.OsList;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.rx.CollectionChange;
+
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
@@ -211,7 +211,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     public boolean add(@Nullable E object) {
         if (isManaged()) {
             checkValidRealm();
-            osListOperator.add(object);
+            osListOperator.append(object);
         } else {
             unmanagedList.add(object);
         }
@@ -900,7 +900,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * <p>
      * RealmList will continually be emitted as the RealmList is updated - {@code onComplete} will never be called.
      * <p>
- *   * Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * * Note that when the {@link Realm} is accessed from threads other than where it was created,
      * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
      * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
      * instead.
@@ -1262,6 +1262,16 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     }
 }
 
+/**
+ * This class provides façade for against {@link OsList}. {@link OsList} is used for both {@link RealmModel}s
+ * and values, but there are some subtle differences in actual operation.
+ * <p>
+ * This class provides common interface for them.
+ * <p>
+ * You need to use appropriate sub-class for underlying field type.
+ *
+ * @param <T> class of element which is returned on read operation.
+ */
 abstract class ManagedListOperator<T> {
     static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values.";
     static final String INVALID_OBJECT_TYPE_MESSAGE = "Unacceptable value type. Acceptable: %1$s, actual: %2$s .";
@@ -1277,48 +1287,82 @@ abstract class ManagedListOperator<T> {
         this.osList = osList;
     }
 
-    abstract boolean forRealmModel();
+    public abstract boolean forRealmModel();
 
-    OsList getOsList() {
+    public final OsList getOsList() {
         return osList;
     }
 
-    final boolean isValid() {
+    public final boolean isValid() {
         return osList.isValid();
     }
 
-    final int size() {
+    public final int size() {
         final long actualSize = osList.size();
         return actualSize < Integer.MAX_VALUE ? (int) actualSize : Integer.MAX_VALUE;
     }
 
-    final boolean isEmpty() {
+    public final boolean isEmpty() {
         return osList.isEmpty();
     }
 
-    final void checkInsertIndex(int index) {
-        final int size = size();
-        if (index < 0 || size < index) {
-            throw new IndexOutOfBoundsException("Invalid index " + index + ", size is " + osList.size());
+    protected abstract void checkValidValue(@Nullable Object value);
+
+    @Nullable
+    public abstract T get(int index);
+
+    public final void append(@Nullable Object value) {
+        checkValidValue(value);
+
+        if (value == null) {
+            appendNull();
+        } else {
+            appendValue(value);
         }
     }
 
-    final void checkElementExists(int index) {
-        final int size = size();
-        if (index < 0 || size <= index) {
-            throw new IndexOutOfBoundsException("Invalid index " + index + ", size is " + osList.size());
-        }
+    private void appendNull() {
+        osList.addNull();
     }
 
+    abstract protected void appendValue(Object value);
+
+    public final void insert(int index, @Nullable Object value) {
+        checkValidValue(value);
+
+        if (value == null) {
+            insertNull(index);
+        } else {
+            insertValue(index, value);
+        }
+
+    }
+
+    protected void insertNull(int index) {
+        osList.insertNull(index);
+    }
+
+    protected abstract void insertValue(int index, Object value);
+
     @Nullable
-    abstract T get(int index);
+    public final T set(int index, @Nullable Object value) {
+        checkValidValue(value);
 
-    abstract void add(@Nullable Object value);
+        //noinspection unchecked
+        final T oldObject = get(index);
+        if (value == null) {
+            setNull(index);
+        } else {
+            setValue(index, value);
+        }
+        return oldObject;
+    }
 
-    abstract void insert(int index, @Nullable Object value);
+    protected void setNull(int index) {
+        osList.setNull(index);
+    }
 
-    @Nullable
-    abstract T set(int index, @Nullable Object value);
+    abstract protected void setValue(int index, Object value);
 
     final void move(int oldPos, int newPos) {
         osList.move(oldPos, newPos);
@@ -1343,8 +1387,12 @@ abstract class ManagedListOperator<T> {
     final void deleteAll() {
         osList.deleteAll();
     }
+
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@link RealmModel} list field.
+ */
 final class RealmModelListOperator<T> extends ManagedListOperator<T> {
 
     @Nullable
@@ -1356,18 +1404,18 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     }
 
     @Override
-    boolean forRealmModel() {
+    public boolean forRealmModel() {
         return true;
     }
 
     @Override
-    T get(int index) {
+    public T get(int index) {
         //noinspection unchecked
         return (T) realm.get((Class<? extends RealmModel>) clazz, className, osList.getUncheckedRow(index));
     }
 
-    @Nonnull
-    private RealmModel castToNonNullModel(@Nullable Object value) {
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
         if (value == null) {
             throw new IllegalArgumentException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
         }
@@ -1377,35 +1425,44 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
                             "java.lang.String",
                             value.getClass().getName()));
         }
-        return (RealmModel) value;
+    }
+
+    private void checkInsertIndex(int index) {
+        final int size = size();
+        if (index < 0 || size < index) {
+            throw new IndexOutOfBoundsException("Invalid index " + index + ", size is " + osList.size());
+        }
     }
 
     @Override
-    public void add(@Nullable Object value) {
-        final RealmModel model = castToNonNullModel(value);
-        RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(model);
+    public void appendValue(Object value) {
+        final RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
         osList.addRow(proxy.realmGet$proxyState().getRow$realm().getIndex());
     }
 
     @Override
-    public void insert(int index, @Nullable Object value) {
-        final RealmModel model = castToNonNullModel(value);
+    protected void insertNull(int index) {
+        throw new RuntimeException("Should not reach here.");
+    }
+
+    @Override
+    public void insertValue(int index, Object value) {
+        // need to check in advance to avoid unnecessary copy of unmanaged object into Realm.
         checkInsertIndex(index);
 
-        RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(model);
+        RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
         osList.insertRow(index, proxy.realmGet$proxyState().getRow$realm().getIndex());
     }
 
     @Override
-    protected T set(int index, @Nullable Object value) {
-        final RealmModel model = castToNonNullModel(value);
-        checkElementExists(index);
+    protected void setNull(int index) {
+        throw new RuntimeException("Should not reach here.");
+    }
 
-        RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(model);
-        //noinspection unchecked
-        final T oldObject = get(index);
+    @Override
+    protected void setValue(int index, Object value) {
+        RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
         osList.setRow(index, proxy.realmGet$proxyState().getRow$realm().getIndex());
-        return oldObject;
     }
 
     // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.
@@ -1457,6 +1514,9 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@link String} list field.
+ */
 final class StringListOperator extends ManagedListOperator<String> {
 
     StringListOperator(BaseRealm realm, OsList osList, Class<String> clazz) {
@@ -1464,17 +1524,18 @@ final class StringListOperator extends ManagedListOperator<String> {
     }
 
     @Override
-    boolean forRealmModel() {
+    public boolean forRealmModel() {
         return false;
     }
 
     @Nullable
     @Override
-    String get(int index) {
+    public String get(int index) {
         return (String) osList.getValue(index);
     }
 
-    private void checkValidValue(@Nullable Object value) {
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
         if (value == null) {
             // null is always valid (but schema may reject null on insertion).
             return;
@@ -1488,43 +1549,24 @@ final class StringListOperator extends ManagedListOperator<String> {
     }
 
     @Override
-    public void add(@Nullable Object value) {
-        checkValidValue(value);
-        if (value == null) {
-            osList.addNull();
-        } else {
-            osList.addString((String) value);
-        }
+    public void appendValue(Object value) {
+        osList.addString((String) value);
     }
 
     @Override
-    public void insert(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkInsertIndex(index);
-
-        if (value == null) {
-            osList.insertNull(index);
-        } else {
-            osList.insertString(index, (String) value);
-        }
+    public void insertValue(int index, Object value) {
+        osList.insertString(index, (String) value);
     }
 
     @Override
-    @Nullable
-    protected String set(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkElementExists(index);
-
-        final String oldValue = get(index);
-        if (value == null) {
-            osList.setNull(index);
-        } else {
-            osList.setString(index, (String) value);
-        }
-        return oldValue;
+    protected void setValue(int index, Object value) {
+        osList.setString(index, (String) value);
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@code long} list field.
+ */
 final class LongListOperator<T> extends ManagedListOperator<T> {
 
     LongListOperator(BaseRealm realm, OsList osList, Class<T> clazz) {
@@ -1532,13 +1574,13 @@ final class LongListOperator<T> extends ManagedListOperator<T> {
     }
 
     @Override
-    boolean forRealmModel() {
+    public boolean forRealmModel() {
         return false;
     }
 
     @Nullable
     @Override
-    T get(int index) {
+    public T get(int index) {
         final Long value = (Long) osList.getValue(index);
         if (value == null) {
             return null;
@@ -1563,7 +1605,8 @@ final class LongListOperator<T> extends ManagedListOperator<T> {
         throw new IllegalStateException("Unexpected element type: " + clazz.getName());
     }
 
-    private void checkValidValue(@Nullable Object value) {
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
         if (value == null) {
             // null is always valid (but schema may reject null on insertion).
             return;
@@ -1577,43 +1620,24 @@ final class LongListOperator<T> extends ManagedListOperator<T> {
     }
 
     @Override
-    public void add(@Nullable Object value) {
-        checkValidValue(value);
-        if (value == null) {
-            osList.addNull();
-        } else {
-            osList.addLong(((Number) value).longValue());
-        }
+    public void appendValue(Object value) {
+        osList.addLong(((Number) value).longValue());
     }
 
     @Override
-    public void insert(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkInsertIndex(index);
-
-        if (value == null) {
-            osList.insertNull(index);
-        } else {
-            osList.insertLong(index, ((Number) value).longValue());
-        }
+    public void insertValue(int index, Object value) {
+        osList.insertLong(index, ((Number) value).longValue());
     }
 
-    @Nullable
     @Override
-    protected T set(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkElementExists(index);
-
-        final T oldValue = get(index);
-        if (value == null) {
-            osList.setNull(index);
-        } else {
-            osList.setLong(index, ((Number) value).longValue());
-        }
-        return oldValue;
+    protected void setValue(int index, Object value) {
+        osList.setLong(index, ((Number) value).longValue());
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@code boolean} list field.
+ */
 final class BooleanListOperator extends ManagedListOperator<Boolean> {
 
     BooleanListOperator(BaseRealm realm, OsList osList, Class<Boolean> clazz) {
@@ -1621,17 +1645,18 @@ final class BooleanListOperator extends ManagedListOperator<Boolean> {
     }
 
     @Override
-    boolean forRealmModel() {
+    public boolean forRealmModel() {
         return false;
     }
 
     @Nullable
     @Override
-    Boolean get(int index) {
+    public Boolean get(int index) {
         return (Boolean) osList.getValue(index);
     }
 
-    private void checkValidValue(@Nullable Object value) {
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
         if (value == null) {
             // null is always valid (but schema may reject null on insertion).
             return;
@@ -1645,43 +1670,24 @@ final class BooleanListOperator extends ManagedListOperator<Boolean> {
     }
 
     @Override
-    public void add(@Nullable Object value) {
-        checkValidValue(value);
-        if (value == null) {
-            osList.addNull();
-        } else {
-            osList.addBoolean((Boolean) value);
-        }
+    public void appendValue(Object value) {
+        osList.addBoolean((Boolean) value);
     }
 
     @Override
-    public void insert(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkInsertIndex(index);
-
-        if (value == null) {
-            osList.insertNull(index);
-        } else {
-            osList.insertBoolean(index, (Boolean) value);
-        }
+    public void insertValue(int index, Object value) {
+        osList.insertBoolean(index, (Boolean) value);
     }
 
-    @Nullable
     @Override
-    protected Boolean set(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkElementExists(index);
-
-        final Boolean oldValue = get(index);
-        if (value == null) {
-            osList.setNull(index);
-        } else {
-            osList.setBoolean(index, (Boolean) value);
-        }
-        return oldValue;
+    protected void setValue(int index, Object value) {
+        osList.setBoolean(index, (Boolean) value);
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@code byte[]} list field.
+ */
 final class BinaryListOperator extends ManagedListOperator<byte[]> {
 
     BinaryListOperator(BaseRealm realm, OsList osList, Class<byte[]> clazz) {
@@ -1689,17 +1695,18 @@ final class BinaryListOperator extends ManagedListOperator<byte[]> {
     }
 
     @Override
-    boolean forRealmModel() {
+    public boolean forRealmModel() {
         return false;
     }
 
     @Nullable
     @Override
-    byte[] get(int index) {
+    public byte[] get(int index) {
         return (byte[]) osList.getValue(index);
     }
 
-    private void checkValidValue(@Nullable Object value) {
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
         if (value == null) {
             // null is always valid (but schema may reject null on insertion).
             return;
@@ -1713,43 +1720,24 @@ final class BinaryListOperator extends ManagedListOperator<byte[]> {
     }
 
     @Override
-    public void add(@Nullable Object value) {
-        checkValidValue(value);
-        if (value == null) {
-            osList.addNull();
-        } else {
-            osList.addBinary((byte[]) value);
-        }
+    public void appendValue(Object value) {
+        osList.addBinary((byte[]) value);
     }
 
     @Override
-    public void insert(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkInsertIndex(index);
-
-        if (value == null) {
-            osList.insertNull(index);
-        } else {
-            osList.insertBinary(index, (byte[]) value);
-        }
+    public void insertValue(int index, Object value) {
+        osList.insertBinary(index, (byte[]) value);
     }
 
-    @Nullable
     @Override
-    protected byte[] set(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkElementExists(index);
-
-        final byte[] oldValue = get(index);
-        if (value == null) {
-            osList.setNull(index);
-        } else {
-            osList.setBinary(index, (byte[]) value);
-        }
-        return oldValue;
+    protected void setValue(int index, Object value) {
+        osList.setBinary(index, (byte[]) value);
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@code double} list field.
+ */
 final class DoubleListOperator extends ManagedListOperator<Double> {
 
     DoubleListOperator(BaseRealm realm, OsList osList, Class<Double> clazz) {
@@ -1757,17 +1745,18 @@ final class DoubleListOperator extends ManagedListOperator<Double> {
     }
 
     @Override
-    boolean forRealmModel() {
+    public boolean forRealmModel() {
         return false;
     }
 
     @Nullable
     @Override
-    Double get(int index) {
+    public Double get(int index) {
         return (Double) osList.getValue(index);
     }
 
-    private void checkValidValue(@Nullable Object value) {
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
         if (value == null) {
             // null is always valid (but schema may reject null on insertion).
             return;
@@ -1781,43 +1770,24 @@ final class DoubleListOperator extends ManagedListOperator<Double> {
     }
 
     @Override
-    public void add(@Nullable Object value) {
-        checkValidValue(value);
-        if (value == null) {
-            osList.addNull();
-        } else {
-            osList.addDouble(((Number) value).doubleValue());
-        }
+    public void appendValue(Object value) {
+        osList.addDouble(((Number) value).doubleValue());
     }
 
     @Override
-    public void insert(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkInsertIndex(index);
-
-        if (value == null) {
-            osList.insertNull(index);
-        } else {
-            osList.insertDouble(index, ((Number) value).doubleValue());
-        }
+    public void insertValue(int index, Object value) {
+        osList.insertDouble(index, ((Number) value).doubleValue());
     }
 
-    @Nullable
     @Override
-    protected Double set(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkElementExists(index);
-
-        final Double oldValue = get(index);
-        if (value == null) {
-            osList.setNull(index);
-        } else {
-            osList.setDouble(index, ((Number) value).doubleValue());
-        }
-        return oldValue;
+    protected void setValue(int index, Object value) {
+        osList.setDouble(index, ((Number) value).doubleValue());
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@code float} list field.
+ */
 final class FloatListOperator extends ManagedListOperator<Float> {
 
     FloatListOperator(BaseRealm realm, OsList osList, Class<Float> clazz) {
@@ -1825,17 +1795,18 @@ final class FloatListOperator extends ManagedListOperator<Float> {
     }
 
     @Override
-    boolean forRealmModel() {
+    public boolean forRealmModel() {
         return false;
     }
 
     @Nullable
     @Override
-    Float get(int index) {
+    public Float get(int index) {
         return (Float) osList.getValue(index);
     }
 
-    private void checkValidValue(@Nullable Object value) {
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
         if (value == null) {
             // null is always valid (but schema may reject null on insertion).
             return;
@@ -1849,43 +1820,24 @@ final class FloatListOperator extends ManagedListOperator<Float> {
     }
 
     @Override
-    public void add(@Nullable Object value) {
-        checkValidValue(value);
-        if (value == null) {
-            osList.addNull();
-        } else {
-            osList.addFloat(((Number) value).floatValue());
-        }
+    public void appendValue(Object value) {
+        osList.addFloat(((Number) value).floatValue());
     }
 
     @Override
-    public void insert(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkInsertIndex(index);
-
-        if (value == null) {
-            osList.insertNull(index);
-        } else {
-            osList.insertFloat(index, ((Number) value).floatValue());
-        }
+    public void insertValue(int index, Object value) {
+        osList.insertFloat(index, ((Number) value).floatValue());
     }
 
-    @Nullable
     @Override
-    protected Float set(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkElementExists(index);
-
-        final Float oldValue = get(index);
-        if (value == null) {
-            osList.setNull(index);
-        } else {
-            osList.setFloat(index, ((Number) value).floatValue());
-        }
-        return oldValue;
+    protected void setValue(int index, Object value) {
+        osList.setFloat(index, ((Number) value).floatValue());
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@link Date} list field.
+ */
 final class DateListOperator extends ManagedListOperator<Date> {
 
     DateListOperator(BaseRealm realm, OsList osList, Class<Date> clazz) {
@@ -1893,17 +1845,18 @@ final class DateListOperator extends ManagedListOperator<Date> {
     }
 
     @Override
-    boolean forRealmModel() {
+    public boolean forRealmModel() {
         return false;
     }
 
     @Nullable
     @Override
-    Date get(int index) {
+    public Date get(int index) {
         return (Date) osList.getValue(index);
     }
 
-    private void checkValidValue(@Nullable Object value) {
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
         if (value == null) {
             // null is always valid (but schema may reject null on insertion).
             return;
@@ -1917,39 +1870,17 @@ final class DateListOperator extends ManagedListOperator<Date> {
     }
 
     @Override
-    public void add(@Nullable Object value) {
-        checkValidValue(value);
-        if (value == null) {
-            osList.addNull();
-        } else {
-            osList.addDate((Date) value);
-        }
+    public void appendValue(Object value) {
+        osList.addDate((Date) value);
     }
 
     @Override
-    public void insert(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkInsertIndex(index);
-
-        if (value == null) {
-            osList.insertNull(index);
-        } else {
-            osList.insertDate(index, (Date) value);
-        }
+    public void insertValue(int index, Object value) {
+        osList.insertDate(index, (Date) value);
     }
 
-    @Nullable
     @Override
-    protected Date set(int index, @Nullable Object value) {
-        checkValidValue(value);
-        checkElementExists(index);
-
-        final Date oldValue = get(index);
-        if (value == null) {
-            osList.setNull(index);
-        } else {
-            osList.setDate(index, (Date) value);
-        }
-        return oldValue;
+    protected void setValue(int index, Object value) {
+        osList.setDate(index, (Date) value);
     }
 }
