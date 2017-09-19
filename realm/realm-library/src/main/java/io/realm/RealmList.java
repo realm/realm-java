@@ -1262,6 +1262,16 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     }
 }
 
+/**
+ * This class provides façade for against {@link OsList}. {@link OsList} is used for both {@link RealmModel}s
+ * and values, but there are some subtle differences in actual operation.
+ * <p>
+ * This class provides common interface for them.
+ * <p>
+ * You need to use appropriate sub-class for underlying field type.
+ *
+ * @param <T> class of element which is returned on read operation.
+ */
 abstract class ManagedListOperator<T> {
     static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values.";
     static final String INVALID_OBJECT_TYPE_MESSAGE = "Unacceptable value type. Acceptable: %1$s, actual: %2$s .";
@@ -1380,6 +1390,9 @@ abstract class ManagedListOperator<T> {
 
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@link RealmModel} list field.
+ */
 final class RealmModelListOperator<T> extends ManagedListOperator<T> {
 
     @Nullable
@@ -1501,6 +1514,9 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@link String} list field.
+ */
 final class StringListOperator extends ManagedListOperator<String> {
 
     StringListOperator(BaseRealm realm, OsList osList, Class<String> clazz) {
@@ -1548,6 +1564,9 @@ final class StringListOperator extends ManagedListOperator<String> {
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@code long} list field.
+ */
 final class LongListOperator<T> extends ManagedListOperator<T> {
 
     LongListOperator(BaseRealm realm, OsList osList, Class<T> clazz) {
@@ -1616,6 +1635,9 @@ final class LongListOperator<T> extends ManagedListOperator<T> {
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@code boolean} list field.
+ */
 final class BooleanListOperator extends ManagedListOperator<Boolean> {
 
     BooleanListOperator(BaseRealm realm, OsList osList, Class<Boolean> clazz) {
@@ -1663,6 +1685,9 @@ final class BooleanListOperator extends ManagedListOperator<Boolean> {
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@code byte[]} list field.
+ */
 final class BinaryListOperator extends ManagedListOperator<byte[]> {
 
     BinaryListOperator(BaseRealm realm, OsList osList, Class<byte[]> clazz) {
@@ -1710,6 +1735,9 @@ final class BinaryListOperator extends ManagedListOperator<byte[]> {
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@code double} list field.
+ */
 final class DoubleListOperator extends ManagedListOperator<Double> {
 
     DoubleListOperator(BaseRealm realm, OsList osList, Class<Double> clazz) {
@@ -1757,6 +1785,9 @@ final class DoubleListOperator extends ManagedListOperator<Double> {
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@code float} list field.
+ */
 final class FloatListOperator extends ManagedListOperator<Float> {
 
     FloatListOperator(BaseRealm realm, OsList osList, Class<Float> clazz) {
@@ -1804,6 +1835,9 @@ final class FloatListOperator extends ManagedListOperator<Float> {
     }
 }
 
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@link Date} list field.
+ */
 final class DateListOperator extends ManagedListOperator<Date> {
 
     DateListOperator(BaseRealm realm, OsList osList, Class<Date> clazz) {
