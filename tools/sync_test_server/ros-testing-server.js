@@ -96,7 +96,7 @@ function stopRealmObjectServer(onSuccess, onError) {
         onSuccess();
     });
 
-    syncServerChildProcess.kill();
+    syncServerChildProcess.kill('SIGKILL');
 }
 
 // start sync server
