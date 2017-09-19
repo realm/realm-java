@@ -18,7 +18,6 @@ package io.realm;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -57,6 +56,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -1072,7 +1072,8 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         //noinspection unchecked
         list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Object>>() {
             @Override
-            public void onChange(RealmList<Object> collection, OrderedCollectionChangeSet changes) {
+            public void onChange(RealmList<Object> collection, @Nullable OrderedCollectionChangeSet changes) {
+                assertNotNull(changes);
                 assertEquals(1, changes.getInsertions().length);
                 assertEquals(0, changes.getDeletions().length);
                 assertEquals(0, changes.getChanges().length);
@@ -1091,7 +1092,6 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     }
 
     @Test
-    @Ignore("unexpected fail. Unexpected insertion index.")
     @RunTestInLooperThread
     public void changeListener_forAddAt() {
         Realm realm = looperThread.getRealm();
@@ -1122,7 +1122,8 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         //noinspection unchecked
         list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Object>>() {
             @Override
-            public void onChange(RealmList<Object> collection, OrderedCollectionChangeSet changes) {
+            public void onChange(RealmList<Object> collection, @Nullable OrderedCollectionChangeSet changes) {
+                assertNotNull(changes);
                 assertEquals(1, changes.getInsertions().length);
                 assertEquals(0, changes.getDeletions().length);
                 assertEquals(0, changes.getChanges().length);
@@ -1141,7 +1142,6 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     }
 
     @Test
-    @Ignore("unexpected fail. Listener never be called.")
     @RunTestInLooperThread
     public void changeListener_forSet() {
         Realm realm = looperThread.getRealm();
@@ -1172,7 +1172,8 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         //noinspection unchecked
         list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Object>>() {
             @Override
-            public void onChange(RealmList<Object> collection, OrderedCollectionChangeSet changes) {
+            public void onChange(RealmList<Object> collection, @Nullable OrderedCollectionChangeSet changes) {
+                assertNotNull(changes);
                 assertEquals(0, changes.getInsertions().length);
                 assertEquals(0, changes.getDeletions().length);
                 assertEquals(1, changes.getChanges().length);
@@ -1191,7 +1192,6 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     }
 
     @Test
-    @Ignore("unexpected fail. Unexpected deletion index.")
     @RunTestInLooperThread
     public void changeListener_forRemoveAt() {
         Realm realm = looperThread.getRealm();
@@ -1222,7 +1222,8 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         //noinspection unchecked
         list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Object>>() {
             @Override
-            public void onChange(RealmList<Object> collection, OrderedCollectionChangeSet changes) {
+            public void onChange(RealmList<Object> collection, @Nullable OrderedCollectionChangeSet changes) {
+                assertNotNull(changes);
                 assertEquals(0, changes.getInsertions().length);
                 assertEquals(1, changes.getDeletions().length);
                 assertEquals(0, changes.getChanges().length);
@@ -1233,7 +1234,11 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
         realm.beginTransaction();
         //noinspection unchecked
-        assertEquals(generateValue(listType, 100), list.remove(1));
+        if (listType == BINARY_LIST) {
+            assertArrayEquals((byte[]) generateValue(listType, 100), (byte[]) list.remove(1));
+        } else {
+            assertEquals(generateValue(listType, 100), list.remove(1));
+        }
         realm.commitTransaction();
 
         assertEquals(2, listenerCalledCount.get());
@@ -1241,9 +1246,14 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     }
 
     @Test
-    @Ignore("unexpected fail. Unexpected deletion index.")
     @RunTestInLooperThread
     public void changeListener_forRemoveObject() {
+        if (listType == BINARY_LIST) {
+            // 'removeAll()' never remove byte array element since 'equals()' never return true against byte array.
+            looperThread.testComplete();
+            return;
+        }
+
         Realm realm = looperThread.getRealm();
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -1255,7 +1265,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
                 //noinspection unchecked
                 list.add(generateValue(listType, 0));
                 //noinspection unchecked
-                list.add(generateValue(listType, 100));
+                list.add(generateValue(listType, 101));
                 //noinspection unchecked
                 list.add(generateValue(listType, 200));
             }
@@ -1272,8 +1282,8 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         //noinspection unchecked
         list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Object>>() {
             @Override
-            public void onChange(RealmList<Object> collection, OrderedCollectionChangeSet changes) {
-                assertEquals(1, changes.getInsertions().length);
+            public void onChange(RealmList<Object> collection, @Nullable OrderedCollectionChangeSet changes) {
+                assertNotNull(changes);
                 assertEquals(0, changes.getInsertions().length);
                 assertEquals(1, changes.getDeletions().length);
                 assertEquals(0, changes.getChanges().length);
@@ -1284,7 +1294,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
         realm.beginTransaction();
         //noinspection unchecked
-        assertTrue(list.remove(generateValue(listType, 100)));
+        assertTrue(list.remove(generateValue(listType, 101)));
         realm.commitTransaction();
 
         assertEquals(2, listenerCalledCount.get());
@@ -1328,7 +1338,8 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         //noinspection unchecked
         list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Object>>() {
             @Override
-            public void onChange(RealmList<Object> collection, OrderedCollectionChangeSet changes) {
+            public void onChange(RealmList<Object> collection, @Nullable OrderedCollectionChangeSet changes) {
+                assertNotNull(changes);
                 assertEquals(0, changes.getInsertions().length);
                 assertEquals(listType == BOOLEAN_LIST ? 3 : 2, changes.getDeletions().length);
                 assertEquals(0, changes.getChanges().length);
@@ -1351,7 +1362,6 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     }
 
     @Test
-    @Ignore("unexpected fail. Unexpected deletion index.")
     @RunTestInLooperThread
     public void changeListener_forDeleteAt() {
         Realm realm = looperThread.getRealm();
@@ -1382,7 +1392,8 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         //noinspection unchecked
         list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Object>>() {
             @Override
-            public void onChange(RealmList<Object> collection, OrderedCollectionChangeSet changes) {
+            public void onChange(RealmList<Object> collection, @Nullable OrderedCollectionChangeSet changes) {
+                assertNotNull(changes);
                 assertEquals(0, changes.getInsertions().length);
                 assertEquals(1, changes.getDeletions().length);
                 assertEquals(0, changes.getChanges().length);
@@ -1431,7 +1442,8 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         //noinspection unchecked
         list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Object>>() {
             @Override
-            public void onChange(RealmList<Object> collection, OrderedCollectionChangeSet changes) {
+            public void onChange(RealmList<Object> collection, @Nullable OrderedCollectionChangeSet changes) {
+                assertNotNull(changes);
                 assertEquals(0, changes.getInsertions().length);
                 assertEquals(3, changes.getDeletions().length);
                 assertEquals(0, changes.getChanges().length);
@@ -1473,7 +1485,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         //noinspection unchecked
         list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Object>>() {
             @Override
-            public void onChange(RealmList<Object> collection, OrderedCollectionChangeSet changes) {
+            public void onChange(RealmList<Object> collection, @Nullable OrderedCollectionChangeSet changes) {
                 fail();
             }
         });
@@ -1523,7 +1535,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         OrderedRealmCollectionChangeListener<RealmList<Object>> listener2 =
                 new OrderedRealmCollectionChangeListener<RealmList<Object>>() {
                     @Override
-                    public void onChange(RealmList<Object> collection, OrderedCollectionChangeSet changes) {
+                    public void onChange(RealmList<Object> collection, @Nullable OrderedCollectionChangeSet changes) {
                         assertEquals(0, listenerCalledCount.getAndIncrement());
                         looperThread.testComplete();
                     }

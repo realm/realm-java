@@ -4,16 +4,20 @@ import java.util.Date;
 
 import javax.annotation.Nullable;
 
+import io.realm.OrderedRealmCollectionChangeListener;
+import io.realm.RealmChangeListener;
 
 /**
  * Java wrapper of Object Store List class. This backs managed versions of RealmList.
  */
-public class OsList implements NativeObject {
+public class OsList implements NativeObject, ObservableCollection {
 
     private final long nativePtr;
     private final NativeContext context;
     private final Table targetTable;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
+    private final ObserverPairList<CollectionObserverPair> observerPairs =
+            new ObserverPairList<CollectionObserverPair>();
 
     public OsList(UncheckedRow row, long columnIndex) {
         SharedRealm sharedRealm = row.getTable().getSharedRealm();
@@ -212,6 +216,44 @@ public class OsList implements NativeObject {
         return targetTable;
     }
 
+    public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
+        if (observerPairs.isEmpty()) {
+            nativeStartListening(nativePtr);
+        }
+        CollectionObserverPair<T> collectionObserverPair = new CollectionObserverPair<T>(observer, listener);
+        observerPairs.add(collectionObserverPair);
+    }
+
+    public <T> void addListener(T observer, RealmChangeListener<T> listener) {
+        addListener(observer, new RealmChangeListenerWrapper<T>(listener));
+    }
+
+    public <T> void removeListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
+        observerPairs.remove(observer, listener);
+        if (observerPairs.isEmpty()) {
+            nativeStopListening(nativePtr);
+        }
+    }
+
+    public <T> void removeListener(T observer, RealmChangeListener<T> listener) {
+        removeListener(observer, new RealmChangeListenerWrapper<T>(listener));
+    }
+
+    public void removeAllListeners() {
+        observerPairs.clear();
+        nativeStopListening(nativePtr);
+    }
+
+    // Called by JNI
+    @Override
+    public void notifyChangeListeners(long nativeChangeSetPtr) {
+        if (nativeChangeSetPtr == 0) {
+            // First time "query" returns. Do nothing.
+            return;
+        }
+        observerPairs.foreach(new Callback(new OsCollectionChangeSet(nativeChangeSetPtr)));
+    }
+
     private static native long nativeGetFinalizerPtr();
 
     // TODO: nativeTablePtr is not necessary. It is used to create FieldDescriptor which should be generated from
@@ -292,4 +334,8 @@ public class OsList implements NativeObject {
     private static native void nativeSetString(long nativePtr, long pos, @Nullable String value);
 
     private static native Object nativeGetValue(long nativePtr, long pos);
+
+    private native void nativeStartListening(long nativePtr);
+
+    private native void nativeStopListening(long nativePtr);
 }

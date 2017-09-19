@@ -63,7 +63,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     private static final String ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE = "This feature is available only when the element type is implementing RealmModel.";
     public static final String REMOVE_OUTSIDE_TRANSACTION_ERROR = "Objects can only be removed from inside a write transaction.";
 
-    private final io.realm.internal.Collection collection;
     @Nullable
     protected Class<E> clazz;
     @Nullable
@@ -73,6 +72,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     private final ManagedListOperator<E> osListOperator;
     final protected BaseRealm realm;
     private List<E> unmanagedList;
+    // Used for listeners on RealmList<RealmModel>
+    private io.realm.internal.Collection osResults;
 
     /**
      * Creates a RealmList in unmanaged mode, where the elements are not controlled by a Realm.
@@ -82,7 +83,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist its elements in Realm.
      */
     public RealmList() {
-        collection = null;
         realm = null;
         osListOperator = null;
         unmanagedList = new ArrayList<>();
@@ -103,7 +103,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (objects == null) {
             throw new IllegalArgumentException("The objects argument cannot be null");
         }
-        collection = null;
         realm = null;
         osListOperator = null;
         unmanagedList = new ArrayList<>(objects.length);
@@ -118,14 +117,12 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @param realm reference to Realm containing the data.
      */
     RealmList(Class<E> clazz, OsList osList, BaseRealm realm) {
-        this.collection = new io.realm.internal.Collection(realm.sharedRealm, osList, null);
         this.clazz = clazz;
         osListOperator = getOperator(realm, osList, clazz, null);
         this.realm = realm;
     }
 
     RealmList(String className, OsList osList, BaseRealm realm) {
-        this.collection = new io.realm.internal.Collection(realm.sharedRealm, osList, null);
         this.realm = realm;
         this.className = className;
         osListOperator = getOperator(realm, osList, null, className);
@@ -965,7 +962,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.addListener(this, listener);
+        if (osListOperator.forRealmModel()) {
+            getOrCreateOsResultsForListener().addListener(this, listener);
+        } else {
+            osListOperator.getOsList().addListener(this, listener);
+        }
     }
 
     /**
@@ -978,7 +979,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.removeListener(this, listener);
+        if (osListOperator.forRealmModel()) {
+            getOrCreateOsResultsForListener().removeListener(this, listener);
+        } else {
+            osListOperator.getOsList().removeListener(this, listener);
+        }
     }
 
     /**
@@ -1016,7 +1021,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     public void addChangeListener(RealmChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.addListener(this, listener);
+        if (osListOperator.forRealmModel()) {
+            getOrCreateOsResultsForListener().addListener(this, listener);
+        } else {
+            osListOperator.getOsList().addListener(this, listener);
+        }
     }
 
     /**
@@ -1029,7 +1038,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     public void removeChangeListener(RealmChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.removeListener(this, listener);
+        if (osListOperator.forRealmModel()) {
+            getOrCreateOsResultsForListener().removeListener(this, listener);
+        } else {
+            osListOperator.getOsList().removeListener(this, listener);
+        }
     }
 
     /**
@@ -1040,7 +1053,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     public void removeAllChangeListeners() {
         checkForAddRemoveListener(null, false);
-        collection.removeAllListeners();
+        if (osListOperator.forRealmModel()) {
+            getOrCreateOsResultsForListener().removeAllListeners();
+        } else {
+            osListOperator.getOsList().removeAllListeners();
+        }
     }
 
     // Custom RealmList iterator.
@@ -1259,6 +1276,20 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             return (ManagedListOperator<E>) new DateListOperator(realm, osList, (Class<Date>) clazz);
         }
         throw new IllegalArgumentException("Unexpected value class: " + clazz.getName());
+    }
+
+    // TODO: Object Store is not able to merge change set for links list. Luckily since we were still using LinkView
+    // when ship the fine grain notifications, the listener on RealmList is actually added to a OS Results which is
+    // created from the link view. OS Results is computing the change set by comparing the old/new collection. So it
+    // will give the right results if you remove all elements from a RealmList then add all them back and add one more
+    // new element. By right results it means the change set only include one insertion. But if the listener is on the
+    // OS List, the change set will include all ranges of th list. So we keep the old behaviour for
+    // RealmList<RealmModel> for now. See https://github.com/realm/realm-object-store/issues/541
+    private io.realm.internal.Collection getOrCreateOsResultsForListener() {
+        if (osResults == null) {
+            this.osResults = new io.realm.internal.Collection(realm.sharedRealm, osListOperator.getOsList(), null);
+        }
+        return osResults;
     }
 }
 
