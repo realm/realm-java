@@ -165,6 +165,7 @@ public class UserFactory {
                 for (SyncUser user : users.values()) {
                     user.logout();
                 }
+                SystemClock.sleep(2000); // Remove when https://github.com/realm/ros/issues/304 is fixed
                 allUsersLoggedOut.countDown();
             }
         });
