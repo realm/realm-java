@@ -671,6 +671,20 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     }
 
     @Test
+    public void addAt_invalidIndex() {
+        final int initialSize = list.size();
+        try {
+            realm.beginTransaction();
+            //noinspection unchecked
+            list.add(initialSize + 1, generateValue(listType, 1000));
+            fail();
+        } catch (IndexOutOfBoundsException e) {
+            // make sure that the size is not changed
+            assertEquals(initialSize, list.size());
+        }
+    }
+
+    @Test
     public void set_afterContainerObjectRemoved() {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -682,6 +696,20 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         thrown.expect(IllegalStateException.class);
         //noinspection unchecked
         list.set(0, generateValue(listType, 100));
+    }
+
+    @Test
+    public void set_invalidIndex() {
+        final int initialSize = list.size();
+        try {
+            realm.beginTransaction();
+            //noinspection unchecked
+            list.set(initialSize, generateValue(listType, 1000));
+            fail();
+        } catch (IndexOutOfBoundsException e) {
+            // make sure that the size is not changed
+            assertEquals(initialSize, list.size());
+        }
     }
 
     @Test
@@ -927,12 +955,9 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
     @Test
     public void deleteAllFromRealm_outsideTransaction() {
-        try {
+            thrown.expect(IllegalStateException.class);
+            thrown.expectMessage("Must be in a write transaction ");
             list.deleteAllFromRealm();
-            fail("deleteAllFromRealm should be called in a transaction.");
-        } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), containsString("Must be in a write transaction "));
-        }
     }
 
     @Test

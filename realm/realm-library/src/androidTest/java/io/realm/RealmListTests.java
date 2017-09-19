@@ -192,6 +192,20 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
+    public void add_objectAtInvalidIndexInManagedModeThrows() {
+        final int initialDogCount = realm.where(Dog.class).findAll().size();
+
+        realm.beginTransaction();
+        try {
+            final int invalidIndex = collection.size() + 1;
+            collection.add(invalidIndex, new Dog("Dog 42"));
+            fail();
+        } catch (IndexOutOfBoundsException e) {
+            assertEquals(initialDogCount, realm.where(Dog.class).findAll().size());
+        }
+    }
+
+    @Test
     public void add_nullAtIndexInUnmanagedMode() {
         final RealmList<AllTypes> list = new RealmList<>();
         list.add(0, null);

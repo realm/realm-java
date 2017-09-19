@@ -46,6 +46,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
+@Ignore("Resolve https://github.com/realm/ros/issues/18")
 public class ManagementRealmTests extends StandardIntegrationTest {
 
     // This is primarily a test making sure that an admin user actually connects correctly to ROS.

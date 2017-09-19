@@ -18,6 +18,7 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nonnull;
 
-import io.realm.BaseIntegrationTest;
 import io.realm.Progress;
 import io.realm.ProgressListener;
 import io.realm.ProgressMode;
@@ -126,8 +126,6 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         });
         TestHelper.awaitOrFail(allChangesDownloaded);
         realm.close();
-        userWithData.logout();
-        adminUser.logout();
     }
 
     @Test
@@ -189,8 +187,6 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         TestHelper.awaitOrFail(allChangesDownloaded);
         adminRealm.close();
         userRealm.close();
-        userWithData.logout();
-        adminUser.logout();
         worker.join();
     }
 
@@ -228,7 +224,6 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         TestHelper.awaitOrFail(testDone);
         realm.close();
     }
-
 
     @Test
     public void uploadProgressListener_changesOnly() {
