@@ -42,7 +42,7 @@ function waitForRosToInitialize(attempts, onSuccess, onError) {
     http.get("http://0.0.0.0:9080/health", function(res) {
         if (res.statusCode != 200) {
             winston.info("ROS /health/ returned: " + res.statusCode)
-            waitForRosToInitialize(attempts - 1,onSuccess)
+            waitForRosToInitialize(attempts - 1, onSuccess, onError)
         } else {
             onSuccess();
         }
@@ -51,7 +51,7 @@ function waitForRosToInitialize(attempts, onSuccess, onError) {
         // Errors like ECONNREFUSED 0.0.0.0:9080 will be reported here.
         // Wait a little before trying again (common startup is ~1 second).
         setTimeout(function() {
-            waitForRosToInitialize(attempts - 1, onSuccess);
+            waitForRosToInitialize(attempts - 1, onSuccess, onError);
         }, 200);
     });
 }
@@ -104,10 +104,10 @@ dispatcher.onGet("/start", function(req, res) {
     winston.info("Attempting to start ROS");
     startRealmObjectServer(() => {
         res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('ROS server started');
+        res.end('ROS started');
     }, function (err) {
         res.writeHead(500, {'Content-Type': 'text/plain'});
-        res.end('Starting a ROS server failed: ' + err);
+        res.end('Starting ROS failed: ' + err);
     });
 });
 
@@ -115,8 +115,11 @@ dispatcher.onGet("/start", function(req, res) {
 dispatcher.onGet("/stop", function(req, res) {
   winston.info("Attempting to stop ROS")
   stopRealmObjectServer(function() {
-      res.writeHead(200, {'Content-Type': 'text/plain'});
-      res.end('ROS server stopped');
+        res.writeHead(200, {'Content-Type': 'text/plain'});
+        res.end('ROS stopped');
+  }, function(err) {
+        res.writeHead(500, {'Content-Type': 'text/plain'});
+        res.end('Stopping ROS failed: ' + err);
   });
 });
 
