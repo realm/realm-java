@@ -22,14 +22,18 @@
 
 #include "util/format.hpp"
 
-#include "jni_util/java_exception_thrower.hpp"
+#include "java_accessor.hpp"
 #include "java_exception_def.hpp"
+#include "jni_util/java_exception_thrower.hpp"
 
 using namespace std;
 using namespace realm;
 using namespace realm::_impl;
 using namespace realm::jni_util;
 using namespace realm::util;
+
+static_assert(io_realm_internal_Table_MAX_STRING_SIZE == Table::max_string_size, "");
+static_assert(io_realm_internal_Table_MAX_BINARY_SIZE == Table::max_binary_size, "");
 
 static const char* c_null_values_cannot_set_required_msg = "The primary key field '%1' has 'null' values stored.  It "
                                                            "cannot be converted to a '@Required' primary key field.";
@@ -818,8 +822,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(JNIEnv* e
             return;
         }
 
-        JniByteArray byteAccessor(env, dataArray);
-        TBL(nativeTablePtr)->set_binary(S(columnIndex), S(rowIndex), byteAccessor, B(isDefault));
+        JByteArrayAccessor jarray_accessor(env, dataArray);
+        TBL(nativeTablePtr)
+            ->set_binary(S(columnIndex), S(rowIndex), jarray_accessor.transform<BinaryData>(), B(isDefault));
     }
     CATCH_STD()
 }
@@ -1183,10 +1188,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(JN
 {
     Table* pTable = TBL(nativeTablePtr);
 
-    JniLongArray long_arr(env, columnIndices);
-    JniBooleanArray bool_arr(env, ascending);
-    jsize arr_len = long_arr.len();
-    jsize asc_len = bool_arr.len();
+    JLongArrayAccessor long_arr(env, columnIndices);
+    JBooleanArrayAccessor bool_arr(env, ascending);
+    jsize arr_len = long_arr.size();
+    jsize asc_len = bool_arr.size();
 
     if (arr_len == 0) {
         ThrowException(env, IllegalArgument, "You must provide at least one field name.");

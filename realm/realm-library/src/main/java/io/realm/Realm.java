@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.reactivex.Flowable;
 import javax.annotation.Nullable;
 
 import io.realm.exceptions.RealmException;
@@ -63,8 +64,6 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
-import rx.Observable;
-
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
@@ -183,7 +182,7 @@ public class Realm extends BaseRealm {
      * {@inheritDoc}
      */
     @Override
-    public Observable<Realm> asObservable() {
+    public Flowable<Realm> asFlowable() {
         return configuration.getRxFactory().from(this);
     }
 

@@ -29,13 +29,16 @@
 #include <realm.hpp>
 #include <realm/lang_bind_helper.hpp>
 #include <realm/timestamp.hpp>
+#include <realm/table.hpp>
 #include <realm/util/safe_int_ops.hpp>
 
 #include <util/format.hpp>
 
 #include "io_realm_internal_Util.h"
 
+#include "java_exception_def.hpp"
 #include "jni_util/log.hpp"
+#include "jni_util/java_exception_thrower.hpp"
 
 #define CHECK_PARAMETERS 1 // Check all parameters in API and throw exceptions in java if invalid
 
@@ -454,10 +457,20 @@ class JStringAccessor {
 public:
     JStringAccessor(JNIEnv*, jstring); // throws
 
-    operator realm::StringData() const noexcept
+    operator realm::StringData() const
     {
+        // To solve the link issue by directly using Table::max_string_size
+        static constexpr size_t max_string_size = realm::Table::max_string_size;
+
         if (m_is_null) {
             return realm::StringData(NULL);
+        }
+        else if (m_size > max_string_size) {
+            THROW_JAVA_EXCEPTION(
+                m_env, realm::_impl::JavaExceptionDef::IllegalArgument,
+                realm::util::format(
+                    "The length of 'String' value in UTF8 encoding is %1 which exceeds the max string length %2.",
+                    m_size, max_string_size));
         }
         else {
             return realm::StringData(m_data.get(), m_size);
@@ -473,219 +486,10 @@ public:
     }
 
 private:
+    JNIEnv* m_env;
     bool m_is_null;
     std::unique_ptr<char[]> m_data;
     std::size_t m_size;
-};
-
-class JniLongArray {
-public:
-    JniLongArray(JNIEnv* env, jlongArray javaArray)
-        : m_env(env)
-        , m_javaArray(javaArray)
-        , m_arrayLength(javaArray == NULL ? 0 : env->GetArrayLength(javaArray))
-        , m_array(javaArray == NULL ? NULL : env->GetLongArrayElements(javaArray, NULL))
-        , m_releaseMode(JNI_ABORT)
-    {
-    }
-
-    JniLongArray(JniLongArray& other) = delete;
-
-    JniLongArray(JniLongArray&& other)
-        : m_env(other.m_env)
-        , m_javaArray(other.m_javaArray)
-        , m_arrayLength(other.m_arrayLength)
-        , m_array(other.m_array)
-        , m_releaseMode(other.m_releaseMode)
-    {
-        other.m_env = nullptr;
-        other.m_javaArray = nullptr;
-        other.m_arrayLength = 0;
-        other.m_array = nullptr;
-    }
-
-    ~JniLongArray()
-    {
-        if (m_array) {
-            m_env->ReleaseLongArrayElements(m_javaArray, m_array, m_releaseMode);
-        }
-    }
-
-    inline jsize len() const noexcept
-    {
-        return m_arrayLength;
-    }
-
-    inline jlong* ptr() const noexcept
-    {
-        return m_array;
-    }
-
-    inline jlong& operator[](const int index) noexcept
-    {
-        return m_array[index];
-    }
-
-    inline void updateOnRelease() noexcept
-    {
-        m_releaseMode = 0;
-    }
-
-private:
-    JNIEnv* m_env;
-    jlongArray m_javaArray;
-    jsize m_arrayLength;
-    jlong* m_array;
-    jint m_releaseMode;
-};
-
-template <typename T, typename J>
-class JniArrayOfArrays {
-public:
-    JniArrayOfArrays(JNIEnv* env, jobjectArray javaArray)
-        : m_env(env)
-        , m_javaArray(javaArray)
-        , m_arrayLength(javaArray == nullptr ? 0 : env->GetArrayLength(javaArray))
-    {
-        for (int i = 0; i < m_arrayLength; ++i) {
-            // No type checking. Internal use only.
-            J j_array = static_cast<J>(env->GetObjectArrayElement(m_javaArray, i));
-            m_array.push_back(T(env, j_array));
-        }
-    }
-
-    ~JniArrayOfArrays()
-    {
-    }
-
-    inline jsize len() const noexcept
-    {
-        return m_arrayLength;
-    }
-
-    inline T& operator[](const int index) noexcept
-    {
-        return m_array[index];
-    }
-
-private:
-    JNIEnv* const m_env;
-    jobjectArray const m_javaArray;
-    jsize const m_arrayLength;
-    std::vector<T> m_array;
-};
-
-class JniByteArray {
-public:
-    JniByteArray(JNIEnv* env, jbyteArray javaArray)
-        : m_env(env)
-        , m_javaArray(javaArray)
-        , m_arrayLength(javaArray == NULL ? 0 : env->GetArrayLength(javaArray))
-        , m_array(javaArray == NULL ? NULL : env->GetByteArrayElements(javaArray, NULL))
-        , m_releaseMode(JNI_ABORT)
-    {
-        if (m_javaArray != nullptr && m_array == nullptr) {
-            // javaArray is not null but GetByteArrayElements returns null, something is really wrong.
-            throw std::runtime_error(
-                realm::util::format("GetByteArrayElements failed on byte array %x", m_javaArray));
-        }
-    }
-
-    ~JniByteArray()
-    {
-        if (m_array) {
-            m_env->ReleaseByteArrayElements(m_javaArray, m_array, m_releaseMode);
-        }
-    }
-
-    inline jsize len() const noexcept
-    {
-        return m_arrayLength;
-    }
-
-    inline jbyte* ptr() const noexcept
-    {
-        return m_array;
-    }
-
-    inline jbyte& operator[](const int index) noexcept
-    {
-        return m_array[index];
-    }
-
-    inline operator realm::BinaryData() const noexcept
-    {
-        return realm::BinaryData(reinterpret_cast<const char*>(m_array), m_arrayLength);
-    }
-
-    inline operator std::vector<char>() const noexcept
-    {
-        if (m_array == nullptr) {
-            return {};
-        }
-
-        std::vector<char> v(m_arrayLength);
-        std::copy_n(m_array, v.size(), v.begin());
-        return v;
-    }
-
-    inline void updateOnRelease() noexcept
-    {
-        m_releaseMode = 0;
-    }
-
-private:
-    JNIEnv* const m_env;
-    jbyteArray const m_javaArray;
-    jsize const m_arrayLength;
-    jbyte* const m_array;
-    jint m_releaseMode;
-};
-
-class JniBooleanArray {
-public:
-    JniBooleanArray(JNIEnv* env, jbooleanArray javaArray)
-        : m_env(env)
-        , m_javaArray(javaArray)
-        , m_arrayLength(javaArray == NULL ? 0 : env->GetArrayLength(javaArray))
-        , m_array(javaArray == NULL ? NULL : env->GetBooleanArrayElements(javaArray, NULL))
-        , m_releaseMode(JNI_ABORT)
-    {
-    }
-
-    ~JniBooleanArray()
-    {
-        if (m_array) {
-            m_env->ReleaseBooleanArrayElements(m_javaArray, m_array, m_releaseMode);
-        }
-    }
-
-    inline jsize len() const noexcept
-    {
-        return m_arrayLength;
-    }
-
-    inline jboolean* ptr() const noexcept
-    {
-        return m_array;
-    }
-
-    inline jboolean& operator[](const int index) noexcept
-    {
-        return m_array[index];
-    }
-
-    inline void updateOnRelease() noexcept
-    {
-        m_releaseMode = 0;
-    }
-
-private:
-    JNIEnv* const m_env;
-    jbooleanArray const m_javaArray;
-    jsize const m_arrayLength;
-    jboolean* const m_array;
-    jint m_releaseMode;
 };
 
 inline jlong to_milliseconds(const realm::Timestamp& ts)

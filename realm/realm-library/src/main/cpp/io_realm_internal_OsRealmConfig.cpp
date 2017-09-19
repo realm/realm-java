@@ -23,6 +23,7 @@
 #include <sync/sync_session.hpp>
 #endif
 
+#include "java_accessor.hpp"
 #include "util.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/java_class.hpp"
@@ -32,6 +33,7 @@
 
 using namespace realm;
 using namespace realm::jni_util;
+using namespace realm::_impl;
 
 static_assert(SchemaMode::Automatic ==
                   static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_AUTOMATIC),
@@ -92,11 +94,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetEncryptionK
 {
     TR_ENTER_PTR(native_ptr)
     try {
-        JniByteArray key_array(env, j_key_array);
+        JByteArrayAccessor jarray_accessor(env, j_key_array);
         auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
         // Encryption key should be set before creating sync_config.
         REALM_ASSERT(!config.sync_config);
-        config.encryption_key = key_array;
+        config.encryption_key = jarray_accessor.transform<std::vector<char>>();
     }
     CATCH_STD()
 }

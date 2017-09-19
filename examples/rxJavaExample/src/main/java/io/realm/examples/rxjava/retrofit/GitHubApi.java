@@ -16,17 +16,17 @@
 
 package io.realm.examples.rxjava.retrofit;
 
-import retrofit.http.GET;
-import retrofit.http.Path;
-import rx.Observable;
+import io.reactivex.Flowable;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
 
 /**
  * GitHub API definition
  */
-interface GithubApi {
+interface GitHubApi {
     /**
      * See https://developer.github.com/v3/users/
      */
     @GET("/users/{user}")
-    Observable<GitHubUser> user(@Path("user") String user);
+    Flowable<GitHubUser> user(@Path("user") String user);
 }

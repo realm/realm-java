@@ -19,18 +19,29 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            signingConfig signingConfigs.debug
+        }
+        debug {
+            minifyEnabled true
         }
     }
 
     command {
         monkey.events 2000
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 
 dependencies {
-    testImplementation 'io.reactivex:rxjava:1.1.0'
+    implementation 'com.android.support:appcompat-v7:26.0.1'
+
+    testImplementation 'io.reactivex.rxjava2:rxjava:2.1.0'
 
     // Testing
     testImplementation 'junit:junit:4.12'

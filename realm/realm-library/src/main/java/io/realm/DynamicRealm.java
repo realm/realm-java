@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import io.reactivex.Flowable;
 import java.util.Locale;
 
 import io.realm.exceptions.RealmException;
@@ -25,8 +26,6 @@ import io.realm.internal.OsObject;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
-import rx.Observable;
-
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -261,7 +260,7 @@ public class DynamicRealm extends BaseRealm {
      * {@inheritDoc}
      */
     @Override
-    public Observable<DynamicRealm> asObservable() {
+    public Flowable<DynamicRealm> asFlowable() {
         return configuration.getRxFactory().from(this);
     }
 

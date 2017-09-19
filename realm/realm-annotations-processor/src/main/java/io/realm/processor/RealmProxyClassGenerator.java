@@ -796,7 +796,9 @@ public class RealmProxyClassGenerator {
                     .emitStatement("boolean canUpdate = update")
                     .beginControlFlow("if (canUpdate)")
                     .emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
-                    .emitStatement("long pkColumnIndex = table.getPrimaryKey()");
+                    .emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)",
+                        columnInfoClassName(), columnInfoClassName(), qualifiedClassName)
+                    .emitStatement("long pkColumnIndex = %s", fieldIndexVariableReference(metadata.getPrimaryKey()));
 
             String primaryKeyGetter = metadata.getPrimaryKeyGetter();
             VariableElement primaryKeyElement = metadata.getPrimaryKey();
@@ -987,7 +989,7 @@ public class RealmProxyClassGenerator {
                 columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName);
 
         if (metadata.hasPrimaryKey()) {
-            writer.emitStatement("long pkColumnIndex = table.getPrimaryKey()");
+            writer.emitStatement("long pkColumnIndex = %s", fieldIndexVariableReference(metadata.getPrimaryKey()));
         }
         addPrimaryKeyCheckIfNeeded(metadata, true, writer);
 
@@ -1054,7 +1056,7 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)",
                 columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName);
         if (metadata.hasPrimaryKey()) {
-            writer.emitStatement("long pkColumnIndex = table.getPrimaryKey()");
+            writer.emitStatement("long pkColumnIndex = %s", fieldIndexVariableReference(metadata.getPrimaryKey()));
         }
         writer.emitStatement("%s object = null", qualifiedJavaClassName);
 
@@ -1141,7 +1143,7 @@ public class RealmProxyClassGenerator {
                 columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName);
 
         if (metadata.hasPrimaryKey()) {
-            writer.emitStatement("long pkColumnIndex = table.getPrimaryKey()");
+            writer.emitStatement("long pkColumnIndex = %s", fieldIndexVariableReference(metadata.getPrimaryKey()));
         }
         addPrimaryKeyCheckIfNeeded(metadata, false, writer);
 
@@ -1213,7 +1215,7 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)",
                 columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName);
         if (metadata.hasPrimaryKey()) {
-            writer.emitStatement("long pkColumnIndex = table.getPrimaryKey()");
+            writer.emitStatement("long pkColumnIndex = %s", fieldIndexVariableReference(metadata.getPrimaryKey()));
         }
         writer.emitStatement("%s object = null", qualifiedJavaClassName);
 
@@ -1719,7 +1721,9 @@ public class RealmProxyClassGenerator {
                 .emitStatement("%s obj = null", qualifiedJavaClassName)
                 .beginControlFlow("if (update)")
                     .emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
-                    .emitStatement("long pkColumnIndex = table.getPrimaryKey()")
+                    .emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)",
+                        columnInfoClassName(), columnInfoClassName(), qualifiedClassName)
+                    .emitStatement("long pkColumnIndex = %s", fieldIndexVariableReference(metadata.getPrimaryKey()))
                     .emitStatement("long rowIndex = Table.NO_MATCH");
             if (metadata.isNullable(metadata.getPrimaryKey())) {
                 writer
