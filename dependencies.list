@@ -3,11 +3,6 @@
 REALM_SYNC_VERSION=2.0.0-rc18
 REALM_SYNC_SHA256=73cb89c1a04cafa871444aa91d93eb9df16af088bcb7d3ede73bb815d53a06e5
 
-# Object Server Release used by Integration tests
-# Stable releases:  https://packagecloud.io/realm/realm?filter=debs
-# Beta releases:    https://packagecloud.io/realm/realm-beta?filter=debs
-# Developer builds: https://packagecloud.io/realm/realm-testing?filter=debs
-# /tools/sync_test_server/Dockerfile specify which repo (apt) we should
-# install/use between 'realm', 'realm-beta' and 'realm-testing', the version below should
-# correspond to an existing version on the *specified* repo.
-REALM_OBJECT_SERVER_DE_VERSION=2.0.0-rc2-285
+# Object Server Release used by Integration tests. Installed using NPM.
+# Use `npm view realm-object-server versions` to get a list of available versions.
+REALM_OBJECT_SERVER_DE_VERSION=2.0.0-alpha.30
