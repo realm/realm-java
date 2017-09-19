@@ -51,7 +51,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-@Ignore("See https://github.com/realm/realm-java/issues/5282")
 public class ProgressListenerTests extends StandardIntegrationTest {
 
     private static final long TEST_SIZE = 10;
