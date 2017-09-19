@@ -955,12 +955,9 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
     @Test
     public void deleteAllFromRealm_outsideTransaction() {
-        try {
+            thrown.expect(IllegalStateException.class);
+            thrown.expectMessage("Must be in a write transaction ");
             list.deleteAllFromRealm();
-            fail("deleteAllFromRealm should be called in a transaction.");
-        } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), containsString("Must be in a write transaction "));
-        }
     }
 
     @Test
