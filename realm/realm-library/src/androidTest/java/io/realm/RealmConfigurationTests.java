@@ -725,12 +725,12 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public Flowable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
+            public <E> Flowable<RealmResults<E>> from(DynamicRealm realm, RealmResults<E> results) {
                 return null;
             }
 
             @Override
-            public Observable<CollectionChange<RealmResults<DynamicRealmObject>>> changesetsFrom(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
+            public <E> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(DynamicRealm realm, RealmResults<E> results) {
                 return null;
             }
 
@@ -745,12 +745,12 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public Flowable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
+            public <E> Flowable<RealmList<E>> from(DynamicRealm realm, RealmList<E> list) {
                 return null;
             }
 
             @Override
-            public Observable<CollectionChange<RealmList<DynamicRealmObject>>> changesetsFrom(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
+            public <E> Observable<CollectionChange<RealmList<E>>> changesetsFrom(DynamicRealm realm, RealmList<E> list) {
                 return null;
             }
 
@@ -780,7 +780,7 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public Single<RealmQuery<DynamicRealmObject>> from(DynamicRealm realm, RealmQuery<DynamicRealmObject> query) {
+            public <E> Single<RealmQuery<E>> from(DynamicRealm realm, RealmQuery<E> query) {
                 return null;
             }
         };

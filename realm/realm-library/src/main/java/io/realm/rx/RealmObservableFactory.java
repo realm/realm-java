@@ -218,18 +218,18 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public Flowable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, final RealmResults<DynamicRealmObject> results) {
+    public <E> Flowable<RealmResults<E>> from(DynamicRealm realm, final RealmResults<E> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
-        return Flowable.create(new FlowableOnSubscribe<RealmResults<DynamicRealmObject>>() {
+        return Flowable.create(new FlowableOnSubscribe<RealmResults<E>>() {
             @Override
-            public void subscribe(final FlowableEmitter<RealmResults<DynamicRealmObject>> emitter) throws Exception {
+            public void subscribe(final FlowableEmitter<RealmResults<E>> emitter) throws Exception {
                 // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
                 resultsRefs.get().acquireReference(results);
-                final RealmChangeListener<RealmResults<DynamicRealmObject>> listener = new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
+                final RealmChangeListener<RealmResults<E>> listener = new RealmChangeListener<RealmResults<E>>() {
                     @Override
-                    public void onChange(RealmResults<DynamicRealmObject> results) {
+                    public void onChange(RealmResults<E> results) {
                         if (!emitter.isCancelled()) {
                             emitter.onNext(results);
                         }
@@ -255,18 +255,18 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-        public Observable<CollectionChange<RealmResults<DynamicRealmObject>>> changesetsFrom(DynamicRealm realm, final RealmResults<DynamicRealmObject> results) {
+    public <E> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(DynamicRealm realm, final RealmResults<E> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
-        return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmResults<DynamicRealmObject>>>() {
+        return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmResults<E>>>() {
             @Override
-            public void subscribe(final ObservableEmitter<CollectionChange<RealmResults<DynamicRealmObject>>> emitter) throws Exception {
+            public void subscribe(final ObservableEmitter<CollectionChange<RealmResults<E>>> emitter) throws Exception {
                 // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
                 resultsRefs.get().acquireReference(results);
-                final OrderedRealmCollectionChangeListener<RealmResults<DynamicRealmObject>> listener = new OrderedRealmCollectionChangeListener<RealmResults<DynamicRealmObject>>() {
+                final OrderedRealmCollectionChangeListener<RealmResults<E>> listener = new OrderedRealmCollectionChangeListener<RealmResults<E>>() {
                     @Override
-                    public void onChange(RealmResults<DynamicRealmObject> results, OrderedCollectionChangeSet changeSet) {
+                    public void onChange(RealmResults<E> results, OrderedCollectionChangeSet changeSet) {
                         if (!emitter.isDisposed()) {
                             emitter.onNext(new CollectionChange<>(results, changeSet));
                         }
@@ -364,18 +364,18 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public Flowable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, final RealmList<DynamicRealmObject> list) {
+    public <E> Flowable<RealmList<E>> from(DynamicRealm realm, final RealmList<E> list) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
-        return Flowable.create(new FlowableOnSubscribe<RealmList<DynamicRealmObject>>() {
+        return Flowable.create(new FlowableOnSubscribe<RealmList<E>>() {
             @Override
-            public void subscribe(final FlowableEmitter<RealmList<DynamicRealmObject>> emitter) throws Exception {
+            public void subscribe(final FlowableEmitter<RealmList<E>> emitter) throws Exception {
                 // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
                 listRefs.get().acquireReference(list);
-                final RealmChangeListener<RealmList<DynamicRealmObject>> listener = new RealmChangeListener<RealmList<DynamicRealmObject>>() {
+                final RealmChangeListener<RealmList<E>> listener = new RealmChangeListener<RealmList<E>>() {
                     @Override
-                    public void onChange(RealmList<DynamicRealmObject> results) {
+                    public void onChange(RealmList<E> results) {
                         if (!emitter.isCancelled()) {
                             emitter.onNext(list);
                         }
@@ -401,18 +401,18 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public Observable<CollectionChange<RealmList<DynamicRealmObject>>> changesetsFrom(DynamicRealm realm, final RealmList<DynamicRealmObject> list) {
+    public <E> Observable<CollectionChange<RealmList<E>>> changesetsFrom(DynamicRealm realm, final RealmList<E> list) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
-        return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmList<DynamicRealmObject>>>() {
+        return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmList<E>>>() {
             @Override
-            public void subscribe(final ObservableEmitter<CollectionChange<RealmList<DynamicRealmObject>>> emitter) throws Exception {
+            public void subscribe(final ObservableEmitter<CollectionChange<RealmList<E>>> emitter) throws Exception {
                 // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
                 listRefs.get().acquireReference(list);
-                final OrderedRealmCollectionChangeListener<RealmList<DynamicRealmObject>> listener = new OrderedRealmCollectionChangeListener<RealmList<DynamicRealmObject>>() {
+                final OrderedRealmCollectionChangeListener<RealmList<E>> listener = new OrderedRealmCollectionChangeListener<RealmList<E>>() {
                     @Override
-                    public void onChange(RealmList<DynamicRealmObject> results, OrderedCollectionChangeSet changeSet) {
+                    public void onChange(RealmList<E> results, OrderedCollectionChangeSet changeSet) {
                         if (!emitter.isDisposed()) {
                             emitter.onNext(new CollectionChange<>(results, changeSet));
                         }
@@ -588,7 +588,7 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public Single<RealmQuery<DynamicRealmObject>> from(DynamicRealm realm, RealmQuery<DynamicRealmObject> query) {
+    public <E> Single<RealmQuery<E>> from(DynamicRealm realm, RealmQuery<E> query) {
         throw new RuntimeException("RealmQuery not supported yet.");
     }
 
