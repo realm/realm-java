@@ -3,6 +3,7 @@ package io.realm.objectserver;
 import android.os.SystemClock;
 import android.text.style.TabStopSpan;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
@@ -100,6 +101,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
 
     // If an encrypted synced Realm is re-opened with the wrong key, throw an exception.
     @Test
+    @Ignore("See https://github.com/realm/realm-java/issues/5281")
     public void setEncryptionKey_shouldCrashIfKeyNotProvided() throws InterruptedException {
         // STEP 1: open a synced Realm using a local encryption key
         String username = UUID.randomUUID().toString();

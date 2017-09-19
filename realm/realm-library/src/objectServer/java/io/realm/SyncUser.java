@@ -131,6 +131,7 @@ public class SyncUser {
         Collection<SyncUser> storedUsers = userStore.allUsers();
         Map<String, SyncUser> map = new HashMap<>();
         for (SyncUser user : storedUsers) {
+            // FIXME: Users might be marked for deletion here
             if (user.isValid()) {
                 map.put(user.getIdentity(), user);
             }
@@ -280,20 +281,17 @@ public class SyncUser {
             // don't reference directly the refreshToken inside the revoke request
             // as it may revoke the newly acquired and refresh_token
             final Token refreshTokenToBeRevoked = refreshToken;
-            RealmLog.error("revoke " + refreshTokenToBeRevoked.value());
 
             ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
             networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
 
                 @Override
                 protected LogoutResponse execute() {
-                    RealmLog.error("Executing revoke: " + refreshTokenToBeRevoked.value());
                     return server.logout(refreshTokenToBeRevoked, getAuthenticationUrl());
                 }
 
                 @Override
                 protected void onSuccess(LogoutResponse response) {
-                    RealmLog.error("User logged out success" + SyncUser.this.getAccessToken().value());
                     SyncManager.notifyUserLoggedOut(SyncUser.this);
                 }
 
