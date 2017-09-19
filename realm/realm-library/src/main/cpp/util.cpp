@@ -449,7 +449,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         buf_size = Xcode::find_utf8_buf_size(begin, end, error_code);
     }
     char* tmp_char_array = new char[buf_size]; // throws
-    m_data.reset(tmp_char_array);
+    m_data.reset(tmp_char_array, std::default_delete<char[]>());
     {
         const jchar* in_begin = chars.data();
         const jchar* in_end = in_begin + chars.size();
