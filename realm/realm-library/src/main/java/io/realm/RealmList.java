@@ -1294,7 +1294,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 }
 
 /**
- * This class provides façade for against {@link OsList}. {@link OsList} is used for both {@link RealmModel}s
+ * This class provides facade for against {@link OsList}. {@link OsList} is used for both {@link RealmModel}s
  * and values, but there are some subtle differences in actual operation.
  * <p>
  * This class provides common interface for them.
