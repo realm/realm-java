@@ -64,7 +64,10 @@ function startRealmObjectServer(onSuccess, onError) {
             winston.info(env.NODE_ENV);
             env.NODE_ENV = 'development';
             syncServerChildProcess = spawn('ros',
-                    ['start', '--data', path],
+                    ['start',
+                        '--data', path,
+                        '--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
+                    ],
                     { env: env, cwd: path});
 
             // local config:
