@@ -96,9 +96,7 @@ function stopRealmObjectServer(onSuccess, onError) {
         onSuccess();
     });
 
-    // Move back to `SIGTERM` once https://github.com/realm/ros/issues/234
-    // is resolved
-    syncServerChildProcess.kill('SIGKILL');
+    syncServerChildProcess.kill();
 }
 
 // start sync server
