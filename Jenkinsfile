@@ -22,6 +22,18 @@ try {
                ])
         }
 
+        // Toggles for PR vs. Master builds.
+        // For PR's, we just build for arm-v7a and run unit tests for the ObjectServer variant
+        // A full build is done on `master`.
+        // TODO Once Android emulators are available on all nodes, we can switch to x86 builds
+        // on PR's for even more throughput.
+        def ABIs = null
+        def instrumentationTestTarget = "connectedAndroidTest"
+        if (!['master'].contains(env.BRANCH_NAME)) {
+            ABIs = "armeabi-v7a"
+            instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug more for better error reporting
+        }
+
         def buildEnv
         def rosEnv
         stage('Docker build') {
@@ -47,7 +59,7 @@ try {
                 stage('JVM tests') {
                   try {
                     withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-                      sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG}"
+                      sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} -PbuildTargetABIs=${ABIs}"
                     }
                   } finally {
                     storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
@@ -79,7 +91,7 @@ try {
                     try {
                       backgroundPid = startLogCatCollector()
                       forwardAdbPorts()
-                      gradle('realm', 'connectedAndroidTest')
+                      gradle('realm', "${instrumentationTestTarget}")
                       archiveLog = false;
                     } finally {
                       stopLogCatCollector(backgroundPid, archiveLog)
