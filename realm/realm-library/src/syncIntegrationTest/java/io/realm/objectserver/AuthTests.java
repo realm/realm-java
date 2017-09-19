@@ -36,7 +36,6 @@ import io.realm.TestHelper;
 import io.realm.entities.StringOnly;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.objectserver.Token;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
@@ -197,7 +196,6 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
-    @Ignore("Resolve https://github.com/realm/ros/issues/273")
     public void changePassword() {
         String username = UUID.randomUUID().toString();
         String originalPassword = "password";
@@ -217,7 +215,6 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
-    @Ignore("Resolve https://github.com/realm/ros/issues/273")
     public void changePassword_using_admin() {
         String username = UUID.randomUUID().toString();
         String originalPassword = "password";
@@ -245,7 +242,6 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    @Ignore("Resolve https://github.com/realm/ros/issues/273")
     public void changePassword_using_admin_async() {
         final String username = UUID.randomUUID().toString();
         final String originalPassword = "password";
@@ -285,6 +281,7 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
+    @Ignore("Wait until https://github.com/realm/ros/issues/309 is resolved")
     public void changePassword_throwWhenUserIsLoggedOut() {
         String username = UUID.randomUUID().toString();
         String password = "password";
@@ -401,7 +398,6 @@ public class AuthTests extends StandardIntegrationTest {
         RealmConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
         user.logout();
         assertFalse(user.isValid());
-
         Realm instance = Realm.getInstance(configuration);
         instance.close();
     }
