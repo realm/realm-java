@@ -11,7 +11,7 @@ def nodeName = 'android'
 if (!['master', 'releases'].contains(env.BRANCH_NAME)) {
   ABIs = "armeabi-v7a"
   instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug mode for better error reporting
-  nodeName = null // For PR's we use an emulator so all nodes should work
+  nodeName = 'docker' // For PR's we use an emulator so all nodes should work
 }
 
 def buildSuccess = false
