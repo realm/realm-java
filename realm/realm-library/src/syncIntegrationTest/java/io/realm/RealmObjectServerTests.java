@@ -18,7 +18,6 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -29,25 +28,16 @@ import java.io.InputStream;
 
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.IncompatibleSyncedFileException;
-import io.realm.exceptions.RealmFileException;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
-import okhttp3.internal.Util;
 
-import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-
-/**
- * Catch all class for tests that not naturally fit anywhere else.
- */
 @RunWith(AndroidJUnit4.class)
 public class RealmObjectServerTests extends StandardIntegrationTest {
 
