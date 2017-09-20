@@ -47,11 +47,11 @@ try {
 
       try {
         if ('android'.equals(nodeName)) {
-          buildProject(null, buildEnv);
+          buildProject(null, rosContainer, buildEnv);
         } else {
           docker.image('tracer0tong/android-emulator').withRun('-e ARCH=armeabi-v7a') { emulator ->
             buildEnv.inside("--link ${emulator.id}:emulator") {
-              buildProject(emulator, buildEnv)
+              buildProject(emulator, rosContainer, buildEnv)
             }
           }
         }
@@ -72,21 +72,21 @@ try {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
         def payload = JsonOutput.toJson([
-	    username: 'Mr. Jenkins',
-	    icon_emoji: ':jenkins:',
-	    attachments: [[
-	        'title': "The ${env.BRANCH_NAME} branch is broken!",
-		'text': "<${env.BUILD_URL}|Click here> to check the build.",
-		'color': "danger"
-	    ]]
-	])
+      username: 'Mr. Jenkins',
+      icon_emoji: ':jenkins:',
+      attachments: [[
+          'title': "The ${env.BRANCH_NAME} branch is broken!",
+    'text': "<${env.BUILD_URL}|Click here> to check the build.",
+    'color': "danger"
+      ]]
+  ])
         sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
       }
     }
   }
 }
 
-def buildProject(emulator, buildEnv) {
+def buildProject(emulator, rosContainer, buildEnv) {
   buildEnv.inside("-e HOME=/tmp " +
           "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
           "--privileged " +
@@ -183,10 +183,10 @@ def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
   sh "kill ${backgroundPid}"
   if (archiveLog) {
     zip([
-	  'zipFile': 'logcat.zip',
-	 'archive': true,
-	 'glob' : 'logcat.txt'
-	])
+    'zipFile': 'logcat.zip',
+   'archive': true,
+   'glob' : 'logcat.txt'
+  ])
   }
   sh 'rm logcat.txt'
 }
@@ -205,8 +205,8 @@ def getTagsString(Map<String, String> tags) {
 
 def storeJunitResults(String path) {
   step([
-	 $class: 'JUnitResultArchiver',
-	testResults: path
+   $class: 'JUnitResultArchiver',
+  testResults: path
        ])
 }
 
