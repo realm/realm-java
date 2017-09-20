@@ -149,7 +149,10 @@ public class UserFactory {
                 for (SyncUser user : users.values()) {
                     user.logout();
                 }
+                // FIXME https://github.com/realm/ros/issues/338
+                SystemClock.sleep(2000);
                 allUsersLoggedOut.countDown();
+
             }
         });
         TestHelper.awaitOrFail(allUsersLoggedOut);
