@@ -78,7 +78,7 @@ public class SyncConfiguration extends RealmConfiguration {
     static final int MAX_FULL_PATH_LENGTH = 256;
     static final int MAX_FILE_NAME_LENGTH = 255;
     private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
-private final URI serverUrl;
+    private final URI serverUrl;
     private final SyncUser user;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
@@ -131,8 +131,7 @@ private final URI serverUrl;
                 rxFactory,
                 initialDataTransaction,
                 readOnly,
-                null,
-                false
+                null
         );
 
         this.user = user;
@@ -189,7 +188,7 @@ private final URI serverUrl;
     }
 
     static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
-        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true);
+        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null);
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {

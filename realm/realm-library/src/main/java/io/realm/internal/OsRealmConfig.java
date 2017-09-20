@@ -210,17 +210,11 @@ public class OsRealmConfig implements NativeObject {
         if (initializationCallback != null) {
             nativeSetInitializationCallback(nativePtr, initializationCallback);
         }
-
-        if (realmConfiguration.isClientResetBackupRealm()) {
-            nativeSetForceSyncHistory(nativePtr);
-
-        } else {
-            // Set sync config
-            if (syncRealmUrl != null) {
-                nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,
-                        syncRefreshToken);
-                nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
-            }
+        // Set sync config
+        if (syncRealmUrl != null) {
+            nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,
+                    syncRefreshToken);
+            nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
         }
     }
 
@@ -264,6 +258,5 @@ public class OsRealmConfig implements NativeObject {
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);
 
-    private static native void nativeSetForceSyncHistory(long nativePtr);
     private static native long nativeGetFinalizerPtr();
 }

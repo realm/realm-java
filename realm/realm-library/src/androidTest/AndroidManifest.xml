@@ -14,7 +14,8 @@
         android:targetSdkVersion="22"/>
 
     <application
-        android:debuggable="true">
+        android:debuggable="true"
+        android:largeHeap="true">
         <uses-library android:name="android.test.runner"/>
         <service
             android:name=".services.RemoteProcessService"

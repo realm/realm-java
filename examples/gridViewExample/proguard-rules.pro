@@ -1,0 +1,1 @@
+-keep class io.realm.examples.realmgridview.City { <fields>; }

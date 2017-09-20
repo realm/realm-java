@@ -1,4 +1,35 @@
+## 4.0.0 (YYYY-MM-DD)
+
+## Breaking Changes
+
+* Calling `distinct()` on a sorted `RealmResults` no longer clears the sorting (#3503).
+
+## Deprecated
+
+## Enhancements
+
+## Bug Fixes
+
+## Internal
+
+## Credits
+
+
 ## 4.0.0-BETA3 (YYYY-MM-DD)
+
+### Breaking Changes
+
+* `RealmResults.distinct()`/`RealmResults.distinctAsync()` have been removed. Use `RealmQuery.distinct()`/`RealmQuery.distinctAsync()` instead.
+
+### Enhancements
+
+* [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
+* Minor performance improvement when copy/insert objects into Realm.
+
+### Bug Fixes
+
+* Throw `IllegalArgumentException` instead of `IllegalStateException` when calling string/binary data setters if the data length exceeds the limit.
+* Exposing a `RealmConfiguration` that allows a user to open the backup Realm after the client reset (#4759).
 
 ### Internal
 
@@ -47,7 +78,6 @@
 * Fixed a JNI memory issue when doing queries which might potentially cause various native crashes.
 * Fixed a bug that `RealmList.deleteFromRealm(int)`, `RealmList.deleteFirstFromRealm()` and `RealmList.deleteLastFromRealm()` did not remove target objects from Realm. This bug was introduced in `3.7.1` (#5233).
 * Crash with "'xxx' doesn't exist in current schema." when ProGuard is enabled (#5211).
-* Exposing a `RealmConfiguration` that allows a user to open the backup Realm after the client reset (#4759).
 
 ## 3.7.1 (2017-09-07)
 
