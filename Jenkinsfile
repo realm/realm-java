@@ -27,7 +27,7 @@ try {
         // A full build is done on `master`.
         // TODO Once Android emulators are available on all nodes, we can switch to x86 builds
         // on PR's for even more throughput.
-        def ABIs = null
+        def ABIs = ""
         def instrumentationTestTarget = "connectedAndroidTest"
         if (!['master'].contains(env.BRANCH_NAME)) {
             ABIs = "armeabi-v7a"
