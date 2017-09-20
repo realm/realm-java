@@ -102,6 +102,9 @@ public class RealmMigrationTests {
     private void assertPKField(Realm realm, String className, String expectedName, long expectedIndex) {
         String pkField = OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, className);
         assertNotNull(pkField);
+        RealmObjectSchema objectSchema = realm.getSchema().get(className);
+        assertNotNull(objectSchema);
+        assertTrue(objectSchema.hasField(expectedName));
         assertEquals(expectedName, pkField);
         //noinspection ConstantConditions
         assertEquals(expectedIndex,
@@ -588,8 +591,8 @@ public class RealmMigrationTests {
         Table table = realm.getSchema().getTable(MigrationPriorIndexOnly.class);
 
         assertEquals(MigrationPriorIndexOnly.DEFAULT_FIELDS_COUNT, table.getColumnCount());
-        assertPKField(realm, MigrationPosteriorIndexOnly.CLASS_NAME, MigrationPosteriorIndexOnly.FIELD_PRIMARY
-                , MigrationPosteriorIndexOnly.DEFAULT_PRIMARY_INDEX);
+        assertPKField(realm, MigrationPriorIndexOnly.CLASS_NAME, MigrationPriorIndexOnly.FIELD_PRIMARY
+                , MigrationPriorIndexOnly.DEFAULT_PRIMARY_INDEX);
     }
 
     // Renaming the class should also rename the the class entry in the pk metadata table that tracks primary keys.
@@ -734,6 +737,95 @@ public class RealmMigrationTests {
         assertEquals(1, realm.where(MigrationFieldTypeToInteger.class)
                              .equalTo(MigrationFieldTypeToInteger.FIELD_PRIMARY, (Integer) null)
                              .count());
+    }
+
+    @Test
+    public void modifyPrimaryKeyFieldTypeFromIntToStringInMigration() {
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmObjectSchema objectSchema  = realm.getSchema().get(PrimaryKeyAsString.CLASS_NAME);
+                assertNotNull(objectSchema);
+                assertEquals(PrimaryKeyAsString.FIELD_ID, objectSchema.getPrimaryKey());
+                objectSchema.removePrimaryKey().addPrimaryKey(PrimaryKeyAsString.FIELD_PRIMARY_KEY);
+            }
+        };
+
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .schema(PrimaryKeyAsString.class)
+                .schemaVersion(1)
+                .migration(migration)
+                .build();
+
+        // Create the schema and set the int field as primary key
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(configuration);
+        dynamicRealm.beginTransaction();
+        RealmSchema schema = dynamicRealm.getSchema();
+        schema.create(PrimaryKeyAsString.CLASS_NAME)
+                .addField(PrimaryKeyAsString.FIELD_ID, long.class, FieldAttribute.PRIMARY_KEY)
+                .addField(PrimaryKeyAsString.FIELD_PRIMARY_KEY, String.class);
+        dynamicRealm.createObject(PrimaryKeyAsString.CLASS_NAME, 0)
+                .setString(PrimaryKeyAsString.FIELD_PRIMARY_KEY, "string0");
+        dynamicRealm.createObject(PrimaryKeyAsString.CLASS_NAME, 1)
+                .setString(PrimaryKeyAsString.FIELD_PRIMARY_KEY, "string1");
+        dynamicRealm.setVersion(0);
+        dynamicRealm.commitTransaction();
+
+        // Run migration
+        realm = Realm.getInstance(configuration);
+        RealmObjectSchema objectSchema = realm.getSchema().get(PrimaryKeyAsString.CLASS_NAME);
+        assertNotNull(objectSchema);
+        assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, objectSchema.getPrimaryKey());
+        RealmResults<PrimaryKeyAsString> results = realm.where(PrimaryKeyAsString.class)
+                .findAllSorted(PrimaryKeyAsString.FIELD_ID);
+        assertEquals(2, results.size());
+        assertEquals("string0", results.get(0).getName());
+        assertEquals("string1", results.get(1).getName());
+    }
+
+    @Test
+    public void modifyPrimaryKeyFieldTypeFromStringToInt() {
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmObjectSchema objectSchema  = realm.getSchema().get(PrimaryKeyAsInteger.CLASS_NAME);
+                assertNotNull(objectSchema);
+                assertEquals(PrimaryKeyAsInteger.FIELD_NAME, objectSchema.getPrimaryKey());
+                objectSchema.removePrimaryKey().addPrimaryKey(PrimaryKeyAsInteger.FIELD_ID);
+            }
+        };
+
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .schema(PrimaryKeyAsInteger.class)
+                .schemaVersion(1)
+                .migration(migration)
+                .build();
+
+        // Create the schema and set the String field as primary key
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(configuration);
+        dynamicRealm.beginTransaction();
+        RealmSchema schema = dynamicRealm.getSchema();
+        schema.create(PrimaryKeyAsInteger.CLASS_NAME)
+                .addField(PrimaryKeyAsInteger.FIELD_ID, int.class)
+                .addField(PrimaryKeyAsInteger.FIELD_NAME, String.class, FieldAttribute.PRIMARY_KEY);
+        dynamicRealm.createObject(PrimaryKeyAsInteger.CLASS_NAME, "string0")
+                .setInt(PrimaryKeyAsInteger.FIELD_ID, 0);
+        dynamicRealm.createObject(PrimaryKeyAsInteger.CLASS_NAME, "string1")
+                .setInt(PrimaryKeyAsInteger.FIELD_ID, 1);
+        dynamicRealm.setVersion(0);
+        dynamicRealm.commitTransaction();
+
+        // Run migration
+        realm = Realm.getInstance(configuration);
+
+        RealmObjectSchema objectSchema = realm.getSchema().get(PrimaryKeyAsInteger.CLASS_NAME);
+        assertNotNull(objectSchema);
+        assertEquals(PrimaryKeyAsInteger.FIELD_ID, objectSchema.getPrimaryKey());
+        RealmResults<PrimaryKeyAsInteger> results = realm.where(PrimaryKeyAsInteger.class)
+                .findAllSorted(PrimaryKeyAsInteger.FIELD_ID);
+        assertEquals(2, results.size());
+        assertEquals(0, results.get(0).getId());
+        assertEquals(1, results.get(1).getId());
     }
 
     @Test
