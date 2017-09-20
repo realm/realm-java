@@ -29,7 +29,7 @@
 ### Bug Fixes
 
 * Throw `IllegalArgumentException` instead of `IllegalStateException` when calling string/binary data setters if the data length exceeds the limit.
-* Exposing a `RealmConfiguration` that allows a user to open the backup Realm after the client reset (#4759).
+* Exposing a `RealmConfiguration` that allows a user to open the backup Realm after the client reset (#4759) (#5223).
 
 ### Internal
 
