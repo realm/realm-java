@@ -1,19 +1,14 @@
 package io.realm.objectserver;
 
 import android.os.SystemClock;
-import android.text.style.TabStopSpan;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.realm.BaseIntegrationTest;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -25,7 +20,6 @@ import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmFileException;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
@@ -101,7 +95,6 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
 
     // If an encrypted synced Realm is re-opened with the wrong key, throw an exception.
     @Test
-    @Ignore("See https://github.com/realm/realm-java/issues/5281")
     public void setEncryptionKey_shouldCrashIfKeyNotProvided() throws InterruptedException {
         // STEP 1: open a synced Realm using a local encryption key
         String username = UUID.randomUUID().toString();
@@ -132,19 +125,6 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         // STEP 2: make sure the changes gets to the server
         SyncManager.getSession(configWithEncryption).uploadAllLocalChanges();
 
-        final CountDownLatch backgroundException = new CountDownLatch(1);
-        final AtomicBoolean exceptionThrown = new AtomicBoolean(false);
-
-        Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(Thread t, Throwable e) {
-                if (e instanceof RealmError && e.getMessage().contains("An exception has been thrown on the sync client thread")) {
-                    exceptionThrown.set(true);
-                }
-                backgroundException.countDown();
-            }
-        });
         realm.close();
         user.logout();
 
@@ -165,12 +145,11 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
             realm = Realm.getInstance(configWithoutEncryption);
             fail("It should not be possible to open the Realm without the encryption key set previously.");
         } catch (RealmFileException ignored) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
         }
-
-        TestHelper.awaitOrFail(backgroundException);
-        // restore default handler
-        Thread.setDefaultUncaughtExceptionHandler(defaultUncaughtExceptionHandler);
-        assertTrue("Sync Client Thread should throw an exception", exceptionThrown.get());
     }
 
     // If client B encrypts its synced Realm, client A should be able to access that Realm with a different encryption key.
