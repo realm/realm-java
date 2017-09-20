@@ -2,10 +2,22 @@
 
 import groovy.json.JsonOutput
 
+// Toggles for PR vs. Master/Release builds.
+// For PR's, we just build for x86 and run unit tests for the ObjectServer variant
+// A full build is done on `master` and `releases`.
+def ABIs = null
+def instrumentationTestTarget = "connectedAndroidTest"
+def node = 'android'
+if (!['master', 'releases'].contains(env.BRANCH_NAME)) {
+  ABIs = "armeabi-v7a"
+  instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug mode for better error reporting
+  node = null // For PR's we use an emulator so all nodes should work
+}
+
 def buildSuccess = false
 def rosContainer
 try {
-  node('android') {
+  node(${node}) {
     timeout(time: 1, unit: 'HOURS') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
@@ -20,18 +32,6 @@ try {
                 ],
                 userRemoteConfigs: scm.userRemoteConfigs
                ])
-        }
-
-        // Toggles for PR vs. Master builds.
-        // For PR's, we just build for arm-v7a and run unit tests for the ObjectServer variant
-        // A full build is done on `master`.
-        // TODO Once Android emulators are available on all nodes, we can switch to x86 builds
-        // on PR's for even more throughput.
-        def ABIs = null
-        def instrumentationTestTarget = "connectedAndroidTest"
-        if (!['master'].contains(env.BRANCH_NAME)) {
-            ABIs = "armeabi-v7a"
-            instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug more for better error reporting
         }
 
         def buildEnv
@@ -85,17 +85,15 @@ try {
                 }
 
                 stage('Run instrumented tests') {
-                  lock("${env.NODE_NAME}-android") {
-                    boolean archiveLog = true
-                    String backgroundPid
-                    try {
-                      backgroundPid = startLogCatCollector()
-                      forwardAdbPorts()
-                      gradle('realm', "${instrumentationTestTarget}")
-                      archiveLog = false;
-                    } finally {
-                      stopLogCatCollector(backgroundPid, archiveLog)
-                      storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+                  if (useEmulator) {
+                    docker.image('tracer0tong/android-emulator').withRun('-e ARCH=armeabi-v7a') { emulator ->
+                      buildEnv.inside("--link ${emulator.id}:emulator") {
+                        runInstrumentationTests()
+                    }
+                  }
+                } else {
+                    lock("${env.NODE_NAME}-android") {
+                      runInstrumentationTests()
                     }
                   }
                 }
