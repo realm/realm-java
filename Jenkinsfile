@@ -46,70 +46,15 @@ try {
       rosContainer = rosEnv.run('-v /tmp=/tmp/.ros')
 
       try {
-            buildEnv.inside("-e HOME=/tmp " +
-                "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
-                "--privileged " +
-                "-v /dev/bus/usb:/dev/bus/usb " +
-                "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
-                "-v ${env.HOME}/.android:/tmp/.android " +
-                "-v ${env.HOME}/ccache:/tmp/.ccache " +
-                "--network container:${rosContainer.id}") {
-              stage('JVM tests') {
-                try {
-                  withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-                    sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} -PbuildTargetABIs=${ABIs}"
-                  }
-                } finally {
-                  storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
-                  storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-                  step([$class: 'LintPublisher'])
-                }
-              }
-
-              stage('Static code analysis') {
-                try {
-                  gradle('realm', 'findbugs pmd checkstyle')
-                } finally {
-                  publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-                  publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-                  step([$class: 'CheckStylePublisher',
-                canComputeNew: false,
-                defaultEncoding: '',
-                healthy: '',
-                pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-                unHealthy: ''
-               ])
-                }
-              }
-
-              stage('Run instrumented tests') {
-                if ('android'.equals(nodeName)) {
-                  lock("${env.NODE_NAME}-android") {
-                    runInstrumentationTests()
-                  }
-                } else {
-                  docker.image('tracer0tong/android-emulator').withRun('-e ARCH=armeabi-v7a') { emulator ->
-                    buildEnv.inside("--link ${emulator.id}:emulator") {
-                      runInstrumentationTests()
-                    }
-                  }
-                }
-              }
-
-              // TODO: add support for running monkey on the example apps
-
-              if (env.BRANCH_NAME == 'master') {
-                stage('Collect metrics') {
-                  collectAarMetrics()
-                }
-
-                stage('Publish to OJO') {
-                  withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-                    sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
-                  }
-                }
-              }
+        if ('android'.equals(nodeName)) {
+          buildProject(null);
+        } else {
+          docker.image('tracer0tong/android-emulator').withRun('-e ARCH=armeabi-v7a') { emulator ->
+            buildEnv.inside("--link ${emulator.id}:emulator") {
+              buildProject(emulator)
             }
+          }
+        }
       } finally {
             sh "docker logs ${rosContainer.id}"
             rosContainer.stop()
@@ -136,6 +81,71 @@ try {
 	    ]]
 	])
         sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
+      }
+    }
+  }
+}
+
+def buildProject(emulator) {
+  buildEnv.inside("-e HOME=/tmp " +
+          "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
+          "--privileged " +
+          "-v /dev/bus/usb:/dev/bus/usb " +
+          "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
+          "-v ${env.HOME}/.android:/tmp/.android " +
+          "-v ${env.HOME}/ccache:/tmp/.ccache " +
+          "--network container:${rosContainer.id}" +
+          (emulator != null) ? "--link ${emulator.id}:emulator" : "") {
+
+    stage('JVM tests') {
+      try {
+        withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
+          sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} -PbuildTargetABIs=${ABIs}"
+        }
+      } finally {
+        storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
+        storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+        step([$class: 'LintPublisher'])
+      }
+    }
+
+    stage('Static code analysis') {
+      try {
+        gradle('realm', 'findbugs pmd checkstyle')
+      } finally {
+        publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
+        publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
+        step([$class: 'CheckStylePublisher',
+              canComputeNew: false,
+              defaultEncoding: '',
+              healthy: '',
+              pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
+              unHealthy: ''
+        ])
+      }
+    }
+
+    stage('Run instrumented tests') {
+      if (emulator != null) {
+        lock("${env.NODE_NAME}-android") {
+          runInstrumentationTests()
+        }
+      } else {
+        runInstrumentationTests()
+      }
+    }
+
+    // TODO: add support for running monkey on the example apps
+
+    if (env.BRANCH_NAME == 'master') {
+      stage('Collect metrics') {
+        collectAarMetrics()
+      }
+
+      stage('Publish to OJO') {
+        withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
+          sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
+        }
       }
     }
   }
