@@ -50,9 +50,7 @@ try {
           buildProject(null, rosContainer, buildEnv);
         } else {
           docker.image('tracer0tong/android-emulator').withRun('-e ARCH=armeabi-v7a') { emulator ->
-            buildEnv.inside("--link ${emulator.id}:emulator") {
-              buildProject(emulator, rosContainer, buildEnv)
-            }
+            buildProject(emulator, rosContainer, buildEnv);
           }
         }
       } finally {
