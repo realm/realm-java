@@ -60,7 +60,10 @@ public class RealmFileException extends RuntimeException {
         /**
          * Thrown if the file needs to be upgraded to a new format, but upgrades have been explicitly disabled.
          */
-        FORMAT_UPGRADE_REQUIRED;
+        FORMAT_UPGRADE_REQUIRED,
+
+        INCOMPATIBLE_SYNCED_FILE;
+
 
         // Created from byte values by JNI.
         static Kind getKind(byte value) {

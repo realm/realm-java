@@ -188,7 +188,7 @@ public class OsRealmConfig implements NativeObject {
         // Set schema related params.
         SchemaMode schemaMode = SchemaMode.SCHEMA_MODE_MANUAL;
         if (config.isReadOnly()) {
-            schemaMode = SchemaMode.SCHEMA_MODE_READONLY;
+            schemaMode = SchemaMode.SCHEMA_MODE_IMMUTABLE;
         } else if (syncRealmUrl != null) {
             schemaMode = SchemaMode.SCHEMA_MODE_ADDITIVE;
         } else if (config.shouldDeleteRealmIfMigrationNeeded()) {

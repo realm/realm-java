@@ -38,7 +38,7 @@ using namespace realm::util;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
-void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind);
+void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind, const std::string& path = "");
 
 void ConvertException(JNIEnv* env, const char* file, int line)
 {
@@ -67,7 +67,7 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     }
     catch (RealmFileException& e) {
         ss << e.what() << " (" << e.underlying() << ") (" << e.path() << ") in " << file << " line " << line;
-        ThrowRealmFileException(env, ss.str(), e.kind());
+        ThrowRealmFileException(env, ss.str(), e.kind(), e.path());
     }
     catch (File::AccessError& e) {
         ss << e.what() << " (" << e.get_path() << ") in " << file << " line " << line;
@@ -195,11 +195,14 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
     env->DeleteLocalRef(jExceptionClass);
 }
 
-void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind)
+void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind, const std::string& path)
 {
-    jclass cls = env->FindClass("io/realm/exceptions/RealmFileException");
+    jclass jrealm_file_exception_cls = env->FindClass("io/realm/exceptions/RealmFileException");
+    jclass jincompatible_synced_file_cls = env->FindClass("io/realm/exceptions/IncompatibleSyncedFileException");
+    jmethodID jicompatible_synced_ctor =
+        env->GetMethodID(jincompatible_synced_file_cls, "<init>", "(Ljava/lang/String;Ljava/lang/String;)V");
 
-    jmethodID constructor = env->GetMethodID(cls, "<init>", "(BLjava/lang/String;)V");
+    static jmethodID constructor = env->GetMethodID(jrealm_file_exception_cls, "<init>", "(BLjava/lang/String;)V");
     // Initial value to suppress gcc warning.
     jbyte kind_code = -1; // To suppress compile warning.
     switch (kind) {
@@ -224,11 +227,18 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
         case realm::RealmFileException::Kind::FormatUpgradeRequired:
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
             break;
+        case realm::RealmFileException::Kind::IncompatibleSyncedRealm:
+            jobject jexception = env->NewObject(jincompatible_synced_file_cls, jicompatible_synced_ctor,
+                                                to_jstring(env, message), to_jstring(env, path));
+            env->Throw(reinterpret_cast<jthrowable>(jexception));
+            env->DeleteLocalRef(jincompatible_synced_file_cls);
+            return;
     }
-    jstring jstr = env->NewStringUTF(message.c_str());
-    jobject exception = env->NewObject(cls, constructor, kind_code, jstr);
+    jstring jmessage = to_jstring(env, message);
+    jstring jpath = to_jstring(env, path);
+    jobject exception = env->NewObject(jrealm_file_exception_cls, constructor, kind_code, jmessage, jpath);
     env->Throw(reinterpret_cast<jthrowable>(exception));
-    env->DeleteLocalRef(cls);
+    env->DeleteLocalRef(jrealm_file_exception_cls);
     env->DeleteLocalRef(exception);
 }
 
