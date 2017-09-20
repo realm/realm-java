@@ -47,11 +47,11 @@ try {
 
       try {
         if ('android'.equals(nodeName)) {
-          buildProject(null);
+          buildProject(null, buildEnv);
         } else {
           docker.image('tracer0tong/android-emulator').withRun('-e ARCH=armeabi-v7a') { emulator ->
             buildEnv.inside("--link ${emulator.id}:emulator") {
-              buildProject(emulator)
+              buildProject(emulator, buildEnv)
             }
           }
         }
@@ -86,7 +86,7 @@ try {
   }
 }
 
-def buildProject(emulator) {
+def buildProject(emulator, buildEnv) {
   buildEnv.inside("-e HOME=/tmp " +
           "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
           "--privileged " +
