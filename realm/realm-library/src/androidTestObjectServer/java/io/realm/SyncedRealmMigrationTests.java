@@ -108,7 +108,7 @@ public class SyncedRealmMigrationTests {
                 .addField("newField", String.class);
         // A schema version has to be set otherwise Object Store will try to initialize the schema again and reach an
         // error branch. That is not a real case.
-        OsObjectStore.setSchemaVersion(dynamicRealm.getSharedRealm(), 0);
+        dynamicRealm.setVersion(0);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
@@ -169,7 +169,7 @@ public class SyncedRealmMigrationTests {
         schema.create(className)
                 .addField(IndexedFields.FIELD_INDEXED_STRING, String.class) // No index
                 .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String.class);
-        OsObjectStore.setSchemaVersion(dynamicRealm.getSharedRealm(), 42);
+        dynamicRealm.setVersion(42);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
@@ -201,7 +201,7 @@ public class SyncedRealmMigrationTests {
         schema.create(className)
                 .addField(IndexedFields.FIELD_INDEXED_STRING, String.class) // No index
                 .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String.class);
-        OsObjectStore.setSchemaVersion(dynamicRealm.getSharedRealm(), 43);
+        dynamicRealm.setVersion(43);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
@@ -233,7 +233,7 @@ public class SyncedRealmMigrationTests {
         schema.create(className)
                 .addField(IndexedFields.FIELD_INDEXED_STRING, String.class); // No index
                 // .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String.class); // Missing field
-        OsObjectStore.setSchemaVersion(dynamicRealm.getSharedRealm(), 41);
+        dynamicRealm.setVersion(41);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
@@ -259,7 +259,7 @@ public class SyncedRealmMigrationTests {
         RealmSchema schema = dynamicRealm.getSchema();
         dynamicRealm.beginTransaction();
         schema.create(className); // Create empty class
-        OsObjectStore.setSchemaVersion(dynamicRealm.getSharedRealm(), 1);
+        dynamicRealm.setVersion(1);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 

@@ -297,6 +297,19 @@ public class DynamicRealm extends BaseRealm {
     }
 
     /**
+     * Set the schema version of this dynamic realm to the given version number. If the meta table doesn't exist, this
+     * will create the meta table first.
+     * <p>
+     * NOTE: This API is for internal testing only. Except testing, the schema version should always be set by the
+     * Object Store during schema initialization or migration.
+     *
+     * @param version the schema version to be set.
+     */
+    void setVersion(long version) {
+        OsObjectStore.setSchemaVersion(sharedRealm, version);
+    }
+
+    /**
      * Encapsulates a Realm transaction.
      * <p>
      * Using this class will automatically handle {@link #beginTransaction()} and {@link #commitTransaction()}

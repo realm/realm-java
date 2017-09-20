@@ -875,7 +875,7 @@ public class TestHelper {
 
         nullTypesSchema.addRealmListField(NullTypes.FIELD_LIST_NULL, nullTypesSchema);
 
-        OsObjectStore.setSchemaVersion(realm.getSharedRealm(), 0);
+        realm.setVersion(0);
         realm.commitTransaction();
     }
 

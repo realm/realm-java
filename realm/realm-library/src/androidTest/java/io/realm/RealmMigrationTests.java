@@ -1302,7 +1302,7 @@ public class RealmMigrationTests {
 
         DynamicRealm realm = DynamicRealm.getInstance(configuration);
         realm.beginTransaction();
-        OsObjectStore.setSchemaVersion(realm.getSharedRealm(), 0);
+        realm.setVersion(0);
         realm.commitTransaction();
         realm.close();
     }
