@@ -131,7 +131,6 @@ public class SyncUser {
         Collection<SyncUser> storedUsers = userStore.allUsers();
         Map<String, SyncUser> map = new HashMap<>();
         for (SyncUser user : storedUsers) {
-            // FIXME: Users might be marked for deletion here
             if (user.isValid()) {
                 map.put(user.getIdentity(), user);
             }
@@ -279,7 +278,7 @@ public class SyncUser {
             // Finally revoke server token. The local user is logged out in any case.
             final AuthenticationServer server = SyncManager.getAuthServer();
             // don't reference directly the refreshToken inside the revoke request
-            // as it may revoke the newly acquired and refresh_token
+            // as it may revoke the newly acquired refresh_token
             final Token refreshTokenToBeRevoked = refreshToken;
 
             ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
