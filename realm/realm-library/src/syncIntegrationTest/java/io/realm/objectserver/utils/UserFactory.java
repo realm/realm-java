@@ -92,23 +92,7 @@ public class UserFactory {
         // `admin` required as user identifier to be granted admin rights.
         // ROS 2.0 comes with a default admin user named "realm-admin" with password "".
         SyncCredentials credentials = SyncCredentials.usernamePassword("realm-admin", "", false);
-        int attempts = 3;
-        while (attempts > 0) {
-            attempts--;
-            try {
-                return SyncUser.login(credentials, authUrl);
-            } catch (ObjectServerError e) {
-                // ROS default admin user might not be created yet, we need to retry.
-                // Remove this work-around when https://github.com/realm/ros/issues/282
-                // is fixed.
-                if (e.getErrorCode() != ErrorCode.INVALID_CREDENTIALS) {
-                    throw e;
-                }
-                SystemClock.sleep(1000);
-            }
-        }
-
-        throw new IllegalStateException("Could not login 'realm-admin'");
+        return SyncUser.login(credentials, authUrl);
     }
 
     // Since we don't have a reliable way to reset the sync server and client, just use a new user factory for every
@@ -165,7 +149,6 @@ public class UserFactory {
                 for (SyncUser user : users.values()) {
                     user.logout();
                 }
-                SystemClock.sleep(2000); // Remove when https://github.com/realm/ros/issues/304 is fixed
                 allUsersLoggedOut.countDown();
             }
         });

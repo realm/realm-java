@@ -34,8 +34,8 @@ import okhttp3.Response;
  */
 public class LookupUserIdResponse extends AuthServerResponse {
 
-    private static final String JSON_FIELD_USER_ID = "userId";
-    private static final String JSON_FIELD_USER_IS_ADMIN = "isAdmin";
+    private static final String JSON_FIELD_USER_ID = "user_id";
+    private static final String JSON_FIELD_USER_IS_ADMIN = "is_admin";
     private static final String JSON_FIELD_METADATA =  "metadata";
 
     private final String userId;
