@@ -144,6 +144,20 @@ try {
   }
 }
 
+def runInstrumentationTests() {
+  boolean archiveLog = true
+  String backgroundPid
+  try {
+    backgroundPid = startLogCatCollector()
+    forwardAdbPorts()
+    gradle('realm', 'connectedAndroidTest')
+    archiveLog = false;
+  } finally {
+    stopLogCatCollector(backgroundPid, archiveLog)
+    storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+  }
+}
+
 def forwardAdbPorts() {
   sh ''' adb reverse tcp:9080 tcp:9080 && adb reverse tcp:9443 tcp:9443 &&
       adb reverse tcp:8888 tcp:8888
