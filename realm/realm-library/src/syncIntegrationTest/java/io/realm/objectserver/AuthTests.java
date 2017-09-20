@@ -577,7 +577,6 @@ public class AuthTests extends StandardIntegrationTest {
 
         final Token accessToken = entry.getValue();
         Assert.assertNotNull(accessToken);
-
         // getting refresh token delay
         Field refreshTokenTaskField = SyncSession.class.getDeclaredField("refreshTokenTask");
         refreshTokenTaskField.setAccessible(true);
@@ -596,8 +595,7 @@ public class AuthTests extends StandardIntegrationTest {
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(3));
 
         Token newAccessToken = accessTokens.get(syncConfiguration);
-
-        assertThat("new Token is not expired", newAccessToken.expiresMs(), greaterThan(System.currentTimeMillis()));
+        assertThat("new Token expires after the old one", newAccessToken.expiresMs(), greaterThan(accessToken.expiresMs()));
         assertNotEquals(accessToken, newAccessToken);
 
         // refresh_token identity is the same
