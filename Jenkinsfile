@@ -6,7 +6,7 @@ def buildSuccess = false
 def rosContainer
 try {
   node('android') {
-    timeout(time: 1, unit: 'HOURS') {
+    timeout(time: 90, unit: 'MINUTES') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
 	stage('SCM') {
