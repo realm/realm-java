@@ -110,17 +110,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrope
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrimaryKeyProperty(JNIEnv*, jclass,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrimaryKeyProperty(JNIEnv* env, jclass,
                                                                                               jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
 
-    // no throws
-    auto& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
-    auto* property = object_schema.primary_key_property();
-    if (property) {
-        return reinterpret_cast<jlong>(new Property(*property));
+    try {
+        auto& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
+        auto* property = object_schema.primary_key_property();
+        if (property) {
+            return reinterpret_cast<jlong>(new Property(*property));
+        }
     }
-
+    CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
