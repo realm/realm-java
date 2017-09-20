@@ -89,9 +89,9 @@ try {
                     docker.image('tracer0tong/android-emulator').withRun('-e ARCH=armeabi-v7a') { emulator ->
                       buildEnv.inside("--link ${emulator.id}:emulator") {
                         runInstrumentationTests()
+                      }
                     }
-                  }
-                } else {
+                  } else {
                     lock("${env.NODE_NAME}-android") {
                       runInstrumentationTests()
                     }
