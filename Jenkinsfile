@@ -7,17 +7,17 @@ import groovy.json.JsonOutput
 // A full build is done on `master` and `releases`.
 def ABIs = null
 def instrumentationTestTarget = "connectedAndroidTest"
-def node = 'android'
+def nodeName = 'android'
 if (!['master', 'releases'].contains(env.BRANCH_NAME)) {
   ABIs = "armeabi-v7a"
   instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug mode for better error reporting
-  node = null // For PR's we use an emulator so all nodes should work
+  nodeName = null // For PR's we use an emulator so all nodes should work
 }
 
 def buildSuccess = false
 def rosContainer
 try {
-  node(${node}) {
+  node(nodeName) {
     timeout(time: 1, unit: 'HOURS') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
