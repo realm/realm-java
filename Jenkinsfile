@@ -85,15 +85,15 @@ try {
                 }
 
                 stage('Run instrumented tests') {
-                  if (useEmulator) {
+                  if ('android'.equals(nodeName)) {
+                    lock("${env.NODE_NAME}-android") {
+                      runInstrumentationTests()
+                    }
+                  } else {
                     docker.image('tracer0tong/android-emulator').withRun('-e ARCH=armeabi-v7a') { emulator ->
                       buildEnv.inside("--link ${emulator.id}:emulator") {
                         runInstrumentationTests()
                       }
-                    }
-                  } else {
-                    lock("${env.NODE_NAME}-android") {
-                      runInstrumentationTests()
                     }
                   }
                 }
