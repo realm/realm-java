@@ -96,9 +96,6 @@ def buildProject(emulator, rosContainer, buildEnv) {
           (emulator != null) ? "--link ${emulator.id}:emulator" : "") {
 
     stage('JVM tests') {
-      sh "echo Start assemble: ${env.HOME}"
-      sh "echo Start assemble"
-      sh "echo ${ABIs}"
       try {
         withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
           sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} -PbuildTargetABIs=${ABIs}"
