@@ -19,6 +19,7 @@ package io.realm;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,7 +33,6 @@ import io.realm.entities.PrimaryKeyAsInteger;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.IncompatibleSyncedFileException;
-import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
@@ -50,6 +50,14 @@ public class SyncedRealmMigrationTests {
 
     @Rule
     public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
+
+    @BeforeClass
+    public static void beforeClass () {
+        // another Test class may have the BaseRealm.applicationContext set but
+        // the SyncManager reset. This will make assertion to fail, we need to re-initialise
+        // the sync_manager.cpp#m_file_manager (configFactory rule do this)
+        BaseRealm.applicationContext = null;
+    }
 
     @Test
     public void migrateRealm_syncConfigurationThrows() {
@@ -187,7 +195,6 @@ public class SyncedRealmMigrationTests {
     // Check that indexes are being added if the schema version is different
     @Test
     public void differentSchemaVersions_rebuildIndexes() {
-
         SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
                 .schema(IndexedFields.class)
                 .schemaVersion(42)
@@ -324,6 +331,7 @@ public class SyncedRealmMigrationTests {
 
             Realm realm = Realm.getInstance(config);
             assertTrue(realm.isEmpty());
+            realm.close();
         }
     }
 }
