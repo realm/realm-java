@@ -25,6 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -33,6 +34,7 @@ import io.realm.entities.PrimaryKeyAsInteger;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.IncompatibleSyncedFileException;
+import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
@@ -307,7 +309,8 @@ public class SyncedRealmMigrationTests {
     // The stable_id_migration.realm is created with sync v1.8.5 with one object created for each object schema.
     @Test
     public void stableIDMigrationCauseClientReset() throws IOException {
-        @SuppressWarnings("unchecked") SyncConfiguration config = configFactory
+        @SuppressWarnings("unchecked")
+        SyncConfiguration config = configFactory
                 .createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
                 .schema(StringOnly.class, PrimaryKeyAsString.class, PrimaryKeyAsInteger.class)
                 .name("stable_id_migration.realm")
@@ -334,5 +337,55 @@ public class SyncedRealmMigrationTests {
             assertTrue(realm.isEmpty());
             realm.close();
         }
+    }
+
+    @Test
+    public void offlineClientReset() throws IOException {
+        SyncConfiguration config = configFactory
+                .createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .modules(new StringOnlyModule())
+                .build();
+
+        String path = config.getPath();
+        File realmFile = new File (path);
+        assertFalse(realmFile.exists());
+        // copy the 1.x Realm
+        configFactory.copyRealmFromAssets(InstrumentationRegistry.getContext(), "sync-1.x.realm", config);
+        assertTrue(realmFile.exists());
+
+        // open the file using the new ROS 2.x server
+        try {
+            Realm.getInstance(config);
+            fail("should throw IncompatibleSyncedFileException");
+        } catch (IncompatibleSyncedFileException expected) {
+            String recoveryPath = expected.getRecoveryPath();
+            assertTrue(new File(recoveryPath).exists());
+            // can open the backup Realm
+            RealmConfiguration backupRealmConfiguration = expected.getBackupRealmConfiguration(null, new StringOnlyModule());
+            Realm backupRealm = Realm.getInstance(backupRealmConfiguration);
+            assertFalse(backupRealm.isEmpty());
+            RealmResults<StringOnly> all = backupRealm.where(StringOnly.class).findAll();
+            assertEquals(1, all.size());
+            assertEquals("Hello from ROS 1.X", all.get(0).getChars());
+
+            // make sure it's read only
+            try {
+                backupRealm.beginTransaction();
+                fail("Backup Realm should be read-only, we should throw");
+            } catch (IllegalStateException e) {
+            }
+            backupRealm.close();
+
+            // we can open in dynamic mode
+            DynamicRealm dynamicRealm = DynamicRealm.getInstance(backupRealmConfiguration);
+            dynamicRealm.getSchema().checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME);
+            RealmResults<DynamicRealmObject> allDynamic = dynamicRealm.where(StringOnly.CLASS_NAME).findAll();
+            assertEquals(1, allDynamic.size());
+            assertEquals("Hello from ROS 1.X", allDynamic.first().getString(StringOnly.FIELD_CHARS));
+            dynamicRealm.close();
+        }
+
+        Realm realm = Realm.getInstance(config);
+        assertTrue(realm.isEmpty());
     }
 }
