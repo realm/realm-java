@@ -100,7 +100,7 @@ def buildProject(emulator, rosContainer, buildEnv) {
       sh 'env'
       sh 'echo $HOME'
       sh 'env HOME=/tmp'
-      sh 'env'
+//      sh 'env'
 
 //      sh 'ccache -o cache_dir=/tmp/.ccache' // Why is cache dir `//.ccache` by default, root user?
       try {
