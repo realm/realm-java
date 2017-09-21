@@ -195,6 +195,7 @@ public class SyncedRealmMigrationTests {
     // Check that indexes are being added if the schema version is different
     @Test
     public void differentSchemaVersions_rebuildIndexes() {
+
         SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
                 .schema(IndexedFields.class)
                 .schemaVersion(42)

@@ -19,6 +19,8 @@ package io.realm.internal;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmFieldType;
 
 /**
@@ -145,6 +147,17 @@ public class OsObjectSchemaInfo implements NativeObject {
         return new Property(nativeGetProperty(nativePtr, propertyName));
     }
 
+    /**
+     * Returns the primary key property for this {@code ObjectSchema}.
+     *
+     * @return a {@link Property} object of the primary key property, {@code null} if this {@code ObjectSchema} doesn't
+     * contains a primary key.
+     */
+    public @Nullable Property getPrimaryKeyProperty() {
+        long propertyPtr = nativeGetPrimaryKeyProperty(nativePtr);
+        return propertyPtr == 0 ? null : new Property(nativeGetPrimaryKeyProperty(nativePtr));
+    }
+
     @Override
     public long getNativePtr() {
         return nativePtr;
@@ -165,4 +178,7 @@ public class OsObjectSchemaInfo implements NativeObject {
 
     // Throw ISE if the property doesn't exist.
     private static native long nativeGetProperty(long nativePtr, String propertyName);
+
+    // Return nullptr if it doesn't have a primary key.
+    private static native long nativeGetPrimaryKeyProperty(long nativePtr);
 }

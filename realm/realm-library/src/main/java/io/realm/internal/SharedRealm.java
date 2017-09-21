@@ -48,9 +48,6 @@ public final class SharedRealm implements Closeable, NativeObject {
             // already initialized
             return;
         }
-        if (tempDirectory == null) {
-            throw new IllegalArgumentException("'tempDirectory' must not be null.");
-        }
 
         String temporaryDirectoryPath = tempDirectory.getAbsolutePath();
         if (!tempDirectory.isDirectory() && !tempDirectory.mkdirs() && !tempDirectory.isDirectory()) {
@@ -246,14 +243,6 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeIsInTransaction(nativePtr);
     }
 
-    public void setSchemaVersion(long schemaVersion) {
-        nativeSetVersion(nativePtr, schemaVersion);
-    }
-
-    public long getSchemaVersion() {
-        return nativeGetVersion(nativePtr);
-    }
-
     // FIXME: This should be removed, migratePrimaryKeyTableIfNeeded is using it which should be in Object Store instead?
     long getGroupNative() {
         return nativeReadGroup(nativePtr);
@@ -283,19 +272,7 @@ public final class SharedRealm implements Closeable, NativeObject {
      * @return a created {@link Table} object.
      */
     public Table createTable(String name) {
-        return new Table(this, nativeCreateTable(nativePtr, name, false));
-    }
-
-    /**
-     * Creates a primary key table with then given name. Native assertion will happen if the table with the same name
-     * exists. This function is different from {@link #createTable(String)} which will call {@code create_table()} from
-     * sync to do the creation. This will always call the core's {@code add_table()} to avoid creating the stable id
-     * column for pk table.
-     *
-     * @return a created {@link Table} object.
-     */
-    public Table createPkTable() {
-        return new Table(this, nativeCreateTable(nativePtr, Table.PRIMARY_KEY_TABLE_NAME, true));
+        return new Table(this, nativeCreateTable(nativePtr, name));
     }
 
     /**
@@ -317,10 +294,6 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     public void renameTable(String oldName, String newName) {
         nativeRenameTable(nativePtr, oldName, newName);
-    }
-
-    public void removeTable(String name) {
-        nativeRemoveTable(nativePtr, name);
     }
 
     public String getTableName(int index) {
@@ -524,10 +497,6 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
 
-    private static native long nativeGetVersion(long nativeSharedRealmPtr);
-
-    private static native void nativeSetVersion(long nativeSharedRealmPtr, long version);
-
     private static native long nativeReadGroup(long nativeSharedRealmPtr);
 
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
@@ -540,9 +509,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
 
     // Throw IAE if the table exists already.
-    // FIXME: isPkTable should be removed after integration with OS schema. All the meta tables should be handled in
-    // the Object Store.
-    private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName, boolean isPkTable);
+    private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName);
 
     // Throw IAE if the table exists already.
     // If isStringType is false, the PK field will be created as an integer PK field.
@@ -555,8 +522,6 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static native boolean nativeHasTable(long nativeSharedRealmPtr, String tableName);
 
     private static native void nativeRenameTable(long nativeSharedRealmPtr, String oldTableName, String newTableName);
-
-    private static native void nativeRemoveTable(long nativeSharedRealmPtr, String tableName);
 
     private static native long nativeSize(long nativeSharedRealmPtr);
 

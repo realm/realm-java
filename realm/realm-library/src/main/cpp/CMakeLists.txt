@@ -44,6 +44,7 @@ set(classes_LIST
     io.realm.internal.OsObjectSchemaInfo io.realm.internal.Collection
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
+    io.realm.internal.OsObjectStore
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319
