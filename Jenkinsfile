@@ -5,7 +5,7 @@ import groovy.json.JsonOutput
 // Toggles for PR vs. Master/Release builds.
 // For PR's, we just build for x86 and run unit tests for the ObjectServer variant
 // A full build is done on `master` and `releases`.
-def ABIs = null
+def ABIs = ''
 def instrumentationTestTarget = "connectedAndroidTest"
 def nodeName = 'android'
 if (!['master', 'releases'].contains(env.BRANCH_NAME)) {
@@ -97,7 +97,7 @@ def buildProject(emulator, rosContainer, buildEnv) {
 
     stage('JVM tests') {
       try {
-        sh "echo Start assemble"
+        sh "echo Start assemble ${ABIs}"
         withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
           sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} -PbuildTargetABIs=${ABIs}"
         }
@@ -156,7 +156,7 @@ def runInstrumentationTests() {
   try {
     backgroundPid = startLogCatCollector()
     forwardAdbPorts()
-    gradle('realm', 'connectedAndroidTest')
+    gradle('realm', instrumentationTestTarget)
     archiveLog = false;
   } finally {
     stopLogCatCollector(backgroundPid, archiveLog)
