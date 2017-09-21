@@ -97,6 +97,7 @@ def buildProject(emulator, rosContainer, buildEnv) {
           (emulator != null) ? "--link ${emulator.id}:emulator" : "") {
 
     stage('JVM tests') {
+      sh 'whoami'
       sh 'export HOME=/tmp'
       sh 'export'
       sh 'ccache -o cache_dir=/tmp/.ccache' // Why is cache dir `//.ccache` by default, root user?
