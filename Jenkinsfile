@@ -98,8 +98,8 @@ def buildProject(emulator, rosContainer, buildEnv) {
 
     stage('JVM tests') {
       sh 'export HOME=/tmp'
-      sh 'ccache -o cache_dir=/tmp/.ccache' // Why is cache dir `//.ccache` by default, root user?
       sh 'export'
+      sh 'ccache -o cache_dir=/tmp/.ccache' // Why is cache dir `//.ccache` by default, root user?
       try {
         withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
           sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} -PbuildTargetABIs=${ABIs}"
