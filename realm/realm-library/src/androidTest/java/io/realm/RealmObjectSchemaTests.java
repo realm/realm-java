@@ -496,7 +496,7 @@ public class RealmObjectSchemaTests {
                 fail();
             } catch (IllegalArgumentException e) {
                 // Checks if message reports correct field name.
-                assertTrue(e.getMessage().contains("\"" + fieldName + "\""));
+                assertThat(e.getMessage(), CoreMatchers.containsString(fieldName));
             }
             schema.removeField(fieldName);
         }
