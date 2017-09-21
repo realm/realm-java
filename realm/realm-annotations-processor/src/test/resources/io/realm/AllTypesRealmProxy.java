@@ -786,7 +786,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
         if (rowIndex == Table.NO_MATCH) {
-            rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue);
+            rowIndex = OsObject.createRowWithPrimaryKey(table, pkColumnIndex, primaryKeyValue);
         } else {
             Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
         }
@@ -854,7 +854,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
             }
             if (rowIndex == Table.NO_MATCH) {
-                rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue);
+                rowIndex = OsObject.createRowWithPrimaryKey(table, pkColumnIndex, primaryKeyValue);
             } else {
                 Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
             }
@@ -915,7 +915,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
         if (rowIndex == Table.NO_MATCH) {
-            rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue);
+            rowIndex = OsObject.createRowWithPrimaryKey(table, pkColumnIndex, primaryKeyValue);
         }
         cache.put(object, rowIndex);
         Table.nativeSetLong(tableNativePtr, columnInfo.columnLongIndex, rowIndex, ((AllTypesRealmProxyInterface) object).realmGet$columnLong(), false);
@@ -991,7 +991,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
             }
             if (rowIndex == Table.NO_MATCH) {
-                rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue);
+                rowIndex = OsObject.createRowWithPrimaryKey(table, pkColumnIndex, primaryKeyValue);
             }
             cache.put(object, rowIndex);
             Table.nativeSetLong(tableNativePtr, columnInfo.columnLongIndex, rowIndex, ((AllTypesRealmProxyInterface) object).realmGet$columnLong(), false);

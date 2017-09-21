@@ -32,6 +32,7 @@ import io.realm.entities.PrimaryKeyAsInteger;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.OsObjectStore;
 import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 

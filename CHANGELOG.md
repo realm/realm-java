@@ -35,6 +35,7 @@
 
 * Upgraded to Realm Sync 2.0.0-rc16.
 * Upgraded to Realm Core 3.0.0-rc5.
+* Always use Object Store to create primary key table.
 
 ## 4.0.0-BETA2 (2017-07-27)
 
