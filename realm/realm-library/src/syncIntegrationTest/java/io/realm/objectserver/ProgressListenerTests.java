@@ -18,7 +18,6 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -187,6 +186,11 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         TestHelper.awaitOrFail(allChangesDownloaded);
         adminRealm.close();
         userRealm.close();
+        userWithData.logout();
+        adminUser.logout();
+        // FIXME sometimes the worker thread doesn't terminate
+        // causing the test thread to wait  indefinitely until it times out
+        // https://github.com/realm/realm-java/issues/5245
         worker.join();
     }
 

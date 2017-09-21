@@ -267,5 +267,4 @@ public class SyncedRealmTests extends StandardIntegrationTest {
             user.logout();
         }
     }
-
 }

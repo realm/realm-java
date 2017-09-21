@@ -26,7 +26,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nullable;
 
 import io.realm.RealmConfiguration;
-import io.realm.RealmFieldType;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
@@ -41,6 +40,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 4;
     public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 5;
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 6;
+    public static final byte FILE_EXCEPTION_INCOMPATIBLE_SYNC_FILE = 7;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     public static void initialize(File tempDirectory) {
