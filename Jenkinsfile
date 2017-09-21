@@ -5,9 +5,9 @@ import groovy.json.JsonOutput
 // Toggles for PR vs. Master/Release builds.
 // For PR's, we just build for x86 and run unit tests for the ObjectServer variant
 // A full build is done on `master` and `releases`.
-def ABIs = ''
-def instrumentationTestTarget = "connectedAndroidTest"
-def nodeName = 'android'
+String ABIs = ''
+String instrumentationTestTarget = "connectedAndroidTest"
+String nodeName = 'android'
 if (!['master', 'releases'].contains(env.BRANCH_NAME)) {
   ABIs = "armeabi-v7a"
   instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug mode for better error reporting
