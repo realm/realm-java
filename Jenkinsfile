@@ -87,7 +87,7 @@ try {
 def buildProject(emulator, rosContainer, buildEnv) {
   buildEnv.inside("-e HOME=/tmp " +
           "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
-          (emulator == null) ? "--privileged " : "" +
+          "--privileged=${(emulator == null)}" +
 //          "-v /dev/bus/usb:/dev/bus/usb " +
 //          "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
 //          "-v ${env.HOME}/.android:/tmp/.android " +
