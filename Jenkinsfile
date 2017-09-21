@@ -87,15 +87,16 @@ try {
 def buildProject(emulator, rosContainer, buildEnv) {
   buildEnv.inside("-e HOME=/tmp " +
           "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
-          "--privileged " +
-          "-v /dev/bus/usb:/dev/bus/usb " +
-          "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
-          "-v ${env.HOME}/.android:/tmp/.android " +
-          "-v ${env.HOME}/ccache:/tmp/.ccache " +
+          (emulator == null) ? "--privileged " : "" +
+//          "-v /dev/bus/usb:/dev/bus/usb " +
+//          "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
+//          "-v ${env.HOME}/.android:/tmp/.android " +
+//          "-v ${env.HOME}/ccache:/tmp/.ccache " +
           "--network container:${rosContainer.id}" +
           (emulator != null) ? "--link ${emulator.id}:emulator" : "") {
 
     stage('JVM tests') {
+      sh "echo Start assemble: ${env.HOME}"
       sh "echo Start assemble"
       sh "echo ${ABIs}"
       try {
