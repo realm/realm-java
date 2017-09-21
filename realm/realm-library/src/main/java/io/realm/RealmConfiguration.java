@@ -104,8 +104,8 @@ public class RealmConfiguration {
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
-    protected RealmConfiguration(File realmDirectory,
-            String realmFileName,
+    protected RealmConfiguration(@Nullable File realmDirectory,
+            @Nullable String realmFileName,
             String canonicalPath,
             @Nullable String assetFilePath,
             @Nullable byte[] key,
@@ -275,42 +275,48 @@ public class RealmConfiguration {
 
         if (schemaVersion != that.schemaVersion) { return false; }
         if (deleteRealmIfMigrationNeeded != that.deleteRealmIfMigrationNeeded) { return false; }
-        if (!realmDirectory.equals(that.realmDirectory)) { return false; }
-        if (!realmFileName.equals(that.realmFileName)) { return false; }
+        if (readOnly != that.readOnly) { return false; }
+        if (realmDirectory != null ? !realmDirectory.equals(that.realmDirectory) : that.realmDirectory != null) {
+            return false;
+        }
+        if (realmFileName != null ? !realmFileName.equals(that.realmFileName) : that.realmFileName != null) {
+            return false;
+        }
         if (!canonicalPath.equals(that.canonicalPath)) { return false; }
+        if (assetFilePath != null ? !assetFilePath.equals(that.assetFilePath) : that.assetFilePath != null) {
+            return false;
+        }
         if (!Arrays.equals(key, that.key)) { return false; }
-        if (!durability.equals(that.durability)) { return false; }
-        if (migration != null ? !migration.equals(that.migration) : that.migration != null) { return false; }
-        //noinspection SimplifiableIfStatement
+        if (migration != null ? !migration.equals(that.migration) : that.migration != null) {
+            return false;
+        }
+        if (durability != that.durability) { return false; }
+        if (!schemaMediator.equals(that.schemaMediator)) { return false; }
         if (rxObservableFactory != null ? !rxObservableFactory.equals(that.rxObservableFactory) : that.rxObservableFactory != null) {
             return false;
         }
         if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) {
             return false;
         }
-        if (readOnly != that.readOnly) { return false; }
-        if (compactOnLaunch != null ? !compactOnLaunch.equals(that.compactOnLaunch) : that.compactOnLaunch != null) { return false; }
-
-        return schemaMediator.equals(that.schemaMediator);
+        return compactOnLaunch != null ? compactOnLaunch.equals(that.compactOnLaunch) : that.compactOnLaunch == null;
     }
-
 
     @Override
     public int hashCode() {
-        int result = realmDirectory.hashCode();
-        result = 31 * result + realmFileName.hashCode();
+        int result = realmDirectory != null ? realmDirectory.hashCode() : 0;
+        result = 31 * result + (realmFileName != null ? realmFileName.hashCode() : 0);
         result = 31 * result + canonicalPath.hashCode();
-        result = 31 * result + (key != null ? Arrays.hashCode(key) : 0);
-        result = 31 * result + (int) schemaVersion;
+        result = 31 * result + (assetFilePath != null ? assetFilePath.hashCode() : 0);
+        result = 31 * result + Arrays.hashCode(key);
+        result = 31 * result + (int) (schemaVersion ^ (schemaVersion >>> 32));
         result = 31 * result + (migration != null ? migration.hashCode() : 0);
         result = 31 * result + (deleteRealmIfMigrationNeeded ? 1 : 0);
-        result = 31 * result + schemaMediator.hashCode();
         result = 31 * result + durability.hashCode();
+        result = 31 * result + schemaMediator.hashCode();
         result = 31 * result + (rxObservableFactory != null ? rxObservableFactory.hashCode() : 0);
         result = 31 * result + (initialDataTransaction != null ? initialDataTransaction.hashCode() : 0);
         result = 31 * result + (readOnly ? 1 : 0);
         result = 31 * result + (compactOnLaunch != null ? compactOnLaunch.hashCode() : 0);
-
         return result;
     }
 
@@ -365,7 +371,7 @@ public class RealmConfiguration {
     public String toString() {
         //noinspection StringBufferReplaceableByString
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("realmDirectory: ").append(realmDirectory.toString());
+        stringBuilder.append("realmDirectory: ").append(realmDirectory != null ? realmDirectory.toString() : "");
         stringBuilder.append("\n");
         stringBuilder.append("realmFileName : ").append(realmFileName);
         stringBuilder.append("\n");
@@ -399,7 +405,7 @@ public class RealmConfiguration {
     static synchronized boolean isRxJavaAvailable() {
         if (rxJavaAvailable == null) {
             try {
-                Class.forName("rx.Observable");
+                Class.forName("io.reactivex.Flowable");
                 rxJavaAvailable = true;
             } catch (ClassNotFoundException ignore) {
                 rxJavaAvailable = false;

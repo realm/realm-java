@@ -224,6 +224,9 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
         case realm::RealmFileException::Kind::FormatUpgradeRequired:
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
             break;
+        case realm::RealmFileException::Kind::IncompatibleSyncedRealm:
+            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_INCOMPATIBLE_SYNC_FILE;
+            break;
     }
     jstring jstr = env->NewStringUTF(message.c_str());
     jobject exception = env->NewObject(cls, constructor, kind_code, jstr);
@@ -427,6 +430,7 @@ transcode_complete : {
 
 
 JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
+    : m_env(env)
 {
     // For efficiency, if the incoming UTF-16 string is sufficiently
     // small, we will choose an UTF-8 output buffer whose size (in

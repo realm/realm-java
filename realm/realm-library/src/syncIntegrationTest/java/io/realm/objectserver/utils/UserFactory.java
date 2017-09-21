@@ -18,6 +18,7 @@ package io.realm.objectserver.utils;
 
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemClock;
 
 import java.util.Map;
 import java.util.UUID;
@@ -25,6 +26,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.AuthenticationListener;
+import io.realm.ErrorCode;
+import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.SyncCredentials;
@@ -87,8 +90,25 @@ public class UserFactory {
 
     public static SyncUser createAdminUser(String authUrl) {
         // `admin` required as user identifier to be granted admin rights.
-        SyncCredentials credentials = SyncCredentials.custom("admin", "debug", null);
-        return SyncUser.login(credentials, authUrl);
+        // ROS 2.0 comes with a default admin user named "realm-admin" with password "".
+        SyncCredentials credentials = SyncCredentials.usernamePassword("realm-admin", "", false);
+        int attempts = 3;
+        while (attempts > 0) {
+            attempts--;
+            try {
+                return SyncUser.login(credentials, authUrl);
+            } catch (ObjectServerError e) {
+                // ROS default admin user might not be created yet, we need to retry.
+                // Remove this work-around when https://github.com/realm/ros/issues/282
+                // is fixed.
+                if (e.getErrorCode() != ErrorCode.INVALID_CREDENTIALS) {
+                    throw e;
+                }
+                SystemClock.sleep(1000);
+            }
+        }
+
+        throw new IllegalStateException("Could not login 'realm-admin'");
     }
 
     // Since we don't have a reliable way to reset the sync server and client, just use a new user factory for every
@@ -141,40 +161,12 @@ public class UserFactory {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                final AtomicInteger usersLoggedOut = new AtomicInteger(0);
-                final int activeUsers = SyncUser.all().size();
-                final AuthenticationListener listener = new AuthenticationListener() {
-                    @Override
-                    public void loggedIn(SyncUser user) {
-                        SyncManager.removeAuthenticationListener(this);
-                        fail("User logged in while exiting test: " + user);
-                    }
-
-                    @Override
-                    public void loggedOut(SyncUser user) {
-                        if (usersLoggedOut.incrementAndGet() == activeUsers) {
-                            SyncManager.removeAuthenticationListener(this);
-                            allUsersLoggedOut.countDown();
-                        }
-                    }
-                };
-                SyncManager.addAuthenticationListener(listener);
-
                 Map<String, SyncUser> users = SyncUser.all();
-                if (users.isEmpty()) {
-                    SyncManager.removeAuthenticationListener(listener);
-                    allUsersLoggedOut.countDown();
-                } else {
-                    for (SyncUser user : users.values()) {
-                        user.logout();
-                        if (!user.getAuthenticationUrl().toString().contains("127.0.0.1")) {
-                            // For dummy users, calling `logout()` will never result in the
-                            // authentication listener to trigger since the URL doesn't exist.
-                            // For these cases, we manually trigger the listener.
-                            listener.loggedOut(user);
-                        }
-                    }
+                for (SyncUser user : users.values()) {
+                    user.logout();
                 }
+                SystemClock.sleep(2000); // Remove when https://github.com/realm/ros/issues/304 is fixed
+                allUsersLoggedOut.countDown();
             }
         });
         TestHelper.awaitOrFail(allUsersLoggedOut);

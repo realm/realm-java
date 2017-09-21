@@ -278,7 +278,7 @@ public class SyncUser {
             // Finally revoke server token. The local user is logged out in any case.
             final AuthenticationServer server = SyncManager.getAuthServer();
             // don't reference directly the refreshToken inside the revoke request
-            // as it may revoke the newly acquired and refresh_token
+            // as it may revoke the newly acquired refresh_token
             final Token refreshTokenToBeRevoked = refreshToken;
 
             ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
@@ -527,16 +527,10 @@ public class SyncUser {
         AuthenticationServer authServer = SyncManager.getAuthServer();
         LookupUserIdResponse response = authServer.retrieveUser(refreshToken, provider, providerUserIdentity, getAuthenticationUrl());
         if (!response.isValid()) {
-            // the endpoint returns a 404 if it can't honor the query, either because
-            // - provider is not valid
-            // - provider_id is not valid
-            // - token used is not an admin one
-            // in this case we should return null instead of throwing
-            if (response.getError().getErrorCode() == ErrorCode.NOT_FOUND) {
-                return null;
-            } else {
-                throw response.getError();
-            }
+            // Right now errors are very inconsistent. See https://github.com/realm/ros/issues/310
+            // Treat them all as "User not existing". This is too broad, and should be revisited
+            // once #310 is fixed.
+            return null;
         } else {
             return SyncUserInfo.fromLookupUserIdResponse(response);
         }

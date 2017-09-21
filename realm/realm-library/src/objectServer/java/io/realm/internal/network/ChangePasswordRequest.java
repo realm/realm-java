@@ -56,10 +56,9 @@ public class ChangePasswordRequest {
     public String toJson() {
         try {
             JSONObject request = new JSONObject();
-            request.put("token", token);
-            request.put("password", newPassword);
+            request.put("newPassword", newPassword);
             if (userID != null) {
-                request.put("user_id", userID);
+                request.put("userId", userID);
             }
             return request.toString();
         } catch (JSONException e) {

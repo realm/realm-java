@@ -52,8 +52,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@Ignore("Wait for https://github.com/realm/realm-object-server/issues/1671 to be fixed")
 @RunWith(AndroidJUnit4.class)
+@Ignore("Wait for https://github.com/realm/realm-object-server/issues/1671 to be fixed")
 public class PermissionManagerTests extends StandardIntegrationTest {
 
     private SyncUser user;
