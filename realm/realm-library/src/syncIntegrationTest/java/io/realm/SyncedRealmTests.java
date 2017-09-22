@@ -44,7 +44,7 @@ import static org.junit.Assert.fail;
  * Catch all class for tests that not naturally fit anywhere else.
  */
 @RunWith(AndroidJUnit4.class)
-@Ignore("See https://github.com/realm/realm-java/issues/5177. All waitForInitialRemoteData tests seem to fail. Must be fixed")
+@Ignore("See https://github.com/realm/ros/issues/360")
 public class SyncedRealmTests extends StandardIntegrationTest {
 
     @Test

@@ -185,7 +185,6 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
-    @Ignore("Wait for https://github.com/realm/ros/issues/335")
     public void changePassword() {
         String username = UUID.randomUUID().toString();
         String originalPassword = "password";
@@ -197,15 +196,23 @@ public class AuthTests extends StandardIntegrationTest {
         String newPassword = "new-password";
         userOld.changePassword(newPassword);
         userOld.logout();
+
+        // Make sure old password doesn't work
+        try {
+            SyncUser.login(SyncCredentials.usernamePassword(username, originalPassword, false), Constants.AUTH_URL);
+            fail();
+        } catch (ObjectServerError e) {
+            assertEquals(ErrorCode.INVALID_CREDENTIALS, e.getErrorCode());
+        }
+
+        // Then login with new password
         credentials = SyncCredentials.usernamePassword(username, newPassword, false);
         SyncUser userNew = SyncUser.login(credentials, Constants.AUTH_URL);
-
         assertTrue(userNew.isValid());
         assertEquals(userOld.getIdentity(), userNew.getIdentity());
     }
 
     @Test
-    @Ignore("See https://github.com/realm/ros/issues/335")
     public void changePassword_using_admin() {
         String username = UUID.randomUUID().toString();
         String originalPassword = "password";
@@ -233,7 +240,6 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    @Ignore("Wait for https://github.com/realm/ros/issues/335")
     public void changePassword_using_admin_async() {
         final String username = UUID.randomUUID().toString();
         final String originalPassword = "password";
@@ -273,7 +279,6 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    @Ignore("Wait until https://github.com/realm/ros/issues/309 is resolved")
     public void changePassword_throwWhenUserIsLoggedOut() {
         String username = UUID.randomUUID().toString();
         String password = "password";
@@ -491,6 +496,7 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
+    @Ignore("See https://github.com/realm/ros/issues/360")
     public void revokedRefreshTokenIsNotSameAfterLogin() throws InterruptedException {
         final CountDownLatch userLoggedInAgain = new CountDownLatch(1);
         final String uniqueName = UUID.randomUUID().toString();
@@ -507,7 +513,6 @@ public class AuthTests extends StandardIntegrationTest {
 
             @Override
             public void loggedOut(SyncUser user) {
-                SystemClock.sleep(1000); // Remove once https://github.com/realm/ros/issues/304 is fixed
                 SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);
                 SyncUser loggedInUser = SyncUser.login(credentials, Constants.AUTH_URL);
 
@@ -598,7 +603,6 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
-    @Ignore("Wait for https://github.com/realm/ros/issues/333")
     public void retrieve() {
         final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
 
@@ -616,13 +620,13 @@ public class AuthTests extends StandardIntegrationTest {
         assertEquals(identity, userInfo.getIdentity());
         assertFalse(userInfo.isAdmin());
         assertTrue(userInfo.getMetadata().isEmpty());
+        assertEquals(username, userInfo.getAccounts().get(SyncCredentials.IdentityProvider.USERNAME_PASSWORD));
     }
 
 
     // retrieving a logged out user
     @Test
     @RunTestInLooperThread
-    @Ignore("Wait for https://github.com/realm/ros/issues/333")
     public void retrieve_logout() {
         final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
 
@@ -659,6 +663,7 @@ public class AuthTests extends StandardIntegrationTest {
                         assertEquals(identity, userInfo.getIdentity());
                         assertFalse(userInfo.isAdmin());
                         assertTrue(userInfo.getMetadata().isEmpty());
+                        assertEquals(username, userInfo.getAccounts().get(SyncCredentials.IdentityProvider.USERNAME_PASSWORD));
 
                         looperThread.testComplete();
                     }
@@ -714,7 +719,6 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    @Ignore("Wait for https://github.com/realm/ros/issues/333")
     public void retrieve_async() {
         final String username = UUID.randomUUID().toString();
         final String password = "password";
@@ -735,6 +739,7 @@ public class AuthTests extends StandardIntegrationTest {
                 assertEquals(identity, userInfo.getIdentity());
                 assertFalse(userInfo.isAdmin());
                 assertTrue(userInfo.getMetadata().isEmpty());
+                assertEquals(username, userInfo.getAccounts().get(SyncCredentials.IdentityProvider.USERNAME_PASSWORD));
 
                 looperThread.testComplete();
             }
