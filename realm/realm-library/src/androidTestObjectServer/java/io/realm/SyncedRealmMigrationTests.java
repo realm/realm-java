@@ -372,7 +372,7 @@ public class SyncedRealmMigrationTests {
             try {
                 backupRealm.beginTransaction();
                 fail("Backup Realm should be read-only, we should throw");
-            } catch (IllegalStateException e) {
+            } catch (IllegalStateException ignored) {
             }
             backupRealm.close();
 

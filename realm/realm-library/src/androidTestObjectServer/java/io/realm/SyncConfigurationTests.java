@@ -19,6 +19,7 @@ package io.realm;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,6 +58,11 @@ public class SyncConfigurationTests {
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
+
+    @After
+    public void tearDown() throws Exception {
+        SyncManager.reset();
+    }
 
     @Test
     public void user_invalidUserThrows() {

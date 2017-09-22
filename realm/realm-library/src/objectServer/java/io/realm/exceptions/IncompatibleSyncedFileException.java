@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.SyncConfiguration;
+import io.realm.internal.Keep;
 
 /**
  * An exception thrown when attempting to open an incompatible Synchronized Realm file. This usually happens
@@ -42,6 +43,7 @@ import io.realm.SyncConfiguration;
  * }
  * </pre>
  */
+@Keep
 public class IncompatibleSyncedFileException extends RealmFileException {
     private final String path;
 
@@ -65,8 +67,7 @@ public class IncompatibleSyncedFileException extends RealmFileException {
     /**
      * Gets a {@link RealmConfiguration} instance that can be used to open the backup Realm file.
      *
-     * Note: This will use the default Realm module (composed of all {@link RealmModel}), and
-     * assume no encryption should be used as well.
+     * Note: This will use the default Realm module (composed of all {@link RealmModel}).
      *
      * @param encryptionKey Optional encryption key that was used to encrypt the original Realm file.
      * @return A configuration object for the backup Realm.
