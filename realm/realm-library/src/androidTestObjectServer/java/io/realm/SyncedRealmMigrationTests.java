@@ -387,5 +387,6 @@ public class SyncedRealmMigrationTests {
 
         Realm realm = Realm.getInstance(config);
         assertTrue(realm.isEmpty());
+        realm.close();
     }
 }
