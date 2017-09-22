@@ -1,3 +1,9 @@
+## 3.7.3 (xxxx-xx-xx)
+
+### Bug Fixes
+
+* Added support for ISO8601 2-digit time zone designators (#5309).
+
 ## 3.7.2 (2017-09-12)
 
 ### Bug Fixes
