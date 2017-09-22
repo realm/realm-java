@@ -96,13 +96,6 @@ public abstract class RealmObjectSchema {
     }
 
     /**
-     * @deprecated {@link RealmObjectSchema} doesn't have to be released manually.
-     */
-    @Deprecated
-    public void close() {
-    }
-
-    /**
      * Returns the name of the RealmObject class being represented by this schema.
      * <p>
      * <ul>

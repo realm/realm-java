@@ -607,31 +607,9 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
 
     /**
      * Removes all registered listeners.
-     *
-     * @deprecated Use {@link #removeAllChangeListeners()} instead.
-     */
-    @Deprecated
-    public final void removeChangeListeners() {
-        RealmObject.removeChangeListeners(this);
-    }
-
-    /**
-     * Removes all registered listeners.
      */
     public final void removeAllChangeListeners() {
         RealmObject.removeAllChangeListeners(this);
-    }
-
-    /**
-     * Removes all registered listeners from the given RealmObject.
-     *
-     * @param object RealmObject to remove all listeners from.
-     * @throws IllegalArgumentException if object is {@code null} or isn't managed by Realm.
-     * @deprecated Use {@link RealmObject#removeAllChangeListeners(RealmModel)} instead.
-     */
-    @Deprecated
-    public static <E extends RealmModel> void removeChangeListeners(E object) {
-        removeAllChangeListeners(object);
     }
 
     /**
