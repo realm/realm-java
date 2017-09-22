@@ -185,6 +185,7 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
+    @Ignore("Wait for https://github.com/realm/ros/issues/335")
     public void changePassword() {
         String username = UUID.randomUUID().toString();
         String originalPassword = "password";
@@ -204,6 +205,7 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
+    @Ignore("See https://github.com/realm/ros/issues/335")
     public void changePassword_using_admin() {
         String username = UUID.randomUUID().toString();
         String originalPassword = "password";
@@ -231,6 +233,7 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
+    @Ignore("Wait for https://github.com/realm/ros/issues/335")
     public void changePassword_using_admin_async() {
         final String username = UUID.randomUUID().toString();
         final String originalPassword = "password";
@@ -595,6 +598,7 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
+    @Ignore("Wait for https://github.com/realm/ros/issues/333")
     public void retrieve() {
         final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
 
@@ -618,6 +622,7 @@ public class AuthTests extends StandardIntegrationTest {
     // retrieving a logged out user
     @Test
     @RunTestInLooperThread
+    @Ignore("Wait for https://github.com/realm/ros/issues/333")
     public void retrieve_logout() {
         final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
 
@@ -685,6 +690,7 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
+    @Ignore("Wait for https://github.com/realm/ros/issues/333")
     public void retrieve_notAdmin() {
         final String username1 = UUID.randomUUID().toString();
         final String password1 = "password";
@@ -708,6 +714,7 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
+    @Ignore("Wait for https://github.com/realm/ros/issues/333")
     public void retrieve_async() {
         final String username = UUID.randomUUID().toString();
         final String password = "password";
