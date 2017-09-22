@@ -30,7 +30,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import io.realm.entities.IndexedFields;
-import io.realm.entities.PrimaryKeyAsInteger;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.IncompatibleSyncedFileException;
@@ -304,39 +303,6 @@ public class SyncedRealmMigrationTests {
         // Verify schema again.
         Realm realm = Realm.getInstance(config);
         realm.close();
-    }
-
-    // The stable_id_migration.realm is created with sync v1.8.5 with one object created for each object schema.
-    @Test
-    public void stableIDMigrationCauseClientReset() throws IOException {
-        @SuppressWarnings("unchecked")
-        SyncConfiguration config = configFactory
-                .createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
-                .schema(StringOnly.class, PrimaryKeyAsString.class, PrimaryKeyAsInteger.class)
-                .name("stable_id_migration.realm")
-                .build();
-        configFactory.copyRealmFromAssets(InstrumentationRegistry.getContext(), "stable_id_migration.realm", config);
-        try {
-            Realm.getInstance(config);
-            fail("Should throw IncompatibleSyncedFileException");
-        } catch (IncompatibleSyncedFileException exception) {
-            RealmConfiguration backupConfiguration = exception.getBackupRealmConfiguration();
-
-            DynamicRealm dynamicBackupRealm = DynamicRealm.getInstance(backupConfiguration);
-            dynamicBackupRealm.getSchema().checkHasTable(StringOnly.CLASS_NAME, "Backup Dynamic Realm should contains " + StringOnly.CLASS_NAME);
-            dynamicBackupRealm.getSchema().checkHasTable(PrimaryKeyAsString.CLASS_NAME, "Backup Dynamic Realm should contains " + PrimaryKeyAsString.CLASS_NAME);
-            dynamicBackupRealm.getSchema().checkHasTable(PrimaryKeyAsInteger.CLASS_NAME, "Backup Dynamic Realm should contains " + PrimaryKeyAsInteger.CLASS_NAME);
-
-            assertFalse(dynamicBackupRealm.isEmpty());
-            assertEquals(1, dynamicBackupRealm.where(StringOnly.CLASS_NAME).count());
-            assertEquals(1, dynamicBackupRealm.where(PrimaryKeyAsString.CLASS_NAME).count());
-            assertEquals(1, dynamicBackupRealm.where(PrimaryKeyAsInteger.CLASS_NAME).count());
-            dynamicBackupRealm.close();
-
-            Realm realm = Realm.getInstance(config);
-            assertTrue(realm.isEmpty());
-            realm.close();
-        }
     }
 
     @Test
