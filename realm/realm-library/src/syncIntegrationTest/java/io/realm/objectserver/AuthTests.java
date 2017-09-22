@@ -695,7 +695,6 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
-    @Ignore("Wait for https://github.com/realm/ros/issues/333")
     public void retrieve_notAdmin() {
         final String username1 = UUID.randomUUID().toString();
         final String password1 = "password";
