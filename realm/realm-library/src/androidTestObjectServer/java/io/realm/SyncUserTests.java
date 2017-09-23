@@ -50,8 +50,8 @@ import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.utils.UserFactory;
 import io.realm.objectserver.utils.StringOnlyModule;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
@@ -382,7 +382,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalStateException.class);
-        user.changePasswordAsync("password", new SyncUser.Callback() {
+        user.changePasswordAsync("password", new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -400,7 +400,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalStateException.class);
-        user.changePasswordAsync("user-id", "new", new SyncUser.Callback() {
+        user.changePasswordAsync("user-id", "new", new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();

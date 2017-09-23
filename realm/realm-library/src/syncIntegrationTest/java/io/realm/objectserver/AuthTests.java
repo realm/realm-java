@@ -74,7 +74,7 @@ public class AuthTests extends StandardIntegrationTest {
     @RunTestInLooperThread
     public void loginAsync_userNotExist() {
         SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -93,7 +93,7 @@ public class AuthTests extends StandardIntegrationTest {
     public void login_newUser() {
         String userId = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(userId, "password", true);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertFalse(user.isAdmin());
@@ -117,7 +117,7 @@ public class AuthTests extends StandardIntegrationTest {
     public void login_withAccessToken() {
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         SyncCredentials credentials = SyncCredentials.accessToken(adminUser.getAccessToken().value(), "custom-admin-user", adminUser.isAdmin());
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertTrue(user.isAdmin());
@@ -159,7 +159,7 @@ public class AuthTests extends StandardIntegrationTest {
                         @Override
                         public void run() {
                             SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-                            SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+                            SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
                                 @Override
                                 public void onSuccess(SyncUser user) {
                                     fail();
@@ -248,7 +248,7 @@ public class AuthTests extends StandardIntegrationTest {
 
         // Change password using admin user
         final String newPassword = "new-password";
-        adminUser.changePasswordAsync(userOld.getIdentity(), newPassword, new SyncUser.Callback() {
+        adminUser.changePasswordAsync(userOld.getIdentity(), newPassword, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser administratorUser) {
                 assertEquals(adminUser, administratorUser);
@@ -728,7 +728,7 @@ public class AuthTests extends StandardIntegrationTest {
         assertTrue(adminUser.isAdmin());
 
         final String identity = user.getIdentity();
-        adminUser.retrieveInfoForUserAsync(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD, new SyncUser.RequestCallback<SyncUserInfo>() {
+        adminUser.retrieveInfoForUserAsync(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD, new SyncUser.Callback<SyncUserInfo>() {
             @Override
             public void onSuccess(SyncUserInfo userInfo) {
                 assertNotNull(userInfo);
