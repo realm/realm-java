@@ -543,11 +543,11 @@ public class SyncUserTests {
         //       since the user is not persisted in the UserStore
         //       isValid() requires SyncManager.getUserStore().isActive(identity)
         //       to return true as well.
-        Token accessToken = syncUser.getAccessToken();
-        assertNotNull(accessToken);
+        Token refreshToken = syncUser.getRefreshToken();
+        assertNotNull(refreshToken);
         // refresh token should expire in 10 years (July 23, 2027)
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(accessToken.expiresMs());
+        calendar.setTimeInMillis(refreshToken.expiresMs());
         int day = calendar.get(Calendar.DAY_OF_MONTH);
         int month = calendar.get(Calendar.MONTH);
         int year = calendar.get(Calendar.YEAR);

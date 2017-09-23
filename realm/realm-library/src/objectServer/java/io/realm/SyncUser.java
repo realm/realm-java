@@ -548,12 +548,12 @@ public class SyncUser {
     }
 
     /**
-     * Returns this user's access token. This is the users credential for accessing the Realm Object Server and should
+     * Returns this user's refresh token. This is the users credential for accessing the Realm Object Server and should
      * be treated as sensitive data.
      *
-     * @return the user's access token. If this user has logged out or the login has expired {@code null} is returned.
+     * @return the user's refresh token. If this user has logged out or the login has expired {@code null} is returned.
      */
-    public Token getAccessToken() {
+    Token getRefreshToken() {
         return refreshToken;
     }
 

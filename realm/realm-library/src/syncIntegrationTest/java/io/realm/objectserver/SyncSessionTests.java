@@ -12,16 +12,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
-import io.realm.BaseIntegrationTest;
 import io.realm.Realm;
-import io.realm.StandardIntegrationTest;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
+import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncManager;
@@ -34,10 +32,10 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.TestSyncConfigurationFactory;
+import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
 
@@ -275,7 +273,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 // access the Realm from an different path on the device (using admin user), then monitor
                 // when the offline commits get synchronized
                 SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
-                SyncCredentials credentialsAdmin = SyncCredentials.accessToken(admin.getAccessToken().value(), "custom-admin-user");
+                SyncCredentials credentialsAdmin = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(admin).value(), "custom-admin-user");
                 SyncUser adminUser = SyncUser.login(credentialsAdmin, Constants.AUTH_URL);
 
                 SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
@@ -349,7 +347,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
             public void run() {
                 // using an admin user to open the Realm on different path on the device to monitor when all the uploads are done
                 SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
-                SyncCredentials credentialsAdmin = SyncCredentials.accessToken(admin.getAccessToken().value(), "custom-admin-user");
+                SyncCredentials credentialsAdmin = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(admin).value(), "custom-admin-user");
                 SyncUser adminUser = SyncUser.login(credentialsAdmin, Constants.AUTH_URL);
 
                 SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
@@ -420,7 +418,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
             public void run() {
                 // using an admin user to open the Realm on different path on the device then some commits
                 SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
-                SyncCredentials credentialsAdmin = SyncCredentials.accessToken(admin.getAccessToken().value(), "custom-admin-user");
+                SyncCredentials credentialsAdmin = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(admin).value(), "custom-admin-user");
                 SyncUser adminUser = SyncUser.login(credentialsAdmin, Constants.AUTH_URL);
 
                 SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
