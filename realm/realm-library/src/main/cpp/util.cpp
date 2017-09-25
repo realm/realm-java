@@ -20,6 +20,7 @@
 #include <realm/util/assert.hpp>
 #include <realm/util/file.hpp>
 #include <realm/unicode.hpp>
+#include <jni_util/java_method.hpp>
 #include "utf8.hpp"
 
 #include "util.hpp"
@@ -197,12 +198,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
 
 void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind, const std::string& path)
 {
-    jclass jrealm_file_exception_cls = env->FindClass("io/realm/exceptions/RealmFileException");
-    jclass jincompatible_synced_file_cls = env->FindClass("io/realm/exceptions/IncompatibleSyncedFileException");
-    jmethodID jicompatible_synced_ctor =
-        env->GetMethodID(jincompatible_synced_file_cls, "<init>", "(Ljava/lang/String;Ljava/lang/String;)V");
+    static JavaClass  jrealm_file_exception_cls(env, "io/realm/exceptions/RealmFileException");
+    static JavaClass  jincompatible_synced_file_cls(env, "io/realm/exceptions/IncompatibleSyncedFileException");
+    static JavaMethod jicompatible_synced_ctor(env, jincompatible_synced_file_cls, "<init>", "(Ljava/lang/String;Ljava/lang/String;)V");
+    static JavaMethod constructor(env, jrealm_file_exception_cls, "<init>", "(BLjava/lang/String;)V");
 
-    static jmethodID constructor = env->GetMethodID(jrealm_file_exception_cls, "<init>", "(BLjava/lang/String;)V");
     // Initial value to suppress gcc warning.
     jbyte kind_code = -1; // To suppress compile warning.
     switch (kind) {
@@ -231,14 +231,13 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
             jobject jexception = env->NewObject(jincompatible_synced_file_cls, jicompatible_synced_ctor,
                                                 to_jstring(env, message), to_jstring(env, path));
             env->Throw(reinterpret_cast<jthrowable>(jexception));
-            env->DeleteLocalRef(jincompatible_synced_file_cls);
+            env->DeleteLocalRef(jexception);
             return;
     }
     jstring jmessage = to_jstring(env, message);
     jstring jpath = to_jstring(env, path);
     jobject exception = env->NewObject(jrealm_file_exception_cls, constructor, kind_code, jmessage, jpath);
     env->Throw(reinterpret_cast<jthrowable>(exception));
-    env->DeleteLocalRef(jrealm_file_exception_cls);
     env->DeleteLocalRef(exception);
 }
 
