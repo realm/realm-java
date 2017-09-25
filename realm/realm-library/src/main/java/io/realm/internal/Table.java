@@ -39,8 +39,6 @@ public class Table implements NativeObject {
     public static final boolean NOT_NULLABLE = false;
     public static final int NO_MATCH = -1;
 
-    static final String PRIMARY_KEY_TABLE_NAME = "pk";
-
     public static final int MAX_BINARY_SIZE = 0xFFFFF8 - 8/*array header size*/;
     public static final int MAX_STRING_SIZE = 0xFFFFF8 - 8/*array header size*/ - 1;
 
@@ -500,24 +498,12 @@ public class Table implements NativeObject {
      * 2) Migration required to fix: https://github.com/realm/realm-java/issues/1703
      * This will remove the prefix "class_" from all table names in the pk_column
      * Any database created on Realm-Java 0.84.1 and below will have this error.
+     *
+     * The native method will begin a transaction and make the migration if needed.
+     * This function should not be called in a transaction.
      */
-    public static boolean migratePrimaryKeyTableIfNeeded(SharedRealm sharedRealm) {
-        if (sharedRealm == null || !sharedRealm.isInTransaction()) {
-            throwImmutable();
-        }
-        if (!sharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
-            return false;
-        }
-        Table pkTable = sharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
-        return nativeMigratePrimaryKeyTableIfNeeded(sharedRealm.getGroupNative(), pkTable.nativePtr);
-    }
-
-    public static boolean primaryKeyTableNeedsMigration(SharedRealm sharedRealm) {
-        if (!sharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
-            return false;
-        }
-        Table pkTable = sharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
-        return nativePrimaryKeyTableNeedsMigration(pkTable.nativePtr);
+    public static void migratePrimaryKeyTableIfNeeded(SharedRealm sharedRealm) {
+        nativeMigratePrimaryKeyTableIfNeeded(sharedRealm.getNativePtr());
     }
 
     public boolean hasSearchIndex(long columnIndex) {
@@ -772,9 +758,7 @@ public class Table implements NativeObject {
 
     public static native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value, boolean isDefault);
 
-    private static native boolean nativeMigratePrimaryKeyTableIfNeeded(long groupNativePtr, long primaryKeyTableNativePtr);
-
-    private static native boolean nativePrimaryKeyTableNeedsMigration(long primaryKeyTableNativePtr);
+    private static native void nativeMigratePrimaryKeyTableIfNeeded(long sharedRealmPtr);
 
     private native void nativeAddSearchIndex(long nativePtr, long columnIndex);
 
