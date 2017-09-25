@@ -15,9 +15,7 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.CountDownLatch;
 import java.util.Arrays;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 
-import io.realm.BaseIntegrationTest;
 import io.realm.Realm;
 import io.realm.StandardIntegrationTest;
 import io.realm.RealmChangeListener;
@@ -222,9 +220,11 @@ public class SyncSessionTests extends StandardIntegrationTest {
         credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);
         SyncUser.login(credentials, Constants.AUTH_URL);
 
-        // reviving the sessions
-        assertEquals(SyncSession.State.WAITING_FOR_ACCESS_TOKEN, session1.getState());
-        assertEquals(SyncSession.State.WAITING_FOR_ACCESS_TOKEN, session2.getState());
+        // reviving the sessions. The state could be changed concurrently.
+        assertTrue(session1.getState() == SyncSession.State.WAITING_FOR_ACCESS_TOKEN ||
+                session1.getState() == SyncSession.State.ACTIVE);
+        assertTrue(session2.getState() == SyncSession.State.WAITING_FOR_ACCESS_TOKEN ||
+                session2.getState() == SyncSession.State.ACTIVE);
 
         realm1.close();
         realm2.close();
