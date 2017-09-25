@@ -19,20 +19,21 @@ package io.realm;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import io.realm.entities.IndexedFields;
-import io.realm.entities.PrimaryKeyAsInteger;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.OsObjectStore;
+import io.realm.exceptions.IncompatibleSyncedFileException;
+import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
@@ -50,6 +51,14 @@ public class SyncedRealmMigrationTests {
 
     @Rule
     public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
+
+    @BeforeClass
+    public static void beforeClass () {
+        // another Test class may have the BaseRealm.applicationContext set but
+        // the SyncManager reset. This will make assertion to fail, we need to re-initialise
+        // the sync_manager.cpp#m_file_manager (configFactory rule do this)
+        BaseRealm.applicationContext = null;
+    }
 
     @Test
     public void migrateRealm_syncConfigurationThrows() {
@@ -296,18 +305,54 @@ public class SyncedRealmMigrationTests {
         realm.close();
     }
 
-    // The stable_id_migration.realm is created with sync v1.8.5 with one object created for each object schema.
     @Test
-    @Ignore("Not supported by sync right now.")
-    public void stableIDMigrationCauseClientReset() throws IOException {
+    public void offlineClientReset() throws IOException {
         SyncConfiguration config = configFactory
                 .createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
-                .schema(StringOnly.class, PrimaryKeyAsString.class, PrimaryKeyAsInteger.class)
-                .name("stable_id_migration.realm")
+                .modules(new StringOnlyModule())
                 .build();
-        configFactory.copyRealmFromAssets(InstrumentationRegistry.getContext(), "stable_id_migration.realm", config);
+
+        String path = config.getPath();
+        File realmFile = new File (path);
+        assertFalse(realmFile.exists());
+        // copy the 1.x Realm
+        configFactory.copyRealmFromAssets(InstrumentationRegistry.getContext(), "sync-1.x.realm", config);
+        assertTrue(realmFile.exists());
+
+        // open the file using the new ROS 2.x server
+        try {
+            Realm.getInstance(config);
+            fail("should throw IncompatibleSyncedFileException");
+        } catch (IncompatibleSyncedFileException expected) {
+            String recoveryPath = expected.getRecoveryPath();
+            assertTrue(new File(recoveryPath).exists());
+            // can open the backup Realm
+            RealmConfiguration backupRealmConfiguration = expected.getBackupRealmConfiguration(null, new StringOnlyModule());
+            Realm backupRealm = Realm.getInstance(backupRealmConfiguration);
+            assertFalse(backupRealm.isEmpty());
+            RealmResults<StringOnly> all = backupRealm.where(StringOnly.class).findAll();
+            assertEquals(1, all.size());
+            assertEquals("Hello from ROS 1.X", all.get(0).getChars());
+
+            // make sure it's read only
+            try {
+                backupRealm.beginTransaction();
+                fail("Backup Realm should be read-only, we should throw");
+            } catch (IllegalStateException ignored) {
+            }
+            backupRealm.close();
+
+            // we can open in dynamic mode
+            DynamicRealm dynamicRealm = DynamicRealm.getInstance(backupRealmConfiguration);
+            dynamicRealm.getSchema().checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME);
+            RealmResults<DynamicRealmObject> allDynamic = dynamicRealm.where(StringOnly.CLASS_NAME).findAll();
+            assertEquals(1, allDynamic.size());
+            assertEquals("Hello from ROS 1.X", allDynamic.first().getString(StringOnly.FIELD_CHARS));
+            dynamicRealm.close();
+        }
+
         Realm realm = Realm.getInstance(config);
-        // TODO: Should the local realm be cleaned? It contains one object for each object schema in the realm.
+        assertTrue(realm.isEmpty());
         realm.close();
     }
 }

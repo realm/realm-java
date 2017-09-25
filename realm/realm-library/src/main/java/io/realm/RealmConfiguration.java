@@ -101,6 +101,11 @@ public class RealmConfiguration {
     private final Realm.Transaction initialDataTransaction;
     private final boolean readOnly;
     private final CompactOnLaunchCallback compactOnLaunch;
+    /**
+     * Whether this RealmConfiguration is intended to open a
+     * recovery Realm produced after an offline/online client reset.
+     */
+    private final boolean isRecoveryConfiguration;
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
@@ -117,7 +122,8 @@ public class RealmConfiguration {
             @Nullable RxObservableFactory rxObservableFactory,
             @Nullable Realm.Transaction initialDataTransaction,
             boolean readOnly,
-            @Nullable CompactOnLaunchCallback compactOnLaunch) {
+            @Nullable CompactOnLaunchCallback compactOnLaunch,
+            boolean isRecoveryConfiguration) {
         this.realmDirectory = realmDirectory;
         this.realmFileName = realmFileName;
         this.canonicalPath = canonicalPath;
@@ -132,6 +138,7 @@ public class RealmConfiguration {
         this.initialDataTransaction = initialDataTransaction;
         this.readOnly = readOnly;
         this.compactOnLaunch = compactOnLaunch;
+        this.isRecoveryConfiguration = isRecoveryConfiguration;
     }
 
     public File getRealmDirectory() {
@@ -266,6 +273,14 @@ public class RealmConfiguration {
         return readOnly;
     }
 
+    /**
+     * @return {@code true} if this configuration is intended to open a backup Realm (as a result of a client reset).
+     * @see <a href="https://realm.io/docs/java/latest/api/io/realm/ClientResetRequiredError.html">ClientResetRequiredError</a>
+     */
+    public boolean isRecoveryConfiguration() {
+        return isRecoveryConfiguration;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) { return true; }
@@ -276,6 +291,7 @@ public class RealmConfiguration {
         if (schemaVersion != that.schemaVersion) { return false; }
         if (deleteRealmIfMigrationNeeded != that.deleteRealmIfMigrationNeeded) { return false; }
         if (readOnly != that.readOnly) { return false; }
+        if (isRecoveryConfiguration != that.isRecoveryConfiguration) { return false; }
         if (realmDirectory != null ? !realmDirectory.equals(that.realmDirectory) : that.realmDirectory != null) {
             return false;
         }
@@ -317,6 +333,7 @@ public class RealmConfiguration {
         result = 31 * result + (initialDataTransaction != null ? initialDataTransaction.hashCode() : 0);
         result = 31 * result + (readOnly ? 1 : 0);
         result = 31 * result + (compactOnLaunch != null ? compactOnLaunch.hashCode() : 0);
+        result = 31 * result + (isRecoveryConfiguration ? 1 : 0);
         return result;
     }
 
@@ -802,7 +819,8 @@ public class RealmConfiguration {
                     rxFactory,
                     initialDataTransaction,
                     readOnly,
-                    compactOnLaunch
+                    compactOnLaunch,
+                    false
             );
         }
 
