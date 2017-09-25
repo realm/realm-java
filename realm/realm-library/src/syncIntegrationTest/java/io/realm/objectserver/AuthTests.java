@@ -40,6 +40,7 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.util.SyncTestUtils;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -74,7 +75,7 @@ public class AuthTests extends StandardIntegrationTest {
     @RunTestInLooperThread
     public void loginAsync_userNotExist() {
         SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -93,7 +94,7 @@ public class AuthTests extends StandardIntegrationTest {
     public void login_newUser() {
         String userId = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(userId, "password", true);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertFalse(user.isAdmin());
@@ -116,8 +117,8 @@ public class AuthTests extends StandardIntegrationTest {
     @RunTestInLooperThread
     public void login_withAccessToken() {
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
-        SyncCredentials credentials = SyncCredentials.accessToken(adminUser.getAccessToken().value(), "custom-admin-user", adminUser.isAdmin());
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+        SyncCredentials credentials = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(adminUser).value(), "custom-admin-user", adminUser.isAdmin());
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertTrue(user.isAdmin());
@@ -159,7 +160,7 @@ public class AuthTests extends StandardIntegrationTest {
                         @Override
                         public void run() {
                             SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-                            SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+                            SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
                                 @Override
                                 public void onSuccess(SyncUser user) {
                                     fail();
@@ -248,7 +249,7 @@ public class AuthTests extends StandardIntegrationTest {
 
         // Change password using admin user
         final String newPassword = "new-password";
-        adminUser.changePasswordAsync(userOld.getIdentity(), newPassword, new SyncUser.Callback() {
+        adminUser.changePasswordAsync(userOld.getIdentity(), newPassword, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser administratorUser) {
                 assertEquals(adminUser, administratorUser);
@@ -497,7 +498,7 @@ public class AuthTests extends StandardIntegrationTest {
 
         final SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        final Token revokedRefreshToken = user.getAccessToken();
+        final Token revokedRefreshToken = SyncTestUtils.getRefreshToken(user);
 
         SyncManager.addAuthenticationListener(new AuthenticationListener() {
             @Override
@@ -511,11 +512,12 @@ public class AuthTests extends StandardIntegrationTest {
                 SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);
                 SyncUser loggedInUser = SyncUser.login(credentials, Constants.AUTH_URL);
 
+                Token token = SyncTestUtils.getRefreshToken(loggedInUser);
                 // still comparing the same user
-                assertEquals(revokedRefreshToken.identity(), loggedInUser.getAccessToken().identity());
+                assertEquals(revokedRefreshToken.identity(), token.identity());
 
                 // different tokens
-                assertNotEquals(revokedRefreshToken.value(), loggedInUser.getAccessToken().value());
+                assertNotEquals(revokedRefreshToken.value(), token.value());
                 SyncManager.removeAuthenticationListener(this);
                 userLoggedInAgain.countDown();
             }
@@ -591,7 +593,7 @@ public class AuthTests extends StandardIntegrationTest {
         assertNotEquals(accessToken, newAccessToken);
 
         // refresh_token identity is the same
-        assertEquals(user.getAccessToken().identity(), newAccessToken.identity());
+        assertEquals(SyncTestUtils.getRefreshToken(user).identity(), newAccessToken.identity());
         assertEquals(accessToken.identity(), newAccessToken.identity());
 
         realm.close();
@@ -728,7 +730,7 @@ public class AuthTests extends StandardIntegrationTest {
         assertTrue(adminUser.isAdmin());
 
         final String identity = user.getIdentity();
-        adminUser.retrieveInfoForUserAsync(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD, new SyncUser.RequestCallback<SyncUserInfo>() {
+        adminUser.retrieveInfoForUserAsync(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD, new SyncUser.Callback<SyncUserInfo>() {
             @Override
             public void onSuccess(SyncUserInfo userInfo) {
                 assertNotNull(userInfo);

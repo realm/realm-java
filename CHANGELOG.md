@@ -7,6 +7,8 @@
 * Removed deprecated APIs `RealmSchema.close()` and `RealmObjectSchema.close()`. Those don't have to be called anymore.
 * Removed deprecated API `RealmResults.removeChangeListeners()`. Use `RealmResults.removeAllChangeListeners()` instead.
 * Removed deprecated API `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
+* `SyncUser.Callback` to becomes generic.
+* Removed `SyncUser.getAccessToken` method from public API, and rename it to `getRefreshToken`.
 
 ## Deprecated
 
