@@ -166,6 +166,5 @@ public class SyncManagerTests {
         assertEquals(user, session.getUser()); // see also SessionTests
 
         realm.close();
-        SyncManager.reset();
     }
 }
