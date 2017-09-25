@@ -24,6 +24,7 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
+import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -187,7 +188,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
 
         // STEP 3: prepare a synced Realm for client B (admin user)
         SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
-        SyncCredentials credentials = SyncCredentials.accessToken(admin.getAccessToken().value(), "custom-admin-user");
+        SyncCredentials credentials = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(admin).value(), "custom-admin-user");
         SyncUser adminUser = SyncUser.login(credentials, Constants.AUTH_URL);
 
         final byte[] adminRandomKey = TestHelper.getRandomKey();

@@ -37,10 +37,13 @@ public class SyncTestUtils {
     public static final String DEFAULT_AUTH_URL = "http://objectserver.realm.io/auth";
 
     private final static Method SYNC_MANAGER_GET_USER_STORE_METHOD;
+    private final static Method SYNC_USER_GET_ACCESS_TOKEN_METHOD;
     static {
         try {
             SYNC_MANAGER_GET_USER_STORE_METHOD = SyncManager.class.getDeclaredMethod("getUserStore");
+            SYNC_USER_GET_ACCESS_TOKEN_METHOD = SyncUser.class.getDeclaredMethod("getRefreshToken");
             SYNC_MANAGER_GET_USER_STORE_METHOD.setAccessible(true);
+            SYNC_USER_GET_ACCESS_TOKEN_METHOD.setAccessible(true);
         } catch (NoSuchMethodException e) {
             throw new AssertionError(e);
         }
@@ -106,13 +109,19 @@ public class SyncTestUtils {
         return AuthenticateResponse.from(new ObjectServerError(code, "dummy"));
     }
 
+    public static Token getRefreshToken(SyncUser user) {
+        try {
+            return (Token) SYNC_USER_GET_ACCESS_TOKEN_METHOD.invoke(user);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new AssertionError(e);
+        }
+    }
+
     private static void addToUserStore(SyncUser user) {
         try {
             UserStore userStore = (UserStore) SYNC_MANAGER_GET_USER_STORE_METHOD.invoke(null);
             userStore.put(user);
-        } catch (InvocationTargetException e) {
-            throw new AssertionError(e);
-        } catch (IllegalAccessException e) {
+        } catch (InvocationTargetException | IllegalAccessException e) {
             throw new AssertionError(e);
         }
     }
