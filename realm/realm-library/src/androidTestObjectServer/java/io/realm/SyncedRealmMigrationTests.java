@@ -19,20 +19,26 @@ package io.realm;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.realm.entities.IndexedFields;
 import io.realm.entities.PrimaryKeyAsInteger;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.OsRealmConfig;
+import io.realm.internal.OsSchemaInfo;
+import io.realm.internal.SharedRealm;
 import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
@@ -50,6 +56,8 @@ public class SyncedRealmMigrationTests {
 
     @Rule
     public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void migrateRealm_syncConfigurationThrows() {
@@ -126,30 +134,26 @@ public class SyncedRealmMigrationTests {
 
     // Check that a Realm cannot be opened if it contain breaking schema changes, like changing a primary key
     @Test
-    @Ignore("This test will throw earlier when trying to add a PK field. That case is already covered by" +
-            " SchemaTest.addField_withPrimaryKeyModifier_notAllowed(). Although this test will still be valuable for" +
-            "Object Store schema integration.")
-    // FIXME: Enabled this after OS schema integration.
     public void breakingSchemaChange_throws() {
         SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
                 .schema(PrimaryKeyAsString.class)
                 .build();
 
         // Setup initial Realm schema (with a different primary key)
-        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
-        RealmSchema schema = dynamicRealm.getSchema();
-        dynamicRealm.beginTransaction();
-        schema.create(PrimaryKeyAsString.class.getSimpleName())
-                .addField(PrimaryKeyAsString.FIELD_PRIMARY_KEY, String.class)
-                .addField(PrimaryKeyAsString.FIELD_ID, long.class, FieldAttribute.PRIMARY_KEY);
-        dynamicRealm.commitTransaction();
-        dynamicRealm.close();
+        OsObjectSchemaInfo expectedObjectSchema = new OsObjectSchemaInfo.Builder(PrimaryKeyAsString.CLASS_NAME)
+                .addPersistedProperty(PrimaryKeyAsString.FIELD_PRIMARY_KEY, RealmFieldType.STRING, false, true, false)
+                .addPersistedProperty(PrimaryKeyAsString.FIELD_ID, RealmFieldType.INTEGER, true, true, true)
+                .build();
+        List<OsObjectSchemaInfo> list = new ArrayList<OsObjectSchemaInfo>();
+        list.add(expectedObjectSchema);
+        OsSchemaInfo schemaInfo = new OsSchemaInfo(list);
+        OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config).schemaInfo(schemaInfo);
+        SharedRealm.getInstance(configBuilder).close();
 
-        try {
-            Realm.getInstance(config);
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
+        thrown.expectMessage(
+                CoreMatchers.containsString("The following changes cannot be made in additive-only schema mode:"));
+        thrown.expect(IllegalStateException.class);
+        Realm.getInstance(config);
     }
 
     // Check that indexes are not being added if the schema version is the same
