@@ -36,6 +36,7 @@ import java.util.List;
 import io.realm.entities.IndexedFields;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.SharedRealm;
