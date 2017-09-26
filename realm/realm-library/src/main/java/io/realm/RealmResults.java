@@ -234,15 +234,6 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     /**
-     * Use {@link #removeAllChangeListeners()} instead.
-     */
-    @SuppressWarnings("unused")
-    @Deprecated
-    public void removeChangeListeners() {
-        removeAllChangeListeners();
-    }
-
-    /**
      * Removes the specified change listener.
      *
      * @param listener the change listener to be removed.

@@ -3,6 +3,12 @@
 ## Breaking Changes
 
 * Calling `distinct()` on a sorted `RealmResults` no longer clears the sorting (#3503).
+* [ObjectServer] Removed deprecated APIs `SyncUser.retrieveUser()` and `SyncUser.retrieveUserAsync()`. Use `SyncUser.retrieveInfoForUser()` and `retrieveInfoForUserAsync()` instead.
+* Removed deprecated APIs `RealmSchema.close()` and `RealmObjectSchema.close()`. Those don't have to be called anymore.
+* Removed deprecated API `RealmResults.removeChangeListeners()`. Use `RealmResults.removeAllChangeListeners()` instead.
+* Removed deprecated API `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
+* `SyncUser.Callback` to becomes generic.
+* Removed `SyncUser.getAccessToken` method from public API, and rename it to `getRefreshToken`.
 
 ## Deprecated
 
@@ -25,15 +31,18 @@
 ### Enhancements
 
 * [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
+* Minor performance improvement when copy/insert objects into Realm.
 
 ### Bug Fixes
 
 * Throw `IllegalArgumentException` instead of `IllegalStateException` when calling string/binary data setters if the data length exceeds the limit.
+* Exposing a `RealmConfiguration` that allows a user to open the backup Realm after the client reset (#4759/#5223).
 
 ### Internal
 
 * Upgraded to Realm Sync 2.0.0-rc16.
 * Upgraded to Realm Core 3.0.0-rc5.
+* Always use Object Store to create primary key table.
 
 ## 4.0.0-BETA2 (2017-07-27)
 

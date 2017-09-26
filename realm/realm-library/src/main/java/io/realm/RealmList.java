@@ -35,6 +35,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.OsList;
+import io.realm.internal.OsObjectStore;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.rx.CollectionChange;
 
@@ -1537,7 +1538,8 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
 
         // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
         Realm realm = (Realm) this.realm;
-        if (realm.getTable(object.getClass()).hasPrimaryKey()) {
+        if (OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(),
+                realm.getConfiguration().getSchemaMediator().getSimpleClassName(object.getClass())) != null) {
             return realm.copyToRealmOrUpdate(object);
         } else {
             return realm.copyToRealm(object);

@@ -35,6 +35,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.RealmProxyMediator;
@@ -75,7 +76,7 @@ abstract class BaseRealm implements Closeable {
     // Which RealmCache is this Realm associated to. It is null if the Realm instance is opened without being put into a
     // cache. It is also null if the Realm is closed.
     private RealmCache realmCache;
-    protected SharedRealm sharedRealm;
+    public SharedRealm sharedRealm;
     private boolean shouldCloseSharedRealm;
     private SharedRealm.SchemaChangedCallback schemaChangedCallback = new SharedRealm.SchemaChangedCallback() {
         @Override
@@ -476,7 +477,7 @@ abstract class BaseRealm implements Closeable {
      * @return the schema version for the Realm file backing this Realm.
      */
     public long getVersion() {
-        return sharedRealm.getSchemaVersion();
+        return OsObjectStore.getSchemaVersion(sharedRealm);
     }
 
     /**
@@ -533,11 +534,6 @@ abstract class BaseRealm implements Closeable {
     public boolean isEmpty() {
         checkIfValid();
         return sharedRealm.isEmpty();
-    }
-
-    // package protected so unit tests can access it
-    void setVersion(long version) {
-        sharedRealm.setSchemaVersion(version);
     }
 
     /**
