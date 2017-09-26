@@ -243,11 +243,6 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeIsInTransaction(nativePtr);
     }
 
-    // FIXME: This should be removed, migratePrimaryKeyTableIfNeeded is using it which should be in Object Store instead?
-    long getGroupNative() {
-        return nativeReadGroup(nativePtr);
-    }
-
     public boolean hasTable(String name) {
         return nativeHasTable(nativePtr, name);
     }
@@ -496,8 +491,6 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static native void nativeCancelTransaction(long nativeSharedRealmPtr);
 
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
-
-    private static native long nativeReadGroup(long nativeSharedRealmPtr);
 
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
 

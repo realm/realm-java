@@ -179,9 +179,7 @@ public class PrimaryKeyTests {
     public void migratePrimaryKeyTableIfNeeded_first() throws IOException {
         configFactory.copyRealmFromAssets(context, "080_annotationtypes.realm", "default.realm");
         sharedRealm = SharedRealm.getInstance(config);
-        sharedRealm.beginTransaction();
-        assertTrue(Table.migratePrimaryKeyTableIfNeeded(sharedRealm));
-        sharedRealm.commitTransaction();
+        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
         Table t = sharedRealm.getTable("class_AnnotationTypes");
         assertEquals("id", OsObjectStore.getPrimaryKeyForObject(sharedRealm, "AnnotationTypes"));
         assertEquals(RealmFieldType.STRING, sharedRealm.getTable("pk").getColumnType(0));
@@ -191,9 +189,7 @@ public class PrimaryKeyTests {
     public void migratePrimaryKeyTableIfNeeded_second() throws IOException {
         configFactory.copyRealmFromAssets(context, "0841_annotationtypes.realm", "default.realm");
         sharedRealm = SharedRealm.getInstance(config);
-        sharedRealm.beginTransaction();
-        assertTrue(Table.migratePrimaryKeyTableIfNeeded(sharedRealm));
-        sharedRealm.commitTransaction();
+        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
         Table t = sharedRealm.getTable("class_AnnotationTypes");
         assertEquals("id", OsObjectStore.getPrimaryKeyForObject(sharedRealm, "AnnotationTypes"));
         assertEquals("AnnotationTypes", sharedRealm.getTable("pk").getString(0, 0));
@@ -213,9 +209,7 @@ public class PrimaryKeyTests {
 
         configFactory.copyRealmFromAssets(context, "0841_pk_migration.realm", "default.realm");
         sharedRealm = SharedRealm.getInstance(config);
-        sharedRealm.beginTransaction();
-        assertTrue(Table.migratePrimaryKeyTableIfNeeded(sharedRealm));
-        sharedRealm.commitTransaction();
+        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
 
         Table table = sharedRealm.getTable("pk");
         for (int i = 0; i < table.size(); i++) {
@@ -255,13 +249,17 @@ public class PrimaryKeyTests {
         } catch (IllegalStateException ignored) {
             // Column has no search index.
         }
+        sharedRealm.commitTransaction();
 
         assertFalse(pkTable.hasSearchIndex(classColumn));
 
         Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
         assertTrue(pkTable.hasSearchIndex(classColumn));
+
+        sharedRealm.beginTransaction();
         // Now it works.
         table2.addSearchIndex(column2);
-        sharedRealm.cancelTransaction();
+        OsObjectStore.setPrimaryKeyForObject(sharedRealm, "TestTable2", "PKColumn");
+        sharedRealm.commitTransaction();
     }
 }

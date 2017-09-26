@@ -7,6 +7,8 @@
 * Removed deprecated APIs `RealmSchema.close()` and `RealmObjectSchema.close()`. Those don't have to be called anymore.
 * Removed deprecated API `RealmResults.removeChangeListeners()`. Use `RealmResults.removeAllChangeListeners()` instead.
 * Removed deprecated API `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
+* `SyncUser.Callback` to becomes generic.
+* Removed `SyncUser.getAccessToken` method from public API, and rename it to `getRefreshToken`.
 
 ## Deprecated
 
@@ -33,7 +35,7 @@
 ### Bug Fixes
 
 * Throw `IllegalArgumentException` instead of `IllegalStateException` when calling string/binary data setters if the data length exceeds the limit.
-* Exposing a `RealmConfiguration` that allows a user to open the backup Realm after the client reset (#4759).
+* Exposing a `RealmConfiguration` that allows a user to open the backup Realm after the client reset (#4759/#5223).
 
 ### Internal
 
