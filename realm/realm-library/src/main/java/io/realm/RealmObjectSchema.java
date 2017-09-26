@@ -27,6 +27,7 @@ import java.util.Set;
 import io.realm.annotations.Required;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -92,13 +93,6 @@ public abstract class RealmObjectSchema {
         this.realm = realm;
         this.table = table;
         this.columnInfo = columnInfo;
-    }
-
-    /**
-     * @deprecated {@link RealmObjectSchema} doesn't have to be released manually.
-     */
-    @Deprecated
-    public void close() {
     }
 
     /**
@@ -325,8 +319,8 @@ public abstract class RealmObjectSchema {
      * @see #addPrimaryKey(String)
      */
     public boolean isPrimaryKey(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
-        return columnIndex == table.getPrimaryKey();
+        checkFieldExists(fieldName);
+        return fieldName.equals(OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, getClassName()));
     }
 
     /**
@@ -336,7 +330,7 @@ public abstract class RealmObjectSchema {
      * @see io.realm.annotations.PrimaryKey
      */
     public boolean hasPrimaryKey() {
-        return table.hasPrimaryKey();
+        return OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, getClassName()) != null;
     }
 
     /**
@@ -346,10 +340,11 @@ public abstract class RealmObjectSchema {
      * @throws IllegalStateException if the class doesn't have a primary key defined.
      */
     public String getPrimaryKey() {
-        if (!table.hasPrimaryKey()) {
+        String pkField = OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, getClassName());
+        if (pkField == null) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
         }
-        return table.getColumnName(table.getPrimaryKey());
+        return pkField;
     }
 
     /**
@@ -406,7 +401,9 @@ public abstract class RealmObjectSchema {
 
         if (indexed) { table.addSearchIndex(columnIndex); }
 
-        if (primary) { table.setPrimaryKey(name); }
+        if (primary) {
+            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, getClassName(), name);
+        }
 
         return this;
     }

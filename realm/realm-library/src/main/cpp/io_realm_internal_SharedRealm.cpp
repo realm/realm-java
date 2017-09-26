@@ -158,52 +158,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeIsInTransact
     return static_cast<jboolean>(shared_realm->is_in_transaction());
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeReadGroup(JNIEnv* env, jclass,
-                                                                           jlong shared_realm_ptr)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        return reinterpret_cast<jlong>(&shared_realm->read_group());
-    }
-    CATCH_STD()
-
-    return static_cast<jlong>(NULL);
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetVersion(JNIEnv* env, jclass,
-                                                                            jlong shared_realm_ptr)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        return static_cast<jlong>(ObjectStore::get_schema_version(shared_realm->read_group()));
-    }
-    CATCH_STD()
-    return static_cast<jlong>(ObjectStore::NotVersioned);
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeSetVersion(JNIEnv* env, jclass,
-                                                                           jlong shared_realm_ptr, jlong version)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        if (!shared_realm->is_in_transaction()) {
-            std::ostringstream ss;
-            ss << "Cannot set schema version when the realm is not in transaction.";
-            ThrowException(env, IllegalState, ss.str());
-            return;
-        }
-
-        ObjectStore::set_schema_version(shared_realm->read_group(), static_cast<uint64_t>(version));
-    }
-    CATCH_STD()
-}
-
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeIsEmpty(JNIEnv* env, jclass,
                                                                             jlong shared_realm_ptr)
 {
@@ -291,8 +245,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNIEnv* env, jclass,
                                                                              jlong shared_realm_ptr,
-                                                                             jstring j_table_name,
-                                                                             jboolean is_pk_table)
+                                                                             jstring j_table_name)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
@@ -303,24 +256,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNI
         shared_realm->verify_in_write(); // throws
         Table* table;
         auto& group = shared_realm->read_group();
-        if (is_pk_table) {
-            // sync::create_table() will add an extra column for stable ID which is not allowed for pk table.
-            table = LangBindHelper::add_table(group, table_name); // throws
-        }
-        else {
 #if REALM_ENABLE_SYNC
-            // Sync doesn't throw when table exists.
-            if (group.has_table(table_name)) {
-                THROW_JAVA_EXCEPTION(
-                    env, JavaExceptionDef::IllegalArgument,
-                    format(c_table_name_exists_exception_msg, table_name.substr(TABLE_PREFIX.length())));
-            }
-            auto table_ref = sync::create_table(group, table_name); // throws
-            table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
-#else
-            table = LangBindHelper::add_table(group, table_name); // throws
-#endif
+        // Sync doesn't throw when table exists.
+        if (group.has_table(table_name)) {
+            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
+                                 format(c_table_name_exists_exception_msg, table_name.substr(TABLE_PREFIX.length())));
         }
+        auto table_ref = sync::create_table(group, table_name); // throws
+        table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
+#else
+        table = LangBindHelper::add_table(group, table_name); // throws
+#endif
         return reinterpret_cast<jlong>(table);
     }
     catch (TableNameInUse& e) {
@@ -422,26 +368,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRenameTable(JNIE
         }
         JStringAccessor new_name(env, new_table_name);
         shared_realm->read_group().rename_table(old_name, new_name);
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRemoveTable(JNIEnv* env, jclass,
-                                                                            jlong shared_realm_ptr,
-                                                                            jstring table_name)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        JStringAccessor name(env, table_name);
-        if (!shared_realm->is_in_transaction()) {
-            std::ostringstream ss;
-            ss << "Class " << name << " cannot be removed when the realm is not in transaction.";
-            ThrowException(env, IllegalState, ss.str());
-            return;
-        }
-        shared_realm->read_group().remove_table(name);
     }
     CATCH_STD()
 }

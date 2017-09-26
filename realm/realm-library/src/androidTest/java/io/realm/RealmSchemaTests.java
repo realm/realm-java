@@ -103,7 +103,6 @@ public class RealmSchemaTests {
 
     @After
     public void tearDown() {
-        realm.cancelTransaction();
         realm.close();
     }
 
@@ -605,6 +604,50 @@ public class RealmSchemaTests {
             assertEquals("isRequired('" + fieldName + "')",
                     fieldName.endsWith("NotNull"), objectSchema.isRequired(fieldName));
             assertFalse(objectSchema.isPrimaryKey(fieldName));
+        }
+    }
+
+    @Test
+    public void rename_newNameExists() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage(
+                CoreMatchers.containsString("Cat cannot be renamed because the new class already exists"));
+        realmSchema.rename("Cat", "Dog");
+    }
+
+    @Test
+    public void mutableMethodsCalled_notInTransaction() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
+        realm.cancelTransaction();
+
+        try {
+            realmSchema.create("Foo");
+        } catch (IllegalStateException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString("transaction"));
+        }
+
+        try {
+            realmSchema.createWithPrimaryKeyField("Foo", "PK", String.class);
+        } catch (IllegalStateException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString("transaction"));
+        }
+
+        try {
+            realmSchema.remove("Cat");
+        } catch (IllegalStateException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString("transaction"));
+        }
+
+        try {
+            realmSchema.rename("Cat", "Foo1");
+        } catch (IllegalStateException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString("transaction"));
         }
     }
 }
