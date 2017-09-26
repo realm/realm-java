@@ -4,6 +4,10 @@
 
 * Added support for ISO8601 2-digit time zone designators (#5309).
 
+### Credits
+
+* Thanks to Jussi Pekonen (@JussiPekonen) for adding ISO8601 2-digit time zone designators support.
+
 ## 3.7.2 (2017-09-12)
 
 ### Bug Fixes
