@@ -217,6 +217,97 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
 // 5. search indexing must be preserved
 // 6. removing the original column and renaming the temporary column will make it look like original is being modified
 
+// Convert a tables values to allow for nullable values
+// Works on both normal table columns and sub tables
+static void convert_column_to_nullable(JNIEnv* env, Table* table, size_t column_index, bool is_primary_key)
+{
+    if (table->is_nullable(column_index)) {
+        return; // column is already nullable
+    }
+
+    std::string column_name = table->get_column_name(column_index);
+    DataType column_type = table->get_column_type(column_index);
+    if (column_type == type_Link || column_type == type_LinkList || column_type == type_Mixed ||
+        column_type == type_Table) {
+        ThrowException(env, IllegalArgument, "Wrong type - cannot be converted to nullable.");
+    }
+
+    std::string tmp_column_name;
+
+    size_t j = 0;
+    while (true) {
+        std::ostringstream ss;
+        ss << std::string("__TMP__") << j;
+        std::string str = ss.str();
+        StringData sd(str);
+        if (table->get_column_index(sd) == realm::not_found) {
+            table->insert_column(column_index, column_type, sd, true);
+            tmp_column_name = ss.str();
+            break;
+        }
+        j++;
+    }
+
+    // Search index has too be added first since if it is a PK field, add_xxx_unique will check it.
+    if (table->has_search_index(column_index + 1)) {
+        table->add_search_index(column_index);
+    }
+
+    for (size_t i = 0; i < table->size(); ++i) {
+        switch (column_type) {
+            case type_String: {
+                // Payload copy is needed
+                StringData sd(table->get_string(column_index + 1, i));
+                if (is_primary_key) {
+                    table->set_string_unique(column_index, i, sd);
+                }
+                else {
+                    table->set_string(column_index, i, sd);
+                }
+                break;
+            }
+            case type_Binary: {
+                // Payload copy is needed
+                BinaryData bd = table->get_binary(column_index + 1, i);
+                std::vector<char> binary_copy(bd.data(), bd.data() + bd.size());
+                table->set_binary(column_index, i, BinaryData(binary_copy.data(), binary_copy.size()));
+                break;
+            }
+            case type_Int:
+                if (is_primary_key) {
+                    table->set_int_unique(column_index, i, table->get_int(column_index + 1, i));
+                }
+                else {
+                    table->set_int(column_index, i, table->get_int(column_index + 1, i));
+                }
+                break;
+            case type_Bool:
+                table->set_bool(column_index, i, table->get_bool(column_index + 1, i));
+                break;
+            case type_Timestamp:
+                table->set_timestamp(column_index, i, table->get_timestamp(column_index + 1, i));
+                break;
+            case type_Float:
+                table->set_float(column_index, i, table->get_float(column_index + 1, i));
+                break;
+            case type_Double:
+                table->set_double(column_index, i, table->get_double(column_index + 1, i));
+                break;
+            case type_Link:
+            case type_LinkList:
+            case type_Mixed:
+            case type_Table:
+                // checked previously
+                break;
+            case type_OldDateTime:
+                ThrowException(env, UnsupportedOperation, "The old DateTime type is not supported.");
+                return;
+        }
+    }
+    table->remove_column(column_index + 1);
+    table->rename_column(table->get_column_index(tmp_column_name), column_name);
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullable(JNIEnv* env, jobject,
                                                                                   jlong native_table_ptr,
                                                                                   jlong j_column_index,
@@ -226,100 +317,167 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
     if (!TBL_AND_COL_INDEX_VALID(env, table, j_column_index)) {
         return;
     }
-    if (table->has_shared_type()) {
-        ThrowException(env, UnsupportedOperation, "Not allowed to convert field in subtable.");
-        return;
-    }
     try {
+        Table* table = TBL(native_table_ptr);
+        if (!TBL_AND_COL_INDEX_VALID(env, table, j_column_index)) {
+            return;
+        }
+        if (table->has_shared_type()) {
+            ThrowException(env, UnsupportedOperation, "Not allowed to convert field in subtable.");
+            return;
+        }
         size_t column_index = S(j_column_index);
-        if (table->is_nullable(column_index)) {
-            return; // column is already nullable
-        }
-
-        std::string column_name = table->get_column_name(column_index);
-        DataType column_type = table->get_column_type(column_index);
-        if (column_type == type_Link || column_type == type_LinkList || column_type == type_Mixed ||
-            column_type == type_Table) {
-            ThrowException(env, IllegalArgument, "Wrong type - cannot be converted to nullable.");
-        }
-
-        std::string tmp_column_name;
-
-        size_t j = 0;
-        while (true) {
-            std::ostringstream ss;
-            ss << std::string("__TMP__") << j;
-            std::string str = ss.str();
-            StringData sd(str);
-            if (table->get_column_index(sd) == realm::not_found) {
-                table->insert_column(column_index, column_type, sd, true);
-                tmp_column_name = ss.str();
-                break;
+        if (table->get_column_type(column_index) == DataType::type_Table) {
+            for (size_t i = 0; i < table->size(); ++i) {
+                TableRef subtable = table->get_subtable(column_index, i);
+                convert_column_to_nullable(env, subtable.get(), 0, is_primary_key);
             }
-            j++;
         }
-
-        // Search index has too be added first since if it is a PK field, add_xxx_unique will check it.
-        if (table->has_search_index(column_index + 1)) {
-            table->add_search_index(column_index);
+        else {
+            convert_column_to_nullable(env, table, column_index, is_primary_key);
         }
+    }
+    CATCH_STD()
+}
 
-        for (size_t i = 0; i < table->size(); ++i) {
-            switch (column_type) {
-                case type_String: {
+// Convert a tables values to not nullable, but converting all null values to the defaul value for the type
+// Works on both normal table columns and sub tables
+static void convert_column_to_not_nullable(JNIEnv* env, Table* table, size_t column_index, bool is_primary_key)
+{
+    if (!table->is_nullable(column_index)) {
+        return; // column is already not nullable
+    }
+
+    std::string column_name = table->get_column_name(column_index);
+    DataType column_type = table->get_column_type(column_index);
+    if (column_type == type_Link || column_type == type_LinkList || column_type == type_Mixed ||
+        column_type == type_Table) {
+        ThrowException(env, IllegalArgument, "Wrong type - cannot be converted to nullable.");
+    }
+
+    std::string tmp_column_name;
+    size_t j = 0;
+    while (true) {
+        std::ostringstream ss;
+        ss << std::string("__TMP__") << j;
+        std::string str = ss.str();
+        StringData sd(str);
+        if (table->get_column_index(sd) == realm::not_found) {
+            table->insert_column(column_index, column_type, sd, false);
+            tmp_column_name = ss.str();
+            break;
+        }
+        j++;
+    }
+
+    // Search index has too be added first since if it is a PK field, add_xxx_unique will check it.
+    if (table->has_search_index(column_index + 1)) {
+        table->add_search_index(column_index);
+    }
+
+    for (size_t i = 0; i < table->size(); ++i) {
+        switch (column_type) { // FIXME: respect user-specified default values
+            case type_String: {
+                StringData sd = table->get_string(column_index + 1, i);
+                if (sd == realm::null()) {
+                    if (is_primary_key) {
+                        THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
+                                             format(c_null_values_cannot_set_required_msg, column_name));
+                    }
+                    else {
+                        table->set_string(column_index, i, "");
+                    }
+                }
+                else {
                     // Payload copy is needed
-                    StringData sd(table->get_string(column_index + 1, i));
                     if (is_primary_key) {
                         table->set_string_unique(column_index, i, sd);
                     }
                     else {
                         table->set_string(column_index, i, sd);
                     }
-                    break;
                 }
-                case type_Binary: {
+                break;
+            }
+            case type_Binary: {
+                BinaryData bd = table->get_binary(column_index + 1, i);
+                if (bd.is_null()) {
+                    table->set_binary(column_index, i, BinaryData("", 0));
+                }
+                else {
                     // Payload copy is needed
-                    BinaryData bd = table->get_binary(column_index + 1, i);
-                    std::vector<char> binary_copy(bd.data(), bd.data() + bd.size());
-                    table->set_binary(column_index, i, BinaryData(binary_copy.data(), binary_copy.size()));
-                    break;
+                    std::vector<char> bd_copy(bd.data(), bd.data() + bd.size());
+                    table->set_binary(column_index, i, BinaryData(bd_copy.data(), bd_copy.size()));
                 }
-                case type_Int:
+                break;
+            }
+            case type_Int:
+                if (table->is_null(column_index + 1, i)) {
+                    if (is_primary_key) {
+                        THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
+                                             format(c_null_values_cannot_set_required_msg, column_name));
+                    }
+                    else {
+                        table->set_int(column_index, i, 0);
+                    }
+                }
+                else {
                     if (is_primary_key) {
                         table->set_int_unique(column_index, i, table->get_int(column_index + 1, i));
                     }
                     else {
                         table->set_int(column_index, i, table->get_int(column_index + 1, i));
                     }
-                    break;
-                case type_Bool:
+                }
+                break;
+            case type_Bool:
+                if (table->is_null(column_index + 1, i)) {
+                    table->set_bool(column_index, i, false);
+                }
+                else {
                     table->set_bool(column_index, i, table->get_bool(column_index + 1, i));
-                    break;
-                case type_Timestamp:
+                }
+                break;
+            case type_Timestamp:
+                if (table->is_null(column_index + 1, i)) {
+                    table->set_timestamp(column_index, i, Timestamp(0, 0));
+                }
+                else {
                     table->set_timestamp(column_index, i, table->get_timestamp(column_index + 1, i));
-                    break;
-                case type_Float:
+                }
+                break;
+            case type_Float:
+                if (table->is_null(column_index + 1, i)) {
+                    table->set_float(column_index, i, 0.0);
+                }
+                else {
                     table->set_float(column_index, i, table->get_float(column_index + 1, i));
-                    break;
-                case type_Double:
+                }
+                break;
+            case type_Double:
+                if (table->is_null(column_index + 1, i)) {
+                    table->set_double(column_index, i, 0.0);
+                }
+                else {
                     table->set_double(column_index, i, table->get_double(column_index + 1, i));
-                    break;
-                case type_Link:
-                case type_LinkList:
-                case type_Mixed:
-                case type_Table:
-                    // checked previously
-                    break;
-                case type_OldDateTime:
-                    ThrowException(env, UnsupportedOperation, "The old DateTime type is not supported.");
-                    return;
-            }
+                }
+                break;
+            case type_Link:
+            case type_LinkList:
+            case type_Mixed:
+            case type_Table:
+                // checked previously
+                break;
+            case type_OldDateTime:
+                // not used
+                ThrowException(env, UnsupportedOperation, "The old DateTime type is not supported.");
+                return;
         }
-        table->remove_column(column_index + 1);
-        table->rename_column(table->get_column_index(tmp_column_name), column_name);
     }
-    CATCH_STD()
+    table->remove_column(column_index + 1);
+    table->rename_column(table->get_column_index(tmp_column_name), column_name);
 }
+
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNullable(JNIEnv* env, jobject,
                                                                                      jlong native_table_ptr,
@@ -336,138 +494,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
     }
     try {
         size_t column_index = S(j_column_index);
-        if (!table->is_nullable(column_index)) {
-            return; // column is already not nullable
-        }
-
-        std::string column_name = table->get_column_name(column_index);
-        DataType column_type = table->get_column_type(column_index);
-        if (column_type == type_Link || column_type == type_LinkList || column_type == type_Mixed ||
-            column_type == type_Table) {
-            ThrowException(env, IllegalArgument, "Wrong type - cannot be converted to nullable.");
-        }
-
-        std::string tmp_column_name;
-        size_t j = 0;
-        while (true) {
-            std::ostringstream ss;
-            ss << std::string("__TMP__") << j;
-            std::string str = ss.str();
-            StringData sd(str);
-            if (table->get_column_index(sd) == realm::not_found) {
-                table->insert_column(column_index, column_type, sd, false);
-                tmp_column_name = ss.str();
-                break;
-            }
-            j++;
-        }
-
-        // Search index has too be added first since if it is a PK field, add_xxx_unique will check it.
-        if (table->has_search_index(column_index + 1)) {
-            table->add_search_index(column_index);
-        }
-
-        for (size_t i = 0; i < table->size(); ++i) {
-            switch (column_type) { // FIXME: respect user-specified default values
-                case type_String: {
-                    StringData sd = table->get_string(column_index + 1, i);
-                    if (sd == realm::null()) {
-                        if (is_primary_key) {
-                            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
-                                                 format(c_null_values_cannot_set_required_msg, column_name));
-                        }
-                        else {
-                            table->set_string(column_index, i, "");
-                        }
-                    }
-                    else {
-                        // Payload copy is needed
-                        if (is_primary_key) {
-                            table->set_string_unique(column_index, i, sd);
-                        }
-                        else {
-                            table->set_string(column_index, i, sd);
-                        }
-                    }
-                    break;
-                }
-                case type_Binary: {
-                    BinaryData bd = table->get_binary(column_index + 1, i);
-                    if (bd.is_null()) {
-                        table->set_binary(column_index, i, BinaryData("", 0));
-                    }
-                    else {
-                        // Payload copy is needed
-                        std::vector<char> bd_copy(bd.data(), bd.data() + bd.size());
-                        table->set_binary(column_index, i, BinaryData(bd_copy.data(), bd_copy.size()));
-                    }
-                    break;
-                }
-                case type_Int:
-                    if (table->is_null(column_index + 1, i)) {
-                        if (is_primary_key) {
-                            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
-                                                 format(c_null_values_cannot_set_required_msg, column_name));
-                        }
-                        else {
-                            table->set_int(column_index, i, 0);
-                        }
-                    }
-                    else {
-                        if (is_primary_key) {
-                            table->set_int_unique(column_index, i, table->get_int(column_index + 1, i));
-                        }
-                        else {
-                            table->set_int(column_index, i, table->get_int(column_index + 1, i));
-                        }
-                    }
-                    break;
-                case type_Bool:
-                    if (table->is_null(column_index + 1, i)) {
-                        table->set_bool(column_index, i, false);
-                    }
-                    else {
-                        table->set_bool(column_index, i, table->get_bool(column_index + 1, i));
-                    }
-                    break;
-                case type_Timestamp:
-                    if (table->is_null(column_index + 1, i)) {
-                        table->set_timestamp(column_index, i, Timestamp(0, 0));
-                    }
-                    else {
-                        table->set_timestamp(column_index, i, table->get_timestamp(column_index + 1, i));
-                    }
-                    break;
-                case type_Float:
-                    if (table->is_null(column_index + 1, i)) {
-                        table->set_float(column_index, i, 0.0);
-                    }
-                    else {
-                        table->set_float(column_index, i, table->get_float(column_index + 1, i));
-                    }
-                    break;
-                case type_Double:
-                    if (table->is_null(column_index + 1, i)) {
-                        table->set_double(column_index, i, 0.0);
-                    }
-                    else {
-                        table->set_double(column_index, i, table->get_double(column_index + 1, i));
-                    }
-                    break;
-                case type_Link:
-                case type_LinkList:
-                case type_Mixed:
-                case type_Table:
-                    // checked previously
-                    break;
-                case type_OldDateTime:
-                    // not used
-                    ThrowException(env, UnsupportedOperation, "The old DateTime type is not supported.");
-                    return;
+        if (table->get_column_type(column_index) == DataType::type_Table) {
+            for (size_t i = 0; i < table->size(); ++i) {
+                TableRef subtable = table->get_subtable(column_index, i);
+                convert_column_to_not_nullable(env, subtable.get(), 0, is_primary_key);
             }
         }
-        table->remove_column(column_index + 1);
-        table->rename_column(table->get_column_index(tmp_column_name), column_name);
+        else {
+            convert_column_to_not_nullable(env, table, column_index, is_primary_key);
+        }
     }
     CATCH_STD()
 }

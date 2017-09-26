@@ -120,7 +120,7 @@ public class Table implements NativeObject {
             case DATE_LIST:
             case FLOAT_LIST:
             case DOUBLE_LIST:
-                return nativeAddPrimitiveListColumn(nativePtr, type.getNativeValue() & 128, name, isNullable);
+                return nativeAddPrimitiveListColumn(nativePtr, type.getNativeValue() - 128, name, isNullable);
 
             default:
                 throw new IllegalArgumentException("Unsupported type: " + type);
