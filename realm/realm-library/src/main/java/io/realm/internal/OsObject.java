@@ -174,11 +174,11 @@ public class OsObject implements NativeObject {
     }
 
     private static long getAndVerifyPrimaryKeyColumnIndex(Table table) {
-        long primaryKeyColumnIndex = table.getPrimaryKey();
-        if (primaryKeyColumnIndex == Table.NO_PRIMARY_KEY) {
+        String pkField = OsObjectStore.getPrimaryKeyForObject(table.getSharedRealm(), table.getClassName());
+        if (pkField == null) {
             throw new IllegalStateException(table.getName() + " has no primary key defined.");
         }
-        return primaryKeyColumnIndex;
+        return table.getColumnIndex(pkField);
     }
 
     // TODO: consider to return a OsObject instead when integrating with Object Store's object accessor.
@@ -218,10 +218,12 @@ public class OsObject implements NativeObject {
      * This is used for the fast bulk insertion.
      *
      * @param table the table where the object is created.
+     * @param primaryKeyColumnIndex the column index of primary key field.
+     * @param primaryKeyValue the primary key value.
      * @return a newly created {@code UncheckedRow}.
      */
-    public static long createRowWithPrimaryKey(Table table, Object primaryKeyValue) {
-        long primaryKeyColumnIndex = getAndVerifyPrimaryKeyColumnIndex(table);
+    // FIXME: Proxy could just pass the pk index here which is much faster.
+    public static long createRowWithPrimaryKey(Table table, long primaryKeyColumnIndex, Object primaryKeyValue) {
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
         final SharedRealm sharedRealm = table.getSharedRealm();
 

@@ -108,34 +108,6 @@ public class SharedRealmTests {
     }
 
     @Test
-    public void removeTable() {
-        sharedRealm.beginTransaction();
-        sharedRealm.createTable("TableToRemove");
-        assertTrue(sharedRealm.hasTable("TableToRemove"));
-        sharedRealm.removeTable("TableToRemove");
-        assertFalse(sharedRealm.hasTable("TableToRemove"));
-        sharedRealm.commitTransaction();
-    }
-
-    @Test
-    public void removeTable_notInTransactionThrows() {
-        sharedRealm.beginTransaction();
-        sharedRealm.createTable("TableToRemove");
-        sharedRealm.commitTransaction();
-        thrown.expect(IllegalStateException.class);
-        sharedRealm.removeTable("TableToRemove");
-    }
-
-    @Test
-    public void removeTable_tableNotExist() {
-        sharedRealm.beginTransaction();
-        assertFalse(sharedRealm.hasTable("TableToRemove"));
-        thrown.expect(RealmError.class);
-        sharedRealm.removeTable("TableToRemove");
-        sharedRealm.cancelTransaction();
-    }
-
-    @Test
     public void renameTable() {
         sharedRealm.beginTransaction();
         sharedRealm.createTable("OldTable");

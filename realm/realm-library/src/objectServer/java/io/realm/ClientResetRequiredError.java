@@ -26,15 +26,17 @@ import java.io.File;
  */
 public class ClientResetRequiredError extends ObjectServerError {
 
-    private final RealmConfiguration configuration;
+    private final SyncConfiguration originalConfiguration;
+    private final RealmConfiguration backupConfiguration;
     private final File backupFile;
     private final File originalFile;
 
-    public ClientResetRequiredError(ErrorCode errorCode, String errorMessage, String backupFilePath, RealmConfiguration configuration) {
+    ClientResetRequiredError(ErrorCode errorCode, String errorMessage, SyncConfiguration originalConfiguration, RealmConfiguration backupConfiguration) {
         super(errorCode, errorMessage);
-        this.configuration = configuration;
-        this.backupFile = new File(backupFilePath);
-        this.originalFile = new File(configuration.getPath());
+        this.originalConfiguration = originalConfiguration;
+        this.backupConfiguration = backupConfiguration;
+        this.backupFile = new File(backupConfiguration.getPath());
+        this.originalFile = new File(originalConfiguration.getPath());
     }
 
     /**
@@ -50,11 +52,11 @@ public class ClientResetRequiredError extends ObjectServerError {
      */
     public void executeClientReset()  {
         synchronized (Realm.class) {
-            if (Realm.getGlobalInstanceCount(configuration) > 0) {
+            if (Realm.getGlobalInstanceCount(originalConfiguration) > 0) {
                 throw new IllegalStateException("Realm has not been fully closed. Client Reset cannot run before all " +
                         "instances have been closed.");
             }
-            nativeExecuteClientReset(configuration.getPath());
+            nativeExecuteClientReset(originalConfiguration.getPath());
         }
     }
 
@@ -70,6 +72,12 @@ public class ClientResetRequiredError extends ObjectServerError {
         return backupFile;
     }
 
+    /**
+     * @return the configuration that can be used to open the backup Realm offline.
+     */
+    public RealmConfiguration getBackupRealmConfiguration() {
+        return backupConfiguration;
+    }
     /**
      * Returns the location of the original Realm file. After the Client Reset has completed, the file at this location
      * will be deleted.

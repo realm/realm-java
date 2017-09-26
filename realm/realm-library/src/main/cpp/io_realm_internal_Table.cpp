@@ -20,6 +20,7 @@
 #include "io_realm_internal_Property.h"
 #include "io_realm_internal_Table.h"
 
+#include "shared_realm.hpp"
 #include "util/format.hpp"
 
 #include "java_accessor.hpp"
@@ -37,6 +38,10 @@ static_assert(io_realm_internal_Table_MAX_BINARY_SIZE == Table::max_binary_size,
 
 static const char* c_null_values_cannot_set_required_msg = "The primary key field '%1' has 'null' values stored.  It "
                                                            "cannot be converted to a '@Required' primary key field.";
+static const char* const PK_TABLE_NAME = "pk"; // ObjectStore::c_primaryKeyTableName
+static const size_t CLASS_COLUMN_INDEX = 0; // ObjectStore::c_primaryKeyObjectClassColumnIndex
+static const size_t FIELD_COLUMN_INDEX = 1; // ObjectStore::c_primaryKeyPropertyNameColumnIndex
+
 
 static void finalize_table(jlong ptr);
 
@@ -711,19 +716,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeIncrementLong(JNIEnv* 
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLongUnique(JNIEnv* env, jclass, jlong nativeTablePtr,
-                                                                        jlong columnIndex, jlong rowIndex,
-                                                                        jlong value)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Int)) {
-        return;
-    }
-    try {
-        TBL(nativeTablePtr)->set_int_unique(S(columnIndex), S(rowIndex), value);
-    }
-    CATCH_STD()
-}
-
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetBoolean(JNIEnv* env, jclass, jlong nativeTablePtr,
                                                                      jlong columnIndex, jlong rowIndex,
                                                                      jboolean value, jboolean isDefault)
@@ -778,28 +770,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString(JNIEnv* env,
         }
         JStringAccessor value2(env, value); // throws
         TBL(nativeTablePtr)->set_string(S(columnIndex), S(rowIndex), value2, B(isDefault));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetStringUnique(JNIEnv* env, jclass, jlong nativeTablePtr,
-                                                                          jlong columnIndex, jlong rowIndex,
-                                                                          jstring value)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_String)) {
-        return;
-    }
-    try {
-        if (value == nullptr) {
-            if (!TBL_AND_COL_NULLABLE(env, TBL(nativeTablePtr), columnIndex)) {
-                return;
-            }
-            TBL(nativeTablePtr)->set_string_unique(S(columnIndex), S(rowIndex), null{});
-        }
-        else {
-            JStringAccessor value2(env, value); // throws
-            TBL(nativeTablePtr)->set_string_unique(S(columnIndex), S(rowIndex), value2);
-        }
     }
     CATCH_STD()
 }
@@ -869,27 +839,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull(JNIEnv* env, j
     }
     CATCH_STD()
 }
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNullUnique(JNIEnv* env, jclass, jlong nativeTablePtr,
-                                                                        jlong columnIndex, jlong rowIndex)
-{
-    Table* pTable = TBL(nativeTablePtr);
-    if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex)) {
-        return;
-    }
-    if (!TBL_AND_ROW_INDEX_VALID(env, pTable, rowIndex)) {
-        return;
-    }
-    if (!TBL_AND_COL_NULLABLE(env, pTable, columnIndex)) {
-        return;
-    }
-
-    try {
-        pTable->set_null_unique(S(columnIndex), S(rowIndex));
-    }
-    CATCH_STD()
-}
-
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetRowPtr(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                      jlong index)
@@ -1148,116 +1097,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull(JNIEnv*
 
 // FindAll
 
-
-// FIXME: reenable when find_first_timestamp() is implemented
-/*
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllTimestamp(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong dateTimeValue)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Timestamp))
-        return 0;
-    try {
-        TableView* pTableView = new TableView(TBL(nativeTablePtr)->find_all_timestamp(S(columnIndex),
-from_milliseconds(dateTimeValue)));
-        return reinterpret_cast<jlong>(pTableView);
-    } CATCH_STD()
-    return 0;
-}
-*/
-
-
-// experimental
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeLowerBoundInt(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                         jlong columnIndex, jlong value)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int)) {
-        return 0;
-    }
-
-    Table* pTable = TBL(nativeTablePtr);
-    try {
-        return static_cast<jlong>(pTable->lower_bound_int(S(columnIndex), S(value)));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-
-// experimental
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeUpperBoundInt(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                         jlong columnIndex, jlong value)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int)) {
-        return 0;
-    }
-
-    Table* pTable = TBL(nativeTablePtr);
-    try {
-        return static_cast<jlong>(pTable->upper_bound_int(S(columnIndex), S(value)));
-    }
-    CATCH_STD()
-    return 0;
-}
-
 //
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(JNIEnv* env, jobject,
-                                                                              jlong nativeTablePtr,
-                                                                              jlongArray columnIndices,
-                                                                              jbooleanArray ascending)
-{
-    Table* pTable = TBL(nativeTablePtr);
-
-    JLongArrayAccessor long_arr(env, columnIndices);
-    JBooleanArrayAccessor bool_arr(env, ascending);
-    jsize arr_len = long_arr.size();
-    jsize asc_len = bool_arr.size();
-
-    if (arr_len == 0) {
-        ThrowException(env, IllegalArgument, "You must provide at least one field name.");
-        return 0;
-    }
-    if (asc_len == 0) {
-        ThrowException(env, IllegalArgument, "You must provide at least one sort order.");
-        return 0;
-    }
-    if (arr_len != asc_len) {
-        ThrowException(env, IllegalArgument, "Number of column indices and sort orders do not match.");
-        return 0;
-    }
-
-    std::vector<std::vector<size_t>> indices(S(arr_len));
-    std::vector<bool> ascendings(S(arr_len));
-
-    for (int i = 0; i < arr_len; ++i) {
-        if (!TBL_AND_COL_INDEX_VALID(env, pTable, S(long_arr[i]))) {
-            return 0;
-        }
-        int colType = pTable->get_column_type(S(long_arr[i]));
-        switch (colType) {
-            case type_Int:
-            case type_Bool:
-            case type_String:
-            case type_Double:
-            case type_Float:
-            case type_Timestamp:
-                indices[i] = std::vector<size_t>{S(long_arr[i])};
-                ascendings[i] = S(bool_arr[i]);
-                break;
-            default:
-                ThrowException(env, IllegalArgument, "Sort is only support on String, Date, boolean, byte, short, "
-                                                     "int, long and their boxed variants.");
-                return 0;
-        }
-    }
-
-    try {
-        TableView* pTableView = new TableView(pTable->get_sorted_view(SortDescriptor(*pTable, indices, ascendings)));
-        return reinterpret_cast<jlong>(pTableView);
-    }
-    CATCH_STD()
-    return 0;
-}
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(JNIEnv* env, jobject, jlong nativeTablePtr)
 {
@@ -1272,141 +1112,32 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(JNIEnv* env
     return nullptr;
 }
 
-
-JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToJson(JNIEnv* env, jobject, jlong nativeTablePtr)
-{
-    Table* table = TBL(nativeTablePtr);
-    if (!TABLE_VALID(env, table)) {
-        return nullptr;
-    }
-
-    // Write table to string in JSON format
-    try {
-        ostringstream ss;
-        ss.sync_with_stdio(false); // for performance
-        table->to_json(ss);
-        const string str = ss.str();
-        return to_jstring(env, str);
-    }
-    CATCH_STD()
-    return nullptr;
-}
-
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(JNIEnv*, jobject, jlong nativeTablePtr)
 {
     TR_ENTER_PTR(nativeTablePtr)
     return to_jbool(TBL(nativeTablePtr)->is_attached()); // noexcept
 }
 
-// Checks if the primary key column contains any duplicate values, making it ineligible as a
-// primary key.
-static bool check_valid_primary_key_column(JNIEnv* env, Table* table, StringData column_name) // throws
+static bool pk_table_needs_migration(ConstTableRef pk_table)
 {
-    size_t column_index = table->get_column_index(column_name);
-    if (column_index == realm::not_found) {
-        std::ostringstream error_msg;
-        error_msg << table->get_name() << " does not contain the field \"" << column_name << "\"";
-        ThrowException(env, IllegalArgument, error_msg.str());
+    // Fix wrong types (string, int) -> (string, string)
+    if (pk_table->get_column_type(FIELD_COLUMN_INDEX) == type_Int) {
+        return true;
     }
-    DataType column_type = table->get_column_type(column_index);
-    TableView results = table->get_sorted_view(column_index);
 
-    switch (column_type) {
-        case type_Int:
-            if (results.size() > 1) {
-                int64_t val = results.get_int(column_index, 0);
-                for (size_t i = 1; i < results.size(); i++) {
-                    int64_t next_val = results.get_int(column_index, i);
-                    if (val == next_val) {
-                        std::ostringstream error_msg;
-                        error_msg << "Field \"" << column_name << "\" cannot be a primary key, ";
-                        error_msg << "it already contains duplicate values: " << val;
-                        ThrowException(env, IllegalArgument, error_msg.str());
-                        return false;
-                    }
-                    else {
-                        val = next_val;
-                    }
-                }
-            }
+    // If needed remove "class_" prefix from class names
+    size_t number_of_rows = pk_table->size();
+    for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
+        StringData table_name = pk_table->get_string(CLASS_COLUMN_INDEX, row_ndx);
+        if (table_name.begins_with(TABLE_PREFIX)) {
             return true;
-
-        case type_String:
-            if (results.size() > 1) {
-                string str = results.get_string(column_index, 0);
-                for (size_t i = 1; i < results.size(); i++) {
-                    string next_str = results.get_string(column_index, i);
-                    if (str.compare(next_str) == 0) {
-                        std::ostringstream error_msg;
-                        error_msg << "Field \"" << column_name << "\" cannot be a primary key, ";
-                        error_msg << "it already contains duplicate values: " << str;
-                        ThrowException(env, IllegalArgument, error_msg.str());
-                        return false;
-                    }
-                    else {
-                        str = next_str;
-                    }
-                }
-            }
-            return true;
-
-        default:
-            std::ostringstream error_msg;
-            error_msg << "Invalid primary key type for column: " << column_name;
-            ThrowException(env, IllegalArgument, error_msg.str());
-            return false;
-    }
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(JNIEnv* env, jobject,
-                                                                         jlong nativePrivateKeyTablePtr,
-                                                                         jlong nativeTablePtr, jstring columnName)
-{
-    try {
-        Table* table = TBL(nativeTablePtr);
-        Table* pk_table = TBL(nativePrivateKeyTablePtr);
-        const std::string table_name(table->get_name().substr(TABLE_PREFIX.length())); // Remove "class_" prefix
-        size_t row_index =
-            pk_table->find_first_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, table_name);
-
-        if (columnName == NULL || env->GetStringLength(columnName) == 0) {
-            // No primary key provided => remove previous set keys
-            if (row_index != realm::not_found) {
-                pk_table->remove(row_index);
-            }
-            return io_realm_internal_Table_NO_PRIMARY_KEY;
-        }
-        else {
-            JStringAccessor new_primary_key_column_name(env, columnName);
-            size_t primary_key_column_index = table->get_column_index(new_primary_key_column_name);
-            if (row_index == realm::not_found) {
-                // No primary key is currently set
-                if (check_valid_primary_key_column(env, table, new_primary_key_column_name)) {
-                    row_index = pk_table->add_empty_row();
-                    pk_table->set_string_unique(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, row_index,
-                                                table_name);
-                    pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index,
-                                         new_primary_key_column_name);
-                }
-            }
-            else {
-                // Primary key already exists
-                // We only wish to check for duplicate values if a column isn't already a primary key
-                StringData current_primary_key =
-                    pk_table->get_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index);
-                if (new_primary_key_column_name != current_primary_key) {
-                    if (check_valid_primary_key_column(env, table, new_primary_key_column_name)) {
-                        pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index,
-                                             new_primary_key_column_name);
-                    }
-                }
-            }
-
-            return static_cast<jlong>(primary_key_column_index);
         }
     }
-    CATCH_STD()
-    return 0;
+    // From realm-java 2.0.0, pk table's class column requires a search index.
+    if (!pk_table->has_search_index(CLASS_COLUMN_INDEX)) {
+        return true;
+    }
+    return false;
 }
 
 // 1) Fixes interop issue with Cocoa Realm where the Primary Key table had different types.
@@ -1428,15 +1159,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(JNIEnv*
 
 // This methods converts the old (wrong) table format (string, integer) to the right (string,string) format and strips
 // any class names in the col[0] of their "class_" prefix
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded(
-    JNIEnv*, jclass, jlong groupNativePtr, jlong privateKeyTableNativePtr)
+static bool migrate_pk_table(const Group& group, TableRef pk_table)
 {
-    const size_t CLASS_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX;
-    const size_t FIELD_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX;
-
-    auto group = reinterpret_cast<Group*>(groupNativePtr);
-    Table* pk_table = TBL(privateKeyTableNativePtr);
-    jboolean changed = JNI_FALSE;
+    bool changed = false;
 
     // Fix wrong types (string, int) -> (string, string)
     if (pk_table->get_column_type(FIELD_COLUMN_INDEX) == type_Int) {
@@ -1448,7 +1173,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyT
         for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
             StringData table_name = pk_table->get_string(CLASS_COLUMN_INDEX, row_ndx);
             size_t col_ndx = static_cast<size_t>(pk_table->get_int(FIELD_COLUMN_INDEX, row_ndx));
-            StringData col_name = group->get_table(table_name)->get_column_name(col_ndx);
+            StringData col_name = group.get_table(table_name)->get_column_name(col_ndx);
             // Make a copy of the string
             pk_table->set_string(tmp_col_ndx, row_ndx, col_name);
         }
@@ -1457,7 +1182,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyT
         // The column index for the renamed column will then be the same as the deleted old column
         pk_table->remove_column(FIELD_COLUMN_INDEX);
         pk_table->rename_column(pk_table->get_column_index(tmp_col_name), StringData("pk_property"));
-        changed = JNI_TRUE;
+        changed = true;
     }
 
     // If needed remove "class_" prefix from class names
@@ -1469,68 +1194,48 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyT
             std::string str(table_name.substr(TABLE_PREFIX.length()));
             StringData sd(str);
             pk_table->set_string(CLASS_COLUMN_INDEX, row_ndx, sd);
-            changed = JNI_TRUE;
+            changed = true;
         }
     }
 
     // From realm-java 2.0.0, pk table's class column requires a search index.
     if (!pk_table->has_search_index(CLASS_COLUMN_INDEX)) {
         pk_table->add_search_index(CLASS_COLUMN_INDEX);
-        changed = JNI_TRUE;
+        changed = true;
     }
     return changed;
 }
 
-JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_Table_nativePrimaryKeyTableNeedsMigration(JNIEnv*, jclass, jlong primaryKeyTableNativePtr)
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded(JNIEnv* env, jclass,
+                                                                                         jlong shared_realm_ptr)
 {
+    TR_ENTER_PTR(shared_realm_ptr)
+    auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
+    try {
+        if (!shared_realm->read_group().has_table(PK_TABLE_NAME)) {
+            return;
+        }
 
-    const size_t CLASS_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX;
-    const size_t FIELD_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX;
+        auto pk_table = shared_realm->read_group().get_table(PK_TABLE_NAME);
+        if (!pk_table_needs_migration(pk_table)) {
+            return;
+        }
 
-    Table* pk_table = TBL(primaryKeyTableNativePtr);
-
-    // Fix wrong types (string, int) -> (string, string)
-    if (pk_table->get_column_type(FIELD_COLUMN_INDEX) == type_Int) {
-        return JNI_TRUE;
-    }
-
-    // If needed remove "class_" prefix from class names
-    size_t number_of_rows = pk_table->size();
-    for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
-        StringData table_name = pk_table->get_string(CLASS_COLUMN_INDEX, row_ndx);
-        if (table_name.begins_with(TABLE_PREFIX)) {
-            return JNI_TRUE;
+        shared_realm->begin_transaction();
+        if (migrate_pk_table(shared_realm->read_group(), pk_table)) {
+            shared_realm->commit_transaction();
+        }
+        else {
+            shared_realm->cancel_transaction();
         }
     }
-    // From realm-java 2.0.0, pk table's class column requires a search index.
-    if (!pk_table->has_search_index(CLASS_COLUMN_INDEX)) {
-        return JNI_TRUE;
-    }
-    return JNI_FALSE;
+    CATCH_STD()
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema(JNIEnv*, jobject, jlong thisTablePtr,
                                                                             jlong otherTablePtr)
 {
     return to_jbool(*TBL(thisTablePtr)->get_descriptor() == *TBL(otherTablePtr)->get_descriptor());
-}
-
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion(JNIEnv* env, jobject, jlong nativeTablePtr)
-{
-    bool valid = (TBL(nativeTablePtr) != nullptr);
-    if (valid) {
-        if (!TBL(nativeTablePtr)->is_attached()) {
-            ThrowException(env, IllegalState, "The Realm has been closed and is no longer accessible.");
-            return 0;
-        }
-    }
-    try {
-        return static_cast<jlong>(TBL(nativeTablePtr)->get_version_counter());
-    }
-    CATCH_STD()
-    return 0;
 }
 
 static void finalize_table(jlong ptr)

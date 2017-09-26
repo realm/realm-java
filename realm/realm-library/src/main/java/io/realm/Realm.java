@@ -55,6 +55,8 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
@@ -798,8 +800,9 @@ public class Realm extends BaseRealm {
         }
         checkIfValid();
         E realmObject;
-        Table table = schema.getTable(clazz);
-        if (table.hasPrimaryKey()) {
+
+        if (OsObjectStore.getPrimaryKeyForObject(
+                sharedRealm, configuration.getSchemaMediator().getSimpleClassName(clazz)) != null) {
             // As we need the primary key value we have to first parse the entire input stream as in the general
             // case that value might be the last property. :(
             Scanner scanner = null;
@@ -909,7 +912,8 @@ public class Realm extends BaseRealm {
             List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         // Checks and throws the exception earlier for a better exception message.
-        if (table.hasPrimaryKey()) {
+        if (OsObjectStore.getPrimaryKeyForObject(
+                sharedRealm, configuration.getSchemaMediator().getSimpleClassName(clazz)) != null) {
             throw new RealmException(String.format(Locale.US, "'%s' has a primary key, use" +
                     " 'createObject(Class<E>, Object)' instead.", table.getClassName()));
         }
@@ -1596,7 +1600,10 @@ public class Realm extends BaseRealm {
     }
 
     private void checkHasPrimaryKey(Class<? extends RealmModel> clazz) {
-        if (!schema.getTable(clazz).hasPrimaryKey()) {
+        String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
+        OsObjectSchemaInfo objectSchemaInfo = sharedRealm.getSchemaInfo().getObjectSchemaInfo(className);
+
+        if (objectSchemaInfo.getPrimaryKeyProperty() == null) {
             throw new IllegalArgumentException("A RealmObject with no @PrimaryKey cannot be updated: " + clazz.toString());
         }
     }
