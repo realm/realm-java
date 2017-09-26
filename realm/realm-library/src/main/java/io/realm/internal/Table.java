@@ -100,7 +100,31 @@ public class Table implements NativeObject {
      */
     public long addColumn(RealmFieldType type, String name, boolean isNullable) {
         verifyColumnName(name);
-        return nativeAddColumn(nativePtr, type.getNativeValue(), name, isNullable);
+        switch (type) {
+            case INTEGER:
+            case BOOLEAN:
+            case STRING:
+            case BINARY:
+            case UNSUPPORTED_TABLE:
+            case UNSUPPORTED_MIXED:
+            case UNSUPPORTED_DATE:
+            case DATE:
+            case FLOAT:
+            case DOUBLE:
+                return nativeAddColumn(nativePtr, type.getNativeValue(), name, isNullable);
+
+            case INTEGER_LIST:
+            case BOOLEAN_LIST:
+            case STRING_LIST:
+            case BINARY_LIST:
+            case DATE_LIST:
+            case FLOAT_LIST:
+            case DOUBLE_LIST:
+                return nativeAddPrimitiveListColumn(nativePtr, type.getNativeValue() & 128, name, isNullable);
+
+            default:
+                throw new IllegalArgumentException("Unsupported type: " + type);
+        }
     }
 
     /**
@@ -687,6 +711,8 @@ public class Table implements NativeObject {
     private native boolean nativeIsValid(long nativeTablePtr);
 
     private native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);
+
+    private native long nativeAddPrimitiveListColumn(long nativeTablePtr, int type, String name, boolean isNullable);
 
     private native long nativeAddColumnLink(long nativeTablePtr, int type, String name, long targetTablePtr);
 

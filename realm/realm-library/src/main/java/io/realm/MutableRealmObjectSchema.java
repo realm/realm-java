@@ -19,7 +19,6 @@ package io.realm;
 import java.util.Locale;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
@@ -105,7 +104,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             nullable = false;
         }
 
-        long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
+        long columnIndex = table.addColumn(metadata.fieldType, fieldName, nullable);
         try {
             addModifiers(fieldName, attributes);
         } catch (Exception e) {
@@ -129,6 +128,25 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
         table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
+        return this;
+    }
+
+    @Override
+    public RealmObjectSchema addRealmListField(String fieldName, Class<?> elementType) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+
+        FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(elementType);
+        if (metadata == null) {
+            if (elementType.equals(RealmObjectSchema.class)) {
+                throw new IllegalArgumentException("Use 'addRealmListField(String name, RealmObjectSchema schema)' instead to add lists that link to other RealmObjects: " + fieldName);
+            } else {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "RealmList does not support lists with this type: %s(%s)",
+                        fieldName, elementType));
+            }
+        }
+        table.addColumn(metadata.listType, fieldName, metadata.defaultNullable);
         return this;
     }
 

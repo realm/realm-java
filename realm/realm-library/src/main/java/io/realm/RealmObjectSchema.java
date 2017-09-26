@@ -47,23 +47,23 @@ public abstract class RealmObjectSchema {
 
     static {
         Map<Class<?>, FieldMetaData> m = new HashMap<>();
-        m.put(String.class, new FieldMetaData(RealmFieldType.STRING, true));
-        m.put(short.class, new FieldMetaData(RealmFieldType.INTEGER, false));
-        m.put(Short.class, new FieldMetaData(RealmFieldType.INTEGER, true));
-        m.put(int.class, new FieldMetaData(RealmFieldType.INTEGER, false));
-        m.put(Integer.class, new FieldMetaData(RealmFieldType.INTEGER, true));
-        m.put(long.class, new FieldMetaData(RealmFieldType.INTEGER, false));
-        m.put(Long.class, new FieldMetaData(RealmFieldType.INTEGER, true));
-        m.put(float.class, new FieldMetaData(RealmFieldType.FLOAT, false));
-        m.put(Float.class, new FieldMetaData(RealmFieldType.FLOAT, true));
-        m.put(double.class, new FieldMetaData(RealmFieldType.DOUBLE, false));
-        m.put(Double.class, new FieldMetaData(RealmFieldType.DOUBLE, true));
-        m.put(boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, false));
-        m.put(Boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, true));
-        m.put(byte.class, new FieldMetaData(RealmFieldType.INTEGER, false));
-        m.put(Byte.class, new FieldMetaData(RealmFieldType.INTEGER, true));
-        m.put(byte[].class, new FieldMetaData(RealmFieldType.BINARY, true));
-        m.put(Date.class, new FieldMetaData(RealmFieldType.DATE, true));
+        m.put(String.class, new FieldMetaData(RealmFieldType.STRING, RealmFieldType.STRING_LIST, true));
+        m.put(short.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
+        m.put(Short.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
+        m.put(int.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
+        m.put(Integer.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
+        m.put(long.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
+        m.put(Long.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
+        m.put(float.class, new FieldMetaData(RealmFieldType.FLOAT, RealmFieldType.FLOAT_LIST, false));
+        m.put(Float.class, new FieldMetaData(RealmFieldType.FLOAT, RealmFieldType.FLOAT_LIST, true));
+        m.put(double.class, new FieldMetaData(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE_LIST, false));
+        m.put(Double.class, new FieldMetaData(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE_LIST, true));
+        m.put(boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN_LIST, false));
+        m.put(Boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN_LIST, true));
+        m.put(byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
+        m.put(Byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
+        m.put(byte[].class, new FieldMetaData(RealmFieldType.BINARY, RealmFieldType.BINARY_LIST, true));
+        m.put(Date.class, new FieldMetaData(RealmFieldType.DATE, RealmFieldType.DATE_LIST, true));
         SUPPORTED_SIMPLE_FIELDS = Collections.unmodifiableMap(m);
     }
 
@@ -71,8 +71,8 @@ public abstract class RealmObjectSchema {
 
     static {
         Map<Class<?>, FieldMetaData> m = new HashMap<>();
-        m.put(RealmObject.class, new FieldMetaData(RealmFieldType.OBJECT, false));
-        m.put(RealmList.class, new FieldMetaData(RealmFieldType.LIST, false));
+        m.put(RealmObject.class, new FieldMetaData(RealmFieldType.OBJECT, null, false));
+        m.put(RealmList.class, new FieldMetaData(RealmFieldType.LIST, null, false));
         SUPPORTED_LINKED_FIELDS = Collections.unmodifiableMap(m);
     }
 
@@ -160,6 +160,33 @@ public abstract class RealmObjectSchema {
      * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      */
     public abstract RealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema);
+
+    /**
+     * Adds a new field that references a {@link RealmList} with primitive values supported by Realm.
+     * See {@link RealmObject} for the list of supported types. Nullability of elements are either defined
+     * by using the correct boxed or primitive type e.g., {@code Integer.class} instead of {@code int.class} or
+     * {@link #setRequired(String, boolean)}.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     * // Defines the list of Strings as being non null.
+     * RealmObjectSchema schema = schema.create("Person")
+     *     .addRealmListField("children", String.class)
+     *     .setRequired("children", true)
+     * }
+     * </pre>
+     * If the list contains references to other Realm classes, then use
+     * {@link #addRealmListField(String, RealmObjectSchema)} instead.
+     *
+     * @param fieldName name of the field to add.
+     * @param elementType simple type of elements in the array.
+     * @return the updated schema.
+     * @throws IllegalArgumentException if the field name is illegal, a field with that name already exists or
+     * the element type isn't supported.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     */
+    public abstract RealmObjectSchema addRealmListField(String fieldName, Class<?> elementType);
 
     /**
      * Removes a field from the class.
@@ -525,11 +552,13 @@ public abstract class RealmObjectSchema {
 
     // Tuple containing data about each supported Java type.
     static final class FieldMetaData {
-        final RealmFieldType realmType;
+        final RealmFieldType fieldType; // Underlying Realm type for fields with this type
+        final RealmFieldType listType; // Underlying Realm type for RealmLists containing this type
         final boolean defaultNullable;
 
-        FieldMetaData(RealmFieldType realmType, boolean defaultNullable) {
-            this.realmType = realmType;
+        FieldMetaData(RealmFieldType fieldType, RealmFieldType listType, boolean defaultNullable) {
+            this.fieldType = fieldType;
+            this.listType = listType;
             this.defaultNullable = defaultNullable;
         }
     }

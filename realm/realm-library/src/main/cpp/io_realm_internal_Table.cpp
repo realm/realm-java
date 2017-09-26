@@ -74,12 +74,30 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn(JNIEnv* env
     try {
         JStringAccessor name2(env, name); // throws
         bool is_column_nullable = to_bool(isNullable);
-
         DataType dataType = DataType(colType);
         if (is_column_nullable && dataType == type_LinkList) {
             ThrowException(env, IllegalArgument, "List fields cannot be nullable.");
         }
         return static_cast<jlong>(TBL(nativeTablePtr)->add_column(dataType, name2, is_column_nullable));
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveListColumn(JNIEnv* env, jobject,
+                                                                                  jlong native_table_ptr, jint j_col_type,
+                                                                                  jstring j_name, jboolean j_is_nullable)
+{
+    if (!TABLE_VALID(env, TBL(native_table_ptr))) {
+        return 0;
+    }
+    try {
+        JStringAccessor name(env, j_name); // throws
+        bool is_column_nullable = to_bool(j_is_nullable);
+        DataType data_type = DataType(j_col_type);
+        Table* table = TBL(native_table_ptr);
+        size_t col = table->add_column(type_Table, name);
+        return table->get_subdescriptor(col)->add_column(data_type, ObjectStore::ArrayColumnName, nullptr, is_column_nullable);
     }
     CATCH_STD()
     return 0;

@@ -105,6 +105,7 @@ public class RealmObjectSchemaTests {
         SIMPLE, OBJECT, LIST
     }
 
+    // Enumerate all standard field types
     public enum FieldType {
         STRING(String.class, true),
         SHORT(Short.class, true), PRIMITIVE_SHORT(short.class, false),
@@ -116,8 +117,7 @@ public class RealmObjectSchemaTests {
         DOUBLE(Double.class, true), PRIMITIVE_DOUBLE(double.class, false),
         BLOB(byte[].class, true),
         DATE(Date.class, true),
-        OBJECT(RealmObject.class, false),
-        LIST(RealmList.class, false);
+        OBJECT(RealmObject.class, false);
 
         final Class<?> clazz;
         final boolean defaultNullable;
@@ -135,6 +135,41 @@ public class RealmObjectSchemaTests {
             return defaultNullable;
         }
     }
+
+    // Enumerate all list types
+    public enum FieldListType {
+        STRING_LIST(String.class, true),
+        SHORT_LIST(Short.class, true), PRIMITIVE_SHORT_LIST(short.class, false),
+        INT_LIST(Integer.class, true), PRIMITIVE_INT_LIST(int.class, false),
+        LONG_LIST(Long.class, true), PRIMITIVE_LONG_LIST(long.class, false),
+        BYTE_LIST(Byte.class, true), PRIMITIVE_BYTE_LIST(byte.class, false),
+        BOOLEAN_LIST(Boolean.class, true), PRIMITIVE_BOOLEAN_LIST(boolean.class, false),
+        FLOAT_LIST(Float.class, true), PRIMITIVE_FLOAT_LIST(float.class, false),
+        DOUBLE_LIST(Double.class, true), PRIMITIVE_DOUBLE_LIST(double.class, false),
+        BLOB_LIST(byte[].class, true),
+        DATE_LIST(Date.class, true),
+        LIST(RealmList.class, false); // List of Realm Objects
+
+        final Class<?> clazz;
+        final boolean defaultNullable;
+
+        FieldListType(Class<?> clazz, boolean defaultNullable) {
+            this.clazz = clazz;
+            this.defaultNullable = defaultNullable;
+        }
+
+        public Class<?> getType() {
+            return clazz;
+        }
+
+        public boolean isNullable() {
+            return defaultNullable;
+        }
+    }
+
+
+
+
 
     public enum IndexFieldType {
         STRING(String.class, true),
@@ -251,20 +286,28 @@ public class RealmObjectSchemaTests {
             }
             return;
         }
+        String fieldName = "foo";
         for (FieldType fieldType : FieldType.values()) {
-            String fieldName = "foo";
             switch (fieldType) {
                 case OBJECT:
                     schema.addRealmObjectField(fieldName, DOG_SCHEMA);
                     checkAddedAndRemovable(fieldName);
                     break;
+                default:
+                    // All simple fields
+                    schema.addField(fieldName, fieldType.getType());
+                    checkAddedAndRemovable(fieldName);
+            }
+        }
+        for (FieldListType fieldType : FieldListType.values()) {
+            switch (fieldType) {
                 case LIST:
                     schema.addRealmListField(fieldName, DOG_SCHEMA);
                     checkAddedAndRemovable(fieldName);
                     break;
                 default:
-                    // All simple fields
-                    schema.addField(fieldName, fieldType.getType());
+                    // All primitive lists
+                    schema.addRealmListField(fieldName, fieldType.getType());
                     checkAddedAndRemovable(fieldName);
             }
         }
@@ -356,7 +399,7 @@ public class RealmObjectSchemaTests {
             String fieldName = "foo";
             switch (fieldType) {
                 case OBJECT: continue; // Not possible.
-                case LIST: continue; // Not possible.
+//                case LIST: continue; // Not possible. // FIXME
                 default:
                     // All simple types
                     schema.addField(fieldName, fieldType.getType(), FieldAttribute.REQUIRED);
@@ -561,16 +604,17 @@ public class RealmObjectSchemaTests {
                     } catch (IllegalArgumentException ignored) {
                     }
                     break;
-                case LIST:
-                    // Lists are not nullable and cannot be configured to be so.
-                    schema.addRealmListField(fieldName, schema);
-                    assertFalse(schema.isNullable(fieldName));
-                    try {
-                        schema.setNullable(fieldName, true);
-                        fail();
-                    } catch (IllegalArgumentException ignored) {
-                    }
-                    break;
+// FIXME
+//                case LIST:
+//                    // Lists are not nullable and cannot be configured to be so.
+//                    schema.addRealmListField(fieldName, schema);
+//                    assertFalse(schema.isNullable(fieldName));
+//                    try {
+//                        schema.setNullable(fieldName, true);
+//                        fail();
+//                    } catch (IllegalArgumentException ignored) {
+//                    }
+//                    break;
                 default:
                     // All simple types.
                     schema.addField(fieldName, fieldType.getType());
@@ -602,16 +646,17 @@ public class RealmObjectSchemaTests {
                     } catch (IllegalArgumentException ignored) {
                     }
                     break;
-                case LIST:
-                    // Lists are always non-nullable and cannot be configured otherwise.
-                    schema.addRealmListField(fieldName, schema);
-                    assertTrue(schema.isRequired((fieldName)));
-                    try {
-                        schema.setRequired(fieldName, true);
-                        fail();
-                    } catch (IllegalArgumentException ignored) {
-                    }
-                    break;
+// FIXME
+//                case LIST:
+//                    // Lists are always non-nullable and cannot be configured otherwise.
+//                    schema.addRealmListField(fieldName, schema);
+//                    assertTrue(schema.isRequired((fieldName)));
+//                    try {
+//                        schema.setRequired(fieldName, true);
+//                        fail();
+//                    } catch (IllegalArgumentException ignored) {
+//                    }
+//                    break;
                 default:
                     // All simple types.
                     schema.addField(fieldName, fieldType.getType());
@@ -634,9 +679,10 @@ public class RealmObjectSchemaTests {
             String fieldName = fieldType.name();
             switch (fieldType) {
                 case OBJECT:
-                case LIST:
-                    // Skip always nullable fields.
-                    break;
+// FIXME
+//                case LIST:
+//                    // Skip always nullable fields.
+//                    break;
                 default:
                     // Skip not-nullable fields .
                     if (!fieldType.isNullable()) {
