@@ -187,7 +187,9 @@ public class OsRealmConfig implements NativeObject {
 
         // Set schema related params.
         SchemaMode schemaMode = SchemaMode.SCHEMA_MODE_MANUAL;
-        if (config.isReadOnly()) {
+        if (config.isRecoveryConfiguration()) {
+            schemaMode = SchemaMode.SCHEMA_MODE_IMMUTABLE;
+        } else if (config.isReadOnly()) {
             schemaMode = SchemaMode.SCHEMA_MODE_READONLY;
         } else if (syncRealmUrl != null) {
             schemaMode = SchemaMode.SCHEMA_MODE_ADDITIVE;
@@ -210,7 +212,6 @@ public class OsRealmConfig implements NativeObject {
         if (initializationCallback != null) {
             nativeSetInitializationCallback(nativePtr, initializationCallback);
         }
-
         // Set sync config
         if (syncRealmUrl != null) {
             nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,

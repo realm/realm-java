@@ -47,7 +47,6 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.network.LookupUserIdResponse;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.permissions.ManagementModule;
-import io.realm.internal.permissions.PermissionModule;
 import io.realm.log.RealmLog;
 
 /**
@@ -221,9 +220,9 @@ public class SyncUser {
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
-    public static RealmAsyncTask loginAsync(final SyncCredentials credentials, final String authenticationUrl, final Callback callback) {
+    public static RealmAsyncTask loginAsync(final SyncCredentials credentials, final String authenticationUrl, final Callback<SyncUser> callback) {
         checkLooperThread("Asynchronous login is only possible from looper threads.");
-        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public SyncUser run() throws ObjectServerError {
                 return login(credentials, authenticationUrl);
@@ -278,7 +277,7 @@ public class SyncUser {
             // Finally revoke server token. The local user is logged out in any case.
             final AuthenticationServer server = SyncManager.getAuthServer();
             // don't reference directly the refreshToken inside the revoke request
-            // as it may revoke the newly acquired and refresh_token
+            // as it may revoke the newly acquired refresh_token
             final Token refreshTokenToBeRevoked = refreshToken;
 
             ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
@@ -375,13 +374,13 @@ public class SyncUser {
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
-    public RealmAsyncTask changePasswordAsync(final String newPassword, final Callback callback) {
+    public RealmAsyncTask changePasswordAsync(final String newPassword, final Callback<SyncUser> callback) {
         checkLooperThread("Asynchronous changing password is only possible from looper threads.");
         //noinspection ConstantConditions
         if (callback == null) {
             throw new IllegalArgumentException("Non-null 'callback' required.");
         }
-        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public SyncUser run() {
                 changePassword(newPassword);
@@ -405,97 +404,18 @@ public class SyncUser {
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
-    public RealmAsyncTask changePasswordAsync(final String userId, final String newPassword, final Callback callback) {
+    public RealmAsyncTask changePasswordAsync(final String userId, final String newPassword, final Callback<SyncUser> callback) {
         checkLooperThread("Asynchronous changing password is only possible from looper threads.");
         //noinspection ConstantConditions
         if (callback == null) {
             throw new IllegalArgumentException("Non-null 'callback' required.");
         }
 
-        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public SyncUser run() {
                 changePassword(userId, newPassword);
                 return SyncUser.this;
-            }
-        }.start();
-    }
-
-    /**
-     * Helper method for Admin users in order to lookup a {@code SyncUser} using the identity provider and the used username.
-     *
-     * @param provider identity providers {@link io.realm.SyncCredentials.IdentityProvider} used when the account was created.
-     * @param providerId username or email used to create the account for the first time,
-     *                   what is needed will depend on what type of {@link SyncCredentials} was used.
-     *
-     * @return {@code SyncUser} associated with the given identity provider and providerId, or {@code null} in case
-     * of an {@code invalid} provider or {@code providerId}.
-     * @throws ObjectServerError in case of an error.
-     * @deprecated as of release 3.6.0, replaced by {@link #retrieveInfoForUser(String, String)}}
-     */
-    @Deprecated
-    public SyncUser retrieveUser(final String provider, final String providerId) throws ObjectServerError {
-        if (Util.isEmptyString(provider)) {
-            throw new IllegalArgumentException("Not-null 'provider' required.");
-        }
-
-        if (Util.isEmptyString(providerId)) {
-            throw new IllegalArgumentException("None empty 'providerId' required.");
-        }
-
-        if (!isAdmin()) {
-            throw new IllegalArgumentException("SyncUser needs to be admin in order to lookup other users ID.");
-        }
-
-        AuthenticationServer authServer = SyncManager.getAuthServer();
-        LookupUserIdResponse response = authServer.retrieveUser(refreshToken, provider, providerId, getAuthenticationUrl());
-        if (!response.isValid()) {
-            // the endpoint returns a 404 if it can't honor the query, either because
-            // - provider is not valid
-            // - provider_id is not valid
-            // - token used is not an admin one
-            // in this case we should return null instead of throwing
-            if (response.getError().getErrorCode() == ErrorCode.NOT_FOUND) {
-                return null;
-            } else {
-                throw response.getError();
-            }
-        } else {
-            SyncUser syncUser = SyncManager.getUserStore().get(response.getUserId(), getAuthenticationUrl().toString());
-            if (syncUser != null) {
-                return syncUser;
-            } else {
-                // build a SynUser without a token
-                Token refreshToken = new Token(null, response.getUserId(), null, 0, null, response.isAdmin());
-                return new SyncUser(refreshToken, getAuthenticationUrl());
-            }
-        }
-    }
-
-    /**
-     * Asynchronously lookup a {@code SyncUser} using the identity provider and the used username.
-     * This is for Admin users only.
-     *
-     * @param provider identity providers {@link io.realm.SyncCredentials.IdentityProvider} used when the account was created.
-     * @param providerId  username or email used to create the account for the first time,
-     *                    what is needed will depend on what type of {@link SyncCredentials} was used.
-     * @param callback callback when the lookup has completed or failed. The callback will always happen on the same thread
-     * as this method is called on.
-     * @return representation of the async task that can be used to cancel it if needed.
-     * @deprecated as of release 3.6.0, replaced by {@link #retrieveInfoForUserAsync(String, String, RequestCallback)}}
-     */
-    @Deprecated
-    public RealmAsyncTask retrieveUserAsync(final String provider, final String providerId, final Callback callback) {
-        checkLooperThread("Asynchronously retrieving user id is only possible from looper threads.");
-        //noinspection ConstantConditions
-        if (callback == null) {
-            throw new IllegalArgumentException("Non-null 'callback' required.");
-        }
-
-        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
-            @Override
-            public SyncUser run() {
-                return retrieveUser(provider, providerId);
             }
         }.start();
     }
@@ -527,16 +447,10 @@ public class SyncUser {
         AuthenticationServer authServer = SyncManager.getAuthServer();
         LookupUserIdResponse response = authServer.retrieveUser(refreshToken, provider, providerUserIdentity, getAuthenticationUrl());
         if (!response.isValid()) {
-            // the endpoint returns a 404 if it can't honor the query, either because
-            // - provider is not valid
-            // - provider_id is not valid
-            // - token used is not an admin one
-            // in this case we should return null instead of throwing
-            if (response.getError().getErrorCode() == ErrorCode.NOT_FOUND) {
-                return null;
-            } else {
-                throw response.getError();
-            }
+            // Right now errors are very inconsistent. See https://github.com/realm/ros/issues/310
+            // Treat them all as "User not existing". This is too broad, and should be revisited
+            // once #310 is fixed.
+            return null;
         } else {
             return SyncUserInfo.fromLookupUserIdResponse(response);
         }
@@ -555,7 +469,7 @@ public class SyncUser {
      * as this method is called on.
      * @return representation of the async task that can be used to cancel it if needed.
      */
-    public RealmAsyncTask retrieveInfoForUserAsync(final String providerUserIdentity, final String provider, final RequestCallback<SyncUserInfo> callback) {
+    public RealmAsyncTask retrieveInfoForUserAsync(final String providerUserIdentity, final String provider, final Callback<SyncUserInfo> callback) {
         checkLooperThread("Asynchronously retrieving user is only possible from looper threads.");
         //noinspection ConstantConditions
         if (callback == null) {
@@ -563,12 +477,8 @@ public class SyncUser {
         }
 
         return new Request<SyncUserInfo>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
-            // TODO remove this override on next major release when we remove the deprecated Callback
             @Override
-            public SyncUser run() {return null;}
-
-            @Override
-            public SyncUserInfo execute() throws ObjectServerError {
+            public SyncUserInfo run() throws ObjectServerError {
                 return retrieveInfoForUser(providerUserIdentity, provider);
             }
         }.start();
@@ -638,12 +548,12 @@ public class SyncUser {
     }
 
     /**
-     * Returns this user's access token. This is the users credential for accessing the Realm Object Server and should
+     * Returns this user's refresh token. This is the users credential for accessing the Realm Object Server and should
      * be treated as sensitive data.
      *
-     * @return the user's access token. If this user has logged out or the login has expired {@code null} is returned.
+     * @return the user's refresh token. If this user has logged out or the login has expired {@code null} is returned.
      */
-    public Token getAccessToken() {
+    Token getRefreshToken() {
         return refreshToken;
     }
 
@@ -770,32 +680,19 @@ public class SyncUser {
     // Class wrapping requests made against the auth server. Is also responsible for calling with success/error on the
     // correct thread.
     private static abstract class Request<T> {
-
         @Nullable
-        private final Callback callback;
-        @Nullable
-        private final RequestCallback<T> genericCallback;
+        private final Callback<T> callback;
         private final RealmNotifier handler;
         private final ThreadPoolExecutor networkPoolExecutor;
 
-        Request(ThreadPoolExecutor networkPoolExecutor, @Nullable Callback callback) {
+        Request(ThreadPoolExecutor networkPoolExecutor, @Nullable Callback<T> callback) {
             this.callback = callback;
-            this.genericCallback = null;
-            this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
-            this.networkPoolExecutor = networkPoolExecutor;
-        }
-
-        Request(ThreadPoolExecutor networkPoolExecutor, @Nullable RequestCallback<T> callback) {
-            this.callback = null;
-            this.genericCallback = callback;
             this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
             this.networkPoolExecutor = networkPoolExecutor;
         }
 
         // Implements the request. Return the current sync user if the request succeeded. Otherwise throw an error.
-        public abstract SyncUser run() throws ObjectServerError;
-        //TODO next major release, remove run, rename execute to run and make it abstract
-        public T execute() throws ObjectServerError {return null;}
+        public abstract T run() throws ObjectServerError;
 
         // Start the request
         public RealmAsyncTask start() {
@@ -803,13 +700,7 @@ public class SyncUser {
                 @Override
                 public void run() {
                     try {
-                        // co-exist the old and new callback
-                        if (genericCallback != null) {
-                            postSuccess(Request.this.execute());
-                        } else {
-                            postSuccess(Request.this.run());
-                        }
-
+                        postSuccess(Request.this.run());
                     } catch (ObjectServerError e) {
                         postError(e);
                     } catch (Throwable e) {
@@ -837,45 +728,19 @@ public class SyncUser {
             }
         }
 
-        private void postSuccess(final SyncUser user) {
+        private void postSuccess(final T result) {
             if (callback != null) {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onSuccess(user);
-                    }
-                });
-            }
-        }
-
-        private void postSuccess(final T result) {
-            if (genericCallback != null) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        genericCallback.onSuccess(result);
+                        callback.onSuccess(result);
                     }
                 });
             }
         }
     }
 
-    // TODO remove and replace uses by RequestCallback on next major release
-    public interface Callback {
-        /**
-         * @deprecated as per 3.6.0 release, replaced by {@link RequestCallback#onSuccess(Object)}
-         */
-        @Deprecated
-        void onSuccess(SyncUser user);
-
-        /**
-         * @deprecated as per 3.6.0 release, replaced by {@link RequestCallback#onError(ObjectServerError)}
-         */
-        @Deprecated
-        void onError(ObjectServerError error);
-    }
-
-    public interface RequestCallback<T> {
+    public interface Callback<T> {
         void onSuccess(T result);
 
         void onError(ObjectServerError error);

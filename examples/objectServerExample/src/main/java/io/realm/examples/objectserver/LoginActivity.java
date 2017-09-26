@@ -78,7 +78,7 @@ public class LoginActivity extends AppCompatActivity {
         String password = this.password.getText().toString();
 
         SyncCredentials creds = SyncCredentials.usernamePassword(username, password, createUser);
-        SyncUser.Callback callback = new SyncUser.Callback() {
+        SyncUser.Callback<SyncUser> callback = new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(@Nonnull SyncUser user) {
                 progressDialog.dismiss();

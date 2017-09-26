@@ -18,13 +18,14 @@ package io.realm;
 
 import android.app.IntentService;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.ManagableObject;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import rx.Observable;
-
+import io.realm.rx.ObjectChange;
 
 /**
  * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then
@@ -68,6 +69,9 @@ import rx.Observable;
 
 @RealmClass
 public abstract class RealmObject implements RealmModel, ManagableObject {
+    static final String MSG_NULL_OBJECT = "'model' is null.";
+    static final String MSG_DELETED_OBJECT = "the object is already deleted.";
+    static final String MSG_DYNAMIC_OBJECT = "the object is an instance of DynamicRealmObject. Use DynamicRealmObject.getDynamicRealm() instead.";
 
     /**
      * Deletes the object from the Realm it is currently associated to.
@@ -120,7 +124,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * when observed.
      * <pre>
      * {@code
-     * realm.where(BannerRealm.class).equalTo("type", type).findFirstAsync().asObservable()
+     * realm.where(BannerRealm.class).equalTo("type", type).findFirstAsync().asFlowable()
      *      .filter(result.isLoaded() && result.isValid())
      *      .first()
      * }
@@ -260,7 +264,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      */
     @Override
     public boolean isManaged() {
-        return isManaged(this);
+        return RealmObject.isManaged(this);
     }
 
     /**
@@ -284,6 +288,49 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      */
     public static <E extends RealmModel> boolean isManaged(E object) {
         return object instanceof RealmObjectProxy;
+    }
+
+    /**
+     * Returns {@link Realm} instance where this {@link RealmObject} belongs.
+     * <p>
+     * You <b>must not</b> call {@link Realm#close()} against returned instance.
+     *
+     * @return {@link Realm} instance where this object belongs to or {@code null} if this object is unmanaged.
+     * @throws IllegalStateException if this object is an instance of {@link DynamicRealmObject}
+     * or this object was already deleted or the corresponding {@link Realm} was already closed.
+     */
+    public Realm getRealm() {
+        return getRealm(this);
+    }
+
+    /**
+     * returns {@link Realm} instance where the {@code model} belongs.
+     * <p>
+     * You <b>must not</b> call {@link Realm#close()} against returned instance.
+     *
+     * @param model an {@link RealmModel} instance other than {@link DynamicRealmObject}.
+     * @return {@link Realm} instance where the {@code model} belongs or {@code null} if the {@code model} is unmanaged.
+     * @throws IllegalArgumentException if the {@code model} is {@code null}.
+     * @throws IllegalStateException if the {@code model}  is an instance of {@link DynamicRealmObject}
+     * or this object was already deleted or the corresponding {@link Realm} was already closed.
+     */
+    public static Realm getRealm(RealmModel model) {
+        if (model == null) {
+            throw new IllegalArgumentException(MSG_NULL_OBJECT);
+        }
+        if (model instanceof DynamicRealmObject) {
+            throw new IllegalStateException(MSG_DYNAMIC_OBJECT);
+        }
+        if (!(model instanceof RealmObjectProxy)) {
+            return null;
+        }
+        final BaseRealm realm = ((RealmObjectProxy) model).realmGet$proxyState().getRealm$realm();
+        realm.checkIfValid();
+        if (!RealmObject.isValid(model)) {
+            throw new IllegalStateException(MSG_DELETED_OBJECT);
+        }
+
+        return (Realm) realm;
     }
 
     /**
@@ -490,7 +537,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @throws IllegalStateException if you try to add a listener inside a transaction.
      */
     public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener<E> listener) {
-        addChangeListener(object, new ProxyState.RealmChangeListenerWrapper<E>(listener));
+        addChangeListener(object, new ProxyState.RealmChangeListenerWrapper<>(listener));
     }
 
     /**
@@ -555,17 +602,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      */
     public static <E extends RealmModel> void removeChangeListener(E object, RealmChangeListener<E> listener) {
-        removeChangeListener(object, new ProxyState.RealmChangeListenerWrapper<E>(listener));
-    }
-
-    /**
-     * Removes all registered listeners.
-     *
-     * @deprecated Use {@link #removeAllChangeListeners()} instead.
-     */
-    @Deprecated
-    public final void removeChangeListeners() {
-        RealmObject.removeChangeListeners(this);
+        removeChangeListener(object, new ProxyState.RealmChangeListenerWrapper<>(listener));
     }
 
     /**
@@ -573,18 +610,6 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      */
     public final void removeAllChangeListeners() {
         RealmObject.removeAllChangeListeners(this);
-    }
-
-    /**
-     * Removes all registered listeners from the given RealmObject.
-     *
-     * @param object RealmObject to remove all listeners from.
-     * @throws IllegalArgumentException if object is {@code null} or isn't managed by Realm.
-     * @deprecated Use {@link RealmObject#removeAllChangeListeners(RealmModel)} instead.
-     */
-    @Deprecated
-    public static <E extends RealmModel> void removeChangeListeners(E object) {
-        removeAllChangeListeners(object);
     }
 
     /**
@@ -606,19 +631,19 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
     }
 
     /**
-     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
+     * Returns an RxJava Flowable that monitors changes to this RealmObject. It will emit the current object when
      * subscribed to. Object updates will continually be emitted as the RealmObject is updated -
      * {@code onComplete} will never be called.
      * <p>
-     * When chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
+     * When chaining a RealmObject flowable use {@code obj.<MyRealmObjectClass>asFlowable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
      * <p>
-     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      * <p>
      * <pre>
      * {@code
-     * obj.asObservable()
+     * obj.asFlowable()
      *      .filter(obj -> obj.isLoaded())
      *      .first()
      *      .subscribe( ... ) // You only get the object once
@@ -637,25 +662,47 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public final <E extends RealmObject> Observable<E> asObservable() {
+    public final <E extends RealmObject> Flowable<E> asFlowable() {
         //noinspection unchecked
-        return (Observable<E>) RealmObject.asObservable(this);
+        return (Flowable<E>) RealmObject.asFlowable(this);
     }
 
     /**
-     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
+     * Returns an Rx Observable that monitors changes to this RealmObject. It will emit the current RealmObject when
+     * subscribed to. For each update to the RealmObject a pair consisting of the RealmObject and the
+     * {@link ObjectChangeSet} will be sent. The changeset will be {@code null} the first
+     * time the RealmObject is emitted.
+     * <p>
+     * The RealmObject will continually be emitted as it is updated - {@code onComplete} will never be called.
+     * <p>
+     * Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
+     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
+     * instead.
+     *
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    public final <E extends RealmObject> Observable<ObjectChange<E>> asChangesetObservable() {
+        return (Observable) RealmObject.asChangesetObservable(this);
+    }
+
+    /**
+     * Returns an RxJava Flowable that monitors changes to this RealmObject. It will emit the current object when
      * subscribed to. Object updates will continuously be emitted as the RealmObject is updated -
      * {@code onComplete} will never be called.
      * <p>
-     * When chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
+     * When chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asFlowable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
      * <p>
-     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * emit only the first item by using the {@code first()} operator:
      * <p>
      * <pre>
      * {@code
-     * obj.asObservable()
+     * obj.asFlowable()
      *      .filter(obj -> obj.isLoaded())
      *      .first()
      *      .subscribe( ... ) // You only get the object once
@@ -667,7 +714,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public static <E extends RealmModel> Observable<E> asObservable(E object) {
+    public static <E extends RealmModel> Flowable<E> asFlowable(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
@@ -677,8 +724,48 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
                 DynamicRealm dynamicRealm = (DynamicRealm) realm;
                 DynamicRealmObject dynamicObject = (DynamicRealmObject) object;
                 @SuppressWarnings("unchecked")
-                Observable<E> observable = (Observable<E>) realm.configuration.getRxFactory().from(dynamicRealm, dynamicObject);
+                Flowable<E> observable = (Flowable<E>) realm.configuration.getRxFactory().from(dynamicRealm, dynamicObject);
                 return observable;
+            } else {
+                throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava." +
+                        " See https://realm.io/docs/java/latest/#rxjava for more details.");
+            }
+        } else {
+            // TODO Is this true? Should we just return Observable.just(object) ?
+            throw new IllegalArgumentException("Cannot create Observables from unmanaged RealmObjects");
+        }
+    }
+
+
+    /**
+     * Returns an Rx Observable that monitors changes to this RealmObject. It will emit the current RealmObject when
+     * subscribed to. For each update to the RealmObject a pair consisting of the RealmObject and the
+     * {@link ObjectChangeSet} will be sent. The changeset will be {@code null} the first
+     * time the RealmObject is emitted.
+     * <p>
+     * The RealmObject will continually be emitted as it is updated - {@code onComplete} will never be called.
+     * <p>
+     * Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
+     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
+     * instead.
+     *
+     * @param object RealmObject class that is being observed. Must be this class or its super types.
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    public static <E extends RealmModel> Observable<ObjectChange<E>> asChangesetObservable(E object) {
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+            BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
+            if (realm instanceof Realm) {
+                return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, object);
+            } else if (realm instanceof DynamicRealm) {
+                DynamicRealm dynamicRealm = (DynamicRealm) realm;
+                DynamicRealmObject dynamicObject = (DynamicRealmObject) object;
+                return (Observable) realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicObject);
             } else {
                 throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava." +
                         " See https://realm.io/docs/java/latest/#rxjava for more details.");

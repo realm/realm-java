@@ -40,15 +40,13 @@ public final class SharedRealm implements Closeable, NativeObject {
     public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 4;
     public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 5;
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 6;
+    public static final byte FILE_EXCEPTION_INCOMPATIBLE_SYNC_FILE = 7;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     public static void initialize(File tempDirectory) {
         if (SharedRealm.temporaryDirectory != null) {
             // already initialized
             return;
-        }
-        if (tempDirectory == null) {
-            throw new IllegalArgumentException("'tempDirectory' must not be null.");
         }
 
         String temporaryDirectoryPath = tempDirectory.getAbsolutePath();
@@ -245,19 +243,6 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeIsInTransaction(nativePtr);
     }
 
-    public void setSchemaVersion(long schemaVersion) {
-        nativeSetVersion(nativePtr, schemaVersion);
-    }
-
-    public long getSchemaVersion() {
-        return nativeGetVersion(nativePtr);
-    }
-
-    // FIXME: This should be removed, migratePrimaryKeyTableIfNeeded is using it which should be in Object Store instead?
-    long getGroupNative() {
-        return nativeReadGroup(nativePtr);
-    }
-
     public boolean hasTable(String name) {
         return nativeHasTable(nativePtr, name);
     }
@@ -285,12 +270,25 @@ public final class SharedRealm implements Closeable, NativeObject {
         return new Table(this, nativeCreateTable(nativePtr, name));
     }
 
-    public void renameTable(String oldName, String newName) {
-        nativeRenameTable(nativePtr, oldName, newName);
+    /**
+     * Creates a {@link Table} and adds a primary key field to it. Native assertion will happen if the table with the
+     * same name exists.
+     *
+     * @param tableName the name of table.
+     * @param primaryKeyFieldName the name of primary key field.
+     * @param isStringType if this is true, the primary key field will be create as a string field. Otherwise it will
+     *                     be created as an integer field.
+     * @param isNullable if the primary key field is nullable or not.
+     * @return a creatd {@link Table} object.
+     */
+    public Table createTableWithPrimaryKey(String tableName, String primaryKeyFieldName, boolean isStringType,
+                                           boolean isNullable) {
+        return new Table(this, nativeCreateTableWithPrimaryKeyField(nativePtr, tableName, primaryKeyFieldName,
+                isStringType, isNullable));
     }
 
-    public void removeTable(String name) {
-        nativeRemoveTable(nativePtr, name);
+    public void renameTable(String oldName, String newName) {
+        nativeRenameTable(nativePtr, oldName, newName);
     }
 
     public String getTableName(int index) {
@@ -494,12 +492,6 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
 
-    private static native long nativeGetVersion(long nativeSharedRealmPtr);
-
-    private static native void nativeSetVersion(long nativeSharedRealmPtr, long version);
-
-    private static native long nativeReadGroup(long nativeSharedRealmPtr);
-
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
 
     private static native void nativeRefresh(long nativeSharedRealmPtr);
@@ -512,13 +504,17 @@ public final class SharedRealm implements Closeable, NativeObject {
     // Throw IAE if the table exists already.
     private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName);
 
+    // Throw IAE if the table exists already.
+    // If isStringType is false, the PK field will be created as an integer PK field.
+    private static native long nativeCreateTableWithPrimaryKeyField(long nativeSharedRealmPtr, String tableName,
+                                                                    String primaryKeyFieldName,
+                                                                    boolean isStringType, boolean isNullable);
+
     private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);
 
     private static native boolean nativeHasTable(long nativeSharedRealmPtr, String tableName);
 
     private static native void nativeRenameTable(long nativeSharedRealmPtr, String oldTableName, String newTableName);
-
-    private static native void nativeRemoveTable(long nativeSharedRealmPtr, String tableName);
 
     private static native long nativeSize(long nativeSharedRealmPtr);
 

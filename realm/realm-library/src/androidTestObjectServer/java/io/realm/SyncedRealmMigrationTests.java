@@ -16,23 +16,38 @@
 
 package io.realm;
 
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.realm.entities.IndexedFields;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.OsRealmConfig;
+import io.realm.internal.OsSchemaInfo;
+import io.realm.internal.SharedRealm;
+import io.realm.exceptions.IncompatibleSyncedFileException;
+import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -44,6 +59,16 @@ public class SyncedRealmMigrationTests {
 
     @Rule
     public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
+
+    @BeforeClass
+    public static void beforeClass () {
+        // another Test class may have the BaseRealm.applicationContext set but
+        // the SyncManager reset. This will make assertion to fail, we need to re-initialise
+        // the sync_manager.cpp#m_file_manager (configFactory rule do this)
+        BaseRealm.applicationContext = null;
+    }
 
     @Test
     public void migrateRealm_syncConfigurationThrows() {
@@ -100,6 +125,9 @@ public class SyncedRealmMigrationTests {
         schema.create(className)
                 .addField(StringOnly.FIELD_CHARS, String.class)
                 .addField("newField", String.class);
+        // A schema version has to be set otherwise Object Store will try to initialize the schema again and reach an
+        // error branch. That is not a real case.
+        dynamicRealm.setVersion(0);
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
@@ -123,20 +151,20 @@ public class SyncedRealmMigrationTests {
                 .build();
 
         // Setup initial Realm schema (with a different primary key)
-        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
-        RealmSchema schema = dynamicRealm.getSchema();
-        dynamicRealm.beginTransaction();
-        schema.create(PrimaryKeyAsString.class.getSimpleName())
-                .addField(PrimaryKeyAsString.FIELD_PRIMARY_KEY, String.class)
-                .addField(PrimaryKeyAsString.FIELD_ID, long.class, FieldAttribute.PRIMARY_KEY);
-        dynamicRealm.commitTransaction();
-        dynamicRealm.close();
+        OsObjectSchemaInfo expectedObjectSchema = new OsObjectSchemaInfo.Builder(PrimaryKeyAsString.CLASS_NAME)
+                .addPersistedProperty(PrimaryKeyAsString.FIELD_PRIMARY_KEY, RealmFieldType.STRING, false, true, false)
+                .addPersistedProperty(PrimaryKeyAsString.FIELD_ID, RealmFieldType.INTEGER, true, true, true)
+                .build();
+        List<OsObjectSchemaInfo> list = new ArrayList<OsObjectSchemaInfo>();
+        list.add(expectedObjectSchema);
+        OsSchemaInfo schemaInfo = new OsSchemaInfo(list);
+        OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config).schemaInfo(schemaInfo);
+        SharedRealm.getInstance(configBuilder).close();
 
-        try {
-            Realm.getInstance(config);
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
+        thrown.expectMessage(
+                CoreMatchers.containsString("The following changes cannot be made in additive-only schema mode:"));
+        thrown.expect(IllegalStateException.class);
+        Realm.getInstance(config);
     }
 
     // Check that indexes are not being added if the schema version is the same
@@ -193,10 +221,10 @@ public class SyncedRealmMigrationTests {
         dynamicRealm.close();
 
         Realm realm = Realm.getInstance(config); // Opening at different schema version (42) should rebuild indexes
-        RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
         try {
-            // FIXME: Object Store doesn't add index to it. Is it expected?
-            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
+            RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
+            assertNotNull(indexedFieldsSchema);
+            assertTrue(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
             assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
         } finally {
             realm.close();
@@ -280,6 +308,57 @@ public class SyncedRealmMigrationTests {
 
         // Verify schema again.
         Realm realm = Realm.getInstance(config);
+        realm.close();
+    }
+
+    @Test
+    public void offlineClientReset() throws IOException {
+        SyncConfiguration config = configFactory
+                .createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .modules(new StringOnlyModule())
+                .build();
+
+        String path = config.getPath();
+        File realmFile = new File (path);
+        assertFalse(realmFile.exists());
+        // copy the 1.x Realm
+        configFactory.copyRealmFromAssets(InstrumentationRegistry.getContext(), "sync-1.x.realm", config);
+        assertTrue(realmFile.exists());
+
+        // open the file using the new ROS 2.x server
+        try {
+            Realm.getInstance(config);
+            fail("should throw IncompatibleSyncedFileException");
+        } catch (IncompatibleSyncedFileException expected) {
+            String recoveryPath = expected.getRecoveryPath();
+            assertTrue(new File(recoveryPath).exists());
+            // can open the backup Realm
+            RealmConfiguration backupRealmConfiguration = expected.getBackupRealmConfiguration(null, new StringOnlyModule());
+            Realm backupRealm = Realm.getInstance(backupRealmConfiguration);
+            assertFalse(backupRealm.isEmpty());
+            RealmResults<StringOnly> all = backupRealm.where(StringOnly.class).findAll();
+            assertEquals(1, all.size());
+            assertEquals("Hello from ROS 1.X", all.get(0).getChars());
+
+            // make sure it's read only
+            try {
+                backupRealm.beginTransaction();
+                fail("Backup Realm should be read-only, we should throw");
+            } catch (IllegalStateException ignored) {
+            }
+            backupRealm.close();
+
+            // we can open in dynamic mode
+            DynamicRealm dynamicRealm = DynamicRealm.getInstance(backupRealmConfiguration);
+            dynamicRealm.getSchema().checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME);
+            RealmResults<DynamicRealmObject> allDynamic = dynamicRealm.where(StringOnly.CLASS_NAME).findAll();
+            assertEquals(1, allDynamic.size());
+            assertEquals("Hello from ROS 1.X", allDynamic.first().getString(StringOnly.FIELD_CHARS));
+            dynamicRealm.close();
+        }
+
+        Realm realm = Realm.getInstance(config);
+        assertTrue(realm.isEmpty());
         realm.close();
     }
 }

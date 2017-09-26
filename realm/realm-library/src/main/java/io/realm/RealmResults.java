@@ -20,6 +20,8 @@ package io.realm;
 import android.annotation.SuppressLint;
 import android.os.Looper;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -29,8 +31,7 @@ import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-import rx.Observable;
-
+import io.realm.rx.CollectionChange;
 
 /**
  * This class holds all the matches of a {@link RealmQuery} for a given Realm. The objects are not copied from
@@ -233,15 +234,6 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Use {@link #removeAllChangeListeners()} instead.
-     */
-    @SuppressWarnings("unused")
-    @Deprecated
-    public void removeChangeListeners() {
-        removeAllChangeListeners();
-    }
-
-    /**
      * Removes the specified change listener.
      *
      * @param listener the change listener to be removed.
@@ -268,16 +260,16 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     }
 
     /**
-     * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
+     * Returns an Rx Flowable that monitors changes to this RealmResults. It will emit the current RealmResults when
      * subscribed to. RealmResults will continually be emitted as the RealmResults are updated -
      * {@code onComplete} will never be called.
      * <p>
-     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      * <p>
      * <pre>
      * {@code
-     * realm.where(Foo.class).findAllAsync().asObservable()
+     * realm.where(Foo.class).findAllAsync().asFlowable()
      *      .filter(results -> results.isLoaded())
      *      .first()
      *      .subscribe( ... ) // You only get the results once
@@ -295,46 +287,46 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     @SuppressWarnings("unchecked")
-    public Observable<RealmResults<E>> asObservable() {
+    public Flowable<RealmResults<E>> asFlowable() {
         if (realm instanceof Realm) {
             return realm.configuration.getRxFactory().from((Realm) realm, this);
         } else if (realm instanceof DynamicRealm) {
             DynamicRealm dynamicRealm = (DynamicRealm) realm;
             RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
             @SuppressWarnings("UnnecessaryLocalVariable")
-            Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
+            Flowable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
             return results;
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava.");
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
         }
     }
 
     /**
-     * @deprecated use {@link RealmQuery#distinct(String)} on the return value of {@link #where()} instead. This will
-     * be removed in coming 3.x.x minor releases.
+     * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
+     * subscribed. For each update to the RealmResult a pair consisting of the RealmResults and the
+     * {@link OrderedCollectionChangeSet} will be sent. The changeset will be {@code null} the first
+     * time an RealmResults is emitted.
+     * <p>
+     * RealmResults will continually be emitted as the RealmResults are updated - {@code onComplete} will never be called.
+     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
+     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
+     * instead.
+     *
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    @Deprecated
-    public RealmResults<E> distinct(String fieldName) {
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(new SchemaConnector(realm.getSchema()), collection.getTable(), fieldName);
-        Collection distinctCollection = collection.distinct(distinctDescriptor);
-        return createLoadedResults(distinctCollection);
-    }
-
-    /**
-     * @deprecated use {@link RealmQuery#distinctAsync(String)} on the return value of {@link #where()} instead. This
-     * will be removed in coming 3.x.x minor releases.
-     */
-    @Deprecated
-    public RealmResults<E> distinctAsync(String fieldName) {
-        return where().distinctAsync(fieldName);
-    }
-
-    /**
-     * @deprecated use {@link RealmQuery#distinct(String, String...)} on the return value of {@link #where()} instead.
-     * This will be removed in coming 3.x.x minor releases.
-     */
-    @Deprecated
-    public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
-        return where().distinct(firstFieldName, remainingFieldNames);
+    public Observable<CollectionChange<RealmResults<E>>> asChangesetObservable() {
+        if (realm instanceof Realm) {
+            return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, this);
+        } else if (realm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+            RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
+            return (Observable) realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
+        } else {
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+        }
     }
 }

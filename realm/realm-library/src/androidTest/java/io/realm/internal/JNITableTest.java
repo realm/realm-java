@@ -662,7 +662,7 @@ public class JNITableTest {
                     new Pair<RealmFieldType, Object>(RealmFieldType.DOUBLE, Math.PI),
                     new Pair<RealmFieldType, Object>(RealmFieldType.OBJECT, 0L)
                     // FIXME: Currently, LIST does not support default value.
-                    // new Pair<RealmFieldType, Object>(RealmFieldType.LIST, )
+                    // new CollectionChange<RealmFieldType, Object>(RealmFieldType.LIST, )
             );
 
             for (Pair<RealmFieldType, Object> columnInfo : columnInfoList) {
@@ -783,7 +783,7 @@ public class JNITableTest {
                     new Pair<RealmFieldType, Object>(RealmFieldType.DOUBLE, new Double[] {Math.PI, Math.E}),
                     new Pair<RealmFieldType, Object>(RealmFieldType.OBJECT, new Long[] {0L, 1L})
                     // FIXME: Currently, LIST does not support default value.
-                    // new Pair<RealmFieldType, Object>(RealmFieldType.LIST, )
+                    // new CollectionChange<RealmFieldType, Object>(RealmFieldType.LIST, )
             );
 
             for (Pair<RealmFieldType, Object> columnInfo : columnInfoList) {
@@ -913,7 +913,7 @@ public class JNITableTest {
                     new Pair<RealmFieldType, Object>(RealmFieldType.DOUBLE, new Double[] {Math.PI, Math.E}),
                     new Pair<RealmFieldType, Object>(RealmFieldType.OBJECT, new Long[] {0L, 1L})
                     // FIXME: Currently, LIST does not support default value.
-                    // new Pair<RealmFieldType, Object>(RealmFieldType.LIST, )
+                    // new CollectionChange<RealmFieldType, Object>(RealmFieldType.LIST, )
             );
 
             for (Pair<RealmFieldType, Object> columnInfo : columnInfoList) {

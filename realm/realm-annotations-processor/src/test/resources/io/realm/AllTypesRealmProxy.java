@@ -457,7 +457,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         some.test.AllTypes obj = null;
         if (update) {
             Table table = realm.getTable(some.test.AllTypes.class);
-            long pkColumnIndex = table.getPrimaryKey();
+            AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.AllTypes.class);
+            long pkColumnIndex = columnInfo.columnStringIndex;
             long rowIndex = Table.NO_MATCH;
             if (json.isNull("columnString")) {
                 rowIndex = table.findFirstNull(pkColumnIndex);
@@ -692,7 +693,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         boolean canUpdate = update;
         if (canUpdate) {
             Table table = realm.getTable(some.test.AllTypes.class);
-            long pkColumnIndex = table.getPrimaryKey();
+            AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.AllTypes.class);
+            long pkColumnIndex = columnInfo.columnStringIndex;
             String value = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
             long rowIndex = Table.NO_MATCH;
             if (value == null) {
@@ -775,7 +777,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         Table table = realm.getTable(some.test.AllTypes.class);
         long tableNativePtr = table.getNativePtr();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.AllTypes.class);
-        long pkColumnIndex = table.getPrimaryKey();
+        long pkColumnIndex = columnInfo.columnStringIndex;
         String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
         long rowIndex = Table.NO_MATCH;
         if (primaryKeyValue == null) {
@@ -784,7 +786,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
         if (rowIndex == Table.NO_MATCH) {
-            rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue);
+            rowIndex = OsObject.createRowWithPrimaryKey(table, pkColumnIndex, primaryKeyValue);
         } else {
             Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
         }
@@ -833,7 +835,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         Table table = realm.getTable(some.test.AllTypes.class);
         long tableNativePtr = table.getNativePtr();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.AllTypes.class);
-        long pkColumnIndex = table.getPrimaryKey();
+        long pkColumnIndex = columnInfo.columnStringIndex;
         some.test.AllTypes object = null;
         while (objects.hasNext()) {
             object = (some.test.AllTypes) objects.next();
@@ -852,7 +854,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
             }
             if (rowIndex == Table.NO_MATCH) {
-                rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue);
+                rowIndex = OsObject.createRowWithPrimaryKey(table, pkColumnIndex, primaryKeyValue);
             } else {
                 Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
             }
@@ -904,7 +906,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         Table table = realm.getTable(some.test.AllTypes.class);
         long tableNativePtr = table.getNativePtr();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.AllTypes.class);
-        long pkColumnIndex = table.getPrimaryKey();
+        long pkColumnIndex = columnInfo.columnStringIndex;
         String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
         long rowIndex = Table.NO_MATCH;
         if (primaryKeyValue == null) {
@@ -913,7 +915,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
         if (rowIndex == Table.NO_MATCH) {
-            rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue);
+            rowIndex = OsObject.createRowWithPrimaryKey(table, pkColumnIndex, primaryKeyValue);
         }
         cache.put(object, rowIndex);
         Table.nativeSetLong(tableNativePtr, columnInfo.columnLongIndex, rowIndex, ((AllTypesRealmProxyInterface) object).realmGet$columnLong(), false);
@@ -970,7 +972,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         Table table = realm.getTable(some.test.AllTypes.class);
         long tableNativePtr = table.getNativePtr();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.AllTypes.class);
-        long pkColumnIndex = table.getPrimaryKey();
+        long pkColumnIndex = columnInfo.columnStringIndex;
         some.test.AllTypes object = null;
         while (objects.hasNext()) {
             object = (some.test.AllTypes) objects.next();
@@ -989,7 +991,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
             }
             if (rowIndex == Table.NO_MATCH) {
-                rowIndex = OsObject.createRowWithPrimaryKey(table, primaryKeyValue);
+                rowIndex = OsObject.createRowWithPrimaryKey(table, pkColumnIndex, primaryKeyValue);
             }
             cache.put(object, rowIndex);
             Table.nativeSetLong(tableNativePtr, columnInfo.columnLongIndex, rowIndex, ((AllTypesRealmProxyInterface) object).realmGet$columnLong(), false);
