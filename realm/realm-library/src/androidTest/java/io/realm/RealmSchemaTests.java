@@ -607,7 +607,7 @@ public class RealmSchemaTests {
         }
     }
 
-	@Test
+    @Test
     public void rename_newNameExists() {
         if (type == SchemaType.IMMUTABLE) {
             return;
