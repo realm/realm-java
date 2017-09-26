@@ -16,8 +16,13 @@
 package io.realm;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,6 +44,43 @@ import io.realm.internal.android.JsonUtils;
 @SuppressWarnings("WeakerAccess")
 public class DynamicRealmObject extends RealmObject implements RealmObjectProxy {
     static final String MSG_LINK_QUERY_NOT_SUPPORTED = "Queries across relationships are not supported";
+
+    private static final Map<Class<?>, RealmFieldType> VALUE_CLASS_TO_LIST_FIELD_TYPE;
+    static {
+        final Map<Class<?>, RealmFieldType> map = new HashMap<>();
+        map.put(String.class, RealmFieldType.STRING_LIST);
+        map.put(byte[].class, RealmFieldType.BINARY_LIST);
+        map.put(Boolean.class, RealmFieldType.BOOLEAN_LIST);
+        map.put(Long.class, RealmFieldType.INTEGER_LIST);
+        map.put(Integer.class, RealmFieldType.INTEGER_LIST);
+        map.put(Short.class, RealmFieldType.INTEGER_LIST);
+        map.put(Byte.class, RealmFieldType.INTEGER_LIST);
+        map.put(Double.class, RealmFieldType.DOUBLE_LIST);
+        map.put(Float.class, RealmFieldType.FLOAT_LIST);
+        map.put(Date.class, RealmFieldType.DATE_LIST);
+        VALUE_CLASS_TO_LIST_FIELD_TYPE = Collections.unmodifiableMap(map);
+    }
+
+    private static final Map<RealmFieldType, Class<?>> LIST_FIELD_TYPE_TO_VALUE_CLASS;
+    static {
+        final Map<RealmFieldType, Class<?>> map = new EnumMap<>(RealmFieldType.class);
+        map.put(RealmFieldType.STRING_LIST, String.class);
+        map.put(RealmFieldType.BINARY_LIST, byte[].class);
+        map.put(RealmFieldType.BOOLEAN_LIST, Boolean.class);
+        map.put(RealmFieldType.INTEGER_LIST, Long.class);
+        map.put(RealmFieldType.DOUBLE_LIST, Double.class);
+        map.put(RealmFieldType.FLOAT_LIST, Float.class);
+        map.put(RealmFieldType.DATE_LIST, Date.class);
+        LIST_FIELD_TYPE_TO_VALUE_CLASS = Collections.unmodifiableMap(map);
+    }
+
+    private static RealmFieldType getFieldTypeForValueClass(Class<?> valueClass) {
+        final RealmFieldType expectedFieldType = VALUE_CLASS_TO_LIST_FIELD_TYPE.get(valueClass);
+        if (expectedFieldType == null) {
+            throw new IllegalArgumentException("Unsupported value type: " + valueClass.getName());
+        }
+        return expectedFieldType;
+    }
 
     private final ProxyState<DynamicRealmObject> proxyState = new ProxyState<>(this);
 
@@ -342,16 +384,23 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @param fieldName the name of the field.
      * @return the {@link RealmList} data for this field.
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a list of objects.
+     * @see #getValueList(String, Class)
      */
     public RealmList<DynamicRealmObject> getList(String fieldName) {
         proxyState.getRealm$realm().checkIfValid();
 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
-            OsList osList = proxyState.getRow$realm().getList(columnIndex);
-            //noinspection ConstantConditions
-            @Nonnull
-            String className = osList.getTargetTable().getClassName();
+            OsList osList = proxyState.getRow$realm().getModelList(columnIndex);
+            final Table targetTable = osList.getTargetTable();
+            if (targetTable == null) {
+                throw new IllegalArgumentException("The field is value list.");
+            }
+
+            final String className = targetTable.getClassName();
+            if (className == null) {
+                throw new IllegalStateException("Unexpectedly target class name is null.");
+            }
             return new RealmList<>(className, osList, proxyState.getRealm$realm());
         } catch (IllegalArgumentException e) {
             checkFieldType(fieldName, columnIndex, RealmFieldType.LIST);
@@ -364,11 +413,29 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      *
      * @param fieldName the name of the field.
      * @return the {@link RealmList} data for this field.
-     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a list of values.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a list of values or {@code valueClass} is not valid for the field type.
+     * @see #getList(String)
      */
     public <T> RealmList<T> getValueList(String fieldName, Class<T> valueClass) {
-        // TODO implement this
-        return null;
+        proxyState.getRealm$realm().checkIfValid();
+
+        final RealmFieldType expectedFieldType = getFieldTypeForValueClass(valueClass);
+        final OsList osList;
+        long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
+        try {
+            osList = proxyState.getRow$realm().getValueList(columnIndex, expectedFieldType);
+            final Table targetTable = osList.getTargetTable();
+            if (targetTable != null) {
+                throw new IllegalArgumentException("The field is object list.");
+            }
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnIndex, expectedFieldType);
+            throw e;
+        }
+
+        checkFieldType(fieldName, columnIndex, expectedFieldType);
+        //noinspection ConstantConditions
+        return new RealmList<T>(valueClass, osList, proxyState.getRealm$realm());
     }
 
     /**
@@ -395,8 +462,17 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DATE:
                 return proxyState.getRow$realm().isNull(columnIndex);
             case LIST:
+            case BINARY_LIST:
+            case BOOLEAN_LIST:
+            case DATE_LIST:
+            case DOUBLE_LIST:
+            case FLOAT_LIST:
+            case STRING_LIST:
+            case INTEGER_LIST:
+            case LINKING_OBJECTS:
             case UNSUPPORTED_TABLE:
             case UNSUPPORTED_MIXED:
+            case UNSUPPORTED_DATE:
             default:
                 return false;
         }
@@ -744,9 +820,17 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             throw new IllegalArgumentException("Null values not allowed for lists");
         }
 
-        long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        OsList osList = proxyState.getRow$realm().getList(columnIndex);
+        final Row row = proxyState.getRow$realm();
+        long columnIndex = row.getColumnIndex(fieldName);
+        OsList osList = row.getModelList(columnIndex);
         Table linkTargetTable = osList.getTargetTable();
+        if (linkTargetTable == null) {
+            // designated field was value list, not object list.
+            throw new IllegalArgumentException(String.format(Locale.US,
+                    "Unexpected field type. Was %s, expected %s.",
+                    row.getColumnType(columnIndex).name(), RealmFieldType.LIST.name()));
+        }
+
         //noinspection ConstantConditions
         @Nonnull
         final String linkTargetTableName = linkTargetTable.getClassName();
@@ -772,6 +856,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
         for (int i = 0; i < listLength; i++) {
             RealmObjectProxy obj = list.get(i);
+            if (obj == null) {
+                throw new IllegalArgumentException("Null element is not allowed.");
+            }
             if (obj.realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
                 throw new IllegalArgumentException("Each element in 'list' must belong to the same Realm instance.");
             }
@@ -792,6 +879,37 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
     }
 
+    private <E> ManagedListOperator<E> getOperator(BaseRealm realm, OsList osList, RealmFieldType valueListType, Class<E> valueClass) {
+        if (valueListType == RealmFieldType.STRING_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new StringListOperator(realm, osList, (Class<String>) valueClass);
+        }
+        if (valueListType == RealmFieldType.INTEGER_LIST) {
+            return new LongListOperator<>(realm, osList, valueClass);
+        }
+        if (valueListType == RealmFieldType.BOOLEAN_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new BooleanListOperator(realm, osList, (Class<Boolean>) valueClass);
+        }
+        if (valueListType == RealmFieldType.BINARY_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new BinaryListOperator(realm, osList, (Class<byte[]>) valueClass);
+        }
+        if (valueListType == RealmFieldType.DOUBLE_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new DoubleListOperator(realm, osList, (Class<Double>) valueClass);
+        }
+        if (valueListType == RealmFieldType.FLOAT_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new FloatListOperator(realm, osList, (Class<Float>) valueClass);
+        }
+        if (valueListType == RealmFieldType.DATE_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new DateListOperator(realm, osList, (Class<Date>) valueClass);
+        }
+        throw new IllegalArgumentException("Unexpected list type: " + valueListType.name());
+    }
+
     /**
      * Sets the reference to a {@link RealmList} on the given field.
      *
@@ -802,7 +920,47 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * different Realm.
      */
     public void setValueList(String fieldName, RealmList<?> list) {
-        // TODO implement this
+        proxyState.getRealm$realm().checkIfValid();
+
+        //noinspection ConstantConditions
+        if (list == null) {
+            throw new IllegalArgumentException("Null values not allowed for lists");
+        }
+
+        final Row row = proxyState.getRow$realm();
+        final long columnIndex = row.getColumnIndex(fieldName);
+        final RealmFieldType fieldType = proxyState.getRow$realm().getColumnType(columnIndex);
+        final OsList targetOsList = row.getValueList(columnIndex, fieldType);
+        final Table linkTargetTable = targetOsList.getTargetTable();
+        if (linkTargetTable != null) {
+            // designated field was object list, not value list.
+            throw new IllegalArgumentException(String.format(Locale.US,
+                    "Unexpected field type. Was %s, expected %s.",
+                    row.getColumnType(columnIndex).name(), "one of the value list"));
+        }
+
+        final Class<?> valueClass = LIST_FIELD_TYPE_TO_VALUE_CLASS.get(fieldType);
+
+        final ManagedListOperator<?> operator = getOperator(proxyState.getRealm$realm(), targetOsList, fieldType, valueClass);
+
+        if (list.isManaged() && targetOsList.size() == list.size()) {
+            /*
+             * There is a chance that the source list and the target list are the same list in the same object.
+             * In this case, we can't use removeAll().
+             */
+            final int size = list.size();
+            final Iterator<?> iterator = list.iterator();
+            for (int i = 0; i < size; i++) {
+                @Nullable
+                final Object value = iterator.next();
+                operator.set(i, value);
+            }
+        } else {
+            targetOsList.removeAll();
+            for (Object value : list) {
+                operator.add(value);
+            }
+        }
     }
 
     /**
@@ -968,10 +1126,25 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     break;
                 case LIST:
                     String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName();
-                    sb.append(String.format(Locale.US, "RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getList(columnIndex).size()));
+                    sb.append(String.format(Locale.US, "RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getModelList(columnIndex).size()));
+                    break;
+                case BOOLEAN_LIST: // fall-through
+                case STRING_LIST: // fall-through
+                case BINARY_LIST: // fall-through
+                case INTEGER_LIST: // fall-through
+                case DOUBLE_LIST: // fall-through
+                case FLOAT_LIST: // fall-through
+                case DATE_LIST:
+                    final String valueClassName = LIST_FIELD_TYPE_TO_VALUE_CLASS.get(type).getSimpleName();
+                    final OsList modelList = proxyState.getRow$realm().getValueList(columnIndex, type);
+                    sb.append(String.format(Locale.US, "RealmList<%s>[%s]", valueClassName, modelList.size()));
+                    break;
+                case LINKING_OBJECTS:
+                    // nothing to print
                     break;
                 case UNSUPPORTED_TABLE:
                 case UNSUPPORTED_MIXED:
+                case UNSUPPORTED_DATE:
                 default:
                     sb.append("?");
                     break;
