@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -36,6 +37,7 @@ import io.realm.util.SyncTestUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
