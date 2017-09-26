@@ -199,8 +199,6 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
 void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind, const std::string& path)
 {
     static JavaClass  jrealm_file_exception_cls(env, "io/realm/exceptions/RealmFileException");
-    static JavaClass  jincompatible_synced_file_cls(env, "io/realm/exceptions/IncompatibleSyncedFileException");
-    static JavaMethod jicompatible_synced_ctor(env, jincompatible_synced_file_cls, "<init>", "(Ljava/lang/String;Ljava/lang/String;)V");
     static JavaMethod constructor(env, jrealm_file_exception_cls, "<init>", "(BLjava/lang/String;)V");
 
     // Initial value to suppress gcc warning.
@@ -228,11 +226,19 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
             break;
         case realm::RealmFileException::Kind::IncompatibleSyncedRealm:
+#if REALM_ENABLE_SYNC
+            static JavaClass jincompatible_synced_file_cls(env,
+                                                           "io/realm/exceptions/IncompatibleSyncedFileException");
+            static JavaMethod jicompatible_synced_ctor(env, jincompatible_synced_file_cls, "<init>",
+                                                       "(Ljava/lang/String;Ljava/lang/String;)V");
             jobject jexception = env->NewObject(jincompatible_synced_file_cls, jicompatible_synced_ctor,
                                                 to_jstring(env, message), to_jstring(env, path));
             env->Throw(reinterpret_cast<jthrowable>(jexception));
             env->DeleteLocalRef(jexception);
             return;
+#else
+            REALM_ASSERT_RELEASE_EX(false, "'IncompatibleSyncedRealm' should not be thrown for non-sync realm.");
+#endif
     }
     jstring jmessage = to_jstring(env, message);
     jstring jpath = to_jstring(env, path);
