@@ -47,7 +47,6 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.network.LookupUserIdResponse;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.permissions.ManagementModule;
-import io.realm.internal.permissions.PermissionModule;
 import io.realm.log.RealmLog;
 
 /**
@@ -221,9 +220,9 @@ public class SyncUser {
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
-    public static RealmAsyncTask loginAsync(final SyncCredentials credentials, final String authenticationUrl, final Callback callback) {
+    public static RealmAsyncTask loginAsync(final SyncCredentials credentials, final String authenticationUrl, final Callback<SyncUser> callback) {
         checkLooperThread("Asynchronous login is only possible from looper threads.");
-        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public SyncUser run() throws ObjectServerError {
                 return login(credentials, authenticationUrl);
@@ -375,13 +374,13 @@ public class SyncUser {
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
-    public RealmAsyncTask changePasswordAsync(final String newPassword, final Callback callback) {
+    public RealmAsyncTask changePasswordAsync(final String newPassword, final Callback<SyncUser> callback) {
         checkLooperThread("Asynchronous changing password is only possible from looper threads.");
         //noinspection ConstantConditions
         if (callback == null) {
             throw new IllegalArgumentException("Non-null 'callback' required.");
         }
-        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public SyncUser run() {
                 changePassword(newPassword);
@@ -405,14 +404,14 @@ public class SyncUser {
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
-    public RealmAsyncTask changePasswordAsync(final String userId, final String newPassword, final Callback callback) {
+    public RealmAsyncTask changePasswordAsync(final String userId, final String newPassword, final Callback<SyncUser> callback) {
         checkLooperThread("Asynchronous changing password is only possible from looper threads.");
         //noinspection ConstantConditions
         if (callback == null) {
             throw new IllegalArgumentException("Non-null 'callback' required.");
         }
 
-        return new Request(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public SyncUser run() {
                 changePassword(userId, newPassword);
@@ -471,7 +470,7 @@ public class SyncUser {
      * as this method is called on.
      * @return representation of the async task that can be used to cancel it if needed.
      */
-    public RealmAsyncTask retrieveInfoForUserAsync(final String providerUserIdentity, final String provider, final RequestCallback<SyncUserInfo> callback) {
+    public RealmAsyncTask retrieveInfoForUserAsync(final String providerUserIdentity, final String provider, final Callback<SyncUserInfo> callback) {
         checkLooperThread("Asynchronously retrieving user is only possible from looper threads.");
         //noinspection ConstantConditions
         if (callback == null) {
@@ -479,12 +478,8 @@ public class SyncUser {
         }
 
         return new Request<SyncUserInfo>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
-            // TODO remove this override on next major release when we remove the deprecated Callback
             @Override
-            public SyncUser run() {return null;}
-
-            @Override
-            public SyncUserInfo execute() throws ObjectServerError {
+            public SyncUserInfo run() throws ObjectServerError {
                 return retrieveInfoForUser(providerUserIdentity, provider);
             }
         }.start();
@@ -554,12 +549,12 @@ public class SyncUser {
     }
 
     /**
-     * Returns this user's access token. This is the users credential for accessing the Realm Object Server and should
+     * Returns this user's refresh token. This is the users credential for accessing the Realm Object Server and should
      * be treated as sensitive data.
      *
-     * @return the user's access token. If this user has logged out or the login has expired {@code null} is returned.
+     * @return the user's refresh token. If this user has logged out or the login has expired {@code null} is returned.
      */
-    public Token getAccessToken() {
+    Token getRefreshToken() {
         return refreshToken;
     }
 
@@ -686,32 +681,19 @@ public class SyncUser {
     // Class wrapping requests made against the auth server. Is also responsible for calling with success/error on the
     // correct thread.
     private static abstract class Request<T> {
-
         @Nullable
-        private final Callback callback;
-        @Nullable
-        private final RequestCallback<T> genericCallback;
+        private final Callback<T> callback;
         private final RealmNotifier handler;
         private final ThreadPoolExecutor networkPoolExecutor;
 
-        Request(ThreadPoolExecutor networkPoolExecutor, @Nullable Callback callback) {
+        Request(ThreadPoolExecutor networkPoolExecutor, @Nullable Callback<T> callback) {
             this.callback = callback;
-            this.genericCallback = null;
-            this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
-            this.networkPoolExecutor = networkPoolExecutor;
-        }
-
-        Request(ThreadPoolExecutor networkPoolExecutor, @Nullable RequestCallback<T> callback) {
-            this.callback = null;
-            this.genericCallback = callback;
             this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
             this.networkPoolExecutor = networkPoolExecutor;
         }
 
         // Implements the request. Return the current sync user if the request succeeded. Otherwise throw an error.
-        public abstract SyncUser run() throws ObjectServerError;
-        //TODO next major release, remove run, rename execute to run and make it abstract
-        public T execute() throws ObjectServerError {return null;}
+        public abstract T run() throws ObjectServerError;
 
         // Start the request
         public RealmAsyncTask start() {
@@ -719,13 +701,7 @@ public class SyncUser {
                 @Override
                 public void run() {
                     try {
-                        // co-exist the old and new callback
-                        if (genericCallback != null) {
-                            postSuccess(Request.this.execute());
-                        } else {
-                            postSuccess(Request.this.run());
-                        }
-
+                        postSuccess(Request.this.run());
                     } catch (ObjectServerError e) {
                         postError(e);
                     } catch (Throwable e) {
@@ -753,45 +729,19 @@ public class SyncUser {
             }
         }
 
-        private void postSuccess(final SyncUser user) {
+        private void postSuccess(final T result) {
             if (callback != null) {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onSuccess(user);
-                    }
-                });
-            }
-        }
-
-        private void postSuccess(final T result) {
-            if (genericCallback != null) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        genericCallback.onSuccess(result);
+                        callback.onSuccess(result);
                     }
                 });
             }
         }
     }
 
-    // TODO remove and replace uses by RequestCallback on next major release
-    public interface Callback {
-        /**
-         * @deprecated as per 3.6.0 release, replaced by {@link RequestCallback#onSuccess(Object)}
-         */
-        @Deprecated
-        void onSuccess(SyncUser user);
-
-        /**
-         * @deprecated as per 3.6.0 release, replaced by {@link RequestCallback#onError(ObjectServerError)}
-         */
-        @Deprecated
-        void onError(ObjectServerError error);
-    }
-
-    public interface RequestCallback<T> {
+    public interface Callback<T> {
         void onSuccess(T result);
 
         void onError(ObjectServerError error);

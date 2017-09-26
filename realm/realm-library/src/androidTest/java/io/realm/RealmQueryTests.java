@@ -2554,47 +2554,6 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
-    @Ignore("Disabled because it is time consuming")
-    @Test
-    public void largeRealmMultipleThreads() throws InterruptedException {
-        final int nObjects = 500000;
-        final int nThreads = 3;
-        final CountDownLatch latch = new CountDownLatch(nThreads);
-
-        realm.beginTransaction();
-        realm.delete(StringOnly.class);
-        for (int i = 0; i < nObjects; i++) {
-            StringOnly stringOnly = realm.createObject(StringOnly.class);
-            stringOnly.setChars(String.format("string %d", i));
-        }
-        realm.commitTransaction();
-
-
-        for (int i = 0; i < nThreads; i++) {
-            Thread thread = new Thread(
-                    new Runnable() {
-                        @Override
-                        @SuppressWarnings("ElementsCountedInLoop")
-                        public void run() {
-                            RealmConfiguration realmConfig = configFactory.createConfiguration();
-                            Realm realm = Realm.getInstance(realmConfig);
-                            RealmResults<StringOnly> realmResults = realm.where(StringOnly.class).findAll();
-                            int n = 0;
-                            for (StringOnly ignored : realmResults) {
-                                n = n + 1;
-                            }
-                            assertEquals(nObjects, n);
-                            realm.close();
-                            latch.countDown();
-                        }
-                    }
-            );
-            thread.start();
-        }
-
-        TestHelper.awaitOrFail(latch);
-    }
-
     @Test
     public void isValid_tableQuery() {
         final RealmQuery<AllTypes> query = realm.where(AllTypes.class);

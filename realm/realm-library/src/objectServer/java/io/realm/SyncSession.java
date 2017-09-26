@@ -504,7 +504,7 @@ public class SyncSession {
                 try {
                     JSONObject refreshTokenJSON = new JSONObject(refreshToken);
                     Token newRefreshToken = Token.from(refreshTokenJSON.getJSONObject("userToken"));
-                    if (newRefreshToken.hashCode() != getUser().getAccessToken().hashCode()) {
+                    if (newRefreshToken.hashCode() != getUser().getRefreshToken().hashCode()) {
                         RealmLog.debug("Session[%s]: Access token updated", configuration.getPath());
                         getUser().setRefreshToken(newRefreshToken);
                     }
@@ -551,7 +551,7 @@ public class SyncSession {
             protected AuthenticateResponse execute() {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
                     return authServer.loginToRealm(
-                            getUser().getAccessToken(), //refresh token in fact
+                            getUser().getRefreshToken(), //refresh token in fact
                             configuration.getServerUrl(),
                             getUser().getAuthenticationUrl()
                     );
@@ -629,7 +629,7 @@ public class SyncSession {
             @Override
             protected AuthenticateResponse execute() {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
-                    return authServer.refreshUser(getUser().getAccessToken(), configuration.getServerUrl(), getUser().getAuthenticationUrl());
+                    return authServer.refreshUser(getUser().getRefreshToken(), configuration.getServerUrl(), getUser().getAuthenticationUrl());
                 }
                 return null;
             }

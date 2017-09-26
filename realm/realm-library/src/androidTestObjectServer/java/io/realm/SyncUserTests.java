@@ -50,8 +50,8 @@ import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.utils.UserFactory;
 import io.realm.objectserver.utils.StringOnlyModule;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
@@ -382,7 +382,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalStateException.class);
-        user.changePasswordAsync("password", new SyncUser.Callback() {
+        user.changePasswordAsync("password", new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -400,7 +400,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalStateException.class);
-        user.changePasswordAsync("user-id", "new", new SyncUser.Callback() {
+        user.changePasswordAsync("user-id", "new", new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -543,11 +543,11 @@ public class SyncUserTests {
         //       since the user is not persisted in the UserStore
         //       isValid() requires SyncManager.getUserStore().isActive(identity)
         //       to return true as well.
-        Token accessToken = syncUser.getAccessToken();
-        assertNotNull(accessToken);
+        Token refreshToken = syncUser.getRefreshToken();
+        assertNotNull(refreshToken);
         // refresh token should expire in 10 years (July 23, 2027)
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(accessToken.expiresMs());
+        calendar.setTimeInMillis(refreshToken.expiresMs());
         int day = calendar.get(Calendar.DAY_OF_MONTH);
         int month = calendar.get(Calendar.MONTH);
         int year = calendar.get(Calendar.YEAR);
