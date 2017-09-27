@@ -30,15 +30,17 @@ public class SyncUserInfo {
     private final String identity;
     private final boolean isAdmin;
     private final Map<String, String> metadata;
+    private final Map<String, String> accounts;
 
-    private SyncUserInfo(String identity, boolean isAdmin, Map<String, String> metadata) {
+    private SyncUserInfo(String identity, boolean isAdmin, Map<String, String> metadata, Map<String, String> accounts) {
         this.identity = identity;
         this.isAdmin = isAdmin;
         this.metadata = Collections.unmodifiableMap(metadata);
+        this.accounts = Collections.unmodifiableMap(accounts);
     }
 
     static SyncUserInfo fromLookupUserIdResponse(LookupUserIdResponse response) {
-        return new SyncUserInfo(response.getUserId(), response.isAdmin(), response.getMetadata());
+        return new SyncUserInfo(response.getUserId(), response.isAdmin(), response.getMetadata(), response.getAccounts());
     }
 
     /**
@@ -64,6 +66,19 @@ public class SyncUserInfo {
     public Map<String, String> getMetadata() {
         return metadata;
     }
+
+    /**
+     * Returns the accounts associated with this user. The map returned is a map of {@link SyncCredentials.IdentityProvider}
+     * and the providerId used in that provider.
+     * <p>
+     * Example being {@code ("password", "my@email.com") }, if the user created an account using the standard account creation
+     * supported by the Realm Object Server.
+     * <p>
+     * A user can have multiple accounts associated with it.
+     *
+     * @return the accounts associated with the user.
+     */
+    public Map<String, String> getAccounts() { return accounts; }
 
     @Override
     public boolean equals(Object o) {

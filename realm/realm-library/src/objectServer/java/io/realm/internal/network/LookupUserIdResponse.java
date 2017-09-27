@@ -15,12 +15,12 @@
  */
 package io.realm.internal.network;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 
@@ -36,12 +36,13 @@ public class LookupUserIdResponse extends AuthServerResponse {
 
     private static final String JSON_FIELD_USER_ID = "user_id";
     private static final String JSON_FIELD_USER_IS_ADMIN = "is_admin";
-    private static final String JSON_FIELD_METADATA =  "metadata";
+    private static final String JSON_FIELD_METADATA = "metadata";
+    private static final String JSON_FIELD_ACCOUNTS = "accounts";
 
     private final String userId;
     private final Boolean isAdmin;
     private final Map<String, String> metadata;
-
+    private final Map<String, String> accounts;
     /**
      * Helper method for creating the proper lookup user response. This method will set the appropriate error
      * depending on any HTTP response codes or I/O errors.
@@ -85,6 +86,7 @@ public class LookupUserIdResponse extends AuthServerResponse {
         this.userId = null;
         this.isAdmin = null;
         this.metadata = new HashMap<>();
+        this.accounts = new HashMap<>();
     }
 
     private LookupUserIdResponse(String serverResponse) {
@@ -93,11 +95,13 @@ public class LookupUserIdResponse extends AuthServerResponse {
         Boolean isAdmin;
         String message;
         Map<String, String> metadata;
+        Map<String, String> accounts;
         try {
             JSONObject obj = new JSONObject(serverResponse);
             userId = obj.getString(JSON_FIELD_USER_ID);
             isAdmin = obj.getBoolean(JSON_FIELD_USER_IS_ADMIN);
-            metadata = jsonToMap(obj.getJSONObject(JSON_FIELD_METADATA));
+            metadata = jsonToMap(obj.getJSONArray(JSON_FIELD_METADATA), "key", "value");
+            accounts = jsonToMap(obj.getJSONArray(JSON_FIELD_ACCOUNTS), "provider", "provider_id");
             error = null;
 
             message = String.format(Locale.US, "Identity %s; Path %b", userId, isAdmin);
@@ -106,6 +110,7 @@ public class LookupUserIdResponse extends AuthServerResponse {
             userId = null;
             isAdmin = null;
             metadata = new HashMap<>();
+            accounts = new HashMap<>();
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, e);
             message = String.format(Locale.US, "Error %s", error.getErrorMessage());
         }
@@ -115,6 +120,7 @@ public class LookupUserIdResponse extends AuthServerResponse {
         this.userId = userId;
         this.isAdmin = isAdmin;
         this.metadata = metadata;
+        this.accounts = accounts;
     }
 
     public String getUserId() {
@@ -127,21 +133,21 @@ public class LookupUserIdResponse extends AuthServerResponse {
 
     public Map<String, String> getMetadata() { return metadata; }
 
-    private static Map<String, String> jsonToMap(JSONObject json) throws JSONException {
-        Map<String, String> map = new HashMap<>();
-        if(json != JSONObject.NULL) {
-            map = toMap(json);
-        }
-        return map;
-    }
+    public Map<String, String> getAccounts() { return accounts; }
 
-    private static Map<String, String> toMap(JSONObject object) throws JSONException {
+    // Assume arrays of key/value irrespectively of what they are named.
+    // Throws if this is not the case
+    private static Map<String, String> jsonToMap(JSONArray array, String keyName, String valueName) throws JSONException {
         Map<String, String> map = new HashMap<>();
-        Iterator<String> keysItr = object.keys();
-        while(keysItr.hasNext()) {
-            String key = keysItr.next();
-            String value = object.getString(key);
-            map.put(key, value);
+        if (array == null) {
+            return map;
+        }
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject obj = array.getJSONObject(i);
+            if (obj.length() != 2) {
+                throw new IllegalStateException("Array object not a key/value object. Has " + obj.length() + " fields");
+            }
+            map.put(obj.getString(keyName), obj.getString(valueName));
         }
         return map;
     }
