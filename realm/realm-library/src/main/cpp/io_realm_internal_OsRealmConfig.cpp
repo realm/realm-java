@@ -21,6 +21,8 @@
 #include <sync/sync_config.hpp>
 #include <sync/sync_manager.hpp>
 #include <sync/sync_session.hpp>
+#include <android/log.h>
+
 #endif
 
 #include "java_accessor.hpp"
@@ -249,7 +251,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNo
 #if REALM_ENABLE_SYNC
 JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
     JNIEnv* env, jclass, jlong native_ptr, jstring j_sync_realm_url, jstring j_auth_url, jstring j_user_id,
-    jstring j_reresh_token)
+    jstring j_refresh_token, jboolean j_is_partial)
 {
     TR_ENTER_PTR(native_ptr)
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
@@ -299,7 +301,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSy
             if (access_token_string) {
                 // reusing cached valid token
                 JStringAccessor access_token(env, access_token_string);
-                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url));
+                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url()));
+                __android_log_print(ANDROID_LOG_VERBOSE, "H4X0R", ">>>>>>>>>>>>>>>>>>>> reusing cached valid token url = %s", session->config().realm_url().c_str());
             }
         };
 
@@ -310,7 +313,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSy
         std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(sync_user_identifier);
         if (!user) {
             JStringAccessor realm_auth_url(env, j_auth_url);
-            JStringAccessor refresh_token(env, j_reresh_token);
+            JStringAccessor refresh_token(env, j_refresh_token);
             user = SyncManager::shared().get_user(sync_user_identifier, refresh_token);
         }
 
@@ -324,6 +327,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSy
         config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
             user, realm_url, SyncSessionStopPolicy::AfterChangesUploaded, std::move(bind_handler), std::move(error_handler),
             nullptr, sync_encryption_key});
+        config.sync_config->is_partial = j_is_partial == JNI_TRUE;
+
     }
     CATCH_STD()
 }

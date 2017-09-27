@@ -25,7 +25,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.Nullable;
 
+import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmModel;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
@@ -353,6 +355,10 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeIsAutoRefresh(nativePtr);
     }
 
+    public void registerPartialSyncQuery(String type, String query, Realm.PartialSyncCallback callback) {
+        nativeRegisterPartialSyncQuery(nativePtr, type, query, callback);
+    }
+
     public RealmConfiguration getConfiguration() {
         return osRealmConfig.getRealmConfiguration();
     }
@@ -481,6 +487,12 @@ public final class SharedRealm implements Closeable, NativeObject {
         callback.onInit(new SharedRealm(nativeSharedRealmPtr, osRealmConfig));
     }
 
+
+    private static void runPartialSyncREgistrationCallback(OsRealmConfig osRealmConfig, Realm.PartialSyncCallback callback) {
+        callback.onError(null);
+        callback.onSuccess(null);
+    }
+
     private static native void nativeInit(String temporaryDirectoryPath);
 
     private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
@@ -543,4 +555,6 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static native long nativeGetSchemaInfo(long nativePtr);
 
     private static native void nativeRegisterSchemaChangedCallback(long nativePtr, SchemaChangedCallback callback);
+
+    private static native void nativeRegisterPartialSyncQuery(long nativeSharedRealmPtr, String className, String query, Realm.PartialSyncCallback callback);
 }

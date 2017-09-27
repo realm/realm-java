@@ -1648,6 +1648,25 @@ public class Realm extends BaseRealm {
         return BaseRealm.compactRealm(configuration);
     }
 
+    // TODO doc from Ccocoa/Product/Sync
+    // TODO perform the registration on a worker (SyncThread) thread
+    // Watch if this register the query from UI thread
+    public <E extends RealmModel> void subscribeToObjects(Class<E> clazz, String query, PartialSyncCallback<E> callback) {
+        checkIfValid();
+        if (!configuration.isSyncConfiguration()) {
+            throw new IllegalStateException("Partial sync is only available for SyncConfiguration");
+        }
+
+//        sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+
+        String type = schema.getSchemaForClass(clazz).getClassName();
+//        if (type != null) {
+        sharedRealm.registerPartialSyncQuery(type, query, callback);
+//        } else {
+//            throw new IllegalArgumentException("Unknown type " + clazz);
+//        }
+    }
+
     Table getTable(Class<? extends RealmModel> clazz) {
         return schema.getTable(clazz);
     }
@@ -1763,5 +1782,10 @@ public class Realm extends BaseRealm {
         public void onError(Throwable exception) {
             super.onError(exception);
         }
+    }
+
+    public static abstract class PartialSyncCallback<T extends RealmModel> {
+        public abstract void onSuccess(RealmResults<T> results);
+        public abstract void onError(RealmException error);
     }
 }

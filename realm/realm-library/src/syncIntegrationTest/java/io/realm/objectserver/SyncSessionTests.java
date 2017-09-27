@@ -15,9 +15,8 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.CountDownLatch;
 import java.util.Arrays;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 
-import io.realm.BaseIntegrationTest;
+import io.realm.DynamicRealm;
 import io.realm.Realm;
 import io.realm.StandardIntegrationTest;
 import io.realm.RealmChangeListener;
@@ -30,9 +29,14 @@ import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmException;
+import io.realm.objectserver.model.PartialSyncModule;
+import io.realm.objectserver.model.PartialSyncObjectA;
+import io.realm.objectserver.model.PartialSyncObjectB;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -453,5 +457,157 @@ public class SyncSessionTests extends StandardIntegrationTest {
         realm.refresh();//FIXME not calling refresh will still point to the previous version of the Realm count == 1
         assertEquals(3, realm.where(StringOnly.class).count());
         realm.close();
+    }
+
+
+    @Test
+//    @RunTestInLooperThread
+    public void partialSync() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+
+        final SyncConfiguration partialSyncConfig = configFactory
+                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .modules(new PartialSyncModule())
+                .withPartialSync()
+                .build();
+        SyncConfiguration adminConfig = configFactory
+                .createSyncConfigurationBuilder(adminUser, partialSyncConfig.getServerUrl().toString())
+                .modules(new PartialSyncModule())
+                .build();
+
+        // Using Admin user, populate the Realm.
+        Realm realm = Realm.getInstance(adminConfig);
+        realm.beginTransaction();
+        PartialSyncObjectA objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(0);
+        objectA.setString("realm");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(1);
+        objectA.setString("");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(2);
+        objectA.setString("");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(3);
+        objectA.setString("");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(4);
+        objectA.setString("realm");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(5);
+        objectA.setString("sync");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(6);
+        objectA.setString("partial");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(7);
+        objectA.setString("partial");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(8);
+        objectA.setString("partial");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(9);
+        objectA.setString("partial");
+
+        realm.createObject(PartialSyncObjectB.class).setNumber(0);
+        realm.createObject(PartialSyncObjectB.class).setNumber(1);
+        realm.createObject(PartialSyncObjectB.class).setNumber(2);
+        realm.createObject(PartialSyncObjectB.class).setNumber(3);
+        realm.createObject(PartialSyncObjectB.class).setNumber(4);
+        realm.createObject(PartialSyncObjectB.class).setNumber(5);
+        realm.createObject(PartialSyncObjectB.class).setNumber(6);
+        realm.createObject(PartialSyncObjectB.class).setNumber(7);
+        realm.createObject(PartialSyncObjectB.class).setNumber(8);
+        realm.createObject(PartialSyncObjectB.class).setNumber(9);
+        realm.commitTransaction();
+
+
+        SyncManager.getSession(adminConfig).uploadAllLocalChanges();
+        realm.close();
+
+
+//        Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
+//        looperThread.addTestRealm(partialSyncRealm);
+//        //TODO add waitForServerChange to the conf
+//        assertTrue(partialSyncRealm.isEmpty());
+//
+//        partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>(){
+//
+//            @Override
+//            public void onSuccess(RealmResults<PartialSyncObjectA> results) {
+//                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>   onSuccess called");
+//            }
+//
+//            @Override
+//            public void onError(RealmException error) {
+//                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>   onError called");
+//            }
+//        });
+//        System.out.println(">>>>>>>>>>>>>>>>>>>>>> REGISTERED");
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        //TODO check if need a looper thread or just a dedicated thread ?
+        HandlerThread handlerThread = new HandlerThread("background");
+        handlerThread.start();
+        Handler handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
+                //TODO add waitForServerChange to the conf
+                assertTrue(partialSyncRealm.isEmpty());
+
+                partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>(){
+
+                    @Override
+                    public void onSuccess(RealmResults<PartialSyncObjectA> results) {
+                        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>   onSuccess called");
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onError(RealmException error) {
+                        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>   onError called");
+                        latch.countDown();
+                    }
+                });
+                DynamicRealm dynamicRealm = DynamicRealm.getInstance(partialSyncConfig);
+                boolean is = dynamicRealm.getSchema().contains("PartialSyncObjectA");
+                System.out.println(">>>>>>>>>>>>>>>>>>>>>> REGISTERED");
+            }
+        });
+//        Thread t = new  Thread() {
+//            Realm partialSyncRealm;
+//            Realm.PartialSyncCallback<PartialSyncObjectA> callback = new Realm.PartialSyncCallback<PartialSyncObjectA>(){
+//
+//                @Override
+//                public void onSuccess(RealmResults<PartialSyncObjectA> results) {
+//                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>   onSuccess called");
+//                    latch.countDown();
+//                }
+//
+//                @Override
+//                public void onError(RealmException error) {
+//                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>   onError called");
+//                    latch.countDown();
+//                }
+//            };
+//
+//            @Override
+//            public void run() {
+//                partialSyncRealm = Realm.getInstance(partialSyncConfig);
+//                //TODO add waitForServerChange to the conf
+//                assertTrue(partialSyncRealm.isEmpty());
+//
+//                partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", callback);
+//                System.out.println(">>>>>>>>>>>>>>>>>>>>>> REGISTERED");
+//            }
+//        };
+//        t.start();
+        // do partial sync queries.
+
+        latch.await();
+//        partialSyncRealm.close();
     }
 }

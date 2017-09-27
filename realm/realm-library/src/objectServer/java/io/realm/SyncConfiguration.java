@@ -88,6 +88,7 @@ public class SyncConfiguration extends RealmConfiguration {
     @Nullable
     private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
+    private final boolean isPartial;
 
     private SyncConfiguration(File directory,
                                 String filename,
@@ -116,7 +117,8 @@ public class SyncConfiguration extends RealmConfiguration {
                                 String serverCertificateAssetName,
                                 @Nullable
                                 String serverCertificateFilePath,
-                                boolean waitForInitialData
+                                boolean waitForInitialData,
+                                boolean isPartial
     ) {
         super(directory,
                 filename,
@@ -142,6 +144,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.serverCertificateAssetName = serverCertificateAssetName;
         this.serverCertificateFilePath = serverCertificateFilePath;
         this.waitForInitialData = waitForInitialData;
+        this.isPartial = isPartial;
     }
 
     /**
@@ -344,6 +347,11 @@ public class SyncConfiguration extends RealmConfiguration {
         return true;
     }
 
+    // TODO doc
+    public boolean isPartialSync() {
+        return isPartial;
+    }
+
     /**
      * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */
@@ -378,6 +386,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private String serverCertificateAssetName;
         @Nullable
         private String serverCertificateFilePath;
+        private boolean isPartial = false;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
@@ -792,6 +801,12 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
+        // TODO doc
+        public SyncConfiguration.Builder withPartialSync() {
+            this.isPartial = true;
+            return this;
+        }
+
         private String MD5(String in) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -936,7 +951,8 @@ public class SyncConfiguration extends RealmConfiguration {
                     syncClientValidateSsl,
                     serverCertificateAssetName,
                     serverCertificateFilePath,
-                    waitForServerChanges
+                    waitForServerChanges,
+                    isPartial
             );
         }
 

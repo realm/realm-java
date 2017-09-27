@@ -19,11 +19,14 @@
 #include "object-store/src/sync/sync_manager.hpp"
 #include "object-store/src/sync/sync_config.hpp"
 #include "object-store/src/sync/sync_session.hpp"
+#include "object-store/src/results.hpp"
+#include "object-store/src/sync/partial_sync.hpp"
 #endif
 
 #include <realm/util/assert.hpp>
 
 #include <shared_realm.hpp>
+#include <android/log.h>
 
 #include "java_accessor.hpp"
 #include "java_binding_context.hpp"
@@ -514,4 +517,53 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterSchemaCh
             *(static_cast<JavaBindingContext*>(shared_realm->m_binding_context.get()));
         java_binding_context.set_schema_changed_callback(env, j_schema_changed_callback);
     }
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterPartialSyncQuery(
+    REALM_UNUSED JNIEnv* env, jclass, REALM_UNUSED jlong shared_realm_ptr, REALM_UNUSED jstring j_class_name,
+    REALM_UNUSED jstring j_query, REALM_UNUSED jobject j_callback)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+
+#if REALM_ENABLE_SYNC
+
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        JStringAccessor class_name(env, j_class_name); // throws
+        JStringAccessor query(env, j_query);           // throws
+
+        JavaGlobalWeakRef j_callback_weak(env, j_callback);
+//        static JavaClass shared_realm_class(env, "io/realm/internal/SharedRealm");
+//        static JavaMethod run_migration_callback_method(
+//                env, get_shared_realm_class(env), "runMigrationCallback",
+//                "(JLio/realm/internal/OsRealmConfig;Lio/realm/internal/SharedRealm$MigrationCallback;J)V", true);
+
+        // TODO throw if this is called from non SyncConf & partial enabled
+
+
+        auto cb = [=](REALM_UNUSED Results results, std::exception_ptr err) {
+                if (err) {
+                    __android_log_print(ANDROID_LOG_VERBOSE, "H4X0R", ">>>>>>>>>>>>>>>>> PARTIAL SYNC ERROR");
+                    try {
+                        std::rethrow_exception(err);
+                    }
+                    catch (...) {
+    //                    NSError* error = nil;
+    //                    RLMRealmTranslateException(&error);
+    //                    callback(nil, error);
+                    }
+                    return;
+                }
+            __android_log_print(ANDROID_LOG_VERBOSE, "H4X0R", ">>>>>>>>>>>>>>>>> PARTIAL SYNC SUCCESS");
+            // callback([RLMResults resultsWithObjectInfo:_info[className] results:std::move(results)], nil);
+            // TODO call j_callback with results
+        };
+
+        partial_sync::register_query(shared_realm, class_name, query, std::move(cb));
+    }
+
+    CATCH_STD()
+#else
+    REALM_TERMINATE("Unsupported operation. Partial Sync is only available for Sync");
+#endif
 }

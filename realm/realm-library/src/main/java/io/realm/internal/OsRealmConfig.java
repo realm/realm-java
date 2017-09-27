@@ -172,6 +172,7 @@ public class OsRealmConfig implements NativeObject {
         String syncRefreshToken = (String) syncUserConf[3];
         boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncUserConf[4]));
         String syncSslTrustCertificatePath = (String) syncUserConf[5];
+        boolean isPartial = (Boolean.TRUE.equals(syncUserConf[6]));
 
         // Set encryption key
         byte[] key = config.getEncryptionKey();
@@ -213,7 +214,7 @@ public class OsRealmConfig implements NativeObject {
         // Set sync config
         if (syncRealmUrl != null) {
             nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,
-                    syncRefreshToken);
+                    syncRefreshToken, isPartial);
             nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
         }
     }
@@ -253,7 +254,7 @@ public class OsRealmConfig implements NativeObject {
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
     private static native void nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl,
-                                                            String authUrl, String userId, String refreshToken);
+                                                            String authUrl, String userId, String refreshToken, boolean isPartial);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);
