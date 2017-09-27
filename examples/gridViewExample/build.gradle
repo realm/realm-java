@@ -15,14 +15,20 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            signingConfig signingConfigs.debug
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     productFlavors {
     }
 
     command {
-        events 2000
+        monkey.events 2000
     }
 
     splits {
@@ -37,5 +43,5 @@ android {
 }
 
 dependencies {
-    compile 'com.google.code.gson:gson:2.5'
+    implementation 'com.google.code.gson:gson:2.5'
 }

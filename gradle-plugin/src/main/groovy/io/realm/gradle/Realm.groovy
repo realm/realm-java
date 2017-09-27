@@ -23,6 +23,7 @@ import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.UnknownConfigurationException
 
 class Realm implements Plugin<Project> {
 
@@ -40,7 +41,8 @@ class Realm implements Plugin<Project> {
         }
 
         def syncEnabledDefault = false
-        project.extensions.create('realm', RealmPluginExtension, project, syncEnabledDefault)
+        def dependencyConfigurationName = getDependencyConfigurationName(project)
+        project.extensions.create('realm', RealmPluginExtension, project, syncEnabledDefault, dependencyConfigurationName)
 
         def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
         def isKotlinProject = project.plugins.findPlugin('kotlin-android') != null
@@ -57,7 +59,7 @@ class Realm implements Plugin<Project> {
         project.android.registerTransform(new RealmTransformer(project))
 
         project.repositories.add(project.getRepositories().jcenter())
-        project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
+        project.dependencies.add(dependencyConfigurationName, "io.realm:realm-annotations:${Version.VERSION}")
         if (usesAptPlugin) {
             project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
             project.dependencies.add("androidTestApt", "io.realm:realm-annotations-processor:${Version.VERSION}")
@@ -77,6 +79,22 @@ class Realm implements Plugin<Project> {
             return true
         } catch (Exception ignored) {
             return false
+        }
+    }
+
+    private static String getDependencyConfigurationName(Project project) {
+        /*
+         * Dependency configuration name for android gradle plugin 3.0.0-*.
+         * We need to use 'api' instead of 'implementation' since user's model class
+         * might be using Realm's classes and annotations.
+         */
+        def newDependencyName = "api"
+        def oldDependencyName = "compile"
+        try {
+            project.getConfigurations().getByName(newDependencyName)
+            return newDependencyName
+        } catch (UnknownConfigurationException ignored) {
+            oldDependencyName
         }
     }
 

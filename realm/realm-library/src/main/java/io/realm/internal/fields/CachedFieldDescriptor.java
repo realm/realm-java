@@ -16,6 +16,7 @@ package io.realm.internal.fields;
  */
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import io.realm.RealmFieldType;
@@ -53,42 +54,41 @@ class CachedFieldDescriptor extends FieldDescriptor {
         final int nFields = fields.size();
         long[] columnIndices = new long[nFields];
         long[] tableNativePointers = new long[nFields];
-        String currentTable = className;
 
-        ColumnInfo tableInfo;
-        String columnName = null;
-        RealmFieldType columnType = null;
-        long columnIndex;
+        String currentClassName = className;
+        String currentColumnName = null;
+        RealmFieldType currentColumnType = null;
         for (int i = 0; i < nFields; i++) {
-            columnName = fields.get(i);
-            if ((columnName == null) || (columnName.length() <= 0)) {
+            currentColumnName = fields.get(i);
+            if ((currentColumnName == null) || (currentColumnName.length() <= 0)) {
                 throw new IllegalArgumentException(
                         "Invalid query: Field descriptor contains an empty field.  A field description may not begin with or contain adjacent periods ('.').");
             }
 
-            tableInfo = schema.getColumnInfo(currentTable);
-            if (tableInfo == null) {
+            final ColumnInfo columnInfo = schema.getColumnInfo(currentClassName);
+            if (columnInfo == null) {
                 throw new IllegalArgumentException(
-                        String.format("Invalid query: table '%s' not found in this schema.", currentTable));
+                        String.format(Locale.US, "Invalid query: class '%s' not found in this schema.", currentClassName));
             }
 
-            columnIndex = tableInfo.getColumnIndex(columnName);
-            if (columnIndex < 0) {
+            final ColumnInfo.ColumnDetails details = columnInfo.getColumnDetails(currentColumnName);
+            if (details == null) {
                 throw new IllegalArgumentException(
-                        String.format("Invalid query: field '%s' not found in table '%s'.", columnName, currentTable));
+                        String.format(Locale.US, "Invalid query: field '%s' not found in class '%s'.", currentColumnName, currentClassName));
             }
 
-            columnType = tableInfo.getColumnType(columnName);
+            currentColumnType = details.columnType;
+            // we don't check the type of the last field in the chain since it is done in the C++ code
             if (i < nFields - 1) {
-                verifyInternalColumnType(currentTable, columnName, columnType);
-                currentTable = tableInfo.getLinkedTable(columnName);
+                verifyInternalColumnType(currentClassName, currentColumnName, currentColumnType);
+                currentClassName = details.linkedClassName;
             }
-            columnIndices[i] = columnIndex;
-            tableNativePointers[i] = (columnType != RealmFieldType.LINKING_OBJECTS)
+            columnIndices[i] = details.columnIndex;
+            tableNativePointers[i] = (currentColumnType != RealmFieldType.LINKING_OBJECTS)
                     ? NativeObject.NULLPTR
-                    : schema.getNativeTablePtr(currentTable);
+                    : schema.getNativeTablePtr(details.linkedClassName);
         }
 
-        setCompilationResults(className, columnName, columnType, columnIndices, tableNativePointers);
+        setCompilationResults(currentClassName, currentColumnName, currentColumnType, columnIndices, tableNativePointers);
     }
 }

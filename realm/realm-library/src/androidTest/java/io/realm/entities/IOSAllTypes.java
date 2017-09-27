@@ -24,6 +24,8 @@ import io.realm.annotations.PrimaryKey;
 
 public class IOSAllTypes extends RealmObject {
 
+    public final static String CLASS_NAME = "IOSAllTypes";
+
     @PrimaryKey
     private long id;
 

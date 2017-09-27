@@ -62,7 +62,10 @@ auth:
     ## The validity duration for Access Tokens. This should be a fairly small
     ## number, especially if you are concerned with revocations being applied
     ## quickly. This value is represented in seconds. Default: 1 minute.
-    # access_token: 60
+    ##
+    ## WARNING : Changing this value may impact the timeout of the refresh
+    ##           token test (AuthTests#preemptiveTokenRefresh)
+    access_token: 20
 
   providers:
     ## Providers of authentication tokens. Each provider has a configuration
@@ -103,7 +106,28 @@ auth:
     ## This enables authentication via a Facebook access token for a specific app.
     ## This provider needs no configuration (uncommenting the next line enables it).
     # facebook: {}
-    debug: {}
+
+    ## This enables authentication via an Azure Active Directory access token for a specific directory.
+    # azuread:
+      ## The Directory Id as retrieved from the Active Directory properties in the Azure portal.
+      # tenant_id: '01234567-89ab-cdef-0123-4567890a'
+
+    ## This would enable a custom authentication provider with the name "custom/twitter".
+    ## The prefix "custom/" is necessary for all authentication providers using a custom
+    ## implementation to ensure forwards-compatiblity and avoid name clashes.
+    # custom/twitter:
+      ## The implementation to be used. This can be either one of the predefined
+      ## implementations under a custom name or a custom implementation found at
+      ## the include_path or if not given at the auth:providers_include_path.
+      # implementation: custom_provider_implementation.js
+
+      ## The include path to use for this providers custom implementation.
+      # include_path: /~/.realm/auth
+
+      ## Beyond that custom implementations can define custom configuration
+      ## options which will be populated to their configuration and merged with
+      ## the default values they can define.
+     debug: {}
 
 ## ----------------------------------------------------------------------------
 
@@ -154,31 +178,31 @@ proxy:
     ## The address/interface on which the HTTP proxy module should listen. This defaults
     ## to 127.0.0.1. If you wish to listen on all available interfaces,
     ## uncomment the following line.
-    listen_address: '::'
+    listen_address: '0.0.0.0'
 
     ## The port that the HTTP proxy module should bind to.
-    # listen_port: 9080
+    listen_port: 9080
 
   https:
     ## Whether or not to enable the HTTPS proxy module. It enables multiplexing requests
     ## by forwarding incoming requests on a single port to all services.
     ## Note that even if it enabled, the HTTPS proxy will only start if supplied
     ## with a valid pair of certificates through certificate_path and private_key_path below.
-    # enable: false
+     enable: true
 
     ## The path to the certificate and private keys (in PEM format) that will be used
     ## to set up the HTTPS server accepting connections.
     ## These configuration options are MANDATORY to start the HTTPS proxy module.
-    # certificate_path: 'keys/https-proxy.crt'
-    # private_key_path: 'keys/https-proxy.key'
+     certificate_path: '/127_0_0_1-chain.crt.pem'
+     private_key_path: '/127_0_0_1-server.key.pem'
 
     ## The address/interface on which the HTTPS proxy module should listen. This defaults
     ## to 127.0.0.1. If you wish to listen on all available interfaces,
     ## uncomment the following line.
-    # listen_address: '::'
+     listen_address: '0.0.0.0'
 
     ## The port that the HTTPS proxy module should bind to.
-    # listen_port: 9443
+     listen_port: 9443
 
 ## ----------------------------------------------------------------------------
 
@@ -247,7 +271,7 @@ logging:
   ##   error
   ##   fatal
   ##   off: all output suppressed
-  # level: 'info'
+   level: 'detail'
 
   ## The file to which the synchronisation server should log. This should
   ## be a writable path from the perspective of the user under which the

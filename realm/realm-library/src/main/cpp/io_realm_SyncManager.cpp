@@ -23,13 +23,19 @@
 #include <binding_callback_thread_observer.hpp>
 
 #include "util.hpp"
-#include "jni_util/jni_utils.hpp"
+#include "jni_util/java_class.hpp"
 #include "jni_util/java_method.hpp"
+#include "jni_util/jni_utils.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
+using namespace realm::util;
 
 struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
+    AndroidClientListener(JNIEnv* env)
+        : m_realm_exception_class(env, "io/realm/exceptions/RealmError")
+    {
+    }
 
     void did_create_thread() override
     {
@@ -40,11 +46,32 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
 
     void will_destroy_thread() override
     {
-        Log::d("SyncClient thread destroyed");
+        // avoid allocating any NewString if we have a pending exception
+        // otherwise a "JNI called with pending exception" will be called
+        if (JniUtils::get_env(true)->ExceptionCheck() == JNI_FALSE) {
+            Log::d("SyncClient thread destroyed");
+        }
+
         // Failing to detach the JVM before closing the thread will crash on ART
         JniUtils::detach_current_thread();
     }
-} s_client_thread_listener;
+
+    void handle_error(std::exception const& e) override
+    {
+        JNIEnv* env = JniUtils::get_env(true);
+        std::string msg = format("An exception has been thrown on the sync client thread:\n%1", e.what());
+        Log::f(msg.c_str());
+        // Since user has no way to handle exceptions thrown on the sync client thread, we just convert it to a Java
+        // exception to get more debug information for ourself.
+        // FIXME: We really need to find a universal and clever way to get the native backtrace when exception thrown
+        env->ThrowNew(m_realm_exception_class, msg.c_str());
+    }
+
+private:
+    // For some reasons, FindClass() doesn't work in the native thread even when the JVM is attached before. Get the
+    // RealmError class on a normal JVM thread and throw it later on the sync client thread.
+    JavaClass m_realm_exception_class;
+};
 
 struct AndroidSyncLoggerFactory : public realm::SyncLoggerFactory {
     // The level param is ignored. Use the global RealmLog.setLevel() to control all log levels.
@@ -72,8 +99,9 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNI
         JStringAccessor base_file_path(env, sync_base_dir); // throws
         SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
 
+        static AndroidClientListener client_thread_listener(env);
         // Register Sync Client thread start/stop callback
-        g_binding_callback_thread_observer = &s_client_thread_listener;
+        g_binding_callback_thread_observer = &client_thread_listener;
 
         // init logger
         SyncManager::shared().set_logger_factory(s_sync_logger_factory);

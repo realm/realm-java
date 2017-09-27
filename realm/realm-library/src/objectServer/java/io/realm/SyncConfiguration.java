@@ -27,13 +27,18 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.Util;
+import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
@@ -73,32 +78,45 @@ public class SyncConfiguration extends RealmConfiguration {
     static final int MAX_FULL_PATH_LENGTH = 256;
     static final int MAX_FILE_NAME_LENGTH = 255;
     private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
-
     private final URI serverUrl;
     private final SyncUser user;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
+    private final boolean syncClientValidateSsl;
+    @Nullable
+    private final String serverCertificateAssetName;
+    @Nullable
+    private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
 
     private SyncConfiguration(File directory,
                                 String filename,
                                 String canonicalPath,
+                                @Nullable
                                 String assetFilePath,
+                                @Nullable
                                 byte[] key,
                                 long schemaVersion,
+                                @Nullable
                                 RealmMigration migration,
                                 boolean deleteRealmIfMigrationNeeded,
-                                SharedRealm.Durability durability,
+                                OsRealmConfig.Durability durability,
                                 RealmProxyMediator schemaMediator,
+                                @Nullable
                                 RxObservableFactory rxFactory,
+                                @Nullable
                                 Realm.Transaction initialDataTransaction,
                                 boolean readOnly,
                                 SyncUser user,
                                 URI serverUrl,
                                 SyncSession.ErrorHandler errorHandler,
                                 boolean deleteRealmOnLogout,
+                                boolean syncClientValidateSsl,
+                                @Nullable
+                                String serverCertificateAssetName,
+                                @Nullable
+                                String serverCertificateFilePath,
                                 boolean waitForInitialData
-
     ) {
         super(directory,
                 filename,
@@ -112,14 +130,66 @@ public class SyncConfiguration extends RealmConfiguration {
                 schemaMediator,
                 rxFactory,
                 initialDataTransaction,
-                readOnly
+                readOnly,
+                null,
+                false
         );
 
         this.user = user;
         this.serverUrl = serverUrl;
         this.errorHandler = errorHandler;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
+        this.syncClientValidateSsl = syncClientValidateSsl;
+        this.serverCertificateAssetName = serverCertificateAssetName;
+        this.serverCertificateFilePath = serverCertificateFilePath;
         this.waitForInitialData = waitForInitialData;
+    }
+
+    /**
+     * Returns a {@link RealmConfiguration} appropriate to open a read-only, non-synced Realm to recover any pending changes.
+     * This is useful when trying to open a backup/recovery Realm (after a client reset).
+     *
+     * @param canonicalPath the absolute path to the Realm file defined by this configuration.
+     * @param encryptionKey the key used to encrypt/decrypt the Realm file.
+     * @param modules if specified it will restricts Realm schema to the provided module.
+     * @return RealmConfiguration that can be used offline
+     */
+    public static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, @Nullable Object... modules) {
+        HashSet<Object> validatedModules = new HashSet<>();
+        if (modules != null && modules.length > 0) {
+            for (Object module : modules) {
+                if (!module.getClass().isAnnotationPresent(RealmModule.class)) {
+                    throw new IllegalArgumentException(module.getClass().getCanonicalName() + " is not a RealmModule. " +
+                            "Add @RealmModule to the class definition.");
+                }
+                validatedModules.add(module);
+            }
+        } else {
+            if (Realm.getDefaultModule() != null) {
+                validatedModules.add(Realm.getDefaultModule());
+            }
+        }
+
+        RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet());
+        return forRecovery(canonicalPath, encryptionKey, schemaMediator);
+    }
+
+    /**
+     * Returns a {@link RealmConfiguration} appropriate to open a read-only, non-synced Realm to recover any pending changes.
+     * This is useful when trying to open a backup/recovery Realm (after a client reset).
+     *
+     * Note: This will use the default Realm module (composed of all {@link RealmModel}), and
+     * assume no encryption should be used as well.
+     *
+     * @param canonicalPath the absolute path to the Realm file defined by this configuration.
+     * @return RealmConfiguration that can be used offline
+     */
+    public static RealmConfiguration forRecovery(String canonicalPath) {
+        return forRecovery(canonicalPath, null);
+    }
+
+    static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
+        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true);
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -152,9 +222,12 @@ public class SyncConfiguration extends RealmConfiguration {
         SyncConfiguration that = (SyncConfiguration) o;
 
         if (deleteRealmOnLogout != that.deleteRealmOnLogout) return false;
+        if (syncClientValidateSsl != that.syncClientValidateSsl) return false;
         if (!serverUrl.equals(that.serverUrl)) return false;
         if (!user.equals(that.user)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
+        if (serverCertificateAssetName != null ? !serverCertificateAssetName.equals(that.serverCertificateAssetName) : that.serverCertificateAssetName != null) return false;
+        if (serverCertificateFilePath != null ? !serverCertificateFilePath.equals(that.serverCertificateFilePath) : that.serverCertificateFilePath != null) return false;
         if (waitForInitialData != that.waitForInitialData) return false;
         return true;
     }
@@ -164,8 +237,11 @@ public class SyncConfiguration extends RealmConfiguration {
         int result = super.hashCode();
         result = 31 * result + serverUrl.hashCode();
         result = 31 * result + user.hashCode();
-        result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
         result = 31 * result + errorHandler.hashCode();
+        result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
+        result = 31 * result + (syncClientValidateSsl ? 1 : 0);
+        result = 31 * result + (serverCertificateAssetName != null ? serverCertificateAssetName.hashCode() : 0);
+        result = 31 * result + (serverCertificateFilePath != null ? serverCertificateFilePath.hashCode() : 0);
         result = 31 * result + (waitForInitialData ? 1 : 0);
         return result;
     }
@@ -219,6 +295,39 @@ public class SyncConfiguration extends RealmConfiguration {
         return deleteRealmOnLogout;
     }
 
+    /**
+     * Returns the name of certificate stored under the {@code assets}, to be used to validate
+     * the TLS connection to the Realm Object Server.
+     *
+     * @return name of the certificate to be copied from the {@code assets}.
+     * @see #getServerCertificateFilePath()
+     */
+    @Nullable
+    public String getServerCertificateAssetName() {
+        return serverCertificateAssetName;
+    }
+
+    /**
+     * Returns the name of the certificate copied from {@code assets} into internal storage, so it
+     * can be used to validate the TLS connection to the Realm Object Server.
+     *
+     * @return absolute path to the certificate.
+     * @see #getServerCertificateAssetName()
+     */
+    @Nullable
+    public String getServerCertificateFilePath() {
+        return serverCertificateFilePath;
+    }
+
+    /**
+     * Whether the Realm Object Server certificate should be validated in order
+     * to establish a valid TLS connection.
+     *
+     * @return {@code true} to validate the remote certificate, or {@code false} to bypass certificate validation.
+     */
+    public boolean syncClientValidateSsl() {
+        return syncClientValidateSsl;
+    }
 
     /**
      * Returns {@code true} if the Realm will download all known changes from the remote server before being opened the
@@ -245,22 +354,31 @@ public class SyncConfiguration extends RealmConfiguration {
         private boolean overrideDefaultFolder = false;
         private String fileName;
         private boolean overrideDefaultLocalFileName = false;
+        @Nullable
         private byte[] key;
         private long schemaVersion = 0;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
+        @Nullable
         private RxObservableFactory rxFactory;
+        @Nullable
         private Realm.Transaction initialDataTransaction;
-        private URI serverUrl;
-        private SyncUser user = null;
-        private SyncSession.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
         private File defaultFolder;
         private String defaultLocalFileName;
-        private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
-        private boolean deleteRealmOnLogout = false;
+        private OsRealmConfig.Durability durability = OsRealmConfig.Durability.FULL;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
         private boolean readOnly = false;
         private boolean waitForServerChanges = false;
+        // sync specific
+        private boolean deleteRealmOnLogout = false;
+        private URI serverUrl;
+        private SyncUser user = null;
+        private SyncSession.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
+        private boolean syncClientValidateSsl = true;
+        @Nullable
+        private String serverCertificateAssetName;
+        @Nullable
+        private String serverCertificateFilePath;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
@@ -294,6 +412,7 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         Builder(Context context, SyncUser user, String url) {
+            //noinspection ConstantConditions
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
             }
@@ -307,6 +426,7 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         private void validateAndSet(SyncUser user) {
+            //noinspection ConstantConditions
             if (user == null) {
                 throw new IllegalArgumentException("Non-null `user` required.");
             }
@@ -317,6 +437,7 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         private void validateAndSet(String uri) {
+            //noinspection ConstantConditions
             if (uri == null) {
                 throw new IllegalArgumentException("Non-null 'uri' required.");
             }
@@ -407,6 +528,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @throws IllegalArgumentException if file name is {@code null} or empty.
          */
         public Builder name(String filename) {
+            //noinspection ConstantConditions
             if (filename == null || filename.isEmpty()) {
                 throw new IllegalArgumentException("A non-empty filename must be provided");
             }
@@ -429,6 +551,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @throws IllegalArgumentException if the directory is not valid.
          */
         public Builder directory(File directory) {
+            //noinspection ConstantConditions
             if (directory == null) {
                 throw new IllegalArgumentException("Non-null 'directory' required.");
             }
@@ -456,11 +579,13 @@ public class SyncConfiguration extends RealmConfiguration {
          * @throws IllegalArgumentException if key is invalid.
          */
         public Builder encryptionKey(byte[] key) {
+            //noinspection ConstantConditions
             if (key == null) {
                 throw new IllegalArgumentException("A non-null key must be provided");
             }
             if (key.length != KEY_LENGTH) {
-                throw new IllegalArgumentException(String.format("The provided key must be %s bytes. Yours was: %s",
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "The provided key must be %s bytes. Yours was: %s",
                         KEY_LENGTH, key.length));
             }
             this.key = Arrays.copyOf(key, key.length);
@@ -473,12 +598,14 @@ public class SyncConfiguration extends RealmConfiguration {
          * previously configured modules.
          */
         SyncConfiguration.Builder schema(Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
+            //noinspection ConstantConditions
             if (firstClass == null) {
                 throw new IllegalArgumentException("A non-null class must be provided");
             }
             modules.clear();
             modules.add(DEFAULT_MODULE_MEDIATOR);
             debugSchema.add(firstClass);
+            //noinspection ConstantConditions
             if (additionalClasses != null) {
                 Collections.addAll(debugSchema, additionalClasses);
             }
@@ -534,6 +661,7 @@ public class SyncConfiguration extends RealmConfiguration {
         public Builder modules(Object baseModule, Object... additionalModules) {
             modules.clear();
             addModule(baseModule);
+            //noinspection ConstantConditions
             if (additionalModules != null) {
                 for (Object module : additionalModules) {
                     addModule(module);
@@ -574,7 +702,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */
         public Builder inMemory() {
-            this.durability = SharedRealm.Durability.MEM_ONLY;
+            this.durability = OsRealmConfig.Durability.MEM_ONLY;
             return this;
         }
 
@@ -588,6 +716,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @throws IllegalArgumentException if {@code null} is given as an error handler.
          */
         public Builder errorHandler(SyncSession.ErrorHandler errorHandler) {
+            //noinspection ConstantConditions
             if (errorHandler == null) {
                 throw new IllegalArgumentException("Non-null 'errorHandler' required.");
             }
@@ -596,6 +725,43 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Provides the trusted root certificate(s) authority (CA) in {@code PEM} format, that should be used to
+         * validate the TLS connections to the Realm Object Server.
+         * <p>
+         * The file should be stored under {@code assets}, it will be copied at runtime into the internal storage.
+         * <p>
+         * Note: This is similar to passing the parameter {@code CAfile} to {@code SSL_CTX_load_verify_locations},
+         *       Therefore it is recommended to include only the root CA you trust, and not the entire list of root CA
+         *       as this file will be loaded at runtime.
+         *
+         *       It is your responsibility to download and verify the correct {@code PEM} for the root CA you trust.
+         *       An existing list by Mozilla exist that could be used https://mozillacaprogram.secure.force.com/CA/IncludedCACertificateReportPEMCSV
+         *
+         * @param filename the path under {@code assets} to the root CA.
+         * @see <a href="https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_load_verify_locations.html">SSL_CTX_load_verify_locations</a>
+         */
+        public Builder trustedRootCA(String filename) {
+            //noinspection ConstantConditions
+            if (filename == null || filename.isEmpty()) {
+                throw new IllegalArgumentException("A non-empty filename must be provided");
+            }
+            this.serverCertificateAssetName = filename;
+            return this;
+        }
+
+        /**
+         * This will disable TLS certificate verification for the remote Realm Object Server.
+         * It is not recommended to use this in production.
+         * <p>
+         * This might be useful in non-production environments where you use a self-signed certificate
+         * for testing.
+         */
+        public Builder disableSSLVerification() {
+            this.syncClientValidateSsl = false;
+            return this;
+        }
+
+        /*
          * Setting this will cause the Realm to download all known changes from the server the first time a Realm is
          * opened. The Realm will not open until all the data has been downloaded. This means that if a device is
          * offline the Realm will not open.
@@ -633,7 +799,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 byte[] buf = digest.digest(in.getBytes("UTF-8"));
                 StringBuilder builder = new StringBuilder();
                 for (byte b : buf) {
-                    builder.append(String.format("%02X", b));
+                    builder.append(String.format(Locale.US, "%02X", b));
                 }
                 return builder.toString();
             } catch (NoSuchAlgorithmException e) {
@@ -712,14 +878,16 @@ public class SyncConfiguration extends RealmConfiguration {
                     realmFileDirectory = new File(rootDir, user.getIdentity());
                     fullPathName = realmFileDirectory.getAbsolutePath() + File.pathSeparator + realmFileName;
                     if (fullPathName.length() > MAX_FULL_PATH_LENGTH) { // we are out of ideas
-                        throw new IllegalStateException(String.format("Full path name must not exceed %d characters: %s",
+                        throw new IllegalStateException(String.format(Locale.US,
+                                "Full path name must not exceed %d characters: %s",
                                 MAX_FULL_PATH_LENGTH, fullPathName));
                     }
                 }
             }
 
             if (realmFileName.length() > MAX_FILE_NAME_LENGTH) {
-                throw new IllegalStateException(String.format("File name exceed %d characters: %d", MAX_FILE_NAME_LENGTH,
+                throw new IllegalStateException(String.format(Locale.US,
+                        "File name exceed %d characters: %d", MAX_FILE_NAME_LENGTH,
                         realmFileName.length()));
             }
 
@@ -731,6 +899,18 @@ public class SyncConfiguration extends RealmConfiguration {
             // Create the folder on disk (if needed)
             if (!realmFileDirectory.exists() && !realmFileDirectory.mkdirs()) {
                 throw new IllegalStateException("Could not create directory for saving the Realm: " + realmFileDirectory);
+            }
+
+            if (!Util.isEmptyString(serverCertificateAssetName)) {
+                if (syncClientValidateSsl) {
+                    // Create the path where the serverCertificateAssetName will be copied
+                    // so we can supply it to the Sync client.
+                    // using getRealmDirectory avoid file collision between same filename from different users (Realms)
+                    String fileName = serverCertificateAssetName.substring(serverCertificateAssetName.lastIndexOf(File.separatorChar) + 1);
+                    serverCertificateFilePath = new File(realmFileDirectory, fileName).getAbsolutePath();
+                } else {
+                    RealmLog.warn("SSL Verification is disabled, the provided server certificate will not be used.");
+                }
             }
 
             return new SyncConfiguration(
@@ -754,11 +934,15 @@ public class SyncConfiguration extends RealmConfiguration {
                     resolvedServerUrl,
                     errorHandler,
                     deleteRealmOnLogout,
+                    syncClientValidateSsl,
+                    serverCertificateAssetName,
+                    serverCertificateFilePath,
                     waitForServerChanges
             );
         }
 
         private void addModule(Object module) {
+            //noinspection ConstantConditions
             if (module != null) {
                 checkModule(module);
                 modules.add(module);

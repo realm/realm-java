@@ -16,21 +16,29 @@
 
 package io.realm.internal;
 
+
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Nonnull;
 
 import io.realm.RealmModel;
-
+import io.realm.exceptions.RealmException;
 
 /**
- * Utility class used to cache the mapping between object field names and their column indices.
+ * Utility class used to cache the mapping between object field names and their column indices. The
+ * {@code ColumnIndices} instance is dedicated to a single {@link io.realm.BaseRealm} instance. Different Realm
+ * instances will never share the same column indices cache. The column info cache is loaded lazily. A
+ * {@link ColumnInfo} will be added to the cache when the relevant Realm object gets accessed.
  * <p>
  * This class can be mutated, after construction, in two ways:
  * <ul>
  * <li>the {@code copyFrom} method</li>
  * <li>mutating one of the ColumnInfo object to which this instance holds a reference</li>
  * </ul>
- * Immutable instances of this class protect against the first possiblity by throwing on calls
+ * Immutable instances of this class protect against the first possibility by throwing on calls
  * to {@code copyFrom}.  {@see ColumnInfo} for its mutability contract.
  *
  * There are two, redundant, lookup methods, for schema members: by Class and by String.
@@ -39,136 +47,91 @@ import io.realm.RealmModel;
  * class lookup is very fast and on a hot path, so we maintain the redundant table.
  */
 public final class ColumnIndices {
-    private final Map<Class<? extends RealmModel>, ColumnInfo> classes;
-    private final Map<String, ColumnInfo> classesByName;
-    private final boolean mutable;
-    private long schemaVersion;
+    // Class to ColumnInfo map
+    private final Map<Class<? extends RealmModel>, ColumnInfo> classToColumnInfoMap =
+            new HashMap<Class<? extends RealmModel>, ColumnInfo>();
+    // Class name to ColumnInfo map. All the elements in this map should be existing in classToColumnInfoMap.
+    private final Map<String, ColumnInfo> simpleClassNameToColumnInfoMap =
+            new HashMap<String, ColumnInfo>();
+
+    private final RealmProxyMediator mediator;
+    // Due to the nature of Object Store's Realm::m_schema, SharedRealm's OsObjectSchemaInfo object is fixed after set.
+    private final OsSchemaInfo osSchemaInfo;
+
 
     /**
      * Create a mutable ColumnIndices initialized with the ColumnInfo objects in the passed map.
      *
-     * @param schemaVersion the schema version
-     * @param classes a map of table classes to their column info
-     * @throws IllegalArgumentException if any of the ColumnInfo object is immutable.
+     * @param mediator the {@link RealmProxyMediator} used for the corresponding Realm.
+     * @param osSchemaInfo the corresponding Realm's {@link OsSchemaInfo}.
      */
-    public ColumnIndices(long schemaVersion, Map<Class<? extends RealmModel>, ColumnInfo> classes) {
-        this(schemaVersion, new HashMap<>(classes), true);
-        for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
-            ColumnInfo columnInfo = entry.getValue();
-            if (mutable != columnInfo.isMutable()) {
-                throw new IllegalArgumentException("ColumnInfo mutability does not match ColumnIndices");
-            }
-            this.classesByName.put(entry.getKey().getSimpleName(), entry.getValue());
-        }
+    public ColumnIndices(RealmProxyMediator mediator, OsSchemaInfo osSchemaInfo) {
+        this.mediator = mediator;
+        this.osSchemaInfo = osSchemaInfo;
     }
 
     /**
-     * Create a copy of the passed ColumnIndices with the specified mutablity.
-     *
-     * @param other the ColumnIndices object to copy
-     * @param mutable if false the object is effectively final.
-     */
-    public ColumnIndices(ColumnIndices other, boolean mutable) {
-        this(other.schemaVersion, new HashMap<Class<? extends RealmModel>, ColumnInfo>(other.classes.size()), mutable);
-        for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : other.classes.entrySet()) {
-            ColumnInfo columnInfo = entry.getValue().copy(mutable);
-            this.classes.put(entry.getKey(), columnInfo);
-            this.classesByName.put(entry.getKey().getSimpleName(), columnInfo);
-        }
-    }
-
-    private ColumnIndices(long schemaVersion, Map<Class<? extends RealmModel>, ColumnInfo> classes, boolean mutable) {
-        this.schemaVersion = schemaVersion;
-        this.classes = classes;
-        this.mutable = mutable;
-        this.classesByName = new HashMap<>(classes.size());
-    }
-
-    /**
-     * Get the schema version.
-     *
-     * @return the schema version.
-     */
-    public long getSchemaVersion() {
-        return schemaVersion;
-    }
-
-    /**
-     * Returns the {@link ColumnInfo} for the passed class or ({@code null} if there is no such class).
+     * Returns the {@link ColumnInfo} for the passed class.
      *
      * @param clazz the class for which to get the ColumnInfo.
-     * @return the corresponding {@link ColumnInfo} object, or {@code null} if not found.
+     * @return the corresponding {@link ColumnInfo} object.
+     * @throws io.realm.exceptions.RealmException if the class cannot be found in the schema.
      */
+    @Nonnull
     public ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
-        return classes.get(clazz);
-    }
-
-    /**
-     * Returns the {@link ColumnInfo} for the passed class ({@code null} if there is no such class).
-     *
-     * @param className the simple name of the class for which to get the ColumnInfo.
-     * @return the corresponding {@link ColumnInfo} object, or {@code null} if not found.
-     */
-    public ColumnInfo getColumnInfo(String className) {
-        return classesByName.get(className);
-    }
-
-    /**
-     * Convenience method to return the column index for a given field on a class
-     * or {@code -1} if no such field exists.
-     *
-     * @param clazz the class to search.
-     * @param fieldName the name of the field whose index is needed.
-     * @return the index in clazz of the field fieldName.
-     * @deprecated Use {@code getColumnInfo().getColumnIndex()} instead.
-     */
-    @Deprecated
-    public long getColumnIndex(Class<? extends RealmModel> clazz, String fieldName) {
-        final ColumnInfo columnInfo = getColumnInfo(clazz);
+        ColumnInfo columnInfo = classToColumnInfoMap.get(clazz);
         if (columnInfo == null) {
-            return -1;
+            columnInfo = mediator.createColumnInfo(clazz, osSchemaInfo);
+            classToColumnInfoMap.put(clazz, columnInfo);
         }
-        return columnInfo.getColumnIndex(fieldName);
+        return columnInfo;
     }
 
     /**
-     * Make this instance contain a (non-strict) subset of the data in the passed ColumnIndices.
-     * The schemaVersion and every ColumnInfo object held by this instance will be updated to be
-     * the same the corresponding data in the passed instance or IllegalStateException will be thrown.
-     * It is allowable for the passed ColumnIndices to contain information this instance does not.
-     * <p>
-     * NOTE: copying does not change this instance's mutablity state.
+     * Returns the {@link ColumnInfo} for the passed class name.
      *
-     * @param src the instance to copy.
-     * @throws UnsupportedOperationException if this instance is immutable.
-     * @throws IllegalStateException if this object contains information for a table that the source does not.
+     * @param simpleClassName the simple name of the class for which to get the ColumnInfo.
+     * @return the corresponding {@link ColumnInfo} object.
+     * @throws io.realm.exceptions.RealmException if the class cannot be found in the schema.
      */
-    public void copyFrom(ColumnIndices src) {
-        if (!mutable) {
-            throw new UnsupportedOperationException("Attempt to modify immutable cache");
-        }
-        for (Map.Entry<String, ColumnInfo> entry : classesByName.entrySet()) {
-            final ColumnInfo otherColumnInfo = src.classesByName.get(entry.getKey());
-            if (otherColumnInfo == null) {
-                throw new IllegalStateException("Failed to copy ColumnIndices cache for class: " + entry.getKey());
+    @Nonnull
+    public ColumnInfo getColumnInfo(String simpleClassName) {
+        ColumnInfo columnInfo = simpleClassNameToColumnInfoMap.get(simpleClassName);
+        if (columnInfo == null) {
+            Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
+            for (Class<? extends RealmModel> modelClass : modelClasses) {
+                if (Table.getClassNameForTable(mediator.getTableName(modelClass)).equals(simpleClassName)) {
+                    columnInfo = getColumnInfo(modelClass);
+                    simpleClassNameToColumnInfoMap.put(simpleClassName, columnInfo);
+                    break;
+                }
             }
-            entry.getValue().copyFrom(otherColumnInfo);
         }
-        this.schemaVersion = src.schemaVersion;
+        if (columnInfo == null) {
+            throw new RealmException(
+                    String.format(Locale.US, "'%s' doesn't exist in current schema.", simpleClassName));
+        }
+        return columnInfo;
+    }
+
+    /**
+     * Refreshes all the existing {@link ColumnInfo} in the cache.
+     */
+    public void refresh() {
+        for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classToColumnInfoMap.entrySet()) {
+            ColumnInfo newColumnInfo = mediator.createColumnInfo(entry.getKey(), osSchemaInfo);
+            entry.getValue().copyFrom(newColumnInfo);
+        }
     }
 
     @Override
     public String toString() {
         StringBuilder buf = new StringBuilder("ColumnIndices[");
-        buf.append(schemaVersion).append(",");
-        buf.append(mutable).append(",");
-        if (classes != null) {
-            boolean commaNeeded = false;
-            for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
-                if (commaNeeded) { buf.append(","); }
-                buf.append(entry.getKey().getSimpleName()).append("->").append(entry.getValue());
-                commaNeeded = true;
-            }
+        boolean commaNeeded = false;
+        for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classToColumnInfoMap.entrySet()) {
+            if (commaNeeded) { buf.append(","); }
+            buf.append(entry.getKey().getSimpleName()).append("->").append(entry.getValue());
+            commaNeeded = true;
         }
         return buf.append("]").toString();
     }

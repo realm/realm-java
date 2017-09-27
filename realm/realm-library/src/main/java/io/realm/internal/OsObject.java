@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import javax.annotation.Nullable;
+
 import io.realm.ObjectChangeSet;
 import io.realm.RealmFieldType;
 import io.realm.RealmModel;
@@ -26,8 +28,10 @@ import io.realm.exceptions.RealmException;
 /**
  * Java wrapper for Object Store's {@code Object} class.
  */
-@KeepMember
+@Keep
 public class OsObject implements NativeObject {
+
+    private static final String OBJECT_ID_COLUMN_NAME = nativeGetObjectIdColumName();
 
     private static class OsObjectChangeSet implements ObjectChangeSet {
         final String[] changedFields;
@@ -65,7 +69,7 @@ public class OsObject implements NativeObject {
             super(observer, listener);
         }
 
-        public void onChange(T observer, ObjectChangeSet changeSet) {
+        public void onChange(T observer, @Nullable ObjectChangeSet changeSet) {
             listener.onChange(observer, changeSet);
         }
     }
@@ -148,9 +152,11 @@ public class OsObject implements NativeObject {
     /**
      * Create an object in the given table which doesn't have a primary key column defined.
      *
+     * @param table the table where the object is created. This table must be atached to {@link SharedRealm}.
      * @return a newly created {@code UncheckedRow}.
      */
-    public static UncheckedRow create(SharedRealm sharedRealm, Table table) {
+    public static UncheckedRow create(Table table) {
+        final SharedRealm sharedRealm = table.getSharedRealm();
         return new UncheckedRow(sharedRealm.context, table,
                 nativeCreateNewObject(sharedRealm.getNativePtr(), table.getNativePtr()));
     }
@@ -159,18 +165,20 @@ public class OsObject implements NativeObject {
      * Create a row in the given table which doesn't have a primary key column defined.
      * This is used for the fast bulk insertion.
      *
+     * @param table the table where the object is created.
      * @return a newly created row's index.
      */
-    public static long createRow(SharedRealm sharedRealm, Table table) {
+    public static long createRow(Table table) {
+        final SharedRealm sharedRealm = table.getSharedRealm();
         return nativeCreateRow(sharedRealm.getNativePtr(), table.getNativePtr());
     }
 
     private static long getAndVerifyPrimaryKeyColumnIndex(Table table) {
-        long primaryKeyColumnIndex = table.getPrimaryKey();
-        if (primaryKeyColumnIndex == Table.NO_PRIMARY_KEY) {
+        String pkField = OsObjectStore.getPrimaryKeyForObject(table.getSharedRealm(), table.getClassName());
+        if (pkField == null) {
             throw new IllegalStateException(table.getName() + " has no primary key defined.");
         }
-        return primaryKeyColumnIndex;
+        return table.getColumnIndex(pkField);
     }
 
     // TODO: consider to return a OsObject instead when integrating with Object Store's object accessor.
@@ -178,11 +186,13 @@ public class OsObject implements NativeObject {
      * Create an object in the given table which has a primary key column defined, and set the primary key with given
      * value.
      *
+     * @param table the table where the object is created. This table must be atached to {@link SharedRealm}.
      * @return a newly created {@code UncheckedRow}.
      */
-    public static UncheckedRow createWithPrimaryKey(SharedRealm sharedRealm, Table table, Object primaryKeyValue) {
+    public static UncheckedRow createWithPrimaryKey(Table table, @Nullable Object primaryKeyValue) {
         long primaryKeyColumnIndex = getAndVerifyPrimaryKeyColumnIndex(table);
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
+        final SharedRealm sharedRealm = table.getSharedRealm();
 
         if (type == RealmFieldType.STRING) {
             if (primaryKeyValue != null && !(primaryKeyValue instanceof String)) {
@@ -207,11 +217,15 @@ public class OsObject implements NativeObject {
      * value.
      * This is used for the fast bulk insertion.
      *
+     * @param table the table where the object is created.
+     * @param primaryKeyColumnIndex the column index of primary key field.
+     * @param primaryKeyValue the primary key value.
      * @return a newly created {@code UncheckedRow}.
      */
-    public static long createRowWithPrimaryKey(SharedRealm sharedRealm, Table table, Object primaryKeyValue) {
-        long primaryKeyColumnIndex = getAndVerifyPrimaryKeyColumnIndex(table);
+    // FIXME: Proxy could just pass the pk index here which is much faster.
+    public static long createRowWithPrimaryKey(Table table, long primaryKeyColumnIndex, Object primaryKeyValue) {
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
+        final SharedRealm sharedRealm = table.getSharedRealm();
 
         if (type == RealmFieldType.STRING) {
             if (primaryKeyValue != null && !(primaryKeyValue instanceof String)) {
@@ -229,9 +243,12 @@ public class OsObject implements NativeObject {
         }
     }
 
+    public static boolean isObjectIdColumn(String columnName) {
+        return OBJECT_ID_COLUMN_NAME.equals(columnName);
+    }
+
     // Called by JNI
     @SuppressWarnings("unused")
-    @KeepMember
     private void notifyChangeListeners(String[] changedFields) {
         observerPairs.foreach(new Callback(changedFields));
     }
@@ -262,10 +279,13 @@ public class OsObject implements NativeObject {
     // Return a pointer to newly created Row. We may need to return a OsObject pointer in the future.
     private static native long nativeCreateNewObjectWithStringPrimaryKey(long sharedRealmPtr,
                                                                          long tablePtr, long pk_column_index,
-                                                                         String primaryKeyValue);
+                                                                         @Nullable String primaryKeyValue);
 
     // Return a index of newly created Row.
     private static native long nativeCreateRowWithStringPrimaryKey(long sharedRealmPtr,
                                                                    long tablePtr, long pk_column_index,
                                                                    String primaryKeyValue);
+
+    // Return sync::object_id_column_name
+    private static native String nativeGetObjectIdColumName();
 }

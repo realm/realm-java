@@ -16,42 +16,46 @@
 
 package io.realm;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
+import android.test.MoreAsserts;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.MoreAsserts;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Set;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.realm.entities.AllTypes;
-import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnimalModule;
 import io.realm.entities.AssetFileModule;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
-import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
+import io.realm.entities.StringAndInt;
+import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
 import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.rx.CollectionChange;
+import io.realm.rx.ObjectChange;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
-import rx.Observable;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -59,6 +63,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -91,19 +96,32 @@ public class RealmConfigurationTests {
         }
     }
 
-    private void clearDefaultConfiguration() throws NoSuchFieldException, IllegalAccessException {
-        final Field field = Realm.class.getDeclaredField("defaultConfiguration");
-        field.setAccessible(true);
-        field.set(null, null);
-    }
-
     @Test
-    public void setDefaultConfiguration_nullThrows() throws NoSuchFieldException, IllegalAccessException {
-        clearDefaultConfiguration();
+    public void setDefaultConfiguration_nullThrows() {
         try {
             Realm.setDefaultConfiguration(null);
             fail();
         } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void getDefaultConfiguration_returnsTheSameObjectThatSetDefaultConfigurationSet() {
+        final RealmConfiguration config = new RealmConfiguration.Builder().build();
+        Realm.setDefaultConfiguration(config);
+
+        assertSame(config, Realm.getDefaultConfiguration());
+    }
+
+    @Test
+    public void getDefaultConfiguration_returnsNullAfterRemoveDefaultConfiguration() {
+        final RealmConfiguration defaultConfiguration = Realm.getDefaultConfiguration();
+        try {
+            Realm.removeDefaultConfiguration();
+
+            assertNull(Realm.getDefaultConfiguration());
+        } finally {
+            Realm.setDefaultConfiguration(defaultConfiguration);
         }
     }
 
@@ -229,7 +247,7 @@ public class RealmConfigurationTests {
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
                 .schemaVersion(42)
-                .schema(Dog.class)
+                .schema(StringOnly.class)
                 .build();
         Realm.getInstance(config).close();
 
@@ -238,7 +256,7 @@ public class RealmConfigurationTests {
             config = new RealmConfiguration.Builder(context)
                     .directory(configFactory.getRoot())
                     .schemaVersion(42)
-                    .schema(AllTypesPrimaryKey.class)
+                    .schema(StringAndInt.class)
                     .build();
             realm = Realm.getInstance(config);
             fail("A migration should be required");
@@ -246,18 +264,15 @@ public class RealmConfigurationTests {
         }
     }
 
+    // Only Dog is included in the schema definition, but in order to create Dog, the Owner has to be defined as well.
     @Test
-    public void customSchemaDontIncludeLinkedClasses() {
+    public void schemaDoesNotContainAllDefinedObjectShouldThrow() {
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
                 .schema(Dog.class)
                 .build();
+        thrown.expect(IllegalStateException.class);
         realm = Realm.getInstance(config);
-        try {
-            assertEquals(3, realm.getTable(Owner.class).getColumnCount());
-            fail("Owner should to be part of the schema");
-        } catch (IllegalArgumentException ignored) {
-        }
     }
 
     @Test
@@ -297,17 +312,16 @@ public class RealmConfigurationTests {
     }
 
     @Test
-    public void setDefaultConfiguration() throws NoSuchFieldException, IllegalAccessException {
-        clearDefaultConfiguration();
+    public void setDefaultConfiguration() {
         Realm.setDefaultConfiguration(defaultConfig);
         realm = Realm.getDefaultInstance();
-        assertEquals(realm.getPath(), defaultConfig.getPath());
+        assertEquals(defaultConfig, realm.getConfiguration());
     }
 
     @Test
     public void getInstance() {
         realm = Realm.getInstance(defaultConfig);
-        assertEquals(realm.getPath(), defaultConfig.getPath());
+        assertEquals(defaultConfig, realm.getConfiguration());
     }
 
     @Test
@@ -337,26 +351,26 @@ public class RealmConfigurationTests {
         // Populates v0 of a Realm with an object.
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(Dog.class)
+                .schema(StringOnly.class)
                 .schemaVersion(0)
                 .build();
         Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
         realm.beginTransaction();
-        realm.copyToRealm(new Dog("Foo"));
+        realm.copyToRealm(new StringOnly());
         realm.commitTransaction();
-        assertEquals(1, realm.where(Dog.class).count());
+        assertEquals(1, realm.where(StringOnly.class).count());
         realm.close();
 
         // Changes schema and verifies that Realm has been cleared.
         config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(Owner.class, Dog.class)
+                .schema(StringOnly.class, StringAndInt.class)
                 .schemaVersion(1)
                 .deleteRealmIfMigrationNeeded()
                 .build();
         realm = Realm.getInstance(config);
-        assertEquals(0, realm.where(Dog.class).count());
+        assertEquals(0, realm.where(StringOnly.class).count());
     }
 
     @Test
@@ -382,17 +396,13 @@ public class RealmConfigurationTests {
         assertEquals(0, realm.getVersion());
         realm.close();
 
-        // Version upgrades should always require a migration.
-        try {
-            realm = Realm.getInstance(new RealmConfiguration.Builder(context)
-                    .directory(configFactory.getRoot())
-                    .schemaVersion(42)
-                    .build());
-            fail();
-        } catch (RealmMigrationNeededException expected) {
-            // And it should come with a cause.
-            assertEquals("Realm on disk need to migrate from v0 to v42", expected.getMessage());
-        }
+        // Version upgrades only without any actual schema changes will just succeed, and the schema version will be
+        // set to the new one.
+        realm = Realm.getInstance(new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .schemaVersion(42)
+                .build());
+        assertEquals(42, realm.getVersion());
     }
 
     @Test
@@ -526,11 +536,11 @@ public class RealmConfigurationTests {
     public void schema_differentSchemasThrows() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         RealmConfiguration config2 = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(CyclicType.class).build();
+                .schema(StringAndInt.class).build();
 
         Realm realm1 = Realm.getInstance(config1);
         try {
@@ -695,52 +705,82 @@ public class RealmConfigurationTests {
     public void rxFactory() {
         final RxObservableFactory dummyFactory = new RxObservableFactory() {
             @Override
-            public Observable<Realm> from(Realm realm) {
+            public Flowable<Realm> from(Realm realm) {
                 return null;
             }
 
             @Override
-            public Observable<DynamicRealm> from(DynamicRealm realm) {
+            public Flowable<DynamicRealm> from(DynamicRealm realm) {
                 return null;
             }
 
             @Override
-            public <E extends RealmModel> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
+            public <E extends RealmModel> Flowable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
                 return null;
             }
 
             @Override
-            public Observable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
+            public <E extends RealmModel> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(Realm realm, RealmResults<E> results) {
                 return null;
             }
 
             @Override
-            public <E extends RealmModel> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
+            public Flowable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
                 return null;
             }
 
             @Override
-            public Observable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
+            public Observable<CollectionChange<RealmResults<DynamicRealmObject>>> changesetsFrom(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
                 return null;
             }
 
             @Override
-            public <E extends RealmModel> Observable<E> from(Realm realm, E object) {
+            public <E extends RealmModel> Flowable<RealmList<E>> from(Realm realm, RealmList<E> list) {
                 return null;
             }
 
             @Override
-            public Observable<DynamicRealmObject> from(DynamicRealm realm, DynamicRealmObject object) {
+            public <E extends RealmModel> Observable<CollectionChange<RealmList<E>>> changesetsFrom(Realm realm, RealmList<E> list) {
                 return null;
             }
 
             @Override
-            public <E extends RealmModel> Observable<RealmQuery<E>> from(Realm realm, RealmQuery<E> query) {
+            public Flowable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
                 return null;
             }
 
             @Override
-            public Observable<RealmQuery<DynamicRealmObject>> from(DynamicRealm realm, RealmQuery<DynamicRealmObject> query) {
+            public Observable<CollectionChange<RealmList<DynamicRealmObject>>> changesetsFrom(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
+                return null;
+            }
+
+            @Override
+            public <E extends RealmModel> Flowable<E> from(Realm realm, E object) {
+                return null;
+            }
+
+            @Override
+            public <E extends RealmModel> Observable<ObjectChange<E>> changesetsFrom(Realm realm, E object) {
+                return null;
+            }
+
+            @Override
+            public Flowable<DynamicRealmObject> from(DynamicRealm realm, DynamicRealmObject object) {
+                return null;
+            }
+
+            @Override
+            public Observable<ObjectChange<DynamicRealmObject>> changesetsFrom(DynamicRealm realm, DynamicRealmObject object) {
+                return null;
+            }
+
+            @Override
+            public <E extends RealmModel> Single<RealmQuery<E>> from(Realm realm, RealmQuery<E> query) {
+                return null;
+            }
+
+            @Override
+            public Single<RealmQuery<DynamicRealmObject>> from(DynamicRealm realm, RealmQuery<DynamicRealmObject> query) {
                 return null;
             }
         };
@@ -826,7 +866,7 @@ public class RealmConfigurationTests {
 
         realm = Realm.getInstance(configuration);
         realm.close();
-        verify(transaction, times(1)).execute(realm);
+        verify(transaction, times(1)).execute(Mockito.any(Realm.class));
 
         realm = Realm.getInstance(configuration);
         realm.close();
@@ -851,6 +891,41 @@ public class RealmConfigurationTests {
         realm = Realm.getInstance(configuration);
         realm.close();
         verify(transaction, never()).execute(realm);
+    }
+
+    @Test
+    public void initialDataTransactionThrows() {
+        final RuntimeException exception = new RuntimeException();
+
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(final Realm realm) {
+                        throw exception;
+                    }
+                }).build();
+
+        assertFalse(new File(configuration.getPath()).exists());
+
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(configuration);
+            fail();
+        } catch (RuntimeException expected) {
+            assertSame(exception, expected);
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(configuration);
+        try {
+            // The schema should not be initialized.
+            assertNull(dynamicRealm.getSchema().get(StringOnly.CLASS_NAME));
+        } finally {
+            dynamicRealm.close();
+        }
     }
 
     @Test
@@ -890,7 +965,7 @@ public class RealmConfigurationTests {
             Realm.getInstance(configuration);
             fail();
         } catch (RealmFileException expected) {
-            assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
+            assertEquals(RealmFileException.Kind.ACCESS_ERROR, expected.getKind());
         }
     }
 
@@ -997,6 +1072,24 @@ public class RealmConfigurationTests {
                     .assetFile("foo")
                     .readOnly()
                     .deleteRealmIfMigrationNeeded()
+                    .build();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    @Test
+    public void readOnly_compactOnLaunch_throws() {
+        try {
+            new RealmConfiguration.Builder()
+                    .assetFile("foo")
+                    .readOnly()
+                    .compactOnLaunch(new CompactOnLaunchCallback() {
+                        @Override
+                        public boolean shouldCompact(long totalBytes, long usedBytes) {
+                            return false;
+                        }
+                    })
                     .build();
             fail();
         } catch (IllegalStateException ignored) {

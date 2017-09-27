@@ -89,12 +89,45 @@ task check {
     dependsOn checkExamples
 }
 
+task assembleUnitTests(type:GradleBuild) {
+    group = 'Build'
+    description = 'Assemble Android unit tests of the Realm project'
+    dependsOn installTransformer
+    buildFile = file('realm/build.gradle')
+    tasks = ['assembleAndroidTest']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+}
+
 task connectedUnitTests(type:GradleBuild) {
     group = 'Test'
     description = 'Run the Android unit tests of the Realm project'
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
-    tasks = ['connectedUnitTests']
+    tasks = ['connectedAndroidTest']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+}
+
+task assembleBenchmarks(type:GradleBuild) {
+    group = 'Build'
+    description = 'Assemble benchmark tests for the library '
+    dependsOn installTransformer
+    buildFile = file('library-benchmarks/build.gradle')
+    tasks = ['assembleAndroidTest']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+}
+
+task connectedBenchmarks(type:GradleBuild) {
+    group = 'Test'
+    description = 'Run all the benchmark tests for the library '
+    dependsOn installTransformer
+    buildFile = file('library-benchmarks/build.gradle')
+    tasks = ['connectedAndroidTest']
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
     }

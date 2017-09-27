@@ -18,6 +18,8 @@ package io.realm;
 
 import java.nio.ByteBuffer;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.Keep;
 
 
@@ -87,6 +89,7 @@ public enum RealmFieldType {
             case 4:
                 return (obj instanceof byte[] || obj instanceof ByteBuffer);
             case 5:
+                //noinspection ConstantConditions
                 return (obj == null || obj instanceof Object[][]);
             case 7:
                 return (obj instanceof java.util.Date); // The unused DateTime.

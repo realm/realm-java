@@ -19,10 +19,13 @@
 
 #include <shared_realm.hpp>
 #include <results.hpp>
+#include <list.hpp>
 
 #include "java_sort_descriptor.hpp"
 #include "util.hpp"
+#include "java_class_global_def.hpp"
 
+#include "jni_util/java_class.hpp"
 #include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/java_method.hpp"
 
@@ -65,8 +68,8 @@ static void finalize_results(jlong ptr)
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResults(JNIEnv* env, jclass,
                                                                               jlong shared_realm_ptr, jlong query_ptr,
-                                                                              jobject sort_desc,
-                                                                              jobject distinct_desc)
+                                                                              jobject j_sort_desc,
+                                                                              jobject j_distinct_desc)
 {
     TR_ENTER()
     try {
@@ -76,8 +79,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResults(JN
         }
 
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        Results results(shared_realm, *query, SortDescriptor(JavaSortDescriptor(env, sort_desc)),
-                        SortDescriptor(JavaSortDescriptor(env, distinct_desc)));
+
+        DescriptorOrdering descriptor_ordering;
+        REALM_ASSERT_RELEASE(!(j_sort_desc && j_distinct_desc));
+        if (j_sort_desc) {
+            descriptor_ordering.append_sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor());
+        }
+        if (j_distinct_desc) {
+            descriptor_ordering.append_distinct(JavaSortDescriptor(env, j_distinct_desc).distinct_descriptor());
+        }
+        Results results(shared_realm, *query, descriptor_ordering);
         auto wrapper = new ResultsWrapper(results);
 
         return reinterpret_cast<jlong>(wrapper);
@@ -86,16 +97,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResults(JN
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResultsFromLinkView(JNIEnv* env, jclass,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResultsFromList(JNIEnv* env, jclass,
                                                                                           jlong shared_realm_ptr,
-                                                                                          jlong link_view_ptr,
-                                                                                          jobject sort_desc)
+                                                                                          jlong list_ptr,
+                                                                                          jobject j_sort_desc)
 {
     TR_ENTER()
     try {
-        auto link_view_ref = reinterpret_cast<LinkViewRef*>(link_view_ptr);
+        auto& list = *reinterpret_cast<List*>(list_ptr);
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        Results results(shared_realm, *link_view_ref, util::none, SortDescriptor(JavaSortDescriptor(env, sort_desc)));
+        Results results = j_sort_desc ?
+            list.sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor()) :
+            list.as_results();
         auto wrapper = new ResultsWrapper(results);
 
         return reinterpret_cast<jlong>(wrapper);
@@ -124,7 +137,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Collection_nativeContains(JNIE
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto row = reinterpret_cast<Row*>(native_row_ptr);
-        size_t index = wrapper->m_results.index_of(*row);
+        size_t index = wrapper->m_results.index_of(RowExpr(*row));
         return to_jbool(index != not_found);
     }
     CATCH_STD();
@@ -209,12 +222,16 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Collection_nativeAggregate(JNIE
             case io_realm_internal_Collection_AGGREGATE_FUNCTION_MAXIMUM:
                 value = wrapper->m_results.max(index);
                 break;
-            case io_realm_internal_Collection_AGGREGATE_FUNCTION_AVERAGE:
-                value = wrapper->m_results.average(index);
-                if (!value) {
+            case io_realm_internal_Collection_AGGREGATE_FUNCTION_AVERAGE: {
+                Optional<double> value_count(wrapper->m_results.average(index));
+                if (value_count) {
+                    value = Optional<Mixed>(Mixed(value_count.value()));
+                }
+                else {
                     value = Optional<Mixed>(0.0);
                 }
                 break;
+            }
             case io_realm_internal_Collection_AGGREGATE_FUNCTION_SUM:
                 value = wrapper->m_results.sum(index);
                 break;
@@ -229,13 +246,13 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Collection_nativeAggregate(JNIE
         Mixed m = *value;
         switch (m.get_type()) {
             case type_Int:
-                return NewLong(env, m.get_int());
+                return JavaClassGlobalDef::new_long(env, m.get_int());
             case type_Float:
-                return NewFloat(env, m.get_float());
+                return JavaClassGlobalDef::new_float(env, m.get_float());
             case type_Double:
-                return NewDouble(env, m.get_double());
+                return JavaClassGlobalDef::new_double(env, m.get_double());
             case type_Timestamp:
-                return NewDate(env, m.get_timestamp());
+                return JavaClassGlobalDef::new_date(env, m.get_timestamp());
             default:
                 throw std::invalid_argument("Excepted numeric type");
         }
@@ -245,12 +262,12 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Collection_nativeAggregate(JNIE
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeSort(JNIEnv* env, jclass, jlong native_ptr,
-                                                                     jobject sort_desc)
+                                                                     jobject j_sort_desc)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto sorted_result = wrapper->m_results.sort(JavaSortDescriptor(env, sort_desc));
+        auto sorted_result = wrapper->m_results.sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor());
         return reinterpret_cast<jlong>(new ResultsWrapper(sorted_result));
     }
     CATCH_STD()
@@ -258,12 +275,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeSort(JNIEnv* env
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeDistinct(JNIEnv* env, jclass, jlong native_ptr,
-                                                                         jobject distinct_desc)
+                                                                         jobject j_distinct_desc)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto distinct_result = wrapper->m_results.distinct(JavaSortDescriptor(env, distinct_desc));
+        auto distinct_result =
+            wrapper->m_results.distinct(JavaSortDescriptor(env, j_distinct_desc).distinct_descriptor());
         return reinterpret_cast<jlong>(new ResultsWrapper(distinct_result));
     }
     CATCH_STD()
@@ -275,7 +293,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeStartListening(JN
 {
     TR_ENTER_PTR(native_ptr)
 
-    static JavaMethod notify_change_listeners(env, instance, "notifyChangeListeners", "(J)V");
+    static JavaClass os_results_class(env, "io/realm/internal/Collection");
+    static JavaMethod notify_change_listeners(env, os_results_class, "notifyChangeListeners", "(J)V");
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
@@ -350,22 +369,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeIndexOf(JNIEnv* 
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto row = reinterpret_cast<Row*>(row_native_ptr);
 
-        return static_cast<jlong>(wrapper->m_results.index_of(*row));
-    }
-    CATCH_STD()
-    return npos;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeIndexOfBySourceRowIndex(JNIEnv* env, jclass,
-                                                                                        jlong native_ptr,
-                                                                                        jlong source_row_index)
-{
-    TR_ENTER_PTR(native_ptr)
-    try {
-        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto index = static_cast<size_t>(source_row_index);
-
-        return static_cast<jlong>(wrapper->m_results.index_of(index));
+        return static_cast<jlong>(wrapper->m_results.index_of(RowExpr(*row)));
     }
     CATCH_STD()
     return npos;

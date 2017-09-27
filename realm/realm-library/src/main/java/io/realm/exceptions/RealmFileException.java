@@ -15,6 +15,8 @@
  */
 package io.realm.exceptions;
 
+import java.util.Locale;
+
 import io.realm.internal.Keep;
 import io.realm.internal.SharedRealm;
 
@@ -58,7 +60,12 @@ public class RealmFileException extends RuntimeException {
         /**
          * Thrown if the file needs to be upgraded to a new format, but upgrades have been explicitly disabled.
          */
-        FORMAT_UPGRADE_REQUIRED;
+        FORMAT_UPGRADE_REQUIRED,
+        /**
+         * Thrown if an attempt was made to open an Realm file created with Realm Object Server 1.*, which is
+         * not compatible with Realm Object Server 2.*. This exception should automatically be handled by Realm.
+         */
+        INCOMPATIBLE_SYNC_FILE;
 
         // Created from byte values by JNI.
         static Kind getKind(byte value) {
@@ -77,6 +84,8 @@ public class RealmFileException extends RuntimeException {
                     return FORMAT_UPGRADE_REQUIRED;
                 case SharedRealm.FILE_EXCEPTION_KIND_BAD_HISTORY:
                     return BAD_HISTORY;
+                case SharedRealm.FILE_EXCEPTION_INCOMPATIBLE_SYNC_FILE:
+                    return INCOMPATIBLE_SYNC_FILE;
                 default:
                     throw new RuntimeException("Unknown value for RealmFileException kind.");
             }
@@ -118,6 +127,6 @@ public class RealmFileException extends RuntimeException {
 
     @Override
     public String toString() {
-        return String.format("%s Kind: %s.", super.toString(), kind);
+        return String.format(Locale.US, "%s Kind: %s.", super.toString(), kind);
     }
 }

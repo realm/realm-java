@@ -5,6 +5,9 @@ import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.ListIterator;
+import java.util.Locale;
+
+import javax.annotation.Nullable;
 
 import io.realm.internal.Collection;
 import io.realm.internal.InvalidRow;
@@ -23,8 +26,8 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
             " 'OrderedRealmCollectionSnapshot'.";
 
     final BaseRealm realm;
-    final Class<E> classSpec;   // Return type
-    final String className;     // Class name used by DynamicRealmObjects
+    @Nullable final Class<E> classSpec;   // Return type
+    @Nullable final String className;     // Class name used by DynamicRealmObjects
 
     final Collection collection;
 
@@ -36,7 +39,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         this(realm, collection, null, className);
     }
 
-    private OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, Class<E> clazz, String className) {
+    private OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, @Nullable Class<E> clazz, @Nullable String className) {
         this.realm = realm;
         this.collection = collection;
         this.classSpec = clazz;
@@ -78,7 +81,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      * {@code false} otherwise.
      */
     @Override
-    public boolean contains(Object object) {
+    public boolean contains(@Nullable Object object) {
         if (isLoaded()) {
             // Deleted objects can never be part of a RealmResults
             if (object instanceof RealmObjectProxy) {
@@ -122,11 +125,13 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      * {@inheritDoc}
      */
     @Override
-    public E first(E defaultValue) {
+    @Nullable
+    public E first(@Nullable E defaultValue) {
         return firstImpl(false, defaultValue);
     }
 
-    private E firstImpl(boolean shouldThrow, E defaultValue) {
+    @Nullable
+    private E firstImpl(boolean shouldThrow, @Nullable E defaultValue) {
         UncheckedRow row = collection.firstUncheckedRow();
 
         if (row != null) {
@@ -152,12 +157,14 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      * {@inheritDoc}
      */
     @Override
-    public E last(E defaultValue) {
+    @Nullable
+    public E last(@Nullable E defaultValue) {
         return lastImpl(false, defaultValue);
 
     }
 
-    private E lastImpl(boolean shouldThrow, E defaultValue) {
+    @Nullable
+    private E lastImpl(boolean shouldThrow, @Nullable E defaultValue) {
         UncheckedRow row = collection.lastUncheckedRow();
 
         if (row != null) {
@@ -238,6 +245,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
 
     // aux. method used by sort methods
     private long getColumnIndexForSort(String fieldName) {
+        //noinspection ConstantConditions
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Non-empty field name required.");
         }
@@ -246,7 +254,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         }
         long columnIndex = collection.getTable().getColumnIndex(fieldName);
         if (columnIndex < 0) {
-            throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
+            throw new IllegalArgumentException(String.format(Locale.US, "Field '%s' does not exist.", fieldName));
         }
         return columnIndex;
     }
@@ -352,6 +360,7 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
      * @throws IllegalArgumentException if fieldName is not a Date field.
      */
     @Override
+    @Nullable
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
@@ -535,6 +544,8 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         if (className != null) {
             return new OrderedRealmCollectionSnapshot<E>(realm, collection, className);
         } else {
+            // 'classSpec' is non-null when 'className' is null.
+            //noinspection ConstantConditions
             return new OrderedRealmCollectionSnapshot<E>(realm, collection, classSpec);
         }
     }
@@ -556,6 +567,8 @@ abstract class OrderedRealmCollectionImpl<E extends RealmModel>
         if (className != null) {
             results = new RealmResults<E>(realm, newCollection, className);
         } else {
+            // 'classSpec' is non-null when 'className' is null.
+            //noinspection ConstantConditions
             results = new RealmResults<E>(realm, newCollection, classSpec);
         }
         results.load();

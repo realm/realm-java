@@ -7,13 +7,15 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.SET_DEBUG_APP"/>
 
-    <uses-sdk tools:overrideLibrary="dk.ilios.spanner"/>
     <uses-sdk
         android:minSdkVersion="9"
         android:targetSdkVersion="22"/>
 
-    <application>
+    <application
+        android:debuggable="true"
+        android:largeHeap="true">
         <uses-library android:name="android.test.runner"/>
         <service
             android:name=".services.RemoteProcessService"
@@ -27,13 +29,13 @@
           Figure out why. For now place services here
           -->
         <service
-            android:name="io.realm.objectserver.service.SendOneCommit"
+            android:name="io.realm.objectserver.ProcessCommitTests$SimpleCommitRemoteService"
             android:enabled="true"
             android:exported="true"
             android:process=":remote">
         </service>
         <service
-            android:name="io.realm.objectserver.service.SendsALot"
+            android:name="io.realm.objectserver.ProcessCommitTests$ALotCommitsRemoteService"
             android:enabled="true"
             android:exported="true"
             android:process=":remote">

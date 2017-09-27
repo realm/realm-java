@@ -21,9 +21,11 @@ import org.gradle.api.Project
 class RealmPluginExtension {
     private Project project
     def boolean syncEnabled
+    private String dependencyConfigurationName
 
-    RealmPluginExtension(Project project, boolean syncEnabledDefault) {
+    RealmPluginExtension(Project project, boolean syncEnabledDefault, String dependencyConfigurationName) {
         this.project = project
+        this.dependencyConfigurationName = dependencyConfigurationName
         setSyncEnabled(syncEnabledDefault)
     }
 
@@ -31,7 +33,7 @@ class RealmPluginExtension {
         this.syncEnabled = value;
 
         // remove realm android library first
-        def iterator = project.getConfigurations().getByName("compile").getDependencies().iterator();
+        def iterator = project.getConfigurations().getByName(dependencyConfigurationName).getDependencies().iterator();
         while (iterator.hasNext()) {
             def item = iterator.next()
             if (item.group == 'io.realm' && item.name.startsWith('realm-android-library')) {
@@ -41,6 +43,6 @@ class RealmPluginExtension {
 
         // then add again
         def artifactName = "realm-android-library${syncEnabled ? '-object-server' : ''}"
-        project.dependencies.add("compile", "io.realm:${artifactName}:${Version.VERSION}")
+        project.dependencies.add(dependencyConfigurationName, "io.realm:${artifactName}:${Version.VERSION}")
     }
 }

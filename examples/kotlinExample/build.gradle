@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.1.2-4'
+    ext.kotlin_version = '1.1.4-3'
     repositories {
         jcenter()
         mavenCentral()
@@ -11,6 +11,7 @@ buildscript {
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
@@ -31,12 +32,16 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            signingConfig signingConfigs.debug
+        }
+        debug {
+            minifyEnabled true
         }
     }
 
     command {
-        events 2000
+        monkey.events 2000
     }
 
     sourceSets {
@@ -44,7 +49,14 @@ android {
     }
 }
 
+// enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/08/kotlin-1-1-4-is-out/
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        freeCompilerArgs = ["-Xjsr305-annotations=enable"]
+    }
+}
+
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}"
-    compile 'org.jetbrains.anko:anko-sdk15:0.9.1'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:${kotlin_version}"
+    implementation 'org.jetbrains.anko:anko-sdk15:0.9.1'
 }

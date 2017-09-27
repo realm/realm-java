@@ -18,9 +18,15 @@
 #define JAVA_SORT_DESCRIPTOR_HPP
 
 #include <jni.h>
-#include <realm/views.hpp>
+
+#include "descriptor_ordering.hpp"
 
 namespace realm {
+
+namespace jni_util {
+class JavaClass;
+}
+
 namespace _impl {
 
 // For converting a Java SortDescriptor object to realm::SortDescriptor.
@@ -41,11 +47,24 @@ public:
     JavaSortDescriptor(JavaSortDescriptor&&) = delete;
     JavaSortDescriptor& operator=(JavaSortDescriptor&&) = delete;
 
-    operator realm::SortDescriptor() const noexcept;
+    // Prevent heap allocation
+    static void *operator new     (size_t) = delete;
+    static void *operator new[]   (size_t) = delete;
+    static void  operator delete  (void*)  = delete;
+    static void  operator delete[](void*)  = delete;
+
+    realm::SortDescriptor sort_descriptor() const noexcept;
+    realm::DistinctDescriptor distinct_descriptor() const noexcept;
 
 private:
     JNIEnv* m_env;
     jobject m_sort_desc_obj;
+
+    realm::Table* get_table_ptr() const noexcept;
+    std::vector<std::vector<size_t>> get_column_indices() const noexcept;
+    std::vector<bool> get_ascendings() const noexcept;
+
+    jni_util::JavaClass const& get_sort_desc_class() const noexcept;
 };
 
 } // namespace _impl

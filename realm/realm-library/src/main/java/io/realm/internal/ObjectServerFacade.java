@@ -66,8 +66,8 @@ public class ObjectServerFacade {
     public void realmClosed(RealmConfiguration configuration) {
     }
 
-    public String[] getUserAndServerUrl(RealmConfiguration config) {
-        return new String[4];
+    public Object[] getUserAndServerUrl(RealmConfiguration config) {
+        return new Object[6];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {
@@ -89,12 +89,21 @@ public class ObjectServerFacade {
     public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
     }
 
+    public String getSyncServerCertificateAssetName(RealmConfiguration config) {
+        return null;
+    }
+
+    public String getSyncServerCertificateFilePath(RealmConfiguration config) {
+        return null;
+    }
+
     /**
      * Block until all latest changes have been downloaded from the server.
      *
-     * @throws {@code DownloadingRealmInterruptedException}  if the thread was interrupted while blocked waiting for
+     * @throws {@code DownloadingRealmInterruptedException} if the thread was interrupted while blocked waiting for
      * this to complete.
      */
+    @SuppressWarnings("JavaDoc")
     public void downloadRemoteChanges(RealmConfiguration config) {
         // Do nothing
     }

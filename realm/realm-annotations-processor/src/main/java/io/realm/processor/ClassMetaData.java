@@ -21,9 +21,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -49,13 +51,13 @@ import io.realm.annotations.Required;
  * Utility class for holding metadata for RealmProxy classes.
  */
 public class ClassMetaData {
-
     private final TypeElement classType; // Reference to model class.
     private final String className; // Model class simple name.
     private final List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
     private final List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
     private final Set<Backlink> backlinks = new HashSet<Backlink>();
     private final Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
+
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
@@ -266,7 +268,7 @@ public class ClassMetaData {
         }
 
         if (fields.size() == 0) {
-            Utils.error(String.format("Class \"%s\" must contain at least 1 persistable field.", className));
+            Utils.error(String.format(Locale.US, "Class \"%s\" must contain at least 1 persistable field.", className));
         }
 
         return true;
@@ -320,7 +322,7 @@ public class ClassMetaData {
     // Report if the default constructor is missing
     private boolean checkDefaultConstructor() {
         if (!hasDefaultConstructor) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "Class \"%s\" must declare a public constructor with no arguments if it contains custom constructors.",
                     className));
             return false;
@@ -331,11 +333,17 @@ public class ClassMetaData {
 
     private boolean checkForFinalFields() {
         for (VariableElement field : fields) {
-            if (field.getModifiers().contains(Modifier.FINAL)) {
-                Utils.error(String.format(
-                        "Class \"%s\" contains illegal final field \"%s\".", className, field.getSimpleName().toString()));
-                return false;
+            if (!field.getModifiers().contains(Modifier.FINAL)) {
+                continue;
             }
+            if (Utils.isMutableRealmInteger(field)) {
+                continue;
+            }
+
+            Utils.error(String.format(Locale.US, "Class \"%s\" contains illegal final field \"%s\".", className,
+                    field.getSimpleName().toString()));
+
+            return false;
         }
         return true;
     }
@@ -343,7 +351,7 @@ public class ClassMetaData {
     private boolean checkForVolatileFields() {
         for (VariableElement field : fields) {
             if (field.getModifiers().contains(Modifier.VOLATILE)) {
-                Utils.error(String.format(
+                Utils.error(String.format(Locale.US,
                         "Class \"%s\" contains illegal volatile field \"%s\".",
                         className,
                         field.getSimpleName().toString()));
@@ -368,7 +376,7 @@ public class ClassMetaData {
             if (!categorizeIndexField(element, field)) { return false; }
         }
 
-        if (field.getAnnotation(Required.class) != null) {
+        if (isRequiredField(field)) {
             categorizeRequiredField(element, field);
         } else {
             // The field doesn't have the @Required annotation.
@@ -384,52 +392,89 @@ public class ClassMetaData {
             if (!categorizePrimaryKeyField(field)) { return false; }
         }
 
-        // Check @LinkingObjects last since it is not allowed to be either @Index, @Required or @PrimaryKey
+        // @LinkingObjects cannot be @PrimaryKey or @Index.
         if (field.getAnnotation(LinkingObjects.class) != null) {
+            // Do not add backlinks to fields list.
             return categorizeBacklinkField(field);
         }
 
-        // Standard field that appear valid (more fine grained checks might fail later).
+        // Similarly, a MutableRealmInteger cannot be a @PrimaryKey or @LinkingObject.
+        if (Utils.isMutableRealmInteger(field)) {
+            if (!categorizeMutableRealmIntegerField(field)) { return false; }
+        }
+
+        // Standard field that appears to be valid (more fine grained checks might fail later).
         fields.add(field);
 
         return true;
     }
 
-    private boolean categorizeIndexField(Element element, VariableElement variableElement) {
-        // The field has the @Index annotation. It's only valid for column types:
-        // STRING, DATE, INTEGER, BOOLEAN
-        Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(variableElement.asType().toString());
-        if (realmType != null) {
-            switch (realmType) {
-                case STRING:
-                case DATE:
-                case INTEGER:
-                case BOOLEAN:
-                    indexedFields.add(variableElement);
-                    return true;
+    private boolean isRequiredField(VariableElement field) {
+        if (field.getAnnotation(Required.class) != null) {
+            return true;
+        }
+
+        // Kotlin uses the `org.jetbrains.annotations.NotNull` annotation to mark non-null fields.
+        // In order to fully support the Kotlin type system we interpret `@NotNull` as an alias
+        // for `@Required`
+        for (AnnotationMirror annotation : field.getAnnotationMirrors()) {
+            if (annotation.getAnnotationType().toString().equals("org.jetbrains.annotations.NotNull")) {
+                return true;
             }
         }
 
-        Utils.error(String.format("Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
+        return false;
+    }
+
+    // The field has the @Index annotation. It's only valid for column types:
+    // STRING, DATE, INTEGER, BOOLEAN, and RealmMutableInteger
+    private boolean categorizeIndexField(Element element, VariableElement variableElement) {
+        boolean indexable = false;
+
+        if (Utils.isMutableRealmInteger(variableElement)) {
+            indexable = true;
+        } else {
+            Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(variableElement.asType().toString());
+            if (realmType != null) {
+                switch (realmType) {
+                    case STRING:
+                    case DATE:
+                    case INTEGER:
+                    case BOOLEAN:
+                        indexable = true;
+                }
+            }
+        }
+
+        if (indexable) {
+            indexedFields.add(variableElement);
+            return true;
+        }
+
+        Utils.error(String.format(Locale.US, "Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
         return false;
     }
 
     // The field has the @Required annotation
     private void categorizeRequiredField(Element element, VariableElement variableElement) {
         if (Utils.isPrimitiveType(variableElement)) {
-            Utils.error(String.format(
-                    "@Required annotation is unnecessary for primitive field \"%s\".", element));
-        } else if (Utils.isRealmList(variableElement) || Utils.isRealmModel(variableElement)) {
-            Utils.error(String.format(
-                    "Field \"%s\" with type \"%s\" cannot be @Required.", element, element.asType()));
-        } else {
-            // Should never get here - user should remove @Required
-            if (nullableFields.contains(variableElement)) {
-                Utils.error(String.format(
-                        "Field \"%s\" with type \"%s\" appears to be nullable. Consider removing @Required.",
-                        element,
-                        element.asType()));
-            }
+            Utils.error(String.format(Locale.US,
+                    "@Required or @NotNull annotation is unnecessary for primitive field \"%s\".", element));
+            return;
+        }
+
+        if (Utils.isRealmModel(variableElement)) {
+            Utils.error(String.format(Locale.US,
+                    "Field \"%s\" with type \"%s\" cannot be @Required or @NotNull.", element, element.asType()));
+            return;
+        }
+
+        // Should never get here - user should remove @Required
+        if (nullableFields.contains(variableElement)) {
+            Utils.error(String.format(Locale.US,
+                    "Field \"%s\" with type \"%s\" appears to be nullable. Consider removing @Required.",
+                    element,
+                    element.asType()));
         }
     }
 
@@ -437,7 +482,7 @@ public class ClassMetaData {
     // String, short, int, long and must only be present one time
     private boolean categorizePrimaryKeyField(VariableElement variableElement) {
         if (primaryKey != null) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "A class cannot have more than one @PrimaryKey. Both \"%s\" and \"%s\" are annotated as @PrimaryKey.",
                     primaryKey.getSimpleName().toString(),
                     variableElement.getSimpleName().toString()));
@@ -446,7 +491,7 @@ public class ClassMetaData {
 
         TypeMirror fieldType = variableElement.asType();
         if (!isValidPrimaryKeyType(fieldType)) {
-            Utils.error(String.format(
+            Utils.error(String.format(Locale.US,
                     "Field \"%s\" with type \"%s\" cannot be used as primary key. See @PrimaryKey for legal types.",
                     variableElement.getSimpleName().toString(),
                     fieldType));
@@ -470,6 +515,17 @@ public class ClassMetaData {
         backlinks.add(backlink);
 
         return true;
+    }
+
+    private boolean categorizeMutableRealmIntegerField(VariableElement field) {
+        if (field.getModifiers().contains(Modifier.FINAL)) {
+            return true;
+        }
+
+        Utils.error(String.format(Locale.US,
+                "Field \"%s\", a MutableRealmInteger, must be final.",
+                field.getSimpleName().toString()));
+        return false;
     }
 
     private boolean isValidPrimaryKeyType(TypeMirror type) {

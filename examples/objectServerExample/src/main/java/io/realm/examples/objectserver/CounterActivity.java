@@ -17,89 +17,122 @@
 package io.realm.examples.objectserver;
 
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.support.annotation.ColorRes;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.annotation.Nonnull;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.realm.Progress;
+import io.realm.ProgressListener;
+import io.realm.ProgressMode;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.SyncConfiguration;
+import io.realm.SyncManager;
+import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.examples.objectserver.model.CRDTCounter;
+import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
 public class CounterActivity extends AppCompatActivity {
-
     private static final String REALM_URL = "realm://" + BuildConfig.OBJECT_SERVER_IP + ":9080/~/default";
 
+    private final ProgressListener downloadListener = new ProgressListener() {
+        @Override
+        public void onChange(@Nonnull Progress progress) {
+            downloadingChanges.set(!progress.isTransferComplete());
+            runOnUiThread(updateProgressBar);
+        }
+    };
+    private final ProgressListener uploadListener = new ProgressListener() {
+        @Override
+        public void onChange(@Nonnull Progress progress) {
+            uploadingChanges.set(!progress.isTransferComplete());
+            runOnUiThread(updateProgressBar);
+        }
+    };
+    private final Runnable updateProgressBar = new Runnable() {
+        @Override
+        public void run() {
+            updateProgressBar(downloadingChanges.get(), uploadingChanges.get());
+        }
+    };
+
+    private final AtomicBoolean downloadingChanges = new AtomicBoolean(false);
+    private final AtomicBoolean uploadingChanges = new AtomicBoolean(false);
+
     private Realm realm;
-    private CRDTCounter counter;
+    private SyncSession session;
     private SyncUser user;
 
     @BindView(R.id.text_counter) TextView counterView;
+    @BindView(R.id.progressbar) MaterialProgressBar progressBar;
+    private CRDTCounter counter; // Keep strong reference to counter to keep change listeners alive.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_counter);
         ButterKnife.bind(this);
-
-        // Check if we have a valid user, otherwise redirect to login
-        if (SyncUser.currentUser() == null) {
-            gotoLoginActivity();
-        }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        user = SyncUser.currentUser();
-        if (user != null) {
-            // Create a RealmConfiguration for our user
-            SyncConfiguration config = new SyncConfiguration.Builder(user, REALM_URL)
-                    .initialData(new Realm.Transaction() {
-                        @Override
-                        public void execute(Realm realm) {
-                            realm.createObject(CRDTCounter.class, 1);
-                        }
-                    })
-                    .build();
+        user = getLoggedInUser();
+        if (user == null) { return; }
 
-            // This will automatically sync all changes in the background for as long as the Realm is open
-            realm = Realm.getInstance(config);
-
-            counter = realm.where(CRDTCounter.class).findFirstAsync();
-            counter.addChangeListener(new RealmChangeListener<CRDTCounter>() {
-                @Override
-                public void onChange(CRDTCounter counter) {
-                    if (counter.isValid()) {
-                        counterView.setText(String.format(Locale.US, "%d", counter.getCount()));
-                    } else {
-                        counterView.setText("-");
+        // Create a RealmConfiguration for our user
+        SyncConfiguration config = new SyncConfiguration.Builder(user, REALM_URL)
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(@Nonnull Realm realm) {
+                        realm.createObject(CRDTCounter.class, user.getIdentity());
                     }
-                }
-            });
-            counterView.setText("0");
-        }
+                })
+                .build();
+
+        // This will automatically sync all changes in the background for as long as the Realm is open
+        realm = Realm.getInstance(config);
+
+        counterView.setText("-");
+        counter = realm.where(CRDTCounter.class).equalTo("name", user.getIdentity()).findFirstAsync();
+        counter.addChangeListener(new RealmChangeListener<CRDTCounter>() {
+            @Override
+            public void onChange(@Nonnull CRDTCounter counter) {
+                counterView.setText((!counter.isValid()) ? "-" : String.format(Locale.US, "%d", counter.getCount()));
+            }
+        });
+
+        // Setup progress listeners for indeterminate progress bars
+        session = SyncManager.getSession(config);
+        session.addDownloadProgressListener(ProgressMode.INDEFINITELY, downloadListener);
+        session.addUploadProgressListener(ProgressMode.INDEFINITELY, uploadListener);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        if (session != null) {
+            session.removeProgressListener(downloadListener);
+            session.removeProgressListener(uploadListener);
+            session = null;
+        }
         closeRealm();
         user = null;
-    }
-
-    private void closeRealm() {
-        if (realm != null && !realm.isClosed()) {
-            realm.close();
-        }
+        counter = null;
     }
 
     @Override
@@ -114,7 +147,7 @@ public class CounterActivity extends AppCompatActivity {
             case R.id.action_logout:
                 closeRealm();
                 user.logout();
-                gotoLoginActivity();
+                user = getLoggedInUser();
                 return true;
 
             default:
@@ -132,20 +165,52 @@ public class CounterActivity extends AppCompatActivity {
         adjustCounter(-1);
     }
 
+    private void updateProgressBar(boolean downloading, boolean uploading) {
+        @ColorRes int color = android.R.color.black;
+        int visibility = View.VISIBLE;
+        if (downloading && uploading) {
+            color = R.color.progress_both;
+        } else if (downloading) {
+            color = R.color.progress_download;
+        } else if (uploading) {
+            color = R.color.progress_upload;
+        } else {
+            visibility = View.GONE;
+        }
+        progressBar.getIndeterminateDrawable().setColorFilter(getResources().getColor(color), PorterDuff.Mode.SRC_IN);
+        progressBar.setVisibility(visibility);
+    }
+
     private void adjustCounter(final int adjustment) {
         // A synchronized Realm can get written to at any point in time, so doing synchronous writes on the UI
-        // thread is HIGHLY discouraged as it might block longer than intended. Only use async transactions.
+        // thread is HIGHLY discouraged as it might block longer than intended. Use only async transactions.
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
-            public void execute(Realm realm) {
+            public void execute(@Nonnull Realm realm) {
                 CRDTCounter counter = realm.where(CRDTCounter.class).findFirst();
-                counter.add(adjustment);
+                if (counter != null) {
+                    counter.incrementCounter(adjustment);
+                }
             }
         });
     }
 
-    private void gotoLoginActivity() {
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
+    private SyncUser getLoggedInUser() {
+        SyncUser user = null;
+
+        try { user = SyncUser.currentUser(); }
+        catch (IllegalStateException ignore) { }
+
+        if (user == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+        }
+
+        return user;
+    }
+
+    private void closeRealm() {
+        if (realm != null && !realm.isClosed()) {
+            realm.close();
+        }
     }
 }

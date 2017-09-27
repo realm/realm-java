@@ -19,44 +19,78 @@ package io.realm.objectserver;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
+import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.entities.Dog;
+import io.realm.internal.permissions.PermissionOfferResponse;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
+import io.realm.permissions.AccessLevel;
 import io.realm.permissions.PermissionOffer;
-import io.realm.permissions.PermissionOfferResponse;
-import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class ManagementRealmTests extends BaseIntegrationTest {
+@Ignore("Resolve https://github.com/realm/ros/issues/18")
+public class ManagementRealmTests extends StandardIntegrationTest {
 
-    @Rule
-    public RunInLooperThread looperThread = new RunInLooperThread();
+    // This is primarily a test making sure that an admin user actually connects correctly to ROS.
+    // See https://github.com/realm/realm-java/issues/4750
+    @Test
+    @RunTestInLooperThread
+    public void adminUser_writeInvalidPermissionOffer() {
+        final SyncUser user = UserFactory.createAdminUser(Constants.AUTH_URL);
+        assertTrue(user.isValid());
+        Realm realm = user.getManagementRealm();
+        looperThread.closeAfterTest(realm);
+        looperThread.runAfterTest(new Runnable() {
+            @Override
+            public void run() {
+                user.logout();
+            }
+        });
+        realm.beginTransaction();
+        // Invalid Permission offer
+        realm.copyToRealm(new PermissionOffer("*", AccessLevel.WRITE, null));
+        realm.commitTransaction();
+        RealmResults <PermissionOffer> results = realm.where(PermissionOffer.class).findAllAsync();
+        looperThread.keepStrongReference(results);
+        results.addChangeListener(new RealmChangeListener <RealmResults <PermissionOffer>>() {
+            @Override
+            public void onChange(RealmResults <PermissionOffer> offers) {
+                if (offers.size() > 0) {
+                    PermissionOffer offer = offers.first();
+                    Integer statusCode = offer.getStatusCode();
+                    if (statusCode != null && statusCode > 0) {
+                        assertTrue(offer.getStatusMessage().contains("The path is invalid or current user has no access."));
+                        looperThread.testComplete();
+                    }
+                }
+            }
+        });
+    }
 
-    @Ignore("TODO: Test is currently flaky. See https://github.com/realm/realm-java/pull/4066")
+    @Ignore("Failing due to terminate called after throwing an instance of 'realm::MultipleSyncAgents'. Will be fixed when upgrading to Sync 1.10")
     @Test
     @RunTestInLooperThread
     public void create_acceptOffer() {
-        SyncUser user1 = UserFactory.createUser(Constants.AUTH_URL, "user1");
-        final SyncUser user2 = UserFactory.createUser(Constants.AUTH_URL, "user2");
+        SyncUser user1 = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        final SyncUser user2 = UserFactory.createUniqueUser(Constants.AUTH_URL);
 
         // 1. User1 creates Realm that user2 does not have access
         final String user1RealmUrl = "realm://127.0.0.1:9080/" + user1.getIdentity() + "/permission-offer-test";
@@ -87,11 +121,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
         user1ManagementRealm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                boolean readPermission = true;
-                boolean readWritePermission = true;
-                boolean managePermission = false;
-                Date expiresAt = null;
-                PermissionOffer offer = new PermissionOffer(user1RealmUrl, readPermission, readWritePermission, managePermission, expiresAt);
+                PermissionOffer offer = new PermissionOffer(user1RealmUrl, AccessLevel.WRITE, null);
                 offerId.set(offer.getId());
                 realm.copyToRealm(offer);
             }
@@ -108,7 +138,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                     @Override
                     public void onChange(RealmResults<PermissionOffer> offers) {
                         final PermissionOffer offer = offers.first(null);
-                        if (offer != null && offer.isSuccessful() && offer.getToken() != null) {
+                        if (offer != null && offer.isOfferCreated() && offer.getToken() != null) {
                             // 5. User2 uses the token to accept the offer
                             final String offerToken = offer.getToken();
                             final AtomicReference<String> offerResponseId = new AtomicReference<String>();

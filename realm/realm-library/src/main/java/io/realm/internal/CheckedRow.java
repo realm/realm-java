@@ -56,19 +56,6 @@ public class CheckedRow extends UncheckedRow {
     }
 
     /**
-     * Gets the row object associated to an index in a {@link LinkView}.
-     *
-     * @param context the Realm context.
-     * @param linkView the {@link LinkView} holding the row.
-     * @param index the index of the row.
-     * @return a checked instance of {@link Row} for the {@link LinkView} and index specified.
-     */
-    public static CheckedRow get(NativeContext context, LinkView linkView, long index) {
-        long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePtr(), index);
-        return new CheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
-    }
-
-    /**
      * Converts a {@link UncheckedRow} to a {@link CheckedRow}.
      *
      * @return an checked instance of {@link Row}.
@@ -143,9 +130,6 @@ public class CheckedRow extends UncheckedRow {
 
     @Override
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
-
-    @Override
-    protected native long nativeGetLinkView(long nativePtr, long columnIndex);
 
     @Override
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);

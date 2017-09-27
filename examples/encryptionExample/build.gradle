@@ -16,13 +16,17 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            signingConfig signingConfigs.debug
+        }
+        debug {
+            minifyEnabled true
         }
     }
     productFlavors {
     }
 
     command {
-        events 2000
+        monkey.events 2000
     }
 }

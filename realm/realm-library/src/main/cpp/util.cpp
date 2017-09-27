@@ -20,6 +20,7 @@
 #include <realm/util/assert.hpp>
 #include <realm/util/file.hpp>
 #include <realm/unicode.hpp>
+#include <jni_util/java_method.hpp>
 #include "utf8.hpp"
 
 #include "util.hpp"
@@ -27,6 +28,8 @@
 #include "io_realm_internal_SharedRealm.h"
 #include "shared_realm.hpp"
 #include "results.hpp"
+#include "list.hpp"
+#include "java_exception_def.hpp"
 
 #include "jni_util/java_exception_thrower.hpp"
 
@@ -34,19 +37,9 @@ using namespace std;
 using namespace realm;
 using namespace realm::util;
 using namespace realm::jni_util;
+using namespace realm::_impl;
 
-// Caching classes and constructors for boxed types.
-jclass java_lang_long;
-jmethodID java_lang_long_init;
-jclass java_lang_float;
-jmethodID java_lang_float_init;
-jclass java_lang_double;
-jclass java_lang_string;
-jmethodID java_lang_double_init;
-jclass java_util_date;
-jmethodID java_util_date_init;
-
-void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind);
+void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind, const std::string& path = "");
 
 void ConvertException(JNIEnv* env, const char* file, int line)
 {
@@ -75,7 +68,7 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     }
     catch (RealmFileException& e) {
         ss << e.what() << " (" << e.underlying() << ") (" << e.path() << ") in " << file << " line " << line;
-        ThrowRealmFileException(env, ss.str(), e.kind());
+        ThrowRealmFileException(env, ss.str(), e.kind(), e.path());
     }
     catch (File::AccessError& e) {
         ss << e.what() << " (" << e.get_path() << ") in " << file << " line " << line;
@@ -106,6 +99,11 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch (Results::InvalidatedException& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
+    }
+    catch (List::OutOfBoundsIndexException& e) {
+        ss << "Out of range  in " << file << " line " << line << "(requested: " << e.requested
+           << " valid: " << e.valid_count << ")";
+        ThrowException(env, IndexOutOfBounds, ss.str());
     }
     catch (IncorrectThreadException& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -158,7 +156,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             break;
 
         case OutOfMemory:
-            jExceptionClass = env->FindClass("io/realm/internal/OutOfMemoryError");
+            jExceptionClass = env->FindClass(JavaExceptionDef::OutOfMemory);
             message = classStr + " " + itemStr;
             break;
 
@@ -198,11 +196,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
     env->DeleteLocalRef(jExceptionClass);
 }
 
-void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind)
+void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind, const std::string& path)
 {
-    jclass cls = env->FindClass("io/realm/exceptions/RealmFileException");
+    static JavaClass  jrealm_file_exception_cls(env, "io/realm/exceptions/RealmFileException");
+    static JavaMethod constructor(env, jrealm_file_exception_cls, "<init>", "(BLjava/lang/String;)V");
 
-    jmethodID constructor = env->GetMethodID(cls, "<init>", "(BLjava/lang/String;)V");
     // Initial value to suppress gcc warning.
     jbyte kind_code = -1; // To suppress compile warning.
     switch (kind) {
@@ -227,25 +225,26 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
         case realm::RealmFileException::Kind::FormatUpgradeRequired:
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
             break;
+        case realm::RealmFileException::Kind::IncompatibleSyncedRealm:
+#if REALM_ENABLE_SYNC
+            static JavaClass jincompatible_synced_file_cls(env,
+                                                           "io/realm/exceptions/IncompatibleSyncedFileException");
+            static JavaMethod jicompatible_synced_ctor(env, jincompatible_synced_file_cls, "<init>",
+                                                       "(Ljava/lang/String;Ljava/lang/String;)V");
+            jobject jexception = env->NewObject(jincompatible_synced_file_cls, jicompatible_synced_ctor,
+                                                to_jstring(env, message), to_jstring(env, path));
+            env->Throw(reinterpret_cast<jthrowable>(jexception));
+            env->DeleteLocalRef(jexception);
+            return;
+#else
+            REALM_ASSERT_RELEASE_EX(false, "'IncompatibleSyncedRealm' should not be thrown for non-sync realm.");
+#endif
     }
-    jstring jstr = env->NewStringUTF(message.c_str());
-    jobject exception = env->NewObject(cls, constructor, kind_code, jstr);
+    jstring jmessage = to_jstring(env, message);
+    jstring jpath = to_jstring(env, path);
+    jobject exception = env->NewObject(jrealm_file_exception_cls, constructor, kind_code, jmessage, jpath);
     env->Throw(reinterpret_cast<jthrowable>(exception));
-    env->DeleteLocalRef(cls);
     env->DeleteLocalRef(exception);
-}
-
-jclass GetClass(JNIEnv* env, const char* classStr)
-{
-    jclass localRefClass = env->FindClass(classStr);
-    if (localRefClass == NULL) {
-        ThrowException(env, ClassNotFound, classStr);
-        return NULL;
-    }
-
-    jclass myClass = reinterpret_cast<jclass>(env->NewGlobalRef(localRefClass));
-    env->DeleteLocalRef(localRefClass);
-    return myClass;
 }
 
 void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx)
@@ -443,6 +442,7 @@ transcode_complete : {
 
 
 JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
+    : m_env(env)
 {
     // For efficiency, if the incoming UTF-16 string is sufficiently
     // small, we will choose an UTF-8 output buffer whose size (in

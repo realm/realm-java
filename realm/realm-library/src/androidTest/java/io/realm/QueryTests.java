@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.BacklinksSource;
+import io.realm.entities.BacklinksTarget;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -53,8 +55,8 @@ public abstract class QueryTests {
         ArrayList<RealmFieldType> list = new ArrayList<>(Arrays.asList(
                 RealmFieldType.STRING,
                 RealmFieldType.BINARY,
-                RealmFieldType.LIST));
-                // TODO: LINKING_OBJECTS should be supported
+                RealmFieldType.LIST,
+                RealmFieldType.LINKING_OBJECTS));
         SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
         SUPPORTED_IS_NOT_EMPTY_TYPES = Collections.unmodifiableList(list);
 
@@ -63,7 +65,6 @@ public abstract class QueryTests {
         list.remove(RealmFieldType.UNSUPPORTED_MIXED);
         list.remove(RealmFieldType.UNSUPPORTED_TABLE);
         list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        list.remove(RealmFieldType.LINKING_OBJECTS);
         NOT_SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
         NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = Collections.unmodifiableList(list);
     }
@@ -92,15 +93,57 @@ public abstract class QueryTests {
         emptyValues.setFieldBinary(new byte[0]);
         emptyValues.setFieldObject(emptyValues);
         emptyValues.setFieldList(new RealmList<AllJavaTypes>());
-        realm.copyToRealm(emptyValues);
+        AllJavaTypes emptyValuesManaged = realm.copyToRealm(emptyValues);
 
         AllJavaTypes nonEmpty = new AllJavaTypes();
         nonEmpty.setFieldId(2);
         nonEmpty.setFieldString("Foo");
         nonEmpty.setFieldBinary(new byte[] {1, 2, 3});
         nonEmpty.setFieldObject(nonEmpty);
-        nonEmpty.setFieldList(new RealmList<AllJavaTypes>(emptyValues));
-        realm.copyToRealmOrUpdate(nonEmpty);
+        nonEmpty.setFieldList(new RealmList<AllJavaTypes>(emptyValuesManaged));
+        AllJavaTypes nonEmptyManaged = realm.copyToRealmOrUpdate(nonEmpty);
+
+        AllJavaTypes emptyValues2 = new AllJavaTypes();
+        emptyValues2.setFieldId(3);
+        emptyValues2.setFieldString("");
+        emptyValues2.setFieldBinary(new byte[0]);
+        emptyValues2.setFieldObject(null);
+        emptyValues2.setFieldList(new RealmList<AllJavaTypes>(nonEmptyManaged));
+        realm.copyToRealm(emptyValues2);
+
+        realm.commitTransaction();
+    }
+
+    protected final void createLinkedDataSet(Realm realm) {
+        realm.beginTransaction();
+
+        realm.delete(BacklinksSource.class);
+        realm.delete(BacklinksTarget.class);
+
+        BacklinksTarget target1 = realm.createObject(BacklinksTarget.class);
+        target1.setId(1);
+
+        BacklinksTarget target2 = realm.createObject(BacklinksTarget.class);
+        target2.setId(2);
+
+        BacklinksTarget target3 = realm.createObject(BacklinksTarget.class);
+        target3.setId(3);
+
+
+        BacklinksSource source1 = realm.createObject(BacklinksSource.class);
+        source1.setName("1");
+        source1.setChild(target1);
+
+        BacklinksSource source2 = realm.createObject(BacklinksSource.class);
+        source2.setName("2");
+        source2.setChild(target2);
+
+        BacklinksSource source3 = realm.createObject(BacklinksSource.class);
+        source3.setName("3");
+
+        BacklinksSource source4 = realm.createObject(BacklinksSource.class);
+        source4.setName("4");
+        source4.setChild(target1);
 
         realm.commitTransaction();
     }

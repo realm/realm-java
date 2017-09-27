@@ -16,10 +16,13 @@
 
 package io.realm.examples.rxjava.retrofit;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Model class for GitHub users: https://developer.github.com/v3/users/#get-a-single-user
  */
 @SuppressWarnings("unused")
+@JsonIgnoreProperties(ignoreUnknown = true)
 class GitHubUser {
     public String name;
     public int public_repos;

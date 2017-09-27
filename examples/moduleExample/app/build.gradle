@@ -25,17 +25,17 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false // FIXME Why is this suddenly broken?
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
     }
 
     command {
-        events 2000
+        monkey.events 2000
     }
 }
 
 dependencies {
-    compile project(':moduleExample:library')
+    implementation project(':moduleExample:library')
 }

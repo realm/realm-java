@@ -18,6 +18,10 @@ package io.realm.log;
 
 import android.util.Log;
 
+import java.util.Locale;
+
+import javax.annotation.Nullable;
+
 
 /**
  * Global logger used by all Realm components.
@@ -34,6 +38,7 @@ public final class RealmLog {
      * @param logger the reference to a {@link RealmLogger} implementation.
      */
     public static void add(RealmLogger logger) {
+        //noinspection ConstantConditions
         if (logger == null) {
             throw new IllegalArgumentException("A non-null logger has to be provided");
         }
@@ -46,6 +51,9 @@ public final class RealmLog {
      * @param level see {@link LogLevel}.
      */
     public static void setLevel(int level) {
+        if (level < LogLevel.ALL || level > LogLevel.OFF) {
+            throw new IllegalArgumentException("Invalid log level: " + level);
+        }
         nativeSetLogLevel(level);
     }
 
@@ -64,6 +72,7 @@ public final class RealmLog {
      * @return {@code true} if the logger was removed, {@code false} otherwise.
      */
     public static boolean remove(RealmLogger logger) {
+        //noinspection ConstantConditions
         if (logger == null) {
             throw new IllegalArgumentException("A non-null logger has to be provided");
         }
@@ -113,7 +122,7 @@ public final class RealmLog {
      * @param message optional message.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    public static void trace(Throwable throwable, String message, Object... args) {
+    public static void trace(@Nullable Throwable throwable, @Nullable String message, Object... args) {
         log(LogLevel.TRACE, throwable, message, args);
     }
 
@@ -122,7 +131,7 @@ public final class RealmLog {
      *
      * @param throwable exception to log.
      */
-    public static void debug(Throwable throwable) {
+    public static void debug(@Nullable Throwable throwable) {
         debug(throwable, null);
     }
 
@@ -143,7 +152,7 @@ public final class RealmLog {
      * @param message optional message.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    public static void debug(Throwable throwable, String message, Object... args) {
+    public static void debug(@Nullable Throwable throwable, @Nullable String message, Object... args) {
         log(LogLevel.DEBUG, throwable, message, args);
     }
 
@@ -173,7 +182,7 @@ public final class RealmLog {
      * @param message optional message.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    public static void info(Throwable throwable, String message, Object... args) {
+    public static void info(@Nullable Throwable throwable, @Nullable String message, Object... args) {
         log(LogLevel.INFO, throwable, message, args);
     }
 
@@ -203,7 +212,7 @@ public final class RealmLog {
      * @param message optional message.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    public static void warn(Throwable throwable, String message, Object... args) {
+    public static void warn(@Nullable Throwable throwable, @Nullable String message, Object... args) {
         log(LogLevel.WARN, throwable, message, args);
     }
 
@@ -233,7 +242,7 @@ public final class RealmLog {
      * @param message optional message.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    public static void error(Throwable throwable, String message, Object... args) {
+    public static void error(@Nullable Throwable throwable, @Nullable String message, Object... args) {
         log(LogLevel.ERROR, throwable, message, args);
     }
 
@@ -263,15 +272,19 @@ public final class RealmLog {
      * @param message optional message.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    public static void fatal(Throwable throwable, String message, Object... args) {
+    public static void fatal(@Nullable Throwable throwable, @Nullable String message, Object... args) {
         log(LogLevel.FATAL, throwable, message, args);
     }
 
     // Formats the message, parses the stacktrace of given throwable and passes them to nativeLog.
-    private static void log(int level, Throwable throwable, String message, Object... args) {
+    private static void log(int level, @Nullable Throwable throwable, @Nullable String message, @Nullable Object... args) {
+        if (level < getLevel()) {
+            return;
+        }
+
         StringBuilder stringBuilder = new StringBuilder();
-        if (args != null && args.length > 0) {
-            message = String.format(message, args);
+        if (message != null && args != null && args.length > 0) {
+            message = String.format(Locale.US, message, args);
         }
         if (throwable != null) {
             stringBuilder.append(Log.getStackTraceString(throwable));
@@ -293,14 +306,14 @@ public final class RealmLog {
 
     private static native void nativeRegisterDefaultLogger();
 
-    private static native void nativeLog(int level, String tag, Throwable throwable, String message);
+    private static native void nativeLog(int level, String tag, @Nullable Throwable throwable, @Nullable String message);
 
     private static native void nativeSetLogLevel(int level);
 
     private static native int nativeGetLogLevel();
 
     // Methods below are used for testing core logger bridge only.
-    static native long nativeCreateCoreLoggerBridge(String tag);
+    static native long nativeCreateCoreLoggerBridge(@SuppressWarnings("SameParameterValue") String tag);
 
     static native void nativeCloseCoreLoggerBridge(long nativePtr);
 

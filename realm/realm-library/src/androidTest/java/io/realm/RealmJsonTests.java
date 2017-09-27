@@ -20,10 +20,7 @@ import android.content.Context;
 import android.os.Build;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.text.TextUtils;
 import android.util.Base64;
-
-import com.google.gson.internal.bind.util.ISO8601Utils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,6 +35,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -54,6 +53,7 @@ import io.realm.entities.NullTypes;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.Util;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -391,7 +391,7 @@ public class RealmJsonTests {
         assertEquals(DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE,
                 managedObj.getFieldIgnored());
         assertEquals(DefaultValueOfField.FIELD_STRING_DEFAULT_VALUE, managedObj.getFieldString());
-        assertFalse(TextUtils.isEmpty(managedObj.getFieldRandomString()));
+        assertFalse(Util.isEmptyString(managedObj.getFieldRandomString()));
         assertEquals(DefaultValueOfField.FIELD_SHORT_DEFAULT_VALUE, managedObj.getFieldShort());
         assertEquals(DefaultValueOfField.FIELD_INT_DEFAULT_VALUE, managedObj.getFieldInt());
         assertEquals(fieldLongPrimaryKeyValue, managedObj.getFieldLongPrimaryKey());
@@ -442,7 +442,7 @@ public class RealmJsonTests {
         json.put(DefaultValueOfField.FIELD_FLOAT, fieldFloatValue);
         json.put(DefaultValueOfField.FIELD_DOUBLE, fieldDoubleValue);
         json.put(DefaultValueOfField.FIELD_BOOLEAN, fieldBooleanValue);
-        json.put(DefaultValueOfField.FIELD_DATE, ISO8601Utils.format(fieldDateValue, true));
+        json.put(DefaultValueOfField.FIELD_DATE, getISO8601Date(fieldDateValue));
         json.put(DefaultValueOfField.FIELD_BINARY, Base64.encodeToString(fieldBinaryValue, Base64.DEFAULT));
         // Value for 'fieldObject'
         final JSONObject fieldObjectJson = new JSONObject();
@@ -496,6 +496,13 @@ public class RealmJsonTests {
         assertEquals(3, realm.where(RandomPrimaryKey.class).count());
     }
 
+    private String getISO8601Date(Date date) {
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"); // Quoted "Z" to indicate UTC, no timezone offset
+        df.setTimeZone(tz);
+        return df.format(date);
+    }
+
     @Test
     public void updateFromJson_defaultValuesAreIgnored() throws JSONException {
         final long fieldLongPrimaryKeyValue = DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE + 1;
@@ -535,7 +542,7 @@ public class RealmJsonTests {
         json.put(DefaultValueOfField.FIELD_FLOAT, fieldFloatValue);
         json.put(DefaultValueOfField.FIELD_DOUBLE, fieldDoubleValue);
         json.put(DefaultValueOfField.FIELD_BOOLEAN, fieldBooleanValue);
-        json.put(DefaultValueOfField.FIELD_DATE, ISO8601Utils.format(fieldDateValue, true));
+        json.put(DefaultValueOfField.FIELD_DATE, getISO8601Date(fieldDateValue));
         json.put(DefaultValueOfField.FIELD_BINARY, Base64.encodeToString(fieldBinaryValue, Base64.DEFAULT));
         // value for 'fieldObject'
         final JSONObject fieldObjectJson = new JSONObject();

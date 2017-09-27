@@ -20,6 +20,8 @@ import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.NoSuchElementException;
 
+import javax.annotation.Nullable;
+
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
@@ -27,7 +29,7 @@ import io.realm.RealmChangeListener;
 
 /**
  * Java wrapper of Object Store Results class.
- * It is the backend of binding's query results, link lists and back links.
+ * It is the backend of binding's query results and back links.
  */
 @Keep
 public class Collection implements NativeObject {
@@ -339,7 +341,7 @@ public class Collection implements NativeObject {
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query,
-            SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
+            @Nullable SortDescriptor sortDescriptor, @Nullable SortDescriptor distinctDescriptor) {
         query.validateQuery();
 
         this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
@@ -353,7 +355,7 @@ public class Collection implements NativeObject {
         this.loaded = false;
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor) {
+    public Collection(SharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor) {
         this(sharedRealm, query, sortDescriptor, null);
     }
 
@@ -361,16 +363,15 @@ public class Collection implements NativeObject {
         this(sharedRealm, query, null, null);
     }
 
-    public Collection(SharedRealm sharedRealm, LinkView linkView, SortDescriptor sortDescriptor) {
-        this.nativePtr = nativeCreateResultsFromLinkView(sharedRealm.getNativePtr(), linkView.getNativePtr(),
-                sortDescriptor);
+    public Collection(SharedRealm sharedRealm, OsList osList, @Nullable SortDescriptor sortDescriptor) {
+        this.nativePtr = nativeCreateResultsFromList(sharedRealm.getNativePtr(), osList.getNativePtr(), sortDescriptor);
 
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
-        this.table = linkView.getTargetTable();
+        this.table = osList.getTargetTable();
         this.context.addReference(this);
-        // Collection created from LinkView is loaded by default. So that the listener will be triggered first time
-        // with empty change set.
+        // Collection created from OsList is loaded by default. So that the listener won't be triggered with empty
+        // change set.
         this.loaded = true;
     }
 
@@ -378,7 +379,7 @@ public class Collection implements NativeObject {
         this(sharedRealm, table, nativePtr, false);
     }
 
-    private Collection(SharedRealm sharedRealm, Table table, long nativePtr, boolean loaded) {
+    Collection(SharedRealm sharedRealm, Table table, long nativePtr, boolean loaded) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.table = table;
@@ -468,11 +469,6 @@ public class Collection implements NativeObject {
         return (index > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) index;
     }
 
-    public int indexOf(long sourceRowIndex) {
-        long index = nativeIndexOfBySourceRowIndex(nativePtr, sourceRowIndex);
-        return (index > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) index;
-    }
-
     public void delete(long index) {
         nativeDelete(nativePtr, index);
     }
@@ -529,7 +525,7 @@ public class Collection implements NativeObject {
         // So it is possible it deliver a non-empty change set for the first async query returns. In this case, we
         // return an empty change set to user since it is considered as the first time async query returns.
         observerPairs.foreach(new Callback(nativeChangeSetPtr == 0 || !wasLoaded ?
-                null : new CollectionChangeSet(nativeChangeSetPtr)));
+                null : new OsCollectionChangeSet(nativeChangeSetPtr)));
     }
 
     public Mode getMode() {
@@ -546,7 +542,6 @@ public class Collection implements NativeObject {
     //    change set since it is considered as query first returned.
     // 3. If the listener triggered with empty change set after load() called for async queries, it is treated as the
     //    same case as 1).
-    // TODO: Results built from a LinkView has not been considered yet. Maybe it should bet set as loaded when create.
     public boolean isLoaded() {
         return loaded;
     }
@@ -561,10 +556,10 @@ public class Collection implements NativeObject {
     private static native long nativeGetFinalizerPtr();
 
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
-            SortDescriptor sortDesc, SortDescriptor distinctDesc);
+            @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
 
-    private static native long nativeCreateResultsFromLinkView(long sharedRealmNativePtr, long linkViewPtr,
-            SortDescriptor sortDesc);
+    private static native long nativeCreateResultsFromList(long sharedRealmPtr, long listPtr,
+                                                           @Nullable SortDescriptor sortDesc);
 
     private static native long nativeCreateSnapshot(long nativePtr);
 
@@ -600,8 +595,6 @@ public class Collection implements NativeObject {
     private static native long nativeWhere(long nativePtr);
 
     private static native long nativeIndexOf(long nativePtr, long rowNativePtr);
-
-    private static native long nativeIndexOfBySourceRowIndex(long nativePtr, long sourceRowIndex);
 
     private static native boolean nativeIsValid(long nativePtr);
 
