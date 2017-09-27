@@ -409,7 +409,9 @@ public class RealmObjectSchemaTests {
                 default:
                     // All simple list types
                     schema.addRealmListField(fieldName, fieldType.getType());
-                    schema.setRequired(fieldName, true);
+                    if (fieldType.isNullable()) {
+                        schema.setRequired(fieldName, true);
+                    }
                     assertTrue(schema.isRequired(fieldName));
                     schema.removeField(fieldName);
             }
@@ -635,10 +637,11 @@ public class RealmObjectSchemaTests {
                 default:
                     // All simple list types.
                     schema.addRealmListField(fieldName, fieldType.getType());
-                    assertEquals(fieldType.isNullable(), schema.isNullable(fieldName));
+                    assertEquals("Type: " + fieldType, fieldType.isNullable(), schema.isNullable(fieldName));
                     schema.setNullable(fieldName, !fieldType.isNullable());
-                    assertEquals(!fieldType.isNullable(), schema.isNullable(fieldName));
+                    assertEquals("Type: " + fieldType, !fieldType.isNullable(), schema.isNullable(fieldName));
             }
+            schema.removeField(fieldName);
         }
     }
 
@@ -690,6 +693,7 @@ public class RealmObjectSchemaTests {
                     schema.setRequired(fieldName, fieldType.isNullable());
                     assertEquals(fieldType.isNullable(), schema.isRequired(fieldName));
             }
+            schema.removeField(fieldName);
         }
     }
 
