@@ -161,20 +161,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeIsInTransact
     return static_cast<jboolean>(shared_realm->is_in_transaction());
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeReadGroup(JNIEnv* env, jclass,
-                                                                           jlong shared_realm_ptr)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        return reinterpret_cast<jlong>(&shared_realm->read_group());
-    }
-    CATCH_STD()
-
-    return static_cast<jlong>(NULL);
-}
-
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeIsEmpty(JNIEnv* env, jclass,
                                                                             jlong shared_realm_ptr)
 {

@@ -274,6 +274,7 @@ public class SessionTests {
                         RealmConfiguration backupRealmConfiguration = handler.getBackupRealmConfiguration();
                         assertNotNull(backupRealmConfiguration);
                         assertFalse(backupRealmConfiguration.isSyncConfiguration());
+                        assertTrue(backupRealmConfiguration.isRecoveryConfiguration());
 
                         Realm backupRealm = Realm.getInstance(backupRealmConfiguration);
                         assertFalse(backupRealm.isEmpty());

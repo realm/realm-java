@@ -133,7 +133,8 @@ public class SyncConfiguration extends RealmConfiguration {
                 rxFactory,
                 initialDataTransaction,
                 readOnly,
-                null
+                null,
+                false
         );
 
         this.user = user;
@@ -191,7 +192,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
-        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null);
+        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true);
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
