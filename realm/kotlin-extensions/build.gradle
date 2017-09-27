@@ -1,11 +1,12 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 import io.realm.transformer.RealmTransformer
 android.registerTransform(new RealmTransformer())
-apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.3"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.1"
 
     defaultConfig {
         minSdkVersion 9
@@ -15,6 +16,10 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
+        flavorSelection 'api', 'base'
+        // flavorSelection is replaced by missingDimensionStrategy in beta4. Use following line instead on beta4 or later.
+        // https://androidstudio.googleblog.com/2017/09/android-studio-30-beta-4-is-now.html
+        //missingDimensionStrategy 'api', 'base'
     }
     buildTypes {
         debug {
@@ -36,14 +41,21 @@ android {
 }
 
 dependencies {
-    compile project(path: ':realm-library', configuration: 'baseDebug')
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    androidTestCompile 'junit:junit:4.12'
-    androidTestCompile 'com.android.support.test:runner:0.5'
-    androidTestCompile 'com.android.support.test:rules:0.5'
+    implementation project(':realm-library')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    androidTestImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test:rules:1.0.1'
     kaptAndroidTest project(':realm-annotations-processor')
 }
 
 repositories {
     mavenCentral()
+}
+
+// enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/08/kotlin-1-1-4-is-out/
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        freeCompilerArgs = ["-Xjsr305-annotations=enable"]
+    }
 }

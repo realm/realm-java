@@ -152,10 +152,6 @@ android {
             variant.ignore = true
         }
     }
-
-    // Required so other modules can depend on specific build flavours
-    // http://stackoverflow.com/questions/24389091/gradle-add-dependency-for-a-specific-flavour-of-the-library
-    publishNonDefault true
 }
 
 project.afterEvaluate {
