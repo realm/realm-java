@@ -61,6 +61,7 @@ android {
                         "-DENABLE_DEBUG_CORE=$project.enableDebugCore"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
+                if (project.coreSourcePath) arguments "-DCORE_SOURCE_PATH=$project.coreSourcePath"
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
@@ -120,7 +121,7 @@ android {
         abortOnError false
     }
 
-   flavorDimensions 'api'
+    flavorDimensions 'api'
 
     productFlavors {
         base {
@@ -496,35 +497,9 @@ task downloadCore() {
     }
 }
 
-task compileCore(group: 'build setup', description: 'Compile the core library from source code') {
-    // Build the library from core source code
-    doFirst {
-        if (!coreSourcePath) {
-            throw new GradleException('The coreSourcePath is not set.')
-        }
-        exec {
-            workingDir = coreSourcePath
-            commandLine = [
-                    "bash",
-                    "build.sh",
-                    "build-android"
-            ]
-        }
-    }
-
-    // Copy the core tar ball
-    doLast {
-        copy {
-            from "${coreSourcePath}/realm-core-android-${coreVersion}.tar.gz"
-            into project.coreArchiveFile.parent
-            rename "realm-core-android-${coreVersion}.tar.gz", "realm-sync-android-${coreVersion}.tar.gz"
-        }
-    }
-}
-
 task deployCore(group: 'build setup', description: 'Deploy the latest version of Realm Core') {
     dependsOn {
-        coreSourcePath ? compileCore : downloadCore
+        downloadCore
     }
 
     // Build with the output from core source dir. No need to deploy anything.
