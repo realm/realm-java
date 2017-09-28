@@ -1552,4 +1552,11 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         realm.commitTransaction();
         assertEquals(1, listenerCalledCount.get());
     }
+
+    @Test
+    public void createSnapshot() {
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage(is(RealmList.ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE));
+        list.createSnapshot();
+    }
 }
