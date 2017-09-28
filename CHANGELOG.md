@@ -9,6 +9,7 @@
 * Removed deprecated API `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
 * `SyncUser.Callback` to becomes generic.
 * Removed `SyncUser.getAccessToken` method from public API, and rename it to `getRefreshToken`.
+* Removed `UNSUPPORTED_TABLE`, `UNSUPPORTED_MIXED` and `UNSUPPORTED_DATE` from `RealmFieldType`.
 
 ## Deprecated
 

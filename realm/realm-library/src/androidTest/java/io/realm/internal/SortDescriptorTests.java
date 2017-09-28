@@ -240,9 +240,6 @@ public class SortDescriptorTests {
         for (RealmFieldType type : RealmFieldType.values()) {
             if (!filter.contains(type)) {
                 switch (type) {
-                    case UNSUPPORTED_DATE:
-                    case UNSUPPORTED_TABLE:
-                    case UNSUPPORTED_MIXED:
                     case LINKING_OBJECTS: // TODO: should be supported?s
                         break;
                     case LIST:
