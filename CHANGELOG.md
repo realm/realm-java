@@ -9,10 +9,13 @@
 * Removed deprecated API `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
 * `SyncUser.Callback` to becomes generic.
 * Removed `SyncUser.getAccessToken` method from public API, and rename it to `getRefreshToken`.
+* Relax upper bound of type parameter of `RealmList`, `RealmQuery`, `RealmResults`, `RealmCollection`, `OrderedRealmCollection` and `OrderedRealmCollectionSnapshot`.
 
 ## Deprecated
 
 ## Enhancements
+
+* Support list of values as a field of model class. Now users can use `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` as a type parameter of `RealmList`.
 
 ## Bug Fixes
 
