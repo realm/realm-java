@@ -219,49 +219,49 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
 
 // Convert a tables values to allow for nullable values
 // Works on both normal table columns and sub tables
-static void convert_column_to_nullable(JNIEnv* env, Table* old_table, Table* new_table, size_t column_index, bool is_primary_key)
+static void convert_column_to_nullable(JNIEnv* env, Table* old_table, size_t old_col_ndx, Table* new_table, size_t new_col_ndx, bool is_primary_key)
 {
-    DataType column_type = old_table->get_column_type(column_index);
+    DataType column_type = old_table->get_column_type(old_col_ndx);
     for (size_t i = 0; i < old_table->size(); ++i) {
         // FIXME this probably crash if the table has any data
         switch (column_type) {
             case type_String: {
                 // Payload copy is needed
-                StringData sd(old_table->get_string(column_index + 1, i));
+                StringData sd(old_table->get_string(old_col_ndx, i));
                 if (is_primary_key) {
-                    new_table->set_string_unique(column_index, i, sd);
+                    new_table->set_string_unique(new_col_ndx, i, sd);
                 }
                 else {
-                    new_table->set_string(column_index, i, sd);
+                    new_table->set_string(new_col_ndx, i, sd);
                 }
                 break;
             }
             case type_Binary: {
                 // Payload copy is needed
-                BinaryData bd = old_table->get_binary(column_index + 1, i);
+                BinaryData bd = old_table->get_binary(old_col_ndx, i);
                 std::vector<char> binary_copy(bd.data(), bd.data() + bd.size());
-                new_table->set_binary(column_index, i, BinaryData(binary_copy.data(), binary_copy.size()));
+                new_table->set_binary(new_col_ndx, i, BinaryData(binary_copy.data(), binary_copy.size()));
                 break;
             }
             case type_Int:
                 if (is_primary_key) {
-                    new_table->set_int_unique(column_index, i, old_table->get_int(column_index + 1, i));
+                    new_table->set_int_unique(new_col_ndx, i, old_table->get_int(old_col_ndx, i));
                 }
                 else {
-                    new_table->set_int(column_index, i, old_table->get_int(column_index + 1, i));
+                    new_table->set_int(new_col_ndx, i, old_table->get_int(old_col_ndx, i));
                 }
                 break;
             case type_Bool:
-                new_table->set_bool(column_index, i, old_table->get_bool(column_index + 1, i));
+                new_table->set_bool(new_col_ndx, i, old_table->get_bool(old_col_ndx, i));
                 break;
             case type_Timestamp:
-                new_table->set_timestamp(column_index, i, old_table->get_timestamp(column_index + 1, i));
+                new_table->set_timestamp(new_col_ndx, i, old_table->get_timestamp(old_col_ndx, i));
                 break;
             case type_Float:
-                new_table->set_float(column_index, i, old_table->get_float(column_index + 1, i));
+                new_table->set_float(new_col_ndx, i, old_table->get_float(old_col_ndx, i));
                 break;
             case type_Double:
-                new_table->set_double(column_index, i, old_table->get_double(column_index + 1, i));
+                new_table->set_double(new_col_ndx, i, old_table->get_double(old_col_ndx, i));
                 break;
             case type_Link:
             case type_LinkList:
@@ -356,11 +356,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
             for (size_t i = 0; i < table->size(); ++i) {
                 TableRef new_subtable = table->get_subtable(column_index, i);
                 TableRef old_subtable = table->get_subtable(column_index + 1, i);
-                convert_column_to_nullable(env, old_subtable.get(), new_subtable.get(), 0, is_primary_key);
+                convert_column_to_nullable(env, old_subtable.get(), 0, new_subtable.get(), 0, is_primary_key);
             }
         }
         else {
-            convert_column_to_nullable(env, table, table, column_index, is_primary_key);
+            convert_column_to_nullable(env, table, column_index + 1, table, column_index, is_primary_key);
         }
 
         // Cleanup
@@ -373,95 +373,95 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
 
 // Convert a tables values to not nullable, but converting all null values to the defaul value for the type
 // Works on both normal table columns and sub tables
-static void convert_column_to_not_nullable(JNIEnv* env, Table* old_table, Table* new_table, size_t column_index, bool is_primary_key)
+static void convert_column_to_not_nullable(JNIEnv* env, Table* old_table, size_t old_col_ndx, Table* new_table, size_t new_col_ndx, bool is_primary_key)
 {
-    DataType column_type = old_table->get_column_type(column_index);
-    std::string column_name = new_table->get_column_name(column_index);
+    DataType column_type = old_table->get_column_type(old_col_ndx);
+    std::string column_name = old_table->get_column_name(old_col_ndx);
     for (size_t i = 0; i < old_table->size(); ++i) {
         switch (column_type) { // FIXME: respect user-specified default values
             case type_String: {
-                StringData sd = old_table->get_string(column_index + 1, i);
+                StringData sd = old_table->get_string(old_col_ndx, i);
                 if (sd == realm::null()) {
                     if (is_primary_key) {
                         THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
                                              format(c_null_values_cannot_set_required_msg, column_name));
                     }
                     else {
-                        new_table->set_string(column_index, i, "");
+                        new_table->set_string(new_col_ndx, i, "");
                     }
                 }
                 else {
                     // Payload copy is needed
                     if (is_primary_key) {
-                        new_table->set_string_unique(column_index, i, sd);
+                        new_table->set_string_unique(new_col_ndx, i, sd);
                     }
                     else {
-                        new_table->set_string(column_index, i, sd);
+                        new_table->set_string(new_col_ndx, i, sd);
                     }
                 }
                 break;
             }
             case type_Binary: {
-                BinaryData bd = old_table->get_binary(column_index + 1, i);
+                BinaryData bd = old_table->get_binary(old_col_ndx, i);
                 if (bd.is_null()) {
-                    new_table->set_binary(column_index, i, BinaryData("", 0));
+                    new_table->set_binary(new_col_ndx, i, BinaryData("", 0));
                 }
                 else {
                     // Payload copy is needed
                     std::vector<char> bd_copy(bd.data(), bd.data() + bd.size());
-                    new_table->set_binary(column_index, i, BinaryData(bd_copy.data(), bd_copy.size()));
+                    new_table->set_binary(new_col_ndx, i, BinaryData(bd_copy.data(), bd_copy.size()));
                 }
                 break;
             }
             case type_Int:
-                if (old_table->is_null(column_index + 1, i)) {
+                if (old_table->is_null(old_col_ndx, i)) {
                     if (is_primary_key) {
                         THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
                                              format(c_null_values_cannot_set_required_msg, column_name));
                     }
                     else {
-                        new_table->set_int(column_index, i, 0);
+                        new_table->set_int(new_col_ndx, i, 0);
                     }
                 }
                 else {
                     if (is_primary_key) {
-                        new_table->set_int_unique(column_index, i, old_table->get_int(column_index + 1, i));
+                        new_table->set_int_unique(new_col_ndx, i, old_table->get_int(old_col_ndx, i));
                     }
                     else {
-                        new_table->set_int(column_index, i, old_table->get_int(column_index + 1, i));
+                        new_table->set_int(new_col_ndx, i, old_table->get_int(old_col_ndx, i));
                     }
                 }
                 break;
             case type_Bool:
-                if (old_table->is_null(column_index + 1, i)) {
-                    new_table->set_bool(column_index, i, false);
+                if (old_table->is_null(old_col_ndx, i)) {
+                    new_table->set_bool(new_col_ndx, i, false);
                 }
                 else {
-                    new_table->set_bool(column_index, i, old_table->get_bool(column_index + 1, i));
+                    new_table->set_bool(new_col_ndx, i, old_table->get_bool(old_col_ndx, i));
                 }
                 break;
             case type_Timestamp:
-                if (old_table->is_null(column_index + 1, i)) {
-                    new_table->set_timestamp(column_index, i, Timestamp(0, 0));
+                if (old_table->is_null(old_col_ndx, i)) {
+                    new_table->set_timestamp(new_col_ndx, i, Timestamp(0, 0));
                 }
                 else {
-                    new_table->set_timestamp(column_index, i, old_table->get_timestamp(column_index + 1, i));
+                    new_table->set_timestamp(new_col_ndx, i, old_table->get_timestamp(old_col_ndx, i));
                 }
                 break;
             case type_Float:
-                if (old_table->is_null(column_index + 1, i)) {
-                    new_table->set_float(column_index, i, 0.0);
+                if (old_table->is_null(old_col_ndx, i)) {
+                    new_table->set_float(new_col_ndx, i, 0.0);
                 }
                 else {
-                    new_table->set_float(column_index, i, old_table->get_float(column_index + 1, i));
+                    new_table->set_float(new_col_ndx, i, old_table->get_float(old_col_ndx, i));
                 }
                 break;
             case type_Double:
-                if (old_table->is_null(column_index + 1, i)) {
-                    new_table->set_double(column_index, i, 0.0);
+                if (old_table->is_null(old_col_ndx, i)) {
+                    new_table->set_double(new_col_ndx, i, 0.0);
                 }
                 else {
-                    new_table->set_double(column_index, i, old_table->get_double(column_index + 1, i));
+                    new_table->set_double(new_col_ndx, i, old_table->get_double(old_col_ndx, i));
                 }
                 break;
             case type_Link:
@@ -516,11 +516,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
             for (size_t i = 0; i < table->size(); ++i) {
                 TableRef new_subtable = table->get_subtable(column_index, i);
                 TableRef old_subtable = table->get_subtable(column_index + 1, i);
-                convert_column_to_not_nullable(env, old_subtable.get(), new_subtable.get(), 0, is_primary_key);
+                convert_column_to_not_nullable(env, old_subtable.get(), 0, new_subtable.get(), 0, is_primary_key);
             }
         }
         else {
-            convert_column_to_not_nullable(env, table, table, column_index, is_primary_key);
+            convert_column_to_not_nullable(env, table, column_index + 1, table, column_index, is_primary_key);
         }
 
         // 3. Delete old values
