@@ -24,6 +24,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import io.realm.annotations.Required;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObject;
@@ -556,7 +558,7 @@ public abstract class RealmObjectSchema {
         final RealmFieldType listType; // Underlying Realm type for RealmLists containing this type
         final boolean defaultNullable;
 
-        FieldMetaData(RealmFieldType fieldType, RealmFieldType listType, boolean defaultNullable) {
+        FieldMetaData(RealmFieldType fieldType, @Nullable RealmFieldType listType, boolean defaultNullable) {
             this.fieldType = fieldType;
             this.listType = listType;
             this.defaultNullable = defaultNullable;
