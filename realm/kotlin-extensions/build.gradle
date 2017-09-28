@@ -47,6 +47,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test:rules:1.0.1'
     kaptAndroidTest project(':realm-annotations-processor')
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
 
 repositories {

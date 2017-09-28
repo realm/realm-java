@@ -29,7 +29,8 @@ class KotlinRealmTests {
     fun kclassExtensionMethods() {
         // Extend all <x>(Class) methods with <x>(KClass)
         val realm = Realm.getDefaultInstance()
-        assertEquals(0, realm.where(AllKotlinTypes::class).count())
+        val query : RealmQuery<AllKotlinTypes> = realm.where()
+        assertEquals(0, query.count())
         realm.close()
     }
 
@@ -37,8 +38,7 @@ class KotlinRealmTests {
     fun kotlinNullability() {
         // Add support for org.jetbrains.annotations.NotNull will add support for Kotlin null/non-null types
         val realm = Realm.getDefaultInstance()
-        // This should return false
-        assertTrue(realm.getSchema().get(AllKotlinTypes::class.java.simpleName).isNullable("requiredString"))
+        assertFalse(realm.getSchema().get(AllKotlinTypes::class.simpleName)!!.isNullable("requiredString"))
     }
 
     @Test
