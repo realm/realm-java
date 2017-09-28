@@ -14,6 +14,8 @@
 
 ## Enhancements
 
+* Added support for primitive lists in migrations using `RealmObjectSchema.addRealmListField(String name, Class<?> type)` (#5329).
+
 ## Bug Fixes
 
 ## Internal
