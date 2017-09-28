@@ -897,6 +897,115 @@ public class RealmObjectSchemaTests {
         }
     }
 
+    // Smoke test to ensure that values are copied and converted correctly when switching
+    // nullability status on their fields
+    @Test
+    public void setRequired_convertPrimitiveLists() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
+        // TODO Move to DynamicRealm once available.
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .name("nullableToNonNullable.realm")
+                .build();
+        Realm realm = Realm.getInstance(configuration);
+        realm.beginTransaction();
+
+        // Fill all fields with data including null values
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 1);
+        for (FieldListType type : FieldListType.values()) {
+            if (!type.isNullable()) { continue; } // Only test nullable types as they can all be converted
+            switch (type) {
+                case STRING_LIST:
+                    obj.getFieldStringList().addAll(Arrays.asList(null, "abc"));
+                    break;
+                case SHORT_LIST:
+                    obj.getFieldShortList().addAll(Arrays.asList(null, (short) 1));
+                    break;
+                case INT_LIST:
+                    obj.getFieldIntegerList().addAll(Arrays.asList(null, 1));
+                    break;
+                case LONG_LIST:
+                    obj.getFieldLongList().addAll(Arrays.asList(null, (long) 1));
+                    break;
+                case BYTE_LIST:
+                    obj.getFieldByteList().addAll(Arrays.asList(null, (byte) 1));
+                    break;
+                case BOOLEAN_LIST:
+                    obj.getFieldBooleanList().addAll(Arrays.asList(null, true));
+                    break;
+                case FLOAT_LIST:
+                    obj.getFieldFloatList().addAll(Arrays.asList(null, 1.23F));
+                    break;
+                case DOUBLE_LIST:
+                    obj.getFieldDoubleList().addAll(Arrays.asList(null, 1.23D));
+                    break;
+                case BLOB_LIST:
+                    obj.getFieldBinaryList().addAll(Arrays.asList(null, new byte[] {1, 2, 3}));
+                    break;
+                case DATE_LIST:
+                    obj.getFieldDateList().addAll(Arrays.asList(null, new Date()));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown type: " + type);
+            }
+        }
+        realm.commitTransaction();
+        realm.close();
+
+        DynamicRealm dRealm = DynamicRealm.getInstance(configuration);
+        schema = dRealm.getSchema().get(AllJavaTypes.class.getSimpleName());
+        dRealm.beginTransaction();
+
+        // First set required (converts all null to default values), then back (= should not change data)
+        List<Boolean> modes = Arrays.asList(true, false);
+
+        for (Boolean mode : modes) {
+            for (FieldListType type : FieldListType.values()) {
+                if (!type.isNullable()) { continue; } // Only test nullable types as they can all be converted
+                switch (type) {
+                    case STRING_LIST:
+                        schema.setRequired(AllJavaTypes.FIELD_STRING_LIST, mode);
+                        break;
+                    case SHORT_LIST:
+                        schema.setRequired(AllJavaTypes.FIELD_SHORT_LIST, mode);
+                        break;
+                    case INT_LIST:
+                        schema.setRequired(AllJavaTypes.FIELD_INTEGER_LIST, mode);
+                        break;
+                    case LONG_LIST:
+                        schema.setRequired(AllJavaTypes.FIELD_LONG_LIST, mode);
+                        break;
+                    case BYTE_LIST:
+                        schema.setRequired(AllJavaTypes.FIELD_BYTE_LIST, mode);
+                        break;
+                    case BOOLEAN_LIST:
+                        schema.setRequired(AllJavaTypes.FIELD_BOOLEAN_LIST, mode);
+                        break;
+                    case FLOAT_LIST:
+                        schema.setRequired(AllJavaTypes.FIELD_FLOAT_LIST, mode);
+                        break;
+                    case DOUBLE_LIST:
+                        schema.setRequired(AllJavaTypes.FIELD_DOUBLE_LIST, mode);
+                        break;
+                    case BLOB_LIST:
+                        schema.setRequired(AllJavaTypes.FIELD_BINARY_LIST, mode);
+                        break;
+                    case DATE_LIST:
+                        schema.setRequired(AllJavaTypes.FIELD_DATE_LIST, mode);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unknown type: " + type);
+                }
+            }
+        }
+
+        // TODO Not possible to check data efficently without DynamicRealm support
+        // For now, assume that if the test didn't crash that data was moved correctly
+        dRealm.cancelTransaction();
+        dRealm.close();
+    }
+
     @Test
     public void removeNonExistingPrimaryKeyThrows() {
         if (type == ObjectSchemaType.IMMUTABLE) {

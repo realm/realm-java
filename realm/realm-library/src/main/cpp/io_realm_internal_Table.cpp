@@ -222,8 +222,10 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
 static void convert_column_to_nullable(JNIEnv* env, Table* old_table, size_t old_col_ndx, Table* new_table, size_t new_col_ndx, bool is_primary_key)
 {
     DataType column_type = old_table->get_column_type(old_col_ndx);
+    if (old_table != new_table) {
+        new_table->add_empty_row(old_table->size());
+    }
     for (size_t i = 0; i < old_table->size(); ++i) {
-        // FIXME this probably crash if the table has any data
         switch (column_type) {
             case type_String: {
                 // Payload copy is needed
@@ -377,6 +379,9 @@ static void convert_column_to_not_nullable(JNIEnv* env, Table* old_table, size_t
 {
     DataType column_type = old_table->get_column_type(old_col_ndx);
     std::string column_name = old_table->get_column_name(old_col_ndx);
+    if (old_table != new_table) {
+        new_table->add_empty_row(old_table->size());
+    }
     for (size_t i = 0; i < old_table->size(); ++i) {
         switch (column_type) { // FIXME: respect user-specified default values
             case type_String: {
