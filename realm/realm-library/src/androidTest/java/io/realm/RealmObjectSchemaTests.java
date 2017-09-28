@@ -447,6 +447,12 @@ public class RealmObjectSchemaTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+
+        // Probe for all variants of primitive lists
+        try {
+            schema.addRealmListField("foo", String.class);
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     @Test
@@ -487,6 +493,17 @@ public class RealmObjectSchemaTests {
                 fail(fieldType + " should not be allowed to be a primary key");
             } catch (IllegalArgumentException ignored) {
             }
+        }
+
+        try {
+            schema.addRealmListField("foo", schema);
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Probe for all variants of primitive lists
+        try {
+            schema.addRealmListField("foo", String.class);
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -750,7 +767,7 @@ public class RealmObjectSchemaTests {
                         break;
                     }
                     // FIXME: Requires DynamicRealm support to be able to create values
-                    // before converting them
+                    // before converting them. See #setRequired_convertPrimitiveLists()
             }
         }
     }
