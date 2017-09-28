@@ -5,8 +5,8 @@ import io.realm.transformer.RealmTransformer
 android.registerTransform(new RealmTransformer())
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.1"
+    compileSdkVersion rootProject.compileSdkVersion
+    buildToolsVersion rootProject.buildToolsVersion
 
     defaultConfig {
         minSdkVersion 9
