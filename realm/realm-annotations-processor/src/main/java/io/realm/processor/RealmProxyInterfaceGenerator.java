@@ -20,6 +20,7 @@ import com.squareup.javawriter.JavaWriter;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.Locale;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
@@ -42,7 +43,7 @@ public class RealmProxyInterfaceGenerator {
 
     public void generate() throws IOException {
         String qualifiedGeneratedInterfaceName =
-                String.format("%s.%s", Constants.REALM_PACKAGE_NAME, Utils.getProxyInterfaceName(className));
+                String.format(Locale.US, "%s.%s", Constants.REALM_PACKAGE_NAME, Utils.getProxyInterfaceName(className));
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedInterfaceName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
 
@@ -53,24 +54,29 @@ public class RealmProxyInterfaceGenerator {
                 .emitEmptyLine()
                 .beginType(qualifiedGeneratedInterfaceName, "interface", EnumSet.of(Modifier.PUBLIC));
         for (VariableElement field : metaData.getFields()) {
-            // The field is neither static nor ignored
-            if (!field.getModifiers().contains(Modifier.STATIC) && field.getAnnotation(Ignore.class) == null) {
-                String fieldName = field.getSimpleName().toString();
-                String fieldTypeCanonicalName = field.asType().toString();
-                writer
-                        .beginMethod(
-                                fieldTypeCanonicalName,
-                                metaData.getInternalGetter(fieldName),
-                                EnumSet.of(Modifier.PUBLIC))
-                        .endMethod()
-                        .beginMethod(
-                                "void",
-                                metaData.getInternalSetter(fieldName),
-                                EnumSet.of(Modifier.PUBLIC),
-                                fieldTypeCanonicalName,
-                                "value")
-                        .endMethod();
+            if (field.getModifiers().contains(Modifier.STATIC) || (field.getAnnotation(Ignore.class) != null)) {
+                continue;
             }
+            // The field is neither static nor ignored
+            String fieldName = field.getSimpleName().toString();
+            String fieldTypeCanonicalName = field.asType().toString();
+            writer
+                    .beginMethod(
+                            fieldTypeCanonicalName,
+                            metaData.getInternalGetter(fieldName),
+                            EnumSet.of(Modifier.PUBLIC))
+                    .endMethod();
+
+            // MutableRealmIntegers do not have setters.
+            if (Utils.isMutableRealmInteger(field)) { continue; }
+            writer
+                    .beginMethod(
+                            "void",
+                            metaData.getInternalSetter(fieldName),
+                            EnumSet.of(Modifier.PUBLIC),
+                            fieldTypeCanonicalName,
+                            "value")
+                    .endMethod();
         }
 
         // backlinks are final and have only a getter.

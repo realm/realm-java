@@ -33,13 +33,13 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +48,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationIndexTypes;
+import io.realm.entities.BacklinksSource;
+import io.realm.entities.BacklinksTarget;
 import io.realm.entities.NullTypes;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
@@ -316,6 +318,13 @@ public class TestHelper {
         byte[] key = new byte[64];
         RANDOM.nextBytes(key);
         return key;
+    }
+
+    public static String getRandomEmail() {
+        StringBuilder sb = new StringBuilder(UUID.randomUUID().toString().toLowerCase());
+        sb.append('@');
+        sb.append("androidtest.realm.io");
+        return sb.toString();
     }
 
     // Returns a random key from the given seed. Used by encrypted Realms.
@@ -1133,7 +1142,7 @@ public class TestHelper {
             }
             counter--;
         }
-        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10 + " seconds");
+        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10.0D + " seconds");
     }
 
     /**
@@ -1227,4 +1236,36 @@ public class TestHelper {
             return false;
         }
     }
+
+    public static void populateLinkedDataSet(Realm realm) {
+        realm.beginTransaction();
+        realm.delete(BacklinksSource.class);
+        realm.delete(BacklinksTarget.class);
+
+        BacklinksTarget target1 = realm.createObject(BacklinksTarget.class);
+        target1.setId(1);
+
+        BacklinksTarget target2 = realm.createObject(BacklinksTarget.class);
+        target2.setId(2);
+
+        BacklinksTarget target3 = realm.createObject(BacklinksTarget.class);
+        target3.setId(3);
+
+        BacklinksSource source1 = realm.createObject(BacklinksSource.class);
+        source1.setName("1");
+        source1.setChild(target1);
+        BacklinksSource source2 = realm.createObject(BacklinksSource.class);
+        source2.setName("2");
+        source2.setChild(target2);
+
+        BacklinksSource source3 = realm.createObject(BacklinksSource.class);
+        source3.setName("3");
+
+        BacklinksSource source4 = realm.createObject(BacklinksSource.class);
+        source4.setName("4");
+        source4.setChild(target1);
+
+        realm.commitTransaction();
+    }
+
 }

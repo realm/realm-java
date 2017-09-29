@@ -20,10 +20,6 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.UiThreadTestRule;
 import android.util.Log;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
@@ -34,11 +30,17 @@ import io.realm.internal.Util;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
 
 
-public class BaseIntegrationTest {
+/**
+ * Base class used by Integration Tests.
+ * This class should not be used directly. Instead {@link StandardIntegrationTest} or {@link IsolatedIntegrationTests }
+ * should be used instead.
+ */
+public abstract class BaseIntegrationTest {
 
     private static int originalLogLevel;
 
@@ -54,31 +56,8 @@ public class BaseIntegrationTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-    @BeforeClass
-    public static void setUp () throws Exception {
-        SyncManager.Debug.skipOnlineChecking = true;
-        try {
-            HttpUtils.startSyncServer();
-        } catch (Exception e) {
-            // Throwing an exception from this method will crash JUnit. Instead just log it.
-            // If this setup method fails, all unit tests in the class extending it will most likely fail as well.
-            Log.e(HttpUtils.TAG, "Could not start Sync Server: " + Util.getStackTrace(e));
-        }
-    }
-
-    @AfterClass
-    public static void tearDown () throws Exception {
-        try {
-            HttpUtils.stopSyncServer();
-        } catch (Exception e) {
-            Log.e(HttpUtils.TAG, "Failed to stop Sync Server" + Util.getStackTrace(e));
-        }
-    }
-
-    @Before
-    public void setupTest() throws IOException {
-        // TODO We should implement a more consistent reset method for all of Sync that reset
-        // everything completely including deleting all files.
+    protected void prepareEnvironmentForTest() throws IOException {
+        // FIXME Trying to reset the device environment is crashing tests somehow
         deleteRosFiles();
         if (BaseRealm.applicationContext != null) {
             // Realm was already initialized. Reset all internal state
@@ -97,20 +76,38 @@ public class BaseIntegrationTest {
         RealmLog.setLevel(LogLevel.DEBUG);
     }
 
-    @After
-    public void tearDownTest() throws IOException {
-        if (looperThread.isTestComplete()) {
-            // Non-looper tests can reset here
-            RealmLog.setLevel(originalLogLevel);
-        } else {
-            // Otherwise we need to wait for the test to complete
-            looperThread.runAfterTest(new Runnable() {
-                @Override
-                public void run() {
-                    RealmLog.setLevel(originalLogLevel);
-                }
-            });
+    /**
+     * Starts a new ROS instance that can be used for testing.
+     */
+    protected static void startSyncServer() {
+        SyncManager.Debug.skipOnlineChecking = true;
+        try {
+            HttpUtils.startSyncServer();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
+    }
+
+    /**
+     * Stops the ROS instance used for the test.
+     */
+    protected static void stopSyncServer() {
+        try {
+            HttpUtils.stopSyncServer();
+        } catch (Exception e) {
+            Log.e(HttpUtils.TAG, "Failed to stop Sync Server" + Util.getStackTrace(e));
+        }
+    }
+
+    /**
+     * Tries to restore the environment as best as possible after a test.
+     */
+    protected void restoreEnvironmentAfterTest() {
+        // Block until all users are logged out
+        UserFactory.logoutAllUsers();
+
+        // Reset log level
+        RealmLog.setLevel(originalLogLevel);
     }
 
     // Cleanup filesystem to make sure nothing lives for the next test.

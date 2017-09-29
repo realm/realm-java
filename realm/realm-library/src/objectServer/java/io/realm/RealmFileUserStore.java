@@ -20,8 +20,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import javax.annotation.Nullable;
+
+
 /**
- * A User Store backed by a Realm file to store user.
+ * A User Store backed by a Realm file to store users.
  */
 public class RealmFileUserStore implements UserStore {
 
@@ -32,13 +35,14 @@ public class RealmFileUserStore implements UserStore {
     public void put(SyncUser user) {
         String userJson = user.toJson();
         // create or update token (userJson) using identity
-        nativeUpdateOrCreateUser(user.getIdentity(), userJson, user.getSyncUser().getAuthenticationUrl().toString());
+        nativeUpdateOrCreateUser(user.getIdentity(), userJson, user.getAuthenticationUrl().toString());
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @Nullable
     public SyncUser getCurrent() {
         String userJson = nativeGetCurrentUser();
         return toSyncUserOrNull(userJson);
@@ -48,8 +52,9 @@ public class RealmFileUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
-    public SyncUser get(String identity) {
-        String userJson = nativeGetUser(identity);
+    @Nullable
+    public SyncUser get(String identity, String authUrl) {
+        String userJson = nativeGetUser(identity, authUrl);
         return toSyncUserOrNull(userJson);
     }
 
@@ -57,8 +62,8 @@ public class RealmFileUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
-    public void remove(String identity) {
-        nativeLogoutUser(identity);
+    public void remove(String identity, String authUrl) {
+        nativeLogoutUser(identity, authUrl);
     }
 
     /**
@@ -77,7 +82,16 @@ public class RealmFileUserStore implements UserStore {
         return Collections.emptyList();
     }
 
-    private static SyncUser toSyncUserOrNull(String userJson) {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isActive(String identity, String authenticationUrl) {
+        return nativeIsActive(identity, authenticationUrl);
+    }
+
+    @Nullable
+    private static SyncUser toSyncUserOrNull(@Nullable String userJson) {
         if (userJson == null) {
             return null;
         }
@@ -88,11 +102,14 @@ public class RealmFileUserStore implements UserStore {
     protected static native String nativeGetCurrentUser();
 
     // returns json data (token) of the specified user
-    protected static native String nativeGetUser(String identity);
+    @Nullable
+    protected static native String nativeGetUser(String identity, String authUrl);
 
     protected static native String[] nativeGetAllUsers();
 
     protected static native void nativeUpdateOrCreateUser(String identity, String jsonToken, String url);
 
-    protected static native void nativeLogoutUser(String identity);
+    protected static native void nativeLogoutUser(String identity, String authUrl);
+
+    protected static native boolean nativeIsActive(String identity, String authUrl);
 }

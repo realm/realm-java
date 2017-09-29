@@ -1,16 +1,115 @@
-## 3.4.1 (YYYY-MM-DD)
-
-### Breaking Changes
-
-### Deprecated
-
-### Enhancements
+## 3.7.3 (YYYY-MM-DD)
 
 ### Bug Fixes
 
+* Added support for ISO8601 2-digit time zone designators (#5309).
+
+### Credits
+
+Thanks to @JussiPekonen for adding support for 2-digit time zone designators when importing JSON (#5309).
+
+## 3.7.2 (2017-09-12)
+
+### Bug Fixes
+
+* Fixed a JNI memory issue when doing queries which might potentially cause various native crashes.
+* Fixed a bug that `RealmList.deleteFromRealm(int)`, `RealmList.deleteFirstFromRealm()` and `RealmList.deleteLastFromRealm()` did not remove target objects from Realm. This bug was introduced in `3.7.1` (#5233).
+* Crash with "'xxx' doesn't exist in current schema." when ProGuard is enabled (#5211).
+
+## 3.7.1 (2017-09-07)
+
+### Bug Fixes
+
+* Fixed potential memory leaks of `LinkView` when calling bulk insertions APIs.
+* Fixed possible assertion when using `PermissionManager` at the beginning (#5195).
+* Crash caused by JNI couldn't find `SharedRealm`'s inner classes when ProGuard is enabled (#5211).
+
 ### Internal
 
+* Replaced LinkView with Object Store's List.
+* Renaming `io.realm.internal.CollectionChangeSet` to `io.realm.internal.OsCollectionChangeSet`.
+
+## 3.7.0 (2017-09-01)
+
+### Deprecated
+
+* [ObjectServer] `SyncUser.getManagementRealm()`. Use `SyncUser.getPermissionManager()` instead.
+
+### Enhancements
+
+* [ObjectServer] `SyncUser.getPermissionManager` added as a helper API for working with permissions and permission offers.
+
+### Internal
+
+* [ObjectServer] Upgraded OkHttp to 3.7.0.
+
+
+## 3.6.0 (2017-09-01)
+
+### Breaking Changes
+
+* [ObjectServer] `SyncUser.logout()` no longer throws an exception when associated Realms instances are not closed (#4962).
+
+### Deprecated
+
+* [ObjectServer] `SyncUser#retrieveUser` and `SyncUser#retrieveUserAsync` replaced by `SyncUser#retrieveInfoForUser`
+and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode information (#5008).
+* [ObjectServer] `SyncUser#Callback` replaced by the generic version `SyncUser#RequestCallback<T>`.
+
+### Enhancements
+
+* [ObjectServer] Added `SyncSession.uploadAllLocalChanges()`.
+* [ObjectServer] APIs of `UserStore` have been changed to support same user identity but different authentication server scenario.
+* [ObjectServer] Added `SyncUser.allSessions` to retrieve the all valid sessions belonging to the user (#4783).
+* Added `Nullable` annotation to methods that may return `null` in order to improve Kotlin usability. This also introduced a dependency to `com.google.code.findbugs:jsr305`.
+* `org.jetbrains.annotations.NotNull` is now an alias for `@Required`. This means that the Realm Schema now fully understand Kotlin non-null types.
+* Added support for new data type `MutableRealmIntegers`. The new type behaves almost exactly as a reference to a Long (mutable nullable, etc) but supports `increment` and `decrement` methods, which implement a Conflict Free Replicated Data Type, whose value will converge even when changed across distributed devices with poor connections (#4266).
+* Added more detailed exception message for `RealmMigrationNeeded`.
+* Bumping schema version only without any actual schema changes will just succeed even when the migration block is not supplied. It threw an `RealmMigrationNeededException` before in the same case.
+* Throw `IllegalStateException` when schema validation fails because of wrong declaration of `@LinkingObjects`.
+
+### Bug Fixes
+
+* Potential crash after using `Realm.getSchema()` to change the schema of a typed Realm. `Realm.getSchema()` now returns an immutable `RealmSchema` instance.
+* `Realm.copyToRealmOrUpdate()` could cause a `RealmList` field to contain duplicated elements (#4957).
+* `RealmSchema.create(String)` and `RealmObjectSchema.setClassName(String)` did not accept class name whose length was 51 to 57.
+* Workaround for an Android JVM crash when using `compactOnLaunch()` (#4964).
+* Class name in exception message from link query is wrong (#5096).
+* The `compactOnLaunch` callback is no longer invoked if the Realm at that path is already open on other threads.
+
+### Internal
+
+* [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
+* [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
+* Upgraded Realm Sync to 1.10.8
+* Let Object Store handle migration.
+
+
+## 3.5.0 (2017-07-11)
+
+### Enhancements
+
+* Added `RealmConfiguration.Builder.compactOnLaunch()` to compact the file on launch (#3739).
+* [ObjectServer] Adding user lookup API for administrators (#4828).
+* An `IllegalStateException` will be thrown if the given `RealmModule` doesn't include all required model classes (#3398).
+
+### Bug Fixes
+
+* Bug in `isNull()`, `isNotNull()`, `isEmpty()`, and `isNotEmpty()` when queries involve nullable fields in link queries (#4856).
+* Bug in how to resolve field names when querying `@LinkingObjects` as the last field (#4864).
+* Rare crash in `RealmLog` when log level was set to `LogLevel.DEBUG`.
+* Broken case insensitive query with indexed field (#4788).
+* [ObjectServer] Bug related to the behaviour of `SyncUser#logout` and the use of invalid `SyncUser` with `SyncConfiguration` (#4822).
+* [ObjectServer] Not all error codes from the server were recognized correctly, resulting in UNKNOWN being reported instead.
+* [ObjectServer] Prevent the use of a `SyncUser` that explicitly logged out, to open a Realm (#4975).
+
+### Internal
+
+* Use Object Store to do table initialization.
 * Removed `Table#Table()`, `Table#addEmptyRow()`, `Table#addEmptyRows()`, `Table#add(Object...)`, `Table#pivot(long,long,PivotType)` and `Table#createnative()`.
+* Upgraded Realm Core to 2.8.6
+* Upgraded Realm Sync to 1.10.5
+* Removed `io.realm.internal.OutOfMemoryError`. `java.lang.OutOfMemoryError` will be thrown instead.
 
 
 ## 3.4.0 (2017-06-22)
@@ -33,10 +132,10 @@
 
 ### Bug Fixes
 
-* [ObjectServer] Fixed a bug which may crash when the JNI local reference limitation was reached on sync client thread.
+* [ObjectServer] Bug which may crash when the JNI local reference limitation was reached on sync client thread.
 * [ObjectServer] Retrying connections with exponential backoff, when encountering `ConnectException` (#4310).
 * When converting nullable BLOB field to required, `null` values should be converted to `byte[0]` instead of `byte[1]`.
-* Fixed a bug which may cause duplicated primary key values when migrating a nullable primary key field to not nullable. `RealmObjectSchema.setRequired()` and `RealmObjectSchema.setNullable()` will throw when converting a nullable primary key field with null values stored to a required primary key field.
+* Bug which may cause duplicated primary key values when migrating a nullable primary key field to not nullable. `RealmObjectSchema.setRequired()` and `RealmObjectSchema.setNullable()` will throw when converting a nullable primary key field with null values stored to a required primary key field.
 
 ### Internal
 
@@ -52,13 +151,13 @@
 
 ### Bug Fixes
 
-* [ObjectServer] Fixed a crash when an authentication error happens (#4726).
+* [ObjectServer] Crash when an authentication error happens (#4726).
 * [ObjectServer] Enabled encryption with Sync (#4561).
 * [ObjectServer] Admin users did not connect correctly to the server (#4750).
 
 ### Internal
 
-* Factor out internal interface ManagedObject
+* Factor out internal interface ManagedObject.
 
 ## 3.3.1 (2017-05-26)
 
@@ -89,7 +188,7 @@
 
 * [ObjectServer] `schemaVersion` was mistakenly required in order to trigger migrations (#4658).
 * [ObjectServer] Fields removed from model classes will now correctly be hidden instead of throwing an exception when opening the Realm (#4658).
-* Fixed random crashes which were caused by a race condition in encrypted Realm (#4343).
+* Random crashes which were caused by a race condition in encrypted Realm (#4343).
 
 ### Internal
 
@@ -101,6 +200,7 @@
 ### Enhancements
 
 * [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
+* [ObjectServer] New set of Permission API's have been added to `SyncUser` through `SyncUser.getPermissionManager()` (#4296).
 * [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` (#4423).
 * [ObjectServer] Added support for `SyncConfiguration.Builder.waitForInitialRemoteData()` (#4270).
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).
@@ -192,7 +292,7 @@
 
 * Crash with `LogicError` with `Bad version number` on notifier thread (#4369).
 * `Realm.migrateRealm(RealmConfiguration)` now fails correctly with an `IllegalArgumentException` if a `SyncConfiguration` is provided (#4075).
-* Fixed a potential cause for Realm file corruptions (never reported).
+* Potential cause for Realm file corruptions (never reported).
 * Add `@Override` annotation to proxy class accessors and stop using raw type in proxy classes in order to remove warnings from javac (#4329).
 * `findFirstAsync()` now returns an invalid object if there is no object matches the query condition instead of running the query repeatedly until it can find one (#4352).
 * [ObjectServer] Changing the log level after starting a session now works correctly (#4337).
@@ -698,7 +798,7 @@ No changes since 0.91.1.
 
 ### Breaking changes
 
-* @PrimaryKey field value can now be null for String, Byte, Short, Integer, and Long types. Older Realms should be migrated, using RealmObjectSchema.setNullable(), or by adding the @Required annotation. (#2515).
+* @PrimaryKey field value can now be null for String, Byte, Short, Integer, and Long types. Older Realms should be migrated, using RealmObjectSchema.setNullable(), or by adding the @Required annotation (#2515).
 * `RealmResults.clear()` now throws UnsupportedOperationException. Use `RealmResults.deleteAllFromRealm()` instead.
 * `RealmResults.remove(int)` now throws UnsupportedOperationException. Use `RealmResults.deleteFromRealm(int)` instead.
 * `RealmResults.sort()` and `RealmList.sort()` now return the sorted result instead of sorting in-place.
@@ -740,7 +840,7 @@ No changes since 0.91.1.
 ### Bug fixes
 
 * Field annotated with @Ignored should not have accessors generated by the bytecode transformer (#2478).
-* RealmResults and RealmObjects can no longer accidentially be GC'ed if using `asObservable()`. Previously this caused the observable to stop emitting. (#2485).
+* RealmResults and RealmObjects can no longer accidentially be GC'ed if using `asObservable()`. Previously this caused the observable to stop emitting (#2485).
 * Fixed an build issue when using Realm in library projects on Windows (#2484).
 * Custom equals(), toString() and hashCode() are no longer incorrectly overwritten by the proxy class (#2545).
 
@@ -849,7 +949,7 @@ No changes since 0.91.1.
 * Updated Realm Core to 0.95.6
   - Fixed a bug where an async query can be copied incomplete in rare cases (#1717).
 * Fixed potential memory leak when using async query.
-* Added a check to prevent removing a RealmChangeListener from a non-Looper thread (#1962). (Thank you @hohnamkung)
+* Added a check to prevent removing a RealmChangeListener from a non-Looper thread (#1962). (Thank you @hohnamkung.)
 
 ## 0.87.0 (2015-12-17)
 * Added Realm.asObservable(), RealmResults.asObservable(), RealmObject.asObservable(), DynamicRealm.asObservable() and DynamicRealmObject.asObservable().
@@ -899,7 +999,7 @@ No changes since 0.91.1.
 * Added Realm.isEmpty().
 * Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (unmanaged, removed, closed, from different Realm) object (#1749).
 * Attempting to refresh a Realm while a transaction is in process will now throw an IllegalStateException (#1712).
-* The Realm AAR now also contains the ProGuard configuration (#1767). (Thank you @skyisle)
+* The Realm AAR now also contains the ProGuard configuration (#1767). (Thank you @skyisle.)
 * Updated Realm Core to 0.95.
   - Removed reliance on POSIX signals when using encryption.
 
@@ -921,7 +1021,7 @@ No changes since 0.91.1.
 
 ## 0.84.0 (2015-10-22)
 * Added support for async queries and transactions.
-* Added support for parsing JSON Dates with timezone information. (Thank you @LateralKevin)
+* Added support for parsing JSON Dates with timezone information. (Thank you @LateralKevin.)
 * Added RealmQuery.isEmpty().
 * Added Realm.isClosed() method.
 * Added Realm.distinct() method.
@@ -993,7 +1093,7 @@ No changes since 0.91.1.
 * Deprecated Realm.deleteFile(). It has been replaced by Realm.deleteRealm(RealmConfiguration).
 * Deprecated Realm.compactFile(). It has been replaced by Realm.compactRealm(RealmConfiguration).
 * RealmList.add(), RealmList.addAt() and RealmList.set() now copy unmanaged objects transparently into Realm.
-* Realm now works with Kotlin (M12+). (Thank you @cypressious)
+* Realm now works with Kotlin (M12+). (Thank you @cypressious.)
 * Fixed a performance regression introduced in 0.80.3 occurring during the validation of the Realm schema.
 * Added a check to give a better error message when null is used as value for a primary key.
 * Fixed unchecked cast warnings when building with Realm.
@@ -1007,7 +1107,7 @@ No changes since 0.91.1.
 * RealmChangedListener now also gets called on the same thread that did the commit.
 * Fixed bug where Realm.createOrUpdateWithJson() reset Date and Binary data to default values if not found in the JSON output.
 * Fixed a memory leak when using RealmBaseAdapter.
-* RealmBaseAdapter now allow RealmResults to be null. (Thanks @zaki50)
+* RealmBaseAdapter now allow RealmResults to be null. (Thanks @zaki50.)
 * Fixed a bug where a change to a model class (`RealmList<A>` to `RealmList<B>`) would not throw a RealmMigrationNeededException.
 * Fixed a bug where setting multiple RealmLists didn't remove the previously added objects.
 * Solved ConcurrentModificationException thrown when addChangeListener/removeChangeListener got called in the onChange. (Thanks @beeender)

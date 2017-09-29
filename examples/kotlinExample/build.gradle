@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.1.2-5'
+    ext.kotlin_version = '1.1.51'
     repositories {
         jcenter()
         mavenCentral()
@@ -11,6 +11,7 @@ buildscript {
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
@@ -33,17 +34,28 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            signingConfig signingConfigs.debug
+        }
+        debug {
+            minifyEnabled true
         }
     }
 
     command {
-        events 2000
+        monkey.events 2000
     }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         androidTest.java.srcDirs += 'src/androidTest/kotlin'
+    }
+}
+
+// enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/08/kotlin-1-1-4-is-out/
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        freeCompilerArgs = ["-Xjsr305-annotations=enable"]
     }
 }
 

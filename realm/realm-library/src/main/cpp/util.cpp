@@ -27,6 +27,8 @@
 #include "io_realm_internal_SharedRealm.h"
 #include "shared_realm.hpp"
 #include "results.hpp"
+#include "list.hpp"
+#include "java_exception_def.hpp"
 
 #include "jni_util/java_exception_thrower.hpp"
 
@@ -34,17 +36,7 @@ using namespace std;
 using namespace realm;
 using namespace realm::util;
 using namespace realm::jni_util;
-
-// Caching classes and constructors for boxed types.
-jclass java_lang_long;
-jmethodID java_lang_long_init;
-jclass java_lang_float;
-jmethodID java_lang_float_init;
-jclass java_lang_double;
-jclass java_lang_string;
-jmethodID java_lang_double_init;
-jclass java_util_date;
-jmethodID java_util_date_init;
+using namespace realm::_impl;
 
 void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind);
 
@@ -107,6 +99,11 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
     }
+    catch (List::OutOfBoundsIndexException& e) {
+        ss << "Out of range  in " << file << " line " << line << "(requested: " << e.requested
+           << " valid: " << e.valid_count << ")";
+        ThrowException(env, IndexOutOfBounds, ss.str());
+    }
     catch (IncorrectThreadException& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
@@ -158,7 +155,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             break;
 
         case OutOfMemory:
-            jExceptionClass = env->FindClass("io/realm/internal/OutOfMemoryError");
+            jExceptionClass = env->FindClass(JavaExceptionDef::OutOfMemory);
             message = classStr + " " + itemStr;
             break;
 
@@ -233,19 +230,6 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
     env->Throw(reinterpret_cast<jthrowable>(exception));
     env->DeleteLocalRef(cls);
     env->DeleteLocalRef(exception);
-}
-
-jclass GetClass(JNIEnv* env, const char* classStr)
-{
-    jclass localRefClass = env->FindClass(classStr);
-    if (localRefClass == NULL) {
-        ThrowException(env, ClassNotFound, classStr);
-        return NULL;
-    }
-
-    jclass myClass = reinterpret_cast<jclass>(env->NewGlobalRef(localRefClass));
-    env->DeleteLocalRef(localRefClass);
-    return myClass;
 }
 
 void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx)

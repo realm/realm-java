@@ -26,8 +26,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'realm-android'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "26.0.0"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
         minSdkVersion 15
@@ -53,8 +53,8 @@ repositories {
 }
 
 dependencies {
-    androidTestImplementation 'com.android.support.test:runner:0.5'
-    androidTestImplementation 'com.android.support.test:rules:0.5'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test:rules:1.0.1'
     androidTestImplementation 'junit:junit:4.12'
     androidTestImplementation 'dk.ilios:spanner:0.6.0'
     androidTestImplementation 'com.opencsv:opencsv:3.4'

@@ -26,13 +26,13 @@ import android.support.test.runner.AndroidJUnit4;
 
 import junit.framework.AssertionFailedError;
 
+import org.hamcrest.CoreMatchers;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -60,8 +60,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
+import javax.annotation.Nullable;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
@@ -79,6 +82,7 @@ import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
+import io.realm.entities.Object4957;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
@@ -102,6 +106,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;
@@ -119,6 +124,8 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -213,7 +220,7 @@ public class RealmTests {
                     .build());
             fail();
         } catch (RealmFileException expected) {
-            assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
+            assertEquals(RealmFileException.Kind.PERMISSION_DENIED, expected.getKind());
         }
     }
 
@@ -230,7 +237,7 @@ public class RealmTests {
             Realm.getInstance(new RealmConfiguration.Builder(context).directory(folder).name(REALM_FILE).build());
             fail();
         } catch (RealmFileException expected) {
-            assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
+            assertEquals(RealmFileException.Kind.PERMISSION_DENIED, expected.getKind());
         }
     }
 
@@ -708,7 +715,7 @@ public class RealmTests {
             });
         } catch (RuntimeException ignored) {
             // Ensures that we pass a valuable error message to the logger for developers.
-            assertEquals(testLogger.message, "Could not cancel transaction, not currently in a transaction.");
+            assertEquals("Could not cancel transaction, not currently in a transaction.", testLogger.message);
         } finally {
             RealmLog.remove(testLogger);
         }
@@ -800,10 +807,9 @@ public class RealmTests {
                 o.setColumnLong(i);
                 o.setColumnString(codePoint);
 
-                AllTypes realmType = realm.where(AllTypes.class).equalTo("columnLong", i).findFirst();
                 if (i > 1) {
                     assertEquals("Codepoint: " + i + " / " + currentUnicode, codePoint,
-                            realmType.getColumnString()); // codepoint 0 is NULL, ignore for now.
+                            o.getColumnString()); // codepoint 0 is NULL, ignore for now.
                 }
                 i++;
             }
@@ -1054,6 +1060,185 @@ public class RealmTests {
         realm = Realm.getInstance(config);
         realm.close();
         Realm.deleteRealm(config);
+    }
+
+    private void populateTestRealmForCompact(Realm realm, int sizeInMB) {
+        byte[] oneMBData = new byte[1024 * 1024];
+        realm.beginTransaction();
+        for (int i = 0; i < sizeInMB; i++) {
+            realm.createObject(AllTypes.class).setColumnBinary(oneMBData);
+        }
+        realm.commitTransaction();
+    }
+
+    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
+        return populateTestRealmAndCompactOnLaunch(compactOnLaunch, 1);
+    }
+
+    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch, int sizeInMB) {
+        final String REALM_NAME = "test.realm";
+        RealmConfiguration realmConfig = configFactory.createConfiguration(REALM_NAME);
+        Realm realm = Realm.getInstance(realmConfig);
+        populateTestRealmForCompact(realm, sizeInMB);
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+        realm.close();
+        long before = new File(realmConfig.getPath()).length();
+        if (compactOnLaunch != null) {
+            realmConfig = configFactory.createConfigurationBuilder()
+                    .name(REALM_NAME)
+                    .compactOnLaunch(compactOnLaunch)
+                    .build();
+        } else {
+            realmConfig = configFactory.createConfigurationBuilder()
+                    .name(REALM_NAME)
+                    .compactOnLaunch()
+                    .build();
+        }
+        realm = Realm.getInstance(realmConfig);
+        realm.close();
+        long after = new File(realmConfig.getPath()).length();
+        return new Pair(before, after);
+    }
+
+    @Test
+    public void compactOnLaunch_shouldCompact() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(new CompactOnLaunchCallback() {
+            @Override
+            public boolean shouldCompact(long totalBytes, long usedBytes) {
+                assertTrue(totalBytes > usedBytes);
+                return true;
+            }
+        });
+        assertTrue(results.first > results.second);
+    }
+
+    @Test
+    public void compactOnLaunch_shouldNotCompact() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(new CompactOnLaunchCallback() {
+            @Override
+            public boolean shouldCompact(long totalBytes, long usedBytes) {
+                assertTrue(totalBytes > usedBytes);
+                return false;
+            }
+        });
+        assertEquals(results.first, results.second);
+    }
+
+    @Test
+    public void compactOnLaunch_multipleThread() throws IOException {
+        final String REALM_NAME = "test.realm";
+        final AtomicInteger compactOnLaunchCount = new AtomicInteger(0);
+
+        final RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .name(REALM_NAME)
+                .compactOnLaunch(new CompactOnLaunchCallback() {
+                    @Override
+                    public boolean shouldCompact(long totalBytes, long usedBytes) {
+                        compactOnLaunchCount.incrementAndGet();
+                        return true;
+                    }
+                })
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+        realm.close();
+        // WARNING: We need to init the schema first and close the Realm to make sure the relevant logic works in Object
+        // Store. See https://github.com/realm/realm-object-store/blob/master/src/shared_realm.cpp#L58
+        // Called once.
+        assertEquals(1, compactOnLaunchCount.get());
+
+        realm = Realm.getInstance(realmConfig);
+        // Called 2 more times. The PK table migration logic (the old PK bug) needs to open/close the Realm once.
+        assertEquals(3, compactOnLaunchCount.get());
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm bgRealm = Realm.getInstance(realmConfig);
+                bgRealm.close();
+                // compactOnLaunch should not be called anymore!
+                assertEquals(3, compactOnLaunchCount.get());
+            }
+        });
+        thread.start();
+
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            fail();
+        }
+
+        realm.close();
+
+        assertEquals(3, compactOnLaunchCount.get());
+    }
+
+    @Test
+    public void compactOnLaunch_insufficientAmount() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(new CompactOnLaunchCallback() {
+            @Override
+            public boolean shouldCompact(long totalBytes, long usedBytes) {
+                final long thresholdSize = 50 * 1024 * 1024;
+                return (totalBytes > thresholdSize) && (((double) usedBytes / (double) totalBytes) < 0.5);
+            }
+        }, 1);
+        final long thresholdSize = 50 * 1024 * 1024;
+        assertTrue(results.first < thresholdSize);
+        assertEquals(results.first, results.second);
+    }
+
+    @Test
+    public void compactOnLaunch_throwsInTheCallback() {
+        final RuntimeException exception = new RuntimeException();
+        final RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .name("compactThrowsTest")
+                .compactOnLaunch(new CompactOnLaunchCallback() {
+                    @Override
+                    public boolean shouldCompact(long totalBytes, long usedBytes) {
+                        throw exception;
+                    }
+                })
+                .build();
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(realmConfig);
+            fail();
+        } catch (RuntimeException expected) {
+            assertSame(exception, expected);
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
+    @Test
+    public void defaultCompactOnLaunch() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 50);
+        final long thresholdSize = 50 * 1024 * 1024;
+        assertTrue(results.first > thresholdSize);
+        assertTrue(results.first > results.second);
+    }
+
+    @Test
+    public void defaultCompactOnLaunch_onlyCallback() {
+        DefaultCompactOnLaunchCallback callback = new DefaultCompactOnLaunchCallback();
+        final long thresholdSize = 50 * 1024 * 1024;
+        final long big = thresholdSize + 1024;
+        assertFalse(callback.shouldCompact(big, (long) (big * 0.6)));
+        assertTrue(callback.shouldCompact(big, (long) (big * 0.3)));
+        final long small = thresholdSize - 1024;
+        assertFalse(callback.shouldCompact(small, (long) (small * 0.6)));
+        assertFalse(callback.shouldCompact(small, (long) (small * 0.3)));
+    }
+
+    @Test
+    public void defaultCompactOnLaunch_insufficientAmount() throws IOException {
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 1);
+        final long thresholdSize = 50 * 1024 * 1024;
+        assertTrue(results.first < thresholdSize);
+        assertEquals(results.first, results.second);
     }
 
     @Test
@@ -1785,6 +1970,41 @@ public class RealmTests {
         }).start();
 
         TestHelper.awaitOrFail(bgThreadDoneLatch);
+    }
+
+    // Test to reproduce issue https://github.com/realm/realm-java/issues/4957
+    @Test
+    public void copyToRealmOrUpdate_bug4957() {
+        Object4957 listElement = new Object4957();
+        listElement.setId(1);
+
+        Object4957 parent = new Object4957();
+        parent.setId(0);
+        parent.getChildList().add(listElement);
+
+        // parentCopy has same fields as the parent does. But they are not the same object.
+        Object4957 parentCopy = new Object4957();
+        parentCopy.setId(0);
+        parentCopy.getChildList().add(listElement);
+
+        parent.setChild(parentCopy);
+        parentCopy.setChild(parentCopy);
+
+        realm.beginTransaction();
+        Object4957 managedParent = realm.copyToRealmOrUpdate(parent);
+        realm.commitTransaction();
+        // The original bug fails here. It resulted the listElement has been added to the list twice.
+        // Because of the parent and parentCopy are not the same object, proxy will miss the cache to know the object
+        // has been created before. But it does know they share the same PK value.
+        assertEquals(1, managedParent.getChildList().size());
+
+        // insertOrUpdate doesn't have the problem!
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.insertOrUpdate(parent);
+        realm.commitTransaction();
+        managedParent = realm.where(Object4957.class).findFirst();
+        assertEquals(1, managedParent.getChildList().size());
     }
 
     @Test
@@ -3741,49 +3961,51 @@ public class RealmTests {
         assertFalse(bgRealmChangeResult.get());
     }
 
+    // Check if the column indices cache is refreshed if the index of a defined column is changed by another Realm
+    // instance.
     @Test
-    public void schemaIndexCacheIsUpdatedAfterSchemaChange() {
-        final AtomicLong nameIndexNew = new AtomicLong(-1L);
+    public void nonAdditiveSchemaChangesWhenTypedRealmExists() throws InterruptedException {
+        final String TEST_CHARS = "TEST_CHARS";
+        final RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schema(StringOnly.class)
+                .name("schemaChangeTest")
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+        StringOnlyRealmProxy.StringOnlyColumnInfo columnInfo
+                = (StringOnlyRealmProxy.StringOnlyColumnInfo) realm.getSchema().getColumnInfo(StringOnly.class);
+        assertEquals(0, columnInfo.charsIndex);
 
-        // get the pre-update index for the "name" column.
-        CatRealmProxy.CatColumnInfo catColumnInfo
-                = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnInfo(Cat.class);
-        final long nameIndex = catColumnInfo.nameIndex;
+        realm.beginTransaction();
+        StringOnly stringOnly = realm.createObject(StringOnly.class);
+        stringOnly.setChars(TEST_CHARS);
+        realm.commitTransaction();
 
-        // Change the index of the column "name".
-        realm.executeTransaction(new Realm.Transaction() {
+        Thread thread = new Thread(new Runnable() {
             @Override
-            public void execute(Realm realm) {
-                final Table catTable = realm.getSchema().getTable(Cat.CLASS_NAME);
-                final long nameIndex = catTable.getColumnIndex(Cat.FIELD_NAME);
-                catTable.removeColumn(nameIndex);
-                final long newIndex = catTable.addColumn(RealmFieldType.STRING, Cat.FIELD_NAME, true);
-                realm.setVersion(realm.getConfiguration().getSchemaVersion() + 1);
-                nameIndexNew.set(newIndex);
+            public void run() {
+                // Here we try to change the column index of FIELD_CHARS from 0 to 1.
+                DynamicRealm realm = DynamicRealm.getInstance(realmConfig);
+                realm.beginTransaction();
+                RealmObjectSchema stringOnlySchema = realm.getSchema().get(StringOnly.CLASS_NAME);
+                assertEquals(0, stringOnlySchema.getColumnIndex(StringOnly.FIELD_CHARS));
+                Table table = stringOnlySchema.getTable();
+                // Please notice that we cannot do it by removing/adding a column since it is not allowed by Object
+                // Store. Do it by using the internal API insertColumn.
+                table.insertColumn(0, RealmFieldType.INTEGER, "NewColumn");
+                assertEquals(1, stringOnlySchema.getColumnIndex(StringOnly.FIELD_CHARS));
+                realm.commitTransaction();
+                realm.close();
             }
         });
+        thread.start();
+        thread.join();
+        realm.refresh();
 
-        // We need to update index cache if the schema version was changed in the same thread.
-        realm.sharedRealm.invokeSchemaChangeListenerIfSchemaChanged();
-
-        // Verify that the index has changed.
-        assertNotEquals(nameIndex, nameIndexNew);
-
-        // Verify that the index in the ColumnInfo has been updated.
-        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnInfo(Cat.class);
-        assertEquals(nameIndexNew.get(), catColumnInfo.nameIndex);
-        assertEquals(nameIndexNew.get(), (long) catColumnInfo.getColumnIndex(Cat.FIELD_NAME));
-
-        // Checks by actual get and set.
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                final Cat cat = realm.createObject(Cat.class);
-                cat.setName("pochi");
-            }
-        });
-        //noinspection ConstantConditions
-        assertEquals("pochi", realm.where(Cat.class).findFirst().getName());
+        // The columnInfo object never changes, only the indexes it references will.
+        assertSame(columnInfo, realm.getSchema().getColumnInfo(StringOnly.class));
+        assertEquals(TEST_CHARS, stringOnly.getChars());
+        assertEquals(1, columnInfo.charsIndex);
+        realm.close();
     }
 
     @Test
@@ -3973,7 +4195,7 @@ public class RealmTests {
                 realm.close();
                 bgThreadDone.countDown();
             }
-        }).run();
+        }).start();
         TestHelper.awaitOrFail(bgThreadDone);
 
         realm.refresh();
@@ -3997,7 +4219,7 @@ public class RealmTests {
                 realm.close();
                 bgThreadDone.countDown();
             }
-        }).run();
+        }).start();
         TestHelper.awaitOrFail(bgThreadDone);
 
         realm.refresh();
@@ -4062,7 +4284,8 @@ public class RealmTests {
             realm.beginTransaction();
             fail();
         } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().startsWith("Write transactions cannot be used "));
+            assertThat(e.getMessage(),
+                    CoreMatchers.containsString("Can't perform transactions on read-only Realms."));
         } finally {
             realm.close();
         }

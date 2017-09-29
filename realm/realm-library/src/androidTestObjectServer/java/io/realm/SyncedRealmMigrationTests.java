@@ -16,15 +16,10 @@
 
 package io.realm;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.FileNotFoundException;
@@ -33,8 +28,6 @@ import io.realm.entities.IndexedFields;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.log.RealmLog;
-import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
@@ -115,9 +108,8 @@ public class SyncedRealmMigrationTests {
         RealmObjectSchema stringOnlySchema = realm.getSchema().get(className);
         try {
             assertTrue(stringOnlySchema.hasField(StringOnly.FIELD_CHARS));
-            // TODO Field is currently hidden, but should the field be visible in the schema
-            assertFalse(stringOnlySchema.hasField("newField"));
-            assertEquals(1, stringOnlySchema.getFieldNames().size());
+            assertTrue(stringOnlySchema.hasField("newField"));
+            assertEquals(2, stringOnlySchema.getFieldNames().size());
         } finally {
             realm.close();
         }
@@ -168,20 +160,15 @@ public class SyncedRealmMigrationTests {
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
-        try {
-            Realm realm = Realm.getInstance(config); // Opening at same schema version (42) will not rebuild indexes
-            fail();
-        } catch (RealmMigrationNeededException ignored) {
-        }
+        Realm realm = Realm.getInstance(config); // Opening at same schema version (42) will not rebuild indexes
 
-// FIXME: This is the intended behaviour
-//        RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
-//        try {
-//            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
-//            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
-//        } finally {
-//            realm.close();
-//        }
+        RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
+        try {
+            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
+            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
+        } finally {
+            realm.close();
+        }
     }
 
     // Check that indexes are being added if the schema version is different
@@ -205,20 +192,15 @@ public class SyncedRealmMigrationTests {
         dynamicRealm.commitTransaction();
         dynamicRealm.close();
 
+        Realm realm = Realm.getInstance(config); // Opening at different schema version (42) should rebuild indexes
+        RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
         try {
-            Realm realm = Realm.getInstance(config); // Opening at different schema version (42) should rebuild indexes
-            fail();
-        } catch (RealmMigrationNeededException ignored) {
+            // FIXME: Object Store doesn't add index to it. Is it expected?
+            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
+            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
+        } finally {
+            realm.close();
         }
-
-// FIXME: This is the intended behaviour
-//        RealmObjectSchema indexedFieldsSchema = realm.getSchema().get(className);
-//        try {
-//            assertTrue(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING));
-//            assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING));
-//        } finally {
-//            realm.close();
-//        }
     }
 
     // Check that indexes are being added if other fields are being added as well
@@ -286,17 +268,18 @@ public class SyncedRealmMigrationTests {
                 .build();
 
         // Initialize schema
-        Realm realm = Realm.getInstance(config);
-        realm.beginTransaction();
-        RealmObjectSchema objectSchema = realm.getSchema().getSchemaForClass(StringOnly.class);
+        Realm.getInstance(config).close();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
+        dynamicRealm.beginTransaction();
+        RealmObjectSchema objectSchema = dynamicRealm.getSchema().get(StringOnly.CLASS_NAME);
         // Add one extra field which doesn't exist in the typed Realm.
         objectSchema.addField("oneMoreField", int.class);
-        realm.commitTransaction();
+        dynamicRealm.commitTransaction();
         // Clear column indices cache.
-        realm.close();
+        dynamicRealm.close();
 
         // Verify schema again.
-        realm = Realm.getInstance(config);
+        Realm realm = Realm.getInstance(config);
         realm.close();
     }
 }

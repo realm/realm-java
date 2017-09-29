@@ -7,8 +7,12 @@ import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.LinkView;
+import io.realm.internal.OsList;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.OsSchemaInfo;
+import io.realm.internal.Property;
+import io.realm.internal.ProxyUtils;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
@@ -35,10 +39,11 @@ public class SimpleRealmProxy extends some.test.Simple
         long nameIndex;
         long ageIndex;
 
-        SimpleColumnInfo(SharedRealm realm, Table table) {
+        SimpleColumnInfo(OsSchemaInfo schemaInfo) {
             super(2);
-            this.nameIndex = addColumnDetails(table, "name", RealmFieldType.STRING);
-            this.ageIndex = addColumnDetails(table, "age", RealmFieldType.INTEGER);
+            OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("Simple");
+            this.nameIndex = addColumnDetails("name", objectSchemaInfo);
+            this.ageIndex = addColumnDetails("age", objectSchemaInfo);
         }
 
         SimpleColumnInfo(ColumnInfo src, boolean mutable) {
@@ -60,8 +65,7 @@ public class SimpleRealmProxy extends some.test.Simple
         }
     }
 
-    private SimpleColumnInfo columnInfo;
-    private ProxyState<some.test.Simple> proxyState;
+    private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -69,6 +73,9 @@ public class SimpleRealmProxy extends some.test.Simple
         fieldNames.add("age");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
+
+    private SimpleColumnInfo columnInfo;
+    private ProxyState<some.test.Simple> proxyState;
 
     SimpleRealmProxy() {
         proxyState.setConstructionFinished();
@@ -140,63 +147,19 @@ public class SimpleRealmProxy extends some.test.Simple
         proxyState.getRow$realm().setLong(columnInfo.ageIndex, value);
     }
 
-    public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
-        if (realmSchema.contains("Simple")) {
-            return realmSchema.get("Simple");
-        }
-        RealmObjectSchema realmObjectSchema = realmSchema.create("Simple");
-        realmObjectSchema.add("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        realmObjectSchema.add("age", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        return realmObjectSchema;
+    private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("Simple");
+        builder.addPersistedProperty("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("age", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        return builder.build();
     }
 
-    public static SimpleColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
-        if (!sharedRealm.hasTable("class_Simple")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "The 'Simple' class is missing from the schema for this Realm.");
-        }
-        Table table = sharedRealm.getTable("class_Simple");
-        final long columnCount = table.getColumnCount();
-        if (columnCount != 2) {
-            if (columnCount < 2) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 2 but was " + columnCount);
-            }
-            if (allowExtraColumns) {
-                RealmLog.debug("Field count is more than expected - expected 2 but was %1$d", columnCount);
-            } else {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 2 but was " + columnCount);
-            }
-        }
-        Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
-        for (long i = 0; i < columnCount; i++) {
-            columnTypes.put(table.getColumnName(i), table.getColumnType(i));
-        }
+    public static OsObjectSchemaInfo getExpectedObjectSchemaInfo() {
+        return expectedObjectSchemaInfo;
+    }
 
-        final SimpleColumnInfo columnInfo = new SimpleColumnInfo(sharedRealm, table);
-
-        if (table.hasPrimaryKey()) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
-        }
-
-        if (!columnTypes.containsKey("name")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'name' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("name") != RealmFieldType.STRING) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'String' for field 'name' in existing Realm file.");
-        }
-        if (!table.isColumnNullable(columnInfo.nameIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'name' is required. Either set @Required to field 'name' or migrate using RealmObjectSchema.setNullable().");
-        }
-        if (!columnTypes.containsKey("age")) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'age' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
-        }
-        if (columnTypes.get("age") != RealmFieldType.INTEGER) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'int' for field 'age' in existing Realm file.");
-        }
-        if (table.isColumnNullable(columnInfo.ageIndex)) {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'age' does support null values in the existing Realm file. Use corresponding boxed type for field 'age' or migrate using RealmObjectSchema.setNullable().");
-        }
-
-        return columnInfo;
+    public static SimpleColumnInfo createColumnInfo(OsSchemaInfo schemaInfo) {
+        return new SimpleColumnInfo(schemaInfo);
     }
 
     public static String getTableName() {
@@ -212,18 +175,19 @@ public class SimpleRealmProxy extends some.test.Simple
             throws JSONException {
         final List<String> excludeFields = Collections.<String> emptyList();
         some.test.Simple obj = realm.createObjectInternal(some.test.Simple.class, true, excludeFields);
+        final SimpleRealmProxyInterface objProxy = (SimpleRealmProxyInterface) obj;
         if (json.has("name")) {
             if (json.isNull("name")) {
-                ((SimpleRealmProxyInterface) obj).realmSet$name(null);
+                objProxy.realmSet$name(null);
             } else {
-                ((SimpleRealmProxyInterface) obj).realmSet$name((String) json.getString("name"));
+                objProxy.realmSet$name((String) json.getString("name"));
             }
         }
         if (json.has("age")) {
             if (json.isNull("age")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'age' to null.");
             } else {
-                ((SimpleRealmProxyInterface) obj).realmSet$age((int) json.getInt("age"));
+                objProxy.realmSet$age((int) json.getInt("age"));
             }
         }
         return obj;
@@ -233,40 +197,43 @@ public class SimpleRealmProxy extends some.test.Simple
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.Simple createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        some.test.Simple obj = new some.test.Simple();
+        final some.test.Simple obj = new some.test.Simple();
+        final SimpleRealmProxyInterface objProxy = (SimpleRealmProxyInterface) obj;
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
             if (false) {
             } else if (name.equals("name")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    ((SimpleRealmProxyInterface) obj).realmSet$name(null);
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$name((String) reader.nextString());
                 } else {
-                    ((SimpleRealmProxyInterface) obj).realmSet$name((String) reader.nextString());
+                    reader.skipValue();
+                    objProxy.realmSet$name(null);
                 }
             } else if (name.equals("age")) {
-                if (reader.peek() == JsonToken.NULL) {
+                if (reader.peek() != JsonToken.NULL) {
+                    objProxy.realmSet$age((int) reader.nextInt());
+                } else {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field 'age' to null.");
-                } else {
-                    ((SimpleRealmProxyInterface) obj).realmSet$age((int) reader.nextInt());
                 }
             } else {
                 reader.skipValue();
             }
         }
         reader.endObject();
-        obj = realm.copyToRealm(obj);
-        return obj;
+        return realm.copyToRealm(obj);
     }
 
     public static some.test.Simple copyOrUpdate(Realm realm, some.test.Simple object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().threadId != realm.threadId) {
-            throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
-        }
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-            return object;
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
+            final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
+            if (otherRealm.threadId != realm.threadId) {
+                throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
+            }
+            if (otherRealm.getPath().equals(realm.getPath())) {
+                return object;
+            }
         }
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         RealmObjectProxy cachedRealmObject = cache.get(object);
@@ -301,7 +268,7 @@ public class SimpleRealmProxy extends some.test.Simple
         }
         Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativePtr();
-        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.getSchema().getColumnInfo(some.test.Simple.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
         String realmGet$name = ((SimpleRealmProxyInterface) object).realmGet$name();
@@ -315,7 +282,7 @@ public class SimpleRealmProxy extends some.test.Simple
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativePtr();
-        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.getSchema().getColumnInfo(some.test.Simple.class);
         some.test.Simple object = null;
         while (objects.hasNext()) {
             object = (some.test.Simple) objects.next();
@@ -342,7 +309,7 @@ public class SimpleRealmProxy extends some.test.Simple
         }
         Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativePtr();
-        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.getSchema().getColumnInfo(some.test.Simple.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
         String realmGet$name = ((SimpleRealmProxyInterface) object).realmGet$name();
@@ -358,7 +325,7 @@ public class SimpleRealmProxy extends some.test.Simple
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativePtr();
-        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.getSchema().getColumnInfo(some.test.Simple.class);
         some.test.Simple object = null;
         while (objects.hasNext()) {
             object = (some.test.Simple) objects.next();
