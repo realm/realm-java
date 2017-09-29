@@ -55,9 +55,9 @@ dependencies {
     testImplementation "org.powermock:powermock-classloading-xstream:1.6.5"
 
 
-    androidTestImplementation 'com.android.support.test:runner:0.5'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
     // Set this dependency to use JUnit 4 rules
-    androidTestImplementation 'com.android.support.test:rules:0.5'
+    androidTestImplementation 'com.android.support.test:rules:1.0.1'
     // Set this dependency to build and run Espresso tests
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:2.2.2'
 }
