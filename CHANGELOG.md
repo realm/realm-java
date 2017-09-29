@@ -15,7 +15,7 @@
 
 ## Enhancements
 
-* Supported list of values as a field of model class. Now users can use `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` as a type parameter of `RealmList`.
+* Now users can use `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` as a type parameter of `RealmList`.
 
 ## Bug Fixes
 
