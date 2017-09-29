@@ -17,11 +17,13 @@
 ## Bug Fixes
 
 ## Internal
+Upgraded to OkHttp 3.9.0 .
+Upgraded to RxJava 2.1.4 .
 
 ## Credits
 
 
-## 4.0.0-BETA3 (YYYY-MM-DD)
+## 4.0.0-BETA3 (2017-09-18)
 
 ### Breaking Changes
 
