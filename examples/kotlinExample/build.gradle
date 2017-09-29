@@ -28,6 +28,8 @@ android {
         minSdkVersion 15
         versionCode 1
         versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -46,6 +48,7 @@ android {
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+        androidTest.java.srcDirs += 'src/androidTest/kotlin'
     }
 }
 
@@ -59,4 +62,10 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:${kotlin_version}"
     implementation 'org.jetbrains.anko:anko-sdk15:0.9.1'
+
+    // Testing
+    testImplementation 'junit:junit:4.12'
+
+    androidTestImplementation 'com.android.support.test:runner:0.5'
+    androidTestImplementation 'com.android.support.test:rules:0.5'
 }
