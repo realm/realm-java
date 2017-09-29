@@ -105,11 +105,6 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public OsList getList(long columnIndex) {
-        throw getStubException();
-    }
-
-    @Override
     public OsList getModelList(long columnIndex) {
         throw getStubException();
     }
