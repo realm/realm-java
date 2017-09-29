@@ -32,6 +32,7 @@ import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.SyncUserInfo;
+import io.realm.TestHelper;
 import io.realm.entities.StringOnly;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.objectserver.Token;
@@ -39,6 +40,7 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.util.SyncTestUtils;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -73,7 +75,7 @@ public class AuthTests extends StandardIntegrationTest {
     @RunTestInLooperThread
     public void loginAsync_userNotExist() {
         SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -90,8 +92,9 @@ public class AuthTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void login_newUser() {
-        SyncCredentials credentials = SyncCredentials.usernamePassword("myUser", "password", true);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+        String userId = UUID.randomUUID().toString();
+        SyncCredentials credentials = SyncCredentials.usernamePassword(userId, "password", true);
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertFalse(user.isAdmin());
@@ -110,15 +113,12 @@ public class AuthTests extends StandardIntegrationTest {
         });
     }
 
-    // FIXME: https://github.com/realm/realm-java/issues/4711
-    // fail may be related to this issue https://github.com/realm/realm-java/issues/5068
     @Test
     @RunTestInLooperThread
-    @Ignore("This fails expectSimpleCommit for some reasons, needs to be FIXED ASAP.")
     public void login_withAccessToken() {
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
-        SyncCredentials credentials = SyncCredentials.accessToken(adminUser.getAccessToken().value(), "custom-admin-user", adminUser.isAdmin());
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+        SyncCredentials credentials = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(adminUser).value(), "custom-admin-user", adminUser.isAdmin());
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertTrue(user.isAdmin());
@@ -133,16 +133,8 @@ public class AuthTests extends StandardIntegrationTest {
 
                 final Realm realm = Realm.getInstance(config);
                 looperThread.addTestRealm(realm);
-
-                // FIXME: Right now we have no Java API for detecting when a session is established
-                // So we optimistically assume it has been connected after 1 second.
-                looperThread.postRunnableDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        assertTrue(SyncManager.getSession(config).getUser().isValid());
-                        looperThread.testComplete();
-                    }
-                }, 1000);
+                assertTrue(config.getUser().isValid());
+                looperThread.testComplete();
             }
 
             @Override
@@ -168,7 +160,7 @@ public class AuthTests extends StandardIntegrationTest {
                         @Override
                         public void run() {
                             SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-                            SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+                            SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
                                 @Override
                                 public void onSuccess(SyncUser user) {
                                     fail();
@@ -205,9 +197,18 @@ public class AuthTests extends StandardIntegrationTest {
         String newPassword = "new-password";
         userOld.changePassword(newPassword);
         userOld.logout();
+
+        // Make sure old password doesn't work
+        try {
+            SyncUser.login(SyncCredentials.usernamePassword(username, originalPassword, false), Constants.AUTH_URL);
+            fail();
+        } catch (ObjectServerError e) {
+            assertEquals(ErrorCode.INVALID_CREDENTIALS, e.getErrorCode());
+        }
+
+        // Then login with new password
         credentials = SyncCredentials.usernamePassword(username, newPassword, false);
         SyncUser userNew = SyncUser.login(credentials, Constants.AUTH_URL);
-
         assertTrue(userNew.isValid());
         assertEquals(userOld.getIdentity(), userNew.getIdentity());
     }
@@ -254,7 +255,7 @@ public class AuthTests extends StandardIntegrationTest {
 
         // Change password using admin user
         final String newPassword = "new-password";
-        adminUser.changePasswordAsync(userOld.getIdentity(), newPassword, new SyncUser.Callback() {
+        adminUser.changePasswordAsync(userOld.getIdentity(), newPassword, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser administratorUser) {
                 assertEquals(adminUser, administratorUser);
@@ -395,7 +396,6 @@ public class AuthTests extends StandardIntegrationTest {
         RealmConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
         user.logout();
         assertFalse(user.isValid());
-
         Realm instance = Realm.getInstance(configuration);
         instance.close();
     }
@@ -497,28 +497,46 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
+    @Ignore("See https://github.com/realm/ros/issues/360")
     public void revokedRefreshTokenIsNotSameAfterLogin() throws InterruptedException {
+        final CountDownLatch userLoggedInAgain = new CountDownLatch(1);
         final String uniqueName = UUID.randomUUID().toString();
 
-        SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
+        final SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        Token revokedRefreshToken = user.getAccessToken();
+        final Token revokedRefreshToken = SyncTestUtils.getRefreshToken(user);
+
+        SyncManager.addAuthenticationListener(new AuthenticationListener() {
+            @Override
+            public void loggedIn(SyncUser user) {
+
+            }
+
+            @Override
+            public void loggedOut(SyncUser user) {
+                SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);
+                SyncUser loggedInUser = SyncUser.login(credentials, Constants.AUTH_URL);
+
+                Token token = SyncTestUtils.getRefreshToken(loggedInUser);
+                // still comparing the same user
+                assertEquals(revokedRefreshToken.identity(), token.identity());
+
+                // different tokens
+                assertNotEquals(revokedRefreshToken.value(), token.value());
+                SyncManager.removeAuthenticationListener(this);
+                userLoggedInAgain.countDown();
+            }
+        });
 
         user.logout();
-
-        credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);
-        SyncUser loggedInUser = SyncUser.login(credentials, Constants.AUTH_URL);
-
-        // still comparing the same user
-        Assert.assertEquals(revokedRefreshToken.identity(), loggedInUser.getAccessToken().identity());
-        // different tokens
-        assertNotEquals(revokedRefreshToken.value(), loggedInUser.getAccessToken().value());
+        TestHelper.awaitOrFail(userLoggedInAgain);
     }
 
     // The pre-emptive token refresh subsystem should function, and properly refresh the access token.
     // WARNING: this test can fail if there's a difference between the server's and device's clock, causing the
     // refresh access token to be too far in time.
     @Test(timeout = 30000)
+    @Ignore("Resolve https://github.com/realm/ros/issues/277")
     public void preemptiveTokenRefresh() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
 
@@ -534,7 +552,7 @@ public class AuthTests extends StandardIntegrationTest {
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
-                        Assert.fail(error.getErrorMessage());
+                        fail(error.getErrorMessage());
                     }
                 })
                 .build();
@@ -558,7 +576,6 @@ public class AuthTests extends StandardIntegrationTest {
 
         final Token accessToken = entry.getValue();
         Assert.assertNotNull(accessToken);
-
         // getting refresh token delay
         Field refreshTokenTaskField = SyncSession.class.getDeclaredField("refreshTokenTask");
         refreshTokenTaskField.setAccessible(true);
@@ -577,13 +594,12 @@ public class AuthTests extends StandardIntegrationTest {
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(3));
 
         Token newAccessToken = accessTokens.get(syncConfiguration);
-
-        assertThat("new Token is not expired", newAccessToken.expiresMs(), greaterThan(System.currentTimeMillis()));
+        assertThat("new Token expires after the old one", newAccessToken.expiresMs(), greaterThan(accessToken.expiresMs()));
         assertNotEquals(accessToken, newAccessToken);
 
         // refresh_token identity is the same
-        Assert.assertEquals(user.getAccessToken().identity(), newAccessToken.identity());
-        Assert.assertEquals(accessToken.identity(), newAccessToken.identity());
+        assertEquals(SyncTestUtils.getRefreshToken(user).identity(), newAccessToken.identity());
+        assertEquals(accessToken.identity(), newAccessToken.identity());
 
         realm.close();
     }
@@ -603,10 +619,10 @@ public class AuthTests extends StandardIntegrationTest {
         SyncUserInfo userInfo = adminUser.retrieveInfoForUser(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD);
 
         assertNotNull(userInfo);
-        assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, userInfo.getProvider());
-        assertEquals(username, userInfo.getProviderUserIdentity());
         assertEquals(identity, userInfo.getIdentity());
         assertFalse(userInfo.isAdmin());
+        assertTrue(userInfo.getMetadata().isEmpty());
+        assertEquals(username, userInfo.getAccounts().get(SyncCredentials.IdentityProvider.USERNAME_PASSWORD));
     }
 
 
@@ -646,10 +662,10 @@ public class AuthTests extends StandardIntegrationTest {
                         SyncUserInfo userInfo = adminUser.retrieveInfoForUser(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD);
 
                         assertNotNull(userInfo);
-                        assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, userInfo.getProvider());
-                        assertEquals(username, userInfo.getProviderUserIdentity());
                         assertEquals(identity, userInfo.getIdentity());
                         assertFalse(userInfo.isAdmin());
+                        assertTrue(userInfo.getMetadata().isEmpty());
+                        assertEquals(username, userInfo.getAccounts().get(SyncCredentials.IdentityProvider.USERNAME_PASSWORD));
 
                         looperThread.testComplete();
                     }
@@ -658,15 +674,6 @@ public class AuthTests extends StandardIntegrationTest {
             }
         });
         user.logout();
-    }
-
-    @Test
-    public void retrieve_AdminUser() {
-        final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
-        SyncUserInfo userInfo = adminUser.retrieveInfoForUser("admin", SyncCredentials.IdentityProvider.DEBUG);// TODO use enum for auth provider
-        assertNotNull(userInfo);
-        assertEquals(adminUser.getIdentity(), userInfo.getIdentity());
-        assertTrue(userInfo.isAdmin());
     }
 
     @Test
@@ -726,14 +733,14 @@ public class AuthTests extends StandardIntegrationTest {
         assertTrue(adminUser.isAdmin());
 
         final String identity = user.getIdentity();
-        adminUser.retrieveInfoForUserAsync(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD, new SyncUser.RequestCallback<SyncUserInfo>() {
+        adminUser.retrieveInfoForUserAsync(username, SyncCredentials.IdentityProvider.USERNAME_PASSWORD, new SyncUser.Callback<SyncUserInfo>() {
             @Override
             public void onSuccess(SyncUserInfo userInfo) {
                 assertNotNull(userInfo);
-                assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, userInfo.getProvider());
-                assertEquals(username, userInfo.getProviderUserIdentity());
                 assertEquals(identity, userInfo.getIdentity());
                 assertFalse(userInfo.isAdmin());
+                assertTrue(userInfo.getMetadata().isEmpty());
+                assertEquals(username, userInfo.getAccounts().get(SyncCredentials.IdentityProvider.USERNAME_PASSWORD));
 
                 looperThread.testComplete();
             }

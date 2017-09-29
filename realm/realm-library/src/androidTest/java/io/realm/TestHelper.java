@@ -58,6 +58,7 @@ import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.internal.Collection;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsObjectStore;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmThreadPoolExecutor;
@@ -72,7 +73,6 @@ public class TestHelper {
     public static final int VERY_SHORT_WAIT_SECS = 1;
     public static final int SHORT_WAIT_SECS = 10;
     public static final int STANDARD_WAIT_SECS = 100;
-    public static final int LONG_WAIT_SECS = 1000;
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
     private static final Random RANDOM = new Random();
@@ -355,11 +355,12 @@ public class TestHelper {
         };
     }
 
+    // Generate a random string with only capital letters which is always a valid class/field name.
     public static String getRandomString(int length) {
         Random r = new Random();
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            sb.append((char) r.nextInt(128)); // Restrict to standard ASCII chars.
+            sb.append((char) (r.nextInt(26) + 'A')); // Restrict to capital letters
         }
         return sb.toString();
     }
@@ -875,30 +876,6 @@ public class TestHelper {
         nullTypesSchema.addRealmListField(NullTypes.FIELD_LIST_NULL, nullTypesSchema);
 
         realm.setVersion(0);
-        realm.commitTransaction();
-    }
-
-    public static void populateForMultiSort(Realm typedRealm) {
-        DynamicRealm dynamicRealm = DynamicRealm.getInstance(typedRealm.getConfiguration());
-        populateForMultiSort(dynamicRealm);
-        dynamicRealm.close();
-        typedRealm.waitForChange();
-    }
-
-    public static void populateForMultiSort(DynamicRealm realm) {
-        realm.beginTransaction();
-        realm.delete(AllTypes.CLASS_NAME);
-        DynamicRealmObject object1 = realm.createObject(AllTypes.CLASS_NAME);
-        object1.setLong(AllTypes.FIELD_LONG, 5);
-        object1.setString(AllTypes.FIELD_STRING, "Adam");
-
-        DynamicRealmObject object2 = realm.createObject(AllTypes.CLASS_NAME);
-        object2.setLong(AllTypes.FIELD_LONG, 4);
-        object2.setString(AllTypes.FIELD_STRING, "Brian");
-
-        DynamicRealmObject object3 = realm.createObject(AllTypes.CLASS_NAME);
-        object3.setLong(AllTypes.FIELD_LONG, 4);
-        object3.setString(AllTypes.FIELD_STRING, "Adam");
         realm.commitTransaction();
     }
 

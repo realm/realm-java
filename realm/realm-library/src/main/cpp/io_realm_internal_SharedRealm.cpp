@@ -39,6 +39,8 @@ using namespace realm;
 using namespace realm::_impl;
 using namespace realm::jni_util;
 
+static const char* c_table_name_exists_exception_msg = "Class already exists: '%1'.";
+
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv* env, jclass,
                                                                      jstring temporary_directory_path)
 {
@@ -156,52 +158,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeIsInTransact
     return static_cast<jboolean>(shared_realm->is_in_transaction());
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeReadGroup(JNIEnv* env, jclass,
-                                                                           jlong shared_realm_ptr)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        return reinterpret_cast<jlong>(&shared_realm->read_group());
-    }
-    CATCH_STD()
-
-    return static_cast<jlong>(NULL);
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetVersion(JNIEnv* env, jclass,
-                                                                            jlong shared_realm_ptr)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        return static_cast<jlong>(ObjectStore::get_schema_version(shared_realm->read_group()));
-    }
-    CATCH_STD()
-    return static_cast<jlong>(ObjectStore::NotVersioned);
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeSetVersion(JNIEnv* env, jclass,
-                                                                           jlong shared_realm_ptr, jlong version)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        if (!shared_realm->is_in_transaction()) {
-            std::ostringstream ss;
-            ss << "Cannot set schema version when the realm is not in transaction.";
-            ThrowException(env, IllegalState, ss.str());
-            return;
-        }
-
-        ObjectStore::set_schema_version(shared_realm->read_group(), static_cast<uint64_t>(version));
-    }
-    CATCH_STD()
-}
-
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeIsEmpty(JNIEnv* env, jclass,
                                                                             jlong shared_realm_ptr)
 {
@@ -289,22 +245,76 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNIEnv* env, jclass,
                                                                              jlong shared_realm_ptr,
-                                                                             jstring table_name)
+                                                                             jstring j_table_name)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    std::string name_str;
+    std::string table_name;
     try {
-        JStringAccessor name(env, table_name); // throws
-        name_str = name;
+        table_name = JStringAccessor(env, j_table_name); // throws
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         shared_realm->verify_in_write(); // throws
-        Table* table = LangBindHelper::add_table(shared_realm->read_group(), name); // throws
+        Table* table;
+        auto& group = shared_realm->read_group();
+#if REALM_ENABLE_SYNC
+        // Sync doesn't throw when table exists.
+        if (group.has_table(table_name)) {
+            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
+                                 format(c_table_name_exists_exception_msg, table_name.substr(TABLE_PREFIX.length())));
+        }
+        auto table_ref = sync::create_table(group, table_name); // throws
+        table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
+#else
+        table = LangBindHelper::add_table(group, table_name); // throws
+#endif
         return reinterpret_cast<jlong>(table);
     }
     catch (TableNameInUse& e) {
         // We need to print the table name, so catch the exception here.
-        ThrowException(env, IllegalArgument, format("Class already exists: '%1'.", name_str));
+        std::string class_name_str(table_name.substr(TABLE_PREFIX.length()));
+        ThrowException(env, IllegalArgument, format(c_table_name_exists_exception_msg, class_name_str));
+    }
+    CATCH_STD()
+
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTableWithPrimaryKeyField(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring j_table_name, jstring j_field_name, jboolean is_string_type,
+    jboolean is_nullable)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+
+    std::string class_name_str;
+    try {
+        std::string table_name(JStringAccessor(env, j_table_name));
+        class_name_str = std::string(table_name.substr(TABLE_PREFIX.length()));
+        JStringAccessor field_name(env, j_field_name); // throws
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        shared_realm->verify_in_write(); // throws
+        DataType pkType = is_string_type ? DataType::type_String : DataType::type_Int;
+        Table* table;
+        auto& group = shared_realm->read_group();
+#if REALM_ENABLE_SYNC
+        // Sync doesn't throw when table exists.
+        if (group.has_table(table_name)) {
+            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
+                                 format(c_table_name_exists_exception_msg, class_name_str));
+        }
+        auto table_ref =
+            sync::create_table_with_primary_key(group, table_name, pkType, field_name, is_nullable);
+        table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
+#else
+        table = LangBindHelper::add_table(group, table_name);
+        size_t column_idx = table->add_column(pkType, field_name, is_nullable);
+        table->add_search_index(column_idx);
+#endif
+        ObjectStore::set_primary_key_for_object(group, class_name_str, field_name);
+        return reinterpret_cast<jlong>(table);
+    }
+    catch (TableNameInUse& e) {
+        // We need to print the table name, so catch the exception here.
+        ThrowException(env, IllegalArgument, format(c_table_name_exists_exception_msg, class_name_str));
     }
     CATCH_STD()
 
@@ -358,26 +368,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRenameTable(JNIE
         }
         JStringAccessor new_name(env, new_table_name);
         shared_realm->read_group().rename_table(old_name, new_name);
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRemoveTable(JNIEnv* env, jclass,
-                                                                            jlong shared_realm_ptr,
-                                                                            jstring table_name)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        JStringAccessor name(env, table_name);
-        if (!shared_realm->is_in_transaction()) {
-            std::ostringstream ss;
-            ss << "Class " << name << " cannot be removed when the realm is not in transaction.";
-            ThrowException(env, IllegalState, ss.str());
-            return;
-        }
-        shared_realm->read_group().remove_table(name);
     }
     CATCH_STD()
 }

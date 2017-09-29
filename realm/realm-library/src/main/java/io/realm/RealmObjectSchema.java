@@ -26,6 +26,8 @@ import java.util.Set;
 
 import io.realm.annotations.Required;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsObject;
+import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -91,13 +93,6 @@ public abstract class RealmObjectSchema {
         this.realm = realm;
         this.table = table;
         this.columnInfo = columnInfo;
-    }
-
-    /**
-     * @deprecated {@link RealmObjectSchema} doesn't have to be released manually.
-     */
-    @Deprecated
-    public void close() {
     }
 
     /**
@@ -242,7 +237,7 @@ public abstract class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist, the field cannot be a primary key or it already
      * has a primary key defined.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or this method is called on a synced Realm.
      */
     public abstract RealmObjectSchema addPrimaryKey(String fieldName);
 
@@ -318,8 +313,8 @@ public abstract class RealmObjectSchema {
      * @see #addPrimaryKey(String)
      */
     public boolean isPrimaryKey(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
-        return columnIndex == table.getPrimaryKey();
+        checkFieldExists(fieldName);
+        return fieldName.equals(OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, getClassName()));
     }
 
     /**
@@ -329,7 +324,7 @@ public abstract class RealmObjectSchema {
      * @see io.realm.annotations.PrimaryKey
      */
     public boolean hasPrimaryKey() {
-        return table.hasPrimaryKey();
+        return OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, getClassName()) != null;
     }
 
     /**
@@ -339,10 +334,11 @@ public abstract class RealmObjectSchema {
      * @throws IllegalStateException if the class doesn't have a primary key defined.
      */
     public String getPrimaryKey() {
-        if (!table.hasPrimaryKey()) {
+        String pkField = OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, getClassName());
+        if (pkField == null) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
         }
-        return table.getColumnName(table.getPrimaryKey());
+        return pkField;
     }
 
     /**
@@ -354,7 +350,10 @@ public abstract class RealmObjectSchema {
         int columnCount = (int) table.getColumnCount();
         Set<String> columnNames = new LinkedHashSet<>(columnCount);
         for (int i = 0; i < columnCount; i++) {
-            columnNames.add(table.getColumnName(i));
+            String name = table.getColumnName(i);
+            if (!OsObject.isObjectIdColumn(name)) {
+                columnNames.add(name);
+            }
         }
         return columnNames;
     }
@@ -396,7 +395,9 @@ public abstract class RealmObjectSchema {
 
         if (indexed) { table.addSearchIndex(columnIndex); }
 
-        if (primary) { table.setPrimaryKey(name); }
+        if (primary) {
+            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, getClassName(), name);
+        }
 
         return this;
     }
@@ -419,6 +420,10 @@ public abstract class RealmObjectSchema {
 
     Table getTable() {
         return table;
+    }
+
+    static final Map<Class<?>, FieldMetaData> getSupportedSimpleFields() {
+        return SUPPORTED_SIMPLE_FIELDS;
     }
 
     private SchemaConnector getSchemaConnector() {
@@ -446,13 +451,16 @@ public abstract class RealmObjectSchema {
         return columnInfo.getColumnIndex(fieldName);
     }
 
-    void checkLegalName(String fieldName) {
+    static void checkLegalName(String fieldName) {
         //noinspection ConstantConditions
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Field name can not be null or empty");
         }
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Field name can not contain '.'");
+        }
+        if (fieldName.length() > 63) {
+            throw new IllegalArgumentException("Field name is currently limited to max 63 characters.");
         }
     }
 

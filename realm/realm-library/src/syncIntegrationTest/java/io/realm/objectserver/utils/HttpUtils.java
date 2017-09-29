@@ -16,13 +16,19 @@
 
 package io.realm.objectserver.utils;
 
+import android.os.SystemClock;
 import android.util.Log;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.util.concurrent.TimeUnit;
 
+import io.realm.log.RealmLog;
 import okhttp3.Headers;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
@@ -52,51 +58,9 @@ public class HttpUtils {
         Response response = client.newCall(request).execute();
         if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
-        Headers responseHeaders = response.headers();
-        for (int i = 0; i < responseHeaders.size(); i++) {
-            Log.d(TAG, responseHeaders.name(i) + ": " + responseHeaders.value(i));
-        }
-
-        Log.d(TAG, response.body().string());
-
-        // FIXME: Server ready checking should be done in the control server side!
-        if (!waitAuthServerReady()) {
-            stopSyncServer();
-            throw new RuntimeException("Auth server cannot be started.");
-        }
-    }
-
-    // Checking the server
-    private static boolean waitAuthServerReady() throws InterruptedException {
-        int retryTimes = 20;
-
-        // Dummy invalid request, which will trigger a 400 (BAD REQUEST), but indicate the auth
-        // server is responsive
-        Request request = new Request.Builder()
-                .url(Constants.AUTH_SERVER_URL)
-                .build();
-
-        while (retryTimes != 0) {
-            Response response = null;
-            try {
-                response = client.newCall(request).execute();
-                if (response.isSuccessful()) {
-                    return true;
-                }
-            } catch (IOException e) {
-                // TODO As long as the auth server hasn't started yet, OKHttp cannot parse the response
-                // correctly. At this point it is unknown weather is a bug in OKHttp or an
-                // unknown host is reported. This can cause a lot of "false" errors in the log.
-                Thread.sleep(500);
-            } finally {
-                if (response != null) {
-                    response.close();
-                }
-            }
-            retryTimes--;
-        }
-
-        return false;
+        // Work around race condition between starting ROS and logging in first user
+        // See https://github.com/realm/ros/issues/389
+        SystemClock.sleep(2000);
     }
 
     public static void stopSyncServer() throws Exception {
@@ -106,12 +70,5 @@ public class HttpUtils {
 
         Response response = client.newCall(request).execute();
         if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-
-        Headers responseHeaders = response.headers();
-        for (int i = 0; i < responseHeaders.size(); i++) {
-            Log.d(TAG, responseHeaders.name(i) + ": " + responseHeaders.value(i));
-        }
-
-        Log.d(TAG, response.body().string());
     }
 }

@@ -79,6 +79,7 @@ public class CounterActivity extends AppCompatActivity {
 
     @BindView(R.id.text_counter) TextView counterView;
     @BindView(R.id.progressbar) MaterialProgressBar progressBar;
+    private CRDTCounter counter; // Keep strong reference to counter to keep change listeners alive.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,7 +108,7 @@ public class CounterActivity extends AppCompatActivity {
         realm = Realm.getInstance(config);
 
         counterView.setText("-");
-        CRDTCounter counter = realm.where(CRDTCounter.class).equalTo("name", user.getIdentity()).findFirstAsync();
+        counter = realm.where(CRDTCounter.class).equalTo("name", user.getIdentity()).findFirstAsync();
         counter.addChangeListener(new RealmChangeListener<CRDTCounter>() {
             @Override
             public void onChange(@Nonnull CRDTCounter counter) {
@@ -131,6 +132,7 @@ public class CounterActivity extends AppCompatActivity {
         }
         closeRealm();
         user = null;
+        counter = null;
     }
 
     @Override
