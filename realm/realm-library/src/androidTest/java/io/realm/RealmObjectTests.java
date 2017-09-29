@@ -2125,9 +2125,17 @@ public class RealmObjectTests {
     @Test
     public void setter_nonLatinFieldName() {
         // Reproduces https://github.com/realm/realm-java/pull/5346
-        realm.beginTransaction();
-        NonLatinFieldNames obj = realm.createObject(NonLatinFieldNames.class);
-        obj.setΔέλτα(0);
-        realm.commitTransaction();
+        RealmConfiguration config = configFactory.createConfigurationBuilder().name("greekWTF").schema(NonLatinFieldNames.class).build();
+        Realm realm = Realm.getInstance(config);
+        try {
+            realm.beginTransaction();
+            RealmObjectSchema schema = realm.getSchema().get(NonLatinFieldNames.class.getSimpleName());
+            schema.getFieldType("델타");
+            NonLatinFieldNames obj = realm.createObject(NonLatinFieldNames.class);
+            obj.setΔέλτα(0);
+            realm.commitTransaction();
+        } finally {
+            realm.close();
+        }
     }
 }
