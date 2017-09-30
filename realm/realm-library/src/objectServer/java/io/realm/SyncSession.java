@@ -19,6 +19,7 @@ package io.realm;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InterruptedIOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -580,7 +581,12 @@ public class SyncSession {
                 onGoingAccessTokenQuery.set(false);
                 RealmLog.debug("Session[%s]: Failed to get access token (%s)", configuration.getPath(),
                         response.getError().getErrorCode());
-                if (!isClosed && !Thread.currentThread().isInterrupted()) {
+                if (!isClosed
+                        && !Thread.currentThread().isInterrupted()
+                        // We might be interrupted while negotiating an access token with the Realm Object Server
+                        // This will result in a InterruptedIOException from OkHttp. We should ignore this as
+                        // well.
+                        && !(response.getError().getException() instanceof InterruptedIOException)) {
                     errorHandler.onError(SyncSession.this, response.getError());
                 }
             }
