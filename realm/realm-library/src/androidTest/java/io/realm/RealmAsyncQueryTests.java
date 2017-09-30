@@ -20,6 +20,7 @@ import android.os.SystemClock;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -498,6 +499,7 @@ public class RealmAsyncQueryTests {
 
     @Test
     @RunTestInLooperThread
+    @Ignore("See https://github.com/realm/realm-java/issues/5354")
     public void accessingRealmListOnUnloadedRealmObjectShouldThrow() {
         Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);

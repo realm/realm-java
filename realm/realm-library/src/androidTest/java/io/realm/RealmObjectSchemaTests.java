@@ -19,6 +19,7 @@ package io.realm;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -32,6 +33,7 @@ import java.util.Set;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Dog;
+import io.realm.entities.NonLatinFieldNames;
 import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -1105,6 +1107,13 @@ public class RealmObjectSchemaTests {
 
         dynamicRealm.cancelTransaction();
         dynamicRealm.close();
+    }
+
+    @Test
+    @Ignore("See https://github.com/realm/realm-java/issues/5354")
+    public void getFieldType_nonLatinName() {
+        RealmObjectSchema objSchema = realm.getSchema().get(NonLatinFieldNames.class.getSimpleName());
+        assertEquals(RealmFieldType.INTEGER, objSchema.getFieldType(NonLatinFieldNames.FIELD_LONG_GREEK_CHAR));
     }
 
     private interface FieldRunnable {

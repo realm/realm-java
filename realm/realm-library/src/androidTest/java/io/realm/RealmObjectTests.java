@@ -22,6 +22,7 @@ import android.support.test.runner.AndroidJUnit4;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -48,6 +49,7 @@ import io.realm.entities.ConflictingFieldName;
 import io.realm.entities.CustomMethods;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
+import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringAndInt;
 import io.realm.entities.pojo.AllTypesRealmModel;
@@ -2119,5 +2121,15 @@ public class RealmObjectTests {
         } catch (IllegalArgumentException expected) {
             assertThat(expected.getMessage(), CoreMatchers.containsString("which exceeds the max string length"));
         }
+    }
+
+    @Test
+    @Ignore("See https://github.com/realm/realm-java/issues/5354")
+    public void setter_nonLatinFieldName() {
+        // Reproduces https://github.com/realm/realm-java/pull/5346
+        realm.beginTransaction();
+        NonLatinFieldNames obj = realm.createObject(NonLatinFieldNames.class);
+        obj.setΔέλτα(42);
+        realm.commitTransaction();
     }
 }
