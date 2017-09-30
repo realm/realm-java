@@ -481,7 +481,6 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     }
 
     @Test
-    @Ignore("See https://github.com/realm/realm-java/issues/5354")
     public void sum_nonLatinColumnNames() {
         OrderedRealmCollection<NonLatinFieldNames> resultList = createNonLatinCollection(realm, collectionClass);
 
