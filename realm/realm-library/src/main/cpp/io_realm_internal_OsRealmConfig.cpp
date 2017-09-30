@@ -21,8 +21,6 @@
 #include <sync/sync_config.hpp>
 #include <sync/sync_manager.hpp>
 #include <sync/sync_session.hpp>
-#include <android/log.h>
-
 #endif
 
 #include "java_accessor.hpp"
@@ -302,7 +300,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                 // reusing cached valid token
                 JStringAccessor access_token(env, access_token_string);
                 session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url()));
-                __android_log_print(ANDROID_LOG_VERBOSE, "H4X0R", ">>>>>>>>>>>>>>>>>>>> reusing cached valid token url = %s", session->config().realm_url().c_str());
             }
         };
 
