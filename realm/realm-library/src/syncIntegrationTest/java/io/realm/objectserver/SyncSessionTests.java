@@ -577,6 +577,6 @@ public class SyncSessionTests extends StandardIntegrationTest {
             }
         });
 
-        TestHelper.awaitOrFail(latch, 1000);
+        TestHelper.awaitOrFail(latch);
     }
 }
