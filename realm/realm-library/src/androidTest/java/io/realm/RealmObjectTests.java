@@ -22,6 +22,7 @@ import android.support.test.runner.AndroidJUnit4;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -2123,19 +2124,12 @@ public class RealmObjectTests {
     }
 
     @Test
+    @Ignore("See https://github.com/realm/realm-java/issues/5354")
     public void setter_nonLatinFieldName() {
         // Reproduces https://github.com/realm/realm-java/pull/5346
-        RealmConfiguration config = configFactory.createConfigurationBuilder().name("greekWTF").schema(NonLatinFieldNames.class).build();
-        Realm realm = Realm.getInstance(config);
-        try {
-            realm.beginTransaction();
-            RealmObjectSchema schema = realm.getSchema().get(NonLatinFieldNames.class.getSimpleName());
-            schema.getFieldType("델타");
-            NonLatinFieldNames obj = realm.createObject(NonLatinFieldNames.class);
-            obj.setΔέλτα(0);
-            realm.commitTransaction();
-        } finally {
-            realm.close();
-        }
+        realm.beginTransaction();
+        NonLatinFieldNames obj = realm.createObject(NonLatinFieldNames.class);
+        obj.setΔέλτα(42);
+        realm.commitTransaction();
     }
 }

@@ -19,6 +19,7 @@ package io.realm;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -480,6 +481,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     }
 
     @Test
+    @Ignore("See https://github.com/realm/realm-java/issues/5354")
     public void sum_nonLatinColumnNames() {
         OrderedRealmCollection<NonLatinFieldNames> resultList = createNonLatinCollection(realm, collectionClass);
 

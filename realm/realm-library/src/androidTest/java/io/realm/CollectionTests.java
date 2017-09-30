@@ -84,14 +84,16 @@ public abstract class CollectionTests {
     protected void populateRealm(Realm realm, int objects) {
         realm.beginTransaction();
         realm.delete(AllJavaTypes.class);
-        realm.delete(NonLatinFieldNames.class);
+        // realm.delete(NonLatinFieldNames.class); FIXME Disabled until https://github.com/realm/realm-java/issues/5354 is fixed
         if (objects > 0) {
             for (int i = 0; i < objects; i++) {
                 AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i);
                 fillObject(i, objects, obj);
+                /** FIXME Disabled until https://github.com/realm/realm-java/issues/5354 is fixed
                 NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
                 nonLatinFieldNames.set델타(i);
                 nonLatinFieldNames.setΔέλτα(i);
+                */
                 // Sets the linked object to itself.
                 obj.setFieldObject(obj);
             }
