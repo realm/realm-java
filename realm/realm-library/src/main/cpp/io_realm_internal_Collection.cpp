@@ -28,35 +28,11 @@
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/java_method.hpp"
+#include "ResultsWrapper.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
 using namespace realm::_impl;
-
-// We need to control the life cycle of Results, weak ref of Java Collection object and the NotificationToken.
-// Wrap all three together, so when the Java Collection object gets GCed, all three of them will be invalidated.
-struct ResultsWrapper {
-    JavaGlobalWeakRef m_collection_weak_ref;
-    NotificationToken m_notification_token;
-    Results m_results;
-
-    ResultsWrapper(Results& results)
-        : m_collection_weak_ref()
-        , m_notification_token()
-        , m_results(std::move(results))
-    {
-    }
-
-    ResultsWrapper(ResultsWrapper&&) = delete;
-    ResultsWrapper& operator=(ResultsWrapper&&) = delete;
-
-    ResultsWrapper(ResultsWrapper const&) = delete;
-    ResultsWrapper& operator=(ResultsWrapper const&) = delete;
-
-    ~ResultsWrapper()
-    {
-    }
-};
 
 static void finalize_results(jlong ptr);
 
@@ -426,7 +402,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Collection_nativeIsValid(JNIEn
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        return wrapper->m_results.is_valid();
+        return to_jbool(wrapper->m_results.is_valid());
     }
     CATCH_STD()
     return JNI_FALSE;

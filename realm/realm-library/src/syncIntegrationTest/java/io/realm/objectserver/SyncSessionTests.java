@@ -14,8 +14,8 @@ import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
-import io.realm.DynamicRealm;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
@@ -35,13 +35,15 @@ import io.realm.objectserver.model.PartialSyncObjectB;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -461,9 +463,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
         realm.close();
     }
 
-
     @Test
-//    @RunTestInLooperThread
     public void partialSync() throws InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
@@ -524,92 +524,59 @@ public class SyncSessionTests extends StandardIntegrationTest {
         realm.createObject(PartialSyncObjectB.class).setNumber(9);
         realm.commitTransaction();
 
-
         SyncManager.getSession(adminConfig).uploadAllLocalChanges();
         realm.close();
 
+        final CountDownLatch latch = new CountDownLatch(2);
 
-//        Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
-//        looperThread.addTestRealm(partialSyncRealm);
-//        //TODO add waitForServerChange to the conf
-//        assertTrue(partialSyncRealm.isEmpty());
-//
-//        partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>(){
-//
-//            @Override
-//            public void onSuccess(RealmResults<PartialSyncObjectA> results) {
-//                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>   onSuccess called");
-//            }
-//
-//            @Override
-//            public void onError(RealmException error) {
-//                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>   onError called");
-//            }
-//        });
-//        System.out.println(">>>>>>>>>>>>>>>>>>>>>> REGISTERED");
-        final CountDownLatch latch = new CountDownLatch(1);
-
-        //TODO check if need a looper thread or just a dedicated thread ?
         HandlerThread handlerThread = new HandlerThread("background");
         handlerThread.start();
         Handler handler = new Handler(handlerThread.getLooper());
         handler.post(new Runnable() {
             @Override
             public void run() {
-                Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
-                //TODO add waitForServerChange to the conf
+                final Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
                 assertTrue(partialSyncRealm.isEmpty());
 
-                partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>(){
+                partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
 
                     @Override
                     public void onSuccess(RealmResults<PartialSyncObjectA> results) {
-                        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>   onSuccess called");
+                        assertEquals(4, results.size());
+                        for (PartialSyncObjectA object : results) {
+                            assertThat(object.getNumber(), greaterThan(5));
+                            assertEquals("partial", object.getString());
+                        }
+                        // make sure the Realm contains only PartialSyncObjectA
+                        assertEquals(0, partialSyncRealm.where(PartialSyncObjectB.class).count());
                         latch.countDown();
                     }
 
                     @Override
                     public void onError(RealmException error) {
-                        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>   onError called");
+                        fail(error.getMessage());
+                    }
+                });
+
+                // Invalid query
+                partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "invalid_property > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
+
+                    @Override
+                    public void onSuccess(RealmResults<PartialSyncObjectA> results) {
+                        fail("Invalid query should not succeed");
+                    }
+
+                    @Override
+                    public void onError(RealmException error) {
+                        assertNotNull(error);
+                        partialSyncRealm.close();
                         latch.countDown();
                     }
                 });
-                DynamicRealm dynamicRealm = DynamicRealm.getInstance(partialSyncConfig);
-                boolean is = dynamicRealm.getSchema().contains("PartialSyncObjectA");
-                System.out.println(">>>>>>>>>>>>>>>>>>>>>> REGISTERED");
+
             }
         });
-//        Thread t = new  Thread() {
-//            Realm partialSyncRealm;
-//            Realm.PartialSyncCallback<PartialSyncObjectA> callback = new Realm.PartialSyncCallback<PartialSyncObjectA>(){
-//
-//                @Override
-//                public void onSuccess(RealmResults<PartialSyncObjectA> results) {
-//                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>   onSuccess called");
-//                    latch.countDown();
-//                }
-//
-//                @Override
-//                public void onError(RealmException error) {
-//                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>   onError called");
-//                    latch.countDown();
-//                }
-//            };
-//
-//            @Override
-//            public void run() {
-//                partialSyncRealm = Realm.getInstance(partialSyncConfig);
-//                //TODO add waitForServerChange to the conf
-//                assertTrue(partialSyncRealm.isEmpty());
-//
-//                partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", callback);
-//                System.out.println(">>>>>>>>>>>>>>>>>>>>>> REGISTERED");
-//            }
-//        };
-//        t.start();
-        // do partial sync queries.
 
-        latch.await();
-//        partialSyncRealm.close();
+        TestHelper.awaitOrFail(latch, 1000);
     }
 }

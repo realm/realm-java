@@ -249,7 +249,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNo
 }
 
 #if REALM_ENABLE_SYNC
-JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
+JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
     JNIEnv* env, jclass, jlong native_ptr, jstring j_sync_realm_url, jstring j_auth_url, jstring j_user_id,
     jstring j_refresh_token, jboolean j_is_partial)
 {
@@ -329,8 +329,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSy
             nullptr, sync_encryption_key});
         config.sync_config->is_partial = j_is_partial == JNI_TRUE;
 
+        return to_jstring(env, config.sync_config->realm_url().c_str());
+
     }
     CATCH_STD()
+    return reinterpret_cast<jstring>(nullptr);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigSslSettings(

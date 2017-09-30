@@ -27,7 +27,8 @@ import javax.annotation.Nullable;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.RealmModel;
+import io.realm.RealmResults;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
@@ -222,7 +223,7 @@ public final class SharedRealm implements Closeable, NativeObject {
      */
     public static SharedRealm getInstance(OsRealmConfig.Builder configBuilder) {
         OsRealmConfig osRealmConfig = configBuilder.build();
-        ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osRealmConfig.getRealmConfiguration());
+        ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osRealmConfig.getRealmConfiguration(), osRealmConfig.getResolvedRealmURI());
 
         return new SharedRealm(osRealmConfig);
     }
@@ -350,8 +351,8 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeIsAutoRefresh(nativePtr);
     }
 
-    public void registerPartialSyncQuery(String type, String query, Realm.PartialSyncCallback callback) {
-        nativeRegisterPartialSyncQuery(nativePtr, type, query, callback);
+    public void registerPartialSyncQuery(String className, String tableName, Class clazz, String query, Realm.PartialSyncCallback callback, Realm realm) {
+        nativeRegisterPartialSyncQuery(nativePtr, className, tableName, clazz, query, callback, realm);
     }
 
     public RealmConfiguration getConfiguration() {
@@ -483,9 +484,15 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
 
-    private static void runPartialSyncREgistrationCallback(OsRealmConfig osRealmConfig, Realm.PartialSyncCallback callback) {
-        callback.onError(null);
-        callback.onSuccess(null);
+    private static void runPartialSyncRegistrationCallback(@Nullable String error, long resultsNativePtr, String tableName, Class clazz, Realm.PartialSyncCallback callback, Realm realm) {
+        if (error != null) {
+            callback.onError(new RealmException(error));
+        } else {
+            Table table = realm.sharedRealm.getTable(tableName);
+            Collection collection = new Collection(realm.sharedRealm, table, resultsNativePtr, true);
+            RealmResults results = new RealmResults(realm, collection, clazz);
+            callback.onSuccess(results);
+        }
     }
 
     private static native void nativeInit(String temporaryDirectoryPath);
@@ -549,5 +556,5 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native void nativeRegisterSchemaChangedCallback(long nativePtr, SchemaChangedCallback callback);
 
-    private static native void nativeRegisterPartialSyncQuery(long nativeSharedRealmPtr, String className, String query, Realm.PartialSyncCallback callback);
+    private static native void nativeRegisterPartialSyncQuery(long nativeSharedRealmPtr, String className, String tableName, Class clazz, String query, Realm.PartialSyncCallback callback, Realm realm);
 }

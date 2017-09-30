@@ -46,9 +46,10 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.reactivex.Flowable;
 import javax.annotation.Nullable;
 
+import io.reactivex.Flowable;
+import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -1648,23 +1649,31 @@ public class Realm extends BaseRealm {
         return BaseRealm.compactRealm(configuration);
     }
 
-    // TODO doc from Ccocoa/Product/Sync
-    // TODO perform the registration on a worker (SyncThread) thread
-    // Watch if this register the query from UI thread
+    /**
+     * If the Realm is a partially synchronized Realm, fetch and synchronize the objects of a given
+     * object type that match the given query (in string format).
+     *
+     * The results will be returned asynchronously in the callback.
+     *
+     * @param clazz the class to query.
+     * @param query string query.
+     * @param callback A callback used to vend the results of a partial sync fetch.
+     * @throws IllegalStateException if it is called from a non-Looper or {@link IntentService} thread.
+     */
+    @Beta
     public <E extends RealmModel> void subscribeToObjects(Class<E> clazz, String query, PartialSyncCallback<E> callback) {
         checkIfValid();
         if (!configuration.isSyncConfiguration()) {
             throw new IllegalStateException("Partial sync is only available for SyncConfiguration");
         }
 
-//        sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+        sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
 
-        String type = schema.getSchemaForClass(clazz).getClassName();
-//        if (type != null) {
-        sharedRealm.registerPartialSyncQuery(type, query, callback);
-//        } else {
-//            throw new IllegalArgumentException("Unknown type " + clazz);
-//        }
+        Table table = getTable(clazz);
+        String className = table.getClassName();
+        String tableName = table.getName();
+
+        sharedRealm.registerPartialSyncQuery(className, tableName, clazz, query, callback, this);
     }
 
     Table getTable(Class<? extends RealmModel> clazz) {

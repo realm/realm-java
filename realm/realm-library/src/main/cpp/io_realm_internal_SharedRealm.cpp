@@ -21,6 +21,8 @@
 #include "object-store/src/sync/sync_session.hpp"
 #include "object-store/src/results.hpp"
 #include "object-store/src/sync/partial_sync.hpp"
+
+#include "ResultsWrapper.hpp"
 #endif
 
 #include <realm/util/assert.hpp>
@@ -507,7 +509,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterSchemaCh
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterPartialSyncQuery(
     REALM_UNUSED JNIEnv* env, jclass, REALM_UNUSED jlong shared_realm_ptr, REALM_UNUSED jstring j_class_name,
-    REALM_UNUSED jstring j_query, REALM_UNUSED jobject j_callback)
+    REALM_UNUSED jstring j_table_name, REALM_UNUSED jclass j_clazz, REALM_UNUSED jstring j_query,
+    REALM_UNUSED jobject j_callback, REALM_UNUSED jobject j_realm)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
@@ -515,34 +518,38 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterPartialS
 
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        JStringAccessor class_name(env, j_class_name); // throws
-        JStringAccessor query(env, j_query);           // throws
+        JStringAccessor class_name(env, j_class_name);               // throws
+        std::string table_name = JStringAccessor(env, j_table_name); // throws
+        JStringAccessor query(env, j_query);                         // throws
 
         JavaGlobalWeakRef j_callback_weak(env, j_callback);
-//        static JavaClass shared_realm_class(env, "io/realm/internal/SharedRealm");
-//        static JavaMethod run_migration_callback_method(
-//                env, get_shared_realm_class(env), "runMigrationCallback",
-//                "(JLio/realm/internal/OsRealmConfig;Lio/realm/internal/SharedRealm$MigrationCallback;J)V", true);
+        JavaGlobalWeakRef j_realm_weak(env, j_realm);
+        JavaGlobalWeakRef j_clazz_weak(env, j_clazz);
+        static JavaClass shared_realm_class(env, "io/realm/internal/SharedRealm");
+        static JavaMethod partial_sync_cb(env, shared_realm_class, "runPartialSyncRegistrationCallback",
+                                          "(Ljava/lang/String;JLjava/lang/String;Ljava/lang/Class;Lio/realm/"
+                                          "Realm$PartialSyncCallback;Lio/realm/Realm;)V",
+                                          true);
 
-        // TODO throw if this is called from non SyncConf & partial enabled
-
-
-        auto cb = [=](REALM_UNUSED Results results, std::exception_ptr err) {
-                if (err) {
-                    __android_log_print(ANDROID_LOG_VERBOSE, "H4X0R", ">>>>>>>>>>>>>>>>> PARTIAL SYNC ERROR");
-                    try {
-                        std::rethrow_exception(err);
-                    }
-                    catch (...) {
-    //                    NSError* error = nil;
-    //                    RLMRealmTranslateException(&error);
-    //                    callback(nil, error);
-                    }
-                    return;
+        auto cb = [j_callback_weak, j_realm_weak, j_class_name, j_clazz_weak,
+                   table_name](REALM_UNUSED Results results, std::exception_ptr err) {
+            JNIEnv* env = JniUtils::get_env(true);
+            if (err) {
+                try {
+                    std::rethrow_exception(err);
                 }
-            __android_log_print(ANDROID_LOG_VERBOSE, "H4X0R", ">>>>>>>>>>>>>>>>> PARTIAL SYNC SUCCESS");
-            // callback([RLMResults resultsWithObjectInfo:_info[className] results:std::move(results)], nil);
-            // TODO call j_callback with results
+                catch (const std::exception& e) {
+                    env->CallStaticVoidMethod(shared_realm_class, partial_sync_cb, to_jstring(env, e.what()),
+                                              reinterpret_cast<jlong>(nullptr), nullptr, nullptr,
+                                              j_callback_weak.global_ref(env).get(), nullptr);
+                }
+                return;
+            }
+
+            auto wrapper = new ResultsWrapper(results);
+            env->CallStaticVoidMethod(shared_realm_class, partial_sync_cb, nullptr, reinterpret_cast<jlong>(wrapper),
+                                      to_jstring(env, table_name), j_clazz_weak.global_ref(env).get(),
+                                      j_callback_weak.global_ref(env).get(), j_realm_weak.global_ref(env).get());
         };
 
         partial_sync::register_query(shared_realm, class_name, query, std::move(cb));

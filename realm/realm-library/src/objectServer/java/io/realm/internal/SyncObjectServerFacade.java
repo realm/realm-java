@@ -23,6 +23,7 @@ import android.net.ConnectivityManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
@@ -88,7 +89,6 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             SyncUser user = syncConfig.getUser();
-//            String rosServerUrl = syncConfig.isPartialSync() ? syncConfig.getServerUrl().toString() + "/__partial/555": syncConfig.getServerUrl().toString();
             String rosServerUrl = syncConfig.getServerUrl().toString();
             String rosUserIdentity = user.getIdentity();
             String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
@@ -104,9 +104,10 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
-    public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
+    public void wrapObjectStoreSessionIfRequired(RealmConfiguration config, URI resolvedRealmURI) {
         if (config instanceof SyncConfiguration) {
-            SyncManager.getSession((SyncConfiguration) config);
+            SyncSession session = SyncManager.getSession((SyncConfiguration) config);
+            session.setResolvedRealmURI(resolvedRealmURI);
         }
     }
 
