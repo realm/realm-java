@@ -330,7 +330,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 
     }
     CATCH_STD()
-    return reinterpret_cast<jstring>(nullptr);
+    return nullptr;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigSslSettings(
