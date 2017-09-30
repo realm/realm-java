@@ -191,7 +191,7 @@ public class OsRealmConfig implements NativeObject {
         String syncRefreshToken = (String) syncConfigurationOptions[3];
         boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncConfigurationOptions[4]));
         String syncSslTrustCertificatePath = (String) syncConfigurationOptions[5];
-        byte sessionStopPolicy = (byte) syncConfigurationOptions[6];
+        Byte sessionStopPolicy = (Byte) syncConfigurationOptions[6];
 
         // Set encryption key
         byte[] key = config.getEncryptionKey();
