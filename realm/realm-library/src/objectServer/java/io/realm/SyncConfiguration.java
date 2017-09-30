@@ -88,6 +88,7 @@ public class SyncConfiguration extends RealmConfiguration {
     @Nullable
     private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
+    private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
 
     private SyncConfiguration(File directory,
                                 String filename,
@@ -116,7 +117,8 @@ public class SyncConfiguration extends RealmConfiguration {
                                 String serverCertificateAssetName,
                                 @Nullable
                                 String serverCertificateFilePath,
-                                boolean waitForInitialData
+                                boolean waitForInitialData,
+                                OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy
     ) {
         super(directory,
                 filename,
@@ -143,6 +145,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.serverCertificateAssetName = serverCertificateAssetName;
         this.serverCertificateFilePath = serverCertificateFilePath;
         this.waitForInitialData = waitForInitialData;
+        this.sessionStopPolicy = sessionStopPolicy;
     }
 
     /**
@@ -346,6 +349,17 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
+     * NOTE: Only for internal usage. Maybe change without warning.
+     *
+     * Returns the stop policy for the session for this Realm once the Realm has been closed.
+     *
+     * @return the stop policy used by the session once the Realm is closed.
+     */
+    public OsRealmConfig.SyncSessionStopPolicy getSessionStopPolicy() {
+        return sessionStopPolicy;
+    }
+
+    /**
      * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */
     public static final class Builder  {
@@ -379,7 +393,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private String serverCertificateAssetName;
         @Nullable
         private String serverCertificateFilePath;
-
+        private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
          * <p>
@@ -612,6 +626,18 @@ public class SyncConfiguration extends RealmConfiguration {
 
             return this;
         }
+
+        /**
+         * DEBUG method. This makes it possible to define different policies for when a session should be stopped when
+         * the Realm is closed.
+         *
+         * @param policy how a session for a Realm should behave when the Realm is closed.
+         */
+        SyncConfiguration.Builder sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy policy) {
+            sessionStopPolicy = policy;
+            return this;
+        }
+
 
         /**
          * Sets the schema version of the Realm.
@@ -937,7 +963,8 @@ public class SyncConfiguration extends RealmConfiguration {
                     syncClientValidateSsl,
                     serverCertificateAssetName,
                     serverCertificateFilePath,
-                    waitForServerChanges
+                    waitForServerChanges,
+                    sessionStopPolicy
             );
         }
 
