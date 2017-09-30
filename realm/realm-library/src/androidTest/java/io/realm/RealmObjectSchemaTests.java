@@ -1110,7 +1110,6 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
-    @Ignore("See https://github.com/realm/realm-java/issues/5354")
     public void getFieldType_nonLatinName() {
         RealmObjectSchema objSchema = realm.getSchema().get(NonLatinFieldNames.class.getSimpleName());
         assertEquals(RealmFieldType.INTEGER, objSchema.getFieldType(NonLatinFieldNames.FIELD_LONG_GREEK_CHAR));

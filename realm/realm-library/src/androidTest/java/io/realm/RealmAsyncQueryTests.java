@@ -499,7 +499,6 @@ public class RealmAsyncQueryTests {
 
     @Test
     @RunTestInLooperThread
-    @Ignore("See https://github.com/realm/realm-java/issues/5354")
     public void accessingRealmListOnUnloadedRealmObjectShouldThrow() {
         Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);
