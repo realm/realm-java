@@ -2124,7 +2124,6 @@ public class RealmObjectTests {
     }
 
     @Test
-    @Ignore("See https://github.com/realm/realm-java/issues/5354")
     public void setter_nonLatinFieldName() {
         // Reproduces https://github.com/realm/realm-java/pull/5346
         realm.beginTransaction();
