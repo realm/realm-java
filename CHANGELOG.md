@@ -9,14 +9,20 @@
 * Removed deprecated API `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
 * `SyncUser.Callback` to becomes generic.
 * Removed `SyncUser.getAccessToken` method from public API, and rename it to `getRefreshToken`.
+* Relaxed upper bound of type parameter of `RealmList`, `RealmQuery`, `RealmResults`, `RealmCollection`, `OrderedRealmCollection` and `OrderedRealmCollectionSnapshot`.
 
 ## Deprecated
 
 ## Enhancements
 
+* Now users can use `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` as a type parameter of `RealmList`.
+
 ## Bug Fixes
 
 ## Internal
+
+* Upgraded to Realm Sync 2.0.0-rc25.
+* Upgraded to Realm Core 4.0.0.
 
 ## Credits
 
@@ -44,11 +50,13 @@
 * Upgraded to Realm Core 3.0.0-rc5.
 * Always use Object Store to create primary key table.
 
+
 ## 4.0.0-BETA2 (2017-07-27)
 
 ### Bug Fixes
 
 * [ObjectServer] Realm no longer throws a native “unsupported instruction” exception in some cases when opening a synced Realm asynchronously (https://github.com/realm/realm-object-store/issues/502).
+
 
 ## 4.0.0-BETA1 (2017-07-13)
 
@@ -79,6 +87,17 @@
 * Upgraded to Realm Core 3.0.0-rc3.
 
 
+## 3.7.3 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Added support for ISO8601 2-digit time zone designators (#5309).
+
+### Credits
+
+Thanks to @JussiPekonen for adding support for 2-digit time zone designators when importing JSON (#5309).
+
+
 ## 3.7.2 (2017-09-12)
 
 ### Bug Fixes
@@ -86,6 +105,7 @@
 * Fixed a JNI memory issue when doing queries which might potentially cause various native crashes.
 * Fixed a bug that `RealmList.deleteFromRealm(int)`, `RealmList.deleteFirstFromRealm()` and `RealmList.deleteLastFromRealm()` did not remove target objects from Realm. This bug was introduced in `3.7.1` (#5233).
 * Crash with "'xxx' doesn't exist in current schema." when ProGuard is enabled (#5211).
+
 
 ## 3.7.1 (2017-09-07)
 

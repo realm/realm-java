@@ -9,6 +9,7 @@ import java.util.Locale;
 
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Collection;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
@@ -120,7 +121,6 @@ abstract class OrderedRealmCollectionImpl<E>
     @Nullable
     public E get(int location) {
         realm.checkIfValid();
-
         return collectionOperator.get(location);
     }
 

@@ -435,7 +435,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Collection_nativeGetValue(JNIEn
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(results_wrapper_ptr);
         JavaAccessorContext context(env);
-        return any_cast<jobject>(wrapper->m_results.get(context, pos));
+        return any_cast<jobject>(wrapper->collection().get(context, pos));
     }
     CATCH_STD()
 

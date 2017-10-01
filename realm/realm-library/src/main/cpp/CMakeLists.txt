@@ -1,4 +1,23 @@
+###########################################################################
+#
+# Copyright 2017 Realm Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+###########################################################################
 cmake_minimum_required(VERSION 3.6.0)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 # find javah
 find_package(Java COMPONENTS Development)
@@ -63,56 +82,9 @@ create_javah(TARGET jni_headers
     DEPENDS ${classes_PATH}
 )
 
-# Link to core/sync debug lib for debug build if it is debug build and linking with debug core is enabled.
-# FIXME: Ideally we should linking to debug core on CI for testing, but the assertions slow down the CI a lot.
-if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND ${ENABLE_DEBUG_CORE})
-    set(debug_lib_SUFFIX "-dbg")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DREALM_DEBUG")
-else()
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")
-endif()
+include(RealmCore)
 
-# Configure import realm core lib
-set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-${ANDROID_ABI}${debug_lib_SUFFIX}.a)
-# Workaround for old core's funny ABI nicknames
-if (NOT EXISTS ${core_lib_PATH})
-    if (ARMEABI)
-        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm${debug_lib_SUFFIX}.a)
-    elseif (ARMEABI_V7A)
-        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm-v7a${debug_lib_SUFFIX}.a)
-    elseif (ARM64_V8A)
-        set(core_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-android-arm64${debug_lib_SUFFIX}.a)
-    else()
-        message(FATAL_ERROR "Cannot find core lib file: ${core_lib_PATH}")
-    endif()
-endif()
-
-add_library(lib_realm_core STATIC IMPORTED)
-
-# -latomic is not set by default for mips and armv5.
-# See https://code.google.com/p/android/issues/detail?id=182094
-set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_PATH}
-                                                IMPORTED_LINK_INTERFACE_LIBRARIES atomic)
-
-if (build_SYNC)
-    # Sync static library
-    set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-${ANDROID_ABI}${debug_lib_SUFFIX}.a)
-    # Workaround for old core's funny ABI nicknames
-    if (NOT EXISTS ${sync_lib_PATH})
-        if (ARMEABI)
-            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm${debug_lib_SUFFIX}.a)
-        elseif (ARMEABI_V7A)
-            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm-v7a${debug_lib_SUFFIX}.a)
-        elseif (ARM64_V8A)
-            set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm64${debug_lib_SUFFIX}.a)
-        else()
-            message(FATAL_ERROR "Cannot find sync lib file: ${sync_lib_PATH}")
-        endif()
-    endif()
-    add_library(lib_realm_sync STATIC IMPORTED)
-    set_target_properties(lib_realm_sync PROPERTIES IMPORTED_LOCATION ${sync_lib_PATH}
-                                                    IMPORTED_LINK_INTERFACE_LIBRARIES lib_realm_core)
-endif()
+use_realm_core(${build_SYNC} "${REALM_CORE_DIST_DIR}" "${CORE_SOURCE_PATH}")
 
 # Download openssl lib
 #string(TOLOWER "${CMAKE_BUILD_TYPE}" openssl_build_TYPE)
@@ -136,7 +108,7 @@ get_target_property(crypto_LIB crypto IMPORTED_LOCATION)
 get_target_property(ssl_LIB ssl IMPORTED_LOCATION)
 
 # build application's shared lib
-include_directories(${REALM_CORE_DIST_DIR}/include
+include_directories(
     ${CMAKE_SOURCE_DIR}
     ${jni_headers_PATH}
     ${CMAKE_SOURCE_DIR}/object-store/src)
