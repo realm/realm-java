@@ -16,7 +16,6 @@
 
 #include <jni.h>
 #include <string>
-#include <android/log.h>
 
 #include "io_realm_SyncSession.h"
 
@@ -65,8 +64,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JN
             JStringAccessor access_token(env, j_access_token);
             JStringAccessor realm_url(env, j_sync_realm_url);
 
-//            session->refresh_access_token(access_token, std::string(realm_url));
-            __android_log_print(ANDROID_LOG_VERBOSE, "H4X0R", ">>>>>>>>>>>>>>>>>>>> OKKOKOKOKOKOK url = %s", session->config().realm_url().c_str());
             session->refresh_access_token(access_token, std::string(session->config().realm_url()));
             return JNI_TRUE;
         }
