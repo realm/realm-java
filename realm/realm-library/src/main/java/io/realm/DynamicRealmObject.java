@@ -335,18 +335,18 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     /**
-     * Returns the {@link RealmList} of objects being linked to from this field.
+     * Returns the {@link RealmList} of {@link DynamicRealmObject}s being linked from the given field.
      *
      * @param fieldName the name of the field.
      * @return the {@link RealmList} data for this field.
-     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a list of links.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a list of objects.
      */
     public RealmList<DynamicRealmObject> getList(String fieldName) {
         proxyState.getRealm$realm().checkIfValid();
 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         try {
-            OsList osList = proxyState.getRow$realm().getLinkList(columnIndex);
+            OsList osList = proxyState.getRow$realm().getList(columnIndex);
             //noinspection ConstantConditions
             @Nonnull
             String className = osList.getTargetTable().getClassName();
@@ -355,6 +355,18 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             checkFieldType(fieldName, columnIndex, RealmFieldType.LIST);
             throw e;
         }
+    }
+
+    /**
+     * Returns the {@link RealmList} of values being linked from the given field.
+     *
+     * @param fieldName the name of the field.
+     * @return the {@link RealmList} data for this field.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a list of values.
+     */
+    public <T> RealmList<T> getValueList(String fieldName, Class<T> valueClass) {
+        // TODO implement this
+        return null;
     }
 
     /**
@@ -497,9 +509,29 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         } else if (valueClass == DynamicRealmObject.class) {
             setObject(fieldName, (DynamicRealmObject) value);
         } else if (valueClass == RealmList.class) {
-            @SuppressWarnings("unchecked")
-            RealmList<DynamicRealmObject> list = (RealmList<DynamicRealmObject>) value;
-            setList(fieldName, list);
+            RealmList<?> list = (RealmList<?>) value;
+            if (list.className == null && list.clazz == null) {
+                // unmanaged RealmList
+                long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
+                final RealmFieldType columnType = proxyState.getRow$realm().getColumnType(columnIndex);
+                if (columnType == RealmFieldType.LIST) {
+                    //noinspection unchecked
+                    for (Object element : list) {
+                        if (!(element instanceof RealmModel)) {
+                            throw new IllegalArgumentException("All elements in the list must be an instance of RealmModel.");
+                        }
+                    }
+                    //noinspection unchecked
+                    setList(fieldName, (RealmList<DynamicRealmObject>) list);
+                } else {
+                    setValueList(fieldName, list);
+                }
+            } else if (list.className != null || RealmModel.class.isAssignableFrom(list.clazz)) {
+                //noinspection unchecked
+                setList(fieldName, (RealmList<DynamicRealmObject>) list);
+            } else {
+                setValueList(fieldName, list);
+            }
         } else {
             throw new IllegalArgumentException("Value is of an type not supported: " + value.getClass());
         }
@@ -709,7 +741,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
 
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        OsList osList = proxyState.getRow$realm().getLinkList(columnIndex);
+        OsList osList = proxyState.getRow$realm().getList(columnIndex);
         Table linkTargetTable = osList.getTargetTable();
         //noinspection ConstantConditions
         @Nonnull
@@ -754,6 +786,19 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         for (int i = 0; i < listLength; i++) {
             osList.addRow(indices[i]);
         }
+    }
+
+    /**
+     * Sets the reference to a {@link RealmList} on the given field.
+     *
+     * @param fieldName field name.
+     * @param list list of references.
+     * @throws IllegalArgumentException if field name doesn't exist, it is not a list field, the type
+     * of the object represented by the DynamicRealmObject doesn't match or any element in the list belongs to a
+     * different Realm.
+     */
+    public void setValueList(String fieldName, RealmList<?> list) {
+        // TODO implement this
     }
 
     /**
@@ -919,7 +964,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     break;
                 case LIST:
                     String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName();
-                    sb.append(String.format(Locale.US, "RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getLinkList(columnIndex).size()));
+                    sb.append(String.format(Locale.US, "RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getList(columnIndex).size()));
                     break;
                 default:
                     sb.append("?");

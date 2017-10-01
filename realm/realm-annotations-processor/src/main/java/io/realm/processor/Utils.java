@@ -165,10 +165,50 @@ public class Utils {
     }
 
     /**
+     * @param field {@link VariableElement} of a value list field.
+     * @return element type of the list field.
+     */
+    public static Constants.RealmFieldType getValueListFieldType(VariableElement field) {
+        final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
+        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES.get(elementTypeMirror.toString());
+    }
+
+    /**
+     * @return {@code true} if a given field type is {@code RealmList} and its element type is {@Code RealmObject},
+     * {@code false} otherwise.
+     */
+    public static boolean isRealmModelList(VariableElement field) {
+        final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
+        if (elementTypeMirror == null) {
+            return false;
+        }
+        return isRealmModel(elementTypeMirror);
+    }
+
+    /**
+     * @return {@code true} if a given field type is {@code RealmList} and its element type is value type,
+     * {@code false} otherwise.
+     */
+    public static boolean isRealmValueList(VariableElement field) {
+        final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
+        if (elementTypeMirror == null) {
+            return false;
+        }
+        return !isRealmModel(elementTypeMirror);
+    }
+
+    /**
      * @return {@code true} if a given field type is {@code RealmModel}, {@code false} otherwise.
      */
-    public static boolean isRealmModel(VariableElement field) {
-        return typeUtils.isAssignable(field.asType(), realmModel);
+    public static boolean isRealmModel(Element field) {
+        return isRealmModel(field.asType());
+    }
+
+    /**
+     * @return {@code true} if a given type is {@code RealmModel}, {@code false} otherwise.
+     */
+    public static boolean isRealmModel(TypeMirror type) {
+        return typeUtils.isAssignable(type, realmModel);
     }
 
     public static boolean isRealmResults(VariableElement field) {

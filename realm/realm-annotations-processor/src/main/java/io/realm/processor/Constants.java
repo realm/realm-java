@@ -54,7 +54,16 @@ public class Constants {
         REALM_INTEGER("INTEGER", "Long"),
         OBJECT("OBJECT", "Object"),
         LIST("LIST", "List"),
-        BACKLINK("BACKLINK", null);
+
+        BACKLINK("LINKING_OBJECTS", null),
+
+        INTEGER_LIST("INTEGER_LIST", "List"),
+        BOOLEAN_LIST("BOOLEAN_LIST", "List"),
+        STRING_LIST("STRING_LIST", "List"),
+        BINARY_LIST("BINARY_LIST", "List"),
+        DATE_LIST("DATE_LIST", "List"),
+        FLOAT_LIST("FLOAT_LIST", "List"),
+        DOUBLE_LIST("DOUBLE_LIST", "List");
 
         private final String realmType;
         private final String javaType;
@@ -109,5 +118,23 @@ public class Constants {
         m.put("byte[]", RealmFieldType.BINARY);
         // TODO: add support for char and Char
         JAVA_TO_REALM_TYPES = Collections.unmodifiableMap(m);
+    }
+
+
+    static final Map<String, RealmFieldType> LIST_ELEMENT_TYPE_TO_REALM_TYPES;
+
+    static {
+        Map<String, RealmFieldType> m = new HashMap<String, RealmFieldType>();
+        m.put("java.lang.Byte", RealmFieldType.INTEGER_LIST);
+        m.put("java.lang.Short", RealmFieldType.INTEGER_LIST);
+        m.put("java.lang.Integer", RealmFieldType.INTEGER_LIST);
+        m.put("java.lang.Long", RealmFieldType.INTEGER_LIST);
+        m.put("java.lang.Float", RealmFieldType.FLOAT_LIST);
+        m.put("java.lang.Double", RealmFieldType.DOUBLE_LIST);
+        m.put("java.lang.Boolean", RealmFieldType.BOOLEAN_LIST);
+        m.put("java.lang.String", RealmFieldType.STRING_LIST);
+        m.put("java.util.Date", RealmFieldType.DATE_LIST);
+        m.put("byte[]", RealmFieldType.BINARY_LIST);
+        LIST_ELEMENT_TYPE_TO_REALM_TYPES = Collections.unmodifiableMap(m);
     }
 }

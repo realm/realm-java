@@ -66,6 +66,45 @@ public class NullTypes extends RealmObject {
 
     private NullTypes fieldObjectNull;
 
+    @Required
+    private RealmList<String> fieldStringListNotNull;
+    private RealmList<String> fieldStringListNull;
+
+    @Required
+    private RealmList<byte[]> fieldBinaryListNotNull;
+    private RealmList<byte[]> fieldBinaryListNull;
+
+    @Required
+    private RealmList<Boolean> fieldBooleanListNotNull;
+    private RealmList<Boolean> fieldBooleanListNull;
+
+    @Required
+    private RealmList<Long> fieldLongListNotNull;
+    private RealmList<Long> fieldLongListNull;
+
+    @Required
+    private RealmList<Integer> fieldIntegerListNotNull;
+    private RealmList<Integer> fieldIntegerListNull;
+
+    @Required
+    private RealmList<Short> fieldShortListNotNull;
+    private RealmList<Short> fieldShortListNull;
+
+    @Required
+    private RealmList<Byte> fieldByteListNotNull;
+    private RealmList<Byte> fieldByteListNull;
+
+    @Required
+    private RealmList<Double> fieldDoubleListNotNull;
+    private RealmList<Double> fieldDoubleListNull;
+
+    @Required
+    private RealmList<Float> fieldFloatListNotNull;
+    private RealmList<Float> fieldFloatListNull;
+
+    @Required
+    private RealmList<Date> fieldDateListNotNull;
+    private RealmList<Date> fieldDateListNull;
 
     public String getFieldStringNotNull() {
         return realmGet$fieldStringNotNull();

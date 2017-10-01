@@ -433,9 +433,6 @@ inline bool TblIndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex
            TypeValid(env, pTable, columnIndex, expectColType);
 }
 
-bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& data);
-
-
 // Utility function for appending StringData, which is returned
 // by a lot of core functions, and might potentially be NULL.
 std::string concat_stringdata(const char* message, realm::StringData data);
@@ -488,7 +485,7 @@ public:
 private:
     JNIEnv* m_env;
     bool m_is_null;
-    std::unique_ptr<char[]> m_data;
+    std::shared_ptr<char> m_data;
     std::size_t m_size;
 };
 
