@@ -249,7 +249,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNo
 #if REALM_ENABLE_SYNC
 JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
     JNIEnv* env, jclass, jlong native_ptr, jstring j_sync_realm_url, jstring j_auth_url, jstring j_user_id,
-    jstring j_reresh_token)
+    jstring j_reresh_token, jbyte j_session_stop_policy)
 {
     TR_ENTER_PTR(native_ptr)
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
@@ -320,9 +320,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSy
             std::copy_n(config.encryption_key.begin(), 64, sync_encryption_key->begin());
         }
 
+        SyncSessionStopPolicy session_stop_policy = static_cast<SyncSessionStopPolicy>(j_session_stop_policy);
+
         JStringAccessor realm_url(env, j_sync_realm_url);
         config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
-            user, realm_url, SyncSessionStopPolicy::AfterChangesUploaded, std::move(bind_handler), std::move(error_handler),
+            user, realm_url, session_stop_policy, std::move(bind_handler), std::move(error_handler),
             nullptr, sync_encryption_key});
     }
     CATCH_STD()
