@@ -105,9 +105,6 @@ public class Table implements NativeObject {
             case BOOLEAN:
             case STRING:
             case BINARY:
-            case UNSUPPORTED_TABLE:
-            case UNSUPPORTED_MIXED:
-            case UNSUPPORTED_DATE:
             case DATE:
             case FLOAT:
             case DOUBLE:
