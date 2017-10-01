@@ -61,7 +61,7 @@ import io.realm.rx.CollectionChange;
 public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode.";
-    private static final String ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE = "This feature is available only when the element type is implementing RealmModel.";
+    static final String ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE = "This feature is available only when the element type is implementing RealmModel.";
     public static final String REMOVE_OUTSIDE_TRANSACTION_ERROR = "Objects can only be removed from inside a write transaction.";
 
     @Nullable
@@ -754,6 +754,9 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
         checkValidRealm();
+        if (!osListOperator.forRealmModel()) {
+            throw new IllegalStateException(ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE);
+        }
         if (className != null) {
             return new OrderedRealmCollectionSnapshot<>(
                     realm,

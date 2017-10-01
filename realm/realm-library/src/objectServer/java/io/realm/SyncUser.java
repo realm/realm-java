@@ -447,10 +447,11 @@ public class SyncUser {
         AuthenticationServer authServer = SyncManager.getAuthServer();
         LookupUserIdResponse response = authServer.retrieveUser(refreshToken, provider, providerUserIdentity, getAuthenticationUrl());
         if (!response.isValid()) {
-            // Right now errors are very inconsistent. See https://github.com/realm/ros/issues/310
-            // Treat them all as "User not existing". This is too broad, and should be revisited
-            // once #310 is fixed.
-            return null;
+            if (response.getError().getErrorCode() == ErrorCode.UNKNOWN_ACCOUNT) {
+                return null;
+            } else {
+                throw response.getError();
+            }
         } else {
             return SyncUserInfo.fromLookupUserIdResponse(response);
         }
