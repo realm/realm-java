@@ -9,16 +9,21 @@
 * Removed deprecated API `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
 * `SyncUser.Callback` to becomes generic.
 * Removed `SyncUser.getAccessToken` method from public API, and rename it to `getRefreshToken`.
+* Relaxed upper bound of type parameter of `RealmList`, `RealmQuery`, `RealmResults`, `RealmCollection`, `OrderedRealmCollection` and `OrderedRealmCollectionSnapshot`.
 
 ## Deprecated
 
 ## Enhancements
 
 * Added support for primitive lists in migrations using `RealmObjectSchema.addRealmListField(String name, Class<?> type)` (#5329).
+* Now users can use `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` as a type parameter of `RealmList`.
 
 ## Bug Fixes
 
 ## Internal
+
+* Upgraded to Realm Sync 2.0.0-rc25.
+* Upgraded to Realm Core 4.0.0.
 
 ## Credits
 

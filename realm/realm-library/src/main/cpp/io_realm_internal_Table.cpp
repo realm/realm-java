@@ -217,7 +217,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
 // 5. search indexing must be preserved
 // 6. removing the original column and renaming the temporary column will make it look like original is being modified
 
-// Convert a tables values to allow for nullable values
+// Converts a table to allow for nullable values
 // Works on both normal table columns and sub tables
 static void convert_column_to_nullable(JNIEnv* env, Table* old_table, size_t old_col_ndx, Table* new_table, size_t new_col_ndx, bool is_primary_key)
 {
@@ -284,24 +284,21 @@ static void create_new_column(Table* table, size_t column_index, bool nullable)
     std::string column_name = table->get_column_name(column_index);
     DataType column_type = table->get_column_type(column_index);
     bool is_subtable = table->get_column_type(column_index) == DataType::type_Table;
-    std::string tmp_column_name;
     size_t j = 0;
     while (true) {
         std::ostringstream ss;
         ss << std::string("__TMP__") << j;
         std::string str = ss.str();
-        StringData sd(str);
+        StringData tmp_column_name(str);
         if (table->get_column_index(sd) == realm::not_found) {
             if (is_subtable) {
                 DataType original_type = table->get_subdescriptor(column_index)->get_column_type(0);
-                table->insert_column(column_index, type_Table, sd, true);
+                table->insert_column(column_index, type_Table, tmp_column_name, true);
                 table->get_subdescriptor(column_index)->add_column(original_type, ObjectStore::ArrayColumnName, nullptr, nullable);
             }
             else {
-                table->insert_column(column_index, column_type, sd, nullable);
+                table->insert_column(column_index, column_type, tmp_column_name, nullable);
             }
-
-            tmp_column_name = ss.str();
             break;
         }
         j++;
@@ -529,7 +526,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         }
 
         // 3. Delete old values
-        // TODO Depends on implementation details in create_new_column
         table->remove_column(column_index + 1);
         table->rename_column(column_index, column_name);
     }

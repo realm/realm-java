@@ -38,7 +38,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String ACTION_LOGOUT = "revoke"; // Auth end point for logging out users
     private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
-    private static final String ACTION_LOOKUP_USER_ID = "/users/:provider:/:providerId:"; // Auth end point for looking up user id
+    private static final String ACTION_LOOKUP_USER_ID = "users/:provider:/:providerId:"; // Auth end point for looking up user id
 
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
