@@ -23,6 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -184,7 +185,6 @@ public class PermissionManager implements Closeable {
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
-                        RealmLog.error("From manager session: " + error);
                         synchronized (errorLock) {
                             managementRealmError = error;
                         }
@@ -400,7 +400,6 @@ public class PermissionManager implements Closeable {
 
                 @Override
                 public void onError(Throwable exception) {
-                    RealmLog.error("From managmentRealm: " + exception);
                     synchronized (errorLock) {
                         managementRealmError = new ObjectServerError(ErrorCode.UNKNOWN, exception);
                         managementRealmOpenTask = null;
@@ -502,9 +501,7 @@ public class PermissionManager implements Closeable {
         delayedTasks.clear();
 
         // If Realms are still being opened, abort that task
-        RealmLog.error("Open task: " + (managementRealmOpenTask != null));
         if (managementRealmOpenTask != null) {
-            RealmLog.error("Aborting open task");
             managementRealmOpenTask.cancel();
             managementRealmOpenTask = null;
         }
@@ -521,7 +518,6 @@ public class PermissionManager implements Closeable {
         if (managementRealm != null) {
             managementRealm.close();
         }
-        RealmLog.error("ManagementRealm " + (managementRealm != null) + " closed");
 
         if (permissionRealm != null) {
             permissionRealm.close();
@@ -906,8 +902,15 @@ public class PermissionManager implements Closeable {
                                         @Override
                                         public void onChange(RealmResults<Permission> permissions) {
                                             if (!permissions.isEmpty()) {
-                                                grantedPermissionResults.removeChangeListener(this);
-                                                notifyCallbackWithSuccess(managedResponse.getRealmUrl(), permissions.first());
+                                                // Workaround for https://github.com/realm/ros/issues/417
+                                                // It doesn't make sense for a Token to issue NONE as
+                                                // a permission, so treat `read=true` as the permission
+                                                // has been successfully written.
+                                                Permission permission = permissions.first();
+                                                if (permission.mayRead()) {
+                                                    grantedPermissionResults.removeChangeListener(this);
+                                                    notifyCallbackWithSuccess(managedResponse.getRealmUrl(), permission);
+                                                }
                                             }
                                         }
                                     });
