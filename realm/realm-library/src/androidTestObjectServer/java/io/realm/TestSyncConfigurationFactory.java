@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.rule;
+package io.realm;
 
-import io.realm.SyncConfiguration;
-import io.realm.SyncUser;
+import io.realm.internal.OsRealmConfig;
+import io.realm.rule.TestRealmConfigurationFactory;
 
 /**
  * Test rule used for creating SyncConfigurations. Will ensure that any Realm files are deleted when the
@@ -26,6 +26,8 @@ import io.realm.SyncUser;
 public class TestSyncConfigurationFactory extends TestRealmConfigurationFactory {
 
     public SyncConfiguration.Builder createSyncConfigurationBuilder(SyncUser user, String url) {
-        return new SyncConfiguration.Builder(user, url).directory(getRoot());
+        return new SyncConfiguration.Builder(user, url)
+                .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+                .directory(getRoot());
     }
 }

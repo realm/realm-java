@@ -21,7 +21,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -42,7 +41,6 @@ import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.SharedRealm;
 import io.realm.exceptions.IncompatibleSyncedFileException;
 import io.realm.objectserver.utils.StringOnlyModule;
-import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
