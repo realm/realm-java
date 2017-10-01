@@ -25,6 +25,7 @@ import java.util.Arrays;
 import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
 
+import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
 import static org.truth0.Truth.ASSERT;
 
@@ -32,6 +33,7 @@ import static org.truth0.Truth.ASSERT;
 public class RealmBacklinkProcessorTest {
     private final JavaFileObject backlinks = JavaFileObjects.forResource("some/test/Backlinks.java");
     private final JavaFileObject backlinksTarget = JavaFileObjects.forResource("some/test/BacklinkTarget.java");
+    private final JavaFileObject invalidResultsValueType = JavaFileObjects.forResource("some/test/InvalidResultsElementType.java");
 
     @Test
     public void compileBacklinks() {
@@ -201,5 +203,13 @@ public class RealmBacklinkProcessorTest {
                     .initializer("null")
                     .hasGetter(false)
                     .hasSetter(false);
+    }
+
+    @Test
+    public void failToCompileInvalidResultsElementType() {
+        ASSERT.about(javaSource())
+                .that(invalidResultsValueType)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 }

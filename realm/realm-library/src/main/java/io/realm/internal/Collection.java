@@ -22,7 +22,6 @@ import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
-import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
 
@@ -31,67 +30,10 @@ import io.realm.RealmChangeListener;
  * Java wrapper of Object Store Results class.
  * It is the backend of binding's query results and back links.
  */
-@Keep
-public class Collection implements NativeObject {
+public class Collection implements NativeObject, ObservableCollection {
 
     private static final String CLOSED_REALM_MESSAGE =
             "This Realm instance has already been closed, making it unusable.";
-
-    private static class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
-        public CollectionObserverPair(T observer, Object listener) {
-            super(observer, listener);
-        }
-
-        public void onChange(T observer, OrderedCollectionChangeSet changes) {
-            if (listener instanceof OrderedRealmCollectionChangeListener) {
-                //noinspection unchecked
-                ((OrderedRealmCollectionChangeListener<T>) listener).onChange(observer, changes);
-            } else if (listener instanceof RealmChangeListener) {
-                //noinspection unchecked
-                ((RealmChangeListener<T>) listener).onChange(observer);
-            } else {
-                throw new RuntimeException("Unsupported listener type: " + listener);
-            }
-        }
-    }
-
-    private static class RealmChangeListenerWrapper<T> implements OrderedRealmCollectionChangeListener<T> {
-        private final RealmChangeListener<T> listener;
-
-        RealmChangeListenerWrapper(RealmChangeListener<T> listener) {
-            this.listener = listener;
-        }
-
-        @Override
-        public void onChange(T collection, OrderedCollectionChangeSet changes) {
-            listener.onChange(collection);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj instanceof RealmChangeListenerWrapper &&
-                    listener == ((RealmChangeListenerWrapper) obj).listener;
-        }
-
-        @Override
-        public int hashCode() {
-            return listener.hashCode();
-        }
-    }
-
-    private static class Callback implements ObserverPairList.Callback<CollectionObserverPair> {
-        private final OrderedCollectionChangeSet changeSet;
-
-        Callback(OrderedCollectionChangeSet changeSet) {
-            this.changeSet = changeSet;
-        }
-
-        @Override
-        public void onCalled(CollectionObserverPair pair, Object observer) {
-            //noinspection unchecked
-            pair.onChange(observer, changeSet);
-        }
-    }
 
     // Custom Collection iterator. It ensures that we only iterate on a Realm collection that hasn't changed.
     public static abstract class Iterator<T> implements java.util.Iterator<T> {
@@ -130,6 +72,7 @@ public class Collection implements NativeObject {
          * {@inheritDoc}
          */
         @Override
+        @Nullable
         public T next() {
             checkValid();
             pos++;
@@ -170,6 +113,7 @@ public class Collection implements NativeObject {
             }
         }
 
+        @Nullable
         T get(int pos) {
             return convertRowToObject(iteratorCollection.getUncheckedRow(pos));
         }
@@ -199,7 +143,7 @@ public class Collection implements NativeObject {
          */
         @Override
         @Deprecated
-        public void add(T object) {
+        public void add(@Nullable T object) {
             throw new UnsupportedOperationException("Adding an element is not supported. Use Realm.createObject() instead.");
         }
 
@@ -225,6 +169,7 @@ public class Collection implements NativeObject {
          * {@inheritDoc}
          */
         @Override
+        @Nullable
         public T previous() {
             checkValid();
             try {
@@ -253,7 +198,7 @@ public class Collection implements NativeObject {
          */
         @Override
         @Deprecated
-        public void set(T object) {
+        public void set(@Nullable T object) {
             throw new UnsupportedOperationException("Replacing and element is not supported.");
         }
     }
@@ -514,8 +459,8 @@ public class Collection implements NativeObject {
     }
 
     // Called by JNI
-    @SuppressWarnings("unused")
-    private void notifyChangeListeners(long nativeChangeSetPtr) {
+    @Override
+    public void notifyChangeListeners(long nativeChangeSetPtr) {
         if (nativeChangeSetPtr == 0 && isLoaded()) {
             return;
         }
