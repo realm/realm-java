@@ -34,7 +34,7 @@
 
 * [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
 * Minor performance improvement when copy/insert objects into Realm.
-* [ObjectServer] Added support for partial sync (#5276).
+* [ObjectServer] Added preview support for partial synchronization (#5276). This feature is in `@Beta` and will probably change.
 
 ### Bug Fixes
 

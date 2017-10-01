@@ -1659,12 +1659,13 @@ public class Realm extends BaseRealm {
      * @param query string query.
      * @param callback A callback used to vend the results of a partial sync fetch.
      * @throws IllegalStateException if it is called from a non-Looper or {@link IntentService} thread.
+     * @throws IllegalStateException if called from a non-synchronized (Realm Object Server) Realm.
      */
     @Beta
     public <E extends RealmModel> void subscribeToObjects(Class<E> clazz, String query, PartialSyncCallback<E> callback) {
         checkIfValid();
         if (!configuration.isSyncConfiguration()) {
-            throw new IllegalStateException("Partial sync is only available for SyncConfiguration");
+            throw new IllegalStateException("Partial sync is only available for synchronized Realm (Realm Object Server)");
         }
 
         sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);

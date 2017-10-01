@@ -483,15 +483,27 @@ public final class SharedRealm implements Closeable, NativeObject {
         callback.onInit(new SharedRealm(nativeSharedRealmPtr, osRealmConfig));
     }
 
-
+    /**
+     * Called from JNI when the partial sync callback is invoked from the ObjectStore.
+     * @param error if the partial sync query failed to register.
+     * @param resultsNativePtr pointer to the {@code Results} of the partial sync query.
+     * @param tableName the table name for the {@code Results}.
+     * @param clazz the type used with the partial sync query to obtain the {@code Results}.
+     * @param callback the callback registered from the user to notify the success/error of the partial sync query.
+     * @param realm the Realm instance to be used to create the {@link RealmResults} (in case of success).
+     */
+    @SuppressWarnings("unused")
     private static void runPartialSyncRegistrationCallback(@Nullable String error, long resultsNativePtr, String tableName, Class clazz, Realm.PartialSyncCallback callback, Realm realm) {
-        if (error != null) {
-            callback.onError(new RealmException(error));
-        } else {
-            Table table = realm.sharedRealm.getTable(tableName);
-            Collection collection = new Collection(realm.sharedRealm, table, resultsNativePtr, true);
-            RealmResults results = new RealmResults(realm, collection, clazz);
-            callback.onSuccess(results);
+        // don't notify success or error if the callback/realm has been GC'ed
+        if (callback != null && realm != null) {
+            if (error != null) {
+                callback.onError(new RealmException(error));
+            } else {
+                Table table = realm.sharedRealm.getTable(tableName);
+                Collection collection = new Collection(realm.sharedRealm, table, resultsNativePtr, true);
+                RealmResults results = new RealmResults(realm, collection, clazz);
+                callback.onSuccess(results);
+            }
         }
     }
 

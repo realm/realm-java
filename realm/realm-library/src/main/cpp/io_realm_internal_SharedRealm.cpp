@@ -22,13 +22,12 @@
 #include "object-store/src/results.hpp"
 #include "object-store/src/sync/partial_sync.hpp"
 
-#include "ResultsWrapper.hpp"
+#include "results_wrapper"
 #endif
 
 #include <realm/util/assert.hpp>
 
 #include <shared_realm.hpp>
-#include <android/log.h>
 
 #include "java_accessor.hpp"
 #include "java_binding_context.hpp"
@@ -541,7 +540,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterPartialS
                 catch (const std::exception& e) {
                     env->CallStaticVoidMethod(shared_realm_class, partial_sync_cb, to_jstring(env, e.what()),
                                               reinterpret_cast<jlong>(nullptr), nullptr, nullptr,
-                                              j_callback_weak.global_ref(env).get(), nullptr);
+                                              j_callback_weak.global_ref(env).get(), j_realm_weak.global_ref(env).get());
                 }
                 return;
             }
@@ -557,6 +556,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterPartialS
 
     CATCH_STD()
 #else
-    REALM_TERMINATE("Unsupported operation. Partial Sync is only available for Sync");
+    REALM_TERMINATE("Unsupported operation. Only available when used with the Realm Object Server");
 #endif
 }

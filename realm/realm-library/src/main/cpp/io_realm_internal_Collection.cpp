@@ -28,7 +28,7 @@
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/java_method.hpp"
-#include "ResultsWrapper.hpp"
+#include "results_wrapper.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;

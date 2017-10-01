@@ -324,7 +324,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
             user, realm_url, SyncSessionStopPolicy::AfterChangesUploaded, std::move(bind_handler), std::move(error_handler),
             nullptr, sync_encryption_key});
-        config.sync_config->is_partial = j_is_partial == JNI_TRUE;
+        config.sync_config->is_partial = (j_is_partial == JNI_TRUE);
 
         return to_jstring(env, config.sync_config->realm_url().c_str());
 

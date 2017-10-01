@@ -28,22 +28,15 @@ import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmException;
-import io.realm.objectserver.model.PartialSyncModule;
-import io.realm.objectserver.model.PartialSyncObjectA;
-import io.realm.objectserver.model.PartialSyncObjectB;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
-import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -463,120 +456,4 @@ public class SyncSessionTests extends StandardIntegrationTest {
         realm.close();
     }
 
-    @Test
-    public void partialSync() throws InterruptedException {
-        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
-
-        final SyncConfiguration partialSyncConfig = configFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .modules(new PartialSyncModule())
-                .withPartialSync()
-                .build();
-        SyncConfiguration adminConfig = configFactory
-                .createSyncConfigurationBuilder(adminUser, partialSyncConfig.getServerUrl().toString())
-                .modules(new PartialSyncModule())
-                .build();
-
-        // Using Admin user, populate the Realm.
-        Realm realm = Realm.getInstance(adminConfig);
-        realm.beginTransaction();
-        PartialSyncObjectA objectA = realm.createObject(PartialSyncObjectA.class);
-        objectA.setNumber(0);
-        objectA.setString("realm");
-        objectA = realm.createObject(PartialSyncObjectA.class);
-        objectA.setNumber(1);
-        objectA.setString("");
-        objectA = realm.createObject(PartialSyncObjectA.class);
-        objectA.setNumber(2);
-        objectA.setString("");
-        objectA = realm.createObject(PartialSyncObjectA.class);
-        objectA.setNumber(3);
-        objectA.setString("");
-        objectA = realm.createObject(PartialSyncObjectA.class);
-        objectA.setNumber(4);
-        objectA.setString("realm");
-        objectA = realm.createObject(PartialSyncObjectA.class);
-        objectA.setNumber(5);
-        objectA.setString("sync");
-        objectA = realm.createObject(PartialSyncObjectA.class);
-        objectA.setNumber(6);
-        objectA.setString("partial");
-        objectA = realm.createObject(PartialSyncObjectA.class);
-        objectA.setNumber(7);
-        objectA.setString("partial");
-        objectA = realm.createObject(PartialSyncObjectA.class);
-        objectA.setNumber(8);
-        objectA.setString("partial");
-        objectA = realm.createObject(PartialSyncObjectA.class);
-        objectA.setNumber(9);
-        objectA.setString("partial");
-
-        realm.createObject(PartialSyncObjectB.class).setNumber(0);
-        realm.createObject(PartialSyncObjectB.class).setNumber(1);
-        realm.createObject(PartialSyncObjectB.class).setNumber(2);
-        realm.createObject(PartialSyncObjectB.class).setNumber(3);
-        realm.createObject(PartialSyncObjectB.class).setNumber(4);
-        realm.createObject(PartialSyncObjectB.class).setNumber(5);
-        realm.createObject(PartialSyncObjectB.class).setNumber(6);
-        realm.createObject(PartialSyncObjectB.class).setNumber(7);
-        realm.createObject(PartialSyncObjectB.class).setNumber(8);
-        realm.createObject(PartialSyncObjectB.class).setNumber(9);
-        realm.commitTransaction();
-
-        SyncManager.getSession(adminConfig).uploadAllLocalChanges();
-        realm.close();
-
-        final CountDownLatch latch = new CountDownLatch(2);
-
-        HandlerThread handlerThread = new HandlerThread("background");
-        handlerThread.start();
-        Handler handler = new Handler(handlerThread.getLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                final Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
-                assertTrue(partialSyncRealm.isEmpty());
-
-                partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
-
-                    @Override
-                    public void onSuccess(RealmResults<PartialSyncObjectA> results) {
-                        assertEquals(4, results.size());
-                        for (PartialSyncObjectA object : results) {
-                            assertThat(object.getNumber(), greaterThan(5));
-                            assertEquals("partial", object.getString());
-                        }
-                        // make sure the Realm contains only PartialSyncObjectA
-                        assertEquals(0, partialSyncRealm.where(PartialSyncObjectB.class).count());
-                        latch.countDown();
-                    }
-
-                    @Override
-                    public void onError(RealmException error) {
-                        fail(error.getMessage());
-                    }
-                });
-
-                // Invalid query
-                partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "invalid_property > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
-
-                    @Override
-                    public void onSuccess(RealmResults<PartialSyncObjectA> results) {
-                        fail("Invalid query should not succeed");
-                    }
-
-                    @Override
-                    public void onError(RealmException error) {
-                        assertNotNull(error);
-                        partialSyncRealm.close();
-                        latch.countDown();
-                    }
-                });
-
-            }
-        });
-
-        TestHelper.awaitOrFail(latch);
-    }
 }
