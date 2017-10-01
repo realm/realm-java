@@ -284,24 +284,21 @@ static void create_new_column(Table* table, size_t column_index, bool nullable)
     std::string column_name = table->get_column_name(column_index);
     DataType column_type = table->get_column_type(column_index);
     bool is_subtable = table->get_column_type(column_index) == DataType::type_Table;
-    std::string tmp_column_name;
     size_t j = 0;
     while (true) {
         std::ostringstream ss;
         ss << std::string("__TMP__") << j;
         std::string str = ss.str();
-        StringData sd(str);
+        StringData tmp_column_name(str);
         if (table->get_column_index(sd) == realm::not_found) {
             if (is_subtable) {
                 DataType original_type = table->get_subdescriptor(column_index)->get_column_type(0);
-                table->insert_column(column_index, type_Table, sd, true);
+                table->insert_column(column_index, type_Table, tmp_column_name, true);
                 table->get_subdescriptor(column_index)->add_column(original_type, ObjectStore::ArrayColumnName, nullptr, nullable);
             }
             else {
-                table->insert_column(column_index, column_type, sd, nullable);
+                table->insert_column(column_index, column_type, tmp_column_name, nullable);
             }
-
-            tmp_column_name = ss.str();
             break;
         }
         j++;
