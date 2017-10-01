@@ -1,3 +1,13 @@
+## 3.7.3 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Added support for ISO8601 2-digit time zone designators (#5309).
+
+### Credits
+
+Thanks to @JussiPekonen for adding support for 2-digit time zone designators when importing JSON (#5309).
+
 ## 3.7.2 (2017-09-12)
 
 ### Bug Fixes
