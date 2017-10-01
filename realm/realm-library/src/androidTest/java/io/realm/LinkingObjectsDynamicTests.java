@@ -174,11 +174,6 @@ public class LinkingObjectsDynamicTests {
         for (RealmFieldType fieldType : RealmFieldType.values()) {
             try {
                 switch (fieldType) {
-                    // skip unsupported types
-                    case UNSUPPORTED_TABLE: // fall-through
-                    case UNSUPPORTED_MIXED: // fall-through
-                    case UNSUPPORTED_DATE:
-                        continue;
                     // skip valid types
                     case OBJECT: // fall-through
                     case LIST:
