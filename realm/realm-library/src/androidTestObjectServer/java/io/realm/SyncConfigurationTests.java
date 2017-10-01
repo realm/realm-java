@@ -34,7 +34,6 @@ import java.util.Map;
 
 import io.realm.entities.StringOnly;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.TestSyncConfigurationFactory;
 
 import static io.realm.util.SyncTestUtils.createNamedTestUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
