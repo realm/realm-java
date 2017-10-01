@@ -113,8 +113,6 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 return (E) getObject(fieldName);
             case LIST:
                 return (E) getList(fieldName);
-            case UNSUPPORTED_TABLE:
-            case UNSUPPORTED_MIXED:
             default:
                 throw new IllegalStateException("Field type not supported: " + type);
         }
@@ -395,8 +393,6 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DATE:
                 return proxyState.getRow$realm().isNull(columnIndex);
             case LIST:
-            case UNSUPPORTED_TABLE:
-            case UNSUPPORTED_MIXED:
             default:
                 return false;
         }
@@ -970,8 +966,6 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName();
                     sb.append(String.format(Locale.US, "RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getList(columnIndex).size()));
                     break;
-                case UNSUPPORTED_TABLE:
-                case UNSUPPORTED_MIXED:
                 default:
                     sb.append("?");
                     break;
