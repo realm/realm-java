@@ -349,7 +349,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * NOTE: Only for internal usage. Maybe change without warning.
+     * NOTE: Only for internal usage. May change without warning.
      *
      * Returns the stop policy for the session for this Realm once the Realm has been closed.
      *
