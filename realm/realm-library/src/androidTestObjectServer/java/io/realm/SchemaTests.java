@@ -28,7 +28,6 @@ import org.junit.runner.RunWith;
 import java.util.Set;
 
 import io.realm.entities.StringOnly;
-import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
 import static junit.framework.Assert.assertEquals;
