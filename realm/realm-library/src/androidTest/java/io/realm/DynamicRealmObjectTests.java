@@ -1024,6 +1024,21 @@ public class DynamicRealmObjectTests {
     }
 
     @Test
+    public void setList_objectsOwnList() {
+        dynamicRealm.beginTransaction();
+
+        // Test model classes
+        int originalSize = dObjDynamic.getList(AllJavaTypes.FIELD_LIST).size();
+        dObjDynamic.setList(AllJavaTypes.FIELD_LIST, dObjDynamic.getList(AllJavaTypes.FIELD_LIST));
+        assertEquals(originalSize, dObjDynamic.getList(AllJavaTypes.FIELD_LIST).size());
+
+        // Smoke test value lists
+        originalSize = dObjDynamic.getList(AllJavaTypes.FIELD_STRING_LIST, String.class).size();
+        dObjDynamic.setList(AllJavaTypes.FIELD_STRING_LIST, dObjDynamic.getList(AllJavaTypes.FIELD_STRING_LIST, String.class));
+        assertEquals(originalSize, dObjDynamic.getList(AllJavaTypes.FIELD_STRING_LIST, String.class).size());
+    }
+
+    @Test
     public void untypedSetter_listWrongTypeThrows() {
         realm.beginTransaction();
         AllTypes wrongObj = realm.createObject(AllTypes.class);

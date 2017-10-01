@@ -17,6 +17,7 @@ package io.realm;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Locale;
 
 import javax.annotation.Nonnull;
@@ -857,11 +858,55 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             default:
                 throw new IllegalArgumentException("Unsupported type: " + elementType);
         }
+        final ManagedListOperator<?> operator = getOperator(proxyState.getRealm$realm(), osList, elementType, elementClass);
 
-        //noinspection MismatchedQueryAndUpdateOfCollection
-        RealmList<E> managedList = new RealmList<>(elementClass, osList, proxyState.getRealm$realm());
-        managedList.clear();
-        managedList.addAll(list);
+        if (list.isManaged() && osList.size() == list.size()) {
+            // There is a chance that the source list and the target list are the same list in the same object.
+            // In this case, we can't use removeAll().
+            final int size = list.size();
+            final Iterator<?> iterator = list.iterator();
+            for (int i = 0; i < size; i++) {
+                @Nullable
+                final Object value = iterator.next();
+                operator.set(i, value);
+            }
+        }  else {
+            osList.removeAll();
+            for (Object value : list) {
+                operator.append(value);
+            }
+        }
+    }
+
+    private <E> ManagedListOperator<E> getOperator(BaseRealm realm, OsList osList, RealmFieldType valueListType, Class<E> valueClass) {
+        if (valueListType == RealmFieldType.STRING_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new StringListOperator(realm, osList, (Class<String>) valueClass);
+        }
+        if (valueListType == RealmFieldType.INTEGER_LIST) {
+            return new LongListOperator<>(realm, osList, valueClass);
+        }
+        if (valueListType == RealmFieldType.BOOLEAN_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new BooleanListOperator(realm, osList, (Class<Boolean>) valueClass);
+        }
+        if (valueListType == RealmFieldType.BINARY_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new BinaryListOperator(realm, osList, (Class<byte[]>) valueClass);
+        }
+        if (valueListType == RealmFieldType.DOUBLE_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new DoubleListOperator(realm, osList, (Class<Double>) valueClass);
+        }
+        if (valueListType == RealmFieldType.FLOAT_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new FloatListOperator(realm, osList, (Class<Float>) valueClass);
+        }
+        if (valueListType == RealmFieldType.DATE_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new DateListOperator(realm, osList, (Class<Date>) valueClass);
+        }
+        throw new IllegalArgumentException("Unexpected list type: " + valueListType.name());
     }
 
     /**
@@ -1016,8 +1061,6 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     break;
                 case BINARY:
                     sb.append(Arrays.toString(proxyState.getRow$realm().getBinaryByteArray(columnIndex)));
-                    break;
-                case UNSUPPORTED_DATE:
                     break;
                 case DATE:
                     sb.append(proxyState.getRow$realm().isNull(columnIndex) ? "null" : proxyState.getRow$realm().getDate(columnIndex));
