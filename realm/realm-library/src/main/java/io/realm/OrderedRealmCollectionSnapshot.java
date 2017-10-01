@@ -172,7 +172,7 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
     public void deleteFromRealm(int location) {
         realm.checkIfValidAndInTransaction();
         final Collection collection = getCollection();
-        if (forValue()) {
+        if (forModelClasses()) {
             collection.delete(location);
             return;
         }
@@ -191,7 +191,7 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
      */
     @Override
     public boolean deleteFirstFromRealm() {
-        if (forValue()) {
+        if (forModelClasses()) {
             return super.deleteFirstFromRealm();
         }
         realm.checkIfValidAndInTransaction();
@@ -208,8 +208,8 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
      */
     @Override
     public boolean deleteLastFromRealm() {
-        if (forValue()) {
-            return super.deleteFirstFromRealm();
+        if (forModelClasses()) {
+            return super.deleteLastFromRealm();
         }
         realm.checkIfValidAndInTransaction();
         final Collection collection = getCollection();

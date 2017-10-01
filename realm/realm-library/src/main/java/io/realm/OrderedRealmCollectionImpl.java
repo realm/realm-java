@@ -9,7 +9,6 @@ import java.util.Locale;
 
 import javax.annotation.Nullable;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Collection;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
@@ -60,8 +59,8 @@ abstract class OrderedRealmCollectionImpl<E>
         return collectionOperator.getCollection();
     }
 
-    boolean forValue() {
-        return collectionOperator.forValue();
+    boolean forModelClasses() {
+        return collectionOperator.forModelClasses();
     }
 
     /**
@@ -652,7 +651,7 @@ abstract class OrderedRealmCollectionImpl<E>
             return collection;
         }
 
-        abstract boolean forValue();
+        abstract boolean forModelClasses();
 
         final Table getTargetTable() {
             return collection.getTable();
@@ -701,7 +700,7 @@ abstract class OrderedRealmCollectionImpl<E>
         }
 
         @Override
-        boolean forValue() {
+        boolean forModelClasses() {
             return true;
         }
 
@@ -720,7 +719,7 @@ abstract class OrderedRealmCollectionImpl<E>
         }
 
         @Override
-        boolean forValue() {
+        boolean forModelClasses() {
             return false;
         }
 
@@ -738,7 +737,7 @@ abstract class OrderedRealmCollectionImpl<E>
         }
 
         @Override
-        boolean forValue() {
+        boolean forModelClasses() {
             return false;
         }
 
@@ -778,7 +777,7 @@ abstract class OrderedRealmCollectionImpl<E>
         }
 
         @Override
-        boolean forValue() {
+        boolean forModelClasses() {
             return false;
         }
 
@@ -796,7 +795,7 @@ abstract class OrderedRealmCollectionImpl<E>
         }
 
         @Override
-        boolean forValue() {
+        boolean forModelClasses() {
             return false;
         }
 
@@ -814,7 +813,7 @@ abstract class OrderedRealmCollectionImpl<E>
         }
 
         @Override
-        boolean forValue() {
+        boolean forModelClasses() {
             return false;
         }
 
@@ -832,7 +831,7 @@ abstract class OrderedRealmCollectionImpl<E>
         }
 
         @Override
-        boolean forValue() {
+        boolean forModelClasses() {
             return false;
         }
 
@@ -850,7 +849,7 @@ abstract class OrderedRealmCollectionImpl<E>
         }
 
         @Override
-        boolean forValue() {
+        boolean forModelClasses() {
             return false;
         }
 
