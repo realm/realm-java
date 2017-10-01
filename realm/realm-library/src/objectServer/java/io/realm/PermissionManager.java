@@ -902,15 +902,9 @@ public class PermissionManager implements Closeable {
                                         @Override
                                         public void onChange(RealmResults<Permission> permissions) {
                                             if (!permissions.isEmpty()) {
-                                                // Workaround for https://github.com/realm/ros/issues/417
-                                                // It doesn't make sense for a Token to issue NONE as
-                                                // a permission, so treat `read=true` as the permission
-                                                // has been successfully written.
-                                                Permission permission = permissions.first();
-                                                if (permission.mayRead()) {
-                                                    grantedPermissionResults.removeChangeListener(this);
-                                                    notifyCallbackWithSuccess(managedResponse.getRealmUrl(), permission);
-                                                }
+                                                grantedPermissionResults.removeChangeListener(this);
+                                                //noinspection ConstantConditions
+                                                notifyCallbackWithSuccess(managedResponse.getRealmUrl(), permissions.first());
                                             }
                                         }
                                     });
