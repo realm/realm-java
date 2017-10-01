@@ -433,6 +433,9 @@ public class Realm extends BaseRealm {
      * JSON properties with unknown properties will be ignored. If a {@link RealmObject} field is not present in the
      * JSON object the {@link RealmObject} field will be set to the default value for that type.
      *
+     * <p>
+     * This method currently does not support value list field.
+     *
      * @param clazz type of Realm objects to create.
      * @param json an array where each JSONObject must map to the specified class.
      * @throws RealmException if mapping from JSON fails.
@@ -461,6 +464,9 @@ public class Realm extends BaseRealm {
      * If updating a {@link RealmObject} and a field is not found in the JSON object, that field will not be updated. If
      * a new {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned the
      * default value for the field type.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json array with object data.
@@ -491,6 +497,9 @@ public class Realm extends BaseRealm {
      * JSON properties with unknown properties will be ignored. If a {@link RealmObject} field is not present in the
      * JSON object the {@link RealmObject} field will be set to the default value for that type.
      *
+     * <p>
+     * This method currently does not support value list field.
+     *
      * @param clazz type of Realm objects to create.
      * @param json the JSON array as a String where each object can map to the specified class.
      * @throws RealmException if mapping from JSON fails.
@@ -519,6 +528,9 @@ public class Realm extends BaseRealm {
      * If updating a {@link RealmObject} and a field is not found in the JSON object, that field will not be updated.
      * If a new {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned
      * the default value for the field type.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json string with an array of JSON objects.
@@ -552,6 +564,9 @@ public class Realm extends BaseRealm {
      * JSON object the {@link RealmObject} field will be set to the default value for that type.
      * <p>
      * This API is only available in API level 11 or later.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of Realm objects created.
      * @param inputStream the JSON array as a InputStream. All objects in the array must be of the specified class.
@@ -588,6 +603,9 @@ public class Realm extends BaseRealm {
      * the default value for the field type.
      * <p>
      * This API is only available in API level 11 or later.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the InputStream with a list of object data in JSON format.
@@ -629,6 +647,9 @@ public class Realm extends BaseRealm {
      * properties with unknown properties will be ignored. If a {@link RealmObject} field is not present in the JSON
      * object the {@link RealmObject} field will be set to the default value for that type.
      *
+     * <p>
+     * This method currently does not support value list field.
+     *
      * @param clazz type of Realm object to create.
      * @param json the JSONObject with object data.
      * @return created object or {@code null} if no JSON data was provided.
@@ -658,6 +679,9 @@ public class Realm extends BaseRealm {
      * and a field is not found in the JSON object, that field will not be updated. If a new {@link RealmObject} is
      * created and a field is not found in the JSON object, that field will be assigned the default value for the field type.
      *
+     * <p>
+     * This method currently does not support value list field.
+     *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json {@link org.json.JSONObject} with object data.
      * @return created or updated {@link io.realm.RealmObject}.
@@ -685,6 +709,9 @@ public class Realm extends BaseRealm {
      * Creates a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
      * properties with unknown properties will be ignored. If a {@link RealmObject} field is not present in the JSON
      * object the {@link RealmObject} field will be set to the default value for that type.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of Realm object to create.
      * @param json the JSON string with object data.
@@ -716,6 +743,9 @@ public class Realm extends BaseRealm {
      * {@link RealmObject} and a field is not found in the JSON object, that field will not be updated. If a new
      * {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned the
      * default value for the field type.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json string with object data in JSON format.
@@ -750,6 +780,9 @@ public class Realm extends BaseRealm {
      * object the {@link RealmObject} field will be set to the default value for that type.
      * <p>
      * This API is only available in API level 11 or later.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of Realm object to create.
      * @param inputStream the JSON object data as a InputStream.
@@ -805,6 +838,9 @@ public class Realm extends BaseRealm {
      * default value for the field type.
      * <p>
      * This API is only available in API level 11 or later.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the {@link InputStream} with object data in JSON format.

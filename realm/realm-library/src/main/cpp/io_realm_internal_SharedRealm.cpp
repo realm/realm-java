@@ -22,7 +22,7 @@
 #include "object-store/src/results.hpp"
 #include "object-store/src/sync/partial_sync.hpp"
 
-#include "results_wrapper"
+#include "observable_collection_wrapper.hpp"
 #endif
 
 #include <realm/util/assert.hpp>
@@ -44,6 +44,10 @@ using namespace realm::_impl;
 using namespace realm::jni_util;
 
 static const char* c_table_name_exists_exception_msg = "Class already exists: '%1'.";
+
+#if REALM_ENABLE_SYNC // used only for partial sync now
+typedef ObservableCollectionWrapper<Results> ResultsWrapper;
+#endif
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv* env, jclass,
                                                                      jstring temporary_directory_path)

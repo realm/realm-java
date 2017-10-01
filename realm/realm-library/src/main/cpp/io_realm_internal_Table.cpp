@@ -17,8 +17,8 @@
 #include <sstream>
 
 #include "util.hpp"
+#include "io_realm_internal_Property.h"
 #include "io_realm_internal_Table.h"
-#include "tablebase_tpl.hpp"
 
 #include "shared_realm.hpp"
 #include "util/format.hpp"
@@ -173,8 +173,14 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
         ThrowException(env, UnsupportedOperation, "Not allowed to convert field in subtable.");
         return JNI_FALSE;
     }
-    size_t column_index = S(columnIndex);
-    return to_jbool(table->is_nullable(column_index));
+
+    if (table->get_column_type(S(columnIndex)) != type_Table) {
+        // for other than primitive list (including object, object list).
+        return to_jbool(table->is_nullable(S(columnIndex))); // noexcept
+    }
+    // For primitive list
+    // FIXME: Add test in https://github.com/realm/realm-java/pull/5221 before merging to master
+    return to_jbool(table->get_descriptor()->get_subdescriptor(S(columnIndex))->is_nullable(S(0))); // noexcept
 }
 
 
@@ -513,7 +519,16 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv* 
         return 0;
     }
 
-    return static_cast<jint>(TBL(nativeTablePtr)->get_column_type(S(columnIndex))); // noexcept
+    auto column_type = TBL(nativeTablePtr)->get_column_type(S(columnIndex)); // noexcept
+    if (column_type != type_Table) {
+        // For other than primitive list (including object, object list).
+        return static_cast<jint>(column_type);
+    }
+    // For primitive list
+    // FIXME: Add test in https://github.com/realm/realm-java/pull/5221 before merging to master
+    // FIXME: Add method in Object Store to return a PropertyType.
+    return static_cast<jint>(TBL(nativeTablePtr)->get_descriptor()->get_subdescriptor(S(columnIndex))->get_column_type(S(0))
+                             + io_realm_internal_Property_TYPE_ARRAY); // noexcept
 }
 
 
@@ -618,8 +633,13 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeGetByteArray(JNI
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Binary)) {
         return nullptr;
     }
+    try {
+        realm::BinaryData bin = TBL(nativeTablePtr)->get_binary(S(columnIndex), S(rowIndex));
+        return JavaClassGlobalDef::new_byte_array(env, bin);
+    }
+    CATCH_STD()
 
-    return tbl_GetByteArray<Table>(env, nativeTablePtr, columnIndex, rowIndex); // noexcept
+    return nullptr;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLink(JNIEnv* env, jobject, jlong nativeTablePtr,
