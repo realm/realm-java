@@ -1,4 +1,4 @@
-package io.realm.objectserver;
+package io.realm;
 
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -16,22 +16,12 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
-import io.realm.Realm;
-import io.realm.RealmChangeListener;
-import io.realm.RealmResults;
-import io.realm.StandardIntegrationTest;
-import io.realm.SyncConfiguration;
-import io.realm.SyncCredentials;
-import io.realm.SyncManager;
-import io.realm.SyncSession;
-import io.realm.SyncUser;
-import io.realm.TestHelper;
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
+import io.realm.internal.OsRealmConfig;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.rule.TestSyncConfigurationFactory;
 import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
@@ -327,6 +317,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
         final SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED)
                 .modules(new StringOnlyModule())
                 .build();
         Realm realm = Realm.getInstance(syncConfiguration);
