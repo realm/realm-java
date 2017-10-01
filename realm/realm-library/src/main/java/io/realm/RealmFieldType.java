@@ -72,9 +72,6 @@ public enum RealmFieldType {
     BOOLEAN(CORE_TYPE_VALUE_BOOLEAN),
     STRING(CORE_TYPE_VALUE_STRING),
     BINARY(CORE_TYPE_VALUE_BINARY),
-    UNSUPPORTED_TABLE(CORE_TYPE_VALUE_UNSUPPORTED_TABLE),
-    UNSUPPORTED_MIXED(CORE_TYPE_VALUE_UNSUPPORTED_MIXED),
-    UNSUPPORTED_DATE(CORE_TYPE_VALUE_UNSUPPORTED_DATE),
     DATE(CORE_TYPE_VALUE_DATE),
     FLOAT(CORE_TYPE_VALUE_FLOAT),
     DOUBLE(CORE_TYPE_VALUE_DOUBLE),
@@ -137,11 +134,6 @@ public enum RealmFieldType {
                 return (obj instanceof String);
             case CORE_TYPE_VALUE_BINARY:
                 return (obj instanceof byte[] || obj instanceof ByteBuffer);
-            case CORE_TYPE_VALUE_UNSUPPORTED_TABLE:
-                //noinspection ConstantConditions
-                return (obj == null || obj instanceof Object[][]);
-            case CORE_TYPE_VALUE_UNSUPPORTED_DATE:
-                return (obj instanceof java.util.Date); // The unused DateTime.
             case CORE_TYPE_VALUE_DATE:
                 return (obj instanceof java.util.Date);
             case CORE_TYPE_VALUE_FLOAT:
