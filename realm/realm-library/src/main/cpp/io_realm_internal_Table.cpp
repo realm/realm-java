@@ -217,7 +217,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
 // 5. search indexing must be preserved
 // 6. removing the original column and renaming the temporary column will make it look like original is being modified
 
-// Convert a tables values to allow for nullable values
+// Converts a table to allow for nullable values
 // Works on both normal table columns and sub tables
 static void convert_column_to_nullable(JNIEnv* env, Table* old_table, size_t old_col_ndx, Table* new_table, size_t new_col_ndx, bool is_primary_key)
 {
@@ -529,7 +529,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         }
 
         // 3. Delete old values
-        // TODO Depends on implementation details in create_new_column
         table->remove_column(column_index + 1);
         table->rename_column(column_index, column_name);
     }
